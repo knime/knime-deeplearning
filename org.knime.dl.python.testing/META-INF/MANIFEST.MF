@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Deep Learning - Python Bindings Testing (Labs)
+Bundle-SymbolicName: org.knime.dl.python.testing;singleton:=true
+Bundle-Version: 3.4.0.qualifier
+Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Fragment-Host: org.knime.dl.python;bundle-version="3.4.0.qualifier"
+Require-Bundle: org.junit,
+ org.knime.testing,
+ org.apache.commons.lang3,
+ org.knime.dl
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ClassPath: .

@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Deep Learning - Keras Integration
+Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
+Bundle-Version: 3.4.0.qualifier
+Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Require-Bundle: org.knime.base,
+ org.knime.core,
+ org.knime.dl,
+ org.knime.python2,
+ org.apache.commons.lang3,
+ org.knime.dl.python
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Export-Package: org.knime.dl.keras.core,
+ org.knime.dl.keras.core.data,
+ org.knime.dl.keras.core.execution,
+ org.knime.dl.keras.core.io

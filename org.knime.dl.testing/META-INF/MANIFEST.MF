@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Deep Learning - Core Testing (Labs)
+Bundle-SymbolicName: org.knime.dl.testing;singleton:=true
+Bundle-Version: 3.4.0.qualifier
+Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Fragment-Host: org.knime.dl;bundle-version="3.4.0.qualifier"
+Require-Bundle: org.junit,
+ org.knime.testing
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ClassPath: .

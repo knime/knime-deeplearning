@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Deep Learning - Python Backend
+Bundle-SymbolicName: org.knime.dl.python;singleton:=true
+Bundle-Version: 3.4.0.qualifier
+Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Require-Bundle: org.knime.python2,
+ org.knime.core,
+ org.knime.dl,
+ org.knime.python,
+ org.apache.commons.lang3,
+ com.google.guava,
+ org.knime.python2.nodes,
+ org.knime.base,
+ org.knime.workbench.repository;bundle-version="3.4.0",
+ org.knime.python.typeextensions
+Export-Package: org.knime.dl.python.core.data,
+ org.knime.dl.python.core.data.serde,
+ org.knime.dl.python.core.kernel,
+ org.knime.dl.python.node.predictor

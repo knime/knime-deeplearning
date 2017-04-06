@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkerasreader.png" deprecated="false" type="Source"
+	xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+	<name>DL Keras Network Reader</name>
+	<shortDescription>
+		Reads a Keras model from an input file.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			This node reads a Keras deep learning model from an input file.
+			The file can either contain a full, pre-trained model (.h5 file) or
+			just a model specification without weights (.json or .yaml file).
+		</intro>
+		<option name="Input Location">The path of the input file that contains the Keras
+			network.
+		</option>
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="Deep Learning Network">The Keras deep learning model.
+		</outPort>
+	</ports>
+</knimeNode>

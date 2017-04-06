@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Deep Learning - Core
+Bundle-SymbolicName: org.knime.dl;singleton:=true
+Bundle-Version: 3.4.0.qualifier
+Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Require-Bundle: org.knime.core,
+ org.knime.base,
+ org.knime.workbench.repository,
+ com.google.guava
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Export-Package: org.knime.dl.base,
+ org.knime.dl.base.portobjects,
+ org.knime.dl.core,
+ org.knime.dl.core.backend,
+ org.knime.dl.core.data,
+ org.knime.dl.core.data.convert.input,
+ org.knime.dl.core.data.convert.output,
+ org.knime.dl.core.data.writables,
+ org.knime.dl.core.execution,
+ org.knime.dl.core.io,
+ org.knime.dl.util
