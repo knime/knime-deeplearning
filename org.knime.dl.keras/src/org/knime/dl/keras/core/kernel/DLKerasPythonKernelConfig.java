@@ -81,6 +81,7 @@ public class DLKerasPythonKernelConfig extends DLPythonKernelConfig {
         return readSnippet(snippetPath).trim().concat("" + batchSize);
     }
 
+    // TODO: multiple columns are already possible on Python side, adapt here
     public String getExecuteCode(final String singleOutputColumnName) throws IOException {
         final String snippetPath = getFile("/py/model_execute.py").getAbsolutePath();
         return "output_column_name = '" + singleOutputColumnName + "'\n" + readSnippet(snippetPath);
@@ -95,6 +96,7 @@ public class DLKerasPythonKernelConfig extends DLPythonKernelConfig {
     }
 
     private static String prependModelLoadPath(final String loadPath, final String snippetCode) {
-        return MODEL_LOAD_PATH_NAME + " = '" + loadPath + "'\n" + snippetCode;
+        // 'r' interprets the loadPath as raw string. This is needed to properly handle Windows path separators.
+        return MODEL_LOAD_PATH_NAME + " = r'" + loadPath + "'\n" + snippetCode;
     }
 }

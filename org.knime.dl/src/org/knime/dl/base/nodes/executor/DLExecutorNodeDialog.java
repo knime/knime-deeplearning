@@ -233,18 +233,19 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
                     if (spec.isPresent()) {
                         m_outputPanels.put(key, createOutputPanel(spec.get(), m_generalCfg.getBackendModel()));
                     }
-                    // TODO: disable 'add output' button when all available
-                    // outputs
-                    // were loaded
                 }
             }
-
             for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
-                m_outputPanels.get(outputPanel.m_cfg.getOutputLayerDataName()).loadFromSettings(tmp, specs);
+                m_outputPanels.get(outputPanel.m_cfg.getOutputLayerDataName())
+                    .loadFromSettings(tmp.getNodeSettings(outputPanel.m_cfg.getOutputLayerDataName()), specs);
             }
-
         } catch (final Exception e) {
             m_outputPanels.clear();
+        }
+
+        if (m_outputPanels.size() == networkSpec.getIntermediateOutputSpecs().length
+            + networkSpec.getOutputSpecs().length) {
+            m_outputsAddBtn.setEnabled(false);
         }
     }
 

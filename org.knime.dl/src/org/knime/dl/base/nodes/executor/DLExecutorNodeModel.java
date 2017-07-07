@@ -363,7 +363,13 @@ final class DLExecutorNodeModel extends NodeModel {
                             for (int j = 0; j < batch.size(); j++) {
                                 final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
                                 for (final int c : entry.getSecond()) {
-                                    cells.add(batch.get(j).getCell(c));
+                                    final DataCell cell = batch.get(j).getCell(c);
+                                    // TODO: we could also allow some missing value handling settings in the dialog.
+                                    if (cell.isMissing()) {
+                                        throw new RuntimeException(
+                                            "Missing cell in input row " + batch.get(j).getKey() + ".");
+                                    }
+                                    cells.add(cell);
                                 }
                                 temp.get(entry.getFirst())[j] = cells;
                             }
