@@ -4,12 +4,12 @@ Bundle-Name: KNIME Deep Learning - Keras Integration
 Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
 Bundle-Version: 3.4.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Require-Bundle: org.knime.base,
- org.knime.core,
- org.knime.dl,
- org.knime.python2,
- org.apache.commons.lang3,
- org.knime.dl.python
+Require-Bundle: org.knime.base;bundle-version="[3.4.0,4.0.0)",
+ org.knime.core;bundle-version="[3.4.0,4.0.0)",
+ org.knime.dl;bundle-version="[3.4.0,4.0.0)",
+ org.knime.python2;bundle-version="[3.4.0,4.0.0)",
+ org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
+ org.knime.dl.python;bundle-version="[3.4.0,4.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .

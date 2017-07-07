@@ -7,16 +7,16 @@ Bundle-Vendor: KNIME GmbH, Konstanz, Germany
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Require-Bundle: org.knime.python2,
- org.knime.core,
- org.knime.dl,
- org.knime.python,
- org.apache.commons.lang3,
- com.google.guava,
- org.knime.python2.nodes,
- org.knime.base,
- org.knime.workbench.repository;bundle-version="3.4.0",
- org.knime.python.typeextensions
+Require-Bundle: org.knime.python2;bundle-version="[3.4.0,4.0.0)",
+ org.knime.core;bundle-version="[3.4.0,4.0.0)",
+ org.knime.dl;bundle-version="[3.4.0,4.0.0)",
+ org.knime.python;bundle-version="[3.4.0,4.0.0)",
+ org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
+ com.google.guava;bundle-version="[19.0.0,19.0.0]",
+ org.knime.python2.nodes;bundle-version="[3.4.0,4.0.0)",
+ org.knime.base;bundle-version="[3.4.0,4.0.0)",
+ org.knime.workbench.repository;bundle-version="[3.4.0,4.0.0)",
+ org.knime.python.typeextensions;bundle-version="[3.4.0,4.0.0)"
 Export-Package: org.knime.dl.python.core.data,
  org.knime.dl.python.core.data.serde,
  org.knime.dl.python.core.kernel,

@@ -4,10 +4,10 @@ Bundle-Name: KNIME Deep Learning - Core
 Bundle-SymbolicName: org.knime.dl;singleton:=true
 Bundle-Version: 3.4.0.qualifier
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Require-Bundle: org.knime.core,
- org.knime.base,
- org.knime.workbench.repository,
- com.google.guava
+Require-Bundle: org.knime.core;bundle-version="[3.4.0,4.0.0)",
+ org.knime.base;bundle-version="[3.4.0,4.0.0)",
+ org.knime.workbench.repository;bundle-version="[3.4.0,4.0.0)",
+ com.google.guava;bundle-version="[19.0.0,19.0.0]"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
