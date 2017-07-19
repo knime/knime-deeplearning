@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.knime.dl" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.knime.dl" id="DLDataValueToInputAdapterFactory" name="DLDataValueToInputAdapterFactory"/>
+      </appInfo>
+      <documentation>
+         Extension point for deep learning adapter factories that create adapters which help to convert KNIME types into deep learning layer data types.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="DLDataValueToInputAdapterFactory"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="DLDataValueToInputAdapterFactory">
+      <complexType>
+         <attribute name="DLDataValueToInputAdapterFactory" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The adapter factory class that implements the DLDataValueToInputAdapterFactory interface. Must provide an empty public constructor.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.data.convert.input.DLDataValueToInputAdapterFactory"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         KNIME v3.4
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         Converter factory classes must implement the DLDataValueToLayerDataConverterFactory interface and provide an empty public constructor.
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright by KNIME GmbH, Konstanz, Germany
+Website: http://www.knime.org; Email: contact@knime.org
+      </documentation>
+   </annotation>
+
+</schema>

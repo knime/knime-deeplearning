@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+         point="org.knime.dl.DLBackend">
+      <DLBackend
+            DLBackend="org.knime.dl.keras.core.DLKerasDefaultBackend">
+      </DLBackend>
+   </extension>
+   <extension
+         point="org.knime.python2.modules">
+      <directory
+            path="py/">
+      </directory>
+   </extension>
+      <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/category.png"
+            level-id="keras"
+            locked="true"
+            name="Keras"
+            path="/labs/deeplearning">
+      </category>
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.reader.DLKerasReaderNodeFactory">
+      </node>
+  </extension>
+</plugin>

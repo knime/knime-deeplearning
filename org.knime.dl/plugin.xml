@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension-point id="DLBackend" name="DLBackend" schema="schema/org.knime.dl.DLBackend.exsd"/>
+   <extension-point id="DLDataValueToInputAdapterFactory" name="DLDataValueToInputAdapterFactory" schema="schema/org.knime.dl.DLDataValueToInputAdapterFactory.exsd"/>
+   <extension-point id="DLInputToLayerDataAdapterFactory" name="DLInputToLayerDataAdapterFactory" schema="schema/org.knime.dl.DLInputToLayerDataAdapterFactory.exsd"/>
+   <extension-point id="DLDataValueToLayerDataConverterFactory" name="DLDataValueToLayerDataConverterFactory" schema="schema/org.knime.dl.DLDataValueToLayerDataConverterFactory.exsd"/>
+   <extension-point id="DLLayerDataToOutputAdapterFactory" name="DLLayerDataToOutputAdapterFactory" schema="schema/org.knime.dl.DLLayerDataToOutputAdapterFactory.exsd"/>
+   <extension-point id="DLOutputToDataCellAdapterFactory" name="DLOutputToDataCellAdapterFactory" schema="schema/org.knime.dl.DLOutputToDataCellAdapterFactory.exsd"/>
+   <extension-point id="DLLayerDataToDataCellConverterFactory" name="DLLayerDataToDataCellConverterFactory" schema="schema/org.knime.dl.DLLayerDataToDataCellConverterFactory.exsd"/>
+   <extension
+         point="org.knime.core.PortType">
+      <portType
+            color="#8fb3c2"
+            hidden="false"
+            name="Deep Learning Network"
+            objectClass="org.knime.dl.base.portobjects.DLNetworkReferencePortObject"
+            objectSerializer="org.knime.dl.base.portobjects.DLNetworkReferencePortObject$DLNetworkReferencePortObjectSerializer"
+            specClass="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec"
+            specSerializer="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec$DLDefaultNetworkPortObjectSpecSerializer">
+      </portType>
+   </extension>
+      <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/category.png"
+            level-id="deeplearning"
+            locked="false"
+            name="Deep Learning"
+            path="/labs">
+      </category>
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
+            factory-class="org.knime.dl.base.nodes.executor.DLExecutorNodeFactory">
+      </node>
+   </extension>
+   <extension
+         point="org.knime.dl.DLDataValueToLayerDataConverterFactory">
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.input.DLBitVectorToBitLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.input.DLByteVectorToByteLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.input.DLDoubleValueToDoubleLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.input.DLDoubleValueToFloatLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.input.DLIntValueToIntLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+   </extension>
+   <extension
+         point="org.knime.dl.DLLayerDataToDataCellConverterFactory">
+      <DLLayerDataToDataCellConverterFactory
+            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.output.DLDoubleLayerDataToDoubleCellConverterFactory">
+      </DLLayerDataToDataCellConverterFactory>
+      <DLLayerDataToDataCellConverterFactory
+            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.output.DLIntLayerDataToIntCellConverterFactory">
+      </DLLayerDataToDataCellConverterFactory>
+      <DLLayerDataToDataCellConverterFactory
+            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.output.DLLongLayerDataToLongCellConverterFactory">
+      </DLLayerDataToDataCellConverterFactory>
+   </extension>
+</plugin>

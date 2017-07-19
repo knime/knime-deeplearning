@@ -1,0 +1,6 @@
+*/bin/
+*/target/
+*/build/
+*/.settings/
+
+*.pyc*
