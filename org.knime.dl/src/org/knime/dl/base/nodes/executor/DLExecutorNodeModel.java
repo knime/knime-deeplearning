@@ -48,12 +48,8 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -80,7 +76,6 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -130,11 +125,7 @@ final class DLExecutorNodeModel extends NodeModel {
 
     static final String CFG_KEY_INPUTS = "inputs";
 
-    static final String CFG_KEY_INPUTS_ARRAY = "inputs_data";
-
     static final String CFG_KEY_OUTPUTS = "outputs";
-
-    static final String CFG_KEY_OUTPUTS_ARRAY = "outputs_data";
 
     static final String CFG_KEY_OUTPUTS_ORDER = "outputs_ordered";
 
@@ -158,27 +149,6 @@ final class DLExecutorNodeModel extends NodeModel {
         return new SettingsModelStringArray(CFG_KEY_OUTPUTS_ORDER, new String[outputsCount]);
     }
 
-    static void saveAsBytesArray(final NodeSettings tmp, final NodeSettingsWO outputSettings, final String key) {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(bytes)) {
-            tmp.writeToFile(oos);
-            outputSettings.addByteArray(key, bytes.toByteArray());
-        } catch (final IOException e) {
-            // no op
-        }
-    }
-
-    static NodeSettings loadFromBytesArray(final NodeSettingsRO inputSettings, final String key)
-        throws InvalidSettingsException {
-        final byte[] array = inputSettings.getByteArray(key);
-        try (ByteArrayInputStream bytes = new ByteArrayInputStream(array);
-                ObjectInputStream stream = new ObjectInputStream(bytes)) {
-            return NodeSettings.readFromFile(stream);
-        } catch (final IOException e) {
-            throw new InvalidSettingsException(e);
-        }
-    }
-
     private final DLGeneralModelConfig m_generalCfg;
 
     private final HashMap<String, DLInputLayerDataModelConfig> m_inputCfgs;
@@ -193,11 +163,20 @@ final class DLExecutorNodeModel extends NodeModel {
 
     private LinkedHashMap<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> m_outputConverters;
 
+    private DLNetworkSpec m_lastIncomingNetworkSpec;
+
+    private DLNetworkSpec m_lastConfiguredNetworkSpec;
+
+    private boolean m_initialLoaded;
+
     DLExecutorNodeModel() {
         super(new PortType[]{DLNetworkPortObject.TYPE, BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE});
         m_generalCfg = createGeneralModelConfig();
         m_inputCfgs = new HashMap<>();
         m_outputCfgs = new HashMap<>();
+        m_lastIncomingNetworkSpec = null;
+        m_lastConfiguredNetworkSpec = null;
+        m_initialLoaded = false;
     }
 
     /**
@@ -241,9 +220,14 @@ final class DLExecutorNodeModel extends NodeModel {
         if (!(portObject instanceof DLNetworkPortObject)) {
             throw new RuntimeException("Unsupported deep learning network type at input port.");
         }
+
         final DLNetwork network = ((DLNetworkPortObject)portObject).getNetwork();
         final DLNetworkSpec networkSpec = network.getSpec();
         final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
+
+        if (inDataSpec.getNumColumns() == 0) {
+            throw new RuntimeException("Input table has no columns.");
+        }
 
         final boolean inDataHasSize;
         final long inDataSize;
@@ -380,9 +364,45 @@ final class DLExecutorNodeModel extends NodeModel {
      */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        if (inSpecs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
+            throw new InvalidSettingsException("Input deep learning network port object is missing.");
+        }
+        if (inSpecs[DLExecutorNodeModel.IN_DATA_PORT_IDX] == null) {
+            throw new InvalidSettingsException("Input data table is missing.");
+        }
+        if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(inSpecs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX])) {
+            throw new InvalidSettingsException("Input port object is not a valid deep learning network port object.");
+        }
+
         final DLNetworkPortObjectSpec portObjectSpec = ((DLNetworkPortObjectSpec)inSpecs[IN_NETWORK_PORT_IDX]);
         final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
         final DataTableSpec inDataSpec = ((DataTableSpec)inSpecs[IN_DATA_PORT_IDX]);
+
+        if (networkSpec == null) {
+            throw new InvalidSettingsException("Input port object's deep learning network specs are missing.");
+        }
+        if (portObjectSpec.getProfile() == null) {
+            throw new InvalidSettingsException("Input port object's deep learning profile is missing.");
+        }
+        if (networkSpec.getInputSpecs().length == 0) {
+            LOGGER.warn("Input deep learning network has no input specs.");
+        }
+        if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getIntermediateOutputSpecs().length == 0) {
+            LOGGER.warn("Input deep learning network has no output specs.");
+        }
+        if (portObjectSpec.getProfile().size() == 0) {
+            throw new InvalidSettingsException("Input deep learning network has no associated back end.");
+        }
+
+        m_lastIncomingNetworkSpec = networkSpec;
+
+        if (m_lastConfiguredNetworkSpec != null) {
+            if (!m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec)) {
+                throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
+            }
+        } else if (m_initialLoaded) {
+            m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
+        }
 
         configureGeneral(portObjectSpec.getProfile());
         configureInputs(networkSpec);
@@ -433,22 +453,14 @@ final class DLExecutorNodeModel extends NodeModel {
         m_generalCfg.saveToSettings(settings);
 
         final NodeSettingsWO inputSettings = settings.addNodeSettings(CFG_KEY_INPUTS);
-        NodeSettings tmp = new NodeSettings("tmp");
         for (final DLInputLayerDataModelConfig inputCfg : m_inputCfgs.values()) {
-            final NodeSettings child = new NodeSettings(inputCfg.getInputLayerDataName());
-            inputCfg.saveToSettings(child);
-            tmp.addNodeSettings(child);
+            inputCfg.saveToSettings(inputSettings);
         }
-        saveAsBytesArray(tmp, inputSettings, CFG_KEY_INPUTS_ARRAY);
 
         final NodeSettingsWO outputSettings = settings.addNodeSettings(CFG_KEY_OUTPUTS);
-        tmp = new NodeSettings("tmp");
         for (final DLOutputLayerDataModelConfig outputCfg : m_outputCfgs.values()) {
-            final NodeSettings child = new NodeSettings(outputCfg.getOutputLayerDataName());
-            outputCfg.saveToSettings(child);
-            tmp.addNodeSettings(child);
+            outputCfg.saveToSettings(outputSettings);
         }
-        saveAsBytesArray(tmp, outputSettings, CFG_KEY_OUTPUTS_ARRAY);
 
         if (m_outputOrder != null) {
             m_outputOrder.saveSettingsTo(settings);
@@ -464,22 +476,20 @@ final class DLExecutorNodeModel extends NodeModel {
 
         m_inputCfgs.clear();
         final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
-        NodeSettings tmp = loadFromBytesArray(inputSettings, CFG_KEY_INPUTS_ARRAY);
-        if (m_inputCfgs.size() == 0) {
-            for (final String layerName : tmp) {
-                m_inputCfgs.put(layerName, createInputLayerDataModelConfig(layerName, m_generalCfg.getBackendModel()));
-                m_inputCfgs.get(layerName).validateSettings(tmp.getNodeSettings(layerName));
-            }
+        for (final String layerName : inputSettings) {
+            final DLInputLayerDataModelConfig inputCfg =
+                createInputLayerDataModelConfig(layerName, m_generalCfg.getBackendModel());
+            m_inputCfgs.put(layerName, inputCfg);
+            inputCfg.validateSettings(inputSettings);
         }
 
         m_outputCfgs.clear();
         final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
-        tmp = loadFromBytesArray(outputSettings, CFG_KEY_OUTPUTS_ARRAY);
-        for (final String key : tmp) {
+        for (final String layerName : outputSettings) {
             final DLOutputLayerDataModelConfig outputCfg =
-                createOutputLayerDataModelConfig(key, m_generalCfg.getBackendModel());
-            m_outputCfgs.put(key, outputCfg);
-            outputCfg.validateSettings(tmp.getNodeSettings(key));
+                createOutputLayerDataModelConfig(layerName, m_generalCfg.getBackendModel());
+            m_outputCfgs.put(layerName, outputCfg);
+            outputCfg.validateSettings(outputSettings);
         }
 
         m_outputOrder = createOutputOrderSettingsModel(m_outputCfgs.size());
@@ -493,17 +503,19 @@ final class DLExecutorNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_generalCfg.loadFromSettings(settings);
         final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
-        NodeSettings tmp = loadFromBytesArray(inputSettings, CFG_KEY_INPUTS_ARRAY);
         for (final DLInputLayerDataModelConfig inputCfg : m_inputCfgs.values()) {
-            inputCfg.loadFromSettings(tmp.getNodeSettings(inputCfg.getInputLayerDataName()));
+            inputCfg.loadFromSettings(inputSettings);
         }
 
         final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
-        tmp = loadFromBytesArray(outputSettings, CFG_KEY_OUTPUTS_ARRAY);
         for (final DLOutputLayerDataModelConfig outputCfg : m_outputCfgs.values()) {
-            outputCfg.loadFromSettings(tmp.getNodeSettings(outputCfg.getOutputLayerDataName()));
+            outputCfg.loadFromSettings(outputSettings);
         }
+
         m_outputOrder.loadSettingsFrom(settings);
+
+        m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
+        m_initialLoaded = true;
     }
 
     /**

@@ -130,11 +130,11 @@ public interface DLLayerDataSpec {
      * {@inheritDoc}
      */
     @Override
-    boolean equals(Object obj);
+    int hashCode();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    int hashCode();
+    boolean equals(Object obj);
 }

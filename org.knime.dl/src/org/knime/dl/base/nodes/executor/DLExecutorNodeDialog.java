@@ -77,7 +77,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -147,12 +146,16 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         if (specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
             throw new NotConfigurableException("Input deep learning network port object is missing.");
         }
-        if ((DataTableSpec)specs[DLExecutorNodeModel.IN_DATA_PORT_IDX] == null) {
-            throw new NotConfigurableException("Inpu data table is missing.");
+        if (specs[DLExecutorNodeModel.IN_DATA_PORT_IDX] == null) {
+            throw new NotConfigurableException("Input data table is missing.");
         }
         if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX])) {
             throw new NotConfigurableException("Input port object is not a valid deep learning network port object.");
         }
+        if (((DataTableSpec)specs[DLExecutorNodeModel.IN_DATA_PORT_IDX]).getNumColumns() == 0) {
+            throw new NotConfigurableException("Input table has no columns.");
+        }
+
         final DLNetworkPortObjectSpec currNetworkSpec =
             (DLNetworkPortObjectSpec)specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
         final DataTableSpec currTableSpec = (DataTableSpec)specs[DLExecutorNodeModel.IN_DATA_PORT_IDX];
@@ -163,12 +166,10 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         if (currNetworkSpec.getProfile() == null) {
             throw new NotConfigurableException("Input port object's deep learning profile is missing.");
         }
+
         final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
         final DLProfile profile = currNetworkSpec.getProfile();
 
-        if (currTableSpec.getNumColumns() == 0) {
-            LOGGER.warn("Input table is empty.");
-        }
         if (networkSpec.getInputSpecs().length == 0) {
             LOGGER.warn("Input deep learning network has no input specs.");
         }
@@ -191,13 +192,10 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         }
         try {
             if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
-                final NodeSettings tmp =
-                    DLExecutorNodeModel.loadFromBytesArray(settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS),
-                        DLExecutorNodeModel.CFG_KEY_INPUTS_ARRAY);
+                final NodeSettingsRO inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
                 for (final DLInputLayerDataPanel inputPanel : m_inputPanels) {
-                    if (tmp.containsKey(inputPanel.getConfig().getInputLayerDataName())) {
-                        inputPanel.loadFromSettings(tmp.getNodeSettings(inputPanel.getConfig().getInputLayerDataName()),
-                            specs);
+                    if (inputSettings.containsKey(inputPanel.getConfig().getInputLayerDataName())) {
+                        inputPanel.loadFromSettings(inputSettings, specs);
                     } else {
                         inputPanel.getInputColumns().loadConfiguration(inputPanel.getConfig().getInputColumnsModel(),
                             currTableSpec);
@@ -207,28 +205,27 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
                 }
             }
             // load saved output settings if any
-            final NodeSettings tmp =
-                DLExecutorNodeModel.loadFromBytesArray(settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS),
-                    DLExecutorNodeModel.CFG_KEY_OUTPUTS_ARRAY);
-
-            for (final String key : tmp) {
-                if (!m_outputPanels.containsKey(key)) {
-                    // add output to the dialog (when loading the dialog for the
-                    // first time)
-                    Optional<DLLayerDataSpec> spec =
-                        Arrays.stream(networkSpec.getOutputSpecs()).filter(s -> s.getName().equals(key)).findFirst();
-                    if (!spec.isPresent()) {
-                        spec = Arrays.stream(networkSpec.getIntermediateOutputSpecs())
-                            .filter(s -> s.getName().equals(key)).findFirst();
-                    }
-                    if (spec.isPresent()) {
-                        m_outputPanels.put(key, createOutputPanel(spec.get(), m_generalCfg.getBackendModel()));
+            if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
+                final NodeSettingsRO outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
+                for (final String layerName : outputSettings) {
+                    if (!m_outputPanels.containsKey(layerName)) {
+                        // add output to the dialog (when loading the dialog for the first time)
+                        Optional<DLLayerDataSpec> spec = Arrays.stream(networkSpec.getOutputSpecs())
+                            .filter(s -> s.getName().equals(layerName)).findFirst();
+                        if (!spec.isPresent()) {
+                            spec = Arrays.stream(networkSpec.getIntermediateOutputSpecs())
+                                .filter(s -> s.getName().equals(layerName)).findFirst();
+                        }
+                        if (spec.isPresent()) {
+                            m_outputPanels.put(layerName,
+                                createOutputPanel(spec.get(), m_generalCfg.getBackendModel()));
+                        }
                     }
                 }
-            }
-            for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
-                m_outputPanels.get(outputPanel.getConfig().getOutputLayerDataName())
-                    .loadFromSettings(tmp.getNodeSettings(outputPanel.getConfig().getOutputLayerDataName()), specs);
+                for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
+                    m_outputPanels.get(outputPanel.getConfig().getOutputLayerDataName())
+                        .loadFromSettings(outputSettings, specs);
+                }
             }
         } catch (final Exception e) {
             m_outputPanels.clear();
@@ -248,21 +245,14 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         m_generalCfg.saveToSettings(settings);
 
         final NodeSettingsWO inputSettings = settings.addNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
-        NodeSettings tmp = new NodeSettings("tmp");
         for (final DLInputLayerDataPanel inputPanel : m_inputPanels) {
-            final NodeSettingsWO child = tmp.addNodeSettings(inputPanel.getConfig().getInputLayerDataName());
-            inputPanel.saveToSettings(child);
+            inputPanel.saveToSettings(inputSettings);
         }
-        DLExecutorNodeModel.saveAsBytesArray(tmp, inputSettings, DLExecutorNodeModel.CFG_KEY_INPUTS_ARRAY);
 
         final NodeSettingsWO outputSettings = settings.addNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
-        tmp = new NodeSettings("tmp");
         for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
-            final NodeSettingsWO child = tmp.addNodeSettings(outputPanel.getConfig().getOutputLayerDataName());
-            outputPanel.saveToSettings(child);
+            outputPanel.saveToSettings(outputSettings);
         }
-
-        DLExecutorNodeModel.saveAsBytesArray(tmp, outputSettings, DLExecutorNodeModel.CFG_KEY_OUTPUTS_ARRAY);
 
         final SettingsModelStringArray outputOrder =
             DLExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());

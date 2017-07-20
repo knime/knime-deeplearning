@@ -49,9 +49,9 @@
 package org.knime.dl.keras.core;
 
 import java.net.URL;
-import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLLayerDataSpec;
@@ -67,69 +67,66 @@ import org.knime.python2.kernel.PythonKernel;
  */
 public class DLKerasNetwork implements DLNetwork, DLPythonLoadable {
 
-	private final URL m_source;
+    private final URL m_source;
 
-	private final DLKerasNetworkSpec m_spec;
+    private final DLKerasNetworkSpec m_spec;
 
-	public DLKerasNetwork(final DLKerasNetworkSpec spec, final URL source) {
-		m_spec = spec;
-		m_source = source;
-	}
+    public DLKerasNetwork(final DLKerasNetworkSpec spec, final URL source) {
+        m_spec = spec;
+        m_source = source;
+    }
 
-	public URL getSource() {
-		return m_source;
-	}
+    public URL getSource() {
+        return m_source;
+    }
 
-	@Override
-	public DLKerasNetworkSpec getSpec() {
-		return m_spec;
-	}
+    @Override
+    public DLKerasNetworkSpec getSpec() {
+        return m_spec;
+    }
 
-	public static class DLKerasNetworkSpec extends DLAbstractNetworkSpec {
+    public static class DLKerasNetworkSpec extends DLAbstractNetworkSpec {
 
-		public DLKerasNetworkSpec(final DLLayerDataSpec[] inputSpecs, final DLLayerDataSpec[] intermediateOutputSpecs,
-				final DLLayerDataSpec[] outputSpecs) {
-			super(inputSpecs, intermediateOutputSpecs, outputSpecs);
-		}
+        public DLKerasNetworkSpec(final DLLayerDataSpec[] inputSpecs, final DLLayerDataSpec[] intermediateOutputSpecs,
+            final DLLayerDataSpec[] outputSpecs) {
+            super(inputSpecs, intermediateOutputSpecs, outputSpecs);
+        }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == null || !(obj instanceof DLKerasNetworkSpec)) {
-				return false;
-			} else {
-				final DLKerasNetworkSpec curr = (DLKerasNetworkSpec) obj;
-				if (curr.getInputSpecs().length != getInputSpecs().length
-						|| curr.getIntermediateOutputSpecs().length != getIntermediateOutputSpecs().length
-						|| curr.getOutputSpecs().length != getOutputSpecs().length) {
-					return false;
-				} else if (!Arrays.deepEquals(getInputSpecs(), curr.getInputSpecs())
-						|| !Arrays.deepEquals(getIntermediateOutputSpecs(), curr.getIntermediateOutputSpecs())
-						|| !Arrays.deepEquals(getOutputSpecs(), curr.getOutputSpecs())) {
-					return false;
-				}
-			}
-			return true;
-		}
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void hashCodeInternal(final HashCodeBuilder b) {
+            // no op - everything's handled in abstract base class
+        }
 
-	}
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected boolean equalsInternal(final org.knime.dl.core.DLNetworkSpec other) {
+            // no op - everything's handled in abstract base class
+            return true;
+        }
+    }
 
-	@Deprecated
-	@Override
-	public String load(PythonKernel kernel) throws Exception {
-		final DLKerasPythonKernelConfig cfg = new DLKerasPythonKernelConfig();
-		final String filePath = FileUtil.getFileFromURL(getSource()).getAbsolutePath();
-		final String fileExtension = FilenameUtils.getExtension(filePath);
-		final String snippet;
-		if (fileExtension.equals("h5")) {
-			snippet = cfg.getLoadFromH5Code(filePath);
-		} else if (fileExtension.equals("json")) {
-			snippet = cfg.getLoadSpecFromJsonCode(filePath);
-		} else if (fileExtension.equals("yaml")) {
-			snippet = cfg.getLoadSpecFromYamlCode(filePath);
-		} else {
-			throw new IllegalArgumentException("Keras network reader only supports files of type h5, json and yaml.");
-		}
-		kernel.execute(snippet);
-		return cfg.MODEL_NAME;
-	}
+    @Deprecated
+    @Override
+    public String load(final PythonKernel kernel) throws Exception {
+        final DLKerasPythonKernelConfig cfg = new DLKerasPythonKernelConfig();
+        final String filePath = FileUtil.getFileFromURL(getSource()).getAbsolutePath();
+        final String fileExtension = FilenameUtils.getExtension(filePath);
+        final String snippet;
+        if (fileExtension.equals("h5")) {
+            snippet = cfg.getLoadFromH5Code(filePath);
+        } else if (fileExtension.equals("json")) {
+            snippet = cfg.getLoadSpecFromJsonCode(filePath);
+        } else if (fileExtension.equals("yaml")) {
+            snippet = cfg.getLoadSpecFromYamlCode(filePath);
+        } else {
+            throw new IllegalArgumentException("Keras network reader only supports files of type h5, json and yaml.");
+        }
+        kernel.execute(snippet);
+        return DLKerasPythonKernelConfig.MODEL_NAME;
+    }
 }

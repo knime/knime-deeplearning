@@ -59,9 +59,21 @@ package org.knime.dl.core;
  */
 public interface DLNetworkSpec {
 
-	DLLayerDataSpec[] getInputSpecs();
+    DLLayerDataSpec[] getInputSpecs();
 
-	DLLayerDataSpec[] getIntermediateOutputSpecs();
+    DLLayerDataSpec[] getIntermediateOutputSpecs();
 
-	DLLayerDataSpec[] getOutputSpecs();
+    DLLayerDataSpec[] getOutputSpecs();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    int hashCode();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    boolean equals(Object obj);
 }

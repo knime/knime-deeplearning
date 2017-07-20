@@ -222,10 +222,10 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
         }
         final DLLayerDataSpec other = (DLLayerDataSpec)obj;
         return other.getName().equals(getName()) //
-            && other.hasBatchSize() == hasBatchSize() //
-            && other.hasShape() == hasShape() //
-            && other.getBatchSize() == getBatchSize() //
-            && Arrays.equals(other.getShape(), getShape()) //
+            && (!other.hasBatchSize() && !hasBatchSize() //
+                || other.hasBatchSize() && hasBatchSize() && other.getBatchSize() == getBatchSize()) //
+            && (!other.hasShape() && !hasShape() //
+                || other.hasShape() && hasShape() && Arrays.equals(other.getShape(), getShape())) //
             && other.getElementType() == getElementType() //
             && equalsInternal(other);
     }
