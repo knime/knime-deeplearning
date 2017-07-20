@@ -56,6 +56,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.WorkspacePreparer;
@@ -128,11 +129,12 @@ class DLPythonPredictorNodeDialog extends DataAwareNodeDialogPane {
                 @Override
                 public void prepareWorkspace(final PythonKernel kernel) {
                     try {
+                        NodeContext.pushContext(DLPythonPredictorNodeDialog.this.getNodeContext());
                         final String name = ((DLPythonLoadable)portObject.getNetwork()).load(kernel);
                         kernel.execute("global input_network\ninput_network=" + name + "\ndel globals()['" + name
                             + "']\ndel locals()['" + name + "']");
+                        // TODO: clean workspace (remove model's load path etc.)
                     } catch (final Exception e) {
-                        // TODO:
                         m_sourceCodePanel.errorToConsole(
                             "Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
                     }
