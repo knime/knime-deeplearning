@@ -44,68 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2017 (dietzc): created
+ *   Jul 21, 2017 (marcel): created
  */
 package org.knime.dl.core;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
- * The spec of {@link DLLayerData}.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * Abstract base class for {@link DLFixedLayerDataShape fixed-size layer data shapes}.
  *
- * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec {
+public abstract class DLAbstractFixedLayerDataShape extends DLAbstractLayerDataShape implements DLFixedLayerDataShape {
+
+    private final long[] m_shape;
 
     /**
-     * Returns the name of the layer data.
-     *
-     * @return the name of the layer data
+     * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
+     *            than zero.
      */
-    String getName();
-
-    /**
-     * Returns whether this layer data instance has a batch size assigned.
-     *
-     * @return true if this layer data instance has a batch size assigned
-     */
-    boolean hasBatchSize();
-
-    /**
-     * Returns the batch size of the layer data. This is an <b>optional property</b> that is not necessarily set for
-     * each layer data. Check {@link #hasBatchSize()} to see if this instance has a batch size assigned.
-     *
-     * @return the batch size of the layer data
-     */
-    long getBatchSize();
-
-    /**
-     * Returns the shape of the layer data.
-     *
-     * @return the shape of the layer data
-     */
-    DLLayerDataShape getShape();
-
-    /**
-     * Returns the type of the layer data's elements
-     *
-     * @return the type of the layer data's elements
-     */
-    Class<?> getElementType();
+    protected DLAbstractFixedLayerDataShape(final long[] shape) {
+        checkNotNull(shape);
+        checkArgument(shape.length > 0, "Invalid layer data shape. Expected dimensionality greater than 0, was %s.",
+            shape.length);
+        for (int d = 0; d < shape.length; d++) {
+            checkArgument(shape[d] > 0,
+                "Invalid layer data shape. Expected shape dimension greater than 0, was %s in dimension %s.", shape[d],
+                d);
+        }
+        m_shape = shape.clone();
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    int hashCode();
+    public int getNumDimensions() {
+        return m_shape.length;
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    boolean equals(Object obj);
+    public long[] getShape() {
+        return m_shape;
+    }
+
+    @Override
+    public String toString() {
+    	return Arrays.toString(getShape());
+    }
+
+    @Override
+    protected void hashCodeInternal(final HashCodeBuilder b) {
+		b.append(getShape());
+    }
+
+    @Override
+    protected boolean equalsInternal(final DLLayerDataShape other) {
+		return Arrays.equals(((DLFixedLayerDataShape) other).getShape(), getShape());
+    }
 }

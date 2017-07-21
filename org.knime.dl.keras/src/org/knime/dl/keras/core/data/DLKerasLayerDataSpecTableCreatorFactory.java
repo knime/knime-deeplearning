@@ -49,7 +49,9 @@
 package org.knime.dl.keras.core.data;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
+import org.knime.dl.core.DLLayerDataShape;
 import org.knime.dl.keras.core.DLKerasTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
@@ -130,43 +132,43 @@ public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFact
                     layerBatchSize = row.getCell(1).getIntegerValue();
                 }
             }
-            long[] layerDataShape = null;
-            if (!row.getCell(2).isMissing()) {
-                if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
-                    try {
-                        layerDataShape = ArrayUtils.toPrimitive(row.getCell(2).getLongArrayValue());
-                    } catch (final NullPointerException ex) {
-                        // shape stays null
-                    }
-                } else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
-                    final Integer[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
-                    layerDataShape = new long[layerDataShapeInt.length];
-                    if (layerDataShapeInt[0] == null) {
-                        layerDataShape = null;
-                    } else {
-                        for (int i = 0; i < layerDataShapeInt.length; i++) {
-                            layerDataShape[i] = layerDataShapeInt[i].longValue();
-                        }
-                    }
-                }
-            }
-            final Class<?> layerDataType = m_typeMap.getPreferredInternalType(row.getCell(3).getStringValue());
-            // TODO: a builder would be nice
-            final DLDefaultLayerDataSpec spec;
-            if (layerBatchSize != -1) {
-                if (layerDataShape != null) {
-                    spec = new DLDefaultLayerDataSpec(layerDataName, layerBatchSize, layerDataShape, layerDataType);
-                } else {
-                    spec = new DLDefaultLayerDataSpec(layerDataName, layerBatchSize, layerDataType);
-                }
-            } else {
-                if (layerDataShape != null) {
-                    spec = new DLDefaultLayerDataSpec(layerDataName, layerDataShape, layerDataType);
-                } else {
-                    spec = new DLDefaultLayerDataSpec(layerDataName, layerDataType);
-                }
-            }
-            m_layerDataSpecs[m_nextIdx++] = spec;
+			DLLayerDataShape layerDataShape = null;
+			if (!row.getCell(2).isMissing()) {
+				if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
+					try {
+						layerDataShape = new DLDefaultFixedLayerDataShape(
+								ArrayUtils.toPrimitive(row.getCell(2).getLongArrayValue()));
+					} catch (final NullPointerException ex) {
+						// shape stays null
+					}
+				} else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
+					final Integer[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
+					final long[] shape = new long[layerDataShapeInt.length];
+					if (layerDataShapeInt[0] != null) {
+						for (int i = 0; i < layerDataShapeInt.length; i++) {
+							shape[i] = layerDataShapeInt[i].longValue();
+						}
+						layerDataShape = new DLDefaultFixedLayerDataShape(shape);
+					}
+				}
+			}
+			final Class<?> layerDataType = m_typeMap.getPreferredInternalType(row.getCell(3).getStringValue());
+			// TODO: a builder would be nice
+			final DLDefaultLayerDataSpec spec;
+			if (layerBatchSize != -1) {
+				if (layerDataShape != null) {
+					spec = new DLDefaultLayerDataSpec(layerDataName, layerBatchSize, layerDataShape, layerDataType);
+				} else {
+					spec = new DLDefaultLayerDataSpec(layerDataName, layerBatchSize, layerDataType);
+				}
+			} else {
+				if (layerDataShape != null) {
+					spec = new DLDefaultLayerDataSpec(layerDataName, layerDataShape, layerDataType);
+				} else {
+					spec = new DLDefaultLayerDataSpec(layerDataName, layerDataType);
+				}
+			}
+			m_layerDataSpecs[m_nextIdx++] = spec;
         }
 
         /**

@@ -70,6 +70,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
 import org.knime.dl.core.DLAbstractExecutableNetworkSpec;
 import org.knime.dl.core.DLAbstractNetworkSpec;
+import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLExecutableNetwork;
@@ -343,22 +344,22 @@ public class DLPythonConverterTest {
         @Override
         public DLLayerData<DLPythonDataBuffer<?>> createLayerData(final DLLayerDataSpec spec)
             throws IllegalArgumentException {
-            if (!spec.hasShape()) {
-                throw new IllegalArgumentException(
-                    "Layer data spec does not provide a shape. Layer data cannot be created.");
-            }
+            final long[] shape =
+                DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
+                    "Layer data spec does not provide a shape. Layer data cannot be created."));
             DLPythonDataBuffer<?> data;
             final Class<?> t = spec.getElementType();
+            final long size = DLUtils.Shapes.getSize(shape);
             if (t.equals(double.class)) {
-                data = new DLPythonDoubleBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+                data = new DLPythonDoubleBuffer(size);
             } else if (t.equals(float.class)) {
-                data = new DLPythonFloatBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+                data = new DLPythonFloatBuffer(size);
             } else if (t.equals(int.class)) {
-                data = new DLPythonIntBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+                data = new DLPythonIntBuffer(size);
             } else if (t.equals(long.class)) {
-                data = new DLPythonLongBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+                data = new DLPythonLongBuffer(size);
             } else {
-                throw new IllegalArgumentException("No matching buffer type.");
+                throw new IllegalArgumentException("No matching layer data type.");
             }
             return new DLDefaultLayerData<>(spec, data);
         }
@@ -431,11 +432,13 @@ public class DLPythonConverterTest {
         @Override
         public DLBazNetwork readNetwork(final URL source) throws IllegalArgumentException, IOException {
             final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
-            inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new long[]{10, 10}, float.class);
+            inputSpecs[0] =
+                new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[]{10, 10}), float.class);
             final DLLayerDataSpec[] intermediateSpecs = new DLLayerDataSpec[0];
             // intermediate stays empty
             final DLLayerDataSpec[] outputSpecs = new DLLayerDataSpec[1];
-            outputSpecs[0] = new DLDefaultLayerDataSpec("out0", new long[]{10, 10}, double.class);
+            outputSpecs[0] =
+                new DLDefaultLayerDataSpec("out0", new DLDefaultFixedLayerDataShape(new long[]{10, 10}), double.class);
             final DLNetworkSpec spec = new DLAbstractNetworkSpec(inputSpecs, intermediateSpecs, outputSpecs) {
 
                 @Override

@@ -215,150 +215,6 @@ final class DLExecutorNodeModel extends NodeModel {
         };
     }
 
-    private void executeInternal(final PortObject portObject, final RowInput rowInput, final RowOutput rowOutput,
-        final ExecutionContext exec) throws Exception {
-        if (!(portObject instanceof DLNetworkPortObject)) {
-            throw new RuntimeException("Unsupported deep learning network type at input port.");
-        }
-
-        final DLNetwork network = ((DLNetworkPortObject)portObject).getNetwork();
-        final DLNetworkSpec networkSpec = network.getSpec();
-        final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
-
-        if (inDataSpec.getNumColumns() == 0) {
-            throw new RuntimeException("Input table has no columns.");
-        }
-
-        final boolean inDataHasSize;
-        final long inDataSize;
-        if (rowInput instanceof DataTableRowInput) {
-            inDataHasSize = true;
-            inDataSize = ((DataTableRowInput)rowInput).getRowCount();
-        } else {
-            inDataHasSize = false;
-            inDataSize = -1;
-        }
-
-        final int batchSize;
-        if (inDataHasSize && inDataSize < m_generalCfg.getBatchSizeModel().getIntValue()) {
-            batchSize = (int)inDataSize;
-        } else {
-            batchSize = m_generalCfg.getBatchSizeModel().getIntValue();
-        }
-        final boolean keepInputColumns = m_generalCfg.getKeepInputColumns().getBooleanValue();
-
-        final DLExecutableNetwork executableNetwork = m_backend.toExecutableNetwork(network);
-        // assign input columns to network inputs
-        final List<Pair<DLLayerDataSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
-        for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> input : m_inputConverters
-            .entrySet()) {
-            final DLInputLayerDataModelConfig inputCfg = m_inputCfgs.get(input.getKey().getName());
-            final List<Integer> inColIndices =
-                Arrays.stream(inputCfg.getInputColumnsModel().applyTo(inDataSpec).getIncludes()).map(c -> {
-                    final int idx = inDataSpec.findColumnIndex(c);
-                    if (idx == -1) {
-                        throw new IllegalStateException(
-                            "Selected input column '" + c + "' could not be found in the input table.");
-                    }
-                    return idx;
-                }).collect(Collectors.toList());
-            final int[] indices = new int[inColIndices.size()];
-            for (int i = 0; i < indices.length; i++) {
-                indices[i] = inColIndices.get(i);
-            }
-            inputs.add(new Pair<>(input.getKey(), indices));
-        }
-
-        try (DLFromKnimeNetworkExecutor executor =
-            new DLFromKnimeNetworkExecutor(executableNetwork, m_inputConverters, m_outputConverters)) {
-
-            final DLNetworkExecutorOutputConsumer networkOutputConsumer =
-                new DLNetworkExecutorOutputConsumer(m_outputConverters.keySet().stream().collect(Collectors.toList()));
-
-            // TODO: optimize here!
-            boolean moreRows = true;
-            long currRowIdx = 0;
-            DataRow row;
-            final List<DataRow> batch = new ArrayList<>(batchSize);
-            try {
-                while (moreRows) {
-                    while ((row = rowInput.poll()) != null) {
-                        // collect batch
-                        batch.add(row);
-                        currRowIdx++;
-                        if (currRowIdx % batchSize == 0) {
-                            break;
-                        }
-                    }
-                    if (row == null) {
-                        moreRows = false;
-                        if (batch.size() == 0) {
-                            break;
-                        }
-                    }
-                    exec.checkCanceled();
-                    // gather input
-                    final Map<DLLayerDataSpec, List<DataValue>[]> temp = new HashMap<>();
-                    for (final Pair<DLLayerDataSpec, int[]> entry : inputs) {
-                        temp.put(entry.getFirst(), new ArrayList[batch.size()]);
-                        for (int j = 0; j < batch.size(); j++) {
-                            final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
-                            for (final int c : entry.getSecond()) {
-                                final DataCell cell = batch.get(j).getCell(c);
-                                // TODO: we could also allow some missing value handling settings in the dialog.
-                                if (cell.isMissing()) {
-                                    throw new RuntimeException(
-                                        "Missing cell in input row " + batch.get(j).getKey() + ".");
-                                }
-                                cells.add(cell);
-                            }
-                            temp.get(entry.getFirst())[j] = cells;
-                        }
-                    }
-                    // execute
-                    try {
-                        executor.execute(temp, networkOutputConsumer, exec, batch.size());
-                    } catch (final Exception ex) {
-                        throw new IllegalStateException(ex.getMessage(), ex);
-                    }
-                    exec.checkCanceled();
-                    for (final List<DataValue>[] layer : temp.values()) {
-                        for (final List<DataValue> list : layer) {
-                            list.clear();
-                        }
-                    }
-
-                    // process output
-                    final DataCell[][] cells = networkOutputConsumer.collected();
-                    if (keepInputColumns) {
-                        for (int j = 0; j < batch.size(); j++) {
-                            rowOutput.push(new AppendedColumnRow(batch.get(j), cells[j]));
-                        }
-                    } else {
-                        for (int j = 0; j < batch.size(); j++) {
-                            rowOutput.push(new DefaultRow(batch.get(j).getKey(), cells[j]));
-                        }
-                    }
-                    if (inDataHasSize && row != null) {
-                        exec.setProgress((double)currRowIdx / inDataSize,
-                            "Processing row " + row.getKey().toString() + "...");
-                    }
-                    batch.clear();
-                }
-            } catch (final Exception e) {
-                executor.close();
-                LOGGER.debug("Error occured during execution of network model: " + e.getMessage(), e);
-                throw new RuntimeException(e.getMessage(), e);
-            } finally {
-                if (executableNetwork != null) {
-                    executableNetwork.close();
-                }
-                rowInput.close();
-                rowOutput.close();
-            }
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -401,6 +257,7 @@ final class DLExecutorNodeModel extends NodeModel {
                 throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
             }
         } else if (m_initialLoaded) {
+            // loaded from saved workflow
             m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
         }
 
@@ -532,7 +389,7 @@ final class DLExecutorNodeModel extends NodeModel {
                 try {
                     return DLBackendRegistry.getPreferredBackend(profile);
                 } catch (final Exception ex) {
-                    throw new IllegalStateException("There is no available back end that matches the input network.");
+                    throw new IllegalStateException("There is no available back end that supports the input network.");
                 }
             });
         m_backend = backend;
@@ -541,6 +398,11 @@ final class DLExecutorNodeModel extends NodeModel {
     private void configureInputs(final DLNetworkSpec networkSpec) throws InvalidSettingsException {
         m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
         for (final DLLayerDataSpec layerDataSpec : networkSpec.getInputSpecs()) {
+            // validate layer spec
+            if (!DLUtils.Shapes.isFixed(layerDataSpec.getShape())) {
+                throw new InvalidSettingsException("Input '" + layerDataSpec.getName()
+                    + "' has an (at least partially) unknown shape. This is not supported.");
+            }
             final DLInputLayerDataModelConfig inputCfg = m_inputCfgs.get(layerDataSpec.getName());
             if (inputCfg == null) {
                 throw new InvalidSettingsException(
@@ -565,12 +427,10 @@ final class DLExecutorNodeModel extends NodeModel {
             final DLLayerDataSpec layerDataSpec =
                 DLUtils.Networks.findSpec(layerDataName, networkSpec).orElseThrow(() -> new InvalidSettingsException(
                     "Selected output '" + layerDataName + "' could not be found in the input deep learning network."));
-            if (!layerDataSpec.hasShape()) {
-                throw new InvalidSettingsException(
-                    "Selected output '" + layerDataName + "' has an unknown shape. This is not supported.");
-            }
             // TODO
-            final long[] shape = layerDataSpec.getShape();
+            final long[] shape = DLUtils.Shapes.getFixedShape(layerDataSpec.getShape())
+                .orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
+                    + "' has an (at least partially) unknown shape. This is not supported."));
             if (shape.length > 1) {
                 throw new InvalidSettingsException("Selected output '" + layerDataName
                     + "' has a shape with dimensionality > 1. This is not yet supported.");
@@ -604,6 +464,147 @@ final class DLExecutorNodeModel extends NodeModel {
             return new DataTableSpec(inDataSpec, outDataSpec);
         }
         return outDataSpec;
+    }
+
+    private void executeInternal(final PortObject portObject, final RowInput rowInput, final RowOutput rowOutput,
+        final ExecutionContext exec) throws Exception {
+        if (!(portObject instanceof DLNetworkPortObject)) {
+            throw new RuntimeException("Unsupported deep learning network type at input port.");
+        }
+
+        final DLNetwork network = ((DLNetworkPortObject)portObject).getNetwork();
+        final DLNetworkSpec networkSpec = network.getSpec();
+        final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
+
+        if (inDataSpec.getNumColumns() == 0) {
+            throw new RuntimeException("Input table has no columns.");
+        }
+
+        final boolean inDataHasSize;
+        final long inDataSize;
+        if (rowInput instanceof DataTableRowInput) {
+            inDataHasSize = true;
+            inDataSize = ((DataTableRowInput)rowInput).getRowCount();
+        } else {
+            inDataHasSize = false;
+            inDataSize = -1;
+        }
+
+        final int batchSize;
+        if (inDataHasSize && inDataSize < m_generalCfg.getBatchSizeModel().getIntValue()) {
+            batchSize = (int)inDataSize;
+        } else {
+            batchSize = m_generalCfg.getBatchSizeModel().getIntValue();
+        }
+        final boolean keepInputColumns = m_generalCfg.getKeepInputColumns().getBooleanValue();
+
+        final DLExecutableNetwork executableNetwork = m_backend.toExecutableNetwork(network);
+        // assign input column indices to network inputs
+        final List<Pair<DLLayerDataSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
+        for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> input : m_inputConverters
+            .entrySet()) {
+            final DLInputLayerDataModelConfig inputCfg = m_inputCfgs.get(input.getKey().getName());
+            final int[] indices =
+                Arrays.stream(inputCfg.getInputColumnsModel().applyTo(inDataSpec).getIncludes()).mapToInt(c -> {
+                    final int idx = inDataSpec.findColumnIndex(c);
+                    if (idx == -1) {
+                        throw new IllegalStateException(
+                            "Selected input column '" + c + "' could not be found in the input table.");
+                    }
+                    return idx;
+                }).toArray();
+            inputs.add(new Pair<>(input.getKey(), indices));
+        }
+
+        try (DLFromKnimeNetworkExecutor executor =
+            new DLFromKnimeNetworkExecutor(executableNetwork, m_inputConverters, m_outputConverters)) {
+
+            final DLNetworkExecutorOutputConsumer networkOutputConsumer =
+                new DLNetworkExecutorOutputConsumer(m_outputConverters.keySet().stream().collect(Collectors.toList()));
+
+            // TODO: optimize here!
+            boolean moreRows = true;
+            long currRowIdx = 0;
+            DataRow row;
+            final List<DataRow> batch = new ArrayList<>(batchSize);
+            try {
+                while (moreRows) {
+                    while ((row = rowInput.poll()) != null) {
+                        // collect batch
+                        batch.add(row);
+                        currRowIdx++;
+                        if (currRowIdx % batchSize == 0) {
+                            break;
+                        }
+                    }
+                    if (row == null) {
+                        moreRows = false;
+                        if (batch.size() == 0) {
+                            break;
+                        }
+                        // process the last, incomplete, batch
+                    }
+                    exec.checkCanceled();
+                    // gather input
+                    final Map<DLLayerDataSpec, List<DataValue>[]> temp = new HashMap<>();
+                    for (final Pair<DLLayerDataSpec, int[]> entry : inputs) {
+                        temp.put(entry.getFirst(), new ArrayList[batch.size()]);
+                        for (int j = 0; j < batch.size(); j++) {
+                            final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
+                            for (final int c : entry.getSecond()) {
+                                final DataCell cell = batch.get(j).getCell(c);
+                                // TODO: we could also allow some missing value handling settings in the dialog.
+                                if (cell.isMissing()) {
+                                    throw new RuntimeException(
+                                        "Missing cell in input row " + batch.get(j).getKey() + ".");
+                                }
+                                cells.add(cell);
+                            }
+                            temp.get(entry.getFirst())[j] = cells;
+                        }
+                    }
+                    // execute
+                    try {
+                        executor.execute(temp, networkOutputConsumer, exec, batch.size());
+                    } catch (final Exception ex) {
+                        throw new IllegalStateException(ex.getMessage(), ex);
+                    }
+                    exec.checkCanceled();
+                    for (final List<DataValue>[] layer : temp.values()) {
+                        for (final List<DataValue> list : layer) {
+                            list.clear();
+                        }
+                    }
+
+                    // process output
+                    final DataCell[][] cells = networkOutputConsumer.collected();
+                    if (keepInputColumns) {
+                        for (int j = 0; j < batch.size(); j++) {
+                            rowOutput.push(new AppendedColumnRow(batch.get(j), cells[j]));
+                        }
+                    } else {
+                        for (int j = 0; j < batch.size(); j++) {
+                            rowOutput.push(new DefaultRow(batch.get(j).getKey(), cells[j]));
+                        }
+                    }
+                    if (inDataHasSize && row != null) {
+                        exec.setProgress((double)currRowIdx / inDataSize,
+                            "Processing row " + row.getKey().toString() + "...");
+                    }
+                    batch.clear();
+                }
+            } catch (final Exception e) {
+                executor.close();
+                LOGGER.debug("Error occured during execution of network model: " + e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
+            } finally {
+                if (executableNetwork != null) {
+                    executableNetwork.close();
+                }
+                rowInput.close();
+                rowOutput.close();
+            }
+        }
     }
 
     private static class DLNetworkExecutorOutputConsumer implements Consumer<Map<DLLayerDataSpec, DataCell[][]>> {

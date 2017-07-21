@@ -59,28 +59,26 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class DLDefaultLayerDataSpec extends DLAbstractLayerDataSpec {
 
     /**
-     * Creates a new instance of layer data spec that has a batch size.
+     * Creates a new instance of this layer data spec that has a batch size.
      *
      * @param name the name of the layer data
      * @param batchSize the batch size of the layer data. Must be greater than zero.
-     * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
+     * @param shape the shape of the layer data
      * @param dataType the data type of the layer data's elements
      */
-    public DLDefaultLayerDataSpec(final String name, final long batchSize, final long[] shape,
+    public DLDefaultLayerDataSpec(final String name, final long batchSize, final DLLayerDataShape shape,
         final Class<?> dataType) {
         super(name, batchSize, shape, dataType);
     }
 
     /**
-     * Creates a new instance of layer data spec that does not have a batch size.
+     * Creates a new instance of this layer data spec that does not have a batch size.
      *
      * @param name the name of the layer data
-     * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
+     * @param shape the shape of the layer data
      * @param dataType the data type of the layer data's elements
      */
-    public DLDefaultLayerDataSpec(final String name, final long[] shape, final Class<?> dataType) {
+    public DLDefaultLayerDataSpec(final String name, final DLLayerDataShape shape, final Class<?> dataType) {
         super(name, shape, dataType);
     }
 
@@ -118,7 +116,7 @@ public class DLDefaultLayerDataSpec extends DLAbstractLayerDataSpec {
      */
     @Override
     protected boolean equalsInternal(final DLLayerDataSpec other) {
-        // everything's handled in abstract base class
+        // no op - everything's handled in abstract base class
         return true;
     }
 }

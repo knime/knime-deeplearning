@@ -55,7 +55,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -92,6 +91,7 @@ import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.backend.DLBackendRegistry;
 import org.knime.dl.core.backend.DLProfile;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -115,6 +115,10 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
     private JButton m_outputsAddBtn;
 
+    private DLNetworkSpec m_lastIncomingNetworkSpec;
+
+    private DLNetworkSpec m_lastConfiguredNetworkSpec;
+
     /**
      * Creates a new dialog.
      */
@@ -127,7 +131,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         m_generalCfg = DLExecutorNodeModel.createGeneralModelConfig();
         m_inputPanels = new ArrayList<>();
         m_outputPanels = new LinkedHashMap<>();
-        // root panel; content will be generated based on input specs
+        // root panel; content will be generated based on input network specs
         m_root = new JPanel(new GridBagLayout());
         m_rootConstr = new GridBagConstraints();
         resetDialog();
@@ -168,6 +172,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         }
 
         final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
+        m_lastIncomingNetworkSpec = networkSpec;
         final DLProfile profile = currNetworkSpec.getProfile();
 
         if (networkSpec.getInputSpecs().length == 0) {
@@ -180,60 +185,61 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
             throw new NotConfigurableException("Input deep learning network has no associated back end.");
         }
 
-        resetDialog();
-        createDialogContent(currNetworkSpec, currTableSpec);
+        final boolean networkChanged = !m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec);
 
-        // in case we have the same spec...
-        // load general settings
-        try {
-            m_generalCfg.loadFromSettings(settings);
-        } catch (final InvalidSettingsException e) {
-            // default settings
+        if (m_lastConfiguredNetworkSpec == null || networkChanged) {
+            resetDialog();
+            createDialogContent(currNetworkSpec, currTableSpec);
         }
-        try {
-            if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
-                final NodeSettingsRO inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
-                for (final DLInputLayerDataPanel inputPanel : m_inputPanels) {
-                    if (inputSettings.containsKey(inputPanel.getConfig().getInputLayerDataName())) {
-                        inputPanel.loadFromSettings(inputSettings, specs);
-                    } else {
-                        inputPanel.getInputColumns().loadConfiguration(inputPanel.getConfig().getInputColumnsModel(),
-                            currTableSpec);
-                        inputPanel.getInputColumns()
-                            .updateWithNewConfiguration(inputPanel.getConfig().getInputColumnsModel());
-                    }
-                }
+
+        if (m_lastConfiguredNetworkSpec == null || !networkChanged) {
+            try {
+                m_generalCfg.loadFromSettings(settings);
+            } catch (final InvalidSettingsException e) {
+                // default settings
             }
-            // load saved output settings if any
-            if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
-                final NodeSettingsRO outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
-                for (final String layerName : outputSettings) {
-                    if (!m_outputPanels.containsKey(layerName)) {
-                        // add output to the dialog (when loading the dialog for the first time)
-                        Optional<DLLayerDataSpec> spec = Arrays.stream(networkSpec.getOutputSpecs())
-                            .filter(s -> s.getName().equals(layerName)).findFirst();
-                        if (!spec.isPresent()) {
-                            spec = Arrays.stream(networkSpec.getIntermediateOutputSpecs())
-                                .filter(s -> s.getName().equals(layerName)).findFirst();
-                        }
-                        if (spec.isPresent()) {
-                            m_outputPanels.put(layerName,
-                                createOutputPanel(spec.get(), m_generalCfg.getBackendModel()));
+            try {
+                if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
+                    final NodeSettingsRO inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
+                    for (final DLInputLayerDataPanel inputPanel : m_inputPanels) {
+                        if (inputSettings.containsKey(inputPanel.getConfig().getInputLayerDataName())) {
+                            inputPanel.loadFromSettings(inputSettings, specs);
+                        } else {
+                            inputPanel.getInputColumns()
+                                .loadConfiguration(inputPanel.getConfig().getInputColumnsModel(), currTableSpec);
+                            inputPanel.getInputColumns()
+                                .updateWithNewConfiguration(inputPanel.getConfig().getInputColumnsModel());
                         }
                     }
                 }
-                for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
-                    m_outputPanels.get(outputPanel.getConfig().getOutputLayerDataName())
-                        .loadFromSettings(outputSettings, specs);
+                if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
+                    final NodeSettingsRO outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
+                    for (final String layerName : outputSettings) {
+                        if (!m_outputPanels.containsKey(layerName)) {
+                            // add output to the dialog (when loading the dialog for the first time)
+                            final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
+                                networkSpec.getOutputSpecs(), networkSpec.getIntermediateOutputSpecs());
+                            if (spec.isPresent()) {
+                                m_outputPanels.put(layerName,
+                                    createOutputPanel(spec.get(), m_generalCfg.getBackendModel()));
+                            }
+                        }
+                    }
+                    for (final DLOutputLayerDataPanel outputPanel : m_outputPanels.values()) {
+                        m_outputPanels.get(outputPanel.getConfig().getOutputLayerDataName())
+                            .loadFromSettings(outputSettings, specs);
+                    }
                 }
+            } catch (final Exception e) {
+                m_outputPanels.clear();
+                // default input settings
             }
-        } catch (final Exception e) {
-            m_outputPanels.clear();
-        }
-
-        if (m_outputPanels.size() == networkSpec.getIntermediateOutputSpecs().length
-            + networkSpec.getOutputSpecs().length) {
-            m_outputsAddBtn.setEnabled(false);
+        } else {
+            for (final DLInputLayerDataPanel inputPanel : m_inputPanels) {
+                inputPanel.getInputColumns().loadConfiguration(inputPanel.getConfig().getInputColumnsModel(),
+                    currTableSpec);
+                inputPanel.getInputColumns().updateWithNewConfiguration(inputPanel.getConfig().getInputColumnsModel());
+            }
         }
     }
 
@@ -264,6 +270,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         }
         outputOrder.setStringArrayValue(outputs);
         outputOrder.saveSettingsTo(settings);
+
+        m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
     }
 
     private void resetDialog() {
@@ -283,7 +291,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         m_rootConstr.ipady = 0;
     }
 
-    private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec, final DataTableSpec tableSpec) {
+    private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec, final DataTableSpec tableSpec)
+        throws NotConfigurableException {
         final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
         final DLProfile profile = portObjectSpec.getProfile();
 
@@ -296,7 +305,6 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         generalPanelConstr.weightx = 1;
         generalPanelConstr.anchor = GridBagConstraints.WEST;
         generalPanelConstr.fill = GridBagConstraints.VERTICAL;
-        // settings model
         m_generalCfg.getBackendModel().setStringValue(DLBackendRegistry.getPreferredBackend(profile).getIdentifier());
         // back end selection
         final DialogComponentStringSelection dcBackend = new DialogComponentStringSelection(
@@ -315,7 +323,6 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         m_rootConstr.gridy++;
 
         // input settings:
-        // separator
         final JPanel inputsSeparator = new JPanel(new GridBagLayout());
         final GridBagConstraints inputsSeparatorLabelConstr = new GridBagConstraints();
         inputsSeparatorLabelConstr.gridwidth = 1;
@@ -333,11 +340,14 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
         m_rootConstr.gridy++;
         // inputs
         for (final DLLayerDataSpec inputDataSpec : networkSpec.getInputSpecs()) {
+            if (!DLUtils.Shapes.isFixed(inputDataSpec.getShape())) {
+                throw new NotConfigurableException("Input '" + inputDataSpec.getName()
+                    + "' has an (at least partially) unknown shape. This is not supported.");
+            }
             createInputPanel(inputDataSpec, tableSpec, m_generalCfg.getBackendModel());
         }
 
         // output settings:
-        // separator
         final JPanel outputsSeparator = new JPanel(new GridBagLayout());
         final GridBagConstraints outputsSeparatorLabelConstr = new GridBagConstraints();
         outputsSeparatorLabelConstr.gridwidth = 1;
@@ -397,11 +407,11 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
                     outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (selectedOption == JOptionPane.OK_OPTION) {
                     final DLLayerDataSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
-                    createOutputPanel(outputDataSpec, m_generalCfg.getBackendModel());
-                    if (availableOutputs.size() == 1) {
-                        // no more available outputs
-                        m_outputsAddBtn.setEnabled(false);
+                    if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
+                        throw new RuntimeException("Output '" + outputDataSpec.getName()
+                            + "' has an (at least partially) unknown shape. This is not supported.");
                     }
+                    createOutputPanel(outputDataSpec, m_generalCfg.getBackendModel());
                 }
             }
         });
@@ -416,10 +426,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
     private DLInputLayerDataPanel createInputPanel(final DLLayerDataSpec inputDataSpec, final DataTableSpec tableSpec,
         final SettingsModelString smBackend) {
-        // config
         final DLInputLayerDataModelConfig inputCfg =
             DLExecutorNodeModel.createInputLayerDataModelConfig(inputDataSpec.getName(), smBackend);
-        // panel
         final DLInputLayerDataPanel inputPanel = new DLInputLayerDataPanel(inputDataSpec, inputCfg, tableSpec);
         addInput(inputPanel);
         return inputPanel;
@@ -427,10 +435,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
     private DLOutputLayerDataPanel createOutputPanel(final DLLayerDataSpec outputDataSpec,
         final SettingsModelString smBackend) {
-        // config
         final DLOutputLayerDataModelConfig outputCfg =
             DLExecutorNodeModel.createOutputLayerDataModelConfig(outputDataSpec.getName(), smBackend);
-        // panel
         final DLOutputLayerDataPanel outputPanel = new DLOutputLayerDataPanel(outputDataSpec, outputCfg);
         outputPanel.addRemoveListener(new ChangeListener() {
 
@@ -454,6 +460,10 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
             m_outputPanels.put(outputName, outputPanel);
             m_root.add(outputPanel, m_rootConstr);
             m_rootConstr.gridy++;
+            if (m_outputPanels.size() == m_lastIncomingNetworkSpec.getIntermediateOutputSpecs().length
+                + m_lastIncomingNetworkSpec.getOutputSpecs().length) {
+                m_outputsAddBtn.setEnabled(false);
+            }
             m_rootScrollableView.validate();
             final JScrollBar scrollBar = m_rootScrollableView.getVerticalScrollBar();
             scrollBar.setValue(scrollBar.getMaximum());

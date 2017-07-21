@@ -135,13 +135,12 @@ public final class DLKerasDefaultBackend implements DLKerasBackend {
         // TODO: This will be an extension point or at least an internal
         // registry if necessary.
         // Either way, a more sophisticated matching mechanism is needed.
-        if (!spec.hasShape()) {
-            throw new IllegalArgumentException(
-                "Layer data spec does not provide a shape. Layer data cannot be created.");
-        }
+        final long[] shape =
+            DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
+                "Layer data spec does not provide a shape. Layer data cannot be created."));
         DLPythonDataBuffer<?> data;
         final Class<?> t = spec.getElementType();
-        final long size = DLUtils.Shapes.getSize(spec.getShape());
+        final long size = DLUtils.Shapes.getSize(shape);
         if (t.equals(double.class)) {
             data = new DLPythonDoubleBuffer(size);
         } else if (t.equals(float.class)) {

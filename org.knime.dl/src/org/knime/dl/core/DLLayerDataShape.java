@@ -44,58 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2017 (dietzc): created
+ *   Jul 21, 2017 (marcel): created
  */
 package org.knime.dl.core;
 
 /**
- * The spec of {@link DLLayerData}.
+ * Root interface for the shape of {@link DLLayerData}.
  * <P>
  * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
  * objects or external resources.
  * <P>
  * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
  *
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @see DLLayerDataSpec#getShape()
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec {
+public interface DLLayerDataShape {
 
     /**
-     * Returns the name of the layer data.
+     * Returns the shape's number of dimensions.
      *
-     * @return the name of the layer data
+     * @return the number of dimensions
      */
-    String getName();
-
-    /**
-     * Returns whether this layer data instance has a batch size assigned.
-     *
-     * @return true if this layer data instance has a batch size assigned
-     */
-    boolean hasBatchSize();
-
-    /**
-     * Returns the batch size of the layer data. This is an <b>optional property</b> that is not necessarily set for
-     * each layer data. Check {@link #hasBatchSize()} to see if this instance has a batch size assigned.
-     *
-     * @return the batch size of the layer data
-     */
-    long getBatchSize();
-
-    /**
-     * Returns the shape of the layer data.
-     *
-     * @return the shape of the layer data
-     */
-    DLLayerDataShape getShape();
-
-    /**
-     * Returns the type of the layer data's elements
-     *
-     * @return the type of the layer data's elements
-     */
-    Class<?> getElementType();
+    int getNumDimensions();
 
     /**
      * {@inheritDoc}
@@ -108,4 +81,10 @@ public interface DLLayerDataSpec {
      */
     @Override
     boolean equals(Object obj);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    String toString();
 }

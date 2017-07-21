@@ -52,17 +52,6 @@ from DLPythonDataBuffers import DLPythonLongBuffer
 
 import debug_util
 
-
-# def preprocess_input(x):
-#	x = x.copy()
-#	# 'RGB'->'BGR'
-#	x = x[:, :, :, ::-1]
-#	# Zero-center by mean pixel
-#	x[:, :, :, 0] -= 103.939
-#	x[:, :, :, 1] -= 116.779
-#	x[:, :, :, 2] -= 123.68
-#	return x
-
 # TODO: this does not yet take (predefined) batch size (of the input) into account
 def reshapeInputs():
 	X = []
@@ -70,29 +59,11 @@ def reshapeInputs():
 		name = row['name']
 		shape = row['shape']
 		data = globals()[name].values
-		# debug_util.breakpoint()
-		# reshaped = []
-		# for b in data:
-			# b = b[0].array
-			# b = b.reshape(3, 299, 299)  ###### FIXME, hardcoded just to test
-			# b = np.transpose(b, (1, 2, 0))
-			# for (x2, y2, z2), value in np.ndenumerate(b):
-			#	print(str(x2) + ',' + str(y2) + ',' + str(z2) + ': ' + str(value)) 
-			# debug_util.breakpoint()
-			# b = np.expand_dims(b, axis=0)
-			# b = preprocess_input(b)
-			# reshaped.append(b)
 		data = list(map((lambda b: b[0].array.reshape([1] + shape)), data))
-		# debug_util.breakpoint()
 		X.append(np.vstack(data))
-		# X.append(np.vstack(reshaped))
 	return X
 
-# debug_util.breakpoint()
-
 X = reshapeInputs()
-
-# debug_util.breakpoint()
 
 Y = model.predict(X, verbose=0)  # don't change to predict_proba
 

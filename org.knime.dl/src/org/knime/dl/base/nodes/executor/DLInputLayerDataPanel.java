@@ -137,10 +137,10 @@ final class DLInputLayerDataPanel extends JPanel {
         m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
         m_cfg.saveToSettings(settings);
         final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
-        if (filter.getIncludes().length > DLUtils.Shapes.getSize(m_inputDataSpec.getShape())) {
+        final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get());
+        if (filter.getIncludes().length > inputSize) {
             throw new InvalidSettingsException("More columns selected (" + filter.getIncludes().length
-                + ") than input neurons available (" + DLUtils.Shapes.getSize(m_inputDataSpec.getShape())
-                + ") for input '" + m_inputDataSpec.getName() + "'.");
+                + ") than input neurons available (" + inputSize + ") for input '" + m_inputDataSpec.getName() + "'.");
         }
         DataType type = null;
         for (final String include : filter.getIncludes()) {
@@ -158,18 +158,20 @@ final class DLInputLayerDataPanel extends JPanel {
 
     private void constructPanel() {
         setBorder(BorderFactory.createTitledBorder("Input: " + m_inputDataSpec.getName()));
-        // meta information:
+        // meta information
         final JPanel numNeurons = new JPanel();
         final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
         numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-        numNeurons.add(new JLabel("Number of neurons: " + DLUtils.Shapes.getSize(m_inputDataSpec.getShape())),
+        numNeurons.add(
+            new JLabel("Number of neurons: "
+                + DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get())),
             numNeuronsConstr);
         add(numNeurons, m_constr);
         m_constr.gridy++;
         final JPanel shape = new JPanel();
         final GridBagConstraints shapeConstr = new GridBagConstraints();
         shapeConstr.insets = new Insets(5, 0, 5, 0);
-        shape.add(new JLabel("Shape: " + m_inputDataSpec.shapeToString()), shapeConstr);
+        shape.add(new JLabel("Shape: " + m_inputDataSpec.getShape().toString()), shapeConstr);
         add(shape, m_constr);
         m_constr.gridy++;
         // converter selection

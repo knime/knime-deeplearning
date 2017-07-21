@@ -142,11 +142,11 @@ final class DLOutputLayerDataPanel extends JPanel {
 
     private void constructPanel() {
         setBorder(BorderFactory.createTitledBorder("Output: " + m_outputDataSpec.getName()));
-        // meta information:
+        // meta information
         final JPanel shape = new JPanel();
         final GridBagConstraints shapeConstr = new GridBagConstraints();
         shapeConstr.insets = new Insets(5, 0, 5, 0);
-        shape.add(new JLabel("Shape: " + m_outputDataSpec.shapeToString()), shapeConstr);
+        shape.add(new JLabel("Shape: " + m_outputDataSpec.getShape().toString()), shapeConstr);
         add(shape, m_constr);
         // 'remove' button, see bottom for click event handling
         final JButton outputRemoveBtn = new JButton("remove");

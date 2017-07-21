@@ -57,9 +57,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLLayerDataShape;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
@@ -88,11 +90,11 @@ public class DLPythonDataBuffersExecution1To1Test {
 
     private static final String IN_LAYER_DATA_NAME = "test_in_data";
 
-    private static final long[] IN_LAYER_DATA_SHAPE = new long[]{11, 10};
+    private static final DLLayerDataShape IN_LAYER_DATA_SHAPE = new DLDefaultFixedLayerDataShape(new long[]{11, 10});
 
     private static final String OUT_LAYER_DATA_NAME = "test_out_data";
 
-    private static final long[] OUT_LAYER_DATA_SHAPE = new long[]{11, 10};
+    private static final DLLayerDataShape OUT_LAYER_DATA_SHAPE = new DLDefaultFixedLayerDataShape(new long[]{11, 10});
 
     private static final String[] OUT_LAYER_DATA_SELECTED = {OUT_LAYER_DATA_NAME};
 
@@ -120,7 +122,8 @@ public class DLPythonDataBuffersExecution1To1Test {
             final DLLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class) {
                 };
-            final DLPythonDoubleBuffer buff = new DLPythonDoubleBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+            final DLPythonDoubleBuffer buff =
+                new DLPythonDoubleBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
             for (int j = 0; j < buff.getCapacity(); j++) {
                 final double val = m_rng.nextDouble() * m_rng.nextInt(Integer.MAX_VALUE / 5);
                 buff.put(val);
@@ -142,14 +145,16 @@ public class DLPythonDataBuffersExecution1To1Test {
         for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
             final DLDefaultLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, double.class);
-            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(
-                new DLDefaultLayerData<>(spec, new DLPythonDoubleBuffer(DLUtils.Shapes.getSize(spec.getShape())))));
+            outputLayerDataSpecs.put(spec,
+                new DLDefaultLayerDataOutput(new DLDefaultLayerData<>(spec, new DLPythonDoubleBuffer(
+                    DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get())))));
         }
         m_kernel.fillNetworkOutputs(outputLayerDataSpecs);
 
         final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
         final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
-        Assert.assertArrayEquals(input.getSpec().getShape(), output.getSpec().getShape());
+        Assert.assertArrayEquals(DLUtils.Shapes.getFixedShape(input.getSpec().getShape()).get(),
+            DLUtils.Shapes.getFixedShape(output.getSpec().getShape()).get());
         Assert.assertEquals(input.getSpec().getElementType(), output.getSpec().getElementType());
         final DLReadableDoubleBuffer inputData = (DLReadableDoubleBuffer)input.getBuffer();
         final DLReadableDoubleBuffer outputData = (DLReadableDoubleBuffer)output.getBuffer();
@@ -166,7 +171,8 @@ public class DLPythonDataBuffersExecution1To1Test {
             final DLLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class) {
                 };
-            final DLPythonFloatBuffer buff = new DLPythonFloatBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+            final DLPythonFloatBuffer buff =
+                new DLPythonFloatBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
             for (int j = 0; j < buff.getCapacity(); j++) {
                 final float val = m_rng.nextFloat() * m_rng.nextInt(Short.MAX_VALUE / 5);
                 buff.put(val);
@@ -188,14 +194,15 @@ public class DLPythonDataBuffersExecution1To1Test {
         for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
             final DLDefaultLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, float.class);
-            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(
-                new DLDefaultLayerData<>(spec, new DLPythonFloatBuffer(DLUtils.Shapes.getSize(spec.getShape())))));
+            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(new DLDefaultLayerData<>(spec,
+                new DLPythonFloatBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get())))));
         }
         m_kernel.fillNetworkOutputs(outputLayerDataSpecs);
 
         final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
         final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
-        Assert.assertArrayEquals(input.getSpec().getShape(), output.getSpec().getShape());
+        Assert.assertArrayEquals(DLUtils.Shapes.getFixedShape(input.getSpec().getShape()).get(),
+            DLUtils.Shapes.getFixedShape(output.getSpec().getShape()).get());
         Assert.assertEquals(input.getSpec().getElementType(), output.getSpec().getElementType());
         final DLReadableFloatBuffer inputData = (DLReadableFloatBuffer)input.getBuffer();
         final DLReadableFloatBuffer outputData = (DLReadableFloatBuffer)output.getBuffer();
@@ -212,7 +219,8 @@ public class DLPythonDataBuffersExecution1To1Test {
             final DLLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class) {
                 };
-            final DLPythonIntBuffer buff = new DLPythonIntBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+            final DLPythonIntBuffer buff =
+                new DLPythonIntBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
             for (int j = 0; j < buff.getCapacity(); j++) {
                 final int val = m_rng.nextInt(Integer.MAX_VALUE / 5);
                 buff.put(val);
@@ -234,14 +242,15 @@ public class DLPythonDataBuffersExecution1To1Test {
         for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
             final DLDefaultLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, int.class);
-            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(
-                new DLDefaultLayerData<>(spec, new DLPythonIntBuffer(DLUtils.Shapes.getSize(spec.getShape())))));
+            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(new DLDefaultLayerData<>(spec,
+                new DLPythonIntBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get())))));
         }
         m_kernel.fillNetworkOutputs(outputLayerDataSpecs);
 
         final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
         final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
-        Assert.assertArrayEquals(input.getSpec().getShape(), output.getSpec().getShape());
+        Assert.assertArrayEquals(DLUtils.Shapes.getFixedShape(input.getSpec().getShape()).get(),
+            DLUtils.Shapes.getFixedShape(output.getSpec().getShape()).get());
         Assert.assertEquals(input.getSpec().getElementType(), output.getSpec().getElementType());
         final DLReadableIntBuffer inputData = (DLReadableIntBuffer)input.getBuffer();
         final DLReadableIntBuffer outputData = (DLReadableIntBuffer)output.getBuffer();
@@ -258,7 +267,8 @@ public class DLPythonDataBuffersExecution1To1Test {
             final DLLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class) {
                 };
-            final DLPythonLongBuffer buff = new DLPythonLongBuffer(DLUtils.Shapes.getSize(spec.getShape()));
+            final DLPythonLongBuffer buff =
+                new DLPythonLongBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
             for (int j = 0; j < buff.getCapacity(); j++) {
                 final long val = m_rng.nextLong() / 5;
                 buff.put(val);
@@ -280,14 +290,15 @@ public class DLPythonDataBuffersExecution1To1Test {
         for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
             final DLDefaultLayerDataSpec spec =
                 new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, long.class);
-            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(
-                new DLDefaultLayerData<>(spec, new DLPythonLongBuffer(DLUtils.Shapes.getSize(spec.getShape())))));
+            outputLayerDataSpecs.put(spec, new DLDefaultLayerDataOutput(new DLDefaultLayerData<>(spec,
+                new DLPythonLongBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get())))));
         }
         m_kernel.fillNetworkOutputs(outputLayerDataSpecs);
 
         final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
         final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
-        Assert.assertArrayEquals(input.getSpec().getShape(), output.getSpec().getShape());
+        Assert.assertArrayEquals(DLUtils.Shapes.getFixedShape(input.getSpec().getShape()).get(),
+            DLUtils.Shapes.getFixedShape(output.getSpec().getShape()).get());
         Assert.assertEquals(input.getSpec().getElementType(), output.getSpec().getElementType());
         final DLReadableLongBuffer inputData = (DLReadableLongBuffer)input.getBuffer();
         final DLReadableLongBuffer outputData = (DLReadableLongBuffer)output.getBuffer();

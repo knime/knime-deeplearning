@@ -52,8 +52,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.Arrays;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -68,84 +66,66 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 
     private final long m_batchSize;
 
-    private final long[] m_shape;
+    private final DLLayerDataShape m_shape;
 
-    private final Class<?> m_dataType;
+    private final Class<?> m_elementType;
 
     private final int m_hashCode;
 
     /**
-     * @param name the name of the layer data
+     * @param name the name of the layer data, not empty
      * @param batchSize the batch size of the layer data. Must be greater than zero.
-     * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
-     * @param dataType the data type of the layer data's elements
+     * @param shape the shape of the layer data
+     * @param elementType the data type of the layer data's elements
      */
-    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final long[] shape,
-        final Class<?> dataType) {
+    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final DLLayerDataShape shape,
+        final Class<?> elementType) {
         m_name = checkNotNullOrEmpty(name);
         checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
             batchSize);
         m_batchSize = batchSize;
-        checkNotNull(shape);
-        checkArgument(shape.length > 0, "Invalid layer data shape. Expected dimensionality greater than 0, was %s.",
-            shape.length);
-        for (int d = 0; d < shape.length; d++) {
-            checkArgument(shape[d] > 0,
-                "Invalid layer data shape. Expected shape dimension greater than 0, was %s in dimension %s.", shape[d],
-                d);
-        }
-        m_shape = shape;
-        m_dataType = checkNotNull(dataType);
+        m_shape = checkNotNull(shape);
+        m_elementType = checkNotNull(elementType);
         m_hashCode = hashCodeInternal();
     }
 
     /**
-     * @param name the name of the layer data
-     * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
-     * @param dataType the data type of the layer data's elements
+     * @param name the name of the layer data, not empty
+     * @param shape the shape of the layer data
+     * @param elementType the data type of the layer data's elements
      */
-    protected DLAbstractLayerDataSpec(final String name, final long[] shape, final Class<?> dataType) {
+    protected DLAbstractLayerDataSpec(final String name, final DLLayerDataShape shape, final Class<?> elementType) {
         m_name = checkNotNullOrEmpty(name);
         m_batchSize = -1;
-        checkNotNull(shape);
-        checkArgument(shape.length > 0, "Invalid layer data shape. Expected dimensionality greater than 0, was %s.",
-            shape.length);
-        for (int d = 0; d < shape.length; d++) {
-            checkArgument(shape[d] > 0,
-                "Invalid layer data shape. Expected shape dimension greater than 0, was %s in dimension %s.", shape[d],
-                d);
-        }
-        m_shape = shape;
-        m_dataType = checkNotNull(dataType);
+        m_shape = checkNotNull(shape);
+        m_elementType = checkNotNull(elementType);
         m_hashCode = hashCodeInternal();
     }
 
     /**
      * @param name the name of the layer data
      * @param batchSize the batch size of the layer data. Must be greater than zero.
-     * @param dataType the data type of the layer data's elements
+     * @param elementType the data type of the layer data's elements
      */
-    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final Class<?> dataType) {
+    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final Class<?> elementType) {
         m_name = checkNotNullOrEmpty(name);
         checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
             batchSize);
         m_batchSize = batchSize;
-        m_shape = null;
-        m_dataType = checkNotNull(dataType);
+        m_shape = DLUnknownLayerDataShape.INSTANCE;
+        m_elementType = checkNotNull(elementType);
         m_hashCode = hashCodeInternal();
     }
 
     /**
      * @param name the name of the layer data
-     * @param dataType the data type of the layer data's elements
+     * @param elementType the data type of the layer data's elements
      */
-    protected DLAbstractLayerDataSpec(final String name, final Class<?> dataType) {
+    protected DLAbstractLayerDataSpec(final String name, final Class<?> elementType) {
         m_name = checkNotNullOrEmpty(name);
         m_batchSize = -1;
-        m_shape = null;
-        m_dataType = checkNotNull(dataType);
+        m_shape = DLUnknownLayerDataShape.INSTANCE;
+        m_elementType = checkNotNull(elementType);
         m_hashCode = hashCodeInternal();
     }
 
@@ -173,14 +153,6 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
      * {@inheritDoc}
      */
     @Override
-    public boolean hasShape() {
-        return m_shape != null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public long getBatchSize() {
         return m_batchSize;
     }
@@ -189,7 +161,7 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
      * {@inheritDoc}
      */
     @Override
-    public long[] getShape() {
+    public DLLayerDataShape getShape() {
         return m_shape;
     }
 
@@ -198,7 +170,7 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
      */
     @Override
     public Class<?> getElementType() {
-        return m_dataType;
+        return m_elementType;
     }
 
     /**
@@ -224,8 +196,7 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
         return other.getName().equals(getName()) //
             && (!other.hasBatchSize() && !hasBatchSize() //
                 || other.hasBatchSize() && hasBatchSize() && other.getBatchSize() == getBatchSize()) //
-            && (!other.hasShape() && !hasShape() //
-                || other.hasShape() && hasShape() && Arrays.equals(other.getShape(), getShape())) //
+            && other.getShape().equals(getShape()) //
             && other.getElementType() == getElementType() //
             && equalsInternal(other);
     }
@@ -235,19 +206,17 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
      */
     @Override
     public String toString() {
-        return m_name + ": " + shapeToString() + ", " + elementTypeToString();
+        return getName() + ": " + getShape().toString() + ", " + getElementType().getSimpleName();
     }
 
     private int hashCodeInternal() {
         final HashCodeBuilder b = new HashCodeBuilder();
-        b.append(m_name);
+        b.append(getName());
         if (hasBatchSize()) {
-            b.append(m_batchSize);
+            b.append(getBatchSize());
         }
-        if (hasShape()) {
-            b.append(m_shape);
-        }
-        b.append(m_dataType);
+        b.append(getShape());
+        b.append(getElementType());
         hashCodeInternal(b);
         return b.toHashCode();
     }

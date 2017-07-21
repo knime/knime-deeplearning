@@ -44,68 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2017 (dietzc): created
+ *   Jul 21, 2017 (marcel): created
  */
 package org.knime.dl.core;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
- * The spec of {@link DLLayerData}.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * Implementation of a {@link DLLayerDataShape layer data shape} of unknown dimensions.
  *
- * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec {
+public final class DLUnknownLayerDataShape extends DLAbstractLayerDataShape {
 
     /**
-     * Returns the name of the layer data.
-     *
-     * @return the name of the layer data
+     * The singleton instance.
      */
-    String getName();
+    public static final DLUnknownLayerDataShape INSTANCE = new DLUnknownLayerDataShape();
 
-    /**
-     * Returns whether this layer data instance has a batch size assigned.
-     *
-     * @return true if this layer data instance has a batch size assigned
-     */
-    boolean hasBatchSize();
-
-    /**
-     * Returns the batch size of the layer data. This is an <b>optional property</b> that is not necessarily set for
-     * each layer data. Check {@link #hasBatchSize()} to see if this instance has a batch size assigned.
-     *
-     * @return the batch size of the layer data
-     */
-    long getBatchSize();
-
-    /**
-     * Returns the shape of the layer data.
-     *
-     * @return the shape of the layer data
-     */
-    DLLayerDataShape getShape();
-
-    /**
-     * Returns the type of the layer data's elements
-     *
-     * @return the type of the layer data's elements
-     */
-    Class<?> getElementType();
+    private DLUnknownLayerDataShape() {
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    int hashCode();
+    public int getNumDimensions() {
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+    	return "unknown";
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    boolean equals(Object obj);
+    protected void hashCodeInternal(final HashCodeBuilder b) {
+        // no op - everything's handled in abstract base class
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean equalsInternal(final DLLayerDataShape other) {
+        // no op - everything's handled in abstract base class, this method will never be invoked
+        return false;
+    }
 }

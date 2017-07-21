@@ -57,11 +57,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLFixedLayerDataShape;
+import org.knime.dl.core.DLLayerDataShape;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.osgi.framework.Bundle;
@@ -95,6 +98,12 @@ public final class DLUtils {
         public static String readAllUTF8(final File f) throws IOException {
             checkNotNull(f);
             return new String(java.nio.file.Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+        }
+    }
+
+    public static class Layers {
+
+        private Layers() {
         }
     }
 
@@ -151,6 +160,25 @@ public final class DLUtils {
 
         private Shapes() {
         }
+
+        public static boolean isFixed(final DLLayerDataShape shape) {
+            return shape instanceof DLFixedLayerDataShape;
+        }
+
+        public static Optional<long[]> getFixedShape(final DLLayerDataShape shape) {
+            if (isFixed(shape)) {
+                return Optional.of(((DLFixedLayerDataShape)shape).getShape());
+            }
+            return Optional.empty();
+        }
+
+		public static OptionalLong getFixedSize(final DLLayerDataShape shape) {
+			final Optional<long[]> fixedShape = getFixedShape(shape);
+			if (fixedShape.isPresent()) {
+				return OptionalLong.of(getSize(fixedShape.get()));
+			}
+			return OptionalLong.empty();
+		}
 
         public static long getSize(final long[] shape) {
             if (shape == null || shape.length == 0) {
