@@ -185,7 +185,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
             throw new NotConfigurableException("Input deep learning network has no associated back end.");
         }
 
-        final boolean networkChanged = !m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec);
+        final boolean networkChanged = m_lastConfiguredNetworkSpec == null || !m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec);
 
         if (m_lastConfiguredNetworkSpec == null || networkChanged) {
             resetDialog();
