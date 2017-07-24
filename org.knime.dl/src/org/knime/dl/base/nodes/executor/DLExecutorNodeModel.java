@@ -567,7 +567,7 @@ final class DLExecutorNodeModel extends NodeModel {
                     try {
                         executor.execute(temp, networkOutputConsumer, exec, batch.size());
                     } catch (final Exception ex) {
-                        throw new IllegalStateException(ex.getMessage(), ex);
+                        throw new IllegalStateException("Error occured during execution of network model. See log for details.", ex);
                     }
                     exec.checkCanceled();
                     for (final List<DataValue>[] layer : temp.values()) {
@@ -595,7 +595,7 @@ final class DLExecutorNodeModel extends NodeModel {
                 }
             } catch (final Exception e) {
                 executor.close();
-                LOGGER.debug("Error occured during execution of network model: " + e.getMessage(), e);
+                LOGGER.debug("Error occured during execution of network model. See log for details.", e);
                 throw new RuntimeException(e.getMessage(), e);
             } finally {
                 if (executableNetwork != null) {

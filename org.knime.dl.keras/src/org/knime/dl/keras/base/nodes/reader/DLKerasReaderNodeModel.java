@@ -126,13 +126,13 @@ final class DLKerasReaderNodeModel extends NodeModel {
             try {
                 url = FileUtil.toURL(m_lastFilePath);
             } catch (InvalidPathException | MalformedURLException e) {
-                throw new InvalidSettingsException("Invalid or unsupported file path.");
+                throw new InvalidSettingsException("Invalid or unsupported file path. See log for details.", e);
             }
             DLNetwork network;
             try {
                 network = m_reader.readNetwork(url);
             } catch (final Exception e) {
-                throw new InvalidSettingsException("Failed to read deep learning network specification.", e);
+                throw new InvalidSettingsException("Failed to read deep learning network specification. See log for details.", e);
             }
 
             final DLProfile profile = new DLProfile() {
