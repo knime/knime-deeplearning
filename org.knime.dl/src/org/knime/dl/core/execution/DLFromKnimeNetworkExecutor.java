@@ -49,6 +49,7 @@
 package org.knime.dl.core.execution;
 
 import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,14 +115,16 @@ public class DLFromKnimeNetworkExecutor implements AutoCloseable {
 				try {
 					inConverter.convert(batch[i], buffer);
 				} catch (final BufferOverflowException ex) {
-					throw new IllegalArgumentException("Node input size did not match neuron count of network input '"
-							+ buffer.getSpec().getName() + "'. Node input exceeded the neuron count of "
-							+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".", ex);
+					throw new DLInvalidNetworkInputException(
+							"Node input size did not match neuron count of network input '" + buffer.getSpec().getName()
+									+ "'. Node input exceeded the neuron count of "
+									+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".",
+							ex);
 				}
 				// TODO: the cast to writable buffer should not be necessary
 				// here!
 				if (buffer.getBuffer().size() != ((DLWritableBuffer) buffer.getBuffer()).getCapacity()) {
-					throw new IllegalArgumentException(
+					throw new DLInvalidNetworkInputException(
 							"Node input size did not match neuron count of network input '" + buffer.getSpec().getName()
 									+ "'. Neuron count is " + ((DLWritableBuffer) buffer.getBuffer()).getCapacity()
 									+ ", node input size was " + buffer.getBuffer().size() + ".");
@@ -154,14 +157,17 @@ public class DLFromKnimeNetworkExecutor implements AutoCloseable {
 									toCollect[j].add(t);
 								}
 							});
+						} catch (final BufferUnderflowException ex) {
+							throw new DLInvalidNetworkOutputException(
+									"Unexpected network output. Size of network output '" + o.getKey().getName()
+											+ "' did not match its specification.");
 						} catch (final Exception e) {
-							// TODO!
-							e.printStackTrace();
+							// TODO
+							throw new RuntimeException(e);
 						}
 						// TODO
 						convertedOutput.get(o.getKey())[i] = toCollect[i].toArray(new DataCell[toCollect[i].size()]);
 					}
-
 				}
 				outputConsumer.accept(convertedOutput);
 			}
