@@ -43,63 +43,75 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 30, 2017 (marcel): created
  */
 package org.knime.dl.core.data.convert.input;
 
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.data.writables.DLWritableByteBuffer;
-import org.knime.dl.core.data.writables.DLWritableShortBuffer;
+import org.knime.dl.core.data.writables.DLWritableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLByteVectorToByteLayerConverterFactory
-		implements DLDataValueToLayerDataConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
+public class DLCollectionDataValueToLayerDataConverterFactory<FROMELEM extends DataValue, VIA extends DLWritableBuffer>
+		implements DLDataValueToLayerDataConverterFactory<CollectionDataValue, VIA> {
+
+	private final DLDataValueToLayerDataConverterFactory<FROMELEM, VIA> m_elementConverterFactory;
+
+	public DLCollectionDataValueToLayerDataConverterFactory(
+			final DLDataValueToLayerDataConverterFactory<FROMELEM, VIA> elementConverterFactory) {
+		m_elementConverterFactory = elementConverterFactory;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final String getIdentifier() {
+		// NB: final as the format of the identifier is an implementation detail that is used within
+		// DLDataValueToLayerDataConverterRegistry#getConverterFactory(String).
+		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName() + " to Byte Layer";
+		return "Collection of " + m_elementConverterFactory.getName();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
+	public Class<CollectionDataValue> getSourceType() {
+		return CollectionDataValue.class;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<DLWritableShortBuffer> getBufferType() {
-		return DLWritableShortBuffer.class;
+	public Class<VIA> getBufferType() {
+		return m_elementConverterFactory.getBufferType();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DLDataValueToLayerDataConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
-		return new DLDataValueToLayerDataConverter<ByteVectorValue, DLWritableShortBuffer>() {
+	public DLDataValueToLayerDataConverter<CollectionDataValue, VIA> createConverter() {
+		final DLDataValueToLayerDataConverter<FROMELEM, VIA> elementConverter = m_elementConverterFactory
+				.createConverter();
+		return new DLDataValueToLayerDataConverter<CollectionDataValue, VIA>() {
 
 			@Override
-			public void convert(final Iterable<? extends ByteVectorValue> input,
-					final DLLayerData<DLWritableShortBuffer> output) {
-				final DLWritableByteBuffer buf = output.getBuffer();
-				for (final ByteVectorValue val : input) {
-					for (int i = 0; i < val.cardinality(); i++) {
-						buf.put((byte) val.get(i));
-					}
+			public void convert(final Iterable<? extends CollectionDataValue> input, final DLLayerData<VIA> output) {
+				for (final CollectionDataValue val : input) {
+					elementConverter.convert((Iterable<? extends FROMELEM>) val, output); // FIXME
 				}
 			}
 		};

@@ -59,5 +59,5 @@ import org.knime.dl.core.data.writables.DLWritableBuffer;
  */
 public interface DLDataValueToLayerDataConverter<FROM extends DataValue, VIA extends DLWritableBuffer> {
 
-	void convert(Iterable<FROM> input, DLLayerData<VIA> output);
+	void convert(Iterable<? extends FROM> input, DLLayerData<VIA> output);
 }

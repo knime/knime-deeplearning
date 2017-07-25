@@ -43,64 +43,92 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 30, 2017 (marcel): created
  */
-package org.knime.dl.core.data.convert.input;
+package org.knime.dl.core.data.convert.output;
 
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
+import java.util.ArrayList;
+import java.util.function.Consumer;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.collection.SetCell;
+import org.knime.core.node.ExecutionContext;
 import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.data.writables.DLWritableByteBuffer;
-import org.knime.dl.core.data.writables.DLWritableShortBuffer;
+import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLByteVectorToByteLayerConverterFactory
-		implements DLDataValueToLayerDataConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
+public class DLLayerDataToSetCellConverterFactory<VIA extends DLReadableBuffer, TOELEM extends DataCell>
+		implements DLLayerDataToDataCellConverterFactory<VIA, SetCell> {
+
+	private final DLLayerDataToDataCellConverterFactory<VIA, TOELEM> m_elementConverterFactory;
+
+	public DLLayerDataToSetCellConverterFactory(
+			final DLLayerDataToDataCellConverterFactory<VIA, TOELEM> elementConverterFactory) {
+		m_elementConverterFactory = elementConverterFactory;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final String getIdentifier() {
+		// NB: final as the format of the identifier is an implementation detail that is used within
+		// DLLayerDataToDataCellConverterRegistry#getConverterFactory(String).
+		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName() + " to Byte Layer";
+		return m_elementConverterFactory.getName() + " Set";
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
+	public Class<VIA> getBufferType() {
+		return m_elementConverterFactory.getBufferType();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<DLWritableShortBuffer> getBufferType() {
-		return DLWritableShortBuffer.class;
+	public DataType getDestType() {
+		return SetCell.getCollectionType(m_elementConverterFactory.getDestType());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DLDataValueToLayerDataConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
-		return new DLDataValueToLayerDataConverter<ByteVectorValue, DLWritableShortBuffer>() {
+	public long getDestCount(final DLLayerDataSpec spec) {
+		return 1;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLLayerDataToDataCellConverter<VIA, SetCell> createConverter() {
+		final DLLayerDataToDataCellConverter<VIA, TOELEM> elementConverter = m_elementConverterFactory
+				.createConverter();
+		return new DLLayerDataToDataCellConverter<VIA, SetCell>() {
 
 			@Override
-			public void convert(final Iterable<? extends ByteVectorValue> input,
-					final DLLayerData<DLWritableShortBuffer> output) {
-				final DLWritableByteBuffer buf = output.getBuffer();
-				for (final ByteVectorValue val : input) {
-					for (int i = 0; i < val.cardinality(); i++) {
-						buf.put((byte) val.get(i));
-					}
-				}
+			public void convert(final ExecutionContext exec, final DLLayerData<VIA> input, final Consumer<SetCell> out)
+					throws Exception {
+				final ArrayList<TOELEM> temp = new ArrayList<>();
+				elementConverter.convert(exec, input, temp::add);
+				out.accept(CollectionCellFactory.createSetCell(temp));
 			}
 		};
 	}

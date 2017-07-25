@@ -158,13 +158,13 @@ public class DLPythonConverterTest {
             execNetworkSpec.getOutputSpecs().length + execNetworkSpec.getIntermediateOutputSpecs().length);
         for (final DLLayerDataSpec outputSpec : execNetworkSpec.getOutputSpecs()) {
             final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-                .getInstance().getConverterFactories(backend.getReadableBufferType(outputSpec)).stream()
+                .getInstance().getFactoriesForSourceType(backend.getReadableBufferType(outputSpec), outputSpec).stream()
                 .filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
             outputConverters.put(outputSpec, converter);
         }
         for (final DLLayerDataSpec outputSpec : execNetworkSpec.getIntermediateOutputSpecs()) {
             final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-                .getInstance().getConverterFactories(backend.getReadableBufferType(outputSpec)).stream()
+                .getInstance().getFactoriesForSourceType(backend.getReadableBufferType(outputSpec), outputSpec).stream()
                 .filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
             outputConverters.put(outputSpec, converter);
         }
@@ -526,7 +526,7 @@ public class DLPythonConverterTest {
             return new DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer>() {
 
                 @Override
-                public void convert(final Iterable<FooDataValue> input,
+                public void convert(final Iterable<? extends FooDataValue> input,
                     final DLLayerData<DLWritableFloatBuffer> output) {
                     final DLWritableFloatBuffer buf = output.getBuffer();
                     buf.putAll(input.iterator().next().getFloatArray());
@@ -548,10 +548,10 @@ public class DLPythonConverterTest {
             return DLReadableDoubleBuffer.class;
         }
 
-        @Override
-        public Class<BarDataCell> getDestType() {
-            return BarDataCell.class;
-        }
+		@Override
+		public DataType getDestType() {
+			return DataType.getType(BarDataCell.class);
+		}
 
         @Override
         public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {

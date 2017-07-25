@@ -460,8 +460,8 @@ final class DLExecutorNodeModel extends NodeModel {
 			final long count = converter.getDestCount(layerDataSpec);
 			final String prefix = m_outputCfgs.get(layerDataSpec.getName()).getPrefixModel().getStringValue();
 			for (int i = 0; i < count; i++) {
-				outputSpecs.add(new DataColumnSpecCreator(prefix + Integer.toString(i),
-						DataType.getType(converter.getDestType())).createSpec());
+				outputSpecs.add(
+						new DataColumnSpecCreator(prefix + Integer.toString(i), converter.getDestType()).createSpec());
 			}
 		}
 		final DataTableSpec outDataSpec = new DataTableSpec(outputSpecs.toArray(new DataColumnSpec[0]));

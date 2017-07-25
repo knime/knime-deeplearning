@@ -58,46 +58,47 @@ import org.knime.dl.core.data.writables.DLWritableIntBuffer;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLIntValueToIntLayerConverterFactory
-    implements DLDataValueToLayerDataConverterFactory<IntValue, DLWritableIntBuffer> {
+		implements DLDataValueToLayerDataConverterFactory<IntValue, DLWritableIntBuffer> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return ((ExtensibleUtilityFactory)IntValue.UTILITY).getName() + " to Int Layer";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return ((ExtensibleUtilityFactory) IntValue.UTILITY).getName() + " to Int Layer";
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<IntValue> getSourceType() {
-        return IntValue.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<IntValue> getSourceType() {
+		return IntValue.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLWritableIntBuffer> getBufferType() {
-        return DLWritableIntBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLWritableIntBuffer> getBufferType() {
+		return DLWritableIntBuffer.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLDataValueToLayerDataConverter<IntValue, DLWritableIntBuffer> createConverter() {
-        return new DLDataValueToLayerDataConverter<IntValue, DLWritableIntBuffer>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLDataValueToLayerDataConverter<IntValue, DLWritableIntBuffer> createConverter() {
+		return new DLDataValueToLayerDataConverter<IntValue, DLWritableIntBuffer>() {
 
-            @Override
-            public void convert(final Iterable<IntValue> input, final DLLayerData<DLWritableIntBuffer> output) {
-                final DLWritableIntBuffer buf = output.getBuffer();
-                for (final IntValue val : input) {
-                    buf.put(val.getIntValue());
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final Iterable<? extends IntValue> input,
+					final DLLayerData<DLWritableIntBuffer> output) {
+				final DLWritableIntBuffer buf = output.getBuffer();
+				for (final IntValue val : input) {
+					buf.put(val.getIntValue());
+				}
+			}
+		};
+	}
 }

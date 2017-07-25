@@ -58,47 +58,48 @@ import org.knime.dl.core.data.writables.DLWritableFloatBuffer;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLDoubleValueToFloatLayerConverterFactory
-    implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableFloatBuffer> {
+		implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableFloatBuffer> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return ((ExtensibleUtilityFactory)DoubleValue.UTILITY).getName() + " to Float Layer";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName() + " to Float Layer";
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DoubleValue> getSourceType() {
-        return DoubleValue.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DoubleValue> getSourceType() {
+		return DoubleValue.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLWritableFloatBuffer> getBufferType() {
-        return DLWritableFloatBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLWritableFloatBuffer> getBufferType() {
+		return DLWritableFloatBuffer.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLDataValueToLayerDataConverter<DoubleValue, DLWritableFloatBuffer> createConverter() {
-        return new DLDataValueToLayerDataConverter<DoubleValue, DLWritableFloatBuffer>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLDataValueToLayerDataConverter<DoubleValue, DLWritableFloatBuffer> createConverter() {
+		return new DLDataValueToLayerDataConverter<DoubleValue, DLWritableFloatBuffer>() {
 
-            @Override
-            public void convert(final Iterable<DoubleValue> input, final DLLayerData<DLWritableFloatBuffer> output) {
-                final DLWritableFloatBuffer buf = output.getBuffer();
-                for (final DoubleValue val : input) {
-                    // explicitly lossy cast
-                    buf.put((float)val.getDoubleValue());
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final Iterable<? extends DoubleValue> input,
+					final DLLayerData<DLWritableFloatBuffer> output) {
+				final DLWritableFloatBuffer buf = output.getBuffer();
+				for (final DoubleValue val : input) {
+					// explicitly lossy cast
+					buf.put((float) val.getDoubleValue());
+				}
+			}
+		};
+	}
 }

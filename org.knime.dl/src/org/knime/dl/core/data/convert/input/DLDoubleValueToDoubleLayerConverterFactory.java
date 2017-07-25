@@ -58,46 +58,47 @@ import org.knime.dl.core.data.writables.DLWritableDoubleBuffer;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLDoubleValueToDoubleLayerConverterFactory
-    implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableDoubleBuffer> {
+		implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableDoubleBuffer> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return ((ExtensibleUtilityFactory)DoubleValue.UTILITY).getName() + " to Double Layer";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName() + " to Double Layer";
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DoubleValue> getSourceType() {
-        return DoubleValue.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DoubleValue> getSourceType() {
+		return DoubleValue.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLWritableDoubleBuffer> getBufferType() {
-        return DLWritableDoubleBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLWritableDoubleBuffer> getBufferType() {
+		return DLWritableDoubleBuffer.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLDataValueToLayerDataConverter<DoubleValue, DLWritableDoubleBuffer> createConverter() {
-        return new DLDataValueToLayerDataConverter<DoubleValue, DLWritableDoubleBuffer>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLDataValueToLayerDataConverter<DoubleValue, DLWritableDoubleBuffer> createConverter() {
+		return new DLDataValueToLayerDataConverter<DoubleValue, DLWritableDoubleBuffer>() {
 
-            @Override
-            public void convert(final Iterable<DoubleValue> input, final DLLayerData<DLWritableDoubleBuffer> output) {
-                final DLWritableDoubleBuffer buf = output.getBuffer();
-                for (final DoubleValue val : input) {
-                    buf.put(val.getDoubleValue());
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final Iterable<? extends DoubleValue> input,
+					final DLLayerData<DLWritableDoubleBuffer> output) {
+				final DLWritableDoubleBuffer buf = output.getBuffer();
+				for (final DoubleValue val : input) {
+					buf.put(val.getDoubleValue());
+				}
+			}
+		};
+	}
 }

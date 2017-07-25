@@ -219,9 +219,9 @@ final class DLOutputLayerDataPanel extends JPanel {
             throw new RuntimeException(
                 "Backend '" + m_cfg.getBackendModel().getStringValue() + "' could not be found.");
         }
-        final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
-            DLLayerDataToDataCellConverterRegistry.getInstance()
-                .getConverterFactories(backend.get().getReadableBufferType(m_outputDataSpec));
+		final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
+				DLLayerDataToDataCellConverterRegistry.getInstance()
+				.getFactoriesForSourceType(backend.get().getReadableBufferType(m_outputDataSpec), m_outputDataSpec);
         final String[] names = new String[converterFactories.size()];
         final String[] ids = new String[converterFactories.size()];
         for (int i = 0; i < converterFactories.size(); i++) {

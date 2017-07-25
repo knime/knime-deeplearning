@@ -81,20 +81,20 @@ public class DLLongLayerDataToLongCellConverterFactory
         return DLReadableLongBuffer.class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<LongCell> getDestType() {
-        return LongCell.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DataType getDestType() {
+		return DataType.getType(LongCell.class);
+	}
 
     /**
      * {@inheritDoc}
      */
     @Override
     public long getDestCount(final DLLayerDataSpec spec) {
-        return DLUtils.Shapes.getSize((DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
+        return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
     }
 
     /**

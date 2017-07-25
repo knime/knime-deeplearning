@@ -85,8 +85,8 @@ public class DLIntLayerDataToIntCellConverterFactory
      * {@inheritDoc}
      */
     @Override
-    public Class<IntCell> getDestType() {
-        return IntCell.class;
+    public DataType getDestType() {
+        return DataType.getType(IntCell.class);
     }
 
     /**
@@ -94,7 +94,7 @@ public class DLIntLayerDataToIntCellConverterFactory
      */
     @Override
     public long getDestCount(final DLLayerDataSpec spec) {
-        return DLUtils.Shapes.getSize((DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
+        return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
     }
 
     /**

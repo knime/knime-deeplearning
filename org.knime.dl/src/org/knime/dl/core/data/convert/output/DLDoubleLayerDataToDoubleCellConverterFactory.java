@@ -85,8 +85,8 @@ public class DLDoubleLayerDataToDoubleCellConverterFactory
      * {@inheritDoc}
      */
     @Override
-    public Class<DoubleCell> getDestType() {
-        return DoubleCell.class;
+    public DataType getDestType() {
+        return DataType.getType(DoubleCell.class);
     }
 
     /**
@@ -94,7 +94,7 @@ public class DLDoubleLayerDataToDoubleCellConverterFactory
      */
     @Override
     public long getDestCount(final DLLayerDataSpec spec) {
-        return DLUtils.Shapes.getSize((DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
+		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
     }
 
     /**

@@ -49,6 +49,7 @@
 package org.knime.dl.core.data.convert.output;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 
@@ -67,9 +68,9 @@ public interface DLLayerDataToDataCellConverterFactory<VIA extends DLReadableBuf
 
     Class<VIA> getBufferType();
 
-    Class<TO> getDestType();
+    DataType getDestType();
 
-    long getDestCount(DLLayerDataSpec dlLayerDataSpec);
+    long getDestCount(DLLayerDataSpec spec);
 
     DLLayerDataToDataCellConverter<VIA, TO> createConverter();
 }

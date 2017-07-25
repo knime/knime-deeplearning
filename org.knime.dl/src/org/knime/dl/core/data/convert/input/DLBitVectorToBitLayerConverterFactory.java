@@ -58,49 +58,50 @@ import org.knime.dl.core.data.writables.DLWritableBitBuffer;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLBitVectorToBitLayerConverterFactory
-    implements DLDataValueToLayerDataConverterFactory<BitVectorValue, DLWritableBitBuffer> {
+		implements DLDataValueToLayerDataConverterFactory<BitVectorValue, DLWritableBitBuffer> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return ((ExtensibleUtilityFactory)BitVectorValue.UTILITY).getName() + " to Bit Layer";
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName() + " to Bit Layer";
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<BitVectorValue> getSourceType() {
-        return BitVectorValue.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<BitVectorValue> getSourceType() {
+		return BitVectorValue.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLWritableBitBuffer> getBufferType() {
-        return DLWritableBitBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLWritableBitBuffer> getBufferType() {
+		return DLWritableBitBuffer.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLDataValueToLayerDataConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
-        return new DLDataValueToLayerDataConverter<BitVectorValue, DLWritableBitBuffer>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLDataValueToLayerDataConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
+		return new DLDataValueToLayerDataConverter<BitVectorValue, DLWritableBitBuffer>() {
 
-            @Override
-            public void convert(final Iterable<BitVectorValue> input, final DLLayerData<DLWritableBitBuffer> output) {
-                final DLWritableBitBuffer buf = output.getBuffer();
-                for (final BitVectorValue val : input) {
-                    for (int i = 0; i < val.cardinality(); i++) {
-                        buf.put(val.get(i));
-                    }
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final Iterable<? extends BitVectorValue> input,
+					final DLLayerData<DLWritableBitBuffer> output) {
+				final DLWritableBitBuffer buf = output.getBuffer();
+				for (final BitVectorValue val : input) {
+					for (int i = 0; i < val.cardinality(); i++) {
+						buf.put(val.get(i));
+					}
+				}
+			}
+		};
+	}
 
 }
