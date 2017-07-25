@@ -86,131 +86,131 @@ import org.knime.dl.keras.core.DLKerasDefaultBackend;
  */
 final class DLKerasReaderNodeModel extends NodeModel {
 
-    static SettingsModelString createFilePathStringModel(final String defaultPath) {
-        return new SettingsModelString("file_path", defaultPath);
-    }
+	static SettingsModelString createFilePathStringModel(final String defaultPath) {
+		return new SettingsModelString("file_path", defaultPath);
+	}
 
-    static List<String> getValidInputFileExtensions() {
-        return Arrays.asList("h5", "json", "yaml");
-    }
+	static List<String> getValidInputFileExtensions() {
+		return Arrays.asList("h5", "json", "yaml");
+	}
 
-    private final DLBackend m_backend;
+	private final DLBackend m_backend;
 
-    private final DLNetworkReader<?> m_reader;
+	private final DLNetworkReader<?> m_reader;
 
-    private final SettingsModelString m_filePath = createFilePathStringModel("");
+	private final SettingsModelString m_filePath = createFilePathStringModel("");
 
-    private DLNetworkPortObjectSpec m_spec;
+	private DLNetworkPortObjectSpec m_spec;
 
-    private String m_lastFilePath;
+	private String m_lastFilePath;
 
-    protected DLKerasReaderNodeModel() {
-        super(null, new PortType[]{DLNetworkPortObject.TYPE});
-        // TODO: referring to a default implementation must be avoided, else our
-        // abstractions are pointless
-        m_backend =
-            DLBackendRegistry.getBackend(DLKerasDefaultBackend.IDENTIFIER).orElseThrow(() -> new IllegalStateException(
-                "Selected back end '" + DLKerasDefaultBackend.IDENTIFIER + "' could not be found."));
-        m_reader = m_backend.createReader();
-    }
+	protected DLKerasReaderNodeModel() {
+		super(null, new PortType[] { DLNetworkPortObject.TYPE });
+		// TODO: referring to a default implementation must be avoided, else our abstractions are pointless
+		m_backend = DLBackendRegistry.getBackend(DLKerasDefaultBackend.IDENTIFIER)
+				.orElseThrow(() -> new IllegalStateException(
+						"Selected back end '" + DLKerasDefaultBackend.IDENTIFIER + "' could not be found."));
+		m_reader = m_backend.createReader();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_lastFilePath == null || (m_lastFilePath != null && !m_filePath.getStringValue().equals(m_lastFilePath))) {
-            m_lastFilePath = m_filePath.getStringValue();
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+		final String filePath = m_filePath.getStringValue();
+		if (filePath == null || filePath.isEmpty()) {
+			throw new InvalidSettingsException("Empty file path.");
+		}
+		if (!filePath.equals(m_lastFilePath)) {
+			final URL url;
+			try {
+				url = FileUtil.toURL(filePath);
+			} catch (InvalidPathException | MalformedURLException e) {
+				throw new InvalidSettingsException("Invalid or unsupported file path. See log for details.", e);
+			}
+			DLNetwork network;
+			try {
+				network = m_reader.readNetwork(url);
+			} catch (final Exception e) {
+				throw new InvalidSettingsException(
+						"Failed to read deep learning network specification. See log for details.", e);
+			}
 
-            final URL url;
-            try {
-                url = FileUtil.toURL(m_lastFilePath);
-            } catch (InvalidPathException | MalformedURLException e) {
-                throw new InvalidSettingsException("Invalid or unsupported file path. See log for details.", e);
-            }
-            DLNetwork network;
-            try {
-                network = m_reader.readNetwork(url);
-            } catch (final Exception e) {
-                throw new InvalidSettingsException("Failed to read deep learning network specification. See log for details.", e);
-            }
+			final DLProfile profile = new DLProfile() {
 
-            final DLProfile profile = new DLProfile() {
+				@Override
+				public Iterator<DLBackend> iterator() {
+					return Arrays.asList(m_backend).iterator();
+				}
 
-                @Override
-                public Iterator<DLBackend> iterator() {
-                    return Arrays.asList(m_backend).iterator();
-                }
+				@Override
+				public int size() {
+					return 1;
+				}
+			};
+			m_spec = new DLDefaultNetworkPortObjectSpec(network, profile, url);
+			m_lastFilePath = filePath;
+		}
+		return new PortObjectSpec[] { m_spec };
+	}
 
-                @Override
-                public int size() {
-                    return 1;
-                }
-            };
-            m_spec = new DLDefaultNetworkPortObjectSpec(network, profile, url);
-        }
-        return new PortObjectSpec[]{m_spec};
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
+		final URL url = FileUtil.toURL(m_lastFilePath);
+		return new PortObject[] { new DLNetworkReferencePortObject(url, m_spec) };
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final URL url = FileUtil.toURL(m_lastFilePath);
-        return new PortObject[]{new DLNetworkReferencePortObject(url, m_spec)};
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+			throws IOException, CanceledExecutionException {
+		// TODO check if input file still exists (see FileReaderNodeModel#loadInternals(File,ExecutionMonitor))
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // TODO check if input file still exists (see
-        // FileReaderNodeModel#loadInternals(File,ExecutionMonitor))
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+			throws IOException, CanceledExecutionException {
+		// no op
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // no op
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveSettingsTo(final NodeSettingsWO settings) {
+		m_filePath.saveSettingsTo(settings);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_filePath.saveSettingsTo(settings);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		m_filePath.validateSettings(settings);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_filePath.validateSettings(settings);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+		m_filePath.loadSettingsFrom(settings);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_filePath.loadSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void reset() {
-        // TODO: this slows down 'configure' by a lot, needed (no heavy data here)?:
-        // m_spec = null;
-        // m_lastFilePath = null;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void reset() {
+		// no op
+	}
 }

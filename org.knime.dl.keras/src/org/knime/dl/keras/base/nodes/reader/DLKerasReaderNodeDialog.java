@@ -76,76 +76,78 @@ import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
  */
 final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
-    private final FilesHistoryPanel m_files;
+	private final FilesHistoryPanel m_files;
 
-    private final SettingsModelString m_filePath;
+	private final SettingsModelString m_filePath;
 
-    private final JPanel m_loading;
+	private final JPanel m_loading;
 
-    private final CardLayout m_loadingLayout;
+	private final CardLayout m_loadingLayout;
 
-    public DLKerasReaderNodeDialog() {
-        final JPanel filesPanel = new JPanel(new GridBagLayout());
-        filesPanel.setBorder(BorderFactory.createTitledBorder("Input Location"));
-        final GridBagConstraints filesPanelConstr = new GridBagConstraints();
-        filesPanelConstr.gridx = 0;
-        filesPanelConstr.gridy = 0;
-        filesPanelConstr.weightx = 1;
-        filesPanelConstr.weighty = 1;
-        filesPanelConstr.anchor = GridBagConstraints.NORTHWEST;
-        filesPanelConstr.fill = GridBagConstraints.BOTH;
-        m_files = new FilesHistoryPanel("org.knime.dl.keras.base.nodes.reader", LocationValidation.FileInput);
-        m_files.setSuffixes(DLKerasReaderNodeModel.getValidInputFileExtensions().stream().map(s -> "." + s)
-            .collect(Collectors.joining("|")));
-        m_filePath = DLKerasReaderNodeModel.createFilePathStringModel(m_files.getSelectedFile());
-        m_files.addChangeListener(new ChangeListener() {
+	public DLKerasReaderNodeDialog() {
+		final JPanel filesPanel = new JPanel(new GridBagLayout());
+		filesPanel.setBorder(BorderFactory.createTitledBorder("Input Location"));
+		final GridBagConstraints filesPanelConstr = new GridBagConstraints();
+		filesPanelConstr.gridx = 0;
+		filesPanelConstr.gridy = 0;
+		filesPanelConstr.weightx = 1;
+		filesPanelConstr.weighty = 1;
+		filesPanelConstr.anchor = GridBagConstraints.NORTHWEST;
+		filesPanelConstr.fill = GridBagConstraints.BOTH;
+		m_files = new FilesHistoryPanel("org.knime.dl.keras.base.nodes.reader", LocationValidation.FileInput);
+		m_files.setSuffixes(DLKerasReaderNodeModel.getValidInputFileExtensions().stream().map(s -> "." + s)
+				.collect(Collectors.joining("|")));
+		m_filePath = DLKerasReaderNodeModel.createFilePathStringModel(m_files.getSelectedFile());
+		m_files.addChangeListener(new ChangeListener() {
 
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                m_filePath.setStringValue(m_files.getSelectedFile());
-            }
-        });
-        filesPanel.add(m_files, filesPanelConstr);
-        filesPanelConstr.gridy++;
+			@Override
+			public void stateChanged(final ChangeEvent e) {
+				m_filePath.setStringValue(m_files.getSelectedFile());
+			}
+		});
+		filesPanel.add(m_files, filesPanelConstr);
+		filesPanelConstr.gridy++;
 
-        m_loading = new JPanel();
-        m_loadingLayout = new CardLayout();
-        m_loading.setLayout(m_loadingLayout);
-        m_loading.add(new JLabel("Loading network configuration..."), "label");
-        m_loading.add(new JPanel(), "blank");
-        m_loadingLayout.show(m_loading, "blank");
-        filesPanelConstr.weighty = 0;
-        filesPanelConstr.anchor = GridBagConstraints.SOUTHWEST;
-        filesPanelConstr.fill = GridBagConstraints.NONE;
-        filesPanelConstr.insets = new Insets(0, 5, 5, 0);
-        filesPanel.add(m_loading, filesPanelConstr);
-        filesPanelConstr.gridy++;
+		m_loading = new JPanel();
+		m_loadingLayout = new CardLayout();
+		m_loading.setLayout(m_loadingLayout);
+		m_loading.add(new JLabel("Loading network configuration..."), "label");
+		m_loading.add(new JPanel(), "blank");
+		m_loadingLayout.show(m_loading, "blank");
+		filesPanelConstr.weighty = 0;
+		filesPanelConstr.anchor = GridBagConstraints.SOUTHWEST;
+		filesPanelConstr.fill = GridBagConstraints.NONE;
+		filesPanelConstr.insets = new Insets(0, 5, 5, 0);
+		filesPanel.add(m_loading, filesPanelConstr);
+		filesPanelConstr.gridy++;
 
-        addTab("Options", filesPanel);
-    }
+		addTab("Options", filesPanel);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_loadingLayout.show(m_loading, "blank");
-        m_files.updateHistory();
-        try {
-            m_filePath.loadSettingsFrom(settings);
-            m_files.setSelectedFile(m_filePath.getStringValue());
-        } catch (final InvalidSettingsException e) {
-            m_filePath.setStringValue(m_files.getSelectedFile());
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+			throws NotConfigurableException {
+		m_loadingLayout.show(m_loading, "blank");
+		m_files.updateHistory();
+		try {
+			m_filePath.loadSettingsFrom(settings);
+			m_files.setSelectedFile(m_filePath.getStringValue());
+		} catch (final InvalidSettingsException e) {
+			m_filePath.setStringValue(m_files.getSelectedFile());
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_loadingLayout.show(m_loading, "label");
-        m_filePath.saveSettingsTo(settings);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+		// TODO: pressing "Apply" also shows the loading label, loading only happens on "OK" - we need to observe the
+		// node model
+		m_loadingLayout.show(m_loading, "label");
+		m_filePath.saveSettingsTo(settings);
+	}
 }
