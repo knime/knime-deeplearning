@@ -98,7 +98,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 
 	private final DLNetworkReader<?> m_reader;
 
-	private final SettingsModelString m_filePath = createFilePathStringModel("");
+	private final SettingsModelString m_smFilePath = createFilePathStringModel("");
 
 	private DLNetworkPortObjectSpec m_spec;
 
@@ -118,7 +118,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-		final String filePath = m_filePath.getStringValue();
+		final String filePath = m_smFilePath.getStringValue();
 		if (filePath == null || filePath.isEmpty()) {
 			throw new InvalidSettingsException("Empty file path.");
 		}
@@ -187,7 +187,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
-		m_filePath.saveSettingsTo(settings);
+		m_smFilePath.saveSettingsTo(settings);
 	}
 
 	/**
@@ -195,7 +195,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		m_filePath.validateSettings(settings);
+		m_smFilePath.validateSettings(settings);
 	}
 
 	/**
@@ -203,7 +203,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	 */
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-		m_filePath.loadSettingsFrom(settings);
+		m_smFilePath.loadSettingsFrom(settings);
 	}
 
 	/**

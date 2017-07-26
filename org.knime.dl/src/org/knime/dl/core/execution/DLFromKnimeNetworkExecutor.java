@@ -102,12 +102,11 @@ public class DLFromKnimeNetworkExecutor implements AutoCloseable {
 	public void execute(final Map<DLLayerDataSpec, ? extends Iterable<DataValue>[]> inputs,
 			final Consumer<Map<DLLayerDataSpec, DataCell[][]>> outputConsumer, final ExecutionContext exec,
 			final int batchSize) throws Exception {
-
 		// Filling network inputs
 		for (final Entry<DLLayerDataSpec, ? extends Iterable<DataValue>[]> input : inputs.entrySet()) {
 			final Iterable<DataValue>[] batch = input.getValue();
 			// buffer for single layer
-			final DLLayerDataInput converted = m_network.getInputForSpec(input.getKey(), batchSize);
+			final DLLayerDataInput<?> converted = m_network.getInputForSpec(input.getKey(), batchSize);
 			final DLDataValueToLayerDataConverter<DataValue, ?> inConverter = m_inputConverters.get(input.getKey());
 
 			for (int i = 0; i < batch.length; i++) {
@@ -121,8 +120,6 @@ public class DLFromKnimeNetworkExecutor implements AutoCloseable {
 									+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".",
 							ex);
 				}
-				// TODO: the cast to writable buffer should not be necessary
-				// here!
 				if (buffer.getBuffer().size() != ((DLWritableBuffer) buffer.getBuffer()).getCapacity()) {
 					throw new DLInvalidNetworkInputException(
 							"Node input size did not match neuron count of network input '" + buffer.getSpec().getName()
@@ -131,14 +128,11 @@ public class DLFromKnimeNetworkExecutor implements AutoCloseable {
 				}
 			}
 		}
-
+		final HashMap<DLLayerDataSpec, DataCell[][]> convertedOutput = new HashMap<>(m_outputConverters.size());
 		m_network.execute(m_outputConverters.keySet(), new Consumer<Map<DLLayerDataSpec, DLLayerDataOutput<?>>>() {
 
 			@Override
 			public void accept(final Map<DLLayerDataSpec, DLLayerDataOutput<?>> output) {
-				// TODO: we don't want to allocate a new map each time
-				// output for each layerdataspec as a batch of rows (cells)
-				final HashMap<DLLayerDataSpec, DataCell[][]> convertedOutput = new HashMap<>(output.size());
 				for (final Entry<DLLayerDataSpec, DLLayerDataOutput<?>> o : output.entrySet()) {
 					// TODO move out of loop
 					// array of rows. for each DL layer data we create a row.

@@ -59,16 +59,23 @@ import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
+ * @param <I> the input {@link DLReadableBuffer buffer type}
+ * @param <OE> the {@link DataCell element type} of the output collection
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLLayerDataToSetCellConverterFactory<VIA extends DLReadableBuffer, TOELEM extends DataCell>
-		implements DLLayerDataToDataCellConverterFactory<VIA, SetCell> {
+public final class DLLayerDataToSetCellConverterFactory<I extends DLReadableBuffer, OE extends DataCell>
+		implements DLLayerDataToDataCellConverterFactory<I, SetCell> {
 
-	private final DLLayerDataToDataCellConverterFactory<VIA, TOELEM> m_elementConverterFactory;
+	private final DLLayerDataToDataCellConverterFactory<I, OE> m_elementConverterFactory;
 
+	/**
+	 * @param elementConverterFactory the converter factory that is responsible for converting the elements of the
+	 *            output collection
+	 */
 	public DLLayerDataToSetCellConverterFactory(
-			final DLLayerDataToDataCellConverterFactory<VIA, TOELEM> elementConverterFactory) {
+			final DLLayerDataToDataCellConverterFactory<I, OE> elementConverterFactory) {
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
@@ -76,9 +83,7 @@ public class DLLayerDataToSetCellConverterFactory<VIA extends DLReadableBuffer, 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final String getIdentifier() {
-		// NB: final as the format of the identifier is an implementation detail that is used within
-		// DLLayerDataToDataCellConverterRegistry#getConverterFactory(String).
+	public String getIdentifier() {
 		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
 	}
 
@@ -87,14 +92,14 @@ public class DLLayerDataToSetCellConverterFactory<VIA extends DLReadableBuffer, 
 	 */
 	@Override
 	public String getName() {
-		return m_elementConverterFactory.getName() + " Set";
+		return "Set of " + m_elementConverterFactory.getName();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<VIA> getBufferType() {
+	public Class<I> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
 	}
 
@@ -118,18 +123,41 @@ public class DLLayerDataToSetCellConverterFactory<VIA extends DLReadableBuffer, 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DLLayerDataToDataCellConverter<VIA, SetCell> createConverter() {
-		final DLLayerDataToDataCellConverter<VIA, TOELEM> elementConverter = m_elementConverterFactory
-				.createConverter();
-		return new DLLayerDataToDataCellConverter<VIA, SetCell>() {
+	public DLLayerDataToDataCellConverter<I, SetCell> createConverter() {
+		final DLLayerDataToDataCellConverter<I, OE> elementConverter = m_elementConverterFactory.createConverter();
+		return new DLLayerDataToDataCellConverter<I, SetCell>() {
 
 			@Override
-			public void convert(final ExecutionContext exec, final DLLayerData<VIA> input, final Consumer<SetCell> out)
+			public void convert(final ExecutionContext exec, final DLLayerData<I> input, final Consumer<SetCell> out)
 					throws Exception {
-				final ArrayList<TOELEM> temp = new ArrayList<>();
+				final ArrayList<OE> temp = new ArrayList<>();
 				elementConverter.convert(exec, input, temp::add);
 				out.accept(CollectionCellFactory.createSetCell(temp));
 			}
 		};
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return m_elementConverterFactory.hashCode() * 37 + getDestType().hashCode();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		@SuppressWarnings("rawtypes")
+		final DLLayerDataToSetCellConverterFactory other = (DLLayerDataToSetCellConverterFactory) obj;
+		return other.m_elementConverterFactory.equals(m_elementConverterFactory);
 	}
 }

@@ -49,24 +49,58 @@
 package org.knime.dl.core.data.convert.input;
 
 import org.knime.core.data.DataValue;
+import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterFactory;
 import org.knime.dl.core.data.writables.DLWritableBuffer;
 
 /**
+ * Root interface for deep learning input converter factories that create converters which allow conversion of
+ * {@link DataValue data values} into {@link DLLayerData layer data} types.
+ *
+ * @param <I> the input {@link DataValue data value}
+ * @param <O> the output {@link DLWritableBuffer buffer type}
+ * @see DLLayerDataToDataCellConverterFactory
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLDataValueToLayerDataConverterFactory<FROM extends DataValue, TO extends DLWritableBuffer> {
+public interface DLDataValueToLayerDataConverterFactory<I extends DataValue, O extends DLWritableBuffer> {
 
+	/**
+	 * Returns the unique identifier of the converter factory.
+	 *
+	 * @return the factory's identifier
+	 */
 	default String getIdentifier() {
 		return getClass().getName();
 	}
 
+	/**
+	 * Returns the friendly name of the converter factory. The name can be presented to the user and allows distinct
+	 * recognition.
+	 *
+	 * @return the factory's name
+	 */
 	String getName();
 
-	Class<FROM> getSourceType();
+	/**
+	 * Returns the input {@link DataValue data value} that is supported by converters created by this factory.
+	 *
+	 * @return the input data value
+	 */
+	Class<I> getSourceType();
 
-	Class<TO> getBufferType();
+	/**
+	 * Returns the output {@link DLWritableBuffer buffer type} that is supported by converters created by this factory.
+	 *
+	 * @return the output buffer type
+	 */
+	Class<O> getBufferType();
 
-	DLDataValueToLayerDataConverter<FROM, TO> createConverter();
+	/**
+	 * Creates a new converter instance.
+	 *
+	 * @return a new converter instance
+	 */
+	DLDataValueToLayerDataConverter<I, O> createConverter();
 }

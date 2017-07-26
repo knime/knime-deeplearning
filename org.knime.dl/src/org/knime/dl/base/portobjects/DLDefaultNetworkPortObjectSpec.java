@@ -87,16 +87,11 @@ public class DLDefaultNetworkPortObjectSpec extends AbstractSimplePortObjectSpec
 	/**
 	 * Creates a new instance of this port object spec.
 	 *
-	 * @param networkSpec
-	 *            the network spec
-	 * @param profile
-	 *            the profile
-	 * @param the
-	 *            source of the network - TODO: this is temporary and has to be
-	 *            removed as it does not apply to e.g. networks that were
-	 *            created within KNIME (it's currently just easier to read the
-	 *            entire file from source than (de)serializing the network specs
-	 *            ourselves)
+	 * @param networkSpec the network spec
+	 * @param profile the profile
+	 * @param the source of the network - TODO: this is temporary and has to be removed as it does not apply to e.g.
+	 *            networks that were created within KNIME (it's currently just easier to read the entire file from
+	 *            source than (de)serializing the network specs ourselves)
 	 */
 	public DLDefaultNetworkPortObjectSpec(final DLNetwork network, final DLProfile profile,
 			final URL networkReference) {
@@ -168,7 +163,8 @@ public class DLDefaultNetworkPortObjectSpec extends AbstractSimplePortObjectSpec
 		} catch (final MalformedURLException e) {
 			throw new InvalidSettingsException("Failed to load deep learning port object spec.", e);
 		}
-		final DLBackend be = DLBackendRegistry.getPreferredBackend(m_profile);
+		final DLBackend be = DLBackendRegistry.getPreferredBackend(m_profile)
+				.orElseThrow(() -> new InvalidSettingsException("Failed to load deep learning port object spec."));
 		try {
 			// TODO write cache for spec.
 			m_network = be.createReader().readNetwork(m_networkReference);

@@ -508,7 +508,7 @@ public class DLPythonConverterTest {
 
         @Override
         public String getName() {
-            return "FooDataValue to FloatBuffe";
+            return "From FooDataValue";
         }
 
         @Override

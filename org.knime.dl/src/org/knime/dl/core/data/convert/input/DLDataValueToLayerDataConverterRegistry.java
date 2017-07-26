@@ -48,12 +48,13 @@
  */
 package org.knime.dl.core.data.convert.input;
 
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Objects;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -147,11 +148,11 @@ public final class DLDataValueToLayerDataConverterRegistry {
 	 * @param bufferType the destination type
 	 * @return all deep learning converter factories that allow conversion of the source type into the destination type
 	 */
-	public final Collection<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getConverterFactories(
+	public final List<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getConverterFactories(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
-		final LinkedHashSet<DLDataValueToLayerDataConverterFactory<?, ?>> convs = new LinkedHashSet<>();
+		final HashSet<DLDataValueToLayerDataConverterFactory<?, ?>> convs = new HashSet<>();
 		for (final DLDataValueToLayerDataConverterFactory<?, ?> candidate : m_convById.values()) {
-			if (bufferType.isAssignableFrom(candidate.getBufferType())
+			if (candidate.getBufferType().isAssignableFrom(bufferType)
 					&& sourceType.isCompatible(candidate.getSourceType())) {
 				convs.add(candidate);
 			}
@@ -162,7 +163,8 @@ public final class DLDataValueToLayerDataConverterRegistry {
 				convs.add(new DLCollectionDataValueToLayerDataConverterFactory<>(conv));
 			}
 		}
-		return convs;
+		return convs.stream().sorted(Comparator.comparing(DLDataValueToLayerDataConverterFactory::getIdentifier))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -176,7 +178,28 @@ public final class DLDataValueToLayerDataConverterRegistry {
 	 */
 	public final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getPreferredConverterFactory(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
-		return getConverterFactories(sourceType, bufferType).stream().findFirst();
+		final List<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> convs =
+				getConverterFactories(sourceType, bufferType);
+		DLDataValueToLayerDataConverterFactory<?, ?> sourceMatch = null;
+		final DataType theSourceType =
+				sourceType.isCollectionType() ? sourceType.getCollectionElementType() : sourceType;
+		for (final DLDataValueToLayerDataConverterFactory<? extends DataValue, ?> conv : convs) {
+			final Class<? extends DataValue> theConvSourceType;
+			if (conv instanceof DLCollectionDataValueToLayerDataConverterFactory) {
+				theConvSourceType = ((DLCollectionDataValueToLayerDataConverterFactory) conv).getSourceElementType();
+			} else {
+				theConvSourceType = conv.getSourceType();
+			}
+			if (theSourceType.getPreferredValueClass().equals(theConvSourceType)) {
+				if (conv.getBufferType() == bufferType) {
+					return Optional.of(conv);
+				}
+				if (sourceMatch == null || sourceMatch.getBufferType().isAssignableFrom(conv.getBufferType())) {
+					sourceMatch = conv;
+				}
+			}
+		}
+		return sourceMatch != null ? Optional.of(sourceMatch) : convs.stream().findFirst();
 	}
 
 	/**
@@ -192,9 +215,9 @@ public final class DLDataValueToLayerDataConverterRegistry {
 			return Optional.empty();
 		}
 		if (identifier.startsWith(DLCollectionDataValueToLayerDataConverterFactory.class.getName())) {
-			final String elementConverterId = identifier.substring(
-					DLCollectionDataValueToLayerDataConverterFactory.class.getName().length() + 1,
-					identifier.length() - 1);
+			final String elementConverterId =
+					identifier.substring(DLCollectionDataValueToLayerDataConverterFactory.class.getName().length() + 1,
+							identifier.length() - 1);
 			final Optional<DLDataValueToLayerDataConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
 			if (conv.isPresent()) {
 				return Optional.of(new DLCollectionDataValueToLayerDataConverterFactory<>(conv.get()));
@@ -230,44 +253,5 @@ public final class DLDataValueToLayerDataConverterRegistry {
 		}
 		m_convById.put(id, converter);
 	}
-
-	/**
-	 * @see org.knime.core.data.convert.ConversionKey
-	 */
-	private static class ConversionKey {
-
-		private final int m_hashCode;
-
-		private final Class<?> m_sourceType;
-
-		private final Object m_destType;
-
-		private ConversionKey(final DLDataValueToLayerDataConverterFactory<?, ?> factory) {
-			this(factory.getBufferType(), factory.getSourceType());
-		}
-
-		private ConversionKey(final Class<?> sourceType, final Object destType) {
-			m_sourceType = sourceType;
-			m_destType = destType;
-			final int prime = 31;
-			m_hashCode = prime * (prime + sourceType.hashCode()) + destType.hashCode();
-		}
-
-		@Override
-		public int hashCode() {
-			return m_hashCode;
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null || getClass() != obj.getClass()) {
-				return false;
-			}
-			final ConversionKey other = (ConversionKey) obj;
-			return Objects.equals(m_destType, other.m_destType) && Objects.equals(m_sourceType, other.m_sourceType);
-		}
-	}
+	// :registration
 }

@@ -26,7 +26,7 @@
 				For each available input, the following options
 				can be set:
 			</option>
-			<option name="Converter">
+			<option name="Conversion">
 				The converter that is used to transform the
 				selected input columns into a format that is accepted by the
 				respective network input specification.
@@ -44,7 +44,7 @@
 				respective button and selecting an output from the list of available
 				outputs. For each selected output, the following options can be set:
 			</option>
-			<option name="Converter">
+			<option name="Conversion">
 				The converter that is used to transform the
 				network output into table columns.
 			</option>

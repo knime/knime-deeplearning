@@ -66,7 +66,7 @@ public class DLByteVectorToByteLayerConverterFactory
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName() + " to Byte Layer";
+		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
 	}
 
 	/**

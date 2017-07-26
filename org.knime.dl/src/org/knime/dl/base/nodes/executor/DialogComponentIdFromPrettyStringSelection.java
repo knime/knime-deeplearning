@@ -73,8 +73,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import com.google.common.collect.HashBiMap;
 
 /**
- * Modified from {@link DialogComponentStringSelection}. Displays pretty strings and passes their respective hidden id
- * counterparts to the underlying settings model.
+ * Modified from {@link DialogComponentStringSelection}. Displays pretty strings in a combobox and passes the selected
+ * item's hidden id counterpart to the underlying settings model.
  *
  * @see DialogComponentStringSelection
  *
@@ -83,180 +83,172 @@ import com.google.common.collect.HashBiMap;
  */
 public final class DialogComponentIdFromPrettyStringSelection extends DialogComponent {
 
-    private final HashBiMap<String, String> m_byPretty;
+	private final HashBiMap<String, String> m_byPretty;
 
-    private final JLabel m_label;
+	private final JLabel m_label;
 
-    private final JComboBox<String> m_combobox;
+	private final JComboBox<String> m_combobox;
 
-    /**
-     * Creates a new instance of this dialog component.
-     *
-     * @param stringModel the underlying string model
-     * @param label the label
-     * @param pretties the items that will be displayed in the dialog component, no duplicate values
-     * @param ids the hidden counterparts of the visible items, will be stored in the settings model, no duplicate
-     *            values
-     */
-    public DialogComponentIdFromPrettyStringSelection(final SettingsModelString stringModel, final String label,
-        final String[] pretties, final String[] ids) {
-        super(stringModel);
-        checkNotNull(pretties);
-        checkNotNull(ids);
-        checkArgument(pretties.length == ids.length);
-        m_byPretty = HashBiMap.create(pretties.length);
-        m_label = new JLabel(label);
-        getComponentPanel().add(m_label);
-        m_combobox = new JComboBox<>();
-        for (int i = 0; i < pretties.length; i++) {
-            m_byPretty.put(pretties[i], ids[i]);
-            m_combobox.addItem(pretties[i]);
-        }
-        getComponentPanel().add(m_combobox);
-        m_combobox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    try {
-                        updateModel();
-                    } catch (final InvalidSettingsException ise) {
-                        // ignore
-                    }
-                }
-            }
-        });
-        getModel().addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                updateComponent();
-            }
-        });
-        updateComponent();
-    }
+	/**
+	 * Creates a new instance of this dialog component.
+	 *
+	 * @param stringModel the underlying string model
+	 * @param label the label
+	 */
+	public DialogComponentIdFromPrettyStringSelection(final SettingsModelString stringModel, final String label) {
+		super(stringModel);
+		m_label = new JLabel(label);
+		getComponentPanel().add(m_label);
+		m_combobox = new JComboBox<>();
+		getComponentPanel().add(m_combobox);
+		m_byPretty = HashBiMap.create();
+		m_combobox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					try {
+						updateModel();
+					} catch (final InvalidSettingsException ise) {
+						// ignore
+					}
+				}
+			}
+		});
+		getModel().addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(final ChangeEvent e) {
+				updateComponent();
+			}
+		});
+		updateComponent();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void updateComponent() {
-        final String hidden = ((SettingsModelString)getModel()).getStringValue();
-        final boolean updateSelection;
-        if (hidden == null) {
-            updateSelection = m_combobox.getSelectedItem() != null;
-        } else {
-            updateSelection =
-                m_combobox.getSelectedItem() == null || !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
-        }
-        if (updateSelection) {
-            m_combobox.setSelectedItem(m_byPretty.inverse().get(hidden));
-        }
-        setEnabledComponents(getModel().isEnabled());
-        final String visible = (String)m_combobox.getSelectedItem();
-        try {
-            final boolean updateModel;
-            if (visible == null) {
-                updateModel = hidden != null;
-            } else {
-                updateModel = hidden == null || !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
-            }
-            if (updateModel) {
-                updateModel();
-            }
-        } catch (final InvalidSettingsException e) {
-            // ignore
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void updateComponent() {
+		final String hidden = ((SettingsModelString) getModel()).getStringValue();
+		final boolean updateSelection;
+		if (hidden == null) {
+			updateSelection = m_combobox.getSelectedItem() != null;
+		} else {
+			updateSelection = m_combobox.getSelectedItem() == null
+					|| !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
+		}
+		if (updateSelection) {
+			m_combobox.setSelectedItem(m_byPretty.inverse().get(hidden));
+		}
+		setEnabledComponents(getModel().isEnabled());
+		final String visible = (String) m_combobox.getSelectedItem();
+		try {
+			final boolean updateModel;
+			if (visible == null) {
+				updateModel = hidden != null;
+			} else {
+				updateModel = hidden == null || !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
+			}
+			if (updateModel) {
+				updateModel();
+			}
+		} catch (final InvalidSettingsException e) {
+			// ignore
+		}
+	}
 
-    private void updateModel() throws InvalidSettingsException {
-        if (m_combobox.getSelectedItem() == null) {
-            ((SettingsModelString)getModel()).setStringValue(null);
-            m_combobox.setBackground(Color.RED);
-            m_combobox.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(final ActionEvent e) {
-                    m_combobox.setBackground(DialogComponent.DEFAULT_BG);
-                }
-            });
-            throw new InvalidSettingsException("Please select an item from the list.");
-        }
-        final String hidden = m_byPretty.get(m_combobox.getSelectedItem());
-        ((SettingsModelString)getModel()).setStringValue(hidden);
-    }
+	private void updateModel() throws InvalidSettingsException {
+		if (m_combobox.getSelectedItem() == null) {
+			((SettingsModelString) getModel()).setStringValue(null);
+			m_combobox.setBackground(Color.RED);
+			m_combobox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					m_combobox.setBackground(DialogComponent.DEFAULT_BG);
+				}
+			});
+			throw new InvalidSettingsException("Please select an item from the list.");
+		}
+		final String hidden = m_byPretty.get(m_combobox.getSelectedItem());
+		((SettingsModelString) getModel()).setStringValue(hidden);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettingsBeforeSave() throws InvalidSettingsException {
-        updateModel();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void validateSettingsBeforeSave() throws InvalidSettingsException {
+		updateModel();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
-        // no op
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
+		// no op
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void setEnabledComponents(final boolean enabled) {
-        m_combobox.setEnabled(enabled);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void setEnabledComponents(final boolean enabled) {
+		m_combobox.setEnabled(enabled);
+	}
 
-    /**
-     * Sets the preferred size of the internal component.
-     *
-     * @param width The width.
-     * @param height The height.
-     */
-    public void setSizeComponents(final int width, final int height) {
-        m_combobox.setPreferredSize(new Dimension(width, height));
-    }
+	/**
+	 * Sets the preferred size of the internal component.
+	 *
+	 * @param width The width.
+	 * @param height The height.
+	 */
+	public void setSizeComponents(final int width, final int height) {
+		m_combobox.setPreferredSize(new Dimension(width, height));
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setToolTipText(final String text) {
-        m_label.setToolTipText(text);
-        m_combobox.setToolTipText(text);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setToolTipText(final String text) {
+		m_label.setToolTipText(text);
+		m_combobox.setToolTipText(text);
+	}
 
-    /**
-     * Replaces the list of selectable strings in the component. If <code>select</code> is specified (not null) and it
-     * exists in the collection it will be selected. If <code>select</code> is null, the previous value will stay
-     * selected (if it exists in the new list).
-     *
-     * @param selectedPretty the item to select after the replace. Can be null, in which case the previous selection
-     *            remains - if it exists in the new list.
-     */
-    public void replaceListItems(final String[] pretties, final String[] ids, final String selectedPretty) {
-        checkNotNull(pretties);
-        checkNotNull(ids);
-        checkArgument(pretties.length == ids.length);
-        m_byPretty.clear();
-        m_combobox.removeAllItems();
-        for (int i = 0; i < pretties.length; i++) {
-            m_byPretty.put(pretties[i], ids[i]);
-            m_combobox.addItem(pretties[i]);
-        }
-        final String visible;
-        if (selectedPretty == null) {
-            final String hidden = ((SettingsModelString)getModel()).getStringValue();
-            visible = m_byPretty.inverse().get(hidden);
-        } else {
-            visible = selectedPretty;
-        }
-        if (visible == null) {
-            m_combobox.setSelectedIndex(0);
-        } else {
-            m_combobox.setSelectedItem(visible);
-        }
-        m_combobox.setSize(m_combobox.getPreferredSize());
-        getComponentPanel().validate();
-    }
+	/**
+	 * Replaces the list of selectable strings in the component. If <code>select</code> is specified (not null) and it
+	 * exists in the collection it will be selected. If <code>select</code> is null, the previous value will stay
+	 * selected (if it exists in the new list).
+	 *
+	 * @param pretties the items that will be displayed in the dialog component, no duplicate values
+	 * @param ids the hidden counterparts of the visible items, will be stored in the settings model, no duplicate
+	 *            values
+	 * @param selectedPretty the item to select after the replace. Can be null, in which case the previous selection
+	 *            remains - if it exists in the new list.
+	 */
+	public void replaceListItems(final String[] pretties, final String[] ids, final String selectedPretty) {
+		checkNotNull(pretties);
+		checkNotNull(ids);
+		checkArgument(pretties.length == ids.length);
+		final String visible;
+		if (selectedPretty == null) {
+			final String hidden = ((SettingsModelString) getModel()).getStringValue();
+			visible = m_byPretty.inverse().get(hidden);
+		} else {
+			visible = selectedPretty;
+		}
+		m_byPretty.clear();
+		m_combobox.removeAllItems();
+		for (int i = 0; i < pretties.length; i++) {
+			m_byPretty.put(pretties[i], ids[i]);
+			m_combobox.addItem(pretties[i]);
+		}
+		if (visible == null) {
+			m_combobox.setSelectedIndex(0);
+		} else {
+			m_combobox.setSelectedItem(visible);
+		}
+		m_combobox.setSize(m_combobox.getPreferredSize());
+		getComponentPanel().validate();
+	}
 }

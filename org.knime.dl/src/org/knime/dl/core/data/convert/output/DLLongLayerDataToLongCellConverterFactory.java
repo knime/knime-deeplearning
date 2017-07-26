@@ -63,23 +63,23 @@ import org.knime.dl.util.DLUtils;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLLongLayerDataToLongCellConverterFactory
-    implements DLLayerDataToDataCellConverterFactory<DLReadableLongBuffer, LongCell> {
+		implements DLLayerDataToDataCellConverterFactory<DLReadableLongBuffer, LongCell> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return "Long Layer to " + DataType.getType(LongCell.class).toPrettyString();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return DataType.getType(LongCell.class).toPrettyString();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLReadableLongBuffer> getBufferType() {
-        return DLReadableLongBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLReadableLongBuffer> getBufferType() {
+		return DLReadableLongBuffer.class;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -89,29 +89,29 @@ public class DLLongLayerDataToLongCellConverterFactory
 		return DataType.getType(LongCell.class);
 	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getDestCount(final DLLayerDataSpec spec) {
-        return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public long getDestCount(final DLLayerDataSpec spec) {
+		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLLayerDataToDataCellConverter<DLReadableLongBuffer, LongCell> createConverter() {
-        return new DLLayerDataToDataCellConverter<DLReadableLongBuffer, LongCell>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLLayerDataToDataCellConverter<DLReadableLongBuffer, LongCell> createConverter() {
+		return new DLLayerDataToDataCellConverter<DLReadableLongBuffer, LongCell>() {
 
-            @Override
-            public void convert(final ExecutionContext exec, final DLLayerData<DLReadableLongBuffer> input,
-                final Consumer<LongCell> out) {
-                final DLReadableLongBuffer buf = input.getBuffer();
-                for (int i = 0; i < buf.size(); i++) {
-                    out.accept(new LongCell(buf.readNextLong()));
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final ExecutionContext exec, final DLLayerData<DLReadableLongBuffer> input,
+					final Consumer<LongCell> out) {
+				final DLReadableLongBuffer buf = input.getBuffer();
+				for (int i = 0; i < buf.size(); i++) {
+					out.accept(new LongCell(buf.readNextLong()));
+				}
+			}
+		};
+	}
 }

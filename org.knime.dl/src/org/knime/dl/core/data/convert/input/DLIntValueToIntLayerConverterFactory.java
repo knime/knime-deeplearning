@@ -65,7 +65,7 @@ public class DLIntValueToIntLayerConverterFactory
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) IntValue.UTILITY).getName() + " to Int Layer";
+		return ((ExtensibleUtilityFactory) IntValue.UTILITY).getName();
 	}
 
 	/**

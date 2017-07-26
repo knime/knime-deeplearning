@@ -50,27 +50,68 @@ package org.knime.dl.core.data.convert.output;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.dl.core.DLLayerData;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterFactory;
 
 /**
+ * Root interface for deep learning output converter factories that create converters which allow conversion of
+ * {@link DLLayerData layer data} types into {@link DataCell data cells}.
+ *
+ * @param <I> the input {@link DLReadableBuffer buffer type}
+ * @param <O> the output {@link DataType data type}
+ * @see DLDataValueToLayerDataConverterFactory
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataToDataCellConverterFactory<VIA extends DLReadableBuffer, TO extends DataCell> {
+public interface DLLayerDataToDataCellConverterFactory<I extends DLReadableBuffer, O extends DataCell> {
 
-    default String getIdentifier() {
-        return getClass().getName();
-    }
+	/**
+	 * Returns the unique identifier of the converter factory.
+	 *
+	 * @return the factory's identifier
+	 */
+	default String getIdentifier() {
+		return getClass().getName();
+	}
 
-    String getName();
+	/**
+	 * Returns the friendly name of the converter factory. The name can be presented to the user and allows distinct
+	 * recognition.
+	 *
+	 * @return the factory's name
+	 */
+	String getName();
 
-    Class<VIA> getBufferType();
+	/**
+	 * Returns the input {@link DLReadableBuffer buffer type} that is supported by converters created by this factory.
+	 *
+	 * @return the input buffer type.
+	 */
+	Class<I> getBufferType();
 
-    DataType getDestType();
+	/**
+	 * Returns the output {@link DataType data type} that is supported by converters created by this factory.
+	 *
+	 * @return the output data type
+	 */
+	DataType getDestType();
 
-    long getDestCount(DLLayerDataSpec spec);
+	/**
+	 * Returns the number of elements that will make up the output of converters created by this factory given an input
+	 * spec.
+	 *
+	 * @param spec the input spec
+	 * @return the number of output elements
+	 */
+	long getDestCount(DLLayerDataSpec spec);
 
-    DLLayerDataToDataCellConverter<VIA, TO> createConverter();
+	/**
+	 * Creates a new converter instance.
+	 *
+	 * @return a new converter instance
+	 */
+	DLLayerDataToDataCellConverter<I, O> createConverter();
 }

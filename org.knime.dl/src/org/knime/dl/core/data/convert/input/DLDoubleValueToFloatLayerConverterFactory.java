@@ -65,7 +65,7 @@ public class DLDoubleValueToFloatLayerConverterFactory
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName() + " to Float Layer";
+		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName();
 	}
 
 	/**

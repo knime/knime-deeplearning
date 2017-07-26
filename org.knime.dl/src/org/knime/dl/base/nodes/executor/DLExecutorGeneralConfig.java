@@ -44,112 +44,77 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 6, 2017 (marcel): created
+ *   Jun 13, 2017 (marcel): created
  */
 package org.knime.dl.base.nodes.executor;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
+ * Note: all those config classes will certainly be generalized and extended in the future as they're probably viable
+ * tools for saving/loading across all dl nodes. (e.g., they could implement a common super interface
+ * 'DLNodeModelConfig' etc.)
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-class DLOutputLayerDataModelConfig {
+class DLExecutorGeneralConfig {
 
-    private static final String CFG_KEY_CONVERTER = "output_converter";
+    private static final String CFG_KEY_ROOT = "general_settings";
 
-    private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
+    private static final String CFG_KEY_BACKEND = "backend";
 
-    private final String m_outputLayerDataName;
+    private static final String CFG_KEY_BATCH_SIZE = "batch_size";
 
-    private final SettingsModelString m_backendModel;
+    private static final String CFG_KEY_KEEP_INPUT_COLS = "keep_input_columns";
 
-    private final SettingsModelString m_converterModel;
+    private final SettingsModelString m_smBackend;
 
-    private final SettingsModelString m_prefixModel;
+    private final SettingsModelIntegerBounded m_smBatchSize;
 
-    private final CopyOnWriteArrayList<ChangeListener> m_convertersChangeListeners;
+    private final SettingsModelBoolean m_smKeepInputColumns;
 
-    DLOutputLayerDataModelConfig(final String outputLayerDataName, final SettingsModelString backendModel) {
-        m_outputLayerDataName = checkNotNullOrEmpty(outputLayerDataName);
-        m_backendModel = checkNotNull(backendModel);
-        m_converterModel = new SettingsModelString(CFG_KEY_CONVERTER, "");
-        m_prefixModel = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputLayerDataName + "_");
-        m_convertersChangeListeners = new CopyOnWriteArrayList<>();
-        m_backendModel.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                onBackendChanged();
-            }
-        });
-    }
-
-    /**
-     * Equivalent to {@link #getOutputLayerDataName()}.
-     */
-    String getConfigKey() {
-        return m_outputLayerDataName;
-    }
-
-    String getOutputLayerDataName() {
-        return m_outputLayerDataName;
+    DLExecutorGeneralConfig(final String defaultBackend, final int defaultBatchSize) {
+        m_smKeepInputColumns = new SettingsModelBoolean(CFG_KEY_KEEP_INPUT_COLS, false);
+        m_smBackend = new SettingsModelString(CFG_KEY_BACKEND, defaultBackend);
+        m_smBatchSize = new SettingsModelIntegerBounded(CFG_KEY_BATCH_SIZE, defaultBatchSize, 1, Integer.MAX_VALUE);
     }
 
     SettingsModelString getBackendModel() {
-        return m_backendModel;
+        return m_smBackend;
     }
 
-    SettingsModelString getConverterModel() {
-        return m_converterModel;
+    SettingsModelIntegerBounded getBatchSizeModel() {
+        return m_smBatchSize;
     }
 
-    SettingsModelString getPrefixModel() {
-        return m_prefixModel;
-    }
-
-    void addAvailableConvertersChangeListener(final ChangeListener l) {
-        if (!m_convertersChangeListeners.contains(l)) {
-            m_convertersChangeListeners.add(l);
-        }
-    }
-
-    void removeAvailableConvertersChangeListener(final ChangeListener l) {
-        m_convertersChangeListeners.remove(l);
+    SettingsModelBoolean getKeepInputColumns() {
+        return m_smKeepInputColumns;
     }
 
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
-        m_converterModel.validateSettings(cfgSettings);
-        m_prefixModel.validateSettings(cfgSettings);
+        final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
+        m_smBackend.validateSettings(cfgSettings);
+        m_smBatchSize.validateSettings(cfgSettings);
+        m_smKeepInputColumns.validateSettings(cfgSettings);
     }
 
     void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
-        m_converterModel.loadSettingsFrom(cfgSettings);
-        m_prefixModel.loadSettingsFrom(cfgSettings);
+        final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
+        m_smBackend.loadSettingsFrom(cfgSettings);
+        m_smBatchSize.loadSettingsFrom(cfgSettings);
+        m_smKeepInputColumns.loadSettingsFrom(cfgSettings);
     }
 
     void saveToSettings(final NodeSettingsWO settings) {
-        final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputLayerDataName);
-        m_converterModel.saveSettingsTo(cfgSettings);
-        m_prefixModel.saveSettingsTo(cfgSettings);
-    }
-
-    private void onBackendChanged() {
-        for (final ChangeListener l : m_convertersChangeListeners) {
-            l.stateChanged(new ChangeEvent(this));
-        }
+        final NodeSettingsWO cfgSettings = settings.addNodeSettings(CFG_KEY_ROOT);
+        m_smBackend.saveSettingsTo(cfgSettings);
+        m_smBatchSize.saveSettingsTo(cfgSettings);
+        m_smKeepInputColumns.saveSettingsTo(cfgSettings);
     }
 }

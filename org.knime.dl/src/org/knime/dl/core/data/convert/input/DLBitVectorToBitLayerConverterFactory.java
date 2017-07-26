@@ -65,7 +65,7 @@ public class DLBitVectorToBitLayerConverterFactory
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName() + " to Bit Layer";
+		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName();
 	}
 
 	/**

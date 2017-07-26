@@ -65,7 +65,7 @@ public class DLDoubleValueToDoubleLayerConverterFactory
 	 */
 	@Override
 	public String getName() {
-		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName() + " to Double Layer";
+		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName();
 	}
 
 	/**

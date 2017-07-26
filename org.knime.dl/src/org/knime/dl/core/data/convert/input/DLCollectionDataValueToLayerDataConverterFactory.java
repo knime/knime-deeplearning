@@ -46,22 +46,30 @@
  */
 package org.knime.dl.core.data.convert.input;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.dl.core.DLLayerData;
 import org.knime.dl.core.data.writables.DLWritableBuffer;
 
 /**
+ * @param <IE> the {@link DataCell element type} of the input collection
+ * @param <O> the output {@link DLWritableBuffer buffer type}
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLCollectionDataValueToLayerDataConverterFactory<FROMELEM extends DataValue, VIA extends DLWritableBuffer>
-		implements DLDataValueToLayerDataConverterFactory<CollectionDataValue, VIA> {
+public final class DLCollectionDataValueToLayerDataConverterFactory<IE extends DataValue, O extends DLWritableBuffer>
+		implements DLDataValueToLayerDataConverterFactory<CollectionDataValue, O> {
 
-	private final DLDataValueToLayerDataConverterFactory<FROMELEM, VIA> m_elementConverterFactory;
+	private final DLDataValueToLayerDataConverterFactory<IE, O> m_elementConverterFactory;
 
+	/**
+	 * @param elementConverterFactory the converter factory that is responsible for converting the elements of the input
+	 *            collection
+	 */
 	public DLCollectionDataValueToLayerDataConverterFactory(
-			final DLDataValueToLayerDataConverterFactory<FROMELEM, VIA> elementConverterFactory) {
+			final DLDataValueToLayerDataConverterFactory<IE, O> elementConverterFactory) {
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
@@ -69,9 +77,7 @@ public class DLCollectionDataValueToLayerDataConverterFactory<FROMELEM extends D
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final String getIdentifier() {
-		// NB: final as the format of the identifier is an implementation detail that is used within
-		// DLDataValueToLayerDataConverterRegistry#getConverterFactory(String).
+	public String getIdentifier() {
 		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
 	}
 
@@ -91,11 +97,15 @@ public class DLCollectionDataValueToLayerDataConverterFactory<FROMELEM extends D
 		return CollectionDataValue.class;
 	}
 
+	public Class<IE> getSourceElementType() {
+		return m_elementConverterFactory.getSourceType();
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Class<VIA> getBufferType() {
+	public Class<O> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
 	}
 
@@ -103,17 +113,41 @@ public class DLCollectionDataValueToLayerDataConverterFactory<FROMELEM extends D
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DLDataValueToLayerDataConverter<CollectionDataValue, VIA> createConverter() {
-		final DLDataValueToLayerDataConverter<FROMELEM, VIA> elementConverter = m_elementConverterFactory
-				.createConverter();
-		return new DLDataValueToLayerDataConverter<CollectionDataValue, VIA>() {
+	public DLDataValueToLayerDataConverter<CollectionDataValue, O> createConverter() {
+		final DLDataValueToLayerDataConverter<IE, O> elementConverter = m_elementConverterFactory.createConverter();
+		return new DLDataValueToLayerDataConverter<CollectionDataValue, O>() {
 
 			@Override
-			public void convert(final Iterable<? extends CollectionDataValue> input, final DLLayerData<VIA> output) {
+			public void convert(final Iterable<? extends CollectionDataValue> input, final DLLayerData<O> output) {
 				for (final CollectionDataValue val : input) {
-					elementConverter.convert((Iterable<? extends FROMELEM>) val, output); // FIXME
+					elementConverter.convert((Iterable<? extends IE>) val, output);
 				}
 			}
 		};
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return m_elementConverterFactory.hashCode() * 37;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		@SuppressWarnings("rawtypes")
+		final DLCollectionDataValueToLayerDataConverterFactory other =
+				(DLCollectionDataValueToLayerDataConverterFactory) obj;
+		return other.m_elementConverterFactory.equals(m_elementConverterFactory);
 	}
 }

@@ -49,9 +49,9 @@
 package org.knime.dl.core.data.convert.output;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -159,19 +159,35 @@ public final class DLLayerDataToDataCellConverterRegistry {
 				}
 			}
 		}
+		convs.sort(Comparator.comparing(DLLayerDataToDataCellConverterFactory::getIdentifier));
 		return convs;
 	}
 
 	/**
-	 * Returns the preferred deep learning {@link DLLayerDataToDataCellConverterFactory converter factory} that creates
+	 * Returns the preferred deep learning {@link DLLayerDataToDataCellConverterFactory converter factories} that create
 	 * converters which convert a specific source type considering a source spec.
 	 *
 	 * @param sourceType the source type
-	 * @return the preferred deep learning converter factory that allows conversion of the source type
+	 * @param sourceSpec the source spec
+	 * @return all deep learning converter factories that allow conversion of the source type
 	 */
-	public final Optional<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> getPreferredFactoryForSourceType(
+	public List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> getPreferredFactoriesForSourceType(
 			final Class<? extends DLReadableBuffer> sourceType, final DLLayerDataSpec sourceSpec) {
-		return getFactoriesForSourceType(sourceType, sourceSpec).stream().findFirst();
+		final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> convs = getFactoriesForSourceType(
+				sourceType, sourceSpec);
+		// remove redundant converters
+		for (int i = convs.size() - 1; i >= 0; i--) {
+			final DLLayerDataToDataCellConverterFactory<?, ? extends DataCell> conv = convs.get(i);
+			if (conv.getBufferType() != sourceType) {
+				for (int j = 0; j < convs.size(); j++) {
+					if (i != j && convs.get(j).getDestType().equals(conv.getDestType())) {
+						convs.remove(i);
+						break;
+					}
+				}
+			}
+		}
+		return convs;
 	}
 
 	/**
@@ -235,44 +251,4 @@ public final class DLLayerDataToDataCellConverterRegistry {
 		m_convById.put(id, converter);
 	}
 	// :registration
-
-	/**
-	 * @see org.knime.core.data.convert.ConversionKey
-	 */
-	private static class ConversionKey {
-
-		private final int m_hashCode;
-
-		private final Class<?> m_sourceType;
-
-		private final Object m_destType;
-
-		private ConversionKey(final DLLayerDataToDataCellConverterFactory<?, ?> factory) {
-			this(factory.getBufferType(), factory.getDestType());
-		}
-
-		private ConversionKey(final Class<?> sourceType, final Object destType) {
-			m_sourceType = sourceType;
-			m_destType = destType;
-			final int prime = 31;
-			m_hashCode = prime * (prime + sourceType.hashCode()) + destType.hashCode();
-		}
-
-		@Override
-		public int hashCode() {
-			return m_hashCode;
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null || getClass() != obj.getClass()) {
-				return false;
-			}
-			final ConversionKey other = (ConversionKey) obj;
-			return Objects.equals(m_destType, other.m_destType) && Objects.equals(m_sourceType, other.m_sourceType);
-		}
-	}
 }

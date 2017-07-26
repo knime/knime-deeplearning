@@ -63,55 +63,55 @@ import org.knime.dl.util.DLUtils;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLDoubleLayerDataToDoubleCellConverterFactory
-    implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, DoubleCell> {
+		implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, DoubleCell> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return "Double Layer to " + DataType.getType(DoubleCell.class).toPrettyString();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String getName() {
+		return DataType.getType(DoubleCell.class).toPrettyString();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<DLReadableDoubleBuffer> getBufferType() {
-        return DLReadableDoubleBuffer.class;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<DLReadableDoubleBuffer> getBufferType() {
+		return DLReadableDoubleBuffer.class;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataType getDestType() {
-        return DataType.getType(DoubleCell.class);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DataType getDestType() {
+		return DataType.getType(DoubleCell.class);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getDestCount(final DLLayerDataSpec spec) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public long getDestCount(final DLLayerDataSpec spec) {
 		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, DoubleCell> createConverter() {
-        return new DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, DoubleCell>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, DoubleCell> createConverter() {
+		return new DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, DoubleCell>() {
 
-            @Override
-            public void convert(final ExecutionContext exec, final DLLayerData<DLReadableDoubleBuffer> input,
-                final Consumer<DoubleCell> out) {
-                final DLReadableDoubleBuffer buf = input.getBuffer();
-                for (int i = 0; i < buf.size(); i++) {
-                    out.accept(new DoubleCell(buf.readNextDouble()));
-                }
-            }
-        };
-    }
+			@Override
+			public void convert(final ExecutionContext exec, final DLLayerData<DLReadableDoubleBuffer> input,
+					final Consumer<DoubleCell> out) {
+				final DLReadableDoubleBuffer buf = input.getBuffer();
+				for (int i = 0; i < buf.size(); i++) {
+					out.accept(new DoubleCell(buf.readNextDouble()));
+				}
+			}
+		};
+	}
 }

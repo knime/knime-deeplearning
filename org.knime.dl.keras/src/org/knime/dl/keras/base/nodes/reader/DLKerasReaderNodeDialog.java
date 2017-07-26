@@ -78,7 +78,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
 	private final FilesHistoryPanel m_files;
 
-	private final SettingsModelString m_filePath;
+	private final SettingsModelString m_smFilePath;
 
 	private final JPanel m_loading;
 
@@ -97,12 +97,12 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		m_files = new FilesHistoryPanel("org.knime.dl.keras.base.nodes.reader", LocationValidation.FileInput);
 		m_files.setSuffixes(DLKerasReaderNodeModel.getValidInputFileExtensions().stream().map(s -> "." + s)
 				.collect(Collectors.joining("|")));
-		m_filePath = DLKerasReaderNodeModel.createFilePathStringModel(m_files.getSelectedFile());
+		m_smFilePath = DLKerasReaderNodeModel.createFilePathStringModel(m_files.getSelectedFile());
 		m_files.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
-				m_filePath.setStringValue(m_files.getSelectedFile());
+				m_smFilePath.setStringValue(m_files.getSelectedFile());
 			}
 		});
 		filesPanel.add(m_files, filesPanelConstr);
@@ -133,10 +133,10 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		m_loadingLayout.show(m_loading, "blank");
 		m_files.updateHistory();
 		try {
-			m_filePath.loadSettingsFrom(settings);
-			m_files.setSelectedFile(m_filePath.getStringValue());
+			m_smFilePath.loadSettingsFrom(settings);
+			m_files.setSelectedFile(m_smFilePath.getStringValue());
 		} catch (final InvalidSettingsException e) {
-			m_filePath.setStringValue(m_files.getSelectedFile());
+			m_smFilePath.setStringValue(m_files.getSelectedFile());
 		}
 	}
 
@@ -148,6 +148,6 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		// TODO: pressing "Apply" also shows the loading label, loading only happens on "OK" - we need to observe the
 		// node model
 		m_loadingLayout.show(m_loading, "label");
-		m_filePath.saveSettingsTo(settings);
+		m_smFilePath.saveSettingsTo(settings);
 	}
 }
