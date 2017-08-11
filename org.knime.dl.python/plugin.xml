@@ -62,7 +62,7 @@
       <node
             category-path="/labs/deeplearning/keras"
             deprecated="false"
-            factory-class="org.knime.dl.python.node.predictor.DLPythonPredictorNodeFactory">
+            factory-class="org.knime.dl.python.base.node.predictor.DLPythonPredictorNodeFactory">
       </node>
    </extension>
 </plugin>

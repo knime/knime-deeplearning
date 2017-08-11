@@ -52,7 +52,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLLayerDataShape;
-import org.knime.dl.keras.core.DLKerasTypeMap;
+import org.knime.dl.keras.core.DLNumPyTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -66,9 +66,9 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
  */
 public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFactory {
 
-    private final DLKerasTypeMap m_typeMap;
+    private final DLNumPyTypeMap m_typeMap;
 
-    public DLKerasLayerDataSpecTableCreatorFactory(final DLKerasTypeMap typeMap) {
+    public DLKerasLayerDataSpecTableCreatorFactory(final DLNumPyTypeMap typeMap) {
         m_typeMap = typeMap;
     }
 
@@ -105,10 +105,10 @@ public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFact
 
         private final TableSpec m_tableSpec;
 
-        private final DLKerasTypeMap m_typeMap;
+        private final DLNumPyTypeMap m_typeMap;
 
         public DLKerasLayerDataSpecTableCreator(final TableSpec spec, final int tableSize,
-            final DLKerasTypeMap typeMap) {
+            final DLNumPyTypeMap typeMap) {
             if (!checkTableSpec(spec)) {
                 throw new IllegalStateException("Python side sent an invalid layer data specs table.");
             }

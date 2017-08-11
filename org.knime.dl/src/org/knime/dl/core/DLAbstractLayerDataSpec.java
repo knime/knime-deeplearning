@@ -52,6 +52,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.OptionalLong;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -62,162 +67,143 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 
-    private final String m_name;
+	private static final long serialVersionUID = 1L;
 
-    private final long m_batchSize;
+	private final String m_name;
 
-    private final DLLayerDataShape m_shape;
+	private transient OptionalLong m_batchSize;
 
-    private final Class<?> m_elementType;
+	private final DLLayerDataShape m_shape;
 
-    private final int m_hashCode;
+	private final Class<?> m_elementType;
 
-    /**
-     * @param name the name of the layer data, not empty
-     * @param batchSize the batch size of the layer data. Must be greater than zero.
-     * @param shape the shape of the layer data
-     * @param elementType the data type of the layer data's elements
-     */
-    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final DLLayerDataShape shape,
-        final Class<?> elementType) {
-        m_name = checkNotNullOrEmpty(name);
-        checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
-            batchSize);
-        m_batchSize = batchSize;
-        m_shape = checkNotNull(shape);
-        m_elementType = checkNotNull(elementType);
-        m_hashCode = hashCodeInternal();
-    }
+	private final int m_hashCode;
 
-    /**
-     * @param name the name of the layer data, not empty
-     * @param shape the shape of the layer data
-     * @param elementType the data type of the layer data's elements
-     */
-    protected DLAbstractLayerDataSpec(final String name, final DLLayerDataShape shape, final Class<?> elementType) {
-        m_name = checkNotNullOrEmpty(name);
-        m_batchSize = -1;
-        m_shape = checkNotNull(shape);
-        m_elementType = checkNotNull(elementType);
-        m_hashCode = hashCodeInternal();
-    }
+	/**
+	 * @param name the name of the layer data, not empty
+	 * @param batchSize the batch size of the layer data. Must be greater than zero.
+	 * @param shape the shape of the layer data
+	 * @param elementType the data type of the layer data's elements
+	 */
+	protected DLAbstractLayerDataSpec(final String name, final long batchSize, final DLLayerDataShape shape,
+			final Class<?> elementType) {
+		m_name = checkNotNullOrEmpty(name);
+		checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
+				batchSize);
+		m_batchSize = OptionalLong.of(batchSize);
+		m_shape = checkNotNull(shape);
+		m_elementType = checkNotNull(elementType);
+		m_hashCode = hashCodeInternal();
+	}
 
-    /**
-     * @param name the name of the layer data
-     * @param batchSize the batch size of the layer data. Must be greater than zero.
-     * @param elementType the data type of the layer data's elements
-     */
-    protected DLAbstractLayerDataSpec(final String name, final long batchSize, final Class<?> elementType) {
-        m_name = checkNotNullOrEmpty(name);
-        checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
-            batchSize);
-        m_batchSize = batchSize;
-        m_shape = DLUnknownLayerDataShape.INSTANCE;
-        m_elementType = checkNotNull(elementType);
-        m_hashCode = hashCodeInternal();
-    }
+	/**
+	 * @param name the name of the layer data, not empty
+	 * @param shape the shape of the layer data
+	 * @param elementType the data type of the layer data's elements
+	 */
+	protected DLAbstractLayerDataSpec(final String name, final DLLayerDataShape shape, final Class<?> elementType) {
+		m_name = checkNotNullOrEmpty(name);
+		m_batchSize = OptionalLong.empty();
+		m_shape = checkNotNull(shape);
+		m_elementType = checkNotNull(elementType);
+		m_hashCode = hashCodeInternal();
+	}
 
-    /**
-     * @param name the name of the layer data
-     * @param elementType the data type of the layer data's elements
-     */
-    protected DLAbstractLayerDataSpec(final String name, final Class<?> elementType) {
-        m_name = checkNotNullOrEmpty(name);
-        m_batchSize = -1;
-        m_shape = DLUnknownLayerDataShape.INSTANCE;
-        m_elementType = checkNotNull(elementType);
-        m_hashCode = hashCodeInternal();
-    }
+	/**
+	 * @param name the name of the layer data
+	 * @param batchSize the batch size of the layer data. Must be greater than zero.
+	 * @param elementType the data type of the layer data's elements
+	 */
+	protected DLAbstractLayerDataSpec(final String name, final long batchSize, final Class<?> elementType) {
+		m_name = checkNotNullOrEmpty(name);
+		checkArgument(batchSize > 0, "Invalid layer data batch size. Expected value greater than 0, was %s.",
+				batchSize);
+		m_batchSize = OptionalLong.of(batchSize);
+		m_shape = DLUnknownLayerDataShape.INSTANCE;
+		m_elementType = checkNotNull(elementType);
+		m_hashCode = hashCodeInternal();
+	}
 
-    protected abstract void hashCodeInternal(HashCodeBuilder b);
+	/**
+	 * @param name the name of the layer data
+	 * @param elementType the data type of the layer data's elements
+	 */
+	protected DLAbstractLayerDataSpec(final String name, final Class<?> elementType) {
+		m_name = checkNotNullOrEmpty(name);
+		m_batchSize = OptionalLong.empty();
+		m_shape = DLUnknownLayerDataShape.INSTANCE;
+		m_elementType = checkNotNull(elementType);
+		m_hashCode = hashCodeInternal();
+	}
 
-    protected abstract boolean equalsInternal(DLLayerDataSpec other);
+	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName() {
-        return m_name;
-    }
+	protected abstract boolean equalsInternal(DLLayerDataSpec other);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasBatchSize() {
-        return m_batchSize > 0;
-    }
+	@Override
+	public String getName() {
+		return m_name;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getBatchSize() {
-        return m_batchSize;
-    }
+	@Override
+	public OptionalLong getBatchSize() {
+		return m_batchSize;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLLayerDataShape getShape() {
-        return m_shape;
-    }
+	@Override
+	public DLLayerDataShape getShape() {
+		return m_shape;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<?> getElementType() {
-        return m_elementType;
-    }
+	@Override
+	public Class<?> getElementType() {
+		return m_elementType;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        return m_hashCode;
-    }
+	@Override
+	public int hashCode() {
+		return m_hashCode;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        final DLLayerDataSpec other = (DLLayerDataSpec)obj;
-        return other.getName().equals(getName()) //
-            && (!other.hasBatchSize() && !hasBatchSize() //
-                || other.hasBatchSize() && hasBatchSize() && other.getBatchSize() == getBatchSize()) //
-            && other.getShape().equals(getShape()) //
-            && other.getElementType() == getElementType() //
-            && equalsInternal(other);
-    }
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		final DLLayerDataSpec other = (DLLayerDataSpec) obj;
+		return other.getName().equals(getName()) //
+				&& other.getBatchSize().equals(getBatchSize()) //
+				&& other.getShape().equals(getShape()) //
+				&& other.getElementType() == getElementType() //
+				&& equalsInternal(other);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        return getName() + ": " + getShape().toString() + ", " + getElementType().getSimpleName();
-    }
+	@Override
+	public String toString() {
+		return getName() + ": " + getShape().toString() + ", " + getElementType().getSimpleName();
+	}
 
-    private int hashCodeInternal() {
-        final HashCodeBuilder b = new HashCodeBuilder();
-        b.append(getName());
-        if (hasBatchSize()) {
-            b.append(getBatchSize());
-        }
-        b.append(getShape());
-        b.append(getElementType());
-        hashCodeInternal(b);
-        return b.toHashCode();
-    }
+	private void writeObject(final ObjectOutputStream stream) throws IOException {
+		stream.defaultWriteObject();
+		stream.writeLong(m_batchSize.orElse(-1));
+	}
+
+	private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		final long batchSize = stream.readLong();
+		m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
+	}
+
+	private int hashCodeInternal() {
+		final HashCodeBuilder b = new HashCodeBuilder();
+		b.append(getName());
+		b.append(getBatchSize());
+		b.append(getShape());
+		b.append(getElementType());
+		hashCodeInternal(b);
+		return b.toHashCode();
+	}
 }

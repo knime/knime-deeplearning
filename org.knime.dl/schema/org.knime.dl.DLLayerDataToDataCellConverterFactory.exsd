@@ -6,7 +6,7 @@
          <meta.schema plugin="org.knime.dl" id="DLLayerDataToDataCellConverterFactory" name="DLLayerDataToDataCellConverterFactory"/>
       </appInfo>
       <documentation>
-         Extension point for deep learning converter factories that create converters which convert deep learning layer data types into KNIME cells.
+         Extension point for deep learning output converter factories that allow conversion of layer data types into KNIME data cells.
       </documentation>
    </annotation>
 

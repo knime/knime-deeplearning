@@ -55,7 +55,7 @@ import java.nio.BufferUnderflowException;
 
 import org.knime.core.data.DataCell;
 import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.writables.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
  * Abstract base class for {@link DLReadableBuffer readable} and {@link DLWritableBuffer writable} buffers specifically
@@ -68,139 +68,121 @@ import org.knime.dl.core.data.writables.DLWritableBuffer;
  */
 public abstract class DLPythonAbstractDataBuffer<S> extends DataCell implements DLPythonDataBuffer<S> {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * @param expression a boolean expression
-     * @throws BufferOverflowException if {@code expression} is false
-     */
-    protected static void checkOverflow(final boolean expression) throws BufferOverflowException {
-        if (!expression) {
-            throw new BufferOverflowException();
-        }
-    }
+	/**
+	 * @param expression a boolean expression
+	 * @throws BufferOverflowException if {@code expression} is false
+	 */
+	protected static void checkOverflow(final boolean expression) throws BufferOverflowException {
+		if (!expression) {
+			throw new BufferOverflowException();
+		}
+	}
 
-    /**
-     * @param expression a boolean expression
-     * @throws BufferUnderflowException if {@code expression} is false *
-     */
-    protected static void checkUnderflow(final boolean expression) throws BufferUnderflowException {
-        if (!expression) {
-            throw new BufferUnderflowException();
-        }
-    }
+	/**
+	 * @param expression a boolean expression
+	 * @throws BufferUnderflowException if {@code expression} is false *
+	 */
+	protected static void checkUnderflow(final boolean expression) throws BufferUnderflowException {
+		if (!expression) {
+			throw new BufferUnderflowException();
+		}
+	}
 
-    /**
-     * The immutable capacity of the buffer.
-     */
-    protected final int m_capacity;
+	/**
+	 * The immutable capacity of the buffer.
+	 */
+	protected final int m_capacity;
 
-    /**
-     * The internal storage.
-     */
-    protected S m_storage;
+	/**
+	 * The internal storage.
+	 */
+	protected S m_storage;
 
-    /**
-     * The next write position. Equals {@links #size()}.
-     */
-    protected int m_nextWrite = 0;
+	/**
+	 * The next write position. Equals {@links #size()}.
+	 */
+	protected int m_nextWrite = 0;
 
-    /**
-     * The next read position.
-     */
-    protected int m_nextRead = 0;
+	/**
+	 * The next read position.
+	 */
+	protected int m_nextRead = 0;
 
-    /**
-     * Creates a new instance of this buffer.
-     *
-     * @param capacity the immutable capacity of the buffer
-     */
-    protected DLPythonAbstractDataBuffer(final long capacity) {
-        checkArgument(capacity <= Integer.MAX_VALUE,
-            "Input capacity. Buffer only supports capacities up to " + Integer.MAX_VALUE + ".");
-        m_capacity = (int)capacity;
-        m_storage = createStorage();
-    }
+	/**
+	 * Creates a new instance of this buffer.
+	 *
+	 * @param capacity the immutable capacity of the buffer
+	 */
+	protected DLPythonAbstractDataBuffer(final long capacity) {
+		checkArgument(capacity <= Integer.MAX_VALUE,
+				"Invalid input capacity. Buffer only supports capacities up to " + Integer.MAX_VALUE + ".");
+		m_capacity = (int) capacity;
+		m_storage = createStorage();
+	}
 
-    /**
-     * Creates the internal storage of this buffer. This method is only called once during construction of the instance.
-     *
-     * @return the internal storage
-     */
-    protected abstract S createStorage();
+	/**
+	 * Creates the internal storage of this buffer. This method is only called once during construction of the instance.
+	 *
+	 * @return the internal storage
+	 */
+	protected abstract S createStorage();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long size() {
-        return m_nextWrite;
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getCapacity() {
-        return m_capacity;
-    }
+	@Override
+	public long size() {
+		return m_nextWrite;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
-        checkUnderflow(startPos + length <= m_nextWrite);
-        return m_storage;
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public S getStorageForWriting(final long startPos, final long length) throws BufferOverflowException {
-        checkOverflow(startPos + length <= m_capacity);
-        m_nextWrite = (int)(startPos + length);
-        return m_storage;
-    }
+	@Override
+	public long getCapacity() {
+		return m_capacity;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void resetRead() {
-        m_nextRead = 0;
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void resetWrite() {
-        m_nextWrite = 0;
-    }
+	@Override
+	public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
+		checkUnderflow(startPos + length <= m_nextWrite);
+		return m_storage;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void close() throws Exception {
-        m_storage = null;
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        return m_storage.hashCode();
-    }
+	@Override
+	public S getStorageForWriting(final long startPos, final long length) throws BufferOverflowException {
+		checkOverflow(startPos + length <= m_capacity);
+		m_nextWrite = (int) (startPos + length);
+		return m_storage;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        return "Buffer with capacity: " + m_capacity;
-    }
+
+	@Override
+	public void resetRead() {
+		m_nextRead = 0;
+	}
+
+
+	@Override
+	public void resetWrite() {
+		m_nextWrite = 0;
+	}
+
+
+	@Override
+	public void close() throws Exception {
+		m_storage = null;
+	}
+
+
+	@Override
+	public int hashCode() {
+		return m_storage.hashCode();
+	}
+
+
+	@Override
+	public String toString() {
+		return "Buffer with capacity: " + m_capacity;
+	}
 }

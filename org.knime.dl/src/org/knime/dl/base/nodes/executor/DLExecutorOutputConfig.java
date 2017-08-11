@@ -67,89 +67,89 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 class DLExecutorOutputConfig {
 
-    private static final String CFG_KEY_CONVERTER = "output_converter";
+	private static final String CFG_KEY_CONVERTER = "output_converter";
 
-    private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
+	private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
 
-    private final String m_outputLayerDataName;
+	private final String m_outputLayerDataName;
 
-    private final SettingsModelString m_smBackend;
+	private final SettingsModelString m_smExecutionContext;
 
-    private final SettingsModelString m_smConverter;
+	private final SettingsModelString m_smConverter;
 
-    private final SettingsModelString m_smPrefix;
+	private final SettingsModelString m_smPrefix;
 
-    private final CopyOnWriteArrayList<ChangeListener> m_backendChangeListeners;
+	private final CopyOnWriteArrayList<ChangeListener> m_backendChangeListeners;
 
-    DLExecutorOutputConfig(final String outputLayerDataName, final SettingsModelString backendModel) {
-        m_outputLayerDataName = checkNotNullOrEmpty(outputLayerDataName);
-        m_smBackend = checkNotNull(backendModel);
-        m_smConverter = new SettingsModelString(CFG_KEY_CONVERTER, null);
-        m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputLayerDataName + "_");
-        m_backendChangeListeners = new CopyOnWriteArrayList<>();
-        m_smBackend.addChangeListener(new ChangeListener() {
+	DLExecutorOutputConfig(final String outputLayerDataName, final SettingsModelString executionContextModel) {
+		m_outputLayerDataName = checkNotNullOrEmpty(outputLayerDataName);
+		m_smExecutionContext = checkNotNull(executionContextModel);
+		m_smConverter = new SettingsModelString(CFG_KEY_CONVERTER, null);
+		m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputLayerDataName + "_");
+		m_backendChangeListeners = new CopyOnWriteArrayList<>();
+		m_smExecutionContext.addChangeListener(new ChangeListener() {
 
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                onBackendChanged();
-            }
-        });
-    }
+			@Override
+			public void stateChanged(final ChangeEvent e) {
+				onBackendChanged();
+			}
+		});
+	}
 
-    /**
-     * Equivalent to {@link #getOutputLayerDataName()}.
-     */
-    String getConfigKey() {
-        return m_outputLayerDataName;
-    }
+	/**
+	 * Equivalent to {@link #getOutputLayerDataName()}.
+	 */
+	String getConfigKey() {
+		return m_outputLayerDataName;
+	}
 
-    String getOutputLayerDataName() {
-        return m_outputLayerDataName;
-    }
+	String getOutputLayerDataName() {
+		return m_outputLayerDataName;
+	}
 
-    SettingsModelString getBackendModel() {
-        return m_smBackend;
-    }
+	SettingsModelString getExecutionContextModel() {
+		return m_smExecutionContext;
+	}
 
-    SettingsModelString getConverterModel() {
-        return m_smConverter;
-    }
+	SettingsModelString getConverterModel() {
+		return m_smConverter;
+	}
 
-    SettingsModelString getPrefixModel() {
-        return m_smPrefix;
-    }
+	SettingsModelString getPrefixModel() {
+		return m_smPrefix;
+	}
 
-    void addBackendChangeListener(final ChangeListener l) {
-        if (!m_backendChangeListeners.contains(l)) {
-            m_backendChangeListeners.add(l);
-        }
-    }
+	void addBackendChangeListener(final ChangeListener l) {
+		if (!m_backendChangeListeners.contains(l)) {
+			m_backendChangeListeners.add(l);
+		}
+	}
 
-    void removeBackendChangeListener(final ChangeListener l) {
-        m_backendChangeListeners.remove(l);
-    }
+	void removeBackendChangeListener(final ChangeListener l) {
+		m_backendChangeListeners.remove(l);
+	}
 
-    void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
-        m_smConverter.validateSettings(cfgSettings);
-        m_smPrefix.validateSettings(cfgSettings);
-    }
+	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
+		m_smConverter.validateSettings(cfgSettings);
+		m_smPrefix.validateSettings(cfgSettings);
+	}
 
-    void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
-        m_smConverter.loadSettingsFrom(cfgSettings);
-        m_smPrefix.loadSettingsFrom(cfgSettings);
-    }
+	void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
+		m_smConverter.loadSettingsFrom(cfgSettings);
+		m_smPrefix.loadSettingsFrom(cfgSettings);
+	}
 
-    void saveToSettings(final NodeSettingsWO settings) {
-        final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputLayerDataName);
-        m_smConverter.saveSettingsTo(cfgSettings);
-        m_smPrefix.saveSettingsTo(cfgSettings);
-    }
+	void saveToSettings(final NodeSettingsWO settings) {
+		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputLayerDataName);
+		m_smConverter.saveSettingsTo(cfgSettings);
+		m_smPrefix.saveSettingsTo(cfgSettings);
+	}
 
-    private void onBackendChanged() {
-        for (final ChangeListener l : m_backendChangeListeners) {
-            l.stateChanged(new ChangeEvent(this));
-        }
-    }
+	private void onBackendChanged() {
+		for (final ChangeListener l : m_backendChangeListeners) {
+			l.stateChanged(new ChangeEvent(this));
+		}
+	}
 }

@@ -48,6 +48,8 @@
  */
 package org.knime.dl.core;
 
+import java.io.Serializable;
+
 /**
  * Root interface for the shape of {@link DLLayerData}.
  * <P>
@@ -61,7 +63,7 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataShape {
+public interface DLLayerDataShape extends Serializable {
 
     /**
      * Returns the shape's number of dimensions.

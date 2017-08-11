@@ -59,13 +59,13 @@ import org.knime.dl.core.data.DLBuffer;
 
 public interface DLLayerData<B extends DLBuffer> extends AutoCloseable {
 
-    DLLayerDataSpec getSpec();
+	DLLayerDataSpec getSpec();
 
-    B getBuffer();
+	B getBuffer();
 
-    /**
-     * Closes the associated buffer.
-     */
-    @Override
-    void close() throws Exception;
+	/**
+	 * Closes the associated buffer.
+	 */
+	@Override
+	void close() throws Exception;
 }

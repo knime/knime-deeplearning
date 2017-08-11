@@ -48,32 +48,35 @@
  */
 package org.knime.dl.core;
 
+import java.io.Serializable;
+
 /**
- * The spec of {@link DLNetwork}.
+ * The spec of a {@link DLNetwork}.
  * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources.
+ * Implementations of this interface must provide a public empty constructor.
+ * <P>
+ * Implementations of this interface must override {@link #equals(Object)} and
+ * {@link #hashCode()} in a value-based way.
+ * <P>
+ * Deep learning spec objects are intended to be used throughout the application
+ * and must not reference heavy data objects or external resources.
  *
  * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-public interface DLNetworkSpec {
+public interface DLNetworkSpec extends Serializable {
 
-    DLLayerDataSpec[] getInputSpecs();
+	DLNetworkType<?, ?> getNetworkType();
 
-    DLLayerDataSpec[] getIntermediateOutputSpecs();
+	DLLayerDataSpec[] getInputSpecs();
 
-    DLLayerDataSpec[] getOutputSpecs();
+	DLLayerDataSpec[] getIntermediateOutputSpecs();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    int hashCode();
+	DLLayerDataSpec[] getOutputSpecs();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    boolean equals(Object obj);
+	@Override
+	int hashCode();
+
+	@Override
+	boolean equals(Object obj);
 }

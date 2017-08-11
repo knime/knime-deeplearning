@@ -51,9 +51,7 @@ package org.knime.dl.base.portobjects;
 import javax.swing.JComponent;
 
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.dl.core.DLExecutableNetworkSpec;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.backend.DLProfile;
 
 /**
  * Base interface for all deep learning port object specs.
@@ -63,27 +61,16 @@ import org.knime.dl.core.backend.DLProfile;
  */
 public interface DLNetworkPortObjectSpec extends PortObjectSpec {
 
-    /**
-     * Returns the contained {@link DLExecutableNetworkSpec}.
-     *
-     * @return the network spec
-     */
-    DLNetworkSpec getNetworkSpec();
-    
-    /**
-     * Returns a {@link DLProfile} that matches the the contained network spec.
-     *
-     * @return the profile associated with the network spec
-     * @see DLNetworkPortObjectSpec#getNetworkSpec()
-     */
-    DLProfile getProfile();
+	/**
+	 * Returns the contained {@link DLExecutableNetworkSpec}.
+	 *
+	 * @return the network spec
+	 */
+	DLNetworkSpec getNetworkSpec();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    default JComponent[] getViews() {
-        return new JComponent[0];
-    }
 
+	@Override
+	default JComponent[] getViews() {
+		return new JComponent[0];
+	}
 }

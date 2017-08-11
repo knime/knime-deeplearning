@@ -49,79 +49,67 @@
 package org.knime.dl.keras.testing;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.InvalidPathException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLLayerData;
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.data.writables.DLWritableFloatBuffer;
-import org.knime.dl.core.execution.DLLayerDataInput;
-import org.knime.dl.core.execution.DLLayerDataOutput;
-import org.knime.dl.keras.core.DLKerasDefaultBackend;
-import org.knime.dl.keras.core.DLKerasExecutableNetwork;
-import org.knime.dl.keras.core.DLKerasExecutableNetwork.DLKerasExecutableNetworkSpec;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.keras.core.DLKerasDefaultNetworkReader;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.io.DLKerasNetworkReader;
+import org.knime.dl.keras.core.execution.DLKerasDefaultExecutionContext;
 import org.knime.dl.util.DLUtils;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLKerasNetworkExecutor1To1Test {
 
-    private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-    @Test
-    public void test() throws IOException, InvalidPathException, MalformedURLException {
-        final URL source =
-            FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
+	@Test
+	public void test() throws Exception {
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 
-        final DLKerasDefaultBackend backend = new DLKerasDefaultBackend();
-        final DLKerasNetworkReader reader = backend.createReader();
-        DLKerasNetwork network;
-        try {
-            network = reader.readNetwork(source);
-        } catch (IllegalArgumentException | IOException e) {
-            throw new RuntimeException(e);
-        }
-        final DLKerasExecutableNetwork execNetwork = backend.toExecutableNetwork(network);
-        final DLKerasExecutableNetworkSpec execSpec = execNetwork.getSpec();
+		final DLKerasDefaultExecutionContext exec = new DLKerasDefaultExecutionContext();
+		final DLKerasDefaultNetworkReader handler = new DLKerasDefaultNetworkReader();
+		DLKerasNetwork network;
+		try {
+			network = handler.create(source);
+		} catch (IllegalArgumentException | IOException e) {
+			throw new RuntimeException(e);
+		}
+		final DLNetworkSpec networkSpec = network.getSpec();
+		final Set<DLLayerDataSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
+		final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs);
+		execNetwork.execute(in -> {
+			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : in.entrySet()) {
+				populate(entry.getValue().getBatch()[0]);
+			}
+		}, out -> {
+			// TODO: test against known results - this is sth. that should rather be tested via a test workflow
+		}, 1);
+	}
 
-        final HashMap<DLLayerDataSpec, ?> inputs = new HashMap<>(execSpec.getInputSpecs().length);
-        for (final DLLayerDataSpec inputSpec : execSpec.getInputSpecs()) {
-            final DLLayerDataInput<?> input = execNetwork.getInputForSpec(inputSpec, 1);
-            populate(input.getBatch()[0]);
-        }
-        final Set<DLLayerDataSpec> selectedOutputs = Collections.singleton(execSpec.getOutputSpecs()[0]);
-
-        execNetwork.execute(selectedOutputs, new Consumer<Map<DLLayerDataSpec, DLLayerDataOutput<?>>>() {
-
-            @Override
-            public void accept(final Map<DLLayerDataSpec, DLLayerDataOutput<?>> t) {
-                // TODO: test against known results - this is sth. that should rather be tested via a test workflow
-            }
-        });
-    }
-
-    private static void populate(final DLLayerData<?> data) {
-        if (data.getBuffer() instanceof DLWritableFloatBuffer) {
-            final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer)data.getBuffer();
-            buffer.resetWrite();
-            for (int i = 0; i < buffer.getCapacity(); i++) {
-                buffer.put(5f);
-            }
-        } else {
-            throw new IllegalStateException("Unexpected input buffer type.");
-        }
-    }
+	private static void populate(final DLLayerData<?> data) {
+		if (data.getBuffer() instanceof DLWritableFloatBuffer) {
+			final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer) data.getBuffer();
+			buffer.resetWrite();
+			for (int i = 0; i < buffer.getCapacity(); i++) {
+				buffer.put(5f);
+			}
+		} else {
+			throw new IllegalStateException("Unexpected input buffer type.");
+		}
+	}
 }

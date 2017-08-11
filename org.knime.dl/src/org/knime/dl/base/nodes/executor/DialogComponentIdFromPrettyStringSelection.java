@@ -123,9 +123,7 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		updateComponent();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void updateComponent() {
 		final String hidden = ((SettingsModelString) getModel()).getStringValue();
@@ -172,25 +170,19 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		((SettingsModelString) getModel()).setStringValue(hidden);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void validateSettingsBeforeSave() throws InvalidSettingsException {
 		updateModel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
 		// no op
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void setEnabledComponents(final boolean enabled) {
 		m_combobox.setEnabled(enabled);
@@ -206,9 +198,7 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		m_combobox.setPreferredSize(new Dimension(width, height));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void setToolTipText(final String text) {
 		m_label.setToolTipText(text);

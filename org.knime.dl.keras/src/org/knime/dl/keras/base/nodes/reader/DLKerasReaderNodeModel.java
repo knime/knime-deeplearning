@@ -54,7 +54,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -64,21 +63,21 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.base.portobjects.DLDefaultNetworkPortObject;
 import org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec;
+import org.knime.dl.base.portobjects.DLExternalNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
-import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.base.portobjects.DLNetworkReferencePortObject;
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.backend.DLBackend;
-import org.knime.dl.core.backend.DLBackendRegistry;
-import org.knime.dl.core.backend.DLProfile;
-import org.knime.dl.core.io.DLNetworkReader;
-import org.knime.dl.keras.core.DLKerasDefaultBackend;
+import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.io.DLNetworkReaderRegistry;
+import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkReader;
+import org.knime.dl.keras.core.DLKerasNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -86,36 +85,36 @@ import org.knime.dl.keras.core.DLKerasDefaultBackend;
  */
 final class DLKerasReaderNodeModel extends NodeModel {
 
+	private static final String CFG_KEY_COPY_NETWORK = "copy_network";
+
 	static SettingsModelString createFilePathStringModel(final String defaultPath) {
 		return new SettingsModelString("file_path", defaultPath);
 	}
 
+	static SettingsModelBoolean createCopyNetworkSettingsModel() {
+		return new SettingsModelBoolean(CFG_KEY_COPY_NETWORK, false);
+	}
+
+	// TODO: this should be fetched from the Keras network handler
 	static List<String> getValidInputFileExtensions() {
 		return Arrays.asList("h5", "json", "yaml");
 	}
 
-	private final DLBackend m_backend;
-
-	private final DLNetworkReader<?> m_reader;
-
 	private final SettingsModelString m_smFilePath = createFilePathStringModel("");
 
-	private DLNetworkPortObjectSpec m_spec;
+	private final SettingsModelBoolean m_smCopyNetwork = createCopyNetworkSettingsModel();
 
 	private String m_lastFilePath;
 
+	// TODO use cache ?
+	private DLKerasNetwork m_network;
+
+	private DLKerasNetworkReader m_reader;
+
 	protected DLKerasReaderNodeModel() {
 		super(null, new PortType[] { DLNetworkPortObject.TYPE });
-		// TODO: referring to a default implementation must be avoided, else our abstractions are pointless
-		m_backend = DLBackendRegistry.getBackend(DLKerasDefaultBackend.IDENTIFIER)
-				.orElseThrow(() -> new IllegalStateException(
-						"Selected back end '" + DLKerasDefaultBackend.IDENTIFIER + "' could not be found."));
-		m_reader = m_backend.createReader();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		final String filePath = m_smFilePath.getStringValue();
@@ -123,92 +122,75 @@ final class DLKerasReaderNodeModel extends NodeModel {
 			throw new InvalidSettingsException("Empty file path.");
 		}
 		if (!filePath.equals(m_lastFilePath)) {
+			final DLNetworkType<?, ?> networkType = DLKerasNetworkType.INSTANCE;
+			m_reader = (DLKerasNetworkReader) DLNetworkReaderRegistry.getInstance()
+					.getNetworkReadersForType(networkType).stream().findFirst()
+					.orElseThrow(() -> new InvalidSettingsException(
+							"Failed to read deep learning network specification. No reader found for network type '"
+									+ networkType.getIdentifier() + "'."));
 			final URL url;
 			try {
 				url = FileUtil.toURL(filePath);
 			} catch (InvalidPathException | MalformedURLException e) {
 				throw new InvalidSettingsException("Invalid or unsupported file path. See log for details.", e);
 			}
-			DLNetwork network;
 			try {
-				network = m_reader.readNetwork(url);
+				m_network = m_reader.create(url);
 			} catch (final Exception e) {
 				throw new InvalidSettingsException(
 						"Failed to read deep learning network specification. See log for details.", e);
 			}
-
-			final DLProfile profile = new DLProfile() {
-
-				@Override
-				public Iterator<DLBackend> iterator() {
-					return Arrays.asList(m_backend).iterator();
-				}
-
-				@Override
-				public int size() {
-					return 1;
-				}
-			};
-			m_spec = new DLDefaultNetworkPortObjectSpec(network, profile, url);
 			m_lastFilePath = filePath;
 		}
-		return new PortObjectSpec[] { m_spec };
+		return new PortObjectSpec[] { new DLDefaultNetworkPortObjectSpec(m_network.getSpec()) };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-		final URL url = FileUtil.toURL(m_lastFilePath);
-		return new PortObject[] { new DLNetworkReferencePortObject(url, m_spec) };
+		if (m_lastFilePath == null) {
+			throw new InvalidSettingsException("Node is not yet configured, please configure first.");
+		}
+		final PortObject out;
+		if (m_smCopyNetwork.getBooleanValue()) {
+			out = new DLExternalNetworkPortObject(m_network, m_reader,
+					DLExternalNetworkPortObject.createFileStoreForCopy(FileUtil.toURL(m_lastFilePath), exec));
+		} else {
+			out = new DLDefaultNetworkPortObject(m_network);
+		}
+		return new PortObject[] { out };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO check if input file still exists (see FileReaderNodeModel#loadInternals(File,ExecutionMonitor))
+		// TODO check if input file still exists (see
+		// FileReaderNodeModel#loadInternals(File,ExecutionMonitor))
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		// no op
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		m_smFilePath.saveSettingsTo(settings);
+		m_smCopyNetwork.saveSettingsTo(settings);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.validateSettings(settings);
+		m_smCopyNetwork.validateSettings(settings);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.loadSettingsFrom(settings);
+		m_smCopyNetwork.loadSettingsFrom(settings);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void reset() {
 		// no op

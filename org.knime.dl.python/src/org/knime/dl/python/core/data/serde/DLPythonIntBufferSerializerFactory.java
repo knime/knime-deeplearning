@@ -78,9 +78,7 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 		super(DLPythonIntBuffer.class);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Serializer<? extends DLPythonIntBuffer> createSerializer() {
 
@@ -114,9 +112,7 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Class<? extends DLBuffer> getBufferType() {
 		return DLPythonIntBuffer.class;

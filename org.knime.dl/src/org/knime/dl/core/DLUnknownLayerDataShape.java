@@ -58,6 +58,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public final class DLUnknownLayerDataShape extends DLAbstractLayerDataShape {
 
+	private static final long serialVersionUID = 1L;
+	
     /**
      * The singleton instance.
      */
@@ -95,4 +97,5 @@ public final class DLUnknownLayerDataShape extends DLAbstractLayerDataShape {
         // no op - everything's handled in abstract base class, this method will never be invoked
         return false;
     }
+
 }

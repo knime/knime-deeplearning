@@ -78,9 +78,7 @@ public class DLPythonDoubleBufferSerializerFactory extends SerializerFactory<DLP
 		super(DLPythonDoubleBuffer.class);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Serializer<? extends DLPythonDoubleBuffer> createSerializer() {
 

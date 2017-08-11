@@ -5,7 +5,7 @@ import java.nio.BufferUnderflowException;
 
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.writables.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
  * A {@link DLReadableBuffer readable} and {@link DLWritableBuffer writable} buffer specifically for use with Python

@@ -6,9 +6,7 @@ Bundle-Version: 3.4.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
 Export-Package: org.knime.dl.keras.core,
- org.knime.dl.keras.core.data,
- org.knime.dl.keras.core.execution,
- org.knime.dl.keras.core.io
+ org.knime.dl.keras.core.data
 Require-Bundle: org.knime.base;bundle-version="[3.4.0,4.0.0)",
  org.knime.core;bundle-version="[3.4.0,4.0.0)",
  org.knime.dl;bundle-version="[3.4.0,4.0.0)",

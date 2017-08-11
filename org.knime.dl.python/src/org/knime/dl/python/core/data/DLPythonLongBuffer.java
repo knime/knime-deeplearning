@@ -57,7 +57,7 @@ import java.util.Arrays;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.dl.core.data.DLReadableLongBuffer;
-import org.knime.dl.core.data.writables.DLWritableLongBuffer;
+import org.knime.dl.core.data.DLWritableLongBuffer;
 
 /**
  * Long type implementation of {@link DLPythonDataBuffer}.
@@ -84,9 +84,7 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		super(capacity);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void setStorage(final long[] storage, final long storageSize) throws IllegalArgumentException {
 		checkArgument(storage.length == m_capacity, "Input storage capacity does not match buffer capacity.");
@@ -95,35 +93,27 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		resetRead();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public long readNextLong() throws BufferUnderflowException {
 		checkUnderflow(m_nextRead < m_nextWrite);
 		return m_storage[m_nextRead++];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public long[] toLongArray() {
 		return m_storage.clone();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void put(final boolean value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value ? 1 : 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void putAll(final boolean[] values) throws BufferOverflowException {
 		checkOverflow(m_nextWrite + values.length <= m_capacity);
@@ -132,18 +122,14 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void put(final byte value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void putAll(final byte[] values) throws BufferOverflowException {
 		checkOverflow(m_nextWrite + values.length <= m_capacity);
@@ -152,18 +138,14 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void put(final int value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void putAll(final int[] values) throws BufferOverflowException {
 		checkOverflow(m_nextWrite + values.length <= m_capacity);
@@ -172,18 +154,14 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void put(final long value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void putAll(final long[] values) throws BufferOverflowException {
 		checkOverflow(m_nextWrite + values.length <= m_capacity);
@@ -191,18 +169,14 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		m_nextWrite += values.length;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void put(final short value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public void putAll(final short[] values) throws BufferOverflowException {
 		checkOverflow(m_nextWrite + values.length <= m_capacity);
@@ -211,17 +185,13 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<long[]>
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected long[] createStorage() {
 		return new long[m_capacity];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
 		return Arrays.equals(m_storage, ((DLPythonLongBuffer) dc).m_storage);

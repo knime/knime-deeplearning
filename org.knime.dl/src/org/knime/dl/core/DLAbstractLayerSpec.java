@@ -76,33 +76,25 @@ public abstract class DLAbstractLayerSpec implements DLLayerSpec {
 		m_outputSpecs = outputSpecs;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public String getName() {
 		return m_name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Class<?> getLayerType() {
 		return m_layerType;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public DLLayerDataSpec[] getInputSpecs() {
 		return m_inputSpecs;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public DLLayerDataSpec[] getOutputSpecs() {
 		return m_outputSpecs;

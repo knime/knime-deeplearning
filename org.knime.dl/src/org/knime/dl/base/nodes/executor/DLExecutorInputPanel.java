@@ -77,18 +77,19 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.backend.DLBackend;
-import org.knime.dl.core.backend.DLBackendRegistry;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterRegistry;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-@SuppressWarnings("serial")
 final class DLExecutorInputPanel extends JPanel {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
@@ -121,7 +122,11 @@ final class DLExecutorInputPanel extends JPanel {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
-				refreshConverters();
+				try {
+					refreshConverters();
+				} catch (final InvalidSettingsException ex) {
+					throw new IllegalStateException(ex.getMessage(), ex);
+				}
 			}
 		});
 		m_cfg.addConverterChangeListener(new ChangeListener() {
@@ -168,7 +173,7 @@ final class DLExecutorInputPanel extends JPanel {
 		}
 	}
 
-	private void initializeComponents() {
+	private void initializeComponents() throws InvalidSettingsException {
 		refreshConverters();
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
 		refreshInputColumns();
@@ -206,12 +211,12 @@ final class DLExecutorInputPanel extends JPanel {
 		m_constr.gridy++;
 	}
 
-	private void refreshConverters() {
+	private void refreshConverters() throws InvalidSettingsException {
 		final String[][] newConverters = getAvailableConverters();
 		if (newConverters[0].length == 0) {
 			final String msg = "No converters available for output '" + m_inputDataSpec.getName() + "'.";
 			LOGGER.error(msg);
-			throw new IllegalStateException(msg);
+			throw new InvalidSettingsException(msg);
 		}
 		m_dcConverter.replaceListItems(newConverters[0], newConverters[1], null);
 	}
@@ -227,13 +232,14 @@ final class DLExecutorInputPanel extends JPanel {
 		// get added to the panel, which makes sense in general but not really when updating the filter config)
 	}
 
-	private String[][] getAvailableConverters() {
-		final Optional<DLBackend> backend = DLBackendRegistry.getBackend(m_cfg.getBackendModel().getStringValue());
-		if (!backend.isPresent()) {
-			final String msg = "Backend '" + m_cfg.getBackendModel().getStringValue() + "' could not be found.";
-			LOGGER.error(msg);
-			throw new IllegalStateException(msg);
-		}
+	private String[][] getAvailableConverters() throws InvalidSettingsException {
+		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
+				.getExecutionContext(m_cfg.getExecutionContextModel().getStringValue()).orElseThrow(() -> {
+					final String msg = "Execution back end '" + m_cfg.getExecutionContextModel().getStringValue()
+							+ "' could not be found.";
+					LOGGER.error(msg);
+					return new InvalidSettingsException(msg);
+				});
 		final HashSet<DataType> inputTypes = new HashSet<>();
 		final HashSet<DLDataValueToLayerDataConverterFactory<?, ?>> converterFactories = new HashSet<>();
 		final DLDataValueToLayerDataConverterRegistry converters =
@@ -244,7 +250,7 @@ final class DLExecutorInputPanel extends JPanel {
 			if (inputTypes.add(inputColSpec.getType())) {
 				final Optional<DLDataValueToLayerDataConverterFactory<?, ?>> converter =
 						converters.getPreferredConverterFactory(inputColSpec.getType(),
-								backend.get().getWritableBufferType(m_inputDataSpec));
+								executionContext.getLayerDataFactory().getWritableBufferType(m_inputDataSpec));
 				if (converter.isPresent()) {
 					converterFactories.add(converter.get());
 				}
@@ -255,11 +261,10 @@ final class DLExecutorInputPanel extends JPanel {
 				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
-		int i = 0;
+		final int i = 0;
 		for (final DLDataValueToLayerDataConverterFactory<?, ?> converter : converterFactoriesSorted) {
 			names[i] = "From " + converter.getName();
 			ids[i] = converter.getIdentifier();
-			i++;
 		}
 		return new String[][] { names, ids };
 	}

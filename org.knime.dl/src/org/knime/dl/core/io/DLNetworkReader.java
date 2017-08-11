@@ -43,26 +43,29 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 17, 2017 (marcel): created
  */
 package org.knime.dl.core.io;
 
 import java.io.IOException;
-import java.net.URL;
 
+import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.backend.DLBackendService;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLNetworkType;
 
 /**
- * Reads in a {@link DLNetwork} from a a URL.
- *
- * @param <N> the {@link DLNetwork} type
+ * Instances of this interface must be stateless as they will be shared by multiple networks.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkReader<N extends DLNetwork> extends DLBackendService {
+public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DLNetworkSpec, R> {
+
+	DLNetworkType<N, S> getNetworkType();
+
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
+	}
 
 	/**
 	 * Reads in a {@link DLNetwork network} from a URL.
@@ -72,5 +75,15 @@ public interface DLNetworkReader<N extends DLNetwork> extends DLBackendService {
 	 * @throws IllegalArgumentException if the source is invalid or does not contain a valid network definition
 	 * @throws IOException if failed to read in the network
 	 */
-	N readNetwork(URL source) throws IllegalArgumentException, IOException;
+	N create(R source) throws IOException, IllegalArgumentException;
+	
+	/**
+	 * Reads in a {@link DLNetwork network} from a URL.
+	 *
+	 * @param source the source URL
+	 * @return the network
+	 * @throws IllegalArgumentException if the source is invalid or does not contain a valid network definition
+	 * @throws IOException if failed to read in the network
+	 */
+	N create(R source, S spec) throws IOException, IllegalArgumentException;
 }

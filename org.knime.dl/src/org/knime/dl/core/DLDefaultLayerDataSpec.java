@@ -57,6 +57,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLDefaultLayerDataSpec extends DLAbstractLayerDataSpec {
+	
+	private static final long serialVersionUID = 1L;
 
     /**
      * Creates a new instance of this layer data spec that has a batch size.

@@ -48,64 +48,54 @@
  */
 package org.knime.dl.core;
 
+import java.io.Serializable;
+import java.util.OptionalLong;
+
 /**
  * The spec of {@link DLLayerData}.
  * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources.
+ * Deep learning spec objects are intended to be used throughout the application
+ * and must not reference heavy data objects or external resources.
  * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * Implementations of this interface must override {@link #equals(Object)} and
+ * {@link #hashCode()} in a value-based way.
  *
  * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec {
+public interface DLLayerDataSpec extends Serializable {
 
-    /**
-     * Returns the name of the layer data.
-     *
-     * @return the name of the layer data
-     */
-    String getName();
+	/**
+	 * Returns the name of the layer data.
+	 *
+	 * @return the name of the layer data
+	 */
+	String getName();
 
-    /**
-     * Returns whether this layer data instance has a batch size assigned.
-     *
-     * @return true if this layer data instance has a batch size assigned
-     */
-    boolean hasBatchSize();
+	/**
+	 * Returns the batch size of the layer data if assigned.
+	 *
+	 * @return the batch size of the layer data
+	 */
+	OptionalLong getBatchSize();
 
-    /**
-     * Returns the batch size of the layer data. This is an <b>optional property</b> that is not necessarily set for
-     * each layer data. Check {@link #hasBatchSize()} to see if this instance has a batch size assigned.
-     *
-     * @return the batch size of the layer data
-     */
-    long getBatchSize();
+	/**
+	 * Returns the shape of the layer data.
+	 *
+	 * @return the shape of the layer data
+	 */
+	DLLayerDataShape getShape();
 
-    /**
-     * Returns the shape of the layer data.
-     *
-     * @return the shape of the layer data
-     */
-    DLLayerDataShape getShape();
+	/**
+	 * Returns the type of the layer data's elements
+	 *
+	 * @return the type of the layer data's elements
+	 */
+	Class<?> getElementType();
 
-    /**
-     * Returns the type of the layer data's elements
-     *
-     * @return the type of the layer data's elements
-     */
-    Class<?> getElementType();
+	@Override
+	int hashCode();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    int hashCode();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    boolean equals(Object obj);
+	@Override
+	boolean equals(Object obj);
 }

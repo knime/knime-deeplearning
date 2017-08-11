@@ -78,9 +78,7 @@ public class DLPythonFloatBufferSerializerFactory extends SerializerFactory<DLPy
 		super(DLPythonFloatBuffer.class);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Serializer<? extends DLPythonFloatBuffer> createSerializer() {
 

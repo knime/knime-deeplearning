@@ -58,45 +58,43 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public abstract class DLAbstractLayerDataShape implements DLLayerDataShape {
 
-    private final int m_hashCode;
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates a new instance of this shape.
-     */
-    protected DLAbstractLayerDataShape() {
-        m_hashCode = hashCodeInternal();
-    }
+	private final int m_hashCode;
 
-    protected abstract void hashCodeInternal(HashCodeBuilder b);
+	/**
+	 * Creates a new instance of this shape.
+	 */
+	protected DLAbstractLayerDataShape() {
+		m_hashCode = hashCodeInternal();
+	}
 
-    protected abstract boolean equalsInternal(DLLayerDataShape other);
+	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        return m_hashCode;
-    }
+	protected abstract boolean equalsInternal(DLLayerDataShape other);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        final DLLayerDataShape other = (DLLayerDataShape)obj;
-        return equalsInternal(other);
-    }
 
-    private int hashCodeInternal() {
-        final HashCodeBuilder b = new HashCodeBuilder();
-        hashCodeInternal(b);
-        return b.toHashCode();
-    }
+	@Override
+	public int hashCode() {
+		return m_hashCode;
+	}
+
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		final DLLayerDataShape other = (DLLayerDataShape) obj;
+		return equalsInternal(other);
+	}
+
+	private int hashCodeInternal() {
+		final HashCodeBuilder b = new HashCodeBuilder();
+		hashCodeInternal(b);
+		return b.toHashCode();
+	}
 }

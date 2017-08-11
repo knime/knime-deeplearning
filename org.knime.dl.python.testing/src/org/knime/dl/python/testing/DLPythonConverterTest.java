@@ -48,8 +48,10 @@
  */
 package org.knime.dl.python.testing;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.IOException;
-import java.net.URL;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +61,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -68,38 +71,40 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLAbstractExecutableNetworkSpec;
+import org.knime.dl.core.DLAbstractExecutableNetwork;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
-import org.knime.dl.core.DLExecutableNetwork;
-import org.knime.dl.core.DLExecutableNetworkSpec;
+import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLLayerDataFactory;
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.backend.DLBackend;
+import org.knime.dl.core.DLNetworkSpecSerializer;
+import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverter;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterRegistry;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverter;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterRegistry;
-import org.knime.dl.core.data.writables.DLWritableBuffer;
-import org.knime.dl.core.data.writables.DLWritableDoubleBuffer;
-import org.knime.dl.core.data.writables.DLWritableFloatBuffer;
-import org.knime.dl.core.execution.DLDefaultLayerDataInput;
-import org.knime.dl.core.execution.DLDefaultLayerDataOutput;
-import org.knime.dl.core.execution.DLFromKnimeNetworkExecutor;
-import org.knime.dl.core.execution.DLLayerDataInput;
-import org.knime.dl.core.execution.DLLayerDataOutput;
-import org.knime.dl.core.execution.DLNetworkExecutor;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableDoubleBuffer;
+import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverter;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverter;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLDefaultLayerDataBatch;
+import org.knime.dl.core.execution.DLExecutableNetwork;
+import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
+import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.io.DLNetworkReader;
-import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
@@ -107,553 +112,555 @@ import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.util.DLUtils;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLPythonConverterTest {
 
-    @Test
-    public void testFooToBar() throws Exception {
-        // converters:
-        DLDataValueToLayerDataConverterRegistry.getInstance()
-            .registerConverter(new DLFooDataValueToFloatLayerConverterFactory());
-        DLLayerDataToDataCellConverterRegistry.getInstance()
-            .registerConverter(new DLDoubleBufferToBarDataCellConverterFactory());
+	@Test
+	public void testFooToBar() throws Exception {
+		// register converters:
+		DLDataValueToLayerDataConverterRegistry.getInstance()
+				.registerConverter(new DLFooDataValueToFloatLayerConverterFactory());
+		DLLayerDataToDataCellConverterRegistry.getInstance()
+				.registerConverter(new DLDoubleBufferToBarDataCellConverterFactory());
 
-        // network:
+		// network:
 
-        final DLBazBackend backend = new DLBazBackend();
-        final DLNetwork network = backend.createReader().readNetwork(null /* dummy */);
-        final DLExecutableBazNetwork execNetwork = backend.toExecutableNetwork(network);
-        final DLExecutableNetworkSpec execNetworkSpec = execNetwork.getSpec();
+		final DLBazNetworkReader handler = new DLBazNetworkReader();
+		final DLBazNetwork network = handler.create("dummy-source");
+		final DLNetworkSpec networkSpec = network.getSpec();
 
-        // input data:
+		// input data:
 
-        final Random rng = new Random(543653);
-        final HashMap<String, DataCell[]> inputCells = new HashMap<>(network.getSpec().getInputSpecs().length);
-        final FooDataCell[] input0Cells = new FooDataCell[1];
-        for (int i = 0; i < input0Cells.length; i++) {
-            final float[] arr = new float[10 * 10];
-            for (int j = 0; j < arr.length; j++) {
-                arr[j] = rng.nextFloat() * rng.nextInt(Short.MAX_VALUE);
-            }
-            input0Cells[i] = new FooDataCell(arr);
-        }
-        inputCells.put(network.getSpec().getInputSpecs()[0].getName(), input0Cells);
+		final Random rng = new Random(543653);
+		final HashMap<String, DataCell[]> inputCells = new HashMap<>(network.getSpec().getInputSpecs().length);
+		final FooDataCell[] input0Cells = new FooDataCell[1];
+		for (int i = 0; i < input0Cells.length; i++) {
+			final float[] arr = new float[10 * 10];
+			for (int j = 0; j < arr.length; j++) {
+				arr[j] = rng.nextFloat() * rng.nextInt(Short.MAX_VALUE);
+			}
+			input0Cells[i] = new FooDataCell(arr);
+		}
+		inputCells.put(network.getSpec().getInputSpecs()[0].getName(), input0Cells);
 
-        // "configure":
+		// "configure":
 
-        // input converters:
-        final HashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters =
-            new HashMap<>(execNetworkSpec.getInputSpecs().length);
-        for (final DLLayerDataSpec inputSpec : execNetworkSpec.getInputSpecs()) {
-            final DLDataValueToLayerDataConverterFactory<?, ?> converter =
-                DLDataValueToLayerDataConverterRegistry.getInstance()
-                    .getPreferredConverterFactory(FooDataCell.TYPE, backend.getWritableBufferType(inputSpec)).get();
-            inputConverters.put(inputSpec, converter);
-        }
-        // output converters:
-        final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters = new HashMap<>(
-            execNetworkSpec.getOutputSpecs().length + execNetworkSpec.getIntermediateOutputSpecs().length);
-        for (final DLLayerDataSpec outputSpec : execNetworkSpec.getOutputSpecs()) {
-            final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-                .getInstance().getFactoriesForSourceType(backend.getReadableBufferType(outputSpec), outputSpec).stream()
-                .filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
-            outputConverters.put(outputSpec, converter);
-        }
-        for (final DLLayerDataSpec outputSpec : execNetworkSpec.getIntermediateOutputSpecs()) {
-            final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-                .getInstance().getFactoriesForSourceType(backend.getReadableBufferType(outputSpec), outputSpec).stream()
-                .filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
-            outputConverters.put(outputSpec, converter);
-        }
+		final DLBazExecutionContext exec = new DLBazExecutionContext();
 
-        final DLFromKnimeNetworkExecutor knimeExec =
-            new DLFromKnimeNetworkExecutor(execNetwork, inputConverters, outputConverters);
+		// input converters:
+		final HashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters = new HashMap<>(
+				networkSpec.getInputSpecs().length);
+		for (final DLLayerDataSpec inputSpec : networkSpec.getInputSpecs()) {
+			final DLDataValueToLayerDataConverterFactory<?, ?> converter = DLDataValueToLayerDataConverterRegistry
+					.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
+							exec.getLayerDataFactory().getWritableBufferType(inputSpec))
+					.get();
+			inputConverters.put(inputSpec, converter);
+		}
+		// output converters:
+		final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters = new HashMap<>(
+				networkSpec.getOutputSpecs().length + networkSpec.getIntermediateOutputSpecs().length);
+		for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
+			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
+					.getInstance()
+					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
+					.stream().filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
+			outputConverters.put(outputSpec, converter);
+		}
+		for (final DLLayerDataSpec outputSpec : networkSpec.getIntermediateOutputSpecs()) {
+			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
+					.getInstance()
+					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
+					.stream().filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
+			outputConverters.put(outputSpec, converter);
+		}
 
-        // "execute":
+		try (final DLKnimeNetworkExecutor knimeExec = new DLKnimeNetworkExecutor(
+				exec.executable(network, outputConverters.keySet()), inputConverters, outputConverters)) {
 
-        // assign inputs to 'network input ports'/specs:
-        final Map<DLLayerDataSpec, Iterable<DataValue>[]> inputs = new HashMap<>(inputConverters.size());
-        for (final Entry<String, DataCell[]> input : inputCells.entrySet()) {
-            final Optional<DLLayerDataSpec> inputSpec = Arrays.stream(network.getSpec().getInputSpecs())
-                .filter(i -> i.getName().equals(input.getKey())).findFirst();
-            final List<DataCell> val = Arrays.asList(input.getValue());
-            inputs.put(inputSpec.get(), new Iterable[]{val});
-        }
+			// "execute":
 
-        final HashMap<DLLayerDataSpec, DataCell[]> outputs = new HashMap<>(outputConverters.size());
+			// assign inputs to 'network input ports'/specs:
+			final Map<DLLayerDataSpec, Iterable<DataValue>[]> inputs = new HashMap<>(inputConverters.size());
+			for (final Entry<String, DataCell[]> input : inputCells.entrySet()) {
+				final Optional<DLLayerDataSpec> inputSpec = Arrays.stream(network.getSpec().getInputSpecs())
+						.filter(i -> i.getName().equals(input.getKey())).findFirst();
+				final List<DataCell> val = Arrays.asList(input.getValue());
+				inputs.put(inputSpec.get(), new Iterable[] { val });
+			}
 
-        knimeExec.execute(inputs, new Consumer<Map<DLLayerDataSpec, DataCell[][]>>() {
+			final HashMap<DLLayerDataSpec, DataCell[]> outputs = new HashMap<>(outputConverters.size());
 
-            @Override
-            public void accept(final Map<DLLayerDataSpec, DataCell[][]> output) {
-                for (final Entry<DLLayerDataSpec, DataCell[][]> o : output.entrySet()) {
-                    DataCell[] dataCells = outputs.get(o.getKey());
-                    if (dataCells == null) {
-                        dataCells = o.getValue()[0];
-                    } else {
-                        dataCells = ArrayUtils.addAll(dataCells, o.getValue()[0]);
-                    }
-                    outputs.put(o.getKey(), dataCells);
-                }
-            }
-        }, null, 1);
+			knimeExec.execute(inputs, new Consumer<Map<DLLayerDataSpec, DataCell[][]>>() {
 
-        // check if conversion succeeded:
-        Assert.assertEquals(outputs.size(), outputConverters.size());
-        for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
-            .entrySet()) {
-            final Iterable<DataValue> inputsForSpec = inputs.get(execNetworkSpec.getInputSpecs()[0])[0];
-            final DataCell[] outputsForSpec = outputs.get(outputSpecPair.getKey());
-            int i = 0;
-            for (final DataValue input : inputsForSpec) {
-                final DataCell output = outputsForSpec[i++];
-                final float[] in = ((FooDataCell)input).getFloatArray();
-                Assert.assertTrue(output instanceof BarDataCell);
-                final double[] out = ((BarDataCell)output).getDoubleArray();
-                for (int j = 0; j < out.length; j++) {
-                    Assert.assertEquals(out[j], in[j] * 5.0, 0.0);
-                }
-            }
-        }
-    }
+				@Override
+				public void accept(final Map<DLLayerDataSpec, DataCell[][]> output) {
+					for (final Entry<DLLayerDataSpec, DataCell[][]> o : output.entrySet()) {
+						DataCell[] dataCells = outputs.get(o.getKey());
+						if (dataCells == null) {
+							dataCells = o.getValue()[0];
+						} else {
+							dataCells = ArrayUtils.addAll(dataCells, o.getValue()[0]);
+						}
+						outputs.put(o.getKey(), dataCells);
+					}
+				}
+			}, null, 1);
 
-    private static class DLBazNetwork implements DLNetwork {
+			// check if conversion succeeded:
+			Assert.assertEquals(outputs.size(), outputConverters.size());
+			for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
+					.entrySet()) {
+				final Iterable<DataValue> inputsForSpec = inputs.get(networkSpec.getInputSpecs()[0])[0];
+				final DataCell[] outputsForSpec = outputs.get(outputSpecPair.getKey());
+				int i = 0;
+				for (final DataValue input : inputsForSpec) {
+					final DataCell output = outputsForSpec[i++];
+					final float[] in = ((FooDataCell) input).getFloatArray();
+					Assert.assertTrue(output instanceof BarDataCell);
+					final double[] out = ((BarDataCell) output).getDoubleArray();
+					for (int j = 0; j < out.length; j++) {
+						Assert.assertEquals(out[j], in[j] * 5.0, 0.0);
+					}
+				}
+			}
+		}
+	}
 
-        private final DLNetworkSpec m_spec;
+	static class DLBazNetwork implements DLExternalNetwork<DLBazNetworkSpec, String> {
 
-        private DLBazNetwork(final DLNetworkSpec spec) {
-            m_spec = spec;
-        }
+		private final String m_source;
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLNetworkSpec getSpec() {
-            return m_spec;
-        }
-    }
+		private final DLBazNetworkSpec m_spec;
 
-    // our network wants floats and returns doubles
-    private static class DLExecutableBazNetwork implements DLExecutableNetwork {
+		private DLBazNetwork(final String source, final DLBazNetworkSpec spec) {
+			m_source = source;
+			m_spec = spec;
+		}
 
-        private final DLBazBackend m_backend;
+		@Override
+		public String getSource() {
+			return m_source;
+		}
 
-        private final DLExecutableNetworkSpec m_spec;
+		@Override
+		public DLBazNetworkSpec getSpec() {
+			return m_spec;
+		}
+	}
 
-        private final HashMap<DLLayerDataSpec, DLLayerDataInput<?>> m_inputs;
+	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType> {
 
-        private final HashMap<DLLayerDataSpec, DLLayerDataOutput<?>> m_outputs;
+		private static final long serialVersionUID = 1L;
 
-        private DLBazNetworkExecutor m_executor;
+		public DLBazNetworkSpec(final DLLayerDataSpec[] inputSpecs, final DLLayerDataSpec[] intermediateOutputSpecs,
+				final DLLayerDataSpec[] outputSpecs) {
+			super(DLBazNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+		}
 
-        private DLExecutableBazNetwork(final DLBazBackend backend, final DLExecutableNetworkSpec spec) {
-            m_backend = backend;
-            m_spec = spec;
-            m_inputs = new HashMap<>(spec.getInputSpecs().length);
-            m_outputs = new HashMap<>(spec.getOutputSpecs().length + spec.getIntermediateOutputSpecs().length);
-        }
+		/**
+		 * Empty framework constructor. Must not be called by client code.
+		 */
+		public DLBazNetworkSpec() {
+		}
 
-        @Override
-        public DLBazBackend getBackend() {
-            return m_backend;
-        }
+		@Override
+		protected void hashCodeInternal(final HashCodeBuilder b) {
+			// no op
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLExecutableNetworkSpec getSpec() {
-            return m_spec;
-        }
+		@Override
+		protected boolean equalsInternal(final DLNetworkSpec other) {
+			// no op
+			return true;
+		}
+	}
 
-        @Override
-        public DLLayerDataInput<?> getInputForSpec(final DLLayerDataSpec spec, final int batchSize) {
-            DLLayerDataInput<?> input = m_inputs.get(spec);
-            if (input == null || input.getBatchSize() != batchSize) {
-                final DLLayerData[] batch = new DLLayerData[batchSize];
-                for (int i = 0; i < batchSize; i++) {
-                    batch[i] = getBackend().createLayerData(spec);
-                }
-                input = new DLDefaultLayerDataInput<>(batch);
-                m_inputs.put(spec, input);
-            }
-            return input;
-        }
+	static class DLBazNetworkType implements DLNetworkType<DLBazNetwork, DLBazNetworkSpec> {
 
-        private DLLayerDataOutput<?> getOutputForSpec(final DLLayerDataSpec spec, final int batchSize) {
-            DLLayerDataOutput<?> output = m_outputs.get(spec);
-            if (output == null || output.getBatchSize() != batchSize) {
-                final DLLayerData[] batch = new DLLayerData[batchSize];
-                for (int i = 0; i < batchSize; i++) {
-                    batch[i] = getBackend().createLayerData(spec);
-                }
-                output = new DLDefaultLayerDataOutput(batch);
-                m_outputs.put(spec, output);
-            }
-            return output;
-        }
+		private static final long serialVersionUID = 1L;
 
-        @Override
-        public void execute(final Set<DLLayerDataSpec> selectedOutputs,
-            final Consumer<Map<DLLayerDataSpec, DLLayerDataOutput<?>>> outputConsumer)
-            throws RuntimeException, IllegalStateException {
-            if (m_executor == null) {
-                m_executor = new DLBazNetworkExecutor(getBackend());
-            }
-            // TODO: assert that all inputs are populated
-            final int outputBatchSize = (int)m_inputs.values().stream().findFirst().get().getBatchSize();
-            final HashMap<DLLayerDataSpec, DLLayerDataOutput<?>> outputs = new HashMap<>(selectedOutputs.size());
-            for (final DLLayerDataSpec output : selectedOutputs) {
-                outputs.put(output, getOutputForSpec(output, outputBatchSize));
-            }
-            m_executor.execute(this, m_inputs, outputs);
-            outputConsumer.accept(outputs);
-        }
+		public static final DLBazNetworkType INSTANCE = new DLBazNetworkType();
 
-        @Override
-        public void close() throws Exception {
-            if (m_executor != null) {
-                m_executor.close();
-                m_executor = null;
-            }
-        }
-    }
+		private DLBazNetworkType() {
+		}
 
-    private static class DLBazBackend implements DLBackend {
+		@Override
+		public String getIdentifier() {
+			return getClass().getCanonicalName();
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getName() {
-            return "Baz";
-        }
+		@Override
+		public DLNetworkSerializer<DLBazNetwork, DLBazNetworkSpec> getNetworkSerializer() {
+			throw new RuntimeException("not yet implemented"); // TODO: NYI
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getIdentifier() {
-            return "org.knime.dl.python.testing.DLPythonConverterTest.Baz";
-        }
+		@Override
+		public DLNetworkSpecSerializer<DLBazNetworkSpec> getNetworkSpecSerializer() {
+			throw new RuntimeException("not yet implemented"); // TODO: NYI
+		}
+	}
 
-        @Override
-        public DLLayerData<DLPythonDataBuffer<?>> createLayerData(final DLLayerDataSpec spec)
-            throws IllegalArgumentException {
-            final long[] shape =
-                DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
-                    "Layer data spec does not provide a shape. Layer data cannot be created."));
-            DLPythonDataBuffer<?> data;
-            final Class<?> t = spec.getElementType();
-            final long size = DLUtils.Shapes.getSize(shape);
-            if (t.equals(double.class)) {
-                data = new DLPythonDoubleBuffer(size);
-            } else if (t.equals(float.class)) {
-                data = new DLPythonFloatBuffer(size);
-            } else if (t.equals(int.class)) {
-                data = new DLPythonIntBuffer(size);
-            } else if (t.equals(long.class)) {
-                data = new DLPythonLongBuffer(size);
-            } else {
-                throw new IllegalArgumentException("No matching layer data type.");
-            }
-            return new DLDefaultLayerData<>(spec, data);
-        }
+	static class DLBazNetworkReader implements DLNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
 
-        @Override
-        public Class<? extends DLReadableBuffer> getReadableBufferType(final DLLayerDataSpec spec) {
-            final Class<?> t = spec.getElementType();
-            if (t.equals(double.class)) {
-                return DLReadableDoubleBuffer.class;
-            } else if (t.equals(float.class)) {
-                return DLReadableFloatBuffer.class;
-            } else {
-                throw new IllegalArgumentException("No matching buffer type.");
-            }
-        }
+		@Override
+		public DLBazNetworkType getNetworkType() {
+			return DLBazNetworkType.INSTANCE;
+		}
 
-        @Override
-        public Class<? extends DLWritableBuffer> getWritableBufferType(final DLLayerDataSpec spec) {
-            final Class<?> t = spec.getElementType();
-            if (t.equals(double.class)) {
-                return DLWritableDoubleBuffer.class;
-            } else if (t.equals(float.class)) {
-                return DLWritableFloatBuffer.class;
-            } else {
-                throw new IllegalArgumentException("No matching buffer type.");
-            }
-        }
+		@Override
+		public DLBazNetwork create(final String source) throws IllegalArgumentException, IOException {
+			final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
+			inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
+					float.class);
+			final DLLayerDataSpec[] intermediateOutputSpecs = new DLLayerDataSpec[0];
+			// intermediate outputs stay empty
+			final DLLayerDataSpec[] outputSpecs = new DLLayerDataSpec[1];
+			outputSpecs[0] = new DLDefaultLayerDataSpec("out0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
+					double.class);
+			final DLBazNetworkSpec spec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
+			return create(source, spec);
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLNetworkReader<?> createReader() {
-            return new DLBazNetworkReader(this);
-        }
+		@Override
+		public DLBazNetwork create(String source, DLBazNetworkSpec spec) throws IOException, IllegalArgumentException {
+			return new DLBazNetwork(source, spec);
+		}
+	}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLNetworkExecutor<?> createExecutor() throws Exception {
-            return new DLBazNetworkExecutor(this);
-        }
+	static class DLBazExecutionContext implements DLExecutionContext<DLBazNetwork> {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLExecutableBazNetwork toExecutableNetwork(final DLNetwork network) {
-            if (!(network instanceof DLBazNetwork)) {
-                throw new IllegalArgumentException("Input must be a Keras network.");
-            }
-            final DLNetworkSpec networkSpec = network.getSpec();
-            final DLExecutableNetworkSpec execNetworkSpec = new DLAbstractExecutableNetworkSpec(
-                networkSpec.getInputSpecs(), networkSpec.getIntermediateOutputSpecs(), networkSpec.getOutputSpecs()) {
-            };
-            return new DLExecutableBazNetwork(this, execNetworkSpec);
-        }
-    }
+		private final DLLayerDataFactory m_layerDataFactory = new DLBazLayerDataFactory();
 
-    private static class DLBazNetworkReader implements DLNetworkReader<DLBazNetwork> {
+		@Override
+		public DLBazNetworkType getNetworkType() {
+			return DLBazNetworkType.INSTANCE;
+		}
 
-        private DLBazNetworkReader(final DLBazBackend backend) {
-            // dummy
-        }
+		@Override
+		public String getName() {
+			return "Baz";
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLBazNetwork readNetwork(final URL source) throws IllegalArgumentException, IOException {
-            final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
-            inputSpecs[0] =
-                new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[]{10, 10}), float.class);
-            final DLLayerDataSpec[] intermediateSpecs = new DLLayerDataSpec[0];
-            // intermediate stays empty
-            final DLLayerDataSpec[] outputSpecs = new DLLayerDataSpec[1];
-            outputSpecs[0] =
-                new DLDefaultLayerDataSpec("out0", new DLDefaultFixedLayerDataShape(new long[]{10, 10}), double.class);
-            final DLNetworkSpec spec = new DLAbstractNetworkSpec(inputSpecs, intermediateSpecs, outputSpecs) {
+		@Override
+		public DLLayerDataFactory getLayerDataFactory() {
+			return m_layerDataFactory;
+		}
 
-                @Override
-                protected void hashCodeInternal(final HashCodeBuilder b) {
-                    // no op
-                }
+		@Override
+		public DLExecutableNetworkAdapter executable(final DLBazNetwork network,
+				final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
+			final DLBazExecutableNetwork execNetwork = new DLBazExecutableNetwork(network.getSpec());
+			return new DLBazExecutableNetworkAdapter(execNetwork, m_layerDataFactory, requestedOutputs);
+		}
+	}
 
-                @Override
-                protected boolean equalsInternal(final DLNetworkSpec other) {
-                    // no op
-                    return true;
-                }
-            };
-            return new DLBazNetwork(spec);
-        }
-    }
+	static class DLBazExecutableNetwork extends
+			DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetworkSpec> {
 
-    private static class DLBazNetworkExecutor implements DLNetworkExecutor<DLExecutableBazNetwork> {
+		public DLBazExecutableNetwork(final DLBazNetworkSpec spec) {
+			super(spec);
+		}
 
-        private final DLBazBackend m_backend;
+		@Override
+		public Class<?> getInputType() {
+			return DLLayerDataBatch.class;
+		}
 
-        private DLBazNetworkExecutor(final DLBazBackend backend) {
-            m_backend = backend;
-        }
+		@Override
+		public Class<?> getOutputType() {
+			return DLLayerDataBatch.class;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void execute(final DLExecutableBazNetwork network,
-            final Map<DLLayerDataSpec, DLLayerDataInput<?>> inputs,
-            final Map<DLLayerDataSpec, DLLayerDataOutput<?>> outputs) throws RuntimeException {
-            // we fake some network activity here: unwrap floats, calc some
-            // stuff, create doubles
-            for (final Entry<DLLayerDataSpec, DLLayerDataInput<?>> input : inputs.entrySet()) {
+		@Override
+		public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
+				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output, final long batchSize)
+				throws Exception {
+			// we fake some network activity here: unwrap floats, calc some
+			// stuff, create doubles...
+			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
+				// TODO: we can't be sure that casting will work here
+				final DLPythonFloatBuffer buffer = (DLPythonFloatBuffer) in.getValue().getBatch()[0].getBuffer();
+				final float[] inArr = buffer.getStorageForReading(0, buffer.size());
+				final double[] outArr = new double[inArr.length];
+				for (int i = 0; i < inArr.length; i++) {
+					outArr[i] = inArr[i] * 5.0;
+				}
+				final DLLayerDataSpec outSpec = output.keySet().stream().findFirst().get();
+				((DLWritableDoubleBuffer) output.get(outSpec).getBatch()[0].getBuffer()).putAll(outArr);
+			}
+		}
 
-                // TODO: replace these old tests (e.g. check buffer type vs.
-                // buffer type from spec (via backend)):
-                // Assert.assertEquals(input.getKey().getElementType(),
-                // input.getValue().getData().getElementType());
-                // Assert.assertEquals(input.getKey().getElementType(),
-                // float.class);
-                // Assert.assertTrue(input.getValue().getData() instanceof
-                // DLFloatBuffer);
+		@Override
+		public void close() throws Exception {
+			// here: no-op
+		}
+	}
 
-                final DLPythonFloatBuffer buffer = (DLPythonFloatBuffer)input.getValue().getBatch()[0].getBuffer();
-                final float[] inArr = buffer.getStorageForReading(0, buffer.size());
-                final double[] outArr = new double[inArr.length];
-                for (int i = 0; i < inArr.length; i++) {
-                    outArr[i] = inArr[i] * 5.0;
-                }
-                final DLLayerDataSpec outSpec = outputs.keySet().stream().findFirst().get();
-                ((DLWritableDoubleBuffer)outputs.get(outSpec).getBatch()[0].getBuffer()).putAll(outArr);
-            }
-        }
+	static class DLBazExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void close() throws Exception {
-        }
-    }
+		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?> network,
+				final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
+			super(network, layerDataFactory, requestedOutputs);
+		}
 
-    public class DLFooDataValueToFloatLayerConverterFactory
-        implements DLDataValueToLayerDataConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+		@Override
+		protected Map<DLLayerDataSpec, ?> extractNetworkInput(
+				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput) {
+			return adapterInput;
+		}
 
-        @Override
-        public String getName() {
-            return "From FooDataValue";
-        }
+		@Override
+		protected Map<DLLayerDataSpec, ?> extractNetworkOutput(
+				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> adapterOutput) {
+			return adapterOutput;
+		}
+	}
 
-        @Override
-        public Class<FooDataValue> getSourceType() {
-            return FooDataValue.class;
-        }
+	static class DLBazLayerDataFactory implements DLLayerDataFactory {
 
-        @Override
-        public Class<DLWritableFloatBuffer> getBufferType() {
-            return DLWritableFloatBuffer.class;
-        }
+		@Override
+		public DLBazNetworkType getNetworkType() {
+			return DLBazNetworkType.INSTANCE;
+		}
 
-        @Override
-        public DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer> createConverter() {
-            return new DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer>() {
+		@Override
+		public Class<? extends DLWritableBuffer> getWritableBufferType(final DLLayerDataSpec spec) {
+			final Class<?> t = spec.getElementType();
+			if (t.equals(double.class)) {
+				return DLWritableDoubleBuffer.class;
+			} else if (t.equals(float.class)) {
+				return DLWritableFloatBuffer.class;
+			} else {
+				throw new IllegalArgumentException("No matching buffer type.");
+			}
+		}
 
-                @Override
-                public void convert(final Iterable<? extends FooDataValue> input,
-                    final DLLayerData<DLWritableFloatBuffer> output) {
-                    final DLWritableFloatBuffer buf = output.getBuffer();
-                    buf.putAll(input.iterator().next().getFloatArray());
-                }
-            };
-        }
-    }
+		@Override
+		public Class<? extends DLReadableBuffer> getReadableBufferType(final DLLayerDataSpec spec) {
+			final Class<?> t = spec.getElementType();
+			if (t.equals(double.class)) {
+				return DLReadableDoubleBuffer.class;
+			} else if (t.equals(float.class)) {
+				return DLReadableFloatBuffer.class;
+			} else {
+				throw new IllegalArgumentException("No matching buffer type.");
+			}
+		}
 
-    public class DLDoubleBufferToBarDataCellConverterFactory
-        implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
+		@Override
+		public DLLayerData<? extends DLReadableBuffer> createReadableLayerData(final DLLayerDataSpec spec)
+				throws IllegalArgumentException {
+			return createLayerDataInternal(spec, 1, DLReadableBuffer.class)[0];
+		}
 
-        @Override
-        public String getName() {
-            return "To BarDataCell";
-        }
+		@Override
+		public DLLayerDataBatch<? extends DLReadableBuffer> createReadableLayerDataBatch(final DLLayerDataSpec spec,
+				final long batchSize) throws IllegalArgumentException {
+			final DLLayerData<DLReadableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
+					DLReadableBuffer.class);
+			return new DLDefaultLayerDataBatch<>(layerData);
+		}
 
-        @Override
-        public Class<DLReadableDoubleBuffer> getBufferType() {
-            return DLReadableDoubleBuffer.class;
-        }
+		@SuppressWarnings("unchecked")
+		private <B extends DLBuffer> DLLayerData<B>[] createLayerDataInternal(final DLLayerDataSpec spec,
+				final long batchSize, final Class<B> bufferType) {
+			final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
+					.orElseThrow(() -> new IllegalArgumentException(
+							"Layer data spec does not provide a shape. Layer data cannot be created."));
+			checkArgument(batchSize <= Integer.MAX_VALUE,
+					"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
+			final Class<?> t = spec.getElementType();
+			final long size = DLUtils.Shapes.getSize(shape);
+			final Supplier<B> s;
+			if (t.equals(double.class)) {
+				s = () -> (B) new DLPythonDoubleBuffer(size);
+			} else if (t.equals(float.class)) {
+				s = () -> (B) new DLPythonFloatBuffer(size);
+			} else if (t.equals(int.class)) {
+				s = () -> (B) new DLPythonIntBuffer(size);
+			} else if (t.equals(long.class)) {
+				s = () -> (B) new DLPythonLongBuffer(size);
+			} else {
+				throw new IllegalArgumentException("No matching layer data type.");
+			}
+			final DLLayerData<B>[] layerData = (DLLayerData<B>[]) Array.newInstance(DLLayerData.class, (int) batchSize);
+			for (int i = 0; i < batchSize; i++) {
+				layerData[i] = new DLDefaultLayerData<>(spec, s.get());
+			}
+			return layerData;
+		}
+
+		@Override
+		public DLLayerData<? extends DLWritableBuffer> createWritableLayerData(final DLLayerDataSpec spec)
+				throws IllegalArgumentException {
+			return createLayerDataInternal(spec, 1, DLWritableBuffer.class)[0];
+		}
+
+		@Override
+		public DLLayerDataBatch<? extends DLWritableBuffer> createWritableLayerDataBatch(final DLLayerDataSpec spec,
+				final long batchSize) throws IllegalArgumentException {
+			final DLLayerData<DLWritableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
+					DLWritableBuffer.class);
+			return new DLDefaultLayerDataBatch<>(layerData);
+		}
+	}
+
+	static class DLFooDataValueToFloatLayerConverterFactory
+			implements DLDataValueToLayerDataConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+
+		@Override
+		public String getName() {
+			return "From FooDataValue";
+		}
+
+		@Override
+		public Class<FooDataValue> getSourceType() {
+			return FooDataValue.class;
+		}
+
+		@Override
+		public Class<DLWritableFloatBuffer> getBufferType() {
+			return DLWritableFloatBuffer.class;
+		}
+
+		@Override
+		public DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer> createConverter() {
+			return new DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer>() {
+
+				@Override
+				public void convert(final Iterable<? extends FooDataValue> input,
+						final DLLayerData<DLWritableFloatBuffer> output) {
+					final DLWritableFloatBuffer buf = output.getBuffer();
+					buf.putAll(input.iterator().next().getFloatArray());
+				}
+			};
+		}
+	}
+
+	static class DLDoubleBufferToBarDataCellConverterFactory
+			implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
+
+		@Override
+		public String getName() {
+			return "To BarDataCell";
+		}
+
+		@Override
+		public Class<DLReadableDoubleBuffer> getBufferType() {
+			return DLReadableDoubleBuffer.class;
+		}
 
 		@Override
 		public DataType getDestType() {
 			return DataType.getType(BarDataCell.class);
 		}
 
-        @Override
-        public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {
-            return new DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell>() {
+		@Override
+		public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {
+			return new DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell>() {
 
-                @Override
-                public void convert(final ExecutionContext exec, final DLLayerData<DLReadableDoubleBuffer> input,
-                    final Consumer<BarDataCell> out) {
-                    final DLReadableDoubleBuffer buf = input.getBuffer();
-                    out.accept(new BarDataCell(buf.toDoubleArray()));
-                }
-            };
-        }
+				@Override
+				public void convert(final ExecutionContext exec, final DLLayerData<DLReadableDoubleBuffer> input,
+						final Consumer<BarDataCell> out) {
+					final DLReadableDoubleBuffer buf = input.getBuffer();
+					out.accept(new BarDataCell(buf.toDoubleArray()));
+				}
+			};
+		}
 
-        @Override
-        public long getDestCount(final DLLayerDataSpec spec) {
-            return 1;
-        }
-    }
+		@Override
+		public long getDestCount(final DLLayerDataSpec spec) {
+			return 1;
+		}
+	}
 
-    @SuppressWarnings("serial")
-    private static class FooDataCell extends DataCell implements FooDataValue {
+	static class FooDataCell extends DataCell implements FooDataValue {
 
-        private static final DataType TYPE = DataType.getType(FooDataCell.class);
+		private static final long serialVersionUID = 1L;
 
-        private final float[] m_floats;
+		private static final DataType TYPE = DataType.getType(FooDataCell.class);
 
-        private FooDataCell(final float[] floats) {
-            m_floats = floats;
-        }
+		private final float[] m_floats;
 
-        @Override
-        public float[] getFloatArray() {
-            return m_floats;
-        }
+		private FooDataCell(final float[] floats) {
+			m_floats = floats;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            return Arrays.toString(m_floats);
-        }
+		@Override
+		public float[] getFloatArray() {
+			return m_floats;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected boolean equalsDataCell(final DataCell dc) {
-            return Arrays.equals(m_floats, ((FooDataCell)dc).m_floats);
-        }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public String toString() {
+			return Arrays.toString(m_floats);
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int hashCode() {
-            return m_floats.hashCode();
-        }
-    }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		protected boolean equalsDataCell(final DataCell dc) {
+			return Arrays.equals(m_floats, ((FooDataCell) dc).m_floats);
+		}
 
-    private static interface FooDataValue extends DataValue {
-        float[] getFloatArray();
-    }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public int hashCode() {
+			return m_floats.hashCode();
+		}
+	}
 
-    @SuppressWarnings("serial")
-    private static class BarDataCell extends DataCell {
+	static interface FooDataValue extends DataValue {
+		float[] getFloatArray();
+	}
 
-        private static final DataType TYPE = DataType.getType(BarDataCell.class);
+	static class BarDataCell extends DataCell {
 
-        private final double[] m_doubles;
+		private static final long serialVersionUID = 1L;
 
-        private BarDataCell(final double[] doubles) {
-            m_doubles = doubles;
-        }
+		private static final DataType TYPE = DataType.getType(BarDataCell.class);
 
-        private double[] getDoubleArray() {
-            return m_doubles;
-        }
+		private final double[] m_doubles;
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            return Arrays.toString(m_doubles);
-        }
+		private BarDataCell(final double[] doubles) {
+			m_doubles = doubles;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected boolean equalsDataCell(final DataCell dc) {
-            return Arrays.equals(m_doubles, ((BarDataCell)dc).m_doubles);
-        }
+		private double[] getDoubleArray() {
+			return m_doubles;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int hashCode() {
-            return m_doubles.hashCode();
-        }
-    }
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public String toString() {
+			return Arrays.toString(m_doubles);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		protected boolean equalsDataCell(final DataCell dc) {
+			return Arrays.equals(m_doubles, ((BarDataCell) dc).m_doubles);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public int hashCode() {
+			return m_doubles.hashCode();
+		}
+	}
 }

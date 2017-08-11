@@ -43,159 +43,73 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 12, 2017 (marcel): created
  */
 package org.knime.dl.base.portobjects;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Optional;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.zip.ZipEntry;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.ModelContentRO;
-import org.knime.core.node.ModelContentWO;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.port.AbstractSimplePortObjectSpec;
-import org.knime.dl.core.DLNetwork;
+import org.knime.core.node.port.PortObjectSpecZipInputStream;
+import org.knime.core.node.port.PortObjectSpecZipOutputStream;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.backend.DLBackend;
-import org.knime.dl.core.backend.DLBackendRegistry;
-import org.knime.dl.core.backend.DLProfile;
+import org.knime.dl.core.DLNetworkSpecSerializer;
+import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.DLNetworkTypeRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLDefaultNetworkPortObjectSpec extends AbstractSimplePortObjectSpec implements DLNetworkPortObjectSpec {
+public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
+	private static final String ZIP_ENTRY_NAME = "DLDefaultNetworkPortObjectSpec";
 
-	private static final String CFG_KEY_PROFILE = "profile";
+	private DLNetworkSpec m_spec;
 
-	private static final String CFG_KEY_NETWORK_REF = "network_ref";
-
-	private DLNetwork m_network;
-
-	private DLProfile m_profile;
-
-	private URL m_networkReference;
-
-	/**
-	 * Creates a new instance of this port object spec.
-	 *
-	 * @param networkSpec the network spec
-	 * @param profile the profile
-	 * @param the source of the network - TODO: this is temporary and has to be removed as it does not apply to e.g.
-	 *            networks that were created within KNIME (it's currently just easier to read the entire file from
-	 *            source than (de)serializing the network specs ourselves)
-	 */
-	public DLDefaultNetworkPortObjectSpec(final DLNetwork network, final DLProfile profile,
-			final URL networkReference) {
-		m_network = network;
-		m_profile = profile;
-		m_networkReference = networkReference;
+	public DLDefaultNetworkPortObjectSpec(final DLNetworkSpec spec) {
+		m_spec = spec;
 	}
 
 	/**
 	 * Empty framework constructor. Must not be called by client code.
 	 */
 	public DLDefaultNetworkPortObjectSpec() {
-		// fields get populated in load(..)
+		// fields get populated by serializer
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public DLNetworkSpec getNetworkSpec() {
-		return m_network.getSpec();
+		return m_spec;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public DLProfile getProfile() {
-		return m_profile;
-	}
+	public static final class Serializer extends PortObjectSpecSerializer<DLDefaultNetworkPortObjectSpec> {
+		@Override
+		public void savePortObjectSpec(final DLDefaultNetworkPortObjectSpec portObjectSpec,
+				final PortObjectSpecZipOutputStream out) throws IOException {
+			out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
+			final ObjectOutputStream objOut = new ObjectOutputStream(out);
+			DLNetworkType<?, ?> type = portObjectSpec.m_spec.getNetworkType();
+			objOut.writeUTF(type.getIdentifier());
+			@SuppressWarnings("unchecked")
+			DLNetworkSpecSerializer<DLNetworkSpec> serializer = ((DLNetworkSpecSerializer<DLNetworkSpec>) type
+					.getNetworkSpecSerializer());
+			serializer.serialize(objOut, portObjectSpec.m_spec);
+		}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void load(final ModelContentRO model) throws InvalidSettingsException {
-		final String[] backendIds = model.getStringArray(CFG_KEY_PROFILE);
-		final DLBackend[] backends = new DLBackend[backendIds.length];
-		boolean backendAvailable = false;
-		for (int i = 0; i < backendIds.length; i++) {
-			final Optional<DLBackend> be = DLBackendRegistry.getBackend(backendIds[i]);
-			if (be.isPresent()) {
-				backends[i] = be.get();
-				backendAvailable = true;
-			} else {
-				LOGGER.warn("Back end '" + backendIds[i]
-						+ "' could not be found. Try to continue with a different compatible back end...");
+		@Override
+		public DLDefaultNetworkPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in)
+				throws IOException {
+			final ZipEntry entry = in.getNextEntry();
+			if (!ZIP_ENTRY_NAME.equals(entry.getName())) {
+				throw new IOException("Expected zip entry '" + ZIP_ENTRY_NAME + "', got " + entry.getName());
 			}
+			final ObjectInputStream objIn = new ObjectInputStream(in);
+			final DLNetworkType<?, ? extends DLNetworkSpec> type = DLNetworkTypeRegistry.getInstance()
+					.getNetworkType(objIn.readUTF()).orElseThrow(() -> new IOException(""));
+			final DLNetworkSpec deserialized = type.getNetworkSpecSerializer().deserialize(objIn);
+			return new DLDefaultNetworkPortObjectSpec(deserialized);
 		}
-		if (!backendAvailable) {
-			final String msg = "No compatible back end could be loaded.";
-			LOGGER.error(msg);
-			throw new InvalidSettingsException(msg);
-		}
-		m_profile = new DLProfile() {
-
-			@Override
-			public Iterator<DLBackend> iterator() {
-				return Arrays.asList(backends).iterator();
-			}
-
-			@Override
-			public int size() {
-				return backends.length;
-			}
-		};
-		try {
-			m_networkReference = new URL(model.getString(CFG_KEY_NETWORK_REF));
-		} catch (final MalformedURLException e) {
-			throw new InvalidSettingsException("Failed to load deep learning port object spec.", e);
-		}
-		final DLBackend be = DLBackendRegistry.getPreferredBackend(m_profile)
-				.orElseThrow(() -> new InvalidSettingsException("Failed to load deep learning port object spec."));
-		try {
-			// TODO write cache for spec.
-			m_network = be.createReader().readNetwork(m_networkReference);
-		} catch (IllegalArgumentException | IOException e) {
-			throw new InvalidSettingsException("Failed to load deep learning port object spec.", e);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void save(final ModelContentWO model) {
-		final String[] backendIds = new String[m_profile.size()];
-		int i = 0;
-		for (final DLBackend be : m_profile) {
-			backendIds[i++] = be.getIdentifier();
-		}
-		model.addStringArray(CFG_KEY_PROFILE, backendIds);
-		model.addString(CFG_KEY_NETWORK_REF, m_networkReference.toString());
-	}
-
-	/**
-	 * The serializer of {@link DLDefaultNetworkPortObjectSpec}.
-	 */
-	public static final class DLDefaultNetworkPortObjectSpecSerializer
-			extends AbstractSimplePortObjectSpecSerializer<DLDefaultNetworkPortObjectSpec> {
-	}
-
-	// TODO remove later. NON API
-	DLNetwork getNetwork() {
-		return m_network;
 	}
 }

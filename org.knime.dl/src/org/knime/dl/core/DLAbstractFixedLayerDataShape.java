@@ -63,6 +63,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public abstract class DLAbstractFixedLayerDataShape extends DLAbstractLayerDataShape implements DLFixedLayerDataShape {
 
+	private static final long serialVersionUID = 1L;
+	
     private final long[] m_shape;
 
     /**

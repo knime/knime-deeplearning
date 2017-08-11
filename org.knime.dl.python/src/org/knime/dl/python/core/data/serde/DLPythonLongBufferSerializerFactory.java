@@ -78,9 +78,7 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 		super(DLPythonLongBuffer.class);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Serializer<? extends DLPythonLongBuffer> createSerializer() {
 
@@ -114,9 +112,7 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Class<? extends DLBuffer> getBufferType() {
 		return DLPythonLongBuffer.class;

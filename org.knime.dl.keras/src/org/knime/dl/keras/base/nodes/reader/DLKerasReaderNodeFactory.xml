@@ -15,6 +15,12 @@
 		<option name="Input Location">The path of the input file that contains the Keras
 			network.
 		</option>
+		<option name="Copy deep learning network into KNIME workflow?">
+			If selected, the Keras network will be copied into
+			the KNIME workflow, i.e. it will be available when exporting the
+			KNIME workflow with data. In contrast, if this box is unchecked, only
+			a reference to the actual network file is used by KNIME.
+		</option>
 	</fullDescription>
 	<ports>
 		<outPort index="0" name="Deep Learning Network">The Keras deep learning model.

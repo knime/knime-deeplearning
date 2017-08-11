@@ -53,7 +53,6 @@ import javax.swing.JComponent;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
-import org.knime.dl.core.DLExecutableNetwork;
 import org.knime.dl.core.DLNetwork;
 
 /**
@@ -64,29 +63,33 @@ import org.knime.dl.core.DLNetwork;
  */
 public interface DLNetworkPortObject extends PortObject {
 
-    /**
-     * The deep learning port type.
-     */
-    PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkReferencePortObject.class);
+	/**
+	 * The deep learning port type.
+	 */
+	PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkPortObject.class);
 
-    /**
-     * Returns the contained {@link DLExecutableNetwork}.
-     *
-     * @return the network
-     */
-    DLNetwork getNetwork();
+	/**
+	 * Summary of the deep learning port object.
+	 */
+	String SUMMARY = "Deep Learning Network Model";
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    DLNetworkPortObjectSpec getSpec();
+	/**
+	 * Returns the contained {@link DLNetwork}.
+	 *
+	 * @return the network
+	 */
+	DLNetwork<?> getNetwork();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    default JComponent[] getViews() {
-        return new JComponent[0];
-    }
+	@Override
+	default String getSummary() {
+		return SUMMARY;
+	}
+
+	@Override
+	DLNetworkPortObjectSpec getSpec();
+
+	@Override
+	default JComponent[] getViews() {
+		return new JComponent[0];
+	}
 }

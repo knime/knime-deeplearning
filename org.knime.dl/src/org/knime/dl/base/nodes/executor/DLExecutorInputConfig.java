@@ -80,7 +80,7 @@ class DLExecutorInputConfig {
 
 	private final String m_inputLayerDataName;
 
-	private final SettingsModelString m_smBackend;
+	private final SettingsModelString m_smExecutionContext;
 
 	private final SettingsModelString m_smConverter;
 
@@ -90,15 +90,15 @@ class DLExecutorInputConfig {
 
 	private final CopyOnWriteArrayList<ChangeListener> m_converterChangeListeners;
 
-	DLExecutorInputConfig(final String inputLayerDataName, final SettingsModelString backendModel) {
+	DLExecutorInputConfig(final String inputLayerDataName, final SettingsModelString executionContextModel) {
 		m_inputLayerDataName = checkNotNullOrEmpty(inputLayerDataName);
-		m_smBackend = checkNotNull(backendModel);
+		m_smExecutionContext = checkNotNull(executionContextModel);
 		m_smConverter = new SettingsModelString(CFG_KEY_CONVERTER, null);
 		m_smInputCol =
 				new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class));
 		m_backendChangeListeners = new CopyOnWriteArrayList<>();
 		m_converterChangeListeners = new CopyOnWriteArrayList<>();
-		m_smBackend.addChangeListener(new ChangeListener() {
+		m_smExecutionContext.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
@@ -125,8 +125,8 @@ class DLExecutorInputConfig {
 		return m_inputLayerDataName;
 	}
 
-	SettingsModelString getBackendModel() {
-		return m_smBackend;
+	SettingsModelString getExecutionContextModel() {
+		return m_smExecutionContext;
 	}
 
 	SettingsModelString getConverterModel() {
@@ -212,6 +212,7 @@ class DLExecutorInputConfig {
 	static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
 		private Class<? extends DataValue>[] m_filterClasses;
 
+		@SafeVarargs
 		public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
 			setFilterClasses(filterValueClasses);
 		}
@@ -230,7 +231,8 @@ class DLExecutorInputConfig {
 			return m_filterClasses;
 		}
 
-		void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
+		@SafeVarargs
+		final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
 			if (filterValueClasses == null || filterValueClasses.length == 0) {
 				throw new NullPointerException("Classes must not be null");
 			}

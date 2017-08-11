@@ -79,9 +79,7 @@ public class DLPythonFloatBufferDeserializerFactory extends DeserializerFactory 
 		super(DLPythonFloatBuffer.TYPE);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	public Deserializer createDeserializer() {
 		return new DLPythonDeserializer<DLPythonFloatBuffer>() {

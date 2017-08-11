@@ -49,7 +49,6 @@
 package org.knime.dl.core.data;
 
 import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.data.writables.DLWritableBuffer;
 
 /**
  * Root interface for buffers that store the data of network layers.

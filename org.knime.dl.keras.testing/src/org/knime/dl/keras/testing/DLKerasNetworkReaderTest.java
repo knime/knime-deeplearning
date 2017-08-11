@@ -55,9 +55,8 @@ import java.nio.file.InvalidPathException;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.keras.core.DLKerasDefaultBackend;
+import org.knime.dl.keras.core.DLKerasDefaultNetworkReader;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.io.DLKerasNetworkReader;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -67,23 +66,19 @@ import org.knime.dl.util.DLUtils;
  */
 public class DLKerasNetworkReaderTest {
 
-    private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-    @Test
-    public void test() throws IOException, InvalidPathException, MalformedURLException {
-        final URL source =
-            FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-
-        final DLKerasDefaultBackend backend = new DLKerasDefaultBackend();
-        final DLKerasNetworkReader reader = backend.createReader();
-
-        DLKerasNetwork network;
-        try {
-            network = reader.readNetwork(source);
-        } catch (IllegalArgumentException | IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        // TODO: test against known specs
-    }
+	@Test
+	public void test() throws IOException, InvalidPathException, MalformedURLException {
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
+		final DLKerasDefaultNetworkReader handler = new DLKerasDefaultNetworkReader();
+		DLKerasNetwork network;
+		try {
+			network = handler.create(source);
+		} catch (IllegalArgumentException | IOException e) {
+			throw new RuntimeException(e);
+		}
+		// TODO: test against known specs
+	}
 }

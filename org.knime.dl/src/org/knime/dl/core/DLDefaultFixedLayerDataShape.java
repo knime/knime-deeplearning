@@ -56,6 +56,8 @@ package org.knime.dl.core;
  */
 public class DLDefaultFixedLayerDataShape extends DLAbstractFixedLayerDataShape {
 
+	private static final long serialVersionUID = 1L;
+	
     /**
      * @param shape the shape of the layer data. Must be at least one-dimensional. Each shape dimension must be greater
      *            than zero.

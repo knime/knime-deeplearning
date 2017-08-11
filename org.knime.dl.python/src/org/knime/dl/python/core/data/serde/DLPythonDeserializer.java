@@ -49,7 +49,7 @@
 package org.knime.dl.python.core.data.serde;
 
 import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.data.writables.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.python.typeextension.Deserializer;
 
 /**

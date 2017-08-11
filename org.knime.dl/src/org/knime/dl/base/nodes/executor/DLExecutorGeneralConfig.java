@@ -65,56 +65,56 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 class DLExecutorGeneralConfig {
 
-    private static final String CFG_KEY_ROOT = "general_settings";
+	private static final String CFG_KEY_ROOT = "general_settings";
 
-    private static final String CFG_KEY_BACKEND = "backend";
+	private static final String CFG_KEY_BACKEND = "backend";
 
-    private static final String CFG_KEY_BATCH_SIZE = "batch_size";
+	private static final String CFG_KEY_BATCH_SIZE = "batch_size";
 
-    private static final String CFG_KEY_KEEP_INPUT_COLS = "keep_input_columns";
+	private static final String CFG_KEY_KEEP_INPUT_COLS = "keep_input_columns";
 
-    private final SettingsModelString m_smBackend;
+	private final SettingsModelString m_smExecutionContext;
 
-    private final SettingsModelIntegerBounded m_smBatchSize;
+	private final SettingsModelIntegerBounded m_smBatchSize;
 
-    private final SettingsModelBoolean m_smKeepInputColumns;
+	private final SettingsModelBoolean m_smKeepInputColumns;
 
-    DLExecutorGeneralConfig(final String defaultBackend, final int defaultBatchSize) {
-        m_smKeepInputColumns = new SettingsModelBoolean(CFG_KEY_KEEP_INPUT_COLS, false);
-        m_smBackend = new SettingsModelString(CFG_KEY_BACKEND, defaultBackend);
-        m_smBatchSize = new SettingsModelIntegerBounded(CFG_KEY_BATCH_SIZE, defaultBatchSize, 1, Integer.MAX_VALUE);
-    }
+	DLExecutorGeneralConfig(final String defaultBackend, final int defaultBatchSize) {
+		m_smExecutionContext = new SettingsModelString(CFG_KEY_BACKEND, defaultBackend);
+		m_smBatchSize = new SettingsModelIntegerBounded(CFG_KEY_BATCH_SIZE, defaultBatchSize, 1, Integer.MAX_VALUE);
+		m_smKeepInputColumns = new SettingsModelBoolean(CFG_KEY_KEEP_INPUT_COLS, false);
+	}
 
-    SettingsModelString getBackendModel() {
-        return m_smBackend;
-    }
+	SettingsModelString getExecutionContextModel() {
+		return m_smExecutionContext;
+	}
 
-    SettingsModelIntegerBounded getBatchSizeModel() {
-        return m_smBatchSize;
-    }
+	SettingsModelIntegerBounded getBatchSizeModel() {
+		return m_smBatchSize;
+	}
 
-    SettingsModelBoolean getKeepInputColumns() {
-        return m_smKeepInputColumns;
-    }
+	SettingsModelBoolean getKeepInputColumns() {
+		return m_smKeepInputColumns;
+	}
 
-    void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
-        m_smBackend.validateSettings(cfgSettings);
-        m_smBatchSize.validateSettings(cfgSettings);
-        m_smKeepInputColumns.validateSettings(cfgSettings);
-    }
+	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
+		m_smExecutionContext.validateSettings(cfgSettings);
+		m_smBatchSize.validateSettings(cfgSettings);
+		m_smKeepInputColumns.validateSettings(cfgSettings);
+	}
 
-    void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
-        m_smBackend.loadSettingsFrom(cfgSettings);
-        m_smBatchSize.loadSettingsFrom(cfgSettings);
-        m_smKeepInputColumns.loadSettingsFrom(cfgSettings);
-    }
+	void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
+		m_smExecutionContext.loadSettingsFrom(cfgSettings);
+		m_smBatchSize.loadSettingsFrom(cfgSettings);
+		m_smKeepInputColumns.loadSettingsFrom(cfgSettings);
+	}
 
-    void saveToSettings(final NodeSettingsWO settings) {
-        final NodeSettingsWO cfgSettings = settings.addNodeSettings(CFG_KEY_ROOT);
-        m_smBackend.saveSettingsTo(cfgSettings);
-        m_smBatchSize.saveSettingsTo(cfgSettings);
-        m_smKeepInputColumns.saveSettingsTo(cfgSettings);
-    }
+	void saveToSettings(final NodeSettingsWO settings) {
+		final NodeSettingsWO cfgSettings = settings.addNodeSettings(CFG_KEY_ROOT);
+		m_smExecutionContext.saveSettingsTo(cfgSettings);
+		m_smBatchSize.saveSettingsTo(cfgSettings);
+		m_smKeepInputColumns.saveSettingsTo(cfgSettings);
+	}
 }

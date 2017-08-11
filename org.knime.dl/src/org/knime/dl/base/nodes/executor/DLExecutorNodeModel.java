@@ -100,19 +100,18 @@ import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFi
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLException;
-import org.knime.dl.core.DLExecutableNetwork;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.backend.DLBackend;
-import org.knime.dl.core.backend.DLBackendRegistry;
-import org.knime.dl.core.backend.DLProfile;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.input.DLDataValueToLayerDataConverterRegistry;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterRegistry;
-import org.knime.dl.core.execution.DLFromKnimeNetworkExecutor;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.core.execution.DLInvalidNetworkInputException;
+import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -161,14 +160,9 @@ final class DLExecutorNodeModel extends NodeModel {
 
 	private SettingsModelStringArray m_smOutputOrder;
 
-	private DLBackend m_backend;
-
 	private LinkedHashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> m_inputConverters;
 
 	private LinkedHashMap<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> m_outputConverters;
-
-	// workaround
-	private HashMap<DLLayerDataSpec, DataColumnSpecFilterConfiguration> m_inputFilters;
 
 	private DLNetworkSpec m_lastIncomingNetworkSpec;
 
@@ -193,26 +187,17 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_initialLoaded = false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public InputPortRole[] getInputPortRoles() {
 		return new InputPortRole[] { InputPortRole.NONDISTRIBUTED_NONSTREAMABLE,
 				InputPortRole.NONDISTRIBUTED_STREAMABLE };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public OutputPortRole[] getOutputPortRoles() {
 		return new OutputPortRole[] { OutputPortRole.NONDISTRIBUTED };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
 			final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -230,9 +215,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		if (inSpecs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
@@ -252,17 +234,12 @@ final class DLExecutorNodeModel extends NodeModel {
 		if (networkSpec == null) {
 			throw new InvalidSettingsException("Input port object's deep learning network specs are missing.");
 		}
-		if (portObjectSpec.getProfile() == null) {
-			throw new InvalidSettingsException("Input port object's deep learning profile is missing.");
-		}
+
 		if (networkSpec.getInputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no input specs.");
 		}
 		if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getIntermediateOutputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no output specs.");
-		}
-		if (portObjectSpec.getProfile().size() == 0) {
-			throw new InvalidSettingsException("Input deep learning network has no associated back end.");
 		}
 
 		m_lastIncomingNetworkSpec = networkSpec;
@@ -281,7 +258,23 @@ final class DLExecutorNodeModel extends NodeModel {
 			m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 		}
 
-		configureGeneral(portObjectSpec.getProfile());
+		// TODO nicer error
+		String selectedBackend = m_generalCfg.getExecutionContextModel().getStringValue();
+		if (selectedBackend != null && !selectedBackend.isEmpty()) {
+			Optional<DLExecutionContext<?>> selBackOpt = DLExecutionContextRegistry.getInstance()
+					.getExecutionContext(selectedBackend);
+			if (!selBackOpt.isPresent()) {
+				throw new InvalidSettingsException("Selected back end not available");
+			} else {
+				final DLExecutionContext<?> tmp = selBackOpt.get();
+				if (!tmp.getNetworkType().equals(networkSpec.getNetworkType())) {
+					throw new InvalidSettingsException("Incompatible back end types");
+				}
+			}
+		} else {
+			throw new InvalidSettingsException("No back end selected in dialog. Please select backend.");
+		}
+
 		configureInputs(networkSpec);
 		configureOutputs(networkSpec);
 
@@ -289,9 +282,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		return new PortObjectSpec[] { outDataSpec };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
 		final PortObject portObject = inObjects[IN_NETWORK_PORT_IDX];
@@ -299,8 +289,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		final DataTableSpec inDataSpec = inData.getDataTableSpec();
 
 		final RowInput rowInput = new DataTableRowInput(inData);
-		final BufferedDataTableRowOutput rowOutput =
-				new BufferedDataTableRowOutput(exec.createDataContainer(createOutputSpec(inDataSpec)));
+		final BufferedDataTableRowOutput rowOutput = new BufferedDataTableRowOutput(
+				exec.createDataContainer(createOutputSpec(inDataSpec)));
 
 		executeInternal(portObject, rowInput, rowOutput, exec);
 
@@ -313,18 +303,12 @@ final class DLExecutorNodeModel extends NodeModel {
 		// no op
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		// no op
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		m_generalCfg.saveToSettings(settings);
@@ -344,9 +328,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_generalCfg.validateSettings(settings);
@@ -354,8 +335,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_inputCfgs.clear();
 		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
 		for (final String layerName : inputSettings) {
-			final DLExecutorInputConfig inputCfg =
-					createInputLayerDataModelConfig(layerName, m_generalCfg.getBackendModel());
+			final DLExecutorInputConfig inputCfg = createInputLayerDataModelConfig(layerName,
+					m_generalCfg.getExecutionContextModel());
 			m_inputCfgs.put(layerName, inputCfg);
 			inputCfg.validateSettings(inputSettings);
 		}
@@ -363,8 +344,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_outputCfgs.clear();
 		final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
 		for (final String layerName : outputSettings) {
-			final DLExecutorOutputConfig outputCfg =
-					createOutputLayerDataModelConfig(layerName, m_generalCfg.getBackendModel());
+			final DLExecutorOutputConfig outputCfg = createOutputLayerDataModelConfig(layerName,
+					m_generalCfg.getExecutionContextModel());
 			m_outputCfgs.put(layerName, outputCfg);
 			outputCfg.validateSettings(outputSettings);
 		}
@@ -373,9 +354,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_smOutputOrder.validateSettings(settings);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_generalCfg.loadFromSettings(settings);
@@ -394,25 +372,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
 		m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 		m_initialLoaded = true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void reset() {
-		m_backend = null;
-	}
-
-	private void configureGeneral(final DLProfile profile) throws InvalidSettingsException {
-		Optional<DLBackend> backend = DLBackendRegistry.getBackend(m_generalCfg.getBackendModel().getStringValue());
-		if (!backend.isPresent()) {
-			backend = DLBackendRegistry.getPreferredBackend(profile);
-			if (!backend.isPresent()) {
-				throw new InvalidSettingsException("There is no available back end that supports the input network.");
-			}
-		}
-		m_backend = backend.get();
 	}
 
 	private void configureInputs(final DLNetworkSpec networkSpec) throws InvalidSettingsException {
@@ -459,11 +418,10 @@ final class DLExecutorNodeModel extends NodeModel {
 			}
 			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
 			// get selected converter
-			final DLLayerDataToDataCellConverterFactory<?, ?> converter =
-					DLLayerDataToDataCellConverterRegistry.getInstance()
-							.getConverterFactory(cfg.getConverterModel().getStringValue())
-							.orElseThrow(() -> new InvalidSettingsException("Converter '"
-									+ cfg.getConverterModel().getStringValue() + "' for output '" + layerDataName
+			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
+					.getInstance().getConverterFactory(cfg.getConverterModel().getStringValue())
+					.orElseThrow(() -> new InvalidSettingsException(
+							"Converter '" + cfg.getConverterModel().getStringValue() + "' for output '" + layerDataName
 									+ "' could not be found. Are you missing a KNIME extension?"));
 			m_outputConverters.put(layerDataSpec, converter);
 		}
@@ -489,13 +447,14 @@ final class DLExecutorNodeModel extends NodeModel {
 		return outDataSpec;
 	}
 
-	private void executeInternal(final PortObject portObject, final RowInput rowInput, final RowOutput rowOutput,
-			final ExecutionContext exec) throws Exception {
+	@SuppressWarnings("unchecked")
+	private <N extends DLNetwork<?>> void executeInternal(final PortObject portObject, final RowInput rowInput,
+			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
 		if (!(portObject instanceof DLNetworkPortObject)) {
 			throw new IllegalStateException("Unsupported deep learning network type at input port.");
 		}
 
-		final DLNetwork network = ((DLNetworkPortObject) portObject).getNetwork();
+		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
 		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
 
@@ -521,7 +480,16 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 		final boolean keepInputColumns = m_generalCfg.getKeepInputColumns().getBooleanValue();
 
-		final DLExecutableNetwork executableNetwork = m_backend.toExecutableNetwork(network);
+		final String selectedCtx = m_generalCfg.getExecutionContextModel().getStringValue();
+		final DLExecutionContext<N> ctx = (DLExecutionContext<N>) DLExecutionContextRegistry.getInstance()
+				.getExecutionContextsForNetworkType(networkSpec.getNetworkType()).stream()
+				.filter(inner -> inner.getIdentifier().equals(selectedCtx)).findFirst()
+				.orElseThrow(() -> new InvalidSettingsException("There is no available execution back end of name '"
+						+ selectedCtx + "' that supports the input network of type '"
+						+ networkSpec.getNetworkType().getIdentifier() + "'."));
+
+		final DLExecutableNetworkAdapter executableNetwork = ctx.executable(network, m_outputConverters.keySet());
+
 		// assign input column indices to network inputs
 		final List<Pair<DLLayerDataSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
 		for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> input : m_inputConverters
@@ -541,8 +509,8 @@ final class DLExecutorNodeModel extends NodeModel {
 			inputs.add(new Pair<>(input.getKey(), indices));
 		}
 
-		try (DLFromKnimeNetworkExecutor executor =
-				new DLFromKnimeNetworkExecutor(executableNetwork, m_inputConverters, m_outputConverters)) {
+		try (DLKnimeNetworkExecutor executor = new DLKnimeNetworkExecutor(executableNetwork, m_inputConverters,
+				m_outputConverters)) {
 
 			final DLNetworkExecutorOutputConsumer networkOutputConsumer = new DLNetworkExecutorOutputConsumer(
 					m_outputConverters.keySet().stream().collect(Collectors.toList()));
@@ -578,7 +546,8 @@ final class DLExecutorNodeModel extends NodeModel {
 							final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
 							for (final int c : entry.getSecond()) {
 								final DataCell cell = batch.get(j).getCell(c);
-								// TODO: we could also allow some missing value handling settings in the dialog.
+								// TODO: we could also allow some missing value
+								// handling settings in the dialog.
 								if (cell.isMissing()) {
 									throw new DLInvalidNetworkInputException(
 											"Missing cell in input row '" + batch.get(j).getKey() + "', column '"
@@ -629,11 +598,11 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	// TODO: workaround
-	// if changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
+	// if changing code here, also update
+	// DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
-		final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> conv =
-				DLDataValueToLayerDataConverterRegistry.getInstance()
-						.getConverterFactory(inputCfg.getConverterModel().getStringValue());
+		final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> conv = DLDataValueToLayerDataConverterRegistry
+				.getInstance().getConverterFactory(inputCfg.getConverterModel().getStringValue());
 		if (!conv.isPresent()) {
 			final String msg = "Converter '" + inputCfg.getConverterModel().getStringValue() + "' could not be found.";
 			LOGGER.error(msg);
@@ -665,7 +634,8 @@ final class DLExecutorNodeModel extends NodeModel {
 				final ArrayList<DataCell> b = new ArrayList<>();
 				for (int j = 0; j < a.size(); j++) { // iterate over each output
 					final DataCell[] c = a.get(j)[i];
-					for (int h = 0; h < c.length; h++) { // iterate over output cells
+					for (int h = 0; h < c.length; h++) { // iterate over output
+															// cells
 						b.add(c[h]);
 					}
 				}
@@ -676,5 +646,10 @@ final class DLExecutorNodeModel extends NodeModel {
 		public DataCell[][] collected() {
 			return m_tmpList.toArray(new DataCell[m_tmpList.size()][0]);
 		}
+	}
+
+	@Override
+	protected void reset() {
+		// noop
 	}
 }

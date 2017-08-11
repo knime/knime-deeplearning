@@ -55,7 +55,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.BorderFactory;
@@ -74,18 +73,18 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.backend.DLBackend;
-import org.knime.dl.core.backend.DLBackendRegistry;
-import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-@SuppressWarnings("serial")
 final class DLExecutorOutputPanel extends JPanel {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
@@ -114,7 +113,11 @@ final class DLExecutorOutputPanel extends JPanel {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
-				refreshConverters();
+				try {
+					refreshConverters();
+				} catch (final InvalidSettingsException ex) {
+					throw new IllegalStateException(ex.getMessage(), ex);
+				}
 			}
 		});
 		m_constr = new GridBagConstraints();
@@ -189,12 +192,12 @@ final class DLExecutorOutputPanel extends JPanel {
 		});
 	}
 
-	private void refreshConverters() {
+	private void refreshConverters() throws InvalidSettingsException {
 		final String[][] newConverters = getAvailableConverters();
-		if (newConverters.length == 0) {
+		if (newConverters[0].length == 0) {
 			final String msg = "No converters available for output '" + m_outputDataSpec.getName() + "'.";
 			LOGGER.error(msg);
-			throw new IllegalStateException(msg);
+			throw new InvalidSettingsException(msg);
 		}
 		m_dcConverter.replaceListItems(newConverters[0], newConverters[1], null);
 	}
@@ -205,16 +208,17 @@ final class DLExecutorOutputPanel extends JPanel {
 		}
 	}
 
-	private String[][] getAvailableConverters() {
-		DLBackendRegistry.getInstance();
-		final Optional<DLBackend> backend = DLBackendRegistry.getBackend(m_cfg.getBackendModel().getStringValue());
-		if (!backend.isPresent()) {
-			throw new RuntimeException(
-					"Backend '" + m_cfg.getBackendModel().getStringValue() + "' could not be found.");
-		}
-		final Class<? extends DLReadableBuffer> bufferType = backend.get().getReadableBufferType(m_outputDataSpec);
+	private String[][] getAvailableConverters() throws InvalidSettingsException {
+		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
+				.getExecutionContext(m_cfg.getExecutionContextModel().getStringValue()).orElseThrow(() -> {
+					final String msg = "Execution back end '" + m_cfg.getExecutionContextModel().getStringValue()
+							+ "' could not be found.";
+					LOGGER.error(msg);
+					return new InvalidSettingsException(msg);
+				});
 		final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
-				DLLayerDataToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(bufferType,
+				DLLayerDataToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
+						executionContext.getLayerDataFactory().getReadableBufferType(m_outputDataSpec),
 						m_outputDataSpec);
 		converterFactories.sort(Comparator.comparing(DLLayerDataToDataCellConverterFactory::getName));
 		final String[] names = new String[converterFactories.size()];

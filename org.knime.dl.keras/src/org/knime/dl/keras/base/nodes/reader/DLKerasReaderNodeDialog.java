@@ -65,6 +65,8 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
@@ -84,6 +86,8 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
 	private final CardLayout m_loadingLayout;
 
+	private final DialogComponentBoolean m_dcCopyNetwork;
+
 	public DLKerasReaderNodeDialog() {
 		final JPanel filesPanel = new JPanel(new GridBagLayout());
 		filesPanel.setBorder(BorderFactory.createTitledBorder("Input Location"));
@@ -91,9 +95,9 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		filesPanelConstr.gridx = 0;
 		filesPanelConstr.gridy = 0;
 		filesPanelConstr.weightx = 1;
-		filesPanelConstr.weighty = 1;
+		filesPanelConstr.weighty = 0;
 		filesPanelConstr.anchor = GridBagConstraints.NORTHWEST;
-		filesPanelConstr.fill = GridBagConstraints.BOTH;
+		filesPanelConstr.fill = GridBagConstraints.VERTICAL;
 		m_files = new FilesHistoryPanel("org.knime.dl.keras.base.nodes.reader", LocationValidation.FileInput);
 		m_files.setSuffixes(DLKerasReaderNodeModel.getValidInputFileExtensions().stream().map(s -> "." + s)
 				.collect(Collectors.joining("|")));
@@ -106,6 +110,15 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 			}
 		});
 		filesPanel.add(m_files, filesPanelConstr);
+		filesPanelConstr.gridy++;
+
+		final SettingsModelBoolean smCopyNetwork = DLKerasReaderNodeModel.createCopyNetworkSettingsModel();
+		m_dcCopyNetwork = new DialogComponentBoolean(smCopyNetwork, "Copy deep learning network into KNIME workflow?");
+		filesPanelConstr.weightx = 1;
+		filesPanelConstr.weighty = 1;
+		filesPanelConstr.anchor = GridBagConstraints.NORTHWEST;
+		filesPanelConstr.fill = GridBagConstraints.NONE;
+		filesPanel.add(m_dcCopyNetwork.getComponentPanel(), filesPanelConstr);
 		filesPanelConstr.gridy++;
 
 		m_loading = new JPanel();
@@ -124,9 +137,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		addTab("Options", filesPanel);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
@@ -135,19 +146,19 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		try {
 			m_smFilePath.loadSettingsFrom(settings);
 			m_files.setSelectedFile(m_smFilePath.getStringValue());
+			m_dcCopyNetwork.loadSettingsFrom(settings, specs);
 		} catch (final InvalidSettingsException e) {
 			m_smFilePath.setStringValue(m_files.getSelectedFile());
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 		// TODO: pressing "Apply" also shows the loading label, loading only happens on "OK" - we need to observe the
 		// node model
 		m_loadingLayout.show(m_loading, "label");
 		m_smFilePath.saveSettingsTo(settings);
+		m_dcCopyNetwork.saveSettingsTo(settings);
 	}
 }

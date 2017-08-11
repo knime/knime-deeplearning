@@ -57,7 +57,7 @@ import java.util.Arrays;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
-import org.knime.dl.core.data.writables.DLWritableDoubleBuffer;
+import org.knime.dl.core.data.DLWritableDoubleBuffer;
 
 /**
  * Double type implementation of {@link DLPythonDataBuffer}.
