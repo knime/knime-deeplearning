@@ -77,13 +77,11 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 	/**
 	 * Creates a new instance of this buffer.
 	 *
-	 * @param capacity
-	 *            the immutable capacity of the buffer
+	 * @param capacity the immutable capacity of the buffer
 	 */
 	public DLPythonFloatBuffer(final long capacity) {
 		super(capacity);
 	}
-
 
 	@Override
 	public void setStorage(final float[] storage, final long storageSize) throws IllegalArgumentException {
@@ -93,13 +91,11 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		resetRead();
 	}
 
-
 	@Override
 	public double readNextDouble() throws BufferUnderflowException {
 		checkUnderflow(m_nextRead < m_nextWrite);
 		return m_storage[m_nextRead++];
 	}
-
 
 	@Override
 	public double[] toDoubleArray() {
@@ -110,26 +106,22 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		return tmp;
 	}
 
-
 	@Override
 	public float readNextFloat() throws BufferUnderflowException {
 		checkUnderflow(m_nextRead < m_nextWrite);
 		return m_storage[m_nextRead++];
 	}
 
-
 	@Override
 	public float[] toFloatArray() {
 		return m_storage.clone();
 	}
-
 
 	@Override
 	public void put(final boolean value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value ? 1f : 0f;
 	}
-
 
 	@Override
 	public void putAll(final boolean[] values) throws BufferOverflowException {
@@ -139,13 +131,11 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		}
 	}
 
-
 	@Override
 	public void put(final byte value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
-
 
 	@Override
 	public void putAll(final byte[] values) throws BufferOverflowException {
@@ -155,13 +145,11 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		}
 	}
 
-
 	@Override
 	public void put(final float value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
-
 
 	@Override
 	public void putAll(final float[] values) throws BufferOverflowException {
@@ -170,29 +158,11 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		m_nextWrite += values.length;
 	}
 
-
-	@Override
-	public void put(final int value) throws BufferOverflowException {
-		checkOverflow(m_nextWrite < m_capacity);
-		m_storage[m_nextWrite++] = value;
-	}
-
-
-	@Override
-	public void putAll(final int[] values) throws BufferOverflowException {
-		checkOverflow(m_nextWrite + values.length <= m_capacity);
-		for (int i = 0; i < values.length; i++) {
-			m_storage[m_nextWrite++] = values[i];
-		}
-	}
-
-
 	@Override
 	public void put(final short value) throws BufferOverflowException {
 		checkOverflow(m_nextWrite < m_capacity);
 		m_storage[m_nextWrite++] = value;
 	}
-
 
 	@Override
 	public void putAll(final short[] values) throws BufferOverflowException {
@@ -202,12 +172,10 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<float[]>
 		}
 	}
 
-
 	@Override
 	protected float[] createStorage() {
 		return new float[m_capacity];
 	}
-
 
 	@Override
 	protected boolean equalsDataCell(final DataCell dc) {
