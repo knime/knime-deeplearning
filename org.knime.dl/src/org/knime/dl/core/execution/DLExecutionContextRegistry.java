@@ -88,9 +88,6 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 		return instance;
 	}
 
-	// TODO: mapping from network type does not make sense anymore as we check
-	// for class compatibility in the access
-	// method.
 	private final HashMap<DLNetworkType<?, ?>, Set<DLExecutionContext<?>>> m_ctxs = new HashMap<>();
 
 	private DLExecutionContextRegistry() {
@@ -99,10 +96,23 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	}
 
 	// access methods:
+
+	/**
+	 * Returns all execution contexts that match the given network type.
+	 *
+	 * @param networkType the network type
+	 * @return the execution contexts
+	 */
 	public Collection<DLExecutionContext<?>> getExecutionContextsForNetworkType(final DLNetworkType<?, ?> networkType) {
 		return Collections.unmodifiableCollection(m_ctxs.get(networkType));
 	}
 
+	/**
+	 * Returns the execution context with the given identifier if present.
+	 *
+	 * @param identifier the identifier
+	 * @return the execution context if present
+	 */
 	public Optional<DLExecutionContext<?>> getExecutionContext(final String identifier) {
 		return m_ctxs.values().stream().flatMap(Set::stream).filter(ctx -> ctx.getIdentifier().equals(identifier))
 				.findFirst();
@@ -115,10 +125,8 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	/**
 	 * Registers the given execution context.
 	 *
-	 * @param executionContext
-	 *            the execution context to register
-	 * @throws IllegalArgumentException
-	 *             if the given execution context's network type is null
+	 * @param executionContext the execution context to register
+	 * @throws IllegalArgumentException if the given execution context's network type is null
 	 */
 	public void registerExecutionContext(final DLExecutionContext<?> executionContext) throws IllegalArgumentException {
 		registerExecutionContextInternal(executionContext);
