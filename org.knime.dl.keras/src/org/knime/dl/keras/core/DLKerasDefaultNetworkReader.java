@@ -48,11 +48,13 @@
  */
 package org.knime.dl.keras.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLException;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -70,7 +72,11 @@ public class DLKerasDefaultNetworkReader implements DLKerasNetworkReader {
 	}
 
 	@Override
-	public DLKerasNetwork create(final URL source) throws IOException {
+	public DLKerasNetwork create(final URL source) throws IOException, DLException {
+		final File sourceFile = FileUtil.getFileFromURL(source);
+		if (sourceFile == null || !sourceFile.exists()) {
+			throw new DLException("Keras model file at location " + source.toString() + " cannot be found.");
+		}
 		final PythonKernel kernel;
 		try {
 			kernel = DLKerasPythonCommands.createKernel();
@@ -89,6 +95,10 @@ public class DLKerasDefaultNetworkReader implements DLKerasNetworkReader {
 
 	@Override
 	public DLKerasNetwork create(final URL source, final DLKerasNetworkSpec spec) throws IOException {
+		final File sourceFile = FileUtil.getFileFromURL(source);
+		if (sourceFile == null || !sourceFile.exists()) {
+			throw new DLException("Keras model file at location " + source.toString() + " cannot be found.");
+		}
 		return new DLKerasDefaultNetwork(source, spec);
 	}
 
@@ -123,13 +133,17 @@ public class DLKerasDefaultNetworkReader implements DLKerasNetworkReader {
 	//
 
 	public static DLPythonNetworkHandle load(final URL source, final DLKerasPythonCommands commands)
-			throws IOException {
-		final String filePath;
+			throws IOException, DLException {
+		File sourceFile;
 		try {
-			filePath = FileUtil.getFileFromURL(source).getAbsolutePath();
+			sourceFile = FileUtil.getFileFromURL(source);
 		} catch (final Exception e) {
-			throw new IllegalArgumentException("Invalid network source URL '" + source.toString() + "'.", e);
+			throw new DLException("Invalid network source URL '" + source.toString() + "'.", e);
 		}
+		if (sourceFile == null || !sourceFile.exists()) {
+			throw new DLException("Keras model file at location " + source.toString() + " cannot be found.");
+		}
+		final String filePath = sourceFile.getAbsolutePath();
 		try {
 			final String fileExtension = FilenameUtils.getExtension(filePath);
 			final DLPythonNetworkHandle networkHandle;
@@ -140,8 +154,7 @@ public class DLKerasDefaultNetworkReader implements DLKerasNetworkReader {
 			} else if (fileExtension.equals("yaml")) {
 				networkHandle = commands.loadNetworkSpecFromYaml(filePath);
 			} else {
-				throw new IllegalArgumentException(
-						"Keras network reader only supports files of type h5, json and yaml.");
+				throw new DLException("Keras network reader only supports files of type h5, json and yaml.");
 			}
 			return networkHandle;
 		} catch (final Exception e) {

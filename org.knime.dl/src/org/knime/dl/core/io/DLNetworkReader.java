@@ -72,17 +72,19 @@ public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DL
 	 *
 	 * @param source the source URL
 	 * @return the network
-	 * @throws IllegalArgumentException if the source is invalid or does not contain a valid network definition
+	 * @throws IllegalArgumentException if the source is invalid or unavailable or does not contain a valid network
+	 *             definition
 	 * @throws IOException if failed to read in the network
 	 */
 	N create(R source) throws IOException, IllegalArgumentException;
-	
+
 	/**
 	 * Reads in a {@link DLNetwork network} from a URL.
 	 *
 	 * @param source the source URL
 	 * @return the network
-	 * @throws IllegalArgumentException if the source is invalid or does not contain a valid network definition
+	 * @throws IllegalArgumentException if the source is invalid or unavailable or does not contain a valid network
+	 *             definition
 	 * @throws IOException if failed to read in the network
 	 */
 	N create(R source, S spec) throws IOException, IllegalArgumentException;
