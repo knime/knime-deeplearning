@@ -60,24 +60,20 @@ import org.knime.dl.core.data.DLWritableDoubleBuffer;
 public class DLDoubleValueToDoubleLayerConverterFactory
 		implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableDoubleBuffer> {
 
-
 	@Override
 	public String getName() {
 		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName();
 	}
-
 
 	@Override
 	public Class<DoubleValue> getSourceType() {
 		return DoubleValue.class;
 	}
 
-
 	@Override
 	public Class<DLWritableDoubleBuffer> getBufferType() {
 		return DLWritableDoubleBuffer.class;
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<DoubleValue, DLWritableDoubleBuffer> createConverter() {

@@ -65,30 +65,25 @@ import org.knime.dl.util.DLUtils;
 public class DLDoubleLayerDataToDoubleCellConverterFactory
 		implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, DoubleCell> {
 
-
 	@Override
 	public String getName() {
 		return DataType.getType(DoubleCell.class).toPrettyString();
 	}
-
 
 	@Override
 	public Class<DLReadableDoubleBuffer> getBufferType() {
 		return DLReadableDoubleBuffer.class;
 	}
 
-
 	@Override
 	public DataType getDestType() {
 		return DataType.getType(DoubleCell.class);
 	}
 
-
 	@Override
 	public long getDestCount(final DLLayerDataSpec spec) {
 		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
 	}
-
 
 	@Override
 	public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, DoubleCell> createConverter() {

@@ -63,9 +63,8 @@ import org.knime.dl.core.DLAbstractExtensionPointRegistry;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Registry for deep learning input converter factories that allow conversion of
- * {@link DataValue data values} into {@link DLWritableBuffer layer data buffer}
- * types.
+ * Registry for deep learning input converter factories that allow conversion of {@link DataValue data values} into
+ * {@link DLWritableBuffer layer data buffer} types.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -107,16 +106,12 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 	// access methods:
 
 	/**
-	 * Returns all deep learning {@link DLDataValueToLayerDataConverterFactory
-	 * converter factories} that create converters which convert a specific
-	 * source type into a specific destination buffer.
+	 * Returns all deep learning {@link DLDataValueToLayerDataConverterFactory converter factories} that create
+	 * converters which convert a specific source type into a specific destination buffer.
 	 *
-	 * @param sourceType
-	 *            the source type
-	 * @param bufferType
-	 *            the destination type
-	 * @return all deep learning converter factories that allow conversion of
-	 *         the source type into the destination type
+	 * @param sourceType the source type
+	 * @param bufferType the destination type
+	 * @return all deep learning converter factories that allow conversion of the source type into the destination type
 	 */
 	public final List<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getConverterFactories(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
@@ -138,29 +133,26 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 	}
 
 	/**
-	 * Returns the preferred deep learning
-	 * {@link DLDataValueToLayerDataConverterFactory converter factory} that
-	 * creates converters which convert a specific source type into a specific
-	 * destination buffer.
+	 * Returns the preferred deep learning {@link DLDataValueToLayerDataConverterFactory converter factory} that creates
+	 * converters which convert a specific source type into a specific destination buffer.
 	 *
-	 * @param sourceType
-	 *            the source type
-	 * @param bufferType
-	 *            the destination type
-	 * @return the preferred deep learning converter factory that allows
-	 *         conversion of the source type into the destination type
+	 * @param sourceType the source type
+	 * @param bufferType the destination type
+	 * @return the preferred deep learning converter factory that allows conversion of the source type into the
+	 *         destination type
 	 */
 	public final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getPreferredConverterFactory(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
-		final List<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> convs = getConverterFactories(
-				sourceType, bufferType);
+		final List<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> convs =
+				getConverterFactories(sourceType, bufferType);
 		DLDataValueToLayerDataConverterFactory<?, ?> sourceMatch = null;
-		final DataType theSourceType = sourceType.isCollectionType() ? sourceType.getCollectionElementType()
-				: sourceType;
+		final DataType theSourceType =
+				sourceType.isCollectionType() ? sourceType.getCollectionElementType() : sourceType;
 		for (final DLDataValueToLayerDataConverterFactory<? extends DataValue, ?> conv : convs) {
 			final Class<? extends DataValue> theConvSourceType;
 			if (conv instanceof DLCollectionDataValueToLayerDataConverterFactory) {
-				final DLCollectionDataValueToLayerDataConverterFactory<?, ?> casted = (DLCollectionDataValueToLayerDataConverterFactory<?, ?>) conv;
+				final DLCollectionDataValueToLayerDataConverterFactory<?, ?> casted =
+						(DLCollectionDataValueToLayerDataConverterFactory<?, ?>) conv;
 				theConvSourceType = casted.getSourceElementType();
 			} else {
 				theConvSourceType = conv.getSourceType();
@@ -178,11 +170,10 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 	}
 
 	/**
-	 * Returns the deep learning {@link DLDataValueToLayerDataConverterFactory
-	 * converter factory} with the given identifier if present.
+	 * Returns the deep learning {@link DLDataValueToLayerDataConverterFactory converter factory} with the given
+	 * identifier if present.
 	 *
-	 * @param identifier
-	 *            the identifier of the converter factory
+	 * @param identifier the identifier of the converter factory
 	 * @return the deep learning converter factory that matches the identifier
 	 */
 	public final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> getConverterFactory(
@@ -191,9 +182,9 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 			return Optional.empty();
 		}
 		if (identifier.startsWith(DLCollectionDataValueToLayerDataConverterFactory.class.getName())) {
-			final String elementConverterId = identifier.substring(
-					DLCollectionDataValueToLayerDataConverterFactory.class.getName().length() + 1,
-					identifier.length() - 1);
+			final String elementConverterId =
+					identifier.substring(DLCollectionDataValueToLayerDataConverterFactory.class.getName().length() + 1,
+							identifier.length() - 1);
 			final Optional<DLDataValueToLayerDataConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
 			if (conv.isPresent()) {
 				return Optional.of(new DLCollectionDataValueToLayerDataConverterFactory<>(conv.get()));
@@ -210,18 +201,14 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 	/**
 	 * Registers the given converter factory.
 	 *
-	 * @param converter
-	 *            the converter factory to register
-	 * @throws IllegalArgumentException
-	 *             if a converter factory with the same identifier is already
-	 *             registered or if the given converter factory's identifier or
-	 *             name is null or empty
+	 * @param converter the converter factory to register
+	 * @throws IllegalArgumentException if a converter factory with the same identifier is already registered or if the
+	 *             given converter factory's identifier or name is null or empty
 	 */
 	public final void registerConverter(final DLDataValueToLayerDataConverterFactory<?, ?> converter)
 			throws IllegalArgumentException {
 		registerConverterInternal(converter);
 	}
-
 
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)

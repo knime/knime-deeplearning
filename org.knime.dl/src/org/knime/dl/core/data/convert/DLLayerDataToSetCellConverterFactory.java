@@ -79,36 +79,30 @@ public final class DLLayerDataToSetCellConverterFactory<I extends DLReadableBuff
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
-
 	@Override
 	public String getIdentifier() {
 		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
 	}
-
 
 	@Override
 	public String getName() {
 		return "Set of " + m_elementConverterFactory.getName();
 	}
 
-
 	@Override
 	public Class<I> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
 	}
-
 
 	@Override
 	public DataType getDestType() {
 		return SetCell.getCollectionType(m_elementConverterFactory.getDestType());
 	}
 
-
 	@Override
 	public long getDestCount(final DLLayerDataSpec spec) {
 		return 1;
 	}
-
 
 	@Override
 	public DLLayerDataToDataCellConverter<I, SetCell> createConverter() {
@@ -125,12 +119,10 @@ public final class DLLayerDataToSetCellConverterFactory<I extends DLReadableBuff
 		};
 	}
 
-
 	@Override
 	public int hashCode() {
 		return m_elementConverterFactory.hashCode() * 37 + getDestType().hashCode();
 	}
-
 
 	@Override
 	public boolean equals(final Object obj) {

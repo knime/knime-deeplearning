@@ -79,36 +79,30 @@ public final class DLLayerDataToListCellConverterFactory<I extends DLReadableBuf
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
-
 	@Override
 	public String getIdentifier() {
 		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
 	}
-
 
 	@Override
 	public String getName() {
 		return "List of " + m_elementConverterFactory.getName();
 	}
 
-
 	@Override
 	public Class<I> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
 	}
-
 
 	@Override
 	public DataType getDestType() {
 		return ListCell.getCollectionType(m_elementConverterFactory.getDestType());
 	}
 
-
 	@Override
 	public long getDestCount(final DLLayerDataSpec spec) {
 		return 1;
 	}
-
 
 	@Override
 	public DLLayerDataToDataCellConverter<I, ListCell> createConverter() {
@@ -125,12 +119,10 @@ public final class DLLayerDataToListCellConverterFactory<I extends DLReadableBuf
 		};
 	}
 
-
 	@Override
 	public int hashCode() {
 		return m_elementConverterFactory.hashCode() * 37 + getDestType().hashCode();
 	}
-
 
 	@Override
 	public boolean equals(final Object obj) {

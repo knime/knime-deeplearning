@@ -60,24 +60,20 @@ import org.knime.dl.core.data.DLWritableBitBuffer;
 public class DLBitVectorToBitLayerConverterFactory
 		implements DLDataValueToLayerDataConverterFactory<BitVectorValue, DLWritableBitBuffer> {
 
-
 	@Override
 	public String getName() {
 		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName();
 	}
-
 
 	@Override
 	public Class<BitVectorValue> getSourceType() {
 		return BitVectorValue.class;
 	}
 
-
 	@Override
 	public Class<DLWritableBitBuffer> getBufferType() {
 		return DLWritableBitBuffer.class;
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
@@ -95,5 +91,4 @@ public class DLBitVectorToBitLayerConverterFactory
 			}
 		};
 	}
-
 }

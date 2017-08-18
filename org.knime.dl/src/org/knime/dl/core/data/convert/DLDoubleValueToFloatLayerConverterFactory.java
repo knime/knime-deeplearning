@@ -60,24 +60,20 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 public class DLDoubleValueToFloatLayerConverterFactory
 		implements DLDataValueToLayerDataConverterFactory<DoubleValue, DLWritableFloatBuffer> {
 
-
 	@Override
 	public String getName() {
 		return ((ExtensibleUtilityFactory) DoubleValue.UTILITY).getName();
 	}
-
 
 	@Override
 	public Class<DoubleValue> getSourceType() {
 		return DoubleValue.class;
 	}
 
-
 	@Override
 	public Class<DLWritableFloatBuffer> getBufferType() {
 		return DLWritableFloatBuffer.class;
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<DoubleValue, DLWritableFloatBuffer> createConverter() {

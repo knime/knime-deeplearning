@@ -206,7 +206,6 @@ public final class DLLayerDataToDataCellConverterRegistry extends DLAbstractExte
 		registerConverterInternal(converter);
 	}
 
-
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {

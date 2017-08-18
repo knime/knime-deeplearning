@@ -61,24 +61,20 @@ import org.knime.dl.core.data.DLWritableShortBuffer;
 public class DLByteVectorToByteLayerConverterFactory
 		implements DLDataValueToLayerDataConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
 
-
 	@Override
 	public String getName() {
 		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
 	}
-
 
 	@Override
 	public Class<ByteVectorValue> getSourceType() {
 		return ByteVectorValue.class;
 	}
 
-
 	@Override
 	public Class<DLWritableShortBuffer> getBufferType() {
 		return DLWritableShortBuffer.class;
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {

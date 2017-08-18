@@ -65,30 +65,25 @@ import org.knime.dl.util.DLUtils;
 public class DLLongLayerDataToLongCellConverterFactory
 		implements DLLayerDataToDataCellConverterFactory<DLReadableLongBuffer, LongCell> {
 
-
 	@Override
 	public String getName() {
 		return DataType.getType(LongCell.class).toPrettyString();
 	}
-
 
 	@Override
 	public Class<DLReadableLongBuffer> getBufferType() {
 		return DLReadableLongBuffer.class;
 	}
 
-
 	@Override
 	public DataType getDestType() {
 		return DataType.getType(LongCell.class);
 	}
 
-
 	@Override
 	public long getDestCount(final DLLayerDataSpec spec) {
 		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
 	}
-
 
 	@Override
 	public DLLayerDataToDataCellConverter<DLReadableLongBuffer, LongCell> createConverter() {

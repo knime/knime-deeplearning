@@ -73,18 +73,15 @@ public final class DLCollectionDataValueToLayerDataConverterFactory<IE extends D
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
-
 	@Override
 	public String getIdentifier() {
 		return getClass().getName() + "(" + m_elementConverterFactory.getIdentifier() + ")";
 	}
 
-
 	@Override
 	public String getName() {
 		return "Collection of " + m_elementConverterFactory.getName();
 	}
-
 
 	@Override
 	public Class<CollectionDataValue> getSourceType() {
@@ -95,12 +92,10 @@ public final class DLCollectionDataValueToLayerDataConverterFactory<IE extends D
 		return m_elementConverterFactory.getSourceType();
 	}
 
-
 	@Override
 	public Class<O> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<CollectionDataValue, O> createConverter() {
@@ -118,12 +113,10 @@ public final class DLCollectionDataValueToLayerDataConverterFactory<IE extends D
 		};
 	}
 
-
 	@Override
 	public int hashCode() {
 		return m_elementConverterFactory.hashCode() * 37;
 	}
-
 
 	@Override
 	public boolean equals(final Object obj) {

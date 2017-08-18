@@ -60,24 +60,20 @@ import org.knime.dl.core.data.DLWritableIntBuffer;
 public class DLIntValueToIntLayerConverterFactory
 		implements DLDataValueToLayerDataConverterFactory<IntValue, DLWritableIntBuffer> {
 
-
 	@Override
 	public String getName() {
 		return ((ExtensibleUtilityFactory) IntValue.UTILITY).getName();
 	}
-
 
 	@Override
 	public Class<IntValue> getSourceType() {
 		return IntValue.class;
 	}
 
-
 	@Override
 	public Class<DLWritableIntBuffer> getBufferType() {
 		return DLWritableIntBuffer.class;
 	}
-
 
 	@Override
 	public DLDataValueToLayerDataConverter<IntValue, DLWritableIntBuffer> createConverter() {

@@ -65,30 +65,25 @@ import org.knime.dl.util.DLUtils;
 public class DLIntLayerDataToIntCellConverterFactory
 		implements DLLayerDataToDataCellConverterFactory<DLReadableIntBuffer, IntCell> {
 
-
 	@Override
 	public String getName() {
 		return DataType.getType(IntCell.class).toPrettyString();
 	}
-
 
 	@Override
 	public Class<DLReadableIntBuffer> getBufferType() {
 		return DLReadableIntBuffer.class;
 	}
 
-
 	@Override
 	public DataType getDestType() {
 		return DataType.getType(IntCell.class);
 	}
 
-
 	@Override
 	public long getDestCount(final DLLayerDataSpec spec) {
 		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
 	}
-
 
 	@Override
 	public DLLayerDataToDataCellConverter<DLReadableIntBuffer, IntCell> createConverter() {
