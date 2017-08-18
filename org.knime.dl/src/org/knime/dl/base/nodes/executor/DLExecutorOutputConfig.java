@@ -51,15 +51,11 @@ package org.knime.dl.base.nodes.executor;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -73,27 +69,17 @@ class DLExecutorOutputConfig {
 
 	private final String m_outputLayerDataName;
 
-	private final SettingsModelString m_smExecutionContext;
+	private final DLExecutorGeneralConfig m_generalConfig;
 
-	private final SettingsModelString m_smConverter;
+	private final SettingsModelStringArray m_smConverter;
 
 	private final SettingsModelString m_smPrefix;
 
-	private final CopyOnWriteArrayList<ChangeListener> m_backendChangeListeners;
-
-	DLExecutorOutputConfig(final String outputLayerDataName, final SettingsModelString executionContextModel) {
+	DLExecutorOutputConfig(final String outputLayerDataName, final DLExecutorGeneralConfig generalConfig) {
 		m_outputLayerDataName = checkNotNullOrEmpty(outputLayerDataName);
-		m_smExecutionContext = checkNotNull(executionContextModel);
-		m_smConverter = new SettingsModelString(CFG_KEY_CONVERTER, null);
+		m_generalConfig = checkNotNull(generalConfig);
+		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
 		m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputLayerDataName + "_");
-		m_backendChangeListeners = new CopyOnWriteArrayList<>();
-		m_smExecutionContext.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				onBackendChanged();
-			}
-		});
 	}
 
 	/**
@@ -107,26 +93,16 @@ class DLExecutorOutputConfig {
 		return m_outputLayerDataName;
 	}
 
-	SettingsModelString getExecutionContextModel() {
-		return m_smExecutionContext;
+	DLExecutorGeneralConfig getGeneralConfig() {
+		return m_generalConfig;
 	}
 
-	SettingsModelString getConverterModel() {
+	SettingsModelStringArray getConverterModel() {
 		return m_smConverter;
 	}
 
 	SettingsModelString getPrefixModel() {
 		return m_smPrefix;
-	}
-
-	void addBackendChangeListener(final ChangeListener l) {
-		if (!m_backendChangeListeners.contains(l)) {
-			m_backendChangeListeners.add(l);
-		}
-	}
-
-	void removeBackendChangeListener(final ChangeListener l) {
-		m_backendChangeListeners.remove(l);
 	}
 
 	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -145,11 +121,5 @@ class DLExecutorOutputConfig {
 		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputLayerDataName);
 		m_smConverter.saveSettingsTo(cfgSettings);
 		m_smPrefix.saveSettingsTo(cfgSettings);
-	}
-
-	private void onBackendChanged() {
-		for (final ChangeListener l : m_backendChangeListeners) {
-			l.stateChanged(new ChangeEvent(this));
-		}
 	}
 }

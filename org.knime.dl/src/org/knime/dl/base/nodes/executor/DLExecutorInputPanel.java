@@ -68,7 +68,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -91,58 +90,88 @@ final class DLExecutorInputPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
+	private final DLExecutorInputConfig m_cfg;
 
 	private final DLLayerDataSpec m_inputDataSpec;
-
-	private final DLExecutorInputConfig m_cfg;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
 	private final DataColumnSpecFilterPanel m_dcInputColumns;
 
-	private final GridBagConstraints m_constr;
-
 	private DataTableSpec m_lastTableSpec;
 
-	DLExecutorInputPanel(final DLLayerDataSpec inputDataSpec, final DLExecutorInputConfig cfg,
+	DLExecutorInputPanel(final DLExecutorInputConfig cfg, final DLLayerDataSpec inputDataSpec,
 			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
+		m_cfg = cfg;
 		m_inputDataSpec = inputDataSpec;
 		m_lastTableSpec = tableSpec;
-		m_cfg = cfg;
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion");
+
+		// construct panel:
+
+		setBorder(BorderFactory.createTitledBorder("Input: " + m_inputDataSpec.getName()));
+		final GridBagConstraints constr = new GridBagConstraints();
+		constr.gridx = 0;
+		constr.gridy = 0;
+		constr.weightx = 1;
+		constr.anchor = GridBagConstraints.WEST;
+		constr.fill = GridBagConstraints.VERTICAL;
+		// meta information
+		final JPanel numNeurons = new JPanel();
+		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
+		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
+		numNeurons.add(
+				new JLabel("Number of neurons: "
+						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get())),
+				numNeuronsConstr);
+		add(numNeurons, constr);
+		constr.gridy++;
+		final JPanel shape = new JPanel();
+		final GridBagConstraints shapeConstr = new GridBagConstraints();
+		shapeConstr.insets = new Insets(5, 0, 5, 0);
+		shape.add(new JLabel("Shape: " + m_inputDataSpec.getShape().toString()), shapeConstr);
+		add(shape, constr);
+		constr.gridy++;
+		// converter selection
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", (e) -> {
+			m_cfg.getConverterModel()
+					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection());
+		});
+		add(m_dcConverter.getComponentPanel(), constr);
+		constr.gridy++;
+		// column selection
+		final JPanel inputColumnsLabel = new JPanel();
+		inputColumnsLabel.add(new JLabel("Input columns:"));
+		add(inputColumnsLabel, constr);
+		constr.gridy++;
+		final JPanel inputColumnsFilter = new JPanel();
 		m_dcInputColumns = new DataColumnSpecFilterPanel();
-		try {
-			initializeComponents();
-		} catch (final Exception e) {
-			throw new NotConfigurableException(e.getMessage(), e);
-		}
-		m_cfg.addBackendChangeListener(new ChangeListener() {
+		inputColumnsFilter.add(m_dcInputColumns);
+		add(inputColumnsFilter, constr);
+		constr.gridy++;
+
+		m_cfg.getGeneralConfig().addExecutionContextChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
 				try {
-					refreshConverters();
-				} catch (final InvalidSettingsException ex) {
+					refreshAvailableConverters();
+				} catch (final NotConfigurableException ex) {
 					throw new IllegalStateException(ex.getMessage(), ex);
 				}
 			}
 		});
-		m_cfg.addConverterChangeListener(new ChangeListener() {
+		m_cfg.getConverterModel().addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
-				refreshInputColumns();
+				try {
+					refreshAllowedInputColumns();
+				} catch (final NotConfigurableException ex) {
+					throw new IllegalStateException(ex.getMessage(), ex);
+				}
 			}
 		});
-		m_constr = new GridBagConstraints();
-		m_constr.gridx = 0;
-		m_constr.gridy = 0;
-		m_constr.weightx = 1;
-		m_constr.anchor = GridBagConstraints.WEST;
-		m_constr.fill = GridBagConstraints.VERTICAL;
-		constructPanel();
 	}
 
 	DLExecutorInputConfig getConfig() {
@@ -153,12 +182,15 @@ final class DLExecutorInputPanel extends JPanel {
 		return m_dcInputColumns;
 	}
 
-	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws InvalidSettingsException, NotConfigurableException {
+	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
 		m_lastTableSpec = (DataTableSpec) specs[DLExecutorNodeModel.IN_DATA_PORT_IDX];
-		m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
-		refreshConverters();
-		refreshInputColumns();
+		refreshAvailableConverters();
+		try {
+			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
+		} catch (final InvalidSettingsException e) {
+			// ignore
+		}
+		refreshAllowedInputColumns();
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
@@ -173,73 +205,13 @@ final class DLExecutorInputPanel extends JPanel {
 		}
 	}
 
-	private void initializeComponents() throws InvalidSettingsException {
-		refreshConverters();
-		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
-		refreshInputColumns();
-	}
-
-	private void constructPanel() {
-		setBorder(BorderFactory.createTitledBorder("Input: " + m_inputDataSpec.getName()));
-		// meta information
-		final JPanel numNeurons = new JPanel();
-		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
-		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(
-				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get())),
-				numNeuronsConstr);
-		add(numNeurons, m_constr);
-		m_constr.gridy++;
-		final JPanel shape = new JPanel();
-		final GridBagConstraints shapeConstr = new GridBagConstraints();
-		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_inputDataSpec.getShape().toString()), shapeConstr);
-		add(shape, m_constr);
-		m_constr.gridy++;
-		// converter selection
-		add(m_dcConverter.getComponentPanel(), m_constr);
-		m_constr.gridy++;
-		// column selection
-		final JPanel inputColumnsLabel = new JPanel();
-		inputColumnsLabel.add(new JLabel("Input columns:"));
-		add(inputColumnsLabel, m_constr);
-		m_constr.gridy++;
-		final JPanel inputColumnsFilter = new JPanel();
-		inputColumnsFilter.add(m_dcInputColumns);
-		add(inputColumnsFilter, m_constr);
-		m_constr.gridy++;
-	}
-
-	private void refreshConverters() throws InvalidSettingsException {
-		final String[][] newConverters = getAvailableConverters();
-		if (newConverters[0].length == 0) {
-			final String msg = "No converters available for output '" + m_inputDataSpec.getName() + "'.";
-			LOGGER.error(msg);
-			throw new InvalidSettingsException(msg);
-		}
-		m_dcConverter.replaceListItems(newConverters[0], newConverters[1], null);
-	}
-
-	private void refreshInputColumns() {
-		final Class<? extends DataValue> allowedColType = getAllowedInputColumnType();
-		m_cfg.setInputColumnsModelFilter(new DLDataTypeColumnFilter(allowedColType));
-		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsModel());
-		// FIXME (knime-core):
-		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always
-		// null because it doesn't get set in #updateWithNewConfiguration (only in the super class).
-		// Also see NameFilterPanel#loadConfiguration where #getRemovedFromIncludeList and #getRemovedFromExcludeList
-		// get added to the panel, which makes sense in general but not really when updating the filter config)
-	}
-
-	private String[][] getAvailableConverters() throws InvalidSettingsException {
-		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
-				.getExecutionContext(m_cfg.getExecutionContextModel().getStringValue()).orElseThrow(() -> {
-					final String msg = "Execution back end '" + m_cfg.getExecutionContextModel().getStringValue()
-							+ "' could not be found.";
-					LOGGER.error(msg);
-					return new InvalidSettingsException(msg);
-				});
+	private void refreshAvailableConverters() throws NotConfigurableException {
+		final DLExecutionContext<?> executionContext =
+				DLExecutionContextRegistry.getInstance()
+						.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
+						.orElseThrow(() -> new NotConfigurableException("Execution back end '"
+								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
+								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final HashSet<DataType> inputTypes = new HashSet<>();
 		final HashSet<DLDataValueToLayerDataConverterFactory<?, ?>> converterFactories = new HashSet<>();
 		final DLDataValueToLayerDataConverterRegistry converters =
@@ -261,24 +233,34 @@ final class DLExecutorInputPanel extends JPanel {
 				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
-		final int i = 0;
-		for (final DLDataValueToLayerDataConverterFactory<?, ?> converter : converterFactoriesSorted) {
+		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
+			final DLDataValueToLayerDataConverterFactory<?, ?> converter = converterFactoriesSorted.get(i);
 			names[i] = "From " + converter.getName();
 			ids[i] = converter.getIdentifier();
 		}
-		return new String[][] { names, ids };
+		if (names.length == 0) {
+			throw new NotConfigurableException(
+					"No converters available for output '" + m_inputDataSpec.getName() + "'.");
+		}
+		m_dcConverter.replaceListItems(names, ids, null);
 	}
 
-	// if changing code here, also update DLExecutorNodeModel#getAllowedInputColumnType
-	private Class<? extends DataValue> getAllowedInputColumnType() {
-		final Optional<DLDataValueToLayerDataConverterFactory<? extends DataValue, ?>> conv =
+	private void refreshAllowedInputColumns() throws NotConfigurableException {
+		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
+		final Class<? extends DataValue> allowedColType =
 				DLDataValueToLayerDataConverterRegistry.getInstance()
-						.getConverterFactory(m_cfg.getConverterModel().getStringValue());
-		if (!conv.isPresent()) {
-			final String msg = "Converter '" + m_cfg.getConverterModel().getStringValue() + "' could not be found.";
-			LOGGER.error(msg);
-			throw new IllegalStateException(msg);
-		}
-		return conv.get().getSourceType();
+						.getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
+						.orElseThrow(() -> new NotConfigurableException("Converter '"
+								+ m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
+								+ m_cfg.getConverterModel().getStringArrayValue()[1] + ")' could not be found."))
+						.getSourceType();
+
+		m_cfg.setInputColumnsModelFilter(new DLDataTypeColumnFilter(allowedColType));
+		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsModel());
+		// FIXME (knime-core):
+		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always
+		// null because it doesn't get set in #updateWithNewConfiguration (only in the super class).
+		// Also see NameFilterPanel#loadConfiguration where #getRemovedFromIncludeList and #getRemovedFromExcludeList
+		// get added to the panel, which makes sense in general but not really when updating the filter config).
 	}
 }

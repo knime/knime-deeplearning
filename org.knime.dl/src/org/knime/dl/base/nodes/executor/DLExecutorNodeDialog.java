@@ -55,14 +55,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -80,8 +76,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
@@ -90,9 +84,6 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.DLNetworkType;
-import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -103,6 +94,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
+	private DLExecutorGeneralPanel m_generalPanel;
+
 	private DLExecutorGeneralConfig m_generalCfg;
 
 	private ArrayList<DLExecutorInputPanel> m_inputPanels;
@@ -111,19 +104,15 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private JPanel m_root;
 
-	private GridBagConstraints m_rootConstr;
-
 	private JScrollPane m_rootScrollableView;
 
-	private JButton m_outputsAddBtn;
+	private GridBagConstraints m_rootConstr;
+
+	private JButton m_addOutputButton;
 
 	private DLNetworkSpec m_lastIncomingNetworkSpec;
 
 	private DLNetworkSpec m_lastConfiguredNetworkSpec;
-
-	private DataTableSpec m_lastIncomingTableSpec;
-
-	private DataTableSpec m_lastConfiguredTableSpec;
 
 	/**
 	 * Creates a new dialog.
@@ -163,7 +152,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			throw new NotConfigurableException("Input table has no columns.");
 		}
 
-		final DLNetworkPortObjectSpec currNetworkSpec = (DLNetworkPortObjectSpec) specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
+		final DLNetworkPortObjectSpec currNetworkSpec =
+				(DLNetworkPortObjectSpec) specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
 		final DataTableSpec currTableSpec = (DataTableSpec) specs[DLExecutorNodeModel.IN_DATA_PORT_IDX];
 
 		if (currNetworkSpec.getNetworkSpec() == null) {
@@ -175,7 +165,6 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 		final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
 		m_lastIncomingNetworkSpec = networkSpec;
-		m_lastIncomingTableSpec = currTableSpec;
 
 		if (networkSpec.getInputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no input specs.");
@@ -185,69 +174,50 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		}
 
 		final boolean networkChanged = !m_lastIncomingNetworkSpec.equals(m_lastConfiguredNetworkSpec);
-		final boolean tableChanged = !m_lastIncomingTableSpec.equalStructure(m_lastConfiguredTableSpec);
-		final boolean somethingChanged = networkChanged || tableChanged;
 
-		if (m_lastConfiguredNetworkSpec == null || m_lastConfiguredTableSpec == null || somethingChanged) {
+		if (networkChanged) {
 			resetDialog();
 			createDialogContent(currNetworkSpec, currTableSpec);
 		}
 
-		if (m_lastConfiguredNetworkSpec == null || m_lastConfiguredTableSpec == null || !somethingChanged) {
+		m_generalPanel.loadFromSettings(settings, specs);
+		if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
+			final NodeSettingsRO inputSettings;
 			try {
-				m_generalCfg.loadFromSettings(settings);
+				inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
 			} catch (final InvalidSettingsException e) {
-				// default settings
+				throw new NotConfigurableException(e.getMessage(), e);
 			}
-			try {
-				if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
-					final NodeSettingsRO inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
-					for (final DLExecutorInputPanel inputPanel : m_inputPanels) {
-						if (inputSettings.containsKey(inputPanel.getConfig().getInputLayerDataName())) {
-							inputPanel.loadFromSettings(inputSettings, specs);
-						} else {
-							inputPanel.getInputColumns()
-									.loadConfiguration(inputPanel.getConfig().getInputColumnsModel(), currTableSpec);
-							inputPanel.getInputColumns()
-									.updateWithNewConfiguration(inputPanel.getConfig().getInputColumnsModel());
-						}
-					}
-				}
-				if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
-					final NodeSettingsRO outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
-					for (final String layerName : outputSettings) {
-						if (!m_outputPanels.containsKey(layerName)) {
-							// add output to the dialog (when loading the dialog
-							// for the first time)
-							final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
-									networkSpec.getOutputSpecs(), networkSpec.getIntermediateOutputSpecs());
-							if (spec.isPresent()) {
-								m_outputPanels.put(layerName,
-										createOutputPanel(spec.get(), m_generalCfg.getExecutionContextModel()));
-							}
-						}
-					}
-					for (final DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
-						m_outputPanels.get(outputPanel.getConfig().getOutputLayerDataName())
-								.loadFromSettings(outputSettings, specs);
-					}
-				}
-			} catch (final Exception e) {
-				m_outputPanels.clear();
-				// default input settings
-			}
-		} else {
 			for (final DLExecutorInputPanel inputPanel : m_inputPanels) {
-				inputPanel.getInputColumns().loadConfiguration(inputPanel.getConfig().getInputColumnsModel(),
-						currTableSpec);
-				inputPanel.getInputColumns().updateWithNewConfiguration(inputPanel.getConfig().getInputColumnsModel());
+				inputPanel.loadFromSettings(inputSettings, specs);
+			}
+		}
+		if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
+			final NodeSettingsRO outputSettings;
+			try {
+				outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
+			} catch (final InvalidSettingsException e) {
+				throw new NotConfigurableException(e.getMessage(), e);
+			}
+			for (final String layerName : outputSettings) {
+				if (!m_outputPanels.containsKey(layerName)) {
+					// add output to the dialog (when loading the dialog for the first time)
+					final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
+							networkSpec.getOutputSpecs(), networkSpec.getIntermediateOutputSpecs());
+					if (spec.isPresent()) {
+						addOutputPanel(spec.get(), m_generalCfg);
+					}
+				}
+			}
+			for (final DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
+				outputPanel.loadFromSettings(outputSettings, specs);
 			}
 		}
 	}
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		m_generalCfg.saveToSettings(settings);
+		m_generalPanel.saveToSettings(settings);
 
 		final NodeSettingsWO inputSettings = settings.addNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
 		for (final DLExecutorInputPanel inputPanel : m_inputPanels) {
@@ -259,8 +229,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			outputPanel.saveToSettings(outputSettings);
 		}
 
-		final SettingsModelStringArray outputOrder = DLExecutorNodeModel
-				.createOutputOrderSettingsModel(m_outputPanels.size());
+		final SettingsModelStringArray outputOrder =
+				DLExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());
 		final String[] outputs = new String[m_outputPanels.size()];
 
 		int i = 0;
@@ -271,7 +241,6 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		outputOrder.saveSettingsTo(settings);
 
 		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
-		m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 	}
 
 	private void resetDialog() {
@@ -296,34 +265,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
 
 		// general settings:
-		final JPanel generalPanel = new JPanel(new GridBagLayout());
-		generalPanel.setBorder(BorderFactory.createTitledBorder("General Settings"));
-		final GridBagConstraints generalPanelConstr = new GridBagConstraints();
-		generalPanelConstr.gridx = 0;
-		generalPanelConstr.gridy = 0;
-		generalPanelConstr.weightx = 1;
-		generalPanelConstr.anchor = GridBagConstraints.WEST;
-		generalPanelConstr.fill = GridBagConstraints.VERTICAL;
-		// execution context ("back end") selection
-		final String[][] availableExecutionContexts = getAvailableBackends(networkSpec.getNetworkType());
-		if (availableExecutionContexts[0].length == 0) {
-			throw new NotConfigurableException("There is no available back end that supports the input network.");
-		}
-		final DialogComponentIdFromPrettyStringSelection dcBackend = new DialogComponentIdFromPrettyStringSelection(
-				m_generalCfg.getExecutionContextModel(), "Back end");
-		dcBackend.replaceListItems(availableExecutionContexts[0], availableExecutionContexts[1],
-				availableExecutionContexts[0][0]);
-		generalPanel.add(dcBackend.getComponentPanel(), generalPanelConstr);
-		generalPanelConstr.gridy++;
-		// batch size input
-		final DialogComponentNumber cdBatchSize = new DialogComponentNumber(m_generalCfg.getBatchSizeModel(),
-				"Input batch size", 100);
-		generalPanel.add(cdBatchSize.getComponentPanel(), generalPanelConstr);
-		generalPanelConstr.gridy++;
-		final DialogComponentBoolean appendColumnComponent = new DialogComponentBoolean(
-				m_generalCfg.getKeepInputColumns(), "Keep input columns in output table");
-		generalPanel.add(appendColumnComponent.getComponentPanel(), generalPanelConstr);
-		m_root.add(generalPanel, m_rootConstr);
+		m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec);
+		m_root.add(m_generalPanel, m_rootConstr);
 		m_rootConstr.gridy++;
 
 		// input settings:
@@ -348,7 +291,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				throw new NotConfigurableException("Input '" + inputDataSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported.");
 			}
-			createInputPanel(inputDataSpec, tableSpec, m_generalCfg.getExecutionContextModel());
+			addInputPanel(inputDataSpec, tableSpec, m_generalCfg);
 		}
 
 		// output settings:
@@ -368,9 +311,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_root.add(outputsSeparator, m_rootConstr);
 		m_rootConstr.gridy++;
 		// 'add output' button
-		m_outputsAddBtn = new JButton("add output");
+		m_addOutputButton = new JButton("add output");
 		// 'add output' button click event: open dialog
-		m_outputsAddBtn.addActionListener(new ActionListener() {
+		m_addOutputButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -404,19 +347,21 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				}
 				// output selection
 				final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
-				final DialogComponentStringSelection dcOutput = new DialogComponentStringSelection(smOutput, "Output",
-						availableOutputs);
+				final DialogComponentStringSelection dcOutput =
+						new DialogComponentStringSelection(smOutput, "Output", availableOutputs);
 				outputsAddDlg.add(dcOutput.getComponentPanel(), addOutputDialogConstr);
 				final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
 						outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 				if (selectedOption == JOptionPane.OK_OPTION) {
 					final DLLayerDataSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
 					if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
-						throw new RuntimeException("Output '" + outputDataSpec.getName()
-								+ "' has an (at least partially) unknown shape. This is not supported.");
+						final String msg = "Output '" + outputDataSpec.getName()
+								+ "' has an (at least partially) unknown shape. This is not supported.";
+						LOGGER.error(msg);
+						throw new IllegalStateException(msg);
 					}
 					try {
-						createOutputPanel(outputDataSpec, m_generalCfg.getExecutionContextModel());
+						addOutputPanel(outputDataSpec, m_generalCfg);
 					} catch (final Exception ex) {
 						LOGGER.error(ex.getMessage());
 						throw new IllegalStateException(ex.getMessage(), ex);
@@ -429,49 +374,42 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		outputsAddBtnConstr.anchor = GridBagConstraints.EAST;
 		outputsAddBtnConstr.fill = GridBagConstraints.NONE;
 		outputsAddBtnConstr.insets = new Insets(0, 5, 10, 5);
-		m_root.add(m_outputsAddBtn, outputsAddBtnConstr);
+		m_root.add(m_addOutputButton, outputsAddBtnConstr);
 		m_rootConstr.gridy++;
 	}
 
-	private DLExecutorInputPanel createInputPanel(final DLLayerDataSpec inputDataSpec, final DataTableSpec tableSpec,
-			final SettingsModelString smBackend) throws NotConfigurableException {
-		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel
-				.createInputLayerDataModelConfig(inputDataSpec.getName(), smBackend);
-		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputDataSpec, inputCfg, tableSpec);
-		addInput(inputPanel);
-		return inputPanel;
-	}
-
-	private DLExecutorOutputPanel createOutputPanel(final DLLayerDataSpec outputDataSpec,
-			final SettingsModelString smBackend) throws NotConfigurableException {
-		final DLExecutorOutputConfig outputCfg = DLExecutorNodeModel
-				.createOutputLayerDataModelConfig(outputDataSpec.getName(), smBackend);
-		final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputDataSpec, outputCfg);
-		outputPanel.addRemoveListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				removeOutput(outputDataSpec.getName(), outputPanel, outputCfg);
-			}
-		});
-		addOutput(outputDataSpec.getName(), outputPanel);
-		return outputPanel;
-	}
-
-	private void addInput(final DLExecutorInputPanel inputPanel) {
+	private void addInputPanel(final DLLayerDataSpec inputDataSpec, final DataTableSpec tableSpec,
+			final DLExecutorGeneralConfig generalCfg) throws NotConfigurableException {
+		final DLExecutorInputConfig inputCfg =
+				DLExecutorNodeModel.createInputLayerDataModelConfig(inputDataSpec.getName(), generalCfg);
+		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputDataSpec, tableSpec);
+		// add input panel to dialog
 		m_inputPanels.add(inputPanel);
 		m_root.add(inputPanel, m_rootConstr);
 		m_rootConstr.gridy++;
 	}
 
-	private void addOutput(final String outputName, final DLExecutorOutputPanel outputPanel) {
+	private void addOutputPanel(final DLLayerDataSpec outputDataSpec, final DLExecutorGeneralConfig generalCfg)
+			throws NotConfigurableException {
+		final String outputName = outputDataSpec.getName();
 		if (!m_outputPanels.containsKey(outputName)) {
+			final DLExecutorOutputConfig outputCfg =
+					DLExecutorNodeModel.createOutputLayerDataModelConfig(outputName, generalCfg);
+			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputDataSpec);
+			outputPanel.addRemoveListener(new ChangeListener() {
+
+				@Override
+				public void stateChanged(final ChangeEvent e) {
+					removeOutputPanel(outputName, outputPanel, outputCfg);
+				}
+			});
+			// add output panel to dialog
 			m_outputPanels.put(outputName, outputPanel);
 			m_root.add(outputPanel, m_rootConstr);
 			m_rootConstr.gridy++;
 			if (m_outputPanels.size() == m_lastIncomingNetworkSpec.getIntermediateOutputSpecs().length
 					+ m_lastIncomingNetworkSpec.getOutputSpecs().length) {
-				m_outputsAddBtn.setEnabled(false);
+				m_addOutputButton.setEnabled(false);
 			}
 			m_rootScrollableView.validate();
 			final JScrollBar scrollBar = m_rootScrollableView.getVerticalScrollBar();
@@ -480,26 +418,13 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		}
 	}
 
-	private void removeOutput(final String outputName, final JPanel outputPanel, final DLExecutorOutputConfig m_cfg) {
+	private void removeOutputPanel(final String outputName, final JPanel outputPanel,
+			final DLExecutorOutputConfig m_cfg) {
 		if (m_outputPanels.remove(outputName) != null) {
 			m_root.remove(outputPanel);
-			m_outputsAddBtn.setEnabled(true);
+			m_addOutputButton.setEnabled(true);
 			m_rootScrollableView.validate();
 			m_rootScrollableView.repaint();
 		}
-	}
-
-	private String[][] getAvailableBackends(final DLNetworkType<?, ?> networkType) {
-		final List<DLExecutionContext<?>> executionContexts = DLExecutionContextRegistry.getInstance()
-				.getExecutionContextsForNetworkType(networkType).stream()
-				.sorted(Comparator.comparing(DLExecutionContext::getName)).collect(Collectors.toList());
-		final String[] names = new String[executionContexts.size()];
-		final String[] ids = new String[executionContexts.size()];
-		for (int i = 0; i < executionContexts.size(); i++) {
-			final DLExecutionContext<?> executionContext = executionContexts.get(i);
-			names[i] = executionContext.getName();
-			ids[i] = executionContext.getIdentifier();
-		}
-		return new String[][] { names, ids };
 	}
 }

@@ -53,10 +53,6 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -64,7 +60,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
@@ -80,38 +76,18 @@ class DLExecutorInputConfig {
 
 	private final String m_inputLayerDataName;
 
-	private final SettingsModelString m_smExecutionContext;
+	private final DLExecutorGeneralConfig m_generalConfig;
 
-	private final SettingsModelString m_smConverter;
+	private final SettingsModelStringArray m_smConverter;
 
 	private DataColumnSpecFilterConfiguration m_smInputCol;
 
-	private final CopyOnWriteArrayList<ChangeListener> m_backendChangeListeners;
-
-	private final CopyOnWriteArrayList<ChangeListener> m_converterChangeListeners;
-
-	DLExecutorInputConfig(final String inputLayerDataName, final SettingsModelString executionContextModel) {
+	DLExecutorInputConfig(final String inputLayerDataName, final DLExecutorGeneralConfig generalCfg) {
 		m_inputLayerDataName = checkNotNullOrEmpty(inputLayerDataName);
-		m_smExecutionContext = checkNotNull(executionContextModel);
-		m_smConverter = new SettingsModelString(CFG_KEY_CONVERTER, null);
+		m_generalConfig = checkNotNull(generalCfg);
+		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
 		m_smInputCol =
 				new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class));
-		m_backendChangeListeners = new CopyOnWriteArrayList<>();
-		m_converterChangeListeners = new CopyOnWriteArrayList<>();
-		m_smExecutionContext.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				onBackendChanged();
-			}
-		});
-		m_smConverter.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				onConverterChanged();
-			}
-		});
 	}
 
 	/**
@@ -125,11 +101,11 @@ class DLExecutorInputConfig {
 		return m_inputLayerDataName;
 	}
 
-	SettingsModelString getExecutionContextModel() {
-		return m_smExecutionContext;
+	DLExecutorGeneralConfig getGeneralConfig() {
+		return m_generalConfig;
 	}
 
-	SettingsModelString getConverterModel() {
+	SettingsModelStringArray getConverterModel() {
 		return m_smConverter;
 	}
 
@@ -139,26 +115,6 @@ class DLExecutorInputConfig {
 
 	void setInputColumnsModelFilter(final DLDataTypeColumnFilter inputColumnsFilter) {
 		m_smInputCol = new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, inputColumnsFilter);
-	}
-
-	void addBackendChangeListener(final ChangeListener l) {
-		if (!m_backendChangeListeners.contains(l)) {
-			m_backendChangeListeners.add(l);
-		}
-	}
-
-	void removeBackendChangeListener(final ChangeListener l) {
-		m_backendChangeListeners.remove(l);
-	}
-
-	void addConverterChangeListener(final ChangeListener l) {
-		if (!m_converterChangeListeners.contains(l)) {
-			m_converterChangeListeners.add(l);
-		}
-	}
-
-	void removeConverterChangeListener(final ChangeListener l) {
-		m_converterChangeListeners.remove(l);
 	}
 
 	NodeSettingsRO validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -177,6 +133,8 @@ class DLExecutorInputConfig {
 
 	void loadFromSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
 			throws InvalidSettingsException {
+		// we enforce inclusion by default
+		m_smInputCol.loadDefault(spec, null, true);
 		final NodeSettingsRO child = settings.getNodeSettings(m_inputLayerDataName);
 		if (settings.containsKey(m_inputLayerDataName)) {
 			m_smConverter.loadSettingsFrom(child);
@@ -190,25 +148,7 @@ class DLExecutorInputConfig {
 		m_smInputCol.saveConfiguration(cfgSettings);
 	}
 
-	private void onBackendChanged() {
-		final String oldConverter = m_smConverter.getStringValue();
-		for (final ChangeListener l : m_backendChangeListeners) {
-			l.stateChanged(new ChangeEvent(this));
-		}
-		final String newConverter = m_smConverter.getStringValue();
-		if (oldConverter == null && newConverter != null || oldConverter != null && oldConverter.equals(newConverter)) {
-			onConverterChanged();
-		}
-		// else onConverterChanged was already called
-	}
-
-	private void onConverterChanged() {
-		for (final ChangeListener l : m_converterChangeListeners) {
-			l.stateChanged(new ChangeEvent(this));
-		}
-	}
-
-	// TODO: workaround
+	// TODO: this is a workaround
 	static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
 		private Class<? extends DataValue>[] m_filterClasses;
 

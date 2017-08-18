@@ -57,6 +57,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.HashMap;
+import java.util.function.Consumer;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -67,14 +69,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 
-import com.google.common.collect.HashBiMap;
-
 /**
- * Modified from {@link DialogComponentStringSelection}. Displays pretty strings in a combobox and passes the selected
- * item's hidden id counterpart to the underlying settings model.
+ * Modified from {@link DialogComponentStringSelection}.
+ * <P>
+ * Maintains a settings model of two strings where the "pretty string" is selectable by the user via the component's
+ * combo box and and the other one is treated as a hidden id counterpart which is of interest to the node model.
  *
  * @see DialogComponentStringSelection
  *
@@ -83,109 +85,97 @@ import com.google.common.collect.HashBiMap;
  */
 public final class DialogComponentIdFromPrettyStringSelection extends DialogComponent {
 
-	private final HashBiMap<String, String> m_byPretty;
+	private final HashMap<String, String> m_byPretty;
 
 	private final JLabel m_label;
 
 	private final JComboBox<String> m_combobox;
 
+	private final Consumer<ChangeEvent> m_selectionChangeListener;
+
 	/**
 	 * Creates a new instance of this dialog component.
 	 *
-	 * @param stringModel the underlying string model
+	 * @param stringPairModel the underlying settings model, whose string array must be of size two (elements can be
+	 *            null at the beginning): the first element will be used to store the pretty string, the second one to
+	 *            store the id
 	 * @param label the label
 	 */
-	public DialogComponentIdFromPrettyStringSelection(final SettingsModelString stringModel, final String label) {
-		super(stringModel);
+	public DialogComponentIdFromPrettyStringSelection(final SettingsModelStringArray stringPairModel,
+			final String label, final Consumer<ChangeEvent> selectionChangeListener) {
+		super(stringPairModel);
+		checkArgument(checkNotNull(stringPairModel.getStringArrayValue()).length == 2);
+		checkNotNull(selectionChangeListener);
+		m_byPretty = new HashMap<>();
 		m_label = new JLabel(label);
 		getComponentPanel().add(m_label);
 		m_combobox = new JComboBox<>();
 		getComponentPanel().add(m_combobox);
-		m_byPretty = HashBiMap.create();
-		m_combobox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(final ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					try {
-						updateModel();
-					} catch (final InvalidSettingsException ise) {
-						// ignore
-					}
-				}
-			}
-		});
+		m_selectionChangeListener = selectionChangeListener;
+
 		getModel().addChangeListener(new ChangeListener() {
+
 			@Override
 			public void stateChanged(final ChangeEvent e) {
 				updateComponent();
 			}
 		});
-		updateComponent();
-	}
 
-
-	@Override
-	protected void updateComponent() {
-		final String hidden = ((SettingsModelString) getModel()).getStringValue();
-		final boolean updateSelection;
-		if (hidden == null) {
-			updateSelection = m_combobox.getSelectedItem() != null;
-		} else {
-			updateSelection = m_combobox.getSelectedItem() == null
-					|| !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
-		}
-		if (updateSelection) {
-			m_combobox.setSelectedItem(m_byPretty.inverse().get(hidden));
-		}
-		setEnabledComponents(getModel().isEnabled());
-		final String visible = (String) m_combobox.getSelectedItem();
-		try {
-			final boolean updateModel;
-			if (visible == null) {
-				updateModel = hidden != null;
-			} else {
-				updateModel = hidden == null || !hidden.equals(m_byPretty.get(m_combobox.getSelectedItem()));
-			}
-			if (updateModel) {
-				updateModel();
-			}
-		} catch (final InvalidSettingsException e) {
-			// ignore
-		}
-	}
-
-	private void updateModel() throws InvalidSettingsException {
-		if (m_combobox.getSelectedItem() == null) {
-			((SettingsModelString) getModel()).setStringValue(null);
-			m_combobox.setBackground(Color.RED);
-			m_combobox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(final ActionEvent e) {
-					m_combobox.setBackground(DialogComponent.DEFAULT_BG);
+		m_combobox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					onSelectionChanged();
 				}
-			});
-			throw new InvalidSettingsException("Please select an item from the list.");
+			}
+		});
+	}
+
+	/**
+	 * Returns the currently selected pretty name-id pair.
+	 *
+	 * @return the current selection
+	 */
+	public String[] getSelection() {
+		final Object selectedPretty = m_combobox.getSelectedItem();
+		return new String[] { (String) selectedPretty, m_byPretty.get(selectedPretty) };
+	}
+
+	/**
+	 * Replaces the list of selectable strings in the component. If <code>selectedPretty</code> is specified (not null)
+	 * and it exists in the collection, it will be selected. If <code>selectedPretty</code> is null, the pretty entry
+	 * that corresponds to the previous hidden's value will stay selected (if it exists in the new list).
+	 *
+	 * @param newPretties the items that will be displayed in the dialog component. No null values, no duplicate values.
+	 *            Must be at least of length one.
+	 * @param newIds the hidden counterparts of the visible items. No null values, no duplicate values. Must be at least
+	 *            of length one.
+	 * @param newSelectedPretty the item to select after the replace. Can be null, in which case the previous selection
+	 *            is tried to be preserved.
+	 */
+	public void replaceListItems(final String[] newPretties, final String[] newIds, final String newSelectedPretty) {
+		checkNotNull(newPretties);
+		checkNotNull(newIds);
+		checkArgument(newPretties.length > 0 && newPretties.length == newIds.length);
+		final String newPretty;
+		if (newSelectedPretty == null) {
+			newPretty = getStringArrayModel().getStringArrayValue()[0];
+		} else {
+			newPretty = newSelectedPretty;
 		}
-		final String hidden = m_byPretty.get(m_combobox.getSelectedItem());
-		((SettingsModelString) getModel()).setStringValue(hidden);
-	}
-
-
-	@Override
-	protected void validateSettingsBeforeSave() throws InvalidSettingsException {
-		updateModel();
-	}
-
-
-	@Override
-	protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
-		// no op
-	}
-
-
-	@Override
-	protected void setEnabledComponents(final boolean enabled) {
-		m_combobox.setEnabled(enabled);
+		m_byPretty.clear();
+		m_combobox.removeAllItems();
+		for (int i = 0; i < newPretties.length; i++) {
+			m_byPretty.put(newPretties[i], newIds[i]);
+			m_combobox.addItem(newPretties[i]);
+		}
+		if (newPretty == null) {
+			m_combobox.setSelectedIndex(0);
+		} else {
+			m_combobox.setSelectedItem(newPretty);
+		}
+		m_combobox.setSize(m_combobox.getPreferredSize());
+		getComponentPanel().validate();
 	}
 
 	/**
@@ -198,47 +188,74 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		m_combobox.setPreferredSize(new Dimension(width, height));
 	}
 
-
 	@Override
 	public void setToolTipText(final String text) {
 		m_label.setToolTipText(text);
 		m_combobox.setToolTipText(text);
 	}
 
-	/**
-	 * Replaces the list of selectable strings in the component. If <code>select</code> is specified (not null) and it
-	 * exists in the collection it will be selected. If <code>select</code> is null, the previous value will stay
-	 * selected (if it exists in the new list).
-	 *
-	 * @param pretties the items that will be displayed in the dialog component, no duplicate values
-	 * @param ids the hidden counterparts of the visible items, will be stored in the settings model, no duplicate
-	 *            values
-	 * @param selectedPretty the item to select after the replace. Can be null, in which case the previous selection
-	 *            remains - if it exists in the new list.
-	 */
-	public void replaceListItems(final String[] pretties, final String[] ids, final String selectedPretty) {
-		checkNotNull(pretties);
-		checkNotNull(ids);
-		checkArgument(pretties.length == ids.length);
-		final String visible;
-		if (selectedPretty == null) {
-			final String hidden = ((SettingsModelString) getModel()).getStringValue();
-			visible = m_byPretty.inverse().get(hidden);
+	@Override
+	protected void updateComponent() {
+		final String[] newPrettyHidden = getStringArrayModel().getStringArrayValue();
+		final String oldPretty = (String) m_combobox.getSelectedItem();
+		final boolean updateSelection;
+		if (newPrettyHidden[0] == null) {
+			updateSelection = oldPretty != null;
 		} else {
-			visible = selectedPretty;
+			updateSelection = !newPrettyHidden[0].equals(oldPretty);
 		}
-		m_byPretty.clear();
-		m_combobox.removeAllItems();
-		for (int i = 0; i < pretties.length; i++) {
-			m_byPretty.put(pretties[i], ids[i]);
-			m_combobox.addItem(pretties[i]);
+		if (updateSelection) {
+			m_combobox.setSelectedItem(newPrettyHidden[0]);
 		}
-		if (visible == null) {
-			m_combobox.setSelectedIndex(0);
+		setEnabledComponents(getModel().isEnabled());
+		final String newPretty = (String) m_combobox.getSelectedItem();
+		final boolean selectionChanged;
+		if (newPretty == null) {
+			selectionChanged = newPrettyHidden[0] != null;
 		} else {
-			m_combobox.setSelectedItem(visible);
+			selectionChanged = !newPretty.equals(newPrettyHidden[0]);
 		}
-		m_combobox.setSize(m_combobox.getPreferredSize());
-		getComponentPanel().validate();
+		if (selectionChanged) {
+			onSelectionChanged();
+		}
+	}
+
+	@Override
+	protected void validateSettingsBeforeSave() throws InvalidSettingsException {
+		try {
+			onSelectionChanged();
+		} catch (final Exception e) {
+			throw new InvalidSettingsException(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
+		// no op
+	}
+
+	@Override
+	protected void setEnabledComponents(final boolean enabled) {
+		m_combobox.setEnabled(enabled);
+	}
+
+	private void onSelectionChanged() {
+		final String newPretty = (String) m_combobox.getSelectedItem();
+		if (newPretty == null) {
+			m_combobox.setBackground(Color.RED);
+			m_combobox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					m_combobox.setBackground(DialogComponent.DEFAULT_BG);
+				}
+			});
+			m_selectionChangeListener.accept(new ChangeEvent(this));
+			throw new IllegalStateException("Please select an item from the list.");
+		}
+		m_selectionChangeListener.accept(new ChangeEvent(this));
+	}
+
+	private SettingsModelStringArray getStringArrayModel() {
+		return (SettingsModelStringArray) getModel();
 	}
 }

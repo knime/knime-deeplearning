@@ -66,7 +66,6 @@ import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -86,48 +85,79 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
-
-	private final DLLayerDataSpec m_outputDataSpec;
-
 	private final DLExecutorOutputConfig m_cfg;
 
-	private final GridBagConstraints m_constr;
+	private final DLLayerDataSpec m_outputDataSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
 	private final CopyOnWriteArrayList<ChangeListener> m_removeListeners;
 
-	DLExecutorOutputPanel(final DLLayerDataSpec outputDataSpec, final DLExecutorOutputConfig cfg)
+	DLExecutorOutputPanel(final DLExecutorOutputConfig cfg, final DLLayerDataSpec outputDataSpec)
 			throws NotConfigurableException {
 		super(new GridBagLayout());
-		m_outputDataSpec = outputDataSpec;
 		m_cfg = cfg;
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion");
-		try {
-			refreshConverters();
-		} catch (final Exception e) {
-			throw new NotConfigurableException(e.getMessage(), e);
-		}
-		m_cfg.addBackendChangeListener(new ChangeListener() {
+		m_outputDataSpec = outputDataSpec;
+		m_removeListeners = new CopyOnWriteArrayList<>();
+
+		// construct panel:
+
+		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputDataSpec.getName()));
+		final GridBagConstraints constr = new GridBagConstraints();
+		constr.gridx = 0;
+		constr.gridy = 0;
+		constr.weightx = 1;
+		constr.anchor = GridBagConstraints.WEST;
+		constr.fill = GridBagConstraints.VERTICAL;
+		// meta information
+		final JPanel shape = new JPanel();
+		final GridBagConstraints shapeConstr = new GridBagConstraints();
+		shapeConstr.insets = new Insets(5, 0, 5, 0);
+		shape.add(new JLabel("Shape: " + m_outputDataSpec.getShape().toString()), shapeConstr);
+		add(shape, constr);
+		// 'remove' button, see bottom for click event handling
+		final JButton outputRemoveBtn = new JButton("remove");
+		final GridBagConstraints outputRemoveBtnConstr = (GridBagConstraints) constr.clone();
+		outputRemoveBtnConstr.weightx = 1;
+		outputRemoveBtnConstr.anchor = GridBagConstraints.EAST;
+		outputRemoveBtnConstr.fill = GridBagConstraints.NONE;
+		outputRemoveBtnConstr.insets = new Insets(0, 0, 0, 5);
+		add(outputRemoveBtn, outputRemoveBtnConstr);
+		constr.gridy++;
+		// converter selection
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", (e) -> {
+			m_cfg.getConverterModel()
+					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection());
+		});
+		add(m_dcConverter.getComponentPanel(), constr);
+		constr.gridy++;
+		// prefix text input
+		final DialogComponentString dcPrefix =
+				new DialogComponentString(m_cfg.getPrefixModel(), "Output columns prefix");
+		add(dcPrefix.getComponentPanel(), constr);
+		constr.gridy++;
+		// 'remove' button click event: remove output
+		outputRemoveBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				onRemove();
+			}
+		});
+
+		m_cfg.getGeneralConfig().addExecutionContextChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(final ChangeEvent e) {
 				try {
-					refreshConverters();
-				} catch (final InvalidSettingsException ex) {
+					refreshAvailableConverters();
+				} catch (final NotConfigurableException ex) {
 					throw new IllegalStateException(ex.getMessage(), ex);
 				}
 			}
 		});
-		m_constr = new GridBagConstraints();
-		m_constr.gridx = 0;
-		m_constr.gridy = 0;
-		m_constr.weightx = 1;
-		m_constr.anchor = GridBagConstraints.WEST;
-		m_constr.fill = GridBagConstraints.VERTICAL;
-		m_removeListeners = new CopyOnWriteArrayList<>();
-		constructPanel();
+
+		refreshAvailableConverters();
 	}
 
 	DLExecutorOutputConfig getConfig() {
@@ -145,11 +175,12 @@ final class DLExecutorOutputPanel extends JPanel {
 	}
 
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+		refreshAvailableConverters();
+
 		try {
 			m_cfg.loadFromSettings(settings);
-			m_dcConverter.loadSettingsFrom(settings, specs);
 		} catch (final InvalidSettingsException e) {
-			// default settings
+			// ignore
 		}
 	}
 
@@ -157,65 +188,13 @@ final class DLExecutorOutputPanel extends JPanel {
 		m_cfg.saveToSettings(settings);
 	}
 
-	private void constructPanel() {
-		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputDataSpec.getName()));
-		// meta information
-		final JPanel shape = new JPanel();
-		final GridBagConstraints shapeConstr = new GridBagConstraints();
-		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_outputDataSpec.getShape().toString()), shapeConstr);
-		add(shape, m_constr);
-		// 'remove' button, see bottom for click event handling
-		final JButton outputRemoveBtn = new JButton("remove");
-		final GridBagConstraints outputRemoveBtnConstr = (GridBagConstraints) m_constr.clone();
-		outputRemoveBtnConstr.weightx = 1;
-		outputRemoveBtnConstr.anchor = GridBagConstraints.EAST;
-		outputRemoveBtnConstr.fill = GridBagConstraints.NONE;
-		outputRemoveBtnConstr.insets = new Insets(0, 0, 0, 5);
-		add(outputRemoveBtn, outputRemoveBtnConstr);
-		m_constr.gridy++;
-		// converter selection
-		add(m_dcConverter.getComponentPanel(), m_constr);
-		m_constr.gridy++;
-		// prefix text input
-		final DialogComponentString dcPrefix =
-				new DialogComponentString(m_cfg.getPrefixModel(), "Output columns prefix");
-		add(dcPrefix.getComponentPanel(), m_constr);
-		m_constr.gridy++;
-		// 'remove' button click event: remove output
-		outputRemoveBtn.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				onRemove();
-			}
-		});
-	}
-
-	private void refreshConverters() throws InvalidSettingsException {
-		final String[][] newConverters = getAvailableConverters();
-		if (newConverters[0].length == 0) {
-			final String msg = "No converters available for output '" + m_outputDataSpec.getName() + "'.";
-			LOGGER.error(msg);
-			throw new InvalidSettingsException(msg);
-		}
-		m_dcConverter.replaceListItems(newConverters[0], newConverters[1], null);
-	}
-
-	private void onRemove() {
-		for (final ChangeListener l : m_removeListeners) {
-			l.stateChanged(new ChangeEvent(this));
-		}
-	}
-
-	private String[][] getAvailableConverters() throws InvalidSettingsException {
-		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
-				.getExecutionContext(m_cfg.getExecutionContextModel().getStringValue()).orElseThrow(() -> {
-					final String msg = "Execution back end '" + m_cfg.getExecutionContextModel().getStringValue()
-							+ "' could not be found.";
-					LOGGER.error(msg);
-					return new InvalidSettingsException(msg);
-				});
+	private void refreshAvailableConverters() throws NotConfigurableException {
+		final DLExecutionContext<?> executionContext =
+				DLExecutionContextRegistry.getInstance()
+						.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
+						.orElseThrow(() -> new NotConfigurableException("Execution back end '"
+								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
+								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
 				DLLayerDataToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
 						executionContext.getLayerDataFactory().getReadableBufferType(m_outputDataSpec),
@@ -228,6 +207,16 @@ final class DLExecutorOutputPanel extends JPanel {
 			names[i] = "To " + converter.getName();
 			ids[i] = converter.getIdentifier();
 		}
-		return new String[][] { names, ids };
+		if (names.length == 0) {
+			throw new NotConfigurableException(
+					"No converters available for output '" + m_outputDataSpec.getName() + "'.");
+		}
+		m_dcConverter.replaceListItems(names, ids, null);
+	}
+
+	private void onRemove() {
+		for (final ChangeListener l : m_removeListeners) {
+			l.stateChanged(new ChangeEvent(this));
+		}
 	}
 }
