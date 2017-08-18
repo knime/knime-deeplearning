@@ -115,9 +115,9 @@ public class DLPythonCommands implements AutoCloseable {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public synchronized void setNetworkInputs(
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input) throws IOException {
+			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input, final long batchSize)
+			throws IOException {
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
-			final long batchSize = in.getValue().getBatchSize();
 			m_kernel.putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
 
 				int i = 0;
@@ -125,13 +125,10 @@ public class DLPythonCommands implements AutoCloseable {
 				int numRemaining = (int) batchSize;
 
 				private Serializer<DLPythonDataBuffer> m_serializer;
-
 				{
 					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
 							.filter(new Predicate<KnimeToPythonExtension>() {
-								/**
-								 * {@inheritDoc}
-								 */
+
 								@Override
 								public boolean test(final KnimeToPythonExtension ext) {
 									return (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
@@ -224,15 +221,16 @@ public class DLPythonCommands implements AutoCloseable {
 						int i = 0;
 						{
 							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
-							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
-									.getExtension(deserializerId).getJavaDeserializerFactory();
+							final DeserializerFactory deserializerFactory =
+									PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
 								LOGGER.coding(
 										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
 							}
 							m_deserializer = deserializerFactory.createDeserializer();
 							if (!(m_deserializer instanceof DLPythonDeserializer)) {
-								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
+								final String msg =
+										"An exception occurred while collecting network output from Python. Unsupported deserializer.";
 								LOGGER.error(msg);
 								// TODO
 								throw new RuntimeException(msg);
@@ -282,7 +280,6 @@ public class DLPythonCommands implements AutoCloseable {
 		putParameter(key, new CellImpl(parameter));
 	}
 
-
 	@Override
 	public void close() throws Exception {
 		// NB: This method must not close anything else but the Python kernel.
@@ -291,8 +288,8 @@ public class DLPythonCommands implements AutoCloseable {
 	}
 
 	private void putParameter(final String key, final Cell cell) throws IOException {
-		final TableSpec spec = new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key },
-				new HashMap<>(0));
+		final TableSpec spec =
+				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
 		final RowImpl row = new RowImpl(key, 1);
 		row.setCell(cell, 0);
 		m_kernel.putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);

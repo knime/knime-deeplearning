@@ -92,8 +92,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	private static final String OUT_LAYER_DATA_NAME = "test_out_data";
 
-	private static final DLLayerDataShape OUT_LAYER_DATA_SHAPE = new DLDefaultFixedLayerDataShape(
-			new long[] { 11, 10 });
+	private static final DLLayerDataShape OUT_LAYER_DATA_SHAPE =
+			new DLDefaultFixedLayerDataShape(new long[] { 11, 10 });
 
 	private static final String[] OUT_LAYER_DATA_SELECTED = { OUT_LAYER_DATA_NAME };
 
@@ -118,9 +118,9 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testDouble() throws IOException {
 		final ArrayList<DLLayerData<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE,
-					double.class) {
-			};
+			final DLLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class) {
+					};
 			final DLPythonDoubleBuffer buff = new DLPythonDoubleBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -136,15 +136,16 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput);
+		m_commands.setNetworkInputs(networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
 		m_commands.getKernel().execute(code);
 
-		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs = new HashMap<>();
+		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
+				new HashMap<>();
 		for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultLayerDataSpec spec = new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE,
-					double.class);
+			final DLDefaultLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, double.class);
 			// TODO: typing (also in the other test* methods)
 			outputLayerDataSpecs.put(spec,
 					new DLDefaultLayerDataBatch(
@@ -170,9 +171,9 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testFloat() throws IOException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE,
-					float.class) {
-			};
+			final DLLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class) {
+					};
 			final DLPythonFloatBuffer buff = new DLPythonFloatBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -187,15 +188,16 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput);
+		m_commands.setNetworkInputs(networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
 		m_commands.getKernel().execute(code);
 
-		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs = new HashMap<>();
+		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
+				new HashMap<>();
 		for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultLayerDataSpec spec = new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE,
-					float.class);
+			final DLDefaultLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, float.class);
 			outputLayerDataSpecs.put(spec,
 					new DLDefaultLayerDataBatch(
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonFloatBuffer(
@@ -220,11 +222,11 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testInt() throws IOException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE,
-					int.class) {
-			};
-			final DLPythonIntBuffer buff = new DLPythonIntBuffer(
-					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
+			final DLLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class) {
+					};
+			final DLPythonIntBuffer buff =
+					new DLPythonIntBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
 				final int val = m_rng.nextInt(Integer.MAX_VALUE / 5);
 				buff.put(val);
@@ -237,15 +239,16 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput);
+		m_commands.setNetworkInputs(networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
 		m_commands.getKernel().execute(code);
 
-		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs = new HashMap<>();
+		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
+				new HashMap<>();
 		for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultLayerDataSpec spec = new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE,
-					int.class);
+			final DLDefaultLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, int.class);
 			outputLayerDataSpecs.put(spec,
 					new DLDefaultLayerDataBatch(
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonIntBuffer(
@@ -270,11 +273,11 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testLong() throws IOException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE,
-					long.class) {
-			};
-			final DLPythonLongBuffer buff = new DLPythonLongBuffer(
-					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
+			final DLLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class) {
+					};
+			final DLPythonLongBuffer buff =
+					new DLPythonLongBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
 				final long val = m_rng.nextLong() / 5;
 				buff.put(val);
@@ -287,15 +290,16 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput);
+		m_commands.setNetworkInputs(networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
 		m_commands.getKernel().execute(code);
 
-		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs = new HashMap<>();
+		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
+				new HashMap<>();
 		for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultLayerDataSpec spec = new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE,
-					long.class);
+			final DLDefaultLayerDataSpec spec =
+					new DLDefaultLayerDataSpec(outputLayerDataName, OUT_LAYER_DATA_SHAPE, long.class);
 			outputLayerDataSpecs.put(spec,
 					new DLDefaultLayerDataBatch(
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonLongBuffer(

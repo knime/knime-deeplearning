@@ -70,7 +70,7 @@ public class DLKerasExecutableNetwork extends
 		DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLKerasNetworkSpec> {
 
 	private DLKerasPythonCommands m_commands;
-	private DLKerasNetwork m_network;
+	private final DLKerasNetwork m_network;
 
 	public DLKerasExecutableNetwork(final DLKerasNetwork network) {
 		super(network.getSpec());
@@ -85,12 +85,10 @@ public class DLKerasExecutableNetwork extends
 		return DLLayerDataBatch.class;
 	}
 
-
 	@Override
 	public Class<?> getOutputType() {
 		return DLLayerDataBatch.class;
 	}
-
 
 	@Override
 	public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
@@ -99,13 +97,14 @@ public class DLKerasExecutableNetwork extends
 		if (m_commands == null) {
 			m_commands = new DLKerasPythonCommands();
 			// TODO do we really need this?
-			final DLPythonNetworkHandle networkHandle = DLKerasDefaultNetworkReader.load(m_network.getSource(), m_commands);
+			final DLPythonNetworkHandle networkHandle =
+					DLKerasDefaultNetworkReader.load(m_network.getSource(), m_commands);
 			// TODO: this should be replaced by a "loadNetworkSpec" (i.e. only
 			// reload specs in kernel, don't transfer to
 			// Java)
 			m_commands.extractNetworkSpec(networkHandle, DLNumPyTypeMap.INSTANCE);
 		}
-		m_commands.setNetworkInputs(input);
+		m_commands.setNetworkInputs(input, batchSize);
 		m_commands.executeNetwork(output.keySet());
 		m_commands.getNetworkOutputs(output);
 	}
