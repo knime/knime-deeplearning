@@ -52,6 +52,9 @@
             DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLBitVectorToBitLayerConverterFactory">
       </DLDataValueToLayerDataConverterFactory>
       <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLBooleanValueToBitLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
             DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLByteVectorToByteLayerConverterFactory">
       </DLDataValueToLayerDataConverterFactory>
       <DLDataValueToLayerDataConverterFactory
@@ -61,7 +64,16 @@
             DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLDoubleValueToFloatLayerConverterFactory">
       </DLDataValueToLayerDataConverterFactory>
       <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLIntValueToFloatLayerDataConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
             DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLIntValueToIntLayerConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLLongValueToDoubleLayerDataConverterFactory">
+      </DLDataValueToLayerDataConverterFactory>
+      <DLDataValueToLayerDataConverterFactory
+            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLLongValueToLongLayerDataConverterFactory">
       </DLDataValueToLayerDataConverterFactory>
    </extension>
    <extension
