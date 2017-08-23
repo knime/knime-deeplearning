@@ -152,9 +152,8 @@ public class DLPythonCommands implements AutoCloseable {
 					// (guava or apache) (and print a warning in such cases)
 
 					try {
-						// TODO AVOID AVOID AVOID COPYING DATA HERE
-						final Cell cell = new CellImpl(ArrayUtils.toObject(
-								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer())));
+						final Cell cell = new CellImpl(
+								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer()));
 						row.setCell(cell, 0);
 					} catch (final IOException ex) {
 						throw new RuntimeException("Transmitting input data to Keras failed.", ex);
@@ -221,16 +220,15 @@ public class DLPythonCommands implements AutoCloseable {
 						int i = 0;
 						{
 							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
-							final DeserializerFactory deserializerFactory =
-									PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
+							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
+									.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
 								LOGGER.coding(
 										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
 							}
 							m_deserializer = deserializerFactory.createDeserializer();
 							if (!(m_deserializer instanceof DLPythonDeserializer)) {
-								final String msg =
-										"An exception occurred while collecting network output from Python. Unsupported deserializer.";
+								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
 								LOGGER.error(msg);
 								// TODO
 								throw new RuntimeException(msg);
@@ -242,10 +240,8 @@ public class DLPythonCommands implements AutoCloseable {
 							final Cell cell = row.getCell(0);
 
 							try {
-								// TODO AVOID AVOID AVOID COPYING THE DATA HERE
-								// AGHHHHAUDGZDFZS
-								((DLPythonDeserializer) m_deserializer)
-										.deserialize(ArrayUtils.toPrimitive(cell.getBytesValue()), batch.getBatch()[i]);
+								((DLPythonDeserializer) m_deserializer).deserialize(cell.getBytesValue(),
+										batch.getBatch()[i]);
 							} catch (final IllegalStateException e) {
 								LOGGER.error("An exception occurred while collecting network output from Python: "
 										+ e.getMessage(), e);
@@ -288,8 +284,8 @@ public class DLPythonCommands implements AutoCloseable {
 	}
 
 	private void putParameter(final String key, final Cell cell) throws IOException {
-		final TableSpec spec =
-				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
+		final TableSpec spec = new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key },
+				new HashMap<>(0));
 		final RowImpl row = new RowImpl(key, 1);
 		row.setCell(cell, 0);
 		m_kernel.putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);

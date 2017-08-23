@@ -48,7 +48,6 @@
  */
 package org.knime.dl.keras.core.data;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLLayerDataShape;
@@ -58,6 +57,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
+import org.knime.python2.util.BitArray;
 
 /**
  *
@@ -136,17 +136,18 @@ public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFact
 			if (!row.getCell(2).isMissing()) {
 				if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
 					try {
-						layerDataShape = new DLDefaultFixedLayerDataShape(
-								ArrayUtils.toPrimitive(row.getCell(2).getLongArrayValue()));
+						layerDataShape = new DLDefaultFixedLayerDataShape(row.getCell(2).getLongArrayValue());
 					} catch (final NullPointerException ex) {
 						// shape stays null
 					}
 				} else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
-					final Integer[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
+					final int[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
 					final long[] shape = new long[layerDataShapeInt.length];
-					if (layerDataShapeInt[0] != null) {
+					final BitArray bitArray = new BitArray(row.getCell(2).getBitEncodedMissingListValues());
+
+					if (bitArray.oneAt(0)) {
 						for (int i = 0; i < layerDataShapeInt.length; i++) {
-							shape[i] = layerDataShapeInt[i].longValue();
+							shape[i] = layerDataShapeInt[i];
 						}
 						layerDataShape = new DLDefaultFixedLayerDataShape(shape);
 					}
