@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME GmbH, Konstanz, Germany
  *  Website: http://www.knime.org; Email: contact@knime.org
  *
@@ -41,45 +40,55 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * ------------------------------------------------------------------------
  *
  * History
- *   Jul 19, 2017 (marcel): created
+ *   Sep 25, 2014 (Patrick Winter): created
  */
-package org.knime.dl.python.base.node.predictor;
+package org.knime.dl.python.base.node.learner;
 
-import org.knime.python2.config.PythonSourceCodePanel;
-import org.knime.python2.generic.VariableNames;
-import org.knime.python2.kernel.FlowVariableOptions;
+import org.knime.base.node.util.exttool.ExtToolStderrNodeView;
+import org.knime.base.node.util.exttool.ExtToolStdoutNodeView;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
-// TODO: we could also decide to move our node to org.knime.python2.*.
 /**
- * We need this class to access protected members of PythonSourceCodePanel.
- *
- * @see PythonSourceCodePanel
+ * Shamelessly copied and pasted from python predictor.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
+public class DLPythonLearnerNodeFactory extends NodeFactory<DLPythonLearnerNodeModel> {
 
-    private static final long serialVersionUID = -3111905445745421972L;
+	@Override
+	public DLPythonLearnerNodeModel createNodeModel() {
+		return new DLPythonLearnerNodeModel();
+	}
 
-    /**
-     * @param variableNames
-     * @param options
-     *
-     * @see PythonSourceCodePanel#PythonSourceCodePanel(VariableNames, FlowVariableOptions)
-     */
-    public DLPythonSourceCodePanel(final VariableNames variableNames, final FlowVariableOptions options) {
-        super(variableNames, options);
-    }
+	@Override
+	public int getNrNodeViews() {
+		return 2;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void errorToConsole(final String text) {
-        super.errorToConsole(text);
-    }
+	@Override
+	public NodeView<DLPythonLearnerNodeModel> createNodeView(final int viewIndex,
+			final DLPythonLearnerNodeModel nodeModel) {
+		if (viewIndex == 0) {
+			return new ExtToolStdoutNodeView<>(nodeModel);
+		} else if (viewIndex == 1) {
+			return new ExtToolStderrNodeView<>(nodeModel);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean hasDialog() {
+		return true;
+	}
+
+	@Override
+	public NodeDialogPane createNodeDialogPane() {
+		return new DLPythonLearnerNodeDialog();
+	}
 }
