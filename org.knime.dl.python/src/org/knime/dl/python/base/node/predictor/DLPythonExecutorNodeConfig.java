@@ -47,62 +47,47 @@
  */
 package org.knime.dl.python.base.node.predictor;
 
-import org.knime.base.node.util.exttool.ExtToolStderrNodeView;
-import org.knime.base.node.util.exttool.ExtToolStdoutNodeView;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.python2.generic.VariableNames;
 
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Christian Dietz, KNIME
+ * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-public class DLPythonPredictorNodeFactory extends NodeFactory<DLPythonPredictorNodeModel> {
+class DLPythonExecutorNodeConfig extends PythonSourceCodeConfig {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLPythonPredictorNodeModel createNodeModel() {
-        return new DLPythonPredictorNodeModel();
-    }
+	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
+			"flow_variables", // flow variables
+			new String[] { "input_table" }, // input tables
+			new String[] { "output_table" }, // output tables
+			null, // output images
+			null, // pickled input objects
+			null, // pickled output objects
+			new String[] { "input_network" }, // general input objects
+			null // general output objects
+	);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 2;
-    }
+	@Override
+	protected String getDefaultSourceCode() {
+		final VariableNames vars = getVariableNames();
+		return "import numpy as np\n" + //
+				"import pandas as pd\n" + //
+				"\n" + //
+				"# " + "variable name of the input network: " + vars.getGeneralInputObjects()[0] + "\n" + //
+				"# " + "variable name of the input table:   " + vars.getInputTables()[0] + "\n" + //
+				"# " + "variable name of the output table:  " + vars.getOutputTables()[0] + "\n" + //
+				"\n" + //
+				vars.getOutputTables()[0] + " = " + vars.getInputTables()[0];
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DLPythonPredictorNodeModel> createNodeView(final int viewIndex,
-        final DLPythonPredictorNodeModel nodeModel) {
-        if (viewIndex == 0) {
-            return new ExtToolStdoutNodeView<>(nodeModel);
-        } else if (viewIndex == 1) {
-            return new ExtToolStderrNodeView<>(nodeModel);
-        }
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DLPythonPredictorNodeDialog();
-    }
+	/**
+	 * Get the variable names for this node
+	 *
+	 * @return the variable names
+	 */
+	static VariableNames getVariableNames() {
+		return VARIABLE_NAMES;
+	}
 }

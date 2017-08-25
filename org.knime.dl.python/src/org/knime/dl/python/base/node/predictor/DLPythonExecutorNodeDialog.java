@@ -58,8 +58,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.dl.python.core.DLPythonNetwork;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.WorkspacePreparer;
@@ -70,19 +70,19 @@ import org.knime.python2.port.PickledObject;
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Christian Dietz, KNIME
+ * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-class DLPythonPredictorNodeDialog extends DataAwareNodeDialogPane {
+final class DLPythonExecutorNodeDialog extends DataAwareNodeDialogPane {
 
-	DLPythonSourceCodePanel m_sourceCodePanel;
+	private final DLPythonSourceCodePanel m_sourceCodePanel;
 
-	PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
+	private final PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
 
-	/**
-	 * Create the dialog for this node.
-	 */
-	protected DLPythonPredictorNodeDialog() {
-		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonPredictorNodeConfig.getVariableNames(),
+	private WorkspacePreparer m_workspacePreparer;
+
+	DLPythonExecutorNodeDialog() {
+		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonExecutorNodeConfig.getVariableNames(),
 				FlowVariableOptions.parse(getAvailableFlowVariables()));
 		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel);
 		addTab("Script", m_sourceCodePanel, false);
@@ -91,7 +91,7 @@ class DLPythonPredictorNodeDialog extends DataAwareNodeDialogPane {
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final DLPythonPredictorNodeConfig config = new DLPythonPredictorNodeConfig();
+		final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
 		m_sourceCodePanel.saveSettingsTo(config);
 		m_sourceCodeOptionsPanel.saveSettingsTo(config);
 		config.saveTo(settings);
@@ -100,7 +100,7 @@ class DLPythonPredictorNodeDialog extends DataAwareNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		final DLPythonPredictorNodeConfig config = new DLPythonPredictorNodeConfig();
+		final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
 		config.loadFromInDialog(settings);
 		m_sourceCodePanel.loadSettingsFrom(config, specs);
 		m_sourceCodePanel.updateFlowVariables(
@@ -112,38 +112,50 @@ class DLPythonPredictorNodeDialog extends DataAwareNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
 			throws NotConfigurableException {
+		final DLNetworkPortObject portObject =
+				(DLNetworkPortObject) input[DLPythonExecutorNodeModel.IN_NETWORK_PORT_IDX];
+		if (portObject == null) {
+			throw new NotConfigurableException("Input deep learning network port object is missing.");
+		}
+		if (!(portObject.getNetwork() instanceof DLPythonNetwork)) {
+			throw new NotConfigurableException("Input deep learning network is not Python compatible.");
+		}
+		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonExecutorNodeModel.IN_DATA_PORT_IDX];
+		if (inTable == null) {
+			throw new NotConfigurableException("Input data table is missing.");
+		}
+
 		final PortObjectSpec[] specs = new PortObjectSpec[input.length];
 		for (int i = 0; i < specs.length; i++) {
 			specs[i] = input[i] == null ? null : input[i].getSpec();
 		}
 		loadSettingsFrom(settings, specs);
-		final DLNetworkPortObject portObject = (DLNetworkPortObject) input[0];
-		if (portObject != null && portObject.getNetwork() instanceof DLPythonNetwork) {
-			m_sourceCodePanel.registerWorkspacePreparer(new WorkspacePreparer() {
-				@Override
-				public void prepareWorkspace(final PythonKernel kernel) {
-					try {
-						NodeContext.pushContext(DLPythonPredictorNodeDialog.this.getNodeContext());
-						final DLPythonNetwork<? extends DLPythonNetworkSpec> network =
-								(DLPythonNetwork<? extends DLPythonNetworkSpec>) portObject.getNetwork();
-						final DLPythonNetworkHandle networkHandle =
-								network.getSpec().getLoader().load(network.getSource(), kernel);
-						final String name = networkHandle.getIdentifier();
-						kernel.execute("global input_network\ninput_network=" + name + "\ndel globals()['" + name
-								+ "']\ndel locals()['" + name + "']");
-						// TODO: clean workspace (remove model's load path etc.)
-					} catch (final Exception e) {
-						m_sourceCodePanel.errorToConsole(
-								"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
-					}
-				}
-			});
-		} else {
-			throw new NotConfigurableException(
-					"Deep Learning network can't be handled by KNIME Deep Learning - Python Backend.");
-		}
 
-		m_sourceCodePanel.updateData(new BufferedDataTable[] { (BufferedDataTable) input[1] }, new PickledObject[] {});
+		if (m_workspacePreparer != null) {
+			m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
+		}
+		m_workspacePreparer = new WorkspacePreparer() {
+
+			@Override
+			public void prepareWorkspace(final PythonKernel kernel) {
+				try {
+					NodeContext.pushContext(DLPythonExecutorNodeDialog.this.getNodeContext());
+					final DLPythonNetwork<? extends DLPythonNetworkSpec> network =
+							(DLPythonNetwork<?>) portObject.getNetwork();
+					DLPythonExecutorNodeModel.setupNetwork(network, kernel);
+					m_sourceCodePanel.updateVariables();
+				} catch (final Exception e) {
+					m_sourceCodePanel.errorToConsole(
+							"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
+				}
+				// warn user if input table is empty which could lead to unexpected problems in the Python code
+				if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
+					m_sourceCodePanel.messageToConsole("Warning: Input table is empty.");
+				}
+			}
+		};
+		m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
+		m_sourceCodePanel.updateData(new BufferedDataTable[] { inTable }, new PickledObject[] {});
 	}
 
 	@Override

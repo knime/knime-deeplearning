@@ -47,10 +47,13 @@
  */
 package org.knime.dl.python.base.node.predictor;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -59,80 +62,110 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Christian Dietz, KNIME
+ * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-class DLPythonPredictorNodeModel extends DLPythonNodeModel<DLPythonPredictorNodeConfig> {
+final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutorNodeConfig> {
 
-	/**
-	 * Constructor for the node model.
-	 */
-	protected DLPythonPredictorNodeModel() {
+	static final int IN_NETWORK_PORT_IDX = 0;
+
+	static final int IN_DATA_PORT_IDX = 1;
+
+	static void setupNetwork(final DLPythonNetwork<?> network, final PythonKernel kernel)
+			throws IOException, IllegalArgumentException {
+		final DLPythonNetworkHandle networkHandle =
+				network.getSpec().getNetworkType().getLoader().load(network.getSource(), kernel);
+		final String networkHandleId = networkHandle.getIdentifier();
+		final String inputNetworkName = DLPythonExecutorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
+		kernel.execute("import DLPythonNetwork\n" + //
+				"global " + inputNetworkName + "\n" + //
+				inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+	}
+
+	private DataTableSpec m_lastIncomingTableSpec;
+
+	DLPythonExecutorNodeModel() {
 		super(new PortType[] { DLNetworkPortObject.TYPE, BufferedDataTable.TYPE },
 				new PortType[] { BufferedDataTable.TYPE });
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
+		final DLNetworkPortObject portObject = (DLNetworkPortObject) inData[IN_NETWORK_PORT_IDX];
+		if (!(portObject.getNetwork() instanceof DLPythonNetwork)) {
+			throw new InvalidSettingsException("Input deep learning network is not Python compatible.");
+		}
+
+		// warn user if input table is empty which could lead to unexpected problems in the Python code
+		final BufferedDataTable inTable = (BufferedDataTable) inData[IN_DATA_PORT_IDX];
+		if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
+			setWarningMessage("Input table is empty.");
+		}
+
 		final PythonKernel kernel = new PythonKernel(getKernelOptions());
-		BufferedDataTable table = null;
+		BufferedDataTable outTable = null;
 		try {
-			kernel.putFlowVariables(DLPythonPredictorNodeConfig.getVariableNames().getFlowVariables(),
+
+			kernel.putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 
-			final DLNetworkPortObject networkPortObject = (DLNetworkPortObject) inData[0];
-			if (networkPortObject.getNetwork() instanceof DLPythonNetwork) {
-				final DLPythonNetwork<? extends DLPythonNetworkSpec> network =
-						(DLPythonNetwork<? extends DLPythonNetworkSpec>) networkPortObject.getNetwork();
-				final DLPythonNetworkHandle networkHandle =
-						network.getSpec().getLoader().load(network.getSource(), kernel);
-				final String name = networkHandle.getIdentifier();
-				kernel.execute("global input_network\ninput_network=" + name + "\ndel globals()['" + name
-						+ "']\ndel locals()['" + name + "']");
-			} else {
-				// NB: a.t.m., this check isn't really required as we don't have anything but Keras, yet.
-				throw new InvalidSettingsException(
-						"Deep Learning network can't be handled by KNIME Deep Learning - Python Backend.");
-			}
+			final DLPythonNetwork<?> network = (DLPythonNetwork<?>) portObject.getNetwork();
+			setupNetwork(network, kernel);
 
 			exec.createSubProgress(0.1).setProgress(1);
-			kernel.putDataTable(DLPythonPredictorNodeConfig.getVariableNames().getInputTables()[0],
-					(BufferedDataTable) inData[1], exec.createSubProgress(0.2));
+			kernel.putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
+					exec.createSubProgress(0.2));
 			final String[] output = kernel.execute(getConfig().getSourceCode(), exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.4).setProgress(1);
 			final Collection<FlowVariable> variables =
-					kernel.getFlowVariables(DLPythonPredictorNodeConfig.getVariableNames().getFlowVariables());
-			table = kernel.getDataTable(DLPythonPredictorNodeConfig.getVariableNames().getOutputTables()[0], exec,
+					kernel.getFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables());
+			outTable = kernel.getDataTable(DLPythonExecutorNodeConfig.getVariableNames().getOutputTables()[0], exec,
 					exec.createSubProgress(0.3));
 			addNewVariables(variables);
 		} finally {
 			kernel.close();
 		}
-		return new BufferedDataTable[] { table };
+		return new BufferedDataTable[] { outTable };
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+		final DataTableSpec inTableSpec = (DataTableSpec) inSpecs[IN_DATA_PORT_IDX];
+		// warn user if previously present columns changed or vanished which could lead to unexpected problems in the
+		// Python code
+		boolean tableChanged = false;
+		if (m_lastIncomingTableSpec != null) {
+			if (inTableSpec == null) {
+				tableChanged = true;
+			} else {
+				for (final DataColumnSpec oldCol : m_lastIncomingTableSpec) {
+					final DataColumnSpec newCol = inTableSpec.getColumnSpec(oldCol.getName());
+					if (!oldCol.equalStructure(newCol)) {
+						tableChanged = true;
+						break;
+					}
+				}
+			}
+		}
+		if (tableChanged) {
+			setWarningMessage("Input table changed.");
+		}
+		m_lastIncomingTableSpec = inTableSpec;
 		return new PortObjectSpec[] { null };
 	}
 
 	@Override
-	protected DLPythonPredictorNodeConfig createConfig() {
-		return new DLPythonPredictorNodeConfig();
+	protected DLPythonExecutorNodeConfig createConfig() {
+		return new DLPythonExecutorNodeConfig();
 	}
 }

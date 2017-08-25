@@ -47,34 +47,47 @@
  */
 package org.knime.dl.python.base.node.predictor;
 
-import org.knime.python2.config.PythonSourceCodeConfig;
-import org.knime.python2.generic.VariableNames;
+import org.knime.base.node.util.exttool.ExtToolStderrNodeView;
+import org.knime.base.node.util.exttool.ExtToolStdoutNodeView;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Christian Dietz, KNIME
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-class DLPythonPredictorNodeConfig extends PythonSourceCodeConfig {
+public class DLPythonExecutorNodeFactory extends NodeFactory<DLPythonExecutorNodeModel> {
 
-    private static final VariableNames VARIABLE_NAMES = new VariableNames("flow_variables", new String[]{"input_table"},
-        new String[]{"output_table"}, null, new String[]{"input_network"}, null);
+	@Override
+	public DLPythonExecutorNodeModel createNodeModel() {
+		return new DLPythonExecutorNodeModel();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String getDefaultSourceCode() {
-        // TODO: add meaningful default source code
-        return "import numpy as np\n";
-    }
+	@Override
+	public int getNrNodeViews() {
+		return 2;
+	}
 
-    /**
-     * Get the variable names for this node
-     *
-     * @return The variable names
-     */
-    static VariableNames getVariableNames() {
-        return VARIABLE_NAMES;
-    }
+	@Override
+	public NodeView<DLPythonExecutorNodeModel> createNodeView(final int viewIndex,
+			final DLPythonExecutorNodeModel nodeModel) {
+		if (viewIndex == 0) {
+			return new ExtToolStdoutNodeView<>(nodeModel);
+		} else if (viewIndex == 1) {
+			return new ExtToolStderrNodeView<>(nodeModel);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean hasDialog() {
+		return true;
+	}
+
+	@Override
+	public NodeDialogPane createNodeDialogPane() {
+		return new DLPythonExecutorNodeDialog();
+	}
 }
