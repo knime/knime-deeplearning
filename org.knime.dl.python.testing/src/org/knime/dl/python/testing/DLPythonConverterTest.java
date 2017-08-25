@@ -150,18 +150,17 @@ public class DLPythonConverterTest {
 		final DLBazExecutionContext exec = new DLBazExecutionContext();
 
 		// input converters:
-		final HashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters = new HashMap<>(
-				networkSpec.getInputSpecs().length);
+		final HashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters =
+				new HashMap<>(networkSpec.getInputSpecs().length);
 		for (final DLLayerDataSpec inputSpec : networkSpec.getInputSpecs()) {
-			final DLDataValueToLayerDataConverterFactory<?, ?> converter = DLDataValueToLayerDataConverterRegistry
-					.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
-							exec.getLayerDataFactory().getWritableBufferType(inputSpec))
-					.get();
+			final DLDataValueToLayerDataConverterFactory<?, ?> converter =
+					DLDataValueToLayerDataConverterRegistry.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
+							exec.getLayerDataFactory().getWritableBufferType(inputSpec)).get();
 			inputConverters.put(inputSpec, converter);
 		}
 		// output converters:
-		final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters = new HashMap<>(
-				networkSpec.getOutputSpecs().length + networkSpec.getIntermediateOutputSpecs().length);
+		final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters =
+				new HashMap<>(networkSpec.getOutputSpecs().length + networkSpec.getIntermediateOutputSpecs().length);
 		for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
 			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
 					.getInstance()
@@ -260,12 +259,6 @@ public class DLPythonConverterTest {
 			super(DLBazNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
 		}
 
-		/**
-		 * Empty framework constructor. Must not be called by client code.
-		 */
-		public DLBazNetworkSpec() {
-		}
-
 		@Override
 		protected void hashCodeInternal(final HashCodeBuilder b) {
 			// no op
@@ -325,7 +318,8 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLBazNetwork create(String source, DLBazNetworkSpec spec) throws IOException, IllegalArgumentException {
+		public DLBazNetwork create(final String source, final DLBazNetworkSpec spec)
+				throws IOException, IllegalArgumentException {
 			return new DLBazNetwork(source, spec);
 		}
 	}
@@ -459,16 +453,16 @@ public class DLPythonConverterTest {
 		@Override
 		public DLLayerDataBatch<? extends DLReadableBuffer> createReadableLayerDataBatch(final DLLayerDataSpec spec,
 				final long batchSize) throws IllegalArgumentException {
-			final DLLayerData<DLReadableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
-					DLReadableBuffer.class);
+			final DLLayerData<DLReadableBuffer>[] layerData =
+					createLayerDataInternal(spec, batchSize, DLReadableBuffer.class);
 			return new DLDefaultLayerDataBatch<>(layerData);
 		}
 
 		@SuppressWarnings("unchecked")
 		private <B extends DLBuffer> DLLayerData<B>[] createLayerDataInternal(final DLLayerDataSpec spec,
 				final long batchSize, final Class<B> bufferType) {
-			final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
-					.orElseThrow(() -> new IllegalArgumentException(
+			final long[] shape =
+					DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
 							"Layer data spec does not provide a shape. Layer data cannot be created."));
 			checkArgument(batchSize <= Integer.MAX_VALUE,
 					"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
@@ -502,8 +496,8 @@ public class DLPythonConverterTest {
 		@Override
 		public DLLayerDataBatch<? extends DLWritableBuffer> createWritableLayerDataBatch(final DLLayerDataSpec spec,
 				final long batchSize) throws IllegalArgumentException {
-			final DLLayerData<DLWritableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
-					DLWritableBuffer.class);
+			final DLLayerData<DLWritableBuffer>[] layerData =
+					createLayerDataInternal(spec, batchSize, DLWritableBuffer.class);
 			return new DLDefaultLayerDataBatch<>(layerData);
 		}
 	}

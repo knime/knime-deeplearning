@@ -71,18 +71,26 @@ import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLDefaultLayerDataBatch;
 import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
+import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.kernel.DLPythonCommands;
+import org.knime.dl.python.core.kernel.DLPythonCommandsConfig;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
  * @author Marcel Wiedenmann,KNIME,Konstanz,Germany
  * @author Christian Dietz,KNIME,Konstanz,Germany
  */
 public class DLPythonDataBuffersExecution1To1Test {
+
+	private static final DLPythonNetworkHandle HANDLE = new DLPythonNetworkHandle("dummy");
 
 	private static final int IN_LAYER_DATA_NUM = 1;
 
@@ -105,7 +113,24 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Before
 	public void setUp() throws IOException {
-		m_commands = new DLPythonCommands();
+		m_commands = new DLPythonCommands(new PythonKernel(new PythonKernelOptions()), new DLPythonCommandsConfig() {
+
+			@Override
+			public String getTestInstallationCode() {
+				return "";
+			}
+
+			@Override
+			public String getLoadCode(final String path) {
+				throw new RuntimeException("not yet implemented"); // TODO: NYI
+			}
+		}) {
+			@Override
+			public DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle network,
+					final DLPythonTypeMap typeMap) throws IOException {
+				throw new RuntimeException("not yet implemented"); // TODO: NYI
+			}
+		};
 		m_rng = new Random(543677);
 	}
 
@@ -136,7 +161,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
 		m_commands.getKernel().execute(code);
@@ -152,7 +177,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonDoubleBuffer(
 									DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))) }));
 		}
-		m_commands.getNetworkOutputs(outputLayerDataSpecs);
+		m_commands.getNetworkOutputs(HANDLE, outputLayerDataSpecs);
 
 		final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
 		final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
@@ -188,7 +213,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
 		m_commands.getKernel().execute(code);
@@ -203,7 +228,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonFloatBuffer(
 									DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))) }));
 		}
-		m_commands.getNetworkOutputs(outputLayerDataSpecs);
+		m_commands.getNetworkOutputs(HANDLE, outputLayerDataSpecs);
 
 		final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
 		final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
@@ -239,7 +264,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
 		m_commands.getKernel().execute(code);
@@ -254,7 +279,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonIntBuffer(
 									DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))) }));
 		}
-		m_commands.getNetworkOutputs(outputLayerDataSpecs);
+		m_commands.getNetworkOutputs(HANDLE, outputLayerDataSpecs);
 
 		final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
 		final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
@@ -290,7 +315,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			networkInput.put(input.getSpec(), new DLDefaultLayerDataBatch(new DLLayerData<?>[] { input }));
 		}
 
-		m_commands.setNetworkInputs(networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
 		m_commands.getKernel().execute(code);
@@ -305,7 +330,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 							new DLLayerData[] { new DLDefaultLayerData<>(spec, new DLPythonLongBuffer(
 									DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))) }));
 		}
-		m_commands.getNetworkOutputs(outputLayerDataSpecs);
+		m_commands.getNetworkOutputs(HANDLE, outputLayerDataSpecs);
 
 		final DLLayerData<?> input = networkInput.values().iterator().next().getBatch()[0];
 		final DLLayerData<?> output = outputLayerDataSpecs.values().iterator().next().getBatch()[0];
