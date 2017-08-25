@@ -46,6 +46,7 @@
  */
 package org.knime.dl.base.portobjects;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -82,6 +83,10 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	 */
 	public static FileStore createFileStoreForCopy(final URL source, final ExecutionContext exec) throws IOException {
 		final String ext = FilenameUtils.getExtension(source.getFile());
+		return createFileStoreForSaving(ext, exec);
+	}
+
+	public static FileStore createFileStoreForSaving(final String ext, final ExecutionContext exec) throws IOException {
 		return exec.createFileStore(UUID.randomUUID().toString() + FilenameUtils.EXTENSION_SEPARATOR + ext);
 	}
 
@@ -112,8 +117,11 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	// TODO not called by framework
 	@Override
 	protected void flushToFileStore() throws IOException {
-		try (FileOutputStream fos = new FileOutputStream(getFileStore(0).getFile())) {
-			FileUtil.copy(m_network.getSource().openStream(), fos);
+		final File fileStoreFile = getFileStore(0).getFile();
+		if (!fileStoreFile.toURI().toURL().equals(m_network.getSource())) {
+			try (FileOutputStream fos = new FileOutputStream(fileStoreFile)) {
+				FileUtil.copy(m_network.getSource().openStream(), fos);
+			}
 		}
 	}
 
