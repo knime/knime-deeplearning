@@ -46,14 +46,17 @@
  */
 package org.knime.dl.python.core;
 
-import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLExternalNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkSpec extends DLExternalNetworkSpec {
+public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
+		extends DLExternalNetworkType<N, S> {
 
 	@Override
-	DLPythonNetworkType<?, ?> getNetworkType();
+	DLPythonNetworkLoader getLoader();
+
+	// TODO: reference all those Python files that a back end implementor has to provide
 }

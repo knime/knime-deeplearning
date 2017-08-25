@@ -47,17 +47,30 @@
 package org.knime.dl.python.core;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URL;
 
+import org.knime.dl.core.DLExternalNetworkLoader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonLoader extends Serializable {
+public interface DLPythonNetworkLoader extends DLExternalNetworkLoader<URL, DLPythonNetworkHandle, PythonKernel> {
 
-	// TODO
-	DLPythonNetworkHandle load(URL source, PythonKernel kernel) throws IllegalArgumentException, IOException;
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param kernel will not be closed by the method
+	 */
+	@Override
+	DLPythonNetworkHandle load(URL source, PythonKernel kernel) throws IOException;
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param kernel will not be closed by the method
+	 */
+	@Override
+	void save(URL destination, DLPythonNetworkHandle handle, PythonKernel context) throws IOException;
 }
