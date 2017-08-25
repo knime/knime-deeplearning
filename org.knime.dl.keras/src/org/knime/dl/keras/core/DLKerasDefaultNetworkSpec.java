@@ -50,31 +50,20 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.python.core.DLPythonLoader;
 
 /**
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasDefaultNetworkSpec extends DLAbstractNetworkSpec<DLKerasNetworkType> implements DLKerasNetworkSpec {
+public final class DLKerasDefaultNetworkSpec extends DLAbstractNetworkSpec<DLKerasNetworkType>
+		implements DLKerasNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
 
 	public DLKerasDefaultNetworkSpec(final DLLayerDataSpec[] inputSpecs,
 			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
 		super(DLKerasNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
-	}
-
-	/**
-	 * Empty framework constructor. Must not be called by client code.
-	 */
-	public DLKerasDefaultNetworkSpec() {
-	}
-
-	@Override
-	public DLPythonLoader getLoader() {
-		return new DLKerasPythonLoader();
 	}
 
 	@Override

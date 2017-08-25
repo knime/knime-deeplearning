@@ -56,22 +56,30 @@ import java.net.URL;
 import org.knime.dl.core.DLAbstractNetworkType;
 import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpecSerializer;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkType;
 
 /**
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasNetworkType extends DLAbstractNetworkType<DLKerasNetwork, DLKerasNetworkSpec> {
-
-	private static final long serialVersionUID = 1L;
+public final class DLKerasNetworkType extends DLAbstractNetworkType<DLKerasNetwork, DLKerasNetworkSpec>
+		implements DLPythonNetworkType<DLKerasNetwork, DLKerasNetworkSpec> {
 
 	public static final DLKerasNetworkType INSTANCE = new DLKerasNetworkType();
+
+	private static final long serialVersionUID = 1L;
 
 	private static final String IDENTIFIER = "org.knime.dl.keras.core.DLKerasNetworkType";
 
 	public DLKerasNetworkType() {
 		super(IDENTIFIER);
+	}
+
+	@Override
+	public DLPythonNetworkLoader getLoader() {
+		return new DLDefaultKerasPythonNetworkLoader();
 	}
 
 	@Override

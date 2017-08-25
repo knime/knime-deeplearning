@@ -49,29 +49,38 @@ package org.knime.dl.keras.core;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.python.core.DLPythonLoader;
+import org.knime.core.util.FileUtil;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasPythonLoader implements DLPythonLoader {
+public class DLDefaultKerasPythonNetworkLoader implements DLPythonNetworkLoader {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String DEFAULT_MODEL_FILE_EXT = "h5";
+
 	@Override
-	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel)
-			throws IllegalArgumentException, IOException {
-		// Keep kernel open - caller's responsibility to close it.
+	public String getDefaultModelFileExtension() {
+		return DEFAULT_MODEL_FILE_EXT;
+	}
+
+	@Override
+	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel) throws IOException {
 		final DLKerasPythonCommands commands = new DLKerasPythonCommands(kernel);
 		final DLPythonNetworkHandle networkHandle = DLKerasDefaultNetworkReader.load(source, commands);
-		// TODO: this should be replaced by a "loadNetworkSpec" (i.e. only
-		// reload specs in kernel, don't transfer to
-		// Java)
-		commands.extractNetworkSpec(networkHandle, DLNumPyTypeMap.INSTANCE);
 		return networkHandle;
 	}
 
+	@Override
+	public void save(final URL destination, final DLPythonNetworkHandle handle, final PythonKernel kernel)
+			throws IOException {
+		@SuppressWarnings("resource") // keep kernel open
+		final DLKerasPythonCommands commands = new DLKerasPythonCommands(kernel);
+		commands.saveNetwork(handle, FileUtil.getFileFromURL(destination).getAbsolutePath());
+	}
 }
