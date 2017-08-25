@@ -43,10 +43,102 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-import sys
-sys.stderr = sys.stdout
-from keras.models import load_model
-sys.stderr = sys.__stderr__
+'''
+@author Marcel Wiedenmann, KNIME, Konstanz, Germany
+@author Christian Dietz, KNIME, Konstanz, Germany
+'''
 
-global model
-model = load_model(model_load_path)
+import abc
+
+
+_networks = {}
+
+def get_network(identifier):
+    return _networks[identifier]
+
+def add_network(identifier, network):
+    if identifier in _networks:
+        raise ValueError("Network '" + identifier + "' already exists.")
+    _networks[identifier] = network
+    
+def remove_network(identifier):
+    if identifier in _networks:
+        del _networks[identifier]
+
+class DLPythonNetworkReader(object):
+    __metaclass__ = abc.ABCMeta
+    
+    @abc.abstractmethod
+    def read(self, path):
+        return
+
+class DLPythonNetwork(object):
+    __metaclass__ = abc.ABCMeta
+    
+    def __init__(self, model):
+        self._model = model
+        self._spec = None
+    
+    @property
+    def model(self):
+        return self._model
+    
+    @abc.abstractproperty
+    def spec(self):
+        return
+    
+    @abc.abstractmethod
+    def execute(self, inData):
+        return
+    
+    @abc.abstractmethod
+    def save(self, path):
+        return
+    
+class DLPythonNetworkSpec(object):
+    __metaclass__ = abc.ABCMeta
+   
+    def __init__(self, input_specs, intermediate_output_specs, output_specs):
+        self._input_specs = input_specs
+        self._intermediate_output_specs = intermediate_output_specs
+        self._output_specs = output_specs
+    
+    @abc.abstractproperty
+    def network_type(self):
+        return
+    
+    @property
+    def input_specs(self):
+        return self._input_specs 
+    
+    @property
+    def intermediate_output_specs(self):
+        return self._intermediate_output_specs
+    
+    @property
+    def output_specs(self):
+        return self._output_specs
+    
+class DLPythonLayerDataSpec(object):
+        
+    def __init__(self, name, batch_size, shape, element_type):
+        self._name = name
+        self._batch_size = batch_size
+        self._shape = shape
+        self._element_type = element_type
+            
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def batch_size(self):
+        return self._batch_size
+    
+    @property
+    def shape(self):
+        return self._shape
+    
+    @property
+    def element_type(self):
+        return self._element_type

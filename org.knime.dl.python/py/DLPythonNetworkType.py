@@ -43,27 +43,57 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-import pandas as pd
+'''
+@author Marcel Wiedenmann, KNIME, Konstanz, Germany
+@author Christian Dietz, KNIME, Konstanz, Germany
+'''
 
-def get_specs_for(layerData):
-	specs = pd.DataFrame(index=range(len(layerData)), columns=('name', 'batch_size', 'shape', 'type'))
-	for i, mIn in enumerate(layerData):
-		shape = mIn.shape.as_list()
-		specs.iloc[i] = [mIn.name, shape[0], None, mIn.dtype.name]
-		specs.set_value(i, 'shape', mIn.shape.as_list()[1:])  # don't change
-	return specs.convert_objects(convert_numeric=True)
+import abc
 
-global input_specs
-input_specs = get_specs_for(model.inputs)
 
-global intermediate_output_specs
-intermediate_outputs = []
-for l in model.layers:
-	for idx in range (0, len(l.inbound_nodes)):
-		o = l.get_output_at(idx)
-		if o not in model.outputs:
-			intermediate_outputs.append(o)
-intermediate_output_specs = get_specs_for(intermediate_outputs)
+_network_types = {}
 
-global output_specs
-output_specs = get_specs_for(model.outputs)
+def get_network_type(identifier):
+    return _network_types[identifier]
+
+def add_network_type(network_type):
+    if network_type.identifier in _network_types:
+        raise ValueError("Network type'" + network_type.identifier + "' already exists.")
+    _network_types[network_type.identifier] = network_type
+    
+def remove_network_type(identifier):
+    if identifier in _network_types:
+        del _network_types[identifier]
+
+def get_model_network_type(model):
+    # TODO: we may want to do some more sophisticated matching here
+    model_type = str(type(model))
+    for _, network_type in _network_types.items():
+        for backend_module_name in network_type.backend_module_names:
+            if model_type.startswith("<class '" + backend_module_name):
+                return network_type
+    raise TypeError("No deep learning network type associated with Python type '" + model_type + "'.")
+
+
+class DLPythonNetworkType(object):
+    __metaclass__ = abc.ABCMeta
+    
+    def __init__(self, identifier, backend_module_names):
+        self._identifier = identifier
+        self._backend_module_names = backend_module_names
+    
+    @property
+    def identifier(self):
+        return self._identifier
+    
+    @property
+    def backend_module_names(self):
+        return self._backend_module_names
+
+    @abc.abstractproperty
+    def reader(self):
+        return
+    
+    @abc.abstractmethod
+    def wrap_model(self, model):
+        return
