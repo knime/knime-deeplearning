@@ -148,11 +148,11 @@ public class DLKerasDefaultNetworkReader implements DLKerasNetworkReader {
 			final String fileExtension = FilenameUtils.getExtension(filePath);
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
-				networkHandle = commands.loadNetworkFromH5(filePath);
+				networkHandle = commands.loadNetwork(filePath);
 			} else if (fileExtension.equals("json")) {
-				networkHandle = commands.loadNetworkSpecFromJson(filePath);
+				networkHandle = commands.loadNetworkFromJson(filePath);
 			} else if (fileExtension.equals("yaml")) {
-				networkHandle = commands.loadNetworkSpecFromYaml(filePath);
+				networkHandle = commands.loadNetworkFromYaml(filePath);
 			} else {
 				throw new DLException("Keras network reader only supports files of type h5, json and yaml.");
 			}

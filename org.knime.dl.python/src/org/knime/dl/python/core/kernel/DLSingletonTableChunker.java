@@ -44,59 +44,46 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.python.core.kernel;
 
-import java.io.IOException;
-
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.keras.core.data.DLKerasLayerDataSpecTableCreatorFactory;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.data.DLPythonTypeMap;
-import org.knime.dl.python.core.kernel.DLPythonCommands;
-import org.knime.dl.python.core.kernel.DLPythonCommandsConfig;
-import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasPythonCommands extends DLPythonCommands {
+public class DLSingletonTableChunker implements TableChunker {
 
-	public DLKerasPythonCommands() throws IOException {
-		this(DLPythonCommands.createKernel());
-	}
+	private final TableIterator m_iterator;
 
-	public DLKerasPythonCommands(final PythonKernel kernel) throws IOException {
-		super(kernel, new DLKerasPythonCommandsConfig());
-	}
+	private boolean m_hasNextChunk = true;
 
-	public DLPythonNetworkHandle loadNetworkFromJson(final String path) throws IOException {
-		m_kernel.execute(((DLKerasPythonCommandsConfig) m_config).getLoadFromJsonCode(path));
-		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
-	}
-
-	public DLPythonNetworkHandle loadNetworkFromYaml(final String path) throws IOException {
-		m_kernel.execute(((DLKerasPythonCommandsConfig) m_config).getLoadFromYamlCode(path));
-		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
+	public DLSingletonTableChunker(final TableIterator iterator) {
+		m_iterator = iterator;
 	}
 
 	@Override
-	public DLKerasNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLPythonTypeMap typeMap)
-			throws IOException {
-		m_kernel.execute(m_config.getExtractSpecsCode(handle));
-		final DLLayerDataSpec[] inputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonCommandsConfig.INPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
-		// final DLLayerDataSpec[] intermediateOutputSpecs =
-		// (DLLayerDataSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
-		final DLLayerDataSpec[] outputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonCommandsConfig.OUTPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
+	public boolean hasNextChunk() {
+		return m_hasNextChunk;
+	}
 
-		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
-		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasDefaultNetworkSpec(inputSpecs, new DLLayerDataSpec[0] /* TODO intermediateOutputSpecs */,
-				outputSpecs);
+	@Override
+	public TableIterator nextChunk(final int numRows) {
+		if (m_hasNextChunk) {
+			m_hasNextChunk = false;
+		}
+		return m_iterator;
+	}
+
+	@Override
+	public int getNumberRemainingRows() {
+		return m_iterator.getNumberRemainingRows();
+	}
+
+	@Override
+	public TableSpec getTableSpec() {
+		return m_iterator.getTableSpec();
 	}
 }

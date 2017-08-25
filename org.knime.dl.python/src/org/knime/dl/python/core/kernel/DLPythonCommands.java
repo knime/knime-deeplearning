@@ -54,15 +54,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
+import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
 import org.knime.dl.python.core.data.serde.DLSerializerFactory;
@@ -74,7 +77,6 @@ import org.knime.python.typeextension.PythonToKnimeExtensions;
 import org.knime.python.typeextension.Serializer;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
-import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
@@ -84,6 +86,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImp
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValueTableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
+import org.knime.python2.generic.ScriptingNodeUtils;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
 
@@ -91,9 +94,11 @@ import org.knime.python2.kernel.PythonKernelOptions;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLPythonCommands implements AutoCloseable {
+public abstract class DLPythonCommands implements AutoCloseable {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonCommands.class);
+
+	private static boolean testedInstallation = false;
 
 	public static PythonKernel createKernel() throws IOException {
 		return new PythonKernel(new PythonKernelOptions());
@@ -101,20 +106,39 @@ public class DLPythonCommands implements AutoCloseable {
 
 	protected final PythonKernel m_kernel;
 
-	public DLPythonCommands() throws IOException {
-		this(DLPythonCommands.createKernel());
+	protected final DLPythonCommandsConfig m_config;
+
+	protected DLPythonCommands(final PythonKernel kernel, final DLPythonCommandsConfig config) throws IOException {
+		m_kernel = kernel;
+		m_config = config;
+		if (!testedInstallation) {
+			if (!testInstallation()) {
+				throw new IOException("Python installation tests failed. "
+						+ "Please ensure that Python and all required packages are properly installed. "
+						+ "See log for details.");
+			}
+			testedInstallation = true;
+		}
 	}
 
-	public DLPythonCommands(final PythonKernel kernel) throws IOException {
-		m_kernel = kernel;
-	}
+	public abstract DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
+			final DLPythonTypeMap typeMap) throws IOException;
 
 	public PythonKernel getKernel() {
 		return m_kernel;
 	}
 
+	public DLPythonNetworkHandle loadNetwork(final String path) throws IOException {
+		m_kernel.execute(m_config.getLoadCode(path));
+		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
+	}
+
+	public void saveNetwork(final DLPythonNetworkHandle handle, final String path) throws IOException {
+		m_kernel.execute(m_config.getSaveCode(handle, path));
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public synchronized void setNetworkInputs(
+	public synchronized void setNetworkInputs(final DLPythonNetworkHandle handle, // TODO: implement handle
 			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input, final long batchSize)
 			throws IOException {
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
@@ -203,7 +227,15 @@ public class DLPythonCommands implements AutoCloseable {
 		}
 	}
 
-	public synchronized void getNetworkOutputs(
+	public void executeNetwork(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs)
+			throws IOException {
+		final String[] output = m_kernel.execute(m_config.getExecuteCode(handle, requestedOutputs));
+		if (!output[1].isEmpty()) {
+			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
+		}
+	}
+
+	public synchronized void getNetworkOutputs(final DLPythonNetworkHandle handle, // TODO: implement handle
 			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output) throws IOException {
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> out : output.entrySet()) {
 			final DLLayerDataSpec spec = out.getKey();
@@ -291,49 +323,12 @@ public class DLPythonCommands implements AutoCloseable {
 		m_kernel.putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
 	}
 
-	private static class DLSingletonTableChunker implements TableChunker {
-
-		private final TableIterator m_iterator;
-
-		private boolean m_hasNextChunk = true;
-
-		public DLSingletonTableChunker(final TableIterator iterator) {
-			m_iterator = iterator;
+	private boolean testInstallation() {
+		try {
+			m_kernel.execute(m_config.getTestInstallationCode());
+		} catch (final Exception e) {
+			return false;
 		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public boolean hasNextChunk() {
-			return m_hasNextChunk;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public TableIterator nextChunk(final int numRows) {
-			if (m_hasNextChunk) {
-				m_hasNextChunk = false;
-			}
-			return m_iterator;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public int getNumberRemainingRows() {
-			return m_iterator.getNumberRemainingRows();
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public TableSpec getTableSpec() {
-			return m_iterator.getTableSpec();
-		}
+		return true;
 	}
 }

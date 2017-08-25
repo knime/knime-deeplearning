@@ -44,59 +44,77 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.python.core.kernel;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Set;
 
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.keras.core.data.DLKerasLayerDataSpecTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.data.DLPythonTypeMap;
-import org.knime.dl.python.core.kernel.DLPythonCommands;
-import org.knime.dl.python.core.kernel.DLPythonCommandsConfig;
-import org.knime.python2.kernel.PythonKernel;
+import org.knime.dl.util.DLUtils;
+import org.osgi.framework.FrameworkUtil;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasPythonCommands extends DLPythonCommands {
+public abstract class DLPythonCommandsConfig {
 
-	public DLKerasPythonCommands() throws IOException {
-		this(DLPythonCommands.createKernel());
+	// String constants that are used on Python side:
+
+	public static final String DEFAULT_MODEL_NAME = "model";
+
+	public static final String INPUT_SPECS_NAME = "input_specs";
+
+	public static final String INTERMEDIATE_OUTPUT_SPECS_NAME = "intermediate_output_specs";
+
+	public static final String OUTPUT_SPECS_NAME = "output_specs";
+
+	public static final String INPUT_TABLE_NAME = "input_table";
+
+	public static final String OUTPUT_TABLE_NAME = "output_table";
+
+	public abstract String getTestInstallationCode();
+
+	public abstract String getLoadCode(final String path);
+
+	public String getSaveCode(final DLPythonNetworkHandle handle, final String path) {
+		return "import DLPythonNetwork\n" + //
+				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //
+				"network.save(r'" + path + "')";
 	}
 
-	public DLKerasPythonCommands(final PythonKernel kernel) throws IOException {
-		super(kernel, new DLKerasPythonCommandsConfig());
+	public String getExtractSpecsCode(final DLPythonNetworkHandle handle) throws IOException {
+		return "import DLPythonNetworkSpecExtractor\n" + //
+				"global " + INPUT_SPECS_NAME + "\n" + //
+				"global " + INTERMEDIATE_OUTPUT_SPECS_NAME + "\n" + //
+				"global " + OUTPUT_SPECS_NAME + "\n" + //
+				INPUT_SPECS_NAME + ", " + INTERMEDIATE_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + " = " + //
+				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + handle.getIdentifier() + "')";
 	}
 
-	public DLPythonNetworkHandle loadNetworkFromJson(final String path) throws IOException {
-		m_kernel.execute(((DLKerasPythonCommandsConfig) m_config).getLoadFromJsonCode(path));
-		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
+	public String getExecuteCode(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs) {
+		// TODO: add requestedOutputs functionality
+		return "import DLPythonNetwork\n" + //
+				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //
+				"in_data = {}\n" + //
+				"for input_spec in network.spec.input_specs:\n" + //
+				"	in_data[input_spec.name] = globals()[input_spec.name]\n" + //
+				"out_data = network.execute(in_data)\n" + //
+				"for name, data in out_data.items():\n" + //
+				"	globals()[name] = data";
 	}
 
-	public DLPythonNetworkHandle loadNetworkFromYaml(final String path) throws IOException {
-		m_kernel.execute(((DLKerasPythonCommandsConfig) m_config).getLoadFromYamlCode(path));
-		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
+	protected final File getSnippetFile(final String relativePath) throws IOException {
+		final String bundleName = FrameworkUtil.getBundle(getClass()).getSymbolicName();
+		return DLUtils.Files.getFileFromBundle(bundleName, relativePath);
 	}
 
-	@Override
-	public DLKerasNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLPythonTypeMap typeMap)
-			throws IOException {
-		m_kernel.execute(m_config.getExtractSpecsCode(handle));
-		final DLLayerDataSpec[] inputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonCommandsConfig.INPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
-		// final DLLayerDataSpec[] intermediateOutputSpecs =
-		// (DLLayerDataSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
-		final DLLayerDataSpec[] outputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonCommandsConfig.OUTPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
-
-		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
-		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasDefaultNetworkSpec(inputSpecs, new DLLayerDataSpec[0] /* TODO intermediateOutputSpecs */,
-				outputSpecs);
+	protected final String readSnippetContent(final String snippetPath) throws IOException {
+		return new String(Files.readAllBytes(Paths.get(snippetPath)), StandardCharsets.UTF_8);
 	}
 }

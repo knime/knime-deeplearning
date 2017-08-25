@@ -59,7 +59,6 @@ import org.knime.dl.keras.core.DLKerasDefaultNetworkReader;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.DLKerasPythonCommands;
-import org.knime.dl.keras.core.DLNumPyTypeMap;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 
 /**
@@ -69,8 +68,11 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 public class DLKerasExecutableNetwork extends
 		DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLKerasNetworkSpec> {
 
-	private DLKerasPythonCommands m_commands;
 	private final DLKerasNetwork m_network;
+
+	private DLKerasPythonCommands m_commands;
+
+	private DLPythonNetworkHandle m_handle;
 
 	public DLKerasExecutableNetwork(final DLKerasNetwork network) {
 		super(network.getSpec());
@@ -96,17 +98,11 @@ public class DLKerasExecutableNetwork extends
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = new DLKerasPythonCommands();
-			// TODO do we really need this?
-			final DLPythonNetworkHandle networkHandle =
-					DLKerasDefaultNetworkReader.load(m_network.getSource(), m_commands);
-			// TODO: this should be replaced by a "loadNetworkSpec" (i.e. only
-			// reload specs in kernel, don't transfer to
-			// Java)
-			m_commands.extractNetworkSpec(networkHandle, DLNumPyTypeMap.INSTANCE);
+			m_handle = DLKerasDefaultNetworkReader.load(m_network.getSource(), m_commands);
 		}
-		m_commands.setNetworkInputs(input, batchSize);
-		m_commands.executeNetwork(output.keySet());
-		m_commands.getNetworkOutputs(output);
+		m_commands.setNetworkInputs(m_handle, input, batchSize);
+		m_commands.executeNetwork(m_handle, output.keySet());
+		m_commands.getNetworkOutputs(m_handle, output);
 	}
 
 	@Override
