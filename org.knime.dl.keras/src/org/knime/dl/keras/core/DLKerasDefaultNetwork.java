@@ -54,7 +54,7 @@ import java.net.URL;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasDefaultNetwork implements DLKerasNetwork {
+public final class DLKerasDefaultNetwork implements DLKerasNetwork {
 
 	private final URL m_source;
 

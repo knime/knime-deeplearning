@@ -308,10 +308,11 @@ public abstract class DLPythonCommands implements AutoCloseable {
 		putParameter(key, new CellImpl(parameter));
 	}
 
+	/**
+	 * Closes the underlying {@link PythonKernel Python kernel}.
+	 */
 	@Override
 	public void close() throws Exception {
-		// NB: This method must not close anything else but the Python kernel.
-		// (There is client code that relies on that.) This should be API.
 		m_kernel.close();
 	}
 

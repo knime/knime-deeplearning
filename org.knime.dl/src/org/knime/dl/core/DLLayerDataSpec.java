@@ -54,11 +54,10 @@ import java.util.OptionalLong;
 /**
  * The spec of {@link DLLayerData}.
  * <P>
- * Deep learning spec objects are intended to be used throughout the application
- * and must not reference heavy data objects or external resources.
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
  * <P>
- * Implementations of this interface must override {@link #equals(Object)} and
- * {@link #hashCode()} in a value-based way.
+ * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
+ * objects or external resources. Spec objects are stateless.
  *
  * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany

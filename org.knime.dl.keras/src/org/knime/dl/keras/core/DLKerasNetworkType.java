@@ -60,7 +60,6 @@ import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkType;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -87,19 +86,19 @@ public final class DLKerasNetworkType extends DLAbstractNetworkType<DLKerasNetwo
 		return new DLNetworkSerializer<DLKerasNetwork, DLKerasNetworkSpec>() {
 
 			@Override
-			public void serialize(OutputStream out, DLKerasNetwork network) throws IOException {
+			public void serialize(final OutputStream out, final DLKerasNetwork network) throws IOException {
 				final ObjectOutputStream oos = new ObjectOutputStream(out);
 				oos.writeObject(network.getSource());
 				oos.flush();
 			}
 
 			@Override
-			public DLKerasNetwork deserialize(InputStream in, DLKerasNetworkSpec spec) throws IOException {
+			public DLKerasNetwork deserialize(final InputStream in, final DLKerasNetworkSpec spec) throws IOException {
 				final ObjectInputStream ois = new ObjectInputStream(in);
 				try {
 					return new DLKerasDefaultNetwork((URL) ois.readObject(), spec);
-				} catch (ClassNotFoundException e) {
-					throw new IOException("Error during deserialization of DLKerasNetwork.");
+				} catch (final ClassNotFoundException e) {
+					throw new IOException("Error during deserialization of a Keras network.");
 				}
 			}
 		};
@@ -110,19 +109,19 @@ public final class DLKerasNetworkType extends DLAbstractNetworkType<DLKerasNetwo
 		return new DLNetworkSpecSerializer<DLKerasNetworkSpec>() {
 
 			@Override
-			public void serialize(OutputStream out, DLKerasNetworkSpec spec) throws IOException {
+			public void serialize(final OutputStream out, final DLKerasNetworkSpec spec) throws IOException {
 				final ObjectOutputStream oos = new ObjectOutputStream(out);
 				oos.writeObject(spec);
 				oos.flush();
 			}
 
 			@Override
-			public DLKerasNetworkSpec deserialize(InputStream in) throws IOException {
+			public DLKerasNetworkSpec deserialize(final InputStream in) throws IOException {
 				final ObjectInputStream ois = new ObjectInputStream(in);
 				try {
 					return (DLKerasNetworkSpec) ois.readObject();
-				} catch (ClassNotFoundException e) {
-					throw new IOException("Error during deserialization of DLKerasNetworkSpec.");
+				} catch (final ClassNotFoundException e) {
+					throw new IOException("Error during deserialization of a Keras network spec.");
 				}
 			}
 		};

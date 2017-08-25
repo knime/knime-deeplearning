@@ -51,7 +51,6 @@ import java.net.URL;
 import org.knime.dl.core.DLExternalNetwork;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */

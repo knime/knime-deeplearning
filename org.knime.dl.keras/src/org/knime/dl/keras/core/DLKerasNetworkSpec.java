@@ -49,7 +49,6 @@ package org.knime.dl.keras.core;
 import org.knime.dl.python.core.DLPythonNetworkSpec;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */

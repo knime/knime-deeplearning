@@ -51,7 +51,7 @@ package org.knime.dl.keras.core.data;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLLayerDataShape;
-import org.knime.dl.keras.core.DLNumPyTypeMap;
+import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -60,78 +60,71 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.util.BitArray;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFactory {
 
-    private final DLNumPyTypeMap m_typeMap;
+	private final DLPythonTypeMap m_typeMap;
 
-    public DLKerasLayerDataSpecTableCreatorFactory(final DLNumPyTypeMap typeMap) {
-        m_typeMap = typeMap;
-    }
+	public DLKerasLayerDataSpecTableCreatorFactory(final DLPythonTypeMap typeMap) {
+		m_typeMap = typeMap;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TableCreator<DLDefaultLayerDataSpec[]> createTableCreator(final TableSpec spec, final int tableSize) {
-        return new DLKerasLayerDataSpecTableCreator(spec, tableSize, m_typeMap);
-    }
+	@Override
+	public TableCreator<DLDefaultLayerDataSpec[]> createTableCreator(final TableSpec spec, final int tableSize) {
+		return new DLKerasLayerDataSpecTableCreator(spec, tableSize, m_typeMap);
+	}
 
-    public static class DLKerasLayerDataSpecTableCreator implements TableCreator<DLDefaultLayerDataSpec[]> {
+	public static class DLKerasLayerDataSpecTableCreator implements TableCreator<DLDefaultLayerDataSpec[]> {
 
-        private static boolean checkTableSpec(final TableSpec spec) {
-            final String[] colNames = spec.getColumnNames();
-            final Type[] colTypes = spec.getColumnTypes();
-            return spec.getNumberColumns() == 4 //
-                && colNames[0].equals("name") //
-                && colNames[1].equals("batch_size") //
-                && colNames[2].equals("shape") //
-                && colNames[3].equals("type") //
-                && colTypes[0].equals(Type.STRING) //
-                && (colTypes[1].equals(Type.LONG) //
-                    || colTypes[1].equals(Type.INTEGER) //
-                    || colTypes[1].equals(Type.STRING) /* TODO */) //
-                && (colTypes[2].equals(Type.LONG_LIST) //
-                    || colTypes[2].equals(Type.INTEGER_LIST)) //
-                && colTypes[3].equals(Type.STRING);
-        }
+		private static boolean checkTableSpec(final TableSpec spec) {
+			final String[] colNames = spec.getColumnNames();
+			final Type[] colTypes = spec.getColumnTypes();
+			return spec.getNumberColumns() == 4 //
+					&& colNames[0].equals("name") //
+					&& colNames[1].equals("batch_size") //
+					&& colNames[2].equals("shape") //
+					&& colNames[3].equals("type") //
+					&& colTypes[0].equals(Type.STRING) //
+					&& (colTypes[1].equals(Type.LONG) //
+							|| colTypes[1].equals(Type.INTEGER) //
+							|| colTypes[1].equals(Type.STRING) /* TODO */) //
+					&& (colTypes[2].equals(Type.LONG_LIST) //
+							|| colTypes[2].equals(Type.INTEGER_LIST)) //
+					&& colTypes[3].equals(Type.STRING);
+		}
 
-        private final DLDefaultLayerDataSpec[] m_layerDataSpecs;
+		private final DLDefaultLayerDataSpec[] m_layerDataSpecs;
 
-        private int m_nextIdx;
+		private int m_nextIdx;
 
-        private final TableSpec m_tableSpec;
+		private final TableSpec m_tableSpec;
 
-        private final DLNumPyTypeMap m_typeMap;
+		private final DLPythonTypeMap m_typeMap;
 
-        public DLKerasLayerDataSpecTableCreator(final TableSpec spec, final int tableSize,
-            final DLNumPyTypeMap typeMap) {
-            if (!checkTableSpec(spec)) {
-                throw new IllegalStateException("Python side sent an invalid layer data specs table.");
-            }
-            m_layerDataSpecs = new DLDefaultLayerDataSpec[tableSize];
-            m_nextIdx = 0;
-            m_tableSpec = spec;
-            m_typeMap = typeMap;
-        }
+		public DLKerasLayerDataSpecTableCreator(final TableSpec spec, final int tableSize,
+				final DLPythonTypeMap typeMap) {
+			if (!checkTableSpec(spec)) {
+				throw new IllegalStateException("Python side sent an invalid layer data specs table.");
+			}
+			m_layerDataSpecs = new DLDefaultLayerDataSpec[tableSize];
+			m_nextIdx = 0;
+			m_tableSpec = spec;
+			m_typeMap = typeMap;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public synchronized void addRow(final Row row) {
-            final String layerDataName = row.getCell(0).getStringValue();
-            long layerBatchSize = -1;
-            if (!row.getCell(1).isMissing()) {
-                if (row.getCell(1).getColumnType().equals(Type.LONG)) {
-                    layerBatchSize = row.getCell(1).getLongValue();
-                } else if (row.getCell(1).getColumnType().equals(Type.INTEGER)) {
-                    layerBatchSize = row.getCell(1).getIntegerValue();
-                }
-            }
+		@Override
+		public synchronized void addRow(final Row row) {
+			final String layerDataName = row.getCell(0).getStringValue();
+			long layerBatchSize = -1;
+			if (!row.getCell(1).isMissing()) {
+				if (row.getCell(1).getColumnType().equals(Type.LONG)) {
+					layerBatchSize = row.getCell(1).getLongValue();
+				} else if (row.getCell(1).getColumnType().equals(Type.INTEGER)) {
+					layerBatchSize = row.getCell(1).getIntegerValue();
+				}
+			}
 			DLLayerDataShape layerDataShape = null;
 			if (!row.getCell(2).isMissing()) {
 				if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
@@ -170,22 +163,16 @@ public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFact
 				}
 			}
 			m_layerDataSpecs[m_nextIdx++] = spec;
-        }
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public TableSpec getTableSpec() {
-            return m_tableSpec;
-        }
+		@Override
+		public TableSpec getTableSpec() {
+			return m_tableSpec;
+		}
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DLDefaultLayerDataSpec[] getTable() {
-            return m_layerDataSpecs;
-        }
-    }
+		@Override
+		public DLDefaultLayerDataSpec[] getTable() {
+			return m_layerDataSpecs;
+		}
+	}
 }

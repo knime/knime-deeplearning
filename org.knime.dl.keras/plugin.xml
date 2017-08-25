@@ -14,6 +14,18 @@
       </DLLayerDataFactory>
    </extension>
    <extension
+         point="org.knime.dl.DLNetworkReader">
+      <DLNetworkReader
+            DLNetworkReader="org.knime.dl.keras.core.DLKerasDefaultNetworkReader">
+      </DLNetworkReader>
+   </extension>
+   <extension
+         point="org.knime.dl.DLNetworkType">
+      <DLNetworkType
+            DLNetworkType="org.knime.dl.keras.core.DLKerasNetworkType">
+      </DLNetworkType>
+   </extension>
+   <extension
          point="org.knime.python2.modules">
       <directory
             path="py/">
@@ -37,16 +49,4 @@
             factory-class="org.knime.dl.keras.base.nodes.reader.DLKerasReaderNodeFactory">
       </node>
   </extension>
-   <extension
-         point="org.knime.dl.DLNetworkReader">
-      <DLNetworkReader
-            DLNetworkReader="org.knime.dl.keras.core.DLKerasDefaultNetworkReader">
-      </DLNetworkReader>
-   </extension>
-   <extension
-         point="org.knime.dl.DLNetworkType">
-      <DLNetworkType
-            DLNetworkType="org.knime.dl.keras.core.DLKerasNetworkType">
-      </DLNetworkType>
-   </extension>
 </plugin>

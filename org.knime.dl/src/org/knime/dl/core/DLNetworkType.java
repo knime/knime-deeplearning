@@ -49,9 +49,8 @@ package org.knime.dl.core;
 import java.io.Serializable;
 
 /**
- * Implementations of this interface have to override {@link #hashCode()} and
- * {@link #equals(Object)} in a value-based way. Expected behavior is to just
- * delegate to the respective methods of the object returned by
+ * Implementations of this interface have to override {@link #hashCode()} and {@link #equals(Object)} in a value-based
+ * way. Expected behavior is to just delegate to the respective methods of the object returned by
  * {@link #getIdentifier()}, see {@link DLAbstractNetworkType}.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -70,5 +69,4 @@ public interface DLNetworkType<N extends DLNetwork<S>, S extends DLNetworkSpec> 
 	DLNetworkSerializer<N, S> getNetworkSerializer();
 
 	DLNetworkSpecSerializer<S> getNetworkSpecSerializer();
-
 }

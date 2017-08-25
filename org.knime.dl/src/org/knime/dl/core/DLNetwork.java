@@ -53,5 +53,6 @@ package org.knime.dl.core;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLNetwork<S extends DLNetworkSpec> {
+
 	S getSpec();
 }

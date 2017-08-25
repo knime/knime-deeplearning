@@ -78,8 +78,7 @@ import org.knime.dl.core.io.DLNetworkReaderRegistry;
 public class DLExternalNetworkPortObject extends FileStorePortObject implements DLNetworkPortObject {
 
 	/**
-	 * @param source
-	 *            <i>not</i> the relative path of the file store itself
+	 * @param source <i>not</i> the relative path of the file store itself
 	 */
 	public static FileStore createFileStoreForCopy(final URL source, final ExecutionContext exec) throws IOException {
 		final String ext = FilenameUtils.getExtension(source.getFile());
@@ -159,9 +158,9 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 			final ObjectInputStream ois = new ObjectInputStream(in);
 			final String id = ois.readUTF();
 			// TODO: cast safety, error msgs
-			portObject.m_reader = (DLNetworkReader<?, ?, URL>) DLNetworkReaderRegistry.getInstance()
-					.getNetworkReader(id)
-					.orElseThrow(() -> new IllegalStateException("No reader found for id '" + id + "'."));
+			portObject.m_reader =
+					(DLNetworkReader<?, ?, URL>) DLNetworkReaderRegistry.getInstance().getNetworkReader(id)
+							.orElseThrow(() -> new IllegalStateException("No reader found for id '" + id + "'."));
 			portObject.m_spec = (DLNetworkPortObjectSpec) spec;
 			return portObject;
 		}

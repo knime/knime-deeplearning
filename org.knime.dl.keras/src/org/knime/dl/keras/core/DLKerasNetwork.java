@@ -49,10 +49,10 @@ package org.knime.dl.keras.core;
 import org.knime.dl.python.core.DLPythonNetwork;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLKerasNetwork extends DLPythonNetwork<DLKerasNetworkSpec> {
-	// Marker interface
+
+	// NB: marker interface
 }

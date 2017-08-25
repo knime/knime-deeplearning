@@ -60,103 +60,88 @@ import org.knime.dl.python.core.data.DLPythonTypeMap;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLNumPyTypeMap implements DLPythonTypeMap {
-	
+
 	public static final DLNumPyTypeMap INSTANCE = new DLNumPyTypeMap();
 
-    private final HashMap<String, List<Class<?>>> m_byExternalType;
+	private final HashMap<String, List<Class<?>>> m_byExternalType;
 
-    private final HashMap<Class<?>, List<String>> m_byInternalType;
+	private final HashMap<Class<?>, List<String>> m_byInternalType;
 
-    /**
-     * Creates a new instance of this type map.
-     */
-    private DLNumPyTypeMap() {
-        m_byExternalType = new HashMap<>();
-        m_byInternalType = new HashMap<>();
-        // associate numpy types with Java types
-        registerMapping("bool", boolean.class);
-        registerMapping("int8", byte.class);
-        registerMapping("int16", short.class);
-        registerMapping("int32", int.class);
-        registerMapping("int64", long.class);
-        registerMapping("float16", float.class);
-        registerMapping("float32", float.class);
-        registerMapping("float64", double.class);
-        registerMapping("str", String.class);
-    }
+	/**
+	 * Creates a new instance of this type map.
+	 */
+	private DLNumPyTypeMap() {
+		m_byExternalType = new HashMap<>();
+		m_byInternalType = new HashMap<>();
+		// associate numpy types with Java types
+		registerMapping("bool", boolean.class);
+		registerMapping("int8", byte.class);
+		registerMapping("int16", short.class);
+		registerMapping("int32", int.class);
+		registerMapping("int64", long.class);
+		registerMapping("float16", float.class);
+		registerMapping("float32", float.class);
+		registerMapping("float64", double.class);
+		registerMapping("str", String.class);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void registerMapping(final String externalType, final Class<?> internalType)
-        throws IllegalArgumentException {
-        if (externalType == null || externalType.isEmpty()) {
-            throw new IllegalArgumentException("External type representation must not be null or empty.");
-        }
-        if (internalType == null) {
-            throw new IllegalArgumentException("Internal type  must not be null.");
-        }
+	@Override
+	public void registerMapping(final String externalType, final Class<?> internalType)
+			throws IllegalArgumentException {
+		if (externalType == null || externalType.isEmpty()) {
+			throw new IllegalArgumentException("External type representation must not be null or empty.");
+		}
+		if (internalType == null) {
+			throw new IllegalArgumentException("Internal type  must not be null.");
+		}
 
-        List<Class<?>> mappedInternals = m_byExternalType.get(externalType);
-        if (mappedInternals == null) {
-            mappedInternals = new ArrayList<>();
-            m_byExternalType.put(externalType, mappedInternals);
-        }
-        // NB: list traversals should be fine, we won't do this very often and lists won't be large
-        if (!mappedInternals.contains(internalType)) {
-            mappedInternals.add(internalType);
-        }
-        List<String> mappedExternals = m_byInternalType.get(internalType);
-        if (mappedExternals == null) {
-            mappedExternals = new ArrayList<>();
-            m_byInternalType.put(internalType, mappedExternals);
-        }
-        if (!mappedExternals.contains(externalType)) {
-            mappedExternals.add(externalType);
-        }
-    }
+		List<Class<?>> mappedInternals = m_byExternalType.get(externalType);
+		if (mappedInternals == null) {
+			mappedInternals = new ArrayList<>();
+			m_byExternalType.put(externalType, mappedInternals);
+		}
+		// NB: list traversals should be fine, we won't do this very often and lists won't be large
+		if (!mappedInternals.contains(internalType)) {
+			mappedInternals.add(internalType);
+		}
+		List<String> mappedExternals = m_byInternalType.get(internalType);
+		if (mappedExternals == null) {
+			mappedExternals = new ArrayList<>();
+			m_byInternalType.put(internalType, mappedExternals);
+		}
+		if (!mappedExternals.contains(externalType)) {
+			mappedExternals.add(externalType);
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<?> getPreferredInternalType(final String externalType) throws IllegalArgumentException {
-        // TODO: do we need some sort of matching to prioritize types?
-        return getInternalTypes(externalType).get(0);
-    }
+	@Override
+	public Class<?> getPreferredInternalType(final String externalType) throws IllegalArgumentException {
+		// TODO: do we need some sort of matching to prioritize types?
+		return getInternalTypes(externalType).get(0);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Class<?>> getInternalTypes(final String externalType) throws IllegalArgumentException {
-        final List<Class<?>> mappedInternals = m_byExternalType.get(externalType);
-        if (mappedInternals == null) {
-            throw new IllegalArgumentException("There is no matching internal type for'" + externalType + "'.");
-        }
-        return mappedInternals;
-    }
+	@Override
+	public List<Class<?>> getInternalTypes(final String externalType) throws IllegalArgumentException {
+		final List<Class<?>> mappedInternals = m_byExternalType.get(externalType);
+		if (mappedInternals == null) {
+			throw new IllegalArgumentException("There is no matching internal type for'" + externalType + "'.");
+		}
+		return mappedInternals;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPreferredExternalType(final Class<?> internalType) throws IllegalArgumentException {
-        // TODO: do we need some sort of matching to prioritize types?
-        return getExternalTypes(internalType).get(0);
-    }
+	@Override
+	public String getPreferredExternalType(final Class<?> internalType) throws IllegalArgumentException {
+		// TODO: do we need some sort of matching to prioritize types?
+		return getExternalTypes(internalType).get(0);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<String> getExternalTypes(final Class<?> internalType) throws IllegalArgumentException {
-        final List<String> mappedExternals = m_byInternalType.get(internalType);
-        if (mappedExternals == null) {
-            throw new IllegalArgumentException(
-                "There is no matching external type for '" + internalType.getName() + "'.");
-        }
-        return mappedExternals;
-    }
+	@Override
+	public List<String> getExternalTypes(final Class<?> internalType) throws IllegalArgumentException {
+		final List<String> mappedExternals = m_byInternalType.get(internalType);
+		if (mappedExternals == null) {
+			throw new IllegalArgumentException(
+					"There is no matching external type for '" + internalType.getName() + "'.");
+		}
+		return mappedExternals;
+	}
 }

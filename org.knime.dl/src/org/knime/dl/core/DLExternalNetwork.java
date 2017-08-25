@@ -47,12 +47,10 @@
 package org.knime.dl.core;
 
 /**
- *
- * @author Christian Dietz, KNIME
- * @author Marcel Wiedenmann, KNIME
+ * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLExternalNetwork<S extends DLNetworkSpec, R> extends DLNetwork<S> {
 
 	R getSource();
-
 }

@@ -77,100 +77,101 @@ import org.osgi.framework.Bundle;
  */
 public final class DLUtils {
 
-    private DLUtils() {
-    }
+	private DLUtils() {
+	}
 
-    public static class Files {
+	public static class Files {
 
-        public static File getFileFromBundle(final String bundleId, final String relativePath) throws IOException {
-            checkNotNullOrEmpty(bundleId);
-            checkNotNullOrEmpty(relativePath);
-            try {
-                final Bundle bundle = Platform.getBundle(bundleId);
-                final URL url = FileLocator.find(bundle, new Path(relativePath), null);
-                return url != null ? FileUtil.getFileFromURL(FileLocator.toFileURL(url)) : null;
-            } catch (final IOException e) {
-                throw new IOException(
-                    "Failed to get file '" + relativePath + "' from bundle '" + bundleId + "':" + e.getMessage(), e);
-            }
-        }
+		public static File getFileFromBundle(final String bundleName, final String relativePath) throws IOException {
+			checkNotNullOrEmpty(bundleName);
+			checkNotNullOrEmpty(relativePath);
+			try {
+				final Bundle bundle = Platform.getBundle(bundleName);
+				final URL url = FileLocator.find(bundle, new Path(relativePath), null);
+				return url != null ? FileUtil.getFileFromURL(FileLocator.toFileURL(url)) : null;
+			} catch (final IOException e) {
+				throw new IOException(
+						"Failed to get file '" + relativePath + "' from bundle '" + bundleName + "':" + e.getMessage(),
+						e);
+			}
+		}
 
-        public static String readAllUTF8(final File f) throws IOException {
-            checkNotNull(f);
-            return new String(java.nio.file.Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
-        }
-    }
+		public static String readAllUTF8(final File f) throws IOException {
+			checkNotNull(f);
+			return new String(java.nio.file.Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+		}
+	}
 
-    public static class Layers {
+	public static class Layers {
 
-        private Layers() {
-        }
-    }
+		private Layers() {
+		}
+	}
 
-    public static class Networks {
+	public static class Networks {
 
-        private Networks() {
-        }
+		private Networks() {
+		}
 
-        public static Optional<DLLayerDataSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
-            checkNotNullOrEmpty(name);
-            checkNotNull(networkSpec);
-            return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getIntermediateOutputSpecs(),
-                networkSpec.getOutputSpecs());
-        }
+		public static Optional<DLLayerDataSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
+			checkNotNullOrEmpty(name);
+			checkNotNull(networkSpec);
+			return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getIntermediateOutputSpecs(),
+					networkSpec.getOutputSpecs());
+		}
 
-        public static Optional<DLLayerDataSpec> findSpec(final String name, final DLLayerDataSpec[]... specs) {
-            checkNotNullOrEmpty(name);
-            checkNotNull(specs);
-            return Arrays.stream(specs).flatMap(s -> Arrays.stream(s)).filter(s -> s.getName().equals(name))
-                .findFirst();
-        }
-    }
+		public static Optional<DLLayerDataSpec> findSpec(final String name, final DLLayerDataSpec[]... specs) {
+			checkNotNullOrEmpty(name);
+			checkNotNull(specs);
+			return Arrays.stream(specs).flatMap(s -> Arrays.stream(s)).filter(s -> s.getName().equals(name))
+					.findFirst();
+		}
+	}
 
-    /**
-     * Utility class that helps checking whether the preconditions of a method or constructor invocation have been met
-     * by the caller. <br>
-     * This class complements the functionality of {@link com.google.common.base.Preconditions}.
-     */
-    public static class Preconditions {
+	/**
+	 * Utility class that helps checking whether the preconditions of a method or constructor invocation have been met
+	 * by the caller. <br>
+	 * This class complements the functionality of {@link com.google.common.base.Preconditions}.
+	 */
+	public static class Preconditions {
 
-        private Preconditions() {
-        }
+		private Preconditions() {
+		}
 
-        /**
-         * Ensures that a string passed as a parameter to the calling method is not null or empty.
-         *
-         * @param string a string
-         * @return the non-null and non-empty reference that was validated
-         * @throws NullPointerException if the input is null
-         * @throws IllegalArgumentException if the input is empty
-         */
-        public static String checkNotNullOrEmpty(final String string) {
-            if (string == null) {
-                throw new NullPointerException();
-            }
-            if (string.isEmpty()) {
-                throw new IllegalArgumentException();
-            }
-            return string;
-        }
-    }
+		/**
+		 * Ensures that a string passed as a parameter to the calling method is not null or empty.
+		 *
+		 * @param string a string
+		 * @return the non-null and non-empty reference that was validated
+		 * @throws NullPointerException if the input is null
+		 * @throws IllegalArgumentException if the input is empty
+		 */
+		public static String checkNotNullOrEmpty(final String string) {
+			if (string == null) {
+				throw new NullPointerException();
+			}
+			if (string.isEmpty()) {
+				throw new IllegalArgumentException();
+			}
+			return string;
+		}
+	}
 
-    public static class Shapes {
+	public static class Shapes {
 
-        private Shapes() {
-        }
+		private Shapes() {
+		}
 
-        public static boolean isFixed(final DLLayerDataShape shape) {
-            return shape instanceof DLFixedLayerDataShape;
-        }
+		public static boolean isFixed(final DLLayerDataShape shape) {
+			return shape instanceof DLFixedLayerDataShape;
+		}
 
-        public static Optional<long[]> getFixedShape(final DLLayerDataShape shape) {
-            if (isFixed(shape)) {
-                return Optional.of(((DLFixedLayerDataShape)shape).getShape());
-            }
-            return Optional.empty();
-        }
+		public static Optional<long[]> getFixedShape(final DLLayerDataShape shape) {
+			if (isFixed(shape)) {
+				return Optional.of(((DLFixedLayerDataShape) shape).getShape());
+			}
+			return Optional.empty();
+		}
 
 		public static OptionalLong getFixedSize(final DLLayerDataShape shape) {
 			final Optional<long[]> fixedShape = getFixedShape(shape);
@@ -180,15 +181,15 @@ public final class DLUtils {
 			return OptionalLong.empty();
 		}
 
-        public static long getSize(final long[] shape) {
-            if (shape == null || shape.length == 0) {
-                return 0;
-            }
-            long size = 1;
-            for (int i = 0; i < shape.length; i++) {
-                size *= shape[i];
-            }
-            return size;
-        }
-    }
+		public static long getSize(final long[] shape) {
+			if (shape == null || shape.length == 0) {
+				return 0;
+			}
+			long size = 1;
+			for (int i = 0; i < shape.length; i++) {
+				size *= shape[i];
+			}
+			return size;
+		}
+	}
 }

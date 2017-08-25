@@ -62,25 +62,22 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> impl
 
 	private static final long serialVersionUID = 1L;
 
-	private NT m_networkType;
+	private final NT m_networkType;
 
-	private DLLayerDataSpec[] m_inputSpecs;
+	private final DLLayerDataSpec[] m_inputSpecs;
 
-	private DLLayerDataSpec[] m_intermediateOutputSpecs;
+	private final DLLayerDataSpec[] m_intermediateOutputSpecs;
 
-	private DLLayerDataSpec[] m_outputSpecs;
+	private final DLLayerDataSpec[] m_outputSpecs;
 
-	private int m_hashCode;
+	private final int m_hashCode;
 
 	/**
 	 * Creates a new instance of this network spec.
 	 *
-	 * @param inputSpecs
-	 *            the input layer data specs, can be empty
-	 * @param intermediateOutputSpecs
-	 *            the intermediate output layer data specs, can be empty
-	 * @param outputSpecs
-	 *            the output layer data specs, can be empty
+	 * @param inputSpecs the input layer data specs, can be empty
+	 * @param intermediateOutputSpecs the intermediate output layer data specs, can be empty
+	 * @param outputSpecs the output layer data specs, can be empty
 	 */
 	protected DLAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
 			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
@@ -89,13 +86,6 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> impl
 		m_intermediateOutputSpecs = checkNotNull(intermediateOutputSpecs);
 		m_outputSpecs = checkNotNull(outputSpecs);
 		m_hashCode = hashCodeInternal();
-	}
-
-	/**
-	 * Empty framework constructor. May only be called from framework
-	 * constructors of derived classes.
-	 */
-	protected DLAbstractNetworkSpec() {
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);

@@ -53,13 +53,12 @@ import java.io.Serializable;
 /**
  * The spec of a {@link DLNetwork}.
  * <P>
- * Implementations of this interface must provide a public empty constructor.
+ * Implementations of this interface must ensure that all of their contents are {@link Serializable serializable}.
  * <P>
- * Implementations of this interface must override {@link #equals(Object)} and
- * {@link #hashCode()} in a value-based way.
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
  * <P>
- * Deep learning spec objects are intended to be used throughout the application
- * and must not reference heavy data objects or external resources.
+ * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
+ * objects or external resources. Spec objects are stateless.
  *
  * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
