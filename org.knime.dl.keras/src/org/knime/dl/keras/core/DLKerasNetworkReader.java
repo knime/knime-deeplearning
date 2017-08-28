@@ -55,5 +55,6 @@ import org.knime.dl.core.io.DLNetworkReader;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLKerasNetworkReader extends DLNetworkReader<DLKerasNetwork, DLKerasNetworkSpec, URL> {
+
 	// NB: marker interface
 }

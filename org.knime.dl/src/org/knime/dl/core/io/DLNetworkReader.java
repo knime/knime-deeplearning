@@ -49,8 +49,9 @@ package org.knime.dl.core.io;
 import java.io.IOException;
 
 import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNetworkType;
 
 /**
@@ -59,7 +60,7 @@ import org.knime.dl.core.DLNetworkType;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DLNetworkSpec, R> {
+public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R> {
 
 	DLNetworkType<N, S> getNetworkType();
 
@@ -68,24 +69,23 @@ public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DL
 	}
 
 	/**
-	 * Reads in a {@link DLNetwork network} from a URL.
+	 * Reads in a {@link DLNetwork network} from a source.
 	 *
-	 * @param source the source URL
+	 * @param source the source
 	 * @return the network
-	 * @throws IllegalArgumentException if the source is invalid or unavailable or does not contain a valid network
-	 *             definition
-	 * @throws IOException if failed to read in the network
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IOException if creation of the network implied I/O which failed (optional)
 	 */
-	N create(R source) throws IOException, IllegalArgumentException;
+	N create(R source) throws DLInvalidSourceException, IOException;
 
 	/**
-	 * Reads in a {@link DLNetwork network} from a URL.
+	 * Creates a {@link DLNetwork network} from a source and a spec.
 	 *
-	 * @param source the source URL
+	 * @param source the source
 	 * @return the network
-	 * @throws IllegalArgumentException if the source is invalid or unavailable or does not contain a valid network
-	 *             definition
-	 * @throws IOException if failed to read in the network
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IllegalArgumentException if the spec is invalid
+	 * @throws IOException if creation of the network implied I/O which failed (optional)
 	 */
-	N create(R source, S spec) throws IOException, IllegalArgumentException;
+	N create(R source, S spec) throws DLInvalidSourceException, IllegalArgumentException, IOException;
 }

@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.knime.dl.core.DLExternalNetworkLoader;
+import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -61,16 +63,18 @@ public interface DLPythonNetworkLoader extends DLExternalNetworkLoader<URL, DLPy
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @param kernel will not be closed by the method
+	 * @param context kernel will not be closed by the method
 	 */
 	@Override
-	DLPythonNetworkHandle load(URL source, PythonKernel kernel) throws IOException;
+	DLPythonNetworkHandle load(URL source, PythonKernel context)
+			throws DLInvalidSourceException, IllegalArgumentException, IOException;
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @param kernel will not be closed by the method
+	 * @param context kernel will not be closed by the method
 	 */
 	@Override
-	void save(URL destination, DLPythonNetworkHandle handle, PythonKernel context) throws IOException;
+	void save(DLPythonNetworkHandle handle, URL destination, PythonKernel context)
+			throws DLInvalidDestinationException, IllegalArgumentException, IOException;
 }

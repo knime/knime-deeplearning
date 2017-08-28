@@ -62,7 +62,44 @@ public interface DLExternalNetworkLoader<R, H, C> extends Serializable {
 	 */
 	String getDefaultModelFileExtension();
 
-	H load(R source, C context) throws IOException;
+	/**
+	 * Checks if a given source is valid.
+	 *
+	 * @param source the source
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 */
+	void validateSource(R source) throws DLInvalidSourceException;
 
-	void save(R destination, H handle, C context) throws IOException;
+	/**
+	 * Checks if a given destination is valid.
+	 *
+	 * @param destination the destination
+	 * @throws DLInvalidDestinationException if the destination is invalid
+	 */
+	void validateDestination(R destination) throws DLInvalidDestinationException;
+
+	/**
+	 * Loads a network handle from a source into a context.
+	 *
+	 * @param source the source
+	 * @param context the context
+	 * @return the network handle
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IllegalArgumentException if the context is invalid
+	 * @throws IOException if failed to load the network handle
+	 */
+	H load(R source, C context) throws DLInvalidSourceException, IllegalArgumentException, IOException;
+
+	/**
+	 * Saves a network handle from a context to a destination.
+	 *
+	 * @param handle the handle
+	 * @param destination the destination
+	 * @param context the context
+	 * @throws DLInvalidDestinationException if the destination is invalid
+	 * @throws IllegalArgumentException if handle or context are invalid
+	 * @throws IOException if failed to save the network handle
+	 */
+	void save(H handle, R destination, C context)
+			throws DLInvalidDestinationException, IllegalArgumentException, IOException;
 }

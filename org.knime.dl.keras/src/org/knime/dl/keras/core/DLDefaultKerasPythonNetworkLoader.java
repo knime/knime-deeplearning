@@ -46,10 +46,15 @@
  */
 package org.knime.dl.keras.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.python2.kernel.PythonKernel;
@@ -70,17 +75,30 @@ public class DLDefaultKerasPythonNetworkLoader implements DLPythonNetworkLoader 
 	}
 
 	@Override
-	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel) throws IOException {
-		final DLKerasPythonCommands commands = new DLKerasPythonCommands(kernel);
+	public void validateSource(final URL source) throws DLInvalidSourceException {
+		DLKerasDefaultNetworkReader.validateSource(source);
+	}
+
+	@Override
+	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
+		DLKerasDefaultNetworkReader.validateDestination(destination);
+	}
+
+	@Override
+	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel)
+			throws DLInvalidSourceException, IllegalArgumentException, IOException {
+		final DLKerasPythonCommands commands = new DLKerasPythonCommands(checkNotNull(kernel));
 		final DLPythonNetworkHandle networkHandle = DLKerasDefaultNetworkReader.load(source, commands);
 		return networkHandle;
 	}
 
 	@Override
-	public void save(final URL destination, final DLPythonNetworkHandle handle, final PythonKernel kernel)
-			throws IOException {
+	public void save(final DLPythonNetworkHandle handle, final URL destination, final PythonKernel kernel)
+			throws DLInvalidDestinationException, IllegalArgumentException, IOException {
 		@SuppressWarnings("resource") // keep kernel open
-		final DLKerasPythonCommands commands = new DLKerasPythonCommands(kernel);
-		commands.saveNetwork(handle, FileUtil.getFileFromURL(destination).getAbsolutePath());
+		final DLKerasPythonCommands commands = new DLKerasPythonCommands(checkNotNull(kernel));
+		DLKerasDefaultNetworkReader.validateDestination(destination);
+		final File destinationFile = FileUtil.getFileFromURL(destination);
+		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
 	}
 }
