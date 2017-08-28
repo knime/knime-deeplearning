@@ -95,19 +95,20 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	}
 
 	private DLExternalNetwork<?, URL> m_network;
+
 	private DLNetworkPortObjectSpec m_spec;
 
 	// internally used stuff
 	private DLNetworkReader<?, ?, URL> m_reader;
 
-	public <N extends DLExternalNetwork<S, URL>, S extends DLNetworkSpec> DLExternalNetworkPortObject(final N network,
-			final DLNetworkReader<N, S, URL> reader, final FileStore store) throws IOException {
+	public <N extends DLExternalNetwork<S, URL>, S extends DLExternalNetworkSpec<URL>> DLExternalNetworkPortObject(
+			final N network, final DLNetworkReader<N, S, URL> reader, final FileStore store) throws IOException {
 		super(Collections.singletonList(store));
 		m_reader = reader;
 		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
 		m_network = network;
 
-		// Actually the framework should do that for us, but it doesn't
+		// actually, the framework should do that for us, but it doesn't
 		flushToFileStore();
 	}
 
@@ -118,7 +119,7 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 		// fields get populated by serializer
 	}
 
-	// TODO not called by framework
+	// TODO: not called by framework, should be
 	@Override
 	protected void flushToFileStore() throws IOException {
 		final File fileStoreFile = getFileStore(0).getFile();
@@ -160,9 +161,9 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
 			// TODO
 			out.putNextEntry(new ZipEntry("dl-port-object"));
-			final ObjectOutputStream oos = new ObjectOutputStream(out);
-			oos.writeUTF(portObject.m_reader.getIdentifier());
-			oos.flush();
+			final ObjectOutputStream objOut = new ObjectOutputStream(out);
+			objOut.writeUTF(portObject.m_reader.getIdentifier());
+			objOut.flush();
 		}
 
 		@Override
@@ -170,12 +171,13 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
 			final DLExternalNetworkPortObject portObject = new DLExternalNetworkPortObject();
 			in.getNextEntry();
-			final ObjectInputStream ois = new ObjectInputStream(in);
-			final String id = ois.readUTF();
-			// TODO: cast safety, error msgs
-			portObject.m_reader =
-					(DLNetworkReader<?, ?, URL>) DLNetworkReaderRegistry.getInstance().getNetworkReader(id)
-							.orElseThrow(() -> new IllegalStateException("No reader found for id '" + id + "'."));
+			final ObjectInputStream objIn = new ObjectInputStream(in);
+			final String id = objIn.readUTF();
+			@SuppressWarnings("unchecked") // if this cast fails, there is an implementation error in the registry
+			final DLNetworkReader<?, ?, URL> reader = (DLNetworkReader<?, ?, URL>) DLNetworkReaderRegistry.getInstance()
+					.getNetworkReader(id).orElseThrow(() -> new IllegalStateException(
+							"Failed to load deep learning network. No network reader found for id '" + id + "'."));
+			portObject.m_reader = reader;
 			portObject.m_spec = (DLNetworkPortObjectSpec) spec;
 			return portObject;
 		}

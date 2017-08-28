@@ -76,6 +76,7 @@ import org.knime.dl.core.DLNetworkTypeRegistry;
 public class DLDefaultNetworkPortObject extends AbstractPortObject implements DLNetworkPortObject {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
+
 	private static final String ZIP_ENTRY_NAME = "DLExternalNetworkPortObject";
 
 	private DLNetworkPortObjectSpec m_spec;
@@ -85,10 +86,8 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 	/**
 	 * Creates a new instance of this port object. s
 	 *
-	 * @param networkReference
-	 *            the source of the network
-	 * @param spec
-	 *            the corresponding port object spec
+	 * @param networkReference the source of the network
+	 * @param spec the corresponding port object spec
 	 */
 	public DLDefaultNetworkPortObject(final DLNetwork<?> network) {
 		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
@@ -123,9 +122,9 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 		final ObjectOutputStream objOut = new ObjectOutputStream(out);
 		final DLNetworkType<?, ?> type = m_network.getSpec().getNetworkType();
 		objOut.writeUTF(type.getIdentifier());
-		@SuppressWarnings({ "unchecked" })
-		final DLNetworkSerializer<DLNetwork<?>, ?> ser = (DLNetworkSerializer<DLNetwork<?>, ?>) type
-				.getNetworkSerializer();
+		@SuppressWarnings({ "unchecked" }) // serializer is fetched from network's type - they must match
+		final DLNetworkSerializer<DLNetwork<?>, ?> ser =
+				(DLNetworkSerializer<DLNetwork<?>, ?>) type.getNetworkSerializer();
 		ser.serialize(objOut, m_network);
 	}
 
@@ -135,9 +134,11 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 		in.getNextEntry();
 		m_spec = (DLNetworkPortObjectSpec) spec;
 		final ObjectInputStream objIn = new ObjectInputStream(in);
-		@SuppressWarnings("unchecked")
+		final String id = objIn.readUTF();
+		@SuppressWarnings("unchecked") // if this cast fails, there is an implementation error in the registry
 		final DLNetworkType<?, DLNetworkSpec> type = (DLNetworkType<?, DLNetworkSpec>) DLNetworkTypeRegistry
-				.getInstance().getNetworkType(objIn.readUTF()).orElseThrow(() -> new IOException(""));
+				.getInstance().getNetworkType(id).orElseThrow(() -> new IllegalStateException(
+						"Failed to load deep learning network. No network type found for id '" + id + "'."));
 		m_network = type.getNetworkSerializer().deserialize(objIn, m_spec.getNetworkSpec());
 	}
 

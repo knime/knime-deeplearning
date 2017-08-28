@@ -156,7 +156,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			if (!(networkType instanceof DLPythonNetworkType)) {
 				throw new IllegalStateException("Deep learning network type '" + networkTypeIdentifier
 						+ "' associated with Python network '" + outputNetworkName
-						+ "' does not seem to be Python compatible. This is an implementation error");
+						+ "' does not seem to be Python compatible. This is an implementation error.");
 			}
 			final DLPythonNetworkLoader networkLoader = ((DLPythonNetworkType<?, ?>) networkType).getLoader();
 			final FileStore fileStore = DLExternalNetworkPortObject
@@ -173,7 +173,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 					(DLNetworkReader<DLPythonNetwork<DLPythonNetworkSpec>, DLPythonNetworkSpec, URL>) DLNetworkReaderRegistry
 							.getInstance().getNetworkReadersForType(networkType).stream().findFirst()
 							.orElseThrow(() -> new IllegalStateException("No reader could be found for network type '"
-									+ networkType.getIdentifier() + "'."));
+									+ networkType.getIdentifier() + "'. This is an implementation error."));
 
 			addNewVariables(variables);
 
