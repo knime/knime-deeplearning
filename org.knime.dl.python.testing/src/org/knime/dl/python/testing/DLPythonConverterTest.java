@@ -77,13 +77,16 @@ import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
 import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLExternalNetworkLoader;
+import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLLayerData;
 import org.knime.dl.core.DLLayerDataFactory;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNetworkSpecSerializer;
-import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
@@ -250,7 +253,8 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType> {
+	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType>
+			implements DLExternalNetworkSpec<String> {
 
 		private static final long serialVersionUID = 1L;
 
@@ -271,7 +275,7 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetworkType implements DLNetworkType<DLBazNetwork, DLBazNetworkSpec> {
+	static class DLBazNetworkType implements DLExternalNetworkType<DLBazNetwork, DLBazNetworkSpec, String> {
 
 		private static final long serialVersionUID = 1L;
 
@@ -283,6 +287,11 @@ public class DLPythonConverterTest {
 		@Override
 		public String getIdentifier() {
 			return getClass().getCanonicalName();
+		}
+
+		@Override
+		public DLExternalNetworkLoader<String, ?, ?> getLoader() {
+			throw new RuntimeException("not yet implemented"); // TODO: NYI
 		}
 
 		@Override
@@ -304,7 +313,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLBazNetwork create(final String source) throws IllegalArgumentException, IOException {
+		public DLBazNetwork create(final String source) throws DLInvalidSourceException, IOException {
 			final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
 			inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
 					float.class);
@@ -319,7 +328,7 @@ public class DLPythonConverterTest {
 
 		@Override
 		public DLBazNetwork create(final String source, final DLBazNetworkSpec spec)
-				throws IOException, IllegalArgumentException {
+				throws DLInvalidSourceException, IllegalArgumentException, IOException {
 			return new DLBazNetwork(source, spec);
 		}
 	}
