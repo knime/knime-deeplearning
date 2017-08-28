@@ -55,10 +55,14 @@ import java.util.zip.ZipEntry;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.AbstractPortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
+import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
@@ -69,9 +73,9 @@ import org.knime.dl.core.DLNetworkTypeRegistry;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-
 public class DLDefaultNetworkPortObject extends AbstractPortObject implements DLNetworkPortObject {
 
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
 	private static final String ZIP_ENTRY_NAME = "DLExternalNetworkPortObject";
 
 	private DLNetworkPortObjectSpec m_spec;
@@ -104,7 +108,11 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 	}
 
 	@Override
-	public DLNetwork<?> getNetwork() {
+	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
+		if (m_network instanceof DLExternalNetwork) {
+			// check if network source is still available
+			validateNetworkSource((DLExternalNetwork<?, ?>) m_network);
+		}
 		return m_network;
 	}
 
@@ -131,6 +139,17 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 		final DLNetworkType<?, DLNetworkSpec> type = (DLNetworkType<?, DLNetworkSpec>) DLNetworkTypeRegistry
 				.getInstance().getNetworkType(objIn.readUTF()).orElseThrow(() -> new IOException(""));
 		m_network = type.getNetworkSerializer().deserialize(objIn, m_spec.getNetworkSpec());
+	}
+
+	private <A> void validateNetworkSource(final DLExternalNetwork<? extends DLExternalNetworkSpec<A>, A> net)
+			throws DLInvalidSourceException {
+		// we want to fail fast in case the network is missing
+		try {
+			net.getSpec().getNetworkType().getLoader().validateSource(net.getSource());
+		} catch (final DLInvalidSourceException e) {
+			LOGGER.debug("Source validation failed. Invalid source: '" + net.getSource().toString() + "'.", e);
+			throw e;
+		}
 	}
 
 	// KNIME

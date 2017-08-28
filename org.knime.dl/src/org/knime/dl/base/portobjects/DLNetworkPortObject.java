@@ -48,11 +48,14 @@
  */
 package org.knime.dl.base.portobjects;
 
+import java.io.IOException;
+
 import javax.swing.JComponent;
 
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
 
 /**
@@ -77,8 +80,10 @@ public interface DLNetworkPortObject extends PortObject {
 	 * Returns the contained {@link DLNetwork}.
 	 *
 	 * @return the network
+	 * @throws DLInvalidSourceException if network source has become unavailable or invalid
+	 * @throws IOException if retrieving the network implied I/O which failed (optional)
 	 */
-	DLNetwork<?> getNetwork();
+	DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException;
 
 	@Override
 	default String getSummary() {

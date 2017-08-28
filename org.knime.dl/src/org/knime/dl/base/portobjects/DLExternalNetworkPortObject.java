@@ -62,13 +62,15 @@ import org.knime.core.data.filestore.FileStorePortObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.io.DLNetworkReader;
 import org.knime.dl.core.io.DLNetworkReaderRegistry;
 
@@ -77,6 +79,8 @@ import org.knime.dl.core.io.DLNetworkReaderRegistry;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLExternalNetworkPortObject extends FileStorePortObject implements DLNetworkPortObject {
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
 
 	/**
 	 * @param source <i>not</i> the relative path of the file store itself
@@ -126,16 +130,19 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	}
 
 	@Override
-	public DLNetwork<?> getNetwork() {
+	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
 		if (m_network == null) {
 			try {
-				// TODO type-safety
-				m_network = ((DLNetworkReader) m_reader).create(getFileStore(0).getFile().toURI().toURL(),
-						m_spec.getNetworkSpec());
-			} catch (IllegalArgumentException | IOException e) {
-				// TODO exception handling etc...
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// TODO: type safety
+				m_network = ((DLNetworkReader<?, DLExternalNetworkSpec<URL>, URL>) m_reader).create(
+						getFileStore(0).getFile().toURI().toURL(),
+						(DLExternalNetworkSpec<URL>) m_spec.getNetworkSpec());
+			} catch (final DLInvalidSourceException e) {
+				LOGGER.debug(e.getMessage(), e);
+				throw e;
+			} catch (final IOException e) {
+				LOGGER.debug("Failed to load deep learning network from file store.", e);
+				throw e;
 			}
 		}
 		return m_network;
