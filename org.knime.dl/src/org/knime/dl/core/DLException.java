@@ -46,28 +46,17 @@
  */
 package org.knime.dl.core;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 /**
- * Deep learning specific unchecked exception which message is intended to be presented to the user.
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLException extends RuntimeException {
+public interface DLException {
 
-	private static final long serialVersionUID = 1L;
-
-	public DLException(final String message) {
-		super(checkNotNullOrEmpty(message));
-	}
-
-	public DLException(final String message, final Throwable cause) {
-		super(checkNotNullOrEmpty(message), cause);
-	}
-
-	public DLException(final String message, final Throwable cause, final boolean enableSuppression,
-			final boolean writableStackTrace) {
-		super(checkNotNullOrEmpty(message), cause, enableSuppression, writableStackTrace);
-	}
+	/**
+	 * Returns the detail message string of this exception.
+	 *
+	 * @return the detail message string of this {@link DLException} instance. Must neither be null nor empty.
+	 * @see Throwable#getMessage()
+	 */
+	String getMessage();
 }

@@ -52,7 +52,7 @@ import org.knime.dl.core.DLException;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidNetworkOutputException extends DLException {
+public class DLInvalidNetworkOutputException extends RuntimeException implements DLException {
 
 	private static final long serialVersionUID = 1L;
 

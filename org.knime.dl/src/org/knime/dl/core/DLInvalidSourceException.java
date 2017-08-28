@@ -44,28 +44,25 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
-import org.knime.dl.core.DLException;
+import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
+
+import java.io.IOException;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidNetworkInputException extends RuntimeException implements DLException {
+public class DLInvalidSourceException extends IOException implements DLException {
 
 	private static final long serialVersionUID = 1L;
 
-	public DLInvalidNetworkInputException(final String message) {
-		super(message);
+	public DLInvalidSourceException(final String message) {
+		super(checkNotNullOrEmpty(message));
 	}
 
-	public DLInvalidNetworkInputException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
-
-	public DLInvalidNetworkInputException(final String message, final Throwable cause, final boolean enableSuppression,
-			final boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
+	public DLInvalidSourceException(final String message, final Throwable cause) {
+		super(checkNotNullOrEmpty(message), cause);
 	}
 }
