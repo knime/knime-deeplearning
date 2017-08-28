@@ -199,9 +199,9 @@ final class DLExecutorInputPanel extends JPanel {
 		m_cfg.saveToSettings(settings);
 		final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
 		if (filter.getIncludes().length > inputSize) {
-			throw new InvalidSettingsException(
-					"More columns selected (" + filter.getIncludes().length + ") than input neurons available ("
-							+ inputSize + ") for input '" + m_inputDataSpec.getName() + "'.");
+			throw new InvalidSettingsException("More input columns selected (" + filter.getIncludes().length
+					+ ") than input neurons available (" + inputSize + ") for input '" + m_inputDataSpec.getName()
+					+ "'. Try removing some columns from the selection.");
 		}
 	}
 
