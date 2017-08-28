@@ -162,7 +162,11 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			final FileStore fileStore = DLExternalNetworkPortObject
 					.createFileStoreForSaving(networkLoader.getDefaultModelFileExtension(), exec);
 			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
-			networkLoader.save(fileStoreURL, new DLPythonNetworkHandle(outputNetworkName), kernel);
+			networkLoader.save(new DLPythonNetworkHandle(outputNetworkName), fileStoreURL, kernel);
+			if (!fileStore.getFile().exists()) {
+				throw new IllegalStateException(
+						"Failed to save output deep learning network '" + outputNetworkName + "'.");
+			}
 
 			@SuppressWarnings("unchecked") // if this cast fails, it is a registration error of the respective back end
 			final DLNetworkReader<DLPythonNetwork<DLPythonNetworkSpec>, DLPythonNetworkSpec, URL> networkReader =

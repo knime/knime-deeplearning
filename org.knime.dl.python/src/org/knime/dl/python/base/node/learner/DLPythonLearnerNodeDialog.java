@@ -47,6 +47,8 @@
  */
 package org.knime.dl.python.base.node.learner;
 
+import java.io.IOException;
+
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.DataAwareNodeDialogPane;
 import org.knime.core.node.InvalidSettingsException;
@@ -117,7 +119,13 @@ final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 		if (portObject == null) {
 			throw new NotConfigurableException("Input deep learning network port object is missing.");
 		}
-		if (!(portObject.getNetwork() instanceof DLPythonNetwork)) {
+		final DLPythonNetwork<? extends DLPythonNetworkSpec> network;
+		try {
+			network = (DLPythonNetwork<?>) portObject.getNetwork();
+		} catch (final IOException e) {
+			throw new NotConfigurableException(e.getMessage());
+		}
+		if (!(network instanceof DLPythonNetwork)) {
 			throw new NotConfigurableException("Input deep learning network is not Python compatible.");
 		}
 		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonLearnerNodeModel.IN_DATA_PORT_IDX];
@@ -140,8 +148,6 @@ final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 			public void prepareWorkspace(final PythonKernel kernel) {
 				try {
 					NodeContext.pushContext(DLPythonLearnerNodeDialog.this.getNodeContext());
-					final DLPythonNetwork<? extends DLPythonNetworkSpec> network =
-							(DLPythonNetwork<?>) portObject.getNetwork();
 					DLPythonLearnerNodeModel.setupNetwork(network, kernel);
 					m_sourceCodePanel.updateVariables();
 				} catch (final Exception e) {

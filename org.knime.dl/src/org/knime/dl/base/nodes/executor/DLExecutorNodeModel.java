@@ -594,10 +594,14 @@ final class DLExecutorNodeModel extends NodeModel {
 					}
 					batch.clear();
 				}
-			} catch (final DLException e) {
-				throw new RuntimeException(e.getMessage() + " See log for details.", e);
 			} catch (final Exception e) {
-				throw new RuntimeException("Error occured during execution of network model. See log for details.", e);
+				String message;
+				if (e instanceof DLException) {
+					message = e.getMessage();
+				} else {
+					message = "Error occured during execution of network model. See log for details.";
+				}
+				throw new RuntimeException(message, e);
 			} finally {
 				rowInput.close();
 				rowOutput.close();

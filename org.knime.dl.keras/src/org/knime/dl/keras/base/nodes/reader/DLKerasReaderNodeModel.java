@@ -73,6 +73,8 @@ import org.knime.dl.base.portobjects.DLDefaultNetworkPortObject;
 import org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec;
 import org.knime.dl.base.portobjects.DLExternalNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.io.DLNetworkReaderRegistry;
 import org.knime.dl.keras.core.DLKerasNetwork;
@@ -121,6 +123,17 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		if (filePath == null || filePath.isEmpty()) {
 			throw new InvalidSettingsException("Empty file path.");
 		}
+		final URL url;
+		try {
+			url = FileUtil.toURL(filePath);
+		} catch (InvalidPathException | MalformedURLException e) {
+			throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
+		}
+		try {
+			DLKerasNetworkType.INSTANCE.getLoader().validateSource(url);
+		} catch (final DLInvalidSourceException e) {
+			throw new InvalidSettingsException(e.getMessage(), e);
+		}
 		if (!filePath.equals(m_lastFilePath)) {
 			final DLNetworkType<?, ?> networkType = DLKerasNetworkType.INSTANCE;
 			m_reader = (DLKerasNetworkReader) DLNetworkReaderRegistry.getInstance()
@@ -128,17 +141,16 @@ final class DLKerasReaderNodeModel extends NodeModel {
 					.orElseThrow(() -> new InvalidSettingsException(
 							"Failed to read deep learning network specification. No reader found for network type '"
 									+ networkType.getIdentifier() + "'."));
-			final URL url;
-			try {
-				url = FileUtil.toURL(filePath);
-			} catch (InvalidPathException | MalformedURLException e) {
-				throw new InvalidSettingsException("Invalid or unsupported file path. See log for details.", e);
-			}
 			try {
 				m_network = m_reader.create(url);
 			} catch (final Exception e) {
-				throw new InvalidSettingsException(
-						"Failed to read deep learning network specification. See log for details.", e);
+				String message;
+				if (e instanceof DLException) {
+					message = e.getMessage();
+				} else {
+					message = "Failed to read deep learning network specification. See log for details.";
+				}
+				throw new InvalidSettingsException(message, e);
 			}
 			m_lastFilePath = filePath;
 		}
@@ -148,7 +160,12 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
 		if (m_lastFilePath == null) {
-			throw new InvalidSettingsException("Node is not yet configured, please configure first.");
+			throw new RuntimeException("Node is not yet configured, please configure first.");
+		}
+		try {
+			DLKerasNetworkType.INSTANCE.getLoader().validateSource(m_network.getSource());
+		} catch (final DLInvalidSourceException e) {
+			throw new RuntimeException(e.getMessage(), e);
 		}
 		final PortObject out;
 		if (m_smCopyNetwork.getBooleanValue()) {
@@ -163,8 +180,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO check if input file still exists (see
-		// FileReaderNodeModel#loadInternals(File,ExecutionMonitor))
+		// no op
 	}
 
 	@Override
