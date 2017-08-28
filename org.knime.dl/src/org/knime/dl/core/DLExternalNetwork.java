@@ -50,7 +50,7 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetwork<S extends DLNetworkSpec, R> extends DLNetwork<S> {
+public interface DLExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLNetwork<S> {
 
 	R getSource();
 }

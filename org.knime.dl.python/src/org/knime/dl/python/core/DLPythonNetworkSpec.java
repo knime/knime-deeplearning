@@ -46,13 +46,15 @@
  */
 package org.knime.dl.python.core;
 
+import java.net.URL;
+
 import org.knime.dl.core.DLExternalNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkSpec extends DLExternalNetworkSpec {
+public interface DLPythonNetworkSpec extends DLExternalNetworkSpec<URL> {
 
 	@Override
 	DLPythonNetworkType<?, ?> getNetworkType();

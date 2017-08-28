@@ -50,8 +50,8 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkType<N extends DLExternalNetwork<S, ?>, S extends DLExternalNetworkSpec>
+public interface DLExternalNetworkType<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
 		extends DLNetworkType<N, S> {
 
-	DLExternalNetworkLoader<?, ?, ?> getLoader();
+	DLExternalNetworkLoader<R, ?, ?> getLoader();
 }

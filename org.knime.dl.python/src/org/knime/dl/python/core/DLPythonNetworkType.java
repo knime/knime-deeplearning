@@ -46,6 +46,8 @@
  */
 package org.knime.dl.python.core;
 
+import java.net.URL;
+
 import org.knime.dl.core.DLExternalNetworkType;
 
 /**
@@ -53,7 +55,7 @@ import org.knime.dl.core.DLExternalNetworkType;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S> {
+		extends DLExternalNetworkType<N, S, URL> {
 
 	@Override
 	DLPythonNetworkLoader getLoader();
