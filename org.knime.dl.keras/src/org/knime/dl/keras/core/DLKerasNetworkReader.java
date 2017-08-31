@@ -46,15 +46,15 @@
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
-
-import org.knime.dl.core.io.DLNetworkReader;
+import org.knime.dl.python.core.DLPythonNetworkReader;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkReader extends DLNetworkReader<DLKerasNetwork, DLKerasNetworkSpec, URL> {
+public interface DLKerasNetworkReader<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec>
+		extends DLPythonNetworkReader<N, S> {
 
-	// NB: marker interface
+	@Override
+	DLKerasNetworkType<N, S> getNetworkType();
 }

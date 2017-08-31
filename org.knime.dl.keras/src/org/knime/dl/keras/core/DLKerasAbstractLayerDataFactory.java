@@ -78,12 +78,7 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasDefaultLayerDataFactory implements DLLayerDataFactory {
-
-	@Override
-	public DLKerasNetworkType getNetworkType() {
-		return DLKerasNetworkType.INSTANCE;
-	}
+public abstract class DLKerasAbstractLayerDataFactory implements DLLayerDataFactory {
 
 	@Override
 	public Class<? extends DLWritableBuffer> getWritableBufferType(final DLLayerDataSpec spec) {
@@ -110,8 +105,8 @@ public class DLKerasDefaultLayerDataFactory implements DLLayerDataFactory {
 	@Override
 	public DLLayerDataBatch<? extends DLWritableBuffer> createWritableLayerDataBatch(final DLLayerDataSpec spec,
 			final long batchSize) throws IllegalArgumentException {
-		final DLLayerData<DLWritableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
-				DLWritableBuffer.class);
+		final DLLayerData<DLWritableBuffer>[] layerData =
+				createLayerDataInternal(spec, batchSize, DLWritableBuffer.class);
 		return new DLDefaultLayerDataBatch<>(layerData);
 	}
 
@@ -140,22 +135,21 @@ public class DLKerasDefaultLayerDataFactory implements DLLayerDataFactory {
 	@Override
 	public DLLayerDataBatch<? extends DLReadableBuffer> createReadableLayerDataBatch(final DLLayerDataSpec spec,
 			final long batchSize) throws IllegalArgumentException {
-		final DLLayerData<DLReadableBuffer>[] layerData = createLayerDataInternal(spec, batchSize,
-				DLReadableBuffer.class);
+		final DLLayerData<DLReadableBuffer>[] layerData =
+				createLayerDataInternal(spec, batchSize, DLReadableBuffer.class);
 		return new DLDefaultLayerDataBatch<>(layerData);
 	}
 
-	@SuppressWarnings("unchecked")
 	private <B extends DLBuffer> DLLayerData<B>[] createLayerDataInternal(final DLLayerDataSpec spec,
 			final long batchSize, final Class<B> readableOrWritableBufferType) {
-		final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
-				.orElseThrow(() -> new IllegalArgumentException(
+		final long[] shape =
+				DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
 						"Layer data spec does not provide a shape. Layer data cannot be created."));
 		checkArgument(batchSize <= Integer.MAX_VALUE,
 				"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
 		final Class<?> t = spec.getElementType();
 		final long size = DLUtils.Shapes.getSize(shape);
-		// TODO handle unsafe casts with suppressed warnings?
+		// TODO: handle unsafe casts
 		final Supplier<B> s;
 		if (t.equals(double.class)) {
 			s = () -> (B) new DLPythonDoubleBuffer(size);

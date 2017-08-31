@@ -52,7 +52,7 @@ import org.knime.dl.python.core.DLPythonNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetwork extends DLPythonNetwork<DLKerasNetworkSpec> {
+public interface DLKerasNetwork<S extends DLKerasNetworkSpec> extends DLPythonNetwork<S> {
 
 	// NB: marker interface
 }

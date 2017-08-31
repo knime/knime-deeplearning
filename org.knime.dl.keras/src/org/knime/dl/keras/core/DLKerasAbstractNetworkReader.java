@@ -46,14 +46,16 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import org.knime.dl.python.core.DLPythonAbstractNetworkReader;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
+public abstract class DLKerasAbstractNetworkReader<NT extends DLKerasNetworkType<N, S>, N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec>
+		extends DLPythonAbstractNetworkReader<NT, N, S> {
 
-	@Override
-	DLKerasNetworkType<?, ?> getNetworkType();
+	protected DLKerasAbstractNetworkReader(final NT type) {
+		super(type);
+	}
 }

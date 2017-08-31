@@ -48,10 +48,6 @@
 @author Christian Dietz, KNIME, Konstanz, Germany
 '''
 
-from keras.models import load_model
-from keras.models import model_from_json
-from keras.models import model_from_yaml
-
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
@@ -64,48 +60,85 @@ from DLPythonNetwork import DLPythonNetworkSpec
 
 import DLPythonNetworkType 
 
+import abc
 import numpy as np
+import os
 import pandas as pd
 
 
 class DLKerasNetworkReader(DLPythonNetworkReader):
+    __metaclass__ = abc.ABCMeta
     
-    def read(self, path):
-        model = load_model(path)
-        return DLKerasNetwork(model)
-    
+    @abc.abstractmethod
     def readFromJson(self, path):
-        f = open(path, 'r')
-        model_json_string = f.read()
-        f.close()
-        model = model_from_json(model_json_string)
-        return DLKerasNetwork(model)
+        return
     
+    @abc.abstractmethod
     def readFromYaml(self, path):
-        f = open(path, 'r')
-        model_yaml_string = f.read()
-        f.close()
-        model = model_from_yaml(model_yaml_string)
-        return DLKerasNetwork(model)
+        return
 
 
 class DLKerasNetwork(DLPythonNetwork):
+    __metaclass__ = abc.ABCMeta
+    
+    # TODO: add DLKerasTensorFlowNetwork etc. - add 'backend_name' arg to constructor;
+    # Keras backend has to be set accordingly whenever Keras is invoked.
+    # Check if there could be collisions.
     
     def __init__(self, model):
         super().__init__(model)
     
     @property
     def spec(self):
-        if self._spec is None:
-            input_specs = self.__get_specs_for(self._model.inputs)
-            intermediate_outputs = []
+        if self._spec is None:            
+            model_inputs = set(self._model.inputs)
+            model_outputs = set(self._model.outputs)
+            visited = set()
+            
+            input_specs = list()
+            intermediate_output_specs = list()
+            output_specs = list()
+            
             for l in self._model.layers:
+                # inputs:
                 for idx in range (0, len(l.inbound_nodes)):
-                    o = l.get_output_at(idx)
-                    if o not in self._model.outputs:
-                        intermediate_outputs.append(o)
-            intermediate_output_specs = self.__get_specs_for(intermediate_outputs)
-            output_specs = self.__get_specs_for(self._model.outputs)
+                    inputs = l.get_input_at(idx)
+                    input_shapes = l.get_input_shape_at(idx)
+                    # some layers have multiple inputs, some do not
+                    if not isinstance(inputs, list):
+                        inputs = [inputs]
+                        input_shapes = [input_shapes]
+                    for i, inp in enumerate(inputs):
+                        if inp in model_inputs and inp not in visited:
+                            visited.add(inp)
+                            shape = input_shapes[i]
+                            element_type = inp.dtype
+                            # Theano returns a string, TensorFlow a dtype object
+                            if(not isinstance(element_type, str)):
+                                element_type = element_type.name
+                            spec = DLPythonLayerDataSpec(inp.name, shape[0], list(shape[1:]), element_type)
+                            input_specs.append(spec)
+                # outputs:
+                for idx in range (0, len(l.inbound_nodes)):  # inbound_nodes (sic)
+                    outputs = l.get_output_at(idx)
+                    output_shapes = l.get_output_shape_at(idx)
+                    # some layers have multiple outputs, some do not
+                    if not isinstance(outputs, list):
+                        outputs = [outputs]
+                        output_shapes = [output_shapes]
+                    for i, out in enumerate(outputs):
+                        if out not in visited:
+                            visited.add(out)
+                            shape = output_shapes[i]
+                            element_type = out.dtype
+                            # Theano returns a string, TensorFlow a dtype object
+                            if(not isinstance(element_type, str)):
+                                element_type = element_type.name
+                            specs = DLPythonLayerDataSpec(out.name, shape[0], list(shape[1:]), element_type)
+                            if out in model_outputs:
+                                output_specs.append(specs)
+                            else:
+                                intermediate_output_specs.append(specs)
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs)
         return self._spec
     
@@ -117,7 +150,7 @@ class DLKerasNetwork(DLPythonNetwork):
             data = list(map((lambda b: b[0].array.reshape([1] + input_spec.shape)), data))
             X.append(np.vstack(data))
         Y = self._model.predict(X, verbose=0)  # don't change to predict_proba
-        # put single outputs in list to have a common way of handling single and multiple outputs
+        # some networks have multiple outputs, some do not
         if not isinstance(Y, (list, tuple)):
             Y = [Y]
         # TODO: output selected outputs only, intermediate outputs
@@ -138,17 +171,6 @@ class DLKerasNetwork(DLPythonNetwork):
     
     # Private helper methods:
         
-    def __get_specs_for(self, layer_data):
-        layer_data_specs = []
-        for ld in layer_data:
-            name = ld.name
-            shape = ld.shape.as_list()
-            batch_size = shape[0]
-            shape = shape[1:]
-            element_type = ld.dtype.name
-            layer_data_specs.append(DLPythonLayerDataSpec(name, batch_size, shape, element_type))
-        return layer_data_specs
-    
     def __putInMatchingBuffer(self, y):
         t = y.dtype
         if t == np.float64:
@@ -166,32 +188,38 @@ class DLKerasNetwork(DLPythonNetwork):
 
 
 class DLKerasNetworkSpec(DLPythonNetworkSpec):
-    
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, input_specs, intermediate_output_specs, output_specs):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
+
     
-    @property
-    def network_type(self):
-        return DLKerasNetworkType.instance()
-
-
 class DLKerasNetworkType(DLPythonNetworkType.DLPythonNetworkType):
-    
-    def __init__(self):
-        super().__init__('org.knime.dl.keras.core.DLKerasNetworkType', frozenset(['keras']))
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, identifier, keras_backend_name):
+        super().__init__(identifier)
+        self._keras_backend_name = keras_backend_name
     
     @property
-    def reader(self):
-        return DLKerasNetworkReader()
+    def keras_backend_name(self):
+        return self._keras_backend_name
     
-    def wrap_model(self, model):
-        return DLKerasNetwork(model)
+    def supports_model(self, model):
+        model_type = str(type(model))
+        if model_type.startswith("<class '" + 'keras'):
+            from keras import backend as K
+            return K.backend() == self._keras_backend_name 
+        return False
 
 
-# pseudo-singleton:
-_instance = DLKerasNetworkType()
-# register network type
-DLPythonNetworkType.add_network_type(_instance)
-# access point for other modules
-def instance():
-    return _instance
+#def set_backend(keras_backend_name):
+#    if 'KERAS_BACKEND' in os.environ and os.environ['KERAS_BACKEND'] == keras_backend_name:
+#        return
+#    os.environ['KERAS_BACKEND'] = keras_backend_name
+#    import sys
+#    if 'keras.backend' in sys.modules:
+#        from keras import backend as K
+#        if K.backend() != keras_backend_name:
+#            import importlib
+#            importlib.reload(K)

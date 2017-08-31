@@ -43,35 +43,26 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 2, 2017 (dietzc): created
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
+import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasDefaultNetwork implements DLKerasNetwork {
+public abstract class DLKerasAbstractCommandsConfig extends DLPythonAbstractCommandsConfig {
 
-	private final URL m_source;
+	public abstract String getLoadFromJsonCode(final String path);
 
-	private final DLKerasNetworkSpec m_spec;
+	public abstract String getLoadFromYamlCode(final String path);
 
-	public DLKerasDefaultNetwork(final URL source, final DLKerasNetworkSpec spec) {
-		m_source = source;
-		m_spec = spec;
-	}
+	// TODO: we should introduce an own module on Python side to do such testing, see PythonKernelTester.py
 
 	@Override
-	public URL getSource() {
-		return m_source;
-	}
-
-	@Override
-	public DLKerasNetworkSpec getSpec() {
-		return m_spec;
+	public String getTestInstallationCode() {
+		return "import keras\n" + //
+				"import h5py\n";
 	}
 }

@@ -46,84 +46,15 @@
  */
 package org.knime.dl.keras.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.net.URL;
-
-import org.knime.dl.core.DLAbstractNetworkType;
-import org.knime.dl.core.DLNetworkSerializer;
-import org.knime.dl.core.DLNetworkSpecSerializer;
-import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasNetworkType extends DLAbstractNetworkType<DLKerasNetwork, DLKerasNetworkSpec>
-		implements DLPythonNetworkType<DLKerasNetwork, DLKerasNetworkSpec> {
-
-	public static final DLKerasNetworkType INSTANCE = new DLKerasNetworkType();
-
-	private static final long serialVersionUID = 1L;
-
-	private static final String IDENTIFIER = "org.knime.dl.keras.core.DLKerasNetworkType";
-
-	public DLKerasNetworkType() {
-		super(IDENTIFIER);
-	}
+public interface DLKerasNetworkType<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec>
+		extends DLPythonNetworkType<N, S> {
 
 	@Override
-	public DLPythonNetworkLoader getLoader() {
-		return new DLDefaultKerasPythonNetworkLoader();
-	}
-
-	@Override
-	public DLNetworkSerializer<DLKerasNetwork, DLKerasNetworkSpec> getNetworkSerializer() {
-		return new DLNetworkSerializer<DLKerasNetwork, DLKerasNetworkSpec>() {
-
-			@Override
-			public void serialize(final OutputStream out, final DLKerasNetwork network) throws IOException {
-				final ObjectOutputStream oos = new ObjectOutputStream(out);
-				oos.writeObject(network.getSource());
-				oos.flush();
-			}
-
-			@Override
-			public DLKerasNetwork deserialize(final InputStream in, final DLKerasNetworkSpec spec) throws IOException {
-				final ObjectInputStream ois = new ObjectInputStream(in);
-				try {
-					return new DLKerasDefaultNetwork((URL) ois.readObject(), spec);
-				} catch (final ClassNotFoundException e) {
-					throw new IOException("Error during deserialization of a Keras network.");
-				}
-			}
-		};
-	}
-
-	@Override
-	public DLNetworkSpecSerializer<DLKerasNetworkSpec> getNetworkSpecSerializer() {
-		return new DLNetworkSpecSerializer<DLKerasNetworkSpec>() {
-
-			@Override
-			public void serialize(final OutputStream out, final DLKerasNetworkSpec spec) throws IOException {
-				final ObjectOutputStream oos = new ObjectOutputStream(out);
-				oos.writeObject(spec);
-				oos.flush();
-			}
-
-			@Override
-			public DLKerasNetworkSpec deserialize(final InputStream in) throws IOException {
-				final ObjectInputStream ois = new ObjectInputStream(in);
-				try {
-					return (DLKerasNetworkSpec) ois.readObject();
-				} catch (final ClassNotFoundException e) {
-					throw new IOException("Error during deserialization of a Keras network spec.");
-				}
-			}
-		};
-	}
+	DLKerasNetworkLoader<N> getLoader();
 }

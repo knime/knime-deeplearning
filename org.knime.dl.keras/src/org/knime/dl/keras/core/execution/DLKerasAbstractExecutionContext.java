@@ -43,17 +43,52 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   May 19, 2017 (marcel): created
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.keras.core.execution;
 
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import org.knime.dl.core.DLLayerDataFactory;
+import org.knime.dl.core.DLLayerDataRegistry;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkType;
 
 /**
+ * Executes a {@link DLKerasAbstractExecutableNetwork}.
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
+public abstract class DLKerasAbstractExecutionContext<NT extends DLKerasNetworkType<N, ?>, N extends DLKerasNetwork<?>>
+		implements DLExecutionContext<N> {
+
+	private final NT m_networkType;
+
+	private final String m_name;
+
+	private final DLLayerDataFactory m_layerDataFactory;
+
+	protected DLKerasAbstractExecutionContext(final NT networkType, final String name) {
+		m_networkType = networkType;
+		m_name = name;
+		m_layerDataFactory = DLLayerDataRegistry.getInstance().getLayerDataFactory(m_networkType)
+				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
+						+ "' is not supported. No layer data factory found."));
+	}
 
 	@Override
-	DLKerasNetworkType<?, ?> getNetworkType();
+	public NT getNetworkType() {
+		return m_networkType;
+	}
+
+	@Override
+	public String getName() {
+		return m_name;
+	}
+
+	@Override
+	public DLLayerDataFactory getLayerDataFactory() {
+		return m_layerDataFactory;
+	}
 }

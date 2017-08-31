@@ -46,38 +46,18 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.dl.python.core.kernel.DLPythonCommandsConfig;
+import java.net.URL;
+
+import org.knime.dl.python.core.DLPythonAbstractNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasPythonCommandsConfig extends DLPythonCommandsConfig {
+public abstract class DLKerasAbstractNetwork<S extends DLKerasNetworkSpec> extends DLPythonAbstractNetwork<S>
+		implements DLKerasNetwork<S> {
 
-	@Override
-	public String getTestInstallationCode() {
-		return "import keras";
-	}
-
-	@Override
-	public String getLoadCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasNetwork import DLKerasNetworkReader\n" + //
-				"network = DLKerasNetworkReader().read(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
-
-	public String getLoadFromJsonCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasNetwork import DLKerasNetworkReader\n" + //
-				"network = DLKerasNetworkReader().readFromJson(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
-
-	public String getLoadFromYamlCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasNetwork import DLKerasNetworkReader\n" + //
-				"network = DLKerasNetworkReader().readFromYaml(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
+	protected DLKerasAbstractNetwork(final S spec, final URL source) {
+		super(spec, source);
 	}
 }

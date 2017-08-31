@@ -46,34 +46,31 @@
  */
 package org.knime.dl.keras.core;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLAbstractNetworkSpec;
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.DLNetworkSpec;
+import java.io.IOException;
+import java.net.URL;
+
+import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.python2.kernel.PythonKernel;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasDefaultNetworkSpec extends DLAbstractNetworkSpec<DLKerasNetworkType>
-		implements DLKerasNetworkSpec {
+public interface DLKerasNetworkLoader<N extends DLKerasNetwork<?>> extends DLPythonNetworkLoader<N> {
 
-	private static final long serialVersionUID = 1L;
-
-	public DLKerasDefaultNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(DLKerasNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+	@Override
+	default String[] getLoadModelURLExtensions() {
+		return new String[] { "h5, json, yaml" };
 	}
 
 	@Override
-	protected void hashCodeInternal(final HashCodeBuilder b) {
-		// no op - everything's handled in abstract base class
+	default String getSaveModelURLExtension() {
+		return "h5";
 	}
 
 	@Override
-	protected boolean equalsInternal(final DLNetworkSpec other) {
-		// no op - everything's handled in abstract base class
-		return true;
-	}
+	N fetch(DLPythonNetworkHandle handle, URL source, PythonKernel context)
+			throws DLInvalidSourceException, IllegalArgumentException, IOException;
 }

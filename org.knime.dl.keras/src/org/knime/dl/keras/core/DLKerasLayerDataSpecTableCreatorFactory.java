@@ -46,7 +46,7 @@
  * History
  *   May 30, 2017 (marcel): created
  */
-package org.knime.dl.keras.core.data;
+package org.knime.dl.keras.core;
 
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
@@ -57,7 +57,6 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
-import org.knime.python2.util.BitArray;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -136,9 +135,7 @@ public class DLKerasLayerDataSpecTableCreatorFactory implements TableCreatorFact
 				} else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
 					final int[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
 					final long[] shape = new long[layerDataShapeInt.length];
-					final BitArray bitArray = new BitArray(row.getCell(2).getBitEncodedMissingListValues());
-
-					if (bitArray.oneAt(0)) {
+					if (!row.getCell(2).isMissing(0)) {
 						for (int i = 0; i < layerDataShapeInt.length; i++) {
 							shape[i] = layerDataShapeInt[i];
 						}

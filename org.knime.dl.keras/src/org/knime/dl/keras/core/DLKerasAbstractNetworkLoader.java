@@ -52,53 +52,72 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.apache.commons.io.FilenameUtils;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLDefaultKerasPythonNetworkLoader implements DLPythonNetworkLoader {
+public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> extends DLPythonAbstractNetworkLoader<N>
+		implements DLKerasNetworkLoader<N> {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String DEFAULT_MODEL_FILE_EXT = "h5";
-
 	@Override
-	public String getDefaultModelFileExtension() {
-		return DEFAULT_MODEL_FILE_EXT;
-	}
+	protected abstract DLKerasAbstractCommands<?> createCommands(PythonKernel kernel) throws IOException;
 
 	@Override
 	public void validateSource(final URL source) throws DLInvalidSourceException {
-		DLKerasDefaultNetworkReader.validateSource(source);
+		final File sourceFile = FileUtil.getFileFromURL(source);
+		if (sourceFile == null || !sourceFile.exists()) {
+			throw new DLInvalidSourceException("Cannot find Keras model file at location '" + source.toString() + "'.");
+		}
 	}
 
 	@Override
 	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
-		DLKerasDefaultNetworkReader.validateDestination(destination);
+		final File destinationFile = FileUtil.getFileFromURL(destination);
+		if (destinationFile == null || destinationFile.exists()) {
+			throw new DLInvalidDestinationException(
+					"Invalid destination or destination already exists: '" + destination.toString() + "'.");
+		}
 	}
 
 	@Override
 	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel)
 			throws DLInvalidSourceException, IllegalArgumentException, IOException {
-		final DLKerasPythonCommands commands = new DLKerasPythonCommands(checkNotNull(kernel));
-		final DLPythonNetworkHandle networkHandle = DLKerasDefaultNetworkReader.load(source, commands);
-		return networkHandle;
-	}
-
-	@Override
-	public void save(final DLPythonNetworkHandle handle, final URL destination, final PythonKernel kernel)
-			throws DLInvalidDestinationException, IllegalArgumentException, IOException {
-		@SuppressWarnings("resource") // keep kernel open
-		final DLKerasPythonCommands commands = new DLKerasPythonCommands(checkNotNull(kernel));
-		DLKerasDefaultNetworkReader.validateDestination(destination);
-		final File destinationFile = FileUtil.getFileFromURL(destination);
-		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
+		validateSource(source);
+		File sourceFile;
+		try {
+			sourceFile = FileUtil.getFileFromURL(source);
+		} catch (final Exception e) {
+			throw new DLInvalidSourceException(
+					"Invalid network source URL '" + source.toString() + "'. URL could not be resolved.");
+		}
+		final String filePath = sourceFile.getAbsolutePath();
+		try {
+			final String fileExtension = FilenameUtils.getExtension(filePath);
+			final DLKerasAbstractCommands<?> commands = createCommands(checkNotNull(kernel));
+			final DLPythonNetworkHandle networkHandle;
+			if (fileExtension.equals("h5")) {
+				networkHandle = commands.loadNetwork(filePath);
+			} else if (fileExtension.equals("json")) {
+				networkHandle = commands.loadNetworkFromJson(filePath);
+			} else if (fileExtension.equals("yaml")) {
+				networkHandle = commands.loadNetworkFromYaml(filePath);
+			} else {
+				throw new DLInvalidSourceException(
+						"Keras network reader only supports files of type h5, json and yaml.");
+			}
+			return networkHandle;
+		} catch (final Exception e) {
+			throw new IOException("An exception occurred while reading in the Keras network.", e);
+		}
 	}
 }

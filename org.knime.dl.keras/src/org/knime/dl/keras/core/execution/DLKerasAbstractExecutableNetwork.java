@@ -44,57 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 19, 2017 (marcel): created
+ *   May 3, 2017 (marcel): created
  */
 package org.knime.dl.keras.core.execution;
 
-import java.util.Set;
-
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataRegistry;
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkType;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.python.core.execution.DLPythonAbstractExecutableNetwork;
 
 /**
- * Executes a {@link DLKerasExecutableNetwork}.
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasDefaultExecutionContext implements DLExecutionContext<DLKerasNetwork> {
+public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec, //
+		C extends DLKerasAbstractCommands<?>> extends DLPythonAbstractExecutableNetwork<N, S, C> {
 
-	private static final String NAME = "Keras";
-
-	private final DLLayerDataFactory m_layerDataFactory;
-
-	public DLKerasDefaultExecutionContext() {
-		m_layerDataFactory = DLLayerDataRegistry.getInstance().getLayerDataFactory(getNetworkType())
-				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + getNetworkType()
-						+ "' is not supported. No layer data factory found."));
-	}
-
-	@Override
-	public DLKerasNetworkType getNetworkType() {
-		return DLKerasNetworkType.INSTANCE;
-	}
-
-	@Override
-	public String getName() {
-		return NAME;
-	}
-
-	@Override
-	public DLLayerDataFactory getLayerDataFactory() {
-		return m_layerDataFactory;
-	}
-
-	@Override
-	public DLExecutableNetworkAdapter executable(final DLKerasNetwork network,
-			final Set<DLLayerDataSpec> requestedOutputs) throws IllegalStateException {
-		final DLKerasExecutableNetwork execNetwork = new DLKerasExecutableNetwork(network);
-		return new DLKerasExecutableNetworkAdapter(execNetwork, m_layerDataFactory, requestedOutputs);
+	protected DLKerasAbstractExecutableNetwork(final N network) {
+		super(network);
 	}
 }

@@ -43,72 +43,21 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 3, 2017 (marcel): created
  */
-package org.knime.dl.keras.core.execution;
+package org.knime.dl.keras.core;
 
-import java.util.Map;
-
-import org.knime.dl.core.DLAbstractExecutableNetwork;
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.keras.core.DLKerasDefaultNetworkReader;
-import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.DLKerasPythonCommands;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonAbstractNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasExecutableNetwork extends
-		DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLKerasNetworkSpec> {
+public abstract class DLKerasAbstractNetworkType<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec>
+		extends DLPythonAbstractNetworkType<N, S> implements DLKerasNetworkType<N, S> {
 
-	private final DLKerasNetwork m_network;
+	private static final long serialVersionUID = 1L;
 
-	private DLKerasPythonCommands m_commands;
-
-	private DLPythonNetworkHandle m_handle;
-
-	public DLKerasExecutableNetwork(final DLKerasNetwork network) {
-		super(network.getSpec());
-		m_network = network;
-	}
-
-	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLLayerDataBatch.class" isn't really
-	// informative here.
-
-	@Override
-	public Class<?> getInputType() {
-		return DLLayerDataBatch.class;
-	}
-
-	@Override
-	public Class<?> getOutputType() {
-		return DLLayerDataBatch.class;
-	}
-
-	@Override
-	public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output, final long batchSize)
-			throws Exception {
-		if (m_commands == null) {
-			m_commands = new DLKerasPythonCommands();
-			m_handle = DLKerasDefaultNetworkReader.load(m_network.getSource(), m_commands);
-		}
-		m_commands.setNetworkInputs(m_handle, input, batchSize);
-		m_commands.executeNetwork(m_handle, output.keySet());
-		m_commands.getNetworkOutputs(m_handle, output);
-	}
-
-	@Override
-	public void close() throws Exception {
-		if (m_commands != null) {
-			m_commands.close();
-		}
+	protected DLKerasAbstractNetworkType(final String identifier) {
+		super(identifier);
 	}
 }

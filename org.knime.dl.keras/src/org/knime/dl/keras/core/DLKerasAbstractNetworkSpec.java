@@ -46,14 +46,20 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.python.core.DLPythonAbstractNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
+public abstract class DLKerasAbstractNetworkSpec<NT extends DLKerasNetworkType<?, ?>>
+		extends DLPythonAbstractNetworkSpec<NT> implements DLKerasNetworkSpec {
 
-	@Override
-	DLKerasNetworkType<?, ?> getNetworkType();
+	private static final long serialVersionUID = 1L;
+
+	protected DLKerasAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
+			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(networkType, inputSpecs, intermediateOutputSpecs, outputSpecs);
+	}
 }
