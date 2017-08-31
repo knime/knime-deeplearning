@@ -4,25 +4,37 @@
    <extension
          point="org.knime.dl.DLExecutionContext">
       <DLExecutionContext
-            DLExecutionContext="org.knime.dl.keras.core.execution.DLKerasDefaultExecutionContext">
+            DLExecutionContext="org.knime.dl.keras.cntk.core.execution.DLKerasCNTKDefaultExecutionContext">
+      </DLExecutionContext>
+      <DLExecutionContext
+            DLExecutionContext="org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowDefaultExecutionContext">
+      </DLExecutionContext>
+      <DLExecutionContext
+            DLExecutionContext="org.knime.dl.keras.theano.core.execution.DLKerasTheanoDefaultExecutionContext">
       </DLExecutionContext>
    </extension>
    <extension
          point="org.knime.dl.DLLayerDataFactory">
       <DLLayerDataFactory
-            DLLayerDataFactory="org.knime.dl.keras.core.DLKerasDefaultLayerDataFactory">
+            DLLayerDataFactory="org.knime.dl.keras.cntk.core.DLKerasCNTKLayerDataFactory">
       </DLLayerDataFactory>
-   </extension>
-   <extension
-         point="org.knime.dl.DLNetworkReader">
-      <DLNetworkReader
-            DLNetworkReader="org.knime.dl.keras.core.DLKerasDefaultNetworkReader">
-      </DLNetworkReader>
+      <DLLayerDataFactory
+            DLLayerDataFactory="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowLayerDataFactory">
+      </DLLayerDataFactory>
+      <DLLayerDataFactory
+            DLLayerDataFactory="org.knime.dl.keras.theano.core.DLKerasTheanoLayerDataFactory">
+      </DLLayerDataFactory>
    </extension>
    <extension
          point="org.knime.dl.DLNetworkType">
       <DLNetworkType
-            DLNetworkType="org.knime.dl.keras.core.DLKerasNetworkType">
+            DLNetworkType="org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType">
+      </DLNetworkType>
+      <DLNetworkType
+            DLNetworkType="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType">
+      </DLNetworkType>
+      <DLNetworkType
+            DLNetworkType="org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType">
       </DLNetworkType>
    </extension>
    <extension
