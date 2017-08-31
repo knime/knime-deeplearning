@@ -46,7 +46,7 @@
  * History
  *   Jun 26, 2017 (marcel): created
  */
-package org.knime.dl.python.core.kernel;
+package org.knime.dl.python.core;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -62,8 +62,6 @@ import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
@@ -94,10 +92,11 @@ import org.knime.python2.kernel.PythonKernelOptions;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonCommands implements AutoCloseable {
+public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractCommandsConfig> implements AutoCloseable {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonCommands.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
+	// TODO: for long running KNIME instances, a static flag might not be the best idea
 	private static boolean testedInstallation = false;
 
 	public static PythonKernel createKernel() throws IOException {
@@ -106,11 +105,16 @@ public abstract class DLPythonCommands implements AutoCloseable {
 
 	protected final PythonKernel m_kernel;
 
-	protected final DLPythonCommandsConfig m_config;
+	protected final CFG m_config;
 
-	protected DLPythonCommands(final PythonKernel kernel, final DLPythonCommandsConfig config) throws IOException {
+	protected DLPythonAbstractCommands(final CFG config) throws IOException {
+		this(config, createKernel());
+	}
+
+	protected DLPythonAbstractCommands(final CFG config, final PythonKernel kernel) throws IOException {
 		m_kernel = kernel;
 		m_config = config;
+		setupEnvironment();
 		if (!testedInstallation) {
 			if (!testInstallation()) {
 				throw new IOException("Python installation tests failed. "
@@ -128,9 +132,10 @@ public abstract class DLPythonCommands implements AutoCloseable {
 		return m_kernel;
 	}
 
+	// TODO: we should get the model name (= handle identifier) from Python
 	public DLPythonNetworkHandle loadNetwork(final String path) throws IOException {
 		m_kernel.execute(m_config.getLoadCode(path));
-		return new DLPythonNetworkHandle(DLPythonCommandsConfig.DEFAULT_MODEL_NAME);
+		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
 	}
 
 	public void saveNetwork(final DLPythonNetworkHandle handle, final String path) throws IOException {
@@ -252,15 +257,16 @@ public abstract class DLPythonCommands implements AutoCloseable {
 						int i = 0;
 						{
 							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
-							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
-									.getExtension(deserializerId).getJavaDeserializerFactory();
+							final DeserializerFactory deserializerFactory =
+									PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
 								LOGGER.coding(
 										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
 							}
 							m_deserializer = deserializerFactory.createDeserializer();
 							if (!(m_deserializer instanceof DLPythonDeserializer)) {
-								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
+								final String msg =
+										"An exception occurred while collecting network output from Python. Unsupported deserializer.";
 								LOGGER.error(msg);
 								// TODO
 								throw new RuntimeException(msg);
@@ -317,19 +323,29 @@ public abstract class DLPythonCommands implements AutoCloseable {
 	}
 
 	private void putParameter(final String key, final Cell cell) throws IOException {
-		final TableSpec spec = new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key },
-				new HashMap<>(0));
+		final TableSpec spec =
+				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
 		final RowImpl row = new RowImpl(key, 1);
 		row.setCell(cell, 0);
 		m_kernel.putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
 	}
 
+	private void setupEnvironment() throws IOException {
+		m_kernel.execute(m_config.getSetupEnvironmentCode());
+	}
+
 	private boolean testInstallation() {
 		try {
-			m_kernel.execute(m_config.getTestInstallationCode());
+			final String[] output = m_kernel.execute(m_config.getTestInstallationCode());
+			if (!output[1].isEmpty()) {
+				LOGGER.error("Python installation tests failed. "
+						+ "Please ensure that Python and all required packages are properly installed. Test results: "
+						+ output[1]);
+				return false;
+			}
+			return true;
 		} catch (final Exception e) {
 			return false;
 		}
-		return true;
 	}
 }

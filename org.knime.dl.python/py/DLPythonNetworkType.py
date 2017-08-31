@@ -66,11 +66,8 @@ def remove_network_type(identifier):
         del _network_types[identifier]
 
 def get_model_network_type(model):
-    # TODO: we may want to do some more sophisticated matching here
-    model_type = str(type(model))
     for _, network_type in _network_types.items():
-        for backend_module_name in network_type.backend_module_names:
-            if model_type.startswith("<class '" + backend_module_name):
+            if network_type.supports_model(model):
                 return network_type
     raise TypeError("No deep learning network type associated with Python type '" + model_type + "'.")
 
@@ -78,20 +75,19 @@ def get_model_network_type(model):
 class DLPythonNetworkType(object):
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, identifier, backend_module_names):
+    def __init__(self, identifier):
         self._identifier = identifier
-        self._backend_module_names = backend_module_names
     
     @property
     def identifier(self):
         return self._identifier
     
-    @property
-    def backend_module_names(self):
-        return self._backend_module_names
-
     @abc.abstractproperty
     def reader(self):
+        return
+    
+    @abc.abstractmethod
+    def supports_model(self, model):
         return
     
     @abc.abstractmethod

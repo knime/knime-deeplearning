@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.kernel;
+package org.knime.dl.python.core;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +54,6 @@ import java.nio.file.Paths;
 import java.util.Set;
 
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.util.DLUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -62,7 +61,7 @@ import org.osgi.framework.FrameworkUtil;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonCommandsConfig {
+public abstract class DLPythonAbstractCommandsConfig {
 
 	// String constants that are used on Python side:
 
@@ -81,6 +80,10 @@ public abstract class DLPythonCommandsConfig {
 	public abstract String getTestInstallationCode();
 
 	public abstract String getLoadCode(final String path);
+
+	public String getSetupEnvironmentCode() {
+		return "";
+	}
 
 	public String getSaveCode(final DLPythonNetworkHandle handle, final String path) {
 		return "import DLPythonNetwork\n" + //

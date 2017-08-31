@@ -48,17 +48,15 @@ package org.knime.dl.python.core;
 
 import java.net.URL;
 
-import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.dl.core.io.DLExternalNetworkReader;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S, URL> {
+public interface DLPythonNetworkReader<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
+		extends DLExternalNetworkReader<N, S, URL> {
 
 	@Override
-	DLPythonNetworkLoader<N> getLoader();
-
-	// TODO: reference all those Python files that a back end implementor has to provide
+	DLPythonNetworkType<N, S> getNetworkType();
 }

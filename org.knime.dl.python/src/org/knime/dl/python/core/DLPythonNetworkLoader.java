@@ -58,7 +58,22 @@ import org.knime.python2.kernel.PythonKernel;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkLoader extends DLExternalNetworkLoader<URL, DLPythonNetworkHandle, PythonKernel> {
+public interface DLPythonNetworkLoader<N extends DLPythonNetwork<?>>
+		extends DLExternalNetworkLoader<N, DLPythonNetworkHandle, URL, PythonKernel> {
+
+	/**
+	 * Returns all model file extensions that this loader is able to load from.
+	 *
+	 * @return all supported model file extensions without a leading dot, not null, may be empty
+	 */
+	String[] getLoadModelURLExtensions();
+
+	/**
+	 * Returns the file extension that this loader uses for saving models.
+	 *
+	 * @return the file extension without a leading dot, not null, may be empty
+	 */
+	String getSaveModelURLExtension();
 
 	/**
 	 * {@inheritDoc}

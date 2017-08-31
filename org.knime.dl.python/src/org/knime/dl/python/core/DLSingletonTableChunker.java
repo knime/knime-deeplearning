@@ -46,19 +46,44 @@
  */
 package org.knime.dl.python.core;
 
-import java.net.URL;
-
-import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S, URL> {
+public class DLSingletonTableChunker implements TableChunker {
+
+	private final TableIterator m_iterator;
+
+	private boolean m_hasNextChunk = true;
+
+	public DLSingletonTableChunker(final TableIterator iterator) {
+		m_iterator = iterator;
+	}
 
 	@Override
-	DLPythonNetworkLoader<N> getLoader();
+	public boolean hasNextChunk() {
+		return m_hasNextChunk;
+	}
 
-	// TODO: reference all those Python files that a back end implementor has to provide
+	@Override
+	public TableIterator nextChunk(final int numRows) {
+		if (m_hasNextChunk) {
+			m_hasNextChunk = false;
+		}
+		return m_iterator;
+	}
+
+	@Override
+	public int getNumberRemainingRows() {
+		return m_iterator.getNumberRemainingRows();
+	}
+
+	@Override
+	public TableSpec getTableSpec() {
+		return m_iterator.getTableSpec();
+	}
 }

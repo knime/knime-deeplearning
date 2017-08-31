@@ -46,19 +46,32 @@
  */
 package org.knime.dl.python.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S, URL> {
+public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork<?>> implements DLPythonNetworkLoader<N> {
+
+	private static final long serialVersionUID = 1L;
+
+	protected abstract DLPythonAbstractCommands<?> createCommands(PythonKernel kernel) throws IOException;
 
 	@Override
-	DLPythonNetworkLoader<N> getLoader();
-
-	// TODO: reference all those Python files that a back end implementor has to provide
+	public void save(final DLPythonNetworkHandle handle, final URL destination, final PythonKernel context)
+			throws DLInvalidDestinationException, IllegalArgumentException, IOException {
+		validateDestination(destination);
+		final File destinationFile = FileUtil.getFileFromURL(destination);
+		final DLPythonAbstractCommands<?> commands = createCommands(checkNotNull(context));
+		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
+	}
 }

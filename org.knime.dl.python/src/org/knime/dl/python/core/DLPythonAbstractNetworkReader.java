@@ -44,46 +44,47 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.kernel;
+package org.knime.dl.python.core;
 
-import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
-import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
-import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
+import java.io.IOException;
+import java.net.URL;
+
+import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.io.DLAbstractExternalNetworkReader;
+import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLSingletonTableChunker implements TableChunker {
+public abstract class DLPythonAbstractNetworkReader<NT extends DLPythonNetworkType<N, S>, N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
+		extends DLAbstractExternalNetworkReader<NT, N, S, URL> {
 
-	private final TableIterator m_iterator;
-
-	private boolean m_hasNextChunk = true;
-
-	public DLSingletonTableChunker(final TableIterator iterator) {
-		m_iterator = iterator;
+	protected DLPythonAbstractNetworkReader(final NT type) {
+		super(type);
 	}
 
 	@Override
-	public boolean hasNextChunk() {
-		return m_hasNextChunk;
-	}
-
-	@Override
-	public TableIterator nextChunk(final int numRows) {
-		if (m_hasNextChunk) {
-			m_hasNextChunk = false;
+	public N read(final URL source) throws DLInvalidSourceException, IOException {
+		final DLPythonNetworkLoader<N> loader = getNetworkType().getLoader();
+		loader.validateSource(source);
+		final PythonKernel kernel = createKernel();
+		try {
+			final DLPythonNetworkHandle handle = loader.load(source, kernel);
+			return loader.fetch(handle, source, kernel);
+		} finally {
+			kernel.close();
 		}
-		return m_iterator;
 	}
 
-	@Override
-	public int getNumberRemainingRows() {
-		return m_iterator.getNumberRemainingRows();
-	}
-
-	@Override
-	public TableSpec getTableSpec() {
-		return m_iterator.getTableSpec();
+	protected PythonKernel createKernel() throws IOException {
+		final PythonKernel kernel;
+		try {
+			kernel = DLPythonAbstractCommands.createKernel();
+		} catch (final IOException e) {
+			throw new IOException("Connection to the deep learning Python back end could not be established. "
+					+ "An exception occurred while setting up the Python kernel.", e);
+		}
+		return kernel;
 	}
 }

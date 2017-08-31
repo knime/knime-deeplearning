@@ -5,15 +5,16 @@ Bundle-SymbolicName: org.knime.dl.python;singleton:=true
 Bundle-Version: 3.4.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Export-Package: .,
+Export-Package: org.knime.dl.python.base.node.learner,
  org.knime.dl.python.base.node.predictor,
  org.knime.dl.python.core,
  org.knime.dl.python.core.data,
  org.knime.dl.python.core.data.serde,
- org.knime.dl.python.core.kernel
+ org.knime.dl.python.core.execution
 Require-Bundle: org.knime.python2;bundle-version="[3.4.0,4.0.0)",
  org.knime.core;bundle-version="[3.4.0,4.0.0)",
  org.knime.dl;bundle-version="[3.4.0,4.0.0)",
+ org.knime.dl.python,
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  com.google.guava;bundle-version="[19.0.0,19.0.0]",
  org.knime.python2.nodes;bundle-version="[3.4.0,4.0.0)",

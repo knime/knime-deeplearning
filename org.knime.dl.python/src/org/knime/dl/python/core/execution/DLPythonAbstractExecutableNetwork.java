@@ -43,22 +43,74 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   May 3, 2017 (marcel): created
  */
-package org.knime.dl.python.core;
+package org.knime.dl.python.core.execution;
 
-import java.net.URL;
+import java.io.IOException;
+import java.util.Map;
 
-import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.dl.core.DLAbstractExecutableNetwork;
+import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.python.core.DLPythonAbstractCommands;
+import org.knime.dl.python.core.DLPythonNetwork;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S, URL> {
+public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
+		C extends DLPythonAbstractCommands<?>>
+		extends DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
+				DLLayerDataBatch<? extends DLReadableBuffer>, N, S> {
+
+	private C m_commands;
+
+	private DLPythonNetworkHandle m_handle;
+
+	protected DLPythonAbstractExecutableNetwork(final N network) {
+		super(network);
+	}
+
+	protected abstract C createCommands() throws IOException;
+
+	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLLayerDataBatch.class" isn't really
+	// informative here.
 
 	@Override
-	DLPythonNetworkLoader<N> getLoader();
+	public Class<?> getInputType() {
+		return DLLayerDataBatch.class;
+	}
 
-	// TODO: reference all those Python files that a back end implementor has to provide
+	@Override
+	public Class<?> getOutputType() {
+		return DLLayerDataBatch.class;
+	}
+
+	@Override
+	public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
+			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output, final long batchSize)
+			throws Exception {
+		if (m_commands == null) {
+			m_commands = createCommands();
+			m_handle = m_network.getSpec().getNetworkType().getLoader().load(m_network.getSource(),
+					m_commands.getKernel());
+		}
+		m_commands.setNetworkInputs(m_handle, input, batchSize);
+		m_commands.executeNetwork(m_handle, output.keySet());
+		m_commands.getNetworkOutputs(m_handle, output);
+	}
+
+	@Override
+	public void close() throws Exception {
+		if (m_commands != null) {
+			m_commands.close();
+		}
+	}
 }

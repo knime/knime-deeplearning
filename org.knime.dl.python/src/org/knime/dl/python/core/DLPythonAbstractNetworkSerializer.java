@@ -46,19 +46,25 @@
  */
 package org.knime.dl.python.core;
 
-import java.net.URL;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
-import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.dl.core.DLNetworkSerializer;
+import org.knime.dl.python.core.DLPythonNetwork;
+import org.knime.dl.python.core.DLPythonNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLExternalNetworkType<N, S, URL> {
+public abstract class DLPythonAbstractNetworkSerializer<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
+		implements DLNetworkSerializer<N, S> {
 
 	@Override
-	DLPythonNetworkLoader<N> getLoader();
-
-	// TODO: reference all those Python files that a back end implementor has to provide
+	public void serialize(final OutputStream out, final N network) throws IOException {
+		final ObjectOutputStream objOut = new ObjectOutputStream(out);
+		objOut.writeObject(network.getSource());
+		objOut.flush();
+	}
 }
