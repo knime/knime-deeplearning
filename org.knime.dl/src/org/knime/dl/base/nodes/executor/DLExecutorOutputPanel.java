@@ -71,6 +71,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;

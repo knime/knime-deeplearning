@@ -63,6 +63,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
@@ -127,15 +128,15 @@ class DLExecutorGeneralPanel extends JPanel {
 				.stream() //
 				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
 				.collect(Collectors.toList());
+		if (availableExecutionContexts.size() == 0) {
+			throw new NotConfigurableException("There is no available back end that supports the input network.");
+		}
 		final String[] names = new String[availableExecutionContexts.size()];
 		final String[] ids = new String[availableExecutionContexts.size()];
 		for (int i = 0; i < availableExecutionContexts.size(); i++) {
 			final DLExecutionContext<?> executionContext = availableExecutionContexts.get(i);
 			names[i] = executionContext.getName();
 			ids[i] = executionContext.getIdentifier();
-		}
-		if (names.length == 0) {
-			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		}
 		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
 		m_dcBackend.replaceListItems(names, ids, selectedName);

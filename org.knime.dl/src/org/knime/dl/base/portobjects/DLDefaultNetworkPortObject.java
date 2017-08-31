@@ -136,9 +136,10 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 		final ObjectInputStream objIn = new ObjectInputStream(in);
 		final String id = objIn.readUTF();
 		@SuppressWarnings("unchecked") // if this cast fails, there is an implementation error in the registry
-		final DLNetworkType<?, DLNetworkSpec> type = (DLNetworkType<?, DLNetworkSpec>) DLNetworkTypeRegistry
-				.getInstance().getNetworkType(id).orElseThrow(() -> new IllegalStateException(
-						"Failed to load deep learning network. No network type found for id '" + id + "'."));
+		final DLNetworkType<?, DLNetworkSpec> type =
+				(DLNetworkType<?, DLNetworkSpec>) DLNetworkTypeRegistry.getInstance().getNetworkType(id).orElseThrow(
+						() -> new IllegalStateException("Failed to load deep learning network. Network type '" + id
+								+ "' could not be found. Are you missing a KNIME Deep Learning extension?."));
 		m_network = type.getNetworkSerializer().deserialize(objIn, m_spec.getNetworkSpec());
 	}
 

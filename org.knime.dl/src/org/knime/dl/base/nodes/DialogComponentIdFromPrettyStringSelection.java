@@ -46,7 +46,7 @@
  * History
  *   Jul 13, 2017 (marcel): created
  */
-package org.knime.dl.base.nodes.executor;
+package org.knime.dl.base.nodes;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

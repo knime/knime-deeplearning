@@ -49,12 +49,9 @@ package org.knime.dl.base.portobjects;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.data.filestore.FileStore;
@@ -69,10 +66,9 @@ import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLExternalNetworkType;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.io.DLNetworkReader;
-import org.knime.dl.core.io.DLNetworkReaderRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -98,16 +94,11 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 
 	private DLNetworkPortObjectSpec m_spec;
 
-	// internally used stuff
-	private DLNetworkReader<?, ?, URL> m_reader;
-
 	public <N extends DLExternalNetwork<S, URL>, S extends DLExternalNetworkSpec<URL>> DLExternalNetworkPortObject(
-			final N network, final DLNetworkReader<N, S, URL> reader, final FileStore store) throws IOException {
+			final N network, final FileStore store) throws IOException {
 		super(Collections.singletonList(store));
-		m_reader = reader;
-		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
 		m_network = network;
-
+		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
 		// actually, the framework should do that for us, but it doesn't
 		flushToFileStore();
 	}
@@ -117,6 +108,32 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	 */
 	public DLExternalNetworkPortObject() {
 		// fields get populated by serializer
+	}
+
+	@Override
+	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
+		if (m_network == null) {
+			try {
+				@SuppressWarnings("unchecked") // type constraint is fulfilled, see constructor
+				final DLExternalNetworkSpec<URL> spec = (DLExternalNetworkSpec<URL>) m_spec.getNetworkSpec();
+				// TODO: this can be fixed when KNIME properly supports generic POs
+				final DLExternalNetworkType type = spec.getNetworkType();
+				final URL source = getFileStore(0).getFile().toURI().toURL();
+				return type.wrap(spec, source);
+			} catch (final DLInvalidSourceException e) {
+				LOGGER.debug(e.getMessage(), e);
+				throw e;
+			} catch (final IOException e) {
+				LOGGER.debug("Failed to load deep learning network from file store. See log for details.", e);
+				throw e;
+			}
+		}
+		return m_network;
+	}
+
+	@Override
+	public DLNetworkPortObjectSpec getSpec() {
+		return m_spec;
 	}
 
 	// TODO: not called by framework, should be
@@ -130,54 +147,18 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 		}
 	}
 
-	@Override
-	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
-		if (m_network == null) {
-			try {
-				// TODO: type safety
-				m_network = ((DLNetworkReader<?, DLExternalNetworkSpec<URL>, URL>) m_reader).create(
-						getFileStore(0).getFile().toURI().toURL(),
-						(DLExternalNetworkSpec<URL>) m_spec.getNetworkSpec());
-			} catch (final DLInvalidSourceException e) {
-				LOGGER.debug(e.getMessage(), e);
-				throw e;
-			} catch (final IOException e) {
-				LOGGER.debug("Failed to load deep learning network from file store.", e);
-				throw e;
-			}
-		}
-		return m_network;
-	}
-
-	@Override
-	public DLNetworkPortObjectSpec getSpec() {
-		return m_spec;
-	}
-
 	public static final class Serializer extends PortObjectSerializer<DLExternalNetworkPortObject> {
 
 		@Override
 		public void savePortObject(final DLExternalNetworkPortObject portObject, final PortObjectZipOutputStream out,
 				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-			// TODO
-			out.putNextEntry(new ZipEntry("dl-port-object"));
-			final ObjectOutputStream objOut = new ObjectOutputStream(out);
-			objOut.writeUTF(portObject.m_reader.getIdentifier());
-			objOut.flush();
+			// no op: PO spec is the only thing that is need to be saved
 		}
 
 		@Override
 		public DLExternalNetworkPortObject loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
 				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
 			final DLExternalNetworkPortObject portObject = new DLExternalNetworkPortObject();
-			in.getNextEntry();
-			final ObjectInputStream objIn = new ObjectInputStream(in);
-			final String id = objIn.readUTF();
-			@SuppressWarnings("unchecked") // if this cast fails, there is an implementation error in the registry
-			final DLNetworkReader<?, ?, URL> reader = (DLNetworkReader<?, ?, URL>) DLNetworkReaderRegistry.getInstance()
-					.getNetworkReader(id).orElseThrow(() -> new IllegalStateException(
-							"Failed to load deep learning network. No network reader found for id '" + id + "'."));
-			portObject.m_reader = reader;
 			portObject.m_spec = (DLNetworkPortObjectSpec) spec;
 			return portObject;
 		}
