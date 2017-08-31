@@ -68,13 +68,10 @@ import org.knime.dl.base.portobjects.DLExternalNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
-import org.knime.dl.core.io.DLNetworkReader;
-import org.knime.dl.core.io.DLNetworkReaderRegistry;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.python.core.DLPythonNetworkType;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -158,27 +155,21 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 						+ "' associated with Python network '" + outputNetworkName
 						+ "' does not seem to be Python compatible. This is an implementation error.");
 			}
-			final DLPythonNetworkLoader networkLoader = ((DLPythonNetworkType<?, ?>) networkType).getLoader();
-			final FileStore fileStore = DLExternalNetworkPortObject
-					.createFileStoreForSaving(networkLoader.getDefaultModelFileExtension(), exec);
+			final DLPythonNetworkLoader<?> loader = ((DLPythonNetworkType<?, ?>) networkType).getLoader();
+			final FileStore fileStore =
+					DLExternalNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(), exec);
 			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
-			networkLoader.save(new DLPythonNetworkHandle(outputNetworkName), fileStoreURL, kernel);
+			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
+			loader.save(handle, fileStoreURL, kernel);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 
-			@SuppressWarnings("unchecked") // if this cast fails, it is a registration error of the respective back end
-			final DLNetworkReader<DLPythonNetwork<DLPythonNetworkSpec>, DLPythonNetworkSpec, URL> networkReader =
-					(DLNetworkReader<DLPythonNetwork<DLPythonNetworkSpec>, DLPythonNetworkSpec, URL>) DLNetworkReaderRegistry
-							.getInstance().getNetworkReadersForType(networkType).stream().findFirst()
-							.orElseThrow(() -> new IllegalStateException("No reader could be found for network type '"
-									+ networkType.getIdentifier() + "'. This is an implementation error."));
-
 			addNewVariables(variables);
 
-			final DLPythonNetwork<DLPythonNetworkSpec> outNetwork = networkReader.create(fileStoreURL);
-			return new DLNetworkPortObject[] { new DLExternalNetworkPortObject(outNetwork, networkReader, fileStore) };
+			final DLPythonNetwork<?> outNetwork = loader.fetch(handle, fileStoreURL, kernel);
+			return new DLNetworkPortObject[] { new DLExternalNetworkPortObject(outNetwork, fileStore) };
 		} finally {
 			kernel.close();
 		}
