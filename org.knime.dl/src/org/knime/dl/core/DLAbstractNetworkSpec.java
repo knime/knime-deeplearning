@@ -75,16 +75,18 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> impl
 	/**
 	 * Creates a new instance of this network spec.
 	 *
+	 * @param type the network type
 	 * @param inputSpecs the input layer data specs, can be empty
 	 * @param intermediateOutputSpecs the intermediate output layer data specs, can be empty
 	 * @param outputSpecs the output layer data specs, can be empty
 	 */
-	protected DLAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
+	protected DLAbstractNetworkSpec(final NT type, final DLLayerDataSpec[] inputSpecs,
 			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		m_networkType = checkNotNull(networkType);
-		m_inputSpecs = checkNotNull(inputSpecs);
-		m_intermediateOutputSpecs = checkNotNull(intermediateOutputSpecs);
-		m_outputSpecs = checkNotNull(outputSpecs);
+		m_networkType = checkNotNull(type, "Network type must not be null.");
+		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
+		m_intermediateOutputSpecs = checkNotNull(intermediateOutputSpecs,
+				"Intermediate output data specs must not be null, but may be empty.");
+		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
 		m_hashCode = hashCodeInternal();
 	}
 

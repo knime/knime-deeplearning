@@ -55,7 +55,7 @@
                   The back end class that implements the DLExecutionContext interface.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.engine.DLExecutionContext"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.execution.DLExecutionContext"/>
                </appInfo>
             </annotation>
          </attribute>

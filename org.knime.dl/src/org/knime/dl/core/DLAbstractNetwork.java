@@ -43,68 +43,56 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Apr 17, 2017 (dietzc): created
  */
 package org.knime.dl.core;
 
-import java.io.Serializable;
-import java.util.OptionalLong;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * The spec of {@link DLLayerData}.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources. Spec objects are stateless.
- *
- * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec extends Serializable {
+public abstract class DLAbstractNetwork<S extends DLNetworkSpec> implements DLNetwork<S> {
 
-	/**
-	 * Returns the name of the layer data.
-	 *
-	 * @return the name of the layer data
-	 */
-	String getName();
+	private final S m_spec;
 
-	/**
-	 * Returns the batch size of the layer data if assigned.
-	 *
-	 * @return the batch size of the layer data
-	 */
-	OptionalLong getBatchSize();
+	protected DLAbstractNetwork(final S spec) {
+		m_spec = checkNotNull(spec, "Network spec must not be null.");
+	}
 
-	/**
-	 * Returns the shape of the layer data.
-	 *
-	 * @return the shape of the layer data
-	 */
-	DLLayerDataShape getShape();
+	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	/**
-	 * Returns the type of the layer data's elements
-	 *
-	 * @return the type of the layer data's elements
-	 */
-	Class<?> getElementType();
+	protected abstract boolean equalsInternal(DLNetwork<?> other);
 
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
-	int hashCode();
+	public S getSpec() {
+		return m_spec;
+	}
 
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
-	boolean equals(Object obj);
+	public int hashCode() {
+		return hashCodeInternal();
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		final DLNetwork<?> other = (DLNetwork<?>) obj;
+		return other.getSpec().equals(getSpec()) //
+				&& equalsInternal(other);
+	}
+
+	private int hashCodeInternal() {
+		final HashCodeBuilder b = new HashCodeBuilder();
+		b.append(m_spec);
+		hashCodeInternal(b);
+		return b.toHashCode();
+	}
 }

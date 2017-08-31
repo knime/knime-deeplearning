@@ -49,10 +49,30 @@
 package org.knime.dl.core;
 
 /**
+ * <P>
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * <P>
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLNetwork<S extends DLNetworkSpec> {
 
 	S getSpec();
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	int hashCode();
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	boolean equals(Object obj);
 }

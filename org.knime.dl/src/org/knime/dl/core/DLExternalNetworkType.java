@@ -53,5 +53,16 @@ package org.knime.dl.core;
 public interface DLExternalNetworkType<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
 		extends DLNetworkType<N, S> {
 
-	DLExternalNetworkLoader<R, ?, ?> getLoader();
+	DLExternalNetworkLoader<N, ?, R, ?> getLoader();
+
+	/**
+	 * Creates a {@link DLExternalNetwork network} from a source and a spec.
+	 *
+	 * @param spec the spec
+	 * @param source the source
+	 * @return the network
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IllegalArgumentException if the spec is invalid
+	 */
+	N wrap(S spec, R source) throws DLInvalidSourceException, IllegalArgumentException;
 }

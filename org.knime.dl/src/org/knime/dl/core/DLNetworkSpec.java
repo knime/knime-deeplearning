@@ -73,9 +73,19 @@ public interface DLNetworkSpec extends Serializable {
 
 	DLLayerDataSpec[] getOutputSpecs();
 
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
 	int hashCode();
 
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
 	boolean equals(Object obj);
 }

@@ -51,12 +51,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader)
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLNetworkSerializer<N extends DLNetwork<S>, S extends DLNetworkSpec> {
 
-	void serialize(OutputStream out, N t) throws IOException;
+	void serialize(OutputStream out, N network) throws IOException;
 
 	N deserialize(InputStream in, S spec) throws IOException;
 }

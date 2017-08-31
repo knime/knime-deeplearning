@@ -6,7 +6,7 @@
          <meta.schema plugin="org.knime.dl" id="DLNetworkType" name="DLNetworkType"/>
       </appInfo>
       <documentation>
-         TODO
+         Extension point for deep learning network types.
       </documentation>
    </annotation>
 
@@ -55,7 +55,7 @@
                   The converter factory class that implements the DLFormatHandler interface. Must provide an empty public constructor.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.io.DLNetworkType"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.DLNetworkType"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -77,7 +77,7 @@
          <meta.section type="apiinfo"/>
       </appInfo>
       <documentation>
-         Converter factory classes must implement the DLFormatHandler interface and provide an empty public constructor.
+         Network types must implement the DLNetworkType interface and provide an empty public constructor.
       </documentation>
    </annotation>
 

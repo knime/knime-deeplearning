@@ -53,10 +53,10 @@ import java.io.Serializable;
 /**
  * Root interface for the shape of {@link DLLayerData}.
  * <P>
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * <P>
  * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
  * objects or external resources.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
  *
  * @see DLLayerDataSpec#getShape()
  *
@@ -65,28 +65,29 @@ import java.io.Serializable;
  */
 public interface DLLayerDataShape extends Serializable {
 
-    /**
-     * Returns the shape's number of dimensions.
-     *
-     * @return the number of dimensions
-     */
-    int getNumDimensions();
+	/**
+	 * Returns the shape's number of dimensions.
+	 *
+	 * @return the number of dimensions
+	 */
+	int getNumDimensions();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    int hashCode();
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	int hashCode();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    boolean equals(Object obj);
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	boolean equals(Object obj);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    String toString();
+	@Override
+	String toString();
 }

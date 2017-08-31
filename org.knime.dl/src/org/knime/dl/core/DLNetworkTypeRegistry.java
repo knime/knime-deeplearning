@@ -46,6 +46,8 @@
  */
 package org.knime.dl.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -90,8 +92,13 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	// access methods:
 
 	public Optional<DLNetworkType<?, ?>> getNetworkType(final String identifier) {
-		return Optional.of(m_types.get(identifier));
+		return Optional.ofNullable(m_types.get(identifier));
 	}
+
+	public Collection<DLNetworkType<?, ?>> getAllNetworkTypes() {
+		return new ArrayList<>(m_types.values());
+	}
+
 	// :access methods
 
 	// registration:

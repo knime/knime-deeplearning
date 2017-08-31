@@ -145,6 +145,7 @@ public final class DLUtils {
 		 * @return the non-null and non-empty reference that was validated
 		 * @throws NullPointerException if the input is null
 		 * @throws IllegalArgumentException if the input is empty
+		 * @see com.google.common.base.Preconditions#checkNotNull(Object)
 		 */
 		public static String checkNotNullOrEmpty(final String string) {
 			if (string == null) {
@@ -152,6 +153,27 @@ public final class DLUtils {
 			}
 			if (string.isEmpty()) {
 				throw new IllegalArgumentException();
+			}
+			return string;
+		}
+
+		/**
+		 * Ensures that a string passed as a parameter to the calling method is not null or empty.
+		 *
+		 * @param string a string
+		 * @param errorMessage the exception message to use if the check fails; will be converted to a string using
+		 *            {@link String#valueOf(Object)}
+		 * @return the non-null and non-empty reference that was validated
+		 * @throws NullPointerException if the input is null
+		 * @throws IllegalArgumentException if the input is empty
+		 * @see com.google.common.base.Preconditions#checkNotNull(Object, Object))
+		 */
+		public static String checkNotNullOrEmpty(final String string, final Object errorMessage) {
+			if (string == null) {
+				throw new NullPointerException(String.valueOf(errorMessage));
+			}
+			if (string.isEmpty()) {
+				throw new IllegalArgumentException(String.valueOf(errorMessage));
 			}
 			return string;
 		}

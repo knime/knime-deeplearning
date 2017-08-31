@@ -53,13 +53,17 @@ import java.util.Optional;
 import org.eclipse.core.runtime.IConfigurationElement;
 
 /**
- * Registry for deep learning layer data factories that create {@link LayerData
- * layer data} representations for certain network types.
+ * Registry for deep learning layer data factories that create {@link LayerData layer data} representations for certain
+ * network types.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry {
+
+	// TODO: needed? could be property of the type - this is a 1:1 mapping anyway...
+	// or we register pairs of execution/training contexts and layer data factories - that's where we need them anyway
+	// (could be part of the exec/training registries)
 
 	private static final String EXT_POINT_ID = "org.knime.dl.DLLayerDataFactory";
 
@@ -93,15 +97,13 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 	// access methods:
 
 	/**
-	 * Returns the layer data factory that is compatible to the given network
-	 * type if present.
+	 * Returns the layer data factory that is compatible to the given network type if present.
 	 *
-	 * @param network
-	 *            the network type
+	 * @param network the network type
 	 * @return the layer data factory
 	 */
 	public Optional<DLLayerDataFactory> getLayerDataFactory(final DLNetworkType<?, ?> networkType) {
-		final DLLayerDataFactory layerData = (DLLayerDataFactory) m_layerData.get(networkType);
+		final DLLayerDataFactory layerData = m_layerData.get(networkType);
 		return Optional.ofNullable(layerData);
 	}
 	// :access methods
@@ -111,12 +113,9 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 	/**
 	 * Registers the given layer data factory.
 	 *
-	 * @param layerData
-	 *            the layer data factory to register
-	 * @throws IllegalArgumentException
-	 *             if a layer data factory of the same network type is already
-	 *             registered or if the given layer data factory's network type
-	 *             is null
+	 * @param layerData the layer data factory to register
+	 * @throws IllegalArgumentException if a layer data factory of the same network type is already registered or if the
+	 *             given layer data factory's network type is null
 	 */
 	public void registerLayerData(final DLLayerDataFactory layerData) throws IllegalArgumentException {
 		registerLayerDataInternal(layerData);

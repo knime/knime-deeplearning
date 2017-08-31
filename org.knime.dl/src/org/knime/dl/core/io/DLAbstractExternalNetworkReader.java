@@ -43,68 +43,30 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Apr 17, 2017 (dietzc): created
  */
-package org.knime.dl.core;
+package org.knime.dl.core.io;
 
-import java.io.Serializable;
-import java.util.OptionalLong;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLNetworkType;
 
 /**
- * The spec of {@link DLLayerData}.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources. Spec objects are stateless.
- *
- * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec extends Serializable {
+public abstract class DLAbstractExternalNetworkReader<NT extends DLNetworkType<N, S>, N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
+		implements DLExternalNetworkReader<N, S, R> {
 
-	/**
-	 * Returns the name of the layer data.
-	 *
-	 * @return the name of the layer data
-	 */
-	String getName();
+	private final NT m_type;
 
-	/**
-	 * Returns the batch size of the layer data if assigned.
-	 *
-	 * @return the batch size of the layer data
-	 */
-	OptionalLong getBatchSize();
+	protected DLAbstractExternalNetworkReader(final NT type) {
+		m_type = checkNotNull(type, "Network type must not be null.");
+	}
 
-	/**
-	 * Returns the shape of the layer data.
-	 *
-	 * @return the shape of the layer data
-	 */
-	DLLayerDataShape getShape();
-
-	/**
-	 * Returns the type of the layer data's elements
-	 *
-	 * @return the type of the layer data's elements
-	 */
-	Class<?> getElementType();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
-	int hashCode();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
-	@Override
-	boolean equals(Object obj);
+	public NT getNetworkType() {
+		return m_type;
+	}
 }

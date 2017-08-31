@@ -5,7 +5,8 @@ Bundle-SymbolicName: org.knime.dl;singleton:=true
 Bundle-Version: 3.4.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Export-Package: org.knime.dl.base.portobjects,
+Export-Package: org.knime.dl.base.nodes,
+ org.knime.dl.base.portobjects,
  org.knime.dl.core,
  org.knime.dl.core.data,
  org.knime.dl.core.data.convert,

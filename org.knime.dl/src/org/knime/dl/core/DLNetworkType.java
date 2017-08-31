@@ -50,8 +50,11 @@ import java.io.Serializable;
 
 /**
  * Implementations of this interface have to override {@link #hashCode()} and {@link #equals(Object)} in a value-based
- * way. Expected behavior is to just delegate to the respective methods of the object returned by
+ * way. Expected behavior is to essentially just delegate to the respective methods of the object returned by
  * {@link #getIdentifier()}, see {@link DLAbstractNetworkType}.
+ * <P>
+ * Network, network spec and network type must be part of the same bundle (or rather: loaded by the same class loader)
+ * for serialization reasons. The respective serializers must be part of that bundle as well.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -60,13 +63,35 @@ public interface DLNetworkType<N extends DLNetwork<S>, S extends DLNetworkSpec> 
 
 	String getIdentifier();
 
+	String getName();
+
+	/**
+	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader)
+	 *
+	 * @return the network serializer
+	 */
+	DLNetworkSerializer<N, S> getNetworkSerializer();
+
+	/**
+	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader)
+	 *
+	 * @return the network spec serializer
+	 */
+	DLNetworkSpecSerializer<S> getNetworkSpecSerializer();
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
 	int hashCode();
 
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
 	boolean equals(Object obj);
-
-	DLNetworkSerializer<N, S> getNetworkSerializer();
-
-	DLNetworkSpecSerializer<S> getNetworkSpecSerializer();
 }

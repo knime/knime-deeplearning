@@ -51,6 +51,8 @@ package org.knime.dl.core;
 /**
  * The spec of a {@link DLLayer}.
  * <P>
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * <P>
  * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
  * objects or external resources. Spec objects are stateless.
  *
@@ -68,4 +70,20 @@ public interface DLLayerSpec {
 	DLLayerDataSpec[] getInputSpecs();
 
 	DLLayerDataSpec[] getOutputSpecs();
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	int hashCode();
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	boolean equals(Object obj);
 }

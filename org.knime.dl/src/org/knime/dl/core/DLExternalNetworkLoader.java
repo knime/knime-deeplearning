@@ -50,17 +50,12 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
+ * Implementations of this interface must be {@link Serializable serializable}.
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkLoader<R, H, C> extends Serializable {
-
-	/**
-	 * Returns the file extension that the back end uses for storing its models.
-	 *
-	 * @return the file extension without a leading dot, not null, may be empty
-	 */
-	String getDefaultModelFileExtension();
+public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R, C> extends Serializable {
 
 	/**
 	 * Checks if a given source is valid.
@@ -89,6 +84,19 @@ public interface DLExternalNetworkLoader<R, H, C> extends Serializable {
 	 * @throws IOException if failed to load the network handle
 	 */
 	H load(R source, C context) throws DLInvalidSourceException, IllegalArgumentException, IOException;
+
+	/**
+	 * Fetches the network representation of a handle from a context.
+	 *
+	 * @param handle the handle
+	 * @param source the source
+	 * @param context the context
+	 * @return the network
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IllegalArgumentException if handle or context are invalid
+	 * @throws IOException if failed to fetch the network
+	 */
+	N fetch(H handle, R source, C context) throws DLInvalidSourceException, IllegalArgumentException, IOException;
 
 	/**
 	 * Saves a network handle from a context to a destination.

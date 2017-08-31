@@ -127,7 +127,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 		m_network.close();
 	}
 
-	// TODO
+	// TODO: type safety
 	private <I, O> void executeInternal(final long batchSize) throws Exception {
 		final DLExecutableNetwork<I, O, ?> network = (DLExecutableNetwork<I, O, ?>) m_network;
 		final Map<DLLayerDataSpec, I> networkInput = (Map<DLLayerDataSpec, I>) extractNetworkInput(m_input);

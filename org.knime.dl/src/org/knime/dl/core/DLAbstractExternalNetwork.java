@@ -43,68 +43,39 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Apr 17, 2017 (dietzc): created
  */
 package org.knime.dl.core;
 
-import java.io.Serializable;
-import java.util.OptionalLong;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * The spec of {@link DLLayerData}.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources. Spec objects are stateless.
- *
- * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLayerDataSpec extends Serializable {
+public abstract class DLAbstractExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLAbstractNetwork<S>
+		implements DLExternalNetwork<S, R> {
 
-	/**
-	 * Returns the name of the layer data.
-	 *
-	 * @return the name of the layer data
-	 */
-	String getName();
+	private final R m_source;
 
-	/**
-	 * Returns the batch size of the layer data if assigned.
-	 *
-	 * @return the batch size of the layer data
-	 */
-	OptionalLong getBatchSize();
+	protected DLAbstractExternalNetwork(final S spec, final R source) {
+		super(spec);
+		m_source = checkNotNull(source, "External network source must not be null.");
+	}
 
-	/**
-	 * Returns the shape of the layer data.
-	 *
-	 * @return the shape of the layer data
-	 */
-	DLLayerDataShape getShape();
-
-	/**
-	 * Returns the type of the layer data's elements
-	 *
-	 * @return the type of the layer data's elements
-	 */
-	Class<?> getElementType();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
-	int hashCode();
+	public R getSource() {
+		return m_source;
+	}
 
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
-	boolean equals(Object obj);
+	protected boolean equalsInternal(final DLNetwork<?> other) {
+		return ((DLExternalNetwork<?, ?>) other).getSource().equals(getSource());
+	}
+
+	@Override
+	protected void hashCodeInternal(final HashCodeBuilder b) {
+		b.append(m_source.hashCode());
+	}
 }

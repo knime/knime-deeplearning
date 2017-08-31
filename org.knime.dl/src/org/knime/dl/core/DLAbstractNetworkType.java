@@ -49,7 +49,6 @@ package org.knime.dl.core;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -60,8 +59,8 @@ public abstract class DLAbstractNetworkType<N extends DLNetwork<S>, S extends DL
 
 	private final String m_id;
 
-	public DLAbstractNetworkType(final String identifier) {
-		m_id = checkNotNullOrEmpty(identifier);
+	protected DLAbstractNetworkType(final String identifier) {
+		m_id = checkNotNullOrEmpty(identifier, "Network type identifier must neither be null nor empty.");
 	}
 
 	@Override

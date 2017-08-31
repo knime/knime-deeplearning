@@ -55,7 +55,7 @@
                   The converter factory class that implements the DLLayerDataToDataCellConverterFactory interface. Must provide an empty public constructor.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.data.convert.output.DLLayerDataToDataCellConverterFactory"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory"/>
                </appInfo>
             </annotation>
          </attribute>

@@ -44,48 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.io;
-
-import java.io.IOException;
-
-import org.knime.dl.core.DLExternalNetwork;
-import org.knime.dl.core.DLExternalNetworkSpec;
-import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkType;
+package org.knime.dl.core;
 
 /**
- * Instances of this interface must be stateless as they will be shared by multiple networks.
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkReader<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R> {
+public abstract class DLAbstractExternalNetworkSpec<NT extends DLExternalNetworkType<?, ?, R>, R>
+		extends DLAbstractNetworkSpec<NT> implements DLExternalNetworkSpec<R> {
 
-	DLNetworkType<N, S> getNetworkType();
+	private static final long serialVersionUID = 1L;
 
-	default String getIdentifier() {
-		return getClass().getCanonicalName();
+	protected DLAbstractExternalNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
+			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(networkType, inputSpecs, intermediateOutputSpecs, outputSpecs);
 	}
-
-	/**
-	 * Reads in a {@link DLNetwork network} from a source.
-	 *
-	 * @param source the source
-	 * @return the network
-	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IOException if creation of the network implied I/O which failed (optional)
-	 */
-	N create(R source) throws DLInvalidSourceException, IOException;
-
-	/**
-	 * Creates a {@link DLNetwork network} from a source and a spec.
-	 *
-	 * @param source the source
-	 * @return the network
-	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IllegalArgumentException if the spec is invalid
-	 * @throws IOException if creation of the network implied I/O which failed (optional)
-	 */
-	N create(R source, S spec) throws DLInvalidSourceException, IllegalArgumentException, IOException;
 }
