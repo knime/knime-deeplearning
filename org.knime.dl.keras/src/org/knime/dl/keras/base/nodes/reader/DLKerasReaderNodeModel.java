@@ -65,6 +65,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -76,10 +77,13 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkType;
-import org.knime.dl.core.io.DLNetworkReaderRegistry;
+import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkReader;
 import org.knime.dl.keras.core.DLKerasNetworkType;
+import org.knime.dl.python.core.DLPythonAbstractCommands;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -87,31 +91,40 @@ import org.knime.dl.keras.core.DLKerasNetworkType;
  */
 final class DLKerasReaderNodeModel extends NodeModel {
 
+	private static final String CFG_KEY_FILE_PATH = "file_path";
+
+	private static final String CFG_KEY_BACKEND = "backend";
+
 	private static final String CFG_KEY_COPY_NETWORK = "copy_network";
 
 	static SettingsModelString createFilePathStringModel(final String defaultPath) {
-		return new SettingsModelString("file_path", defaultPath);
+		return new SettingsModelString(CFG_KEY_FILE_PATH, defaultPath);
+	}
+
+	static SettingsModelStringArray createKerasBackendModel() {
+		return new SettingsModelStringArray(CFG_KEY_BACKEND, new String[] { "<none>", null });
 	}
 
 	static SettingsModelBoolean createCopyNetworkSettingsModel() {
 		return new SettingsModelBoolean(CFG_KEY_COPY_NETWORK, false);
 	}
 
-	// TODO: this should be fetched from the Keras network handler
+	// TODO: this should be fetched from the Keras loader (#getLoadModelFileExtensions)
 	static List<String> getValidInputFileExtensions() {
 		return Arrays.asList("h5", "json", "yaml");
 	}
 
 	private final SettingsModelString m_smFilePath = createFilePathStringModel("");
 
+	private final SettingsModelStringArray m_smBackend = createKerasBackendModel();
+
 	private final SettingsModelBoolean m_smCopyNetwork = createCopyNetworkSettingsModel();
 
 	private String m_lastFilePath;
 
-	// TODO use cache ?
-	private DLKerasNetwork m_network;
+	private String m_lastBackendId;
 
-	private DLKerasNetworkReader m_reader;
+	private DLKerasNetwork<?> m_network;
 
 	protected DLKerasReaderNodeModel() {
 		super(null, new PortType[] { DLNetworkPortObject.TYPE });
@@ -120,8 +133,12 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		final String filePath = m_smFilePath.getStringValue();
+		final String backendId = m_smBackend.getStringArrayValue()[1];
 		if (filePath == null || filePath.isEmpty()) {
-			throw new InvalidSettingsException("Empty file path.");
+			throw new InvalidSettingsException("No file selected. Please configure the node.");
+		}
+		if (backendId == null || backendId.isEmpty()) {
+			throw new InvalidSettingsException("No back end selected. Please configure the node.");
 		}
 		final URL url;
 		try {
@@ -129,20 +146,16 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		} catch (InvalidPathException | MalformedURLException e) {
 			throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
 		}
+		// TODO: also check installation
+		final DLKerasNetworkType<?, ?> backend = getBackend(backendId);
 		try {
-			DLKerasNetworkType.INSTANCE.getLoader().validateSource(url);
+			backend.getLoader().validateSource(url);
 		} catch (final DLInvalidSourceException e) {
 			throw new InvalidSettingsException(e.getMessage(), e);
 		}
-		if (!filePath.equals(m_lastFilePath)) {
-			final DLNetworkType<?, ?> networkType = DLKerasNetworkType.INSTANCE;
-			m_reader = (DLKerasNetworkReader) DLNetworkReaderRegistry.getInstance()
-					.getNetworkReadersForType(networkType).stream().findFirst()
-					.orElseThrow(() -> new InvalidSettingsException(
-							"Failed to read deep learning network specification. No reader found for network type '"
-									+ networkType.getIdentifier() + "'."));
+		if (!filePath.equals(m_lastFilePath) || !backendId.equals(m_lastBackendId)) {
 			try {
-				m_network = m_reader.create(url);
+				m_network = read(url, backend);
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {
@@ -153,23 +166,25 @@ final class DLKerasReaderNodeModel extends NodeModel {
 				throw new InvalidSettingsException(message, e);
 			}
 			m_lastFilePath = filePath;
+			m_lastBackendId = backendId;
 		}
 		return new PortObjectSpec[] { new DLDefaultNetworkPortObjectSpec(m_network.getSpec()) };
 	}
 
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-		if (m_lastFilePath == null) {
+		if (m_lastFilePath == null || m_lastBackendId == null) {
 			throw new RuntimeException("Node is not yet configured, please configure first.");
 		}
+		final DLKerasNetworkType<?, ?> backend = getBackend(m_lastBackendId);
 		try {
-			DLKerasNetworkType.INSTANCE.getLoader().validateSource(m_network.getSource());
+			backend.getLoader().validateSource(m_network.getSource());
 		} catch (final DLInvalidSourceException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 		final PortObject out;
 		if (m_smCopyNetwork.getBooleanValue()) {
-			out = new DLExternalNetworkPortObject(m_network, m_reader,
+			out = new DLExternalNetworkPortObject(m_network,
 					DLExternalNetworkPortObject.createFileStoreForCopy(FileUtil.toURL(m_lastFilePath), exec));
 		} else {
 			out = new DLDefaultNetworkPortObject(m_network);
@@ -192,23 +207,63 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		m_smFilePath.saveSettingsTo(settings);
+		m_smBackend.saveSettingsTo(settings);
 		m_smCopyNetwork.saveSettingsTo(settings);
 	}
 
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.validateSettings(settings);
+		m_smBackend.validateSettings(settings);
 		m_smCopyNetwork.validateSettings(settings);
 	}
 
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.loadSettingsFrom(settings);
+		m_smBackend.loadSettingsFrom(settings);
 		m_smCopyNetwork.loadSettingsFrom(settings);
 	}
 
 	@Override
 	protected void reset() {
 		// no op
+	}
+
+	private DLKerasNetworkType<?, ?> getBackend(final String backendId) throws InvalidSettingsException {
+		final DLNetworkType<?, ?> backend = DLNetworkTypeRegistry.getInstance().getNetworkType(backendId)
+				.orElseThrow(() -> new InvalidSettingsException(
+						"Keras back end '" + backendId + "' cannot be found. Are you missing a KNIME extension?"));
+		if (!(backend instanceof DLKerasNetworkType)) {
+			throw new InvalidSettingsException("The selected back end '" + backendId
+					+ "' is not a valid Keras back end. This is an implementation error.");
+		}
+		return (DLKerasNetworkType<?, ?>) backend;
+	}
+
+	// TODO: this actually belongs to the network reader
+
+	private <N extends DLKerasNetwork<?>> N read(final URL source, final DLKerasNetworkType<N, ?> backend)
+			throws DLInvalidSourceException, IOException {
+		final DLPythonNetworkLoader<N> loader = backend.getLoader();
+		loader.validateSource(source);
+		final PythonKernel kernel = createKernel();
+		try {
+			final DLPythonNetworkHandle handle = loader.load(source, kernel);
+			return loader.fetch(handle, source, kernel);
+		} finally {
+			kernel.close();
+		}
+	}
+
+	private PythonKernel createKernel() throws IOException {
+		final PythonKernel kernel;
+		try {
+			kernel = DLPythonAbstractCommands.createKernel();
+		} catch (final IOException e) {
+			throw new IOException("Connection to the deep learning Python back end could not be established. "
+					+ "An exception occurred while setting up the Python kernel.", e);
+		}
+		return kernel;
 	}
 }

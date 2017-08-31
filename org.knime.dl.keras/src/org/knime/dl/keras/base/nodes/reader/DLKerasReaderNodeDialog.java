@@ -52,6 +52,8 @@ import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -68,9 +70,14 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
+import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.DLNetworkTypeRegistry;
+import org.knime.dl.keras.core.DLKerasNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -82,11 +89,15 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
 	private final SettingsModelString m_smFilePath;
 
-	private final JPanel m_loading;
+	private final DialogComponentIdFromPrettyStringSelection m_dcBackend;
+
+	private final SettingsModelStringArray m_smBackend;
+
+	private final DialogComponentBoolean m_dcCopyNetwork;
 
 	private final CardLayout m_loadingLayout;
 
-	private final DialogComponentBoolean m_dcCopyNetwork;
+	private final JPanel m_loading;
 
 	public DLKerasReaderNodeDialog() {
 		final JPanel filesPanel = new JPanel(new GridBagLayout());
@@ -110,6 +121,15 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 			}
 		});
 		filesPanel.add(m_files, filesPanelConstr);
+		filesPanelConstr.gridy++;
+
+		m_smBackend = DLKerasReaderNodeModel.createKerasBackendModel();
+		m_dcBackend = new DialogComponentIdFromPrettyStringSelection(
+				new SettingsModelStringArray("proxy", m_smBackend.getStringArrayValue()), "Keras back end:", (e) -> {
+					m_smBackend.setStringArrayValue(
+							((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection());
+				});
+		filesPanel.add(m_dcBackend.getComponentPanel(), filesPanelConstr);
 		filesPanelConstr.gridy++;
 
 		final SettingsModelBoolean smCopyNetwork = DLKerasReaderNodeModel.createCopyNetworkSettingsModel();
@@ -137,7 +157,6 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		addTab("Options", filesPanel);
 	}
 
-
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
@@ -146,12 +165,37 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		try {
 			m_smFilePath.loadSettingsFrom(settings);
 			m_files.setSelectedFile(m_smFilePath.getStringValue());
-			m_dcCopyNetwork.loadSettingsFrom(settings, specs);
 		} catch (final InvalidSettingsException e) {
 			m_smFilePath.setStringValue(m_files.getSelectedFile());
 		}
-	}
 
+		try {
+			m_smBackend.loadSettingsFrom(settings);
+		} catch (final InvalidSettingsException e) {
+			// ignore
+		}
+		final List<DLNetworkType<?, ?>> availableNetworkTypes = DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
+				.stream() //
+				.filter((nt) -> nt instanceof DLKerasNetworkType) //
+				.sorted(Comparator.comparing(DLNetworkType::getName)) //
+				.collect(Collectors.toList());
+		// TODO: installation tests - detailed error messages!
+		if (availableNetworkTypes.size() == 0) {
+			throw new NotConfigurableException("There is no available Keras back end.");
+		}
+		final String[] names = new String[availableNetworkTypes.size()];
+		final String[] ids = new String[availableNetworkTypes.size()];
+		for (int i = 0; i < availableNetworkTypes.size(); i++) {
+			final DLNetworkType<?, ?> networkType = availableNetworkTypes.get(i);
+			names[i] = networkType.getName();
+			ids[i] = networkType.getIdentifier();
+		}
+		final String[] backend = m_smBackend.getStringArrayValue();
+		final String selectedName = backend[1] != null ? backend[0] : names[0];
+		m_dcBackend.replaceListItems(names, ids, selectedName);
+
+		m_dcCopyNetwork.loadSettingsFrom(settings, specs);
+	}
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
@@ -159,6 +203,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		// node model
 		m_loadingLayout.show(m_loading, "label");
 		m_smFilePath.saveSettingsTo(settings);
+		m_smBackend.saveSettingsTo(settings);
 		m_dcCopyNetwork.saveSettingsTo(settings);
 	}
 }
