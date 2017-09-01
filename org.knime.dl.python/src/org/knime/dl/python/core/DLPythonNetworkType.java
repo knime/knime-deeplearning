@@ -60,5 +60,14 @@ public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLP
 	@Override
 	DLPythonNetworkLoader<N> getLoader();
 
-	// TODO: reference all those Python files that a back end implementor has to provide
+	// TODO: detailed javadoc: Python modules should not import 3rd party modules (e.g. Keras) as they are always loaded
+	// at kernel startup (plug-in discovery) - back end related stuff (e.g. the actual execution of a network) must be
+	// handled in a separate module. Proposed naming scheme: "DL*NetworkType" for discovery/as interface and
+	// "DL*Network" for implementation
+	/**
+	 * Returns the path to the module of this network type's counterpart on Python side.
+	 *
+	 * @return the module path
+	 */
+	String getPythonModuleName();
 }

@@ -85,6 +85,11 @@ public final class DLKerasTensorFlowNetworkType
 	}
 
 	@Override
+	public String getPythonModuleName() {
+		return "DLKerasTensorFlowNetworkType";
+	}
+
+	@Override
 	public DLKerasTensorFlowNetworkLoader getLoader() {
 		return new DLKerasTensorFlowNetworkLoader();
 	}

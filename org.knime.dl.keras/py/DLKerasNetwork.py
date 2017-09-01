@@ -48,6 +48,8 @@
 @author Christian Dietz, KNIME, Konstanz, Germany
 '''
 
+import abc
+
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
@@ -58,11 +60,7 @@ from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
 
-import DLPythonNetworkType 
-
-import abc
 import numpy as np
-import os
 import pandas as pd
 
 
@@ -80,10 +78,6 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
 
 class DLKerasNetwork(DLPythonNetwork):
     __metaclass__ = abc.ABCMeta
-    
-    # TODO: add DLKerasTensorFlowNetwork etc. - add 'backend_name' arg to constructor;
-    # Keras backend has to be set accordingly whenever Keras is invoked.
-    # Check if there could be collisions.
     
     def __init__(self, model):
         super().__init__(model)
@@ -141,7 +135,7 @@ class DLKerasNetwork(DLPythonNetwork):
                                 intermediate_output_specs.append(specs)
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs)
         return self._spec
-    
+
     def execute(self, in_data):
         # TODO: this does not yet take (predefined) batch size (of the input) into account
         X = []
@@ -165,12 +159,12 @@ class DLKerasNetwork(DLPythonNetwork):
             out = pd.DataFrame({output_spec.name:out})
             output[output_spec.name] = out
         return output
-            
+
     def save(self, path):
         self._model.save(path)
-    
+
     # Private helper methods:
-        
+
     def __putInMatchingBuffer(self, y):
         t = y.dtype
         if t == np.float64:
@@ -192,34 +186,3 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 
     def __init__(self, input_specs, intermediate_output_specs, output_specs):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
-
-    
-class DLKerasNetworkType(DLPythonNetworkType.DLPythonNetworkType):
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, identifier, keras_backend_name):
-        super().__init__(identifier)
-        self._keras_backend_name = keras_backend_name
-    
-    @property
-    def keras_backend_name(self):
-        return self._keras_backend_name
-    
-    def supports_model(self, model):
-        model_type = str(type(model))
-        if model_type.startswith("<class '" + 'keras'):
-            from keras import backend as K
-            return K.backend() == self._keras_backend_name 
-        return False
-
-
-#def set_backend(keras_backend_name):
-#    if 'KERAS_BACKEND' in os.environ and os.environ['KERAS_BACKEND'] == keras_backend_name:
-#        return
-#    os.environ['KERAS_BACKEND'] = keras_backend_name
-#    import sys
-#    if 'keras.backend' in sys.modules:
-#        from keras import backend as K
-#        if K.backend() != keras_backend_name:
-#            import importlib
-#            importlib.reload(K)

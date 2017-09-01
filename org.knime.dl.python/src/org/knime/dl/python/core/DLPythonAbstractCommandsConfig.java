@@ -52,8 +52,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.util.DLUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -83,6 +85,13 @@ public abstract class DLPythonAbstractCommandsConfig {
 
 	public String getSetupEnvironmentCode() {
 		return "";
+	}
+
+	public String getSetupBackendCode() {
+		return DLNetworkTypeRegistry.getInstance().getAllNetworkTypes().stream()
+				.filter(nt -> nt instanceof DLPythonNetworkType)
+				.map(nt -> "import " + ((DLPythonNetworkType<?, ?>) nt).getPythonModuleName() + "\n")
+				.collect(Collectors.joining());
 	}
 
 	public String getSaveCode(final DLPythonNetworkHandle handle, final String path) {

@@ -123,6 +123,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 			}
 			testedInstallation = true;
 		}
+		setupBackend();
 	}
 
 	public abstract DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
@@ -347,5 +348,9 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		} catch (final Exception e) {
 			return false;
 		}
+	}
+
+	private void setupBackend() throws IOException {
+		m_kernel.execute(m_config.getSetupBackendCode());
 	}
 }

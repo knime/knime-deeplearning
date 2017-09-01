@@ -85,6 +85,11 @@ public final class DLKerasTheanoNetworkType
 	}
 
 	@Override
+	public String getPythonModuleName() {
+		return "DLKerasTheanoNetworkType";
+	}
+
+	@Override
 	public DLKerasTheanoNetworkLoader getLoader() {
 		return new DLKerasTheanoNetworkLoader();
 	}

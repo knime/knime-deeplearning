@@ -55,7 +55,6 @@ from keras.models import model_from_yaml
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-from DLKerasNetwork import DLKerasNetworkType
 
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
@@ -63,8 +62,6 @@ from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
 from DLPythonNetwork import DLPythonLayerDataSpec
-
-import DLPythonNetworkType
 
 import numpy as np
 import pandas as pd
@@ -92,10 +89,6 @@ class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
 
 
 class DLKerasTheanoNetwork(DLKerasNetwork):
-    
-    # TODO: add DLKerasTheanoNetwork etc. - add 'backend_name' arg to constructor;
-    # Keras backend has to be set accordingly whenever Keras is invoked.
-    # Check if there could be collisions.
     
     def __init__(self, model):
         super().__init__(model)
@@ -127,7 +120,7 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
                             if input_name is None:
                                 input_name = l.name + '_' + str(idx) + ':' + str(i)
                             shape = input_shapes[i]
-                            element_type = inp.dtype # Theano returns a string here (cf. TensorFlow)
+                            element_type = inp.dtype  # Theano returns a string here (cf. TensorFlow)
                             spec = DLPythonLayerDataSpec(input_name, shape[0], list(shape[1:]), element_type)
                             input_specs.append(spec)
                 # outputs:
@@ -145,7 +138,7 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
                             if output_name is None:
                                 output_name = l.name + '_' + str(idx) + ':' + str(i)
                             shape = output_shapes[i]
-                            element_type = inp.dtype # Theano returns a string here (cf. TensorFlow)
+                            element_type = inp.dtype  # Theano returns a string here (cf. TensorFlow)
                             spec = DLPythonLayerDataSpec(output_name, shape[0], list(shape[1:]), element_type)
                             if out in model_outputs:
                                 output_specs.append(spec)
@@ -206,26 +199,5 @@ class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
     
     @property
     def network_type(self):
-        return DLKerasTheanoNetworkType.instance()
-
-
-class DLKerasTheanoNetworkType(DLKerasNetworkType):
-    
-    def __init__(self):
-        super().__init__('org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType', 'theano')
-    
-    @property
-    def reader(self):
-        return DLKerasTheanoNetworkReader()
-    
-    def wrap_model(self, model):
-        return DLKerasTheanoNetwork(model)
-
-
-# pseudo-singleton:
-_instance = DLKerasTheanoNetworkType()
-# register network type
-DLPythonNetworkType.add_network_type(_instance)
-# access point for other modules
-def instance():
-    return _instance
+        from DLKerasTheanoNetworkType import instance as Theano
+        return Theano()

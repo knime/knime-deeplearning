@@ -55,7 +55,6 @@ from keras.models import model_from_yaml
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-from DLKerasNetwork import DLKerasNetworkType
 
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
@@ -63,8 +62,6 @@ from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
 from DLPythonNetwork import DLPythonLayerDataSpec
-
-import DLPythonNetworkType
 
 import numpy as np
 import pandas as pd
@@ -200,26 +197,5 @@ class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):
     
     @property
     def network_type(self):
-        return DLKerasTensorFlowNetworkType.instance()
-
-
-class DLKerasTensorFlowNetworkType(DLKerasNetworkType):
-    
-    def __init__(self):
-        super().__init__('org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType', 'tensorflow')
-    
-    @property
-    def reader(self):
-        return DLKerasTensorFlowNetworkReader()
-    
-    def wrap_model(self, model):
-        return DLKerasTensorFlowNetwork(model)
-
-
-# pseudo-singleton:
-_instance = DLKerasTensorFlowNetworkType()
-# register network type
-DLPythonNetworkType.add_network_type(_instance)
-# access point for other modules
-def instance():
-    return _instance
+        from DLKerasTensorFlowNetworkType import instance as TensorFlow
+        return TensorFlow()

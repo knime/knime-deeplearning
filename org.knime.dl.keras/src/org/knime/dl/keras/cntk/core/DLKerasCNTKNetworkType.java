@@ -85,6 +85,11 @@ public final class DLKerasCNTKNetworkType
 	}
 
 	@Override
+	public String getPythonModuleName() {
+		return "DLKerasCNTKNetworkType";
+	}
+
+	@Override
 	public DLKerasCNTKNetworkLoader getLoader() {
 		return new DLKerasCNTKNetworkLoader();
 	}

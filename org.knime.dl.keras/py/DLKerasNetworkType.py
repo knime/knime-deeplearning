@@ -50,46 +50,23 @@
 
 import abc
 
-
-_network_types = {}
-
-def get_network_type(identifier):
-    return _network_types[identifier]
-
-def add_network_type(network_type):
-    if network_type.identifier in _network_types:
-        raise ValueError("Network type'" + network_type.identifier + "' already exists.")
-    _network_types[network_type.identifier] = network_type
-    
-def remove_network_type(identifier):
-    if identifier in _network_types:
-        del _network_types[identifier]
-
-def get_model_network_type(model):
-    for _, network_type in _network_types.items():
-            if network_type.supports_model(model):
-                return network_type
-    raise TypeError("No deep learning network type associated with Python type '" + str(type(model)) + "'.")
+from DLPythonNetworkType import DLPythonNetworkType 
 
 
-class DLPythonNetworkType(object):
+class DLKerasNetworkType(DLPythonNetworkType):
     __metaclass__ = abc.ABCMeta
-    
-    def __init__(self, identifier):
-        self._identifier = identifier
+
+    def __init__(self, identifier, keras_backend_name):
+        super().__init__(identifier)
+        self._keras_backend_name = keras_backend_name
     
     @property
-    def identifier(self):
-        return self._identifier
+    def keras_backend_name(self):
+        return self._keras_backend_name
     
-    @abc.abstractproperty
-    def reader(self):
-        return
-    
-    @abc.abstractmethod
     def supports_model(self, model):
-        return
-    
-    @abc.abstractmethod
-    def wrap_model(self, model):
-        return
+        model_type = str(type(model))
+        if model_type.startswith("<class '" + 'keras'):
+            from keras import backend as K
+            return K.backend() == self._keras_backend_name 
+        return False

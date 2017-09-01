@@ -55,7 +55,6 @@ from keras.models import model_from_yaml
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-from DLKerasNetwork import DLKerasNetworkType
 
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
@@ -63,8 +62,6 @@ from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
 from DLPythonNetwork import DLPythonLayerDataSpec
-
-import DLPythonNetworkType
 
 import numpy as np
 import pandas as pd
@@ -92,10 +89,6 @@ class DLKerasCNTKNetworkReader(DLKerasNetworkReader):
 
 
 class DLKerasCNTKNetwork(DLKerasNetwork):
-    
-    # TODO: add DLKerasCNTKNetwork etc. - add 'backend_name' arg to constructor;
-    # Keras backend has to be set accordingly whenever Keras is invoked.
-    # Check if there could be collisions.
     
     def __init__(self, model):
         super().__init__(model)
@@ -200,26 +193,5 @@ class DLKerasCNTKNetworkSpec(DLKerasNetworkSpec):
     
     @property
     def network_type(self):
-        return DLKerasCNTKNetworkType.instance()
-
-
-class DLKerasCNTKNetworkType(DLKerasNetworkType):
-    
-    def __init__(self):
-        super().__init__('org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType', 'cntk')
-    
-    @property
-    def reader(self):
-        return DLKerasCNTKNetworkReader()
-    
-    def wrap_model(self, model):
-        return DLKerasCNTKNetwork(model)
-
-
-# pseudo-singleton:
-_instance = DLKerasCNTKNetworkType()
-# register network type
-DLPythonNetworkType.add_network_type(_instance)
-# access point for other modules
-def instance():
-    return _instance
+        from DLKerasCNTKNetworkType import instance as CNTK
+        return CNTK()
