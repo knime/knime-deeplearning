@@ -45,7 +45,7 @@
  * History
  *   Sep 25, 2014 (Patrick Winter): created
  */
-package org.knime.dl.python.base.node.predictor;
+package org.knime.dl.python.base.node.executor;
 
 import java.io.IOException;
 

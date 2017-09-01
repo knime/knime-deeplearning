@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="dlkerasreader.png" deprecated="false" type="Source"
-	xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasreader.png" type="Source">
 	<name>DL Keras Network Reader</name>
+	
 	<shortDescription>
-		Reads a Keras model from an input file.
+		Reads a Keras network from an input file.
 	</shortDescription>
+	
 	<fullDescription>
 		<intro>
-			This node reads a Keras deep learning model from an input file.
-			The file can either contain a full, pre-trained model (.h5 file) or
-			just a model specification without weights (.json or .yaml file).
+			This node reads a Keras deep learning network from an input file.
+			The file can either contain a full, pre-trained network (.h5 file) or
+			just a network specification without weights (.json or .yaml file).
 		</intro>
-		<option name="Input Location">The path of the input file that contains the Keras
+		<option name="Input Location">The path to the input file that contains the Keras
 			network.
 		</option>
 		<option name="Copy deep learning network into KNIME workflow?">
 			If selected, the Keras network will be copied into
 			the KNIME workflow, i.e. it will be available when exporting the
-			KNIME workflow with data. In contrast, if this box is unchecked, only
-			a reference to the actual network file is used by KNIME.
+			KNIME workflow with data. Otherwise, only a reference to the actual network file is used by KNIME.
 		</option>
 	</fullDescription>
 	<ports>
-		<outPort index="0" name="Deep Learning Network">The Keras deep learning model.
+		<outPort index="0" name="Deep Learning Network">The Keras deep learning network.
 		</outPort>
 	</ports>
 </knimeNode>

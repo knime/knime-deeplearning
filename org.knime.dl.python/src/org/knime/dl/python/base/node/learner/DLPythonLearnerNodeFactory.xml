@@ -5,15 +5,15 @@
 
 	<shortDescription>
 		Allows custom training and fine-tuning/transfer
-		learning of (Python compatible)
-		deep learning networks in a local
+		learning of a (Python compatible)
+		deep learning network in a local
 		Python installation.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node allows custom training and fine-tuning/transfer
-			learning of (Python compatible) deep learning networks in a local
+			learning of a (Python compatible) deep learning network in a local
 			Python installation via a user-defined script.
 			The path to the Python executable has to be configured
 			in Preferences
@@ -51,12 +51,6 @@
 			<option name="Console">
 				Displays the standard and error output of the
 				execution as well as other relevant information.
-			</option>
-		</tab>
-		<tab name="Options">
-			<option name="Row limit (dialog)">
-				Limits how many rows are loaded in the dialog.
-				Changes only take effect after reseting the workspace.
 			</option>
 		</tab>
 		<tab name="Options">

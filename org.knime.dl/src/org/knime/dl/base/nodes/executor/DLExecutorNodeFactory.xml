@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="dlexecutor.png" deprecated="false" type="Predictor"
-	xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlexecutor.png" type="Predictor">
 	<name>DL Network Executor</name>
+	
 	<shortDescription>
 		Executes a deep learning network.
 	</shortDescription>
+	
 	<fullDescription>
 		<intro>
-			This node executes a deep learning model on a compatible
-			external back end that can be selected by the user (e.g. Keras for
-			models that were read in using the Keras reader node).
+			This node executes a deep learning network on a compatible
+			external back end that can be selected by the user.
 		</intro>
 		<tab name="General Settings">
 			<option name="Back end">
 				The deep learning back end which is used to
-				execute the input model for the given input data.
+				execute the input network for the given input data.
 			</option>
 			<option name="Input batch size">
 				The number of rows that are processed at a time.
