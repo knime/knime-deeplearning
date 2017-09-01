@@ -44,16 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 22, 2017 (marcel): created
+ *   May 23, 2017 (marcel): created
  */
-package org.knime.dl.keras.testing;
+package org.knime.dl.keras.theano.testing;
 
-import org.knime.testing.core.AbstractTestcaseCollector;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.InvalidPathException;
+
+import org.junit.Test;
+import org.knime.core.util.FileUtil;
+import org.knime.dl.keras.theano.core.DLKerasTheanoDefaultNetworkReader;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasTestCaseCollector extends AbstractTestcaseCollector {
-	// registered at extension point, nothing to do here
+public class DLKerasTheanoNetworkReaderTest {
+
+	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+
+	@Test
+	public void test() throws IOException, InvalidPathException, MalformedURLException {
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
+		final DLKerasTheanoDefaultNetworkReader reader = new DLKerasTheanoDefaultNetworkReader();
+		DLKerasTheanoNetwork network;
+		try {
+			network = reader.read(source);
+		} catch (IllegalArgumentException | IOException e) {
+			throw new RuntimeException(e);
+		}
+		// TODO: test against known specs
+	}
 }

@@ -46,39 +46,69 @@
  * History
  *   May 23, 2017 (marcel): created
  */
-package org.knime.dl.keras.testing;
+package org.knime.dl.keras.tensorflow.testing;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.InvalidPathException;
+import java.util.Collections;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.keras.core.DLKerasDefaultNetworkReader;
-import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowDefaultNetworkReader;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowDefaultExecutionContext;
 import org.knime.dl.util.DLUtils;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasNetworkReaderTest {
+public class DLKerasTensorFlowNetworkExecutor1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
 	@Test
-	public void test() throws IOException, InvalidPathException, MalformedURLException {
+	public void test() throws Exception {
 		final URL source = FileUtil
-				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLKerasDefaultNetworkReader handler = new DLKerasDefaultNetworkReader();
-		DLKerasNetwork network;
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
+		final DLKerasTensorFlowDefaultExecutionContext exec = new DLKerasTensorFlowDefaultExecutionContext();
+		final DLKerasTensorFlowDefaultNetworkReader reader = new DLKerasTensorFlowDefaultNetworkReader();
+		DLKerasTensorFlowNetwork network;
 		try {
-			network = handler.create(source);
+			network = reader.read(source);
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e);
 		}
-		// TODO: test against known specs
+		final DLNetworkSpec networkSpec = network.getSpec();
+		final Set<DLLayerDataSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
+		final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs);
+		execNetwork.execute(in -> {
+			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : in.entrySet()) {
+				populate(entry.getValue().getBatch()[0]);
+			}
+		}, out -> {
+			// TODO: test against known results - this is sth. that should rather be tested via a test workflow
+		}, 1);
+	}
+
+	private static void populate(final DLLayerData<?> data) {
+		if (data.getBuffer() instanceof DLWritableFloatBuffer) {
+			final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer) data.getBuffer();
+			buffer.resetWrite();
+			for (int i = 0; i < buffer.getCapacity(); i++) {
+				buffer.put(5f);
+			}
+		} else {
+			throw new IllegalStateException("Unexpected input buffer type.");
+		}
 	}
 }

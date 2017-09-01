@@ -107,7 +107,7 @@ import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
 import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.core.io.DLNetworkReader;
+import org.knime.dl.core.io.DLExternalNetworkReader;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
@@ -130,8 +130,8 @@ public class DLPythonConverterTest {
 
 		// network:
 
-		final DLBazNetworkReader handler = new DLBazNetworkReader();
-		final DLBazNetwork network = handler.create("dummy-source");
+		final DLBazNetworkReader reader = new DLBazNetworkReader();
+		final DLBazNetwork network = reader.read("dummy-source");
 		final DLNetworkSpec networkSpec = network.getSpec();
 
 		// input data:
@@ -168,7 +168,9 @@ public class DLPythonConverterTest {
 			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
 					.getInstance()
 					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
-					.stream().filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
+					.stream().filter(c -> {
+						return c.getDestType().getCellClass() == BarDataCell.class;
+					}).findFirst().get();
 			outputConverters.put(outputSpec, converter);
 		}
 		for (final DLLayerDataSpec outputSpec : networkSpec.getIntermediateOutputSpecs()) {
@@ -237,7 +239,7 @@ public class DLPythonConverterTest {
 
 		private final DLBazNetworkSpec m_spec;
 
-		private DLBazNetwork(final String source, final DLBazNetworkSpec spec) {
+		private DLBazNetwork(final DLBazNetworkSpec spec, final String source) {
 			m_source = source;
 			m_spec = spec;
 		}
@@ -290,7 +292,12 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLExternalNetworkLoader<String, ?, ?> getLoader() {
+		public String getName() {
+			return "Baz";
+		}
+
+		@Override
+		public DLExternalNetworkLoader<DLBazNetwork, ?, String, ?> getLoader() {
 			throw new RuntimeException("not yet implemented"); // TODO: NYI
 		}
 
@@ -303,9 +310,15 @@ public class DLPythonConverterTest {
 		public DLNetworkSpecSerializer<DLBazNetworkSpec> getNetworkSpecSerializer() {
 			throw new RuntimeException("not yet implemented"); // TODO: NYI
 		}
+
+		@Override
+		public DLBazNetwork wrap(final DLBazNetworkSpec spec, final String source)
+				throws DLInvalidSourceException, IllegalArgumentException {
+			return new DLBazNetwork(spec, source);
+		}
 	}
 
-	static class DLBazNetworkReader implements DLNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
+	static class DLBazNetworkReader implements DLExternalNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
 
 		@Override
 		public DLBazNetworkType getNetworkType() {
@@ -313,7 +326,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLBazNetwork create(final String source) throws DLInvalidSourceException, IOException {
+		public DLBazNetwork read(final String source) throws DLInvalidSourceException, IOException {
 			final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
 			inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
 					float.class);
@@ -323,13 +336,7 @@ public class DLPythonConverterTest {
 			outputSpecs[0] = new DLDefaultLayerDataSpec("out0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
 					double.class);
 			final DLBazNetworkSpec spec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
-			return create(source, spec);
-		}
-
-		@Override
-		public DLBazNetwork create(final String source, final DLBazNetworkSpec spec)
-				throws DLInvalidSourceException, IllegalArgumentException, IOException {
-			return new DLBazNetwork(source, spec);
+			return new DLBazNetwork(spec, source);
 		}
 	}
 
@@ -355,16 +362,16 @@ public class DLPythonConverterTest {
 		@Override
 		public DLExecutableNetworkAdapter executable(final DLBazNetwork network,
 				final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
-			final DLBazExecutableNetwork execNetwork = new DLBazExecutableNetwork(network.getSpec());
+			final DLBazExecutableNetwork execNetwork = new DLBazExecutableNetwork(network);
 			return new DLBazExecutableNetworkAdapter(execNetwork, m_layerDataFactory, requestedOutputs);
 		}
 	}
 
 	static class DLBazExecutableNetwork extends
-			DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetworkSpec> {
+			DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec> {
 
-		public DLBazExecutableNetwork(final DLBazNetworkSpec spec) {
-			super(spec);
+		public DLBazExecutableNetwork(final DLBazNetwork network) {
+			super(network);
 		}
 
 		@Override
@@ -597,25 +604,16 @@ public class DLPythonConverterTest {
 			return m_floats;
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public String toString() {
 			return Arrays.toString(m_floats);
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		protected boolean equalsDataCell(final DataCell dc) {
 			return Arrays.equals(m_floats, ((FooDataCell) dc).m_floats);
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public int hashCode() {
 			return m_floats.hashCode();
@@ -642,25 +640,16 @@ public class DLPythonConverterTest {
 			return m_doubles;
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public String toString() {
 			return Arrays.toString(m_doubles);
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		protected boolean equalsDataCell(final DataCell dc) {
 			return Arrays.equals(m_doubles, ((BarDataCell) dc).m_doubles);
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public int hashCode() {
 			return m_doubles.hashCode();

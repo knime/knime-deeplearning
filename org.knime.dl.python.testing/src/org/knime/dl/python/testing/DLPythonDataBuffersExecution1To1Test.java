@@ -71,6 +71,8 @@ import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLDefaultLayerDataBatch;
 import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.python.core.DLPythonAbstractCommands;
+import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
@@ -78,8 +80,6 @@ import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
-import org.knime.dl.python.core.kernel.DLPythonCommands;
-import org.knime.dl.python.core.kernel.DLPythonCommandsConfig;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
@@ -107,13 +107,13 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.python.testing";
 
-	private DLPythonCommands m_commands;
+	private DLPythonAbstractCommands<DLPythonAbstractCommandsConfig> m_commands;
 
 	private Random m_rng;
 
 	@Before
 	public void setUp() throws IOException {
-		m_commands = new DLPythonCommands(new PythonKernel(new PythonKernelOptions()), new DLPythonCommandsConfig() {
+		m_commands = new DLPythonAbstractCommands<DLPythonAbstractCommandsConfig>(new DLPythonAbstractCommandsConfig() {
 
 			@Override
 			public String getTestInstallationCode() {
@@ -124,7 +124,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			public String getLoadCode(final String path) {
 				throw new RuntimeException("not yet implemented"); // TODO: NYI
 			}
-		}) {
+		}, new PythonKernel(new PythonKernelOptions())) {
 			@Override
 			public DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle network,
 					final DLPythonTypeMap typeMap) throws IOException {
@@ -144,8 +144,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		final ArrayList<DLLayerData<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
-					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class) {
-					};
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class);
 			final DLPythonDoubleBuffer buff = new DLPythonDoubleBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -197,8 +196,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
-					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class) {
-					};
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class);
 			final DLPythonFloatBuffer buff = new DLPythonFloatBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -247,9 +245,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testInt() throws IOException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLLayerDataSpec spec =
-					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class) {
-					};
+			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class);
 			final DLPythonIntBuffer buff =
 					new DLPythonIntBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -299,8 +295,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
-					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class) {
-					};
+					new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class);
 			final DLPythonLongBuffer buff =
 					new DLPythonLongBuffer(DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
