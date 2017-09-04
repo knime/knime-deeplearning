@@ -52,6 +52,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -98,6 +99,28 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 				inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
 	}
 
+	static void checkExecutePostConditions(final PythonKernel kernel) throws Exception {
+		final String outputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
+		String[] output = kernel.execute("try:\n" + //
+				"	" + outputNetworkName + '\n' + //
+				"except NameError:\n" + //
+				"	print(\"Variable '" + outputNetworkName
+				+ "' is not defined. Please make sure to define it in your script.\")");
+		if (!output[0].isEmpty()) {
+			throw new Exception(output[0].trim());
+		}
+		output = kernel.execute("import DLPythonNetworkType\n" + //
+				"try:\n" + //
+				"	DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
+				"except TypeError as ex:\n" + //
+				"	print(str(ex) + " //
+				+ "'\\nPlease check your assignment of \\'" + outputNetworkName
+				+ "\\' within the script and make sure you are not missing any KNIME extensions.')");
+		if (!output[0].isEmpty()) {
+			throw new Exception(output[0].trim());
+		}
+	}
+
 	private DataTableSpec m_lastIncomingTableSpec;
 
 	DLPythonLearnerNodeModel() {
@@ -126,20 +149,28 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			final DLPythonNetwork<?> inNetwork = (DLPythonNetwork<?>) portObject.getNetwork();
 			setupNetwork(inNetwork, kernel);
 
+			final String loadBackendCode = DLNetworkTypeRegistry.getInstance().getAllNetworkTypes().stream()
+					.filter(nt -> nt instanceof DLPythonNetworkType)
+					.map(nt -> "import " + ((DLPythonNetworkType<?, ?>) nt).getPythonModuleName() + "\n")
+					.collect(Collectors.joining());
+			// TODO: we should move this logic out of the node in a later iteration
+			kernel.execute(loadBackendCode, exec);
 			exec.createSubProgress(0.1).setProgress(1);
 			kernel.putDataTable(DLPythonLearnerNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
 			final String outputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-			final String sourceCode = getConfig().getSourceCode() + "\n" + //
-					"import DLPythonNetwork\n" + //
+			String[] output = kernel.execute(getConfig().getSourceCode(), exec);
+			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
+			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			checkExecutePostConditions(kernel);
+			output = kernel.execute("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //
 					"network_type = DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
 					"DLPythonNetwork.add_network('" + outputNetworkName + "', network_type.wrap_model("
 					+ outputNetworkName + "))\n" + //
 					"global network_type_identifier\n" + //
-					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n";
-			final String[] output = kernel.execute(sourceCode, exec);
+					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.4).setProgress(1);
