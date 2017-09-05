@@ -55,8 +55,10 @@ import java.nio.file.InvalidPathException;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowDefaultNetworkReader;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -71,7 +73,8 @@ public class DLKerasTensorFlowNetworkReaderTest {
 	public void test() throws IOException, InvalidPathException, MalformedURLException {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLKerasTensorFlowDefaultNetworkReader reader = new DLKerasTensorFlowDefaultNetworkReader();
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
 		DLKerasTensorFlowNetwork network;
 		try {
 			network = reader.read(source);

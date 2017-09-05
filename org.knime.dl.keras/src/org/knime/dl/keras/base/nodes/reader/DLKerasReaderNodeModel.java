@@ -80,10 +80,7 @@ import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkType;
-import org.knime.dl.python.core.DLPythonAbstractCommands;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkLoader;
-import org.knime.python2.kernel.PythonKernel;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -155,7 +152,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		}
 		if (!filePath.equals(m_lastFilePath) || !backendId.equals(m_lastBackendId)) {
 			try {
-				m_network = read(url, backend);
+				m_network = new DLPythonDefaultNetworkReader<>(backend.getLoader()).read(url);
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {
@@ -239,31 +236,5 @@ final class DLKerasReaderNodeModel extends NodeModel {
 					+ "' is not a valid Keras back end. This is an implementation error.");
 		}
 		return (DLKerasNetworkType<?, ?>) backend;
-	}
-
-	// TODO: this actually belongs to the network reader
-
-	private <N extends DLKerasNetwork<?>> N read(final URL source, final DLKerasNetworkType<N, ?> backend)
-			throws DLInvalidSourceException, IOException {
-		final DLPythonNetworkLoader<N> loader = backend.getLoader();
-		loader.validateSource(source);
-		final PythonKernel kernel = createKernel();
-		try {
-			final DLPythonNetworkHandle handle = loader.load(source, kernel);
-			return loader.fetch(handle, source, kernel);
-		} finally {
-			kernel.close();
-		}
-	}
-
-	private PythonKernel createKernel() throws IOException {
-		final PythonKernel kernel;
-		try {
-			kernel = DLPythonAbstractCommands.createKernel();
-		} catch (final IOException e) {
-			throw new IOException("Connection to the deep learning Python back end could not be established. "
-					+ "An exception occurred while setting up the Python kernel.", e);
-		}
-		return kernel;
 	}
 }

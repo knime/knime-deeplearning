@@ -63,9 +63,11 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowDefaultNetworkReader;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
 import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowDefaultExecutionContext;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -81,7 +83,8 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultExecutionContext exec = new DLKerasTensorFlowDefaultExecutionContext();
-		final DLKerasTensorFlowDefaultNetworkReader reader = new DLKerasTensorFlowDefaultNetworkReader();
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
 		DLKerasTensorFlowNetwork network;
 		try {
 			network = reader.read(source);

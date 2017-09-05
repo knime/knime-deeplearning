@@ -50,9 +50,9 @@ import java.io.IOException;
 
 import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkType;
 
 /**
  * Instances of this interface must be stateless as they will be shared by multiple networks.
@@ -60,15 +60,9 @@ import org.knime.dl.core.DLNetworkType;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkReader<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R> {
+public interface DLExternalNetworkReader<N extends DLExternalNetwork<S, ?>, S extends DLExternalNetworkSpec<?>, R> {
 
-	// TODO: we can probably separate the reader's R from the R of the external network
-
-	DLNetworkType<N, S> getNetworkType();
-
-	default String getIdentifier() {
-		return getClass().getCanonicalName();
-	}
+	// NB: type parameter R does not necessarily need to correspond to the R of the network
 
 	/**
 	 * Reads in a {@link DLNetwork network} from a source.
@@ -76,7 +70,8 @@ public interface DLExternalNetworkReader<N extends DLExternalNetwork<S, R>, S ex
 	 * @param source the source
 	 * @return the network
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IOException if creation of the network implied I/O which failed (optional)
+	 * @throws DLInvalidContextException if creating the network implied creating a context which failed (optional)
+	 * @throws IOException if creating the network implied I/O which failed (optional)
 	 */
-	N read(R source) throws DLInvalidSourceException, IOException;
+	N read(R source) throws DLInvalidSourceException, DLInvalidContextException, IOException;
 }

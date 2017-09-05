@@ -50,41 +50,37 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.io.DLAbstractExternalNetworkReader;
+import org.knime.dl.core.io.DLExternalNetworkReader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkReader<NT extends DLPythonNetworkType<N, S>, N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLAbstractExternalNetworkReader<NT, N, S, URL> {
+public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
+		implements DLExternalNetworkReader<N, S, URL> {
 
-	protected DLPythonAbstractNetworkReader(final NT type) {
-		super(type);
+	private final DLPythonNetworkLoader<N> m_loader;
+
+	public DLPythonDefaultNetworkReader(final DLPythonNetworkLoader<N> loader) {
+		m_loader = loader;
 	}
 
 	@Override
 	public N read(final URL source) throws DLInvalidSourceException, IOException {
-		final DLPythonNetworkLoader<N> loader = getNetworkType().getLoader();
-		loader.validateSource(source);
-		final PythonKernel kernel = createKernel();
-		try {
-			final DLPythonNetworkHandle handle = loader.load(source, kernel);
-			return loader.fetch(handle, source, kernel);
-		} finally {
-			kernel.close();
-		}
-	}
-
-	protected PythonKernel createKernel() throws IOException {
+		m_loader.validateSource(source);
 		final PythonKernel kernel;
 		try {
 			kernel = DLPythonAbstractCommands.createKernel();
 		} catch (final IOException e) {
 			throw new IOException("Connection to the deep learning Python back end could not be established. "
-					+ "An exception occurred while setting up the Python kernel.", e);
+					+ "An exception occurred while setting up the Python kernel. See log for details.", e);
 		}
-		return kernel;
+		try {
+			final DLPythonNetworkHandle handle = m_loader.load(source, kernel);
+			return m_loader.fetch(handle, source, kernel);
+		} finally {
+			kernel.close();
+		}
 	}
 }

@@ -55,8 +55,10 @@ import java.nio.file.InvalidPathException;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.keras.theano.core.DLKerasTheanoDefaultNetworkReader;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -71,7 +73,8 @@ public class DLKerasTheanoNetworkReaderTest {
 	public void test() throws IOException, InvalidPathException, MalformedURLException {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLKerasTheanoDefaultNetworkReader reader = new DLKerasTheanoDefaultNetworkReader();
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
 		DLKerasTheanoNetwork network;
 		try {
 			network = reader.read(source);

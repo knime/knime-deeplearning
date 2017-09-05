@@ -321,11 +321,6 @@ public class DLPythonConverterTest {
 	static class DLBazNetworkReader implements DLExternalNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
 
 		@Override
-		public DLBazNetworkType getNetworkType() {
-			return DLBazNetworkType.INSTANCE;
-		}
-
-		@Override
 		public DLBazNetwork read(final String source) throws DLInvalidSourceException, IOException {
 			final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
 			inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
