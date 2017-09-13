@@ -55,7 +55,8 @@ public interface DLException {
 	/**
 	 * Returns the detail message string of this exception.
 	 *
-	 * @return the detail message string of this {@link DLException} instance. Must neither be null nor empty.
+	 * @return the detail message string of this {@link DLException} instance. Is neither null nor empty and suitable
+	 *         for presentation to the user.
 	 * @see Throwable#getMessage()
 	 */
 	String getMessage();

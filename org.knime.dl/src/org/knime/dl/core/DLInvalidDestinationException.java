@@ -46,23 +46,25 @@
  */
 package org.knime.dl.core;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
-import java.io.IOException;
-
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidDestinationException extends IOException implements DLException {
+public class DLInvalidDestinationException extends DLCheckedException {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @param message must be neither null nor empty
+	 */
 	public DLInvalidDestinationException(final String message) {
-		super(checkNotNullOrEmpty(message));
+		super(message);
 	}
 
+	/**
+	 * @param message must be neither null nor empty
+	 */
 	public DLInvalidDestinationException(final String message, final Throwable cause) {
-		super(checkNotNullOrEmpty(message), cause);
+		super(message, cause);
 	}
 }

@@ -44,37 +44,38 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
-import org.knime.dl.core.DLUncheckedException;
+import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 /**
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidNetworkInputException extends DLUncheckedException {
+public class DLCheckedException extends Exception implements DLException {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkInputException(final String message) {
-		super(message);
+	public DLCheckedException(final String message) {
+		super(checkNotNullOrEmpty(message));
 	}
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause) {
-		super(message, cause);
+	public DLCheckedException(final String message, final Throwable cause) {
+		super(checkNotNullOrEmpty(message), cause);
 	}
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause, final boolean enableSuppression,
+	public DLCheckedException(final String message, final Throwable cause, final boolean enableSuppression,
 			final boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
+		super(checkNotNullOrEmpty(message), cause, enableSuppression, writableStackTrace);
 	}
 }

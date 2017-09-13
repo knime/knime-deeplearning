@@ -46,24 +46,33 @@
  */
 package org.knime.dl.core.execution;
 
-import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLUncheckedException;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidNetworkOutputException extends RuntimeException implements DLException {
+public class DLInvalidNetworkOutputException extends DLUncheckedException {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @param message must be neither null nor empty
+	 */
 	public DLInvalidNetworkOutputException(final String message) {
 		super(message);
 	}
 
+	/**
+	 * @param message must be neither null nor empty
+	 */
 	public DLInvalidNetworkOutputException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
+	/**
+	 * @param message must be neither null nor empty
+	 */
 	public DLInvalidNetworkOutputException(final String message, final Throwable cause, final boolean enableSuppression,
 			final boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);

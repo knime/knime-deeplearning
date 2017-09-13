@@ -44,37 +44,27 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
-
-import org.knime.dl.core.DLUncheckedException;
+package org.knime.dl.core;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLInvalidNetworkInputException extends DLUncheckedException {
+public class DLUnavailableDependencyException extends DLCheckedException {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkInputException(final String message) {
+	public DLUnavailableDependencyException(final String message) {
 		super(message);
 	}
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause) {
+	public DLUnavailableDependencyException(final String message, final Throwable cause) {
 		super(message, cause);
-	}
-
-	/**
-	 * @param message must be neither null nor empty
-	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause, final boolean enableSuppression,
-			final boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
 	}
 }
