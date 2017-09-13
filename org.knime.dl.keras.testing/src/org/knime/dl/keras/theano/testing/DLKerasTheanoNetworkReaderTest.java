@@ -55,6 +55,8 @@ import java.nio.file.InvalidPathException;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
@@ -70,17 +72,13 @@ public class DLKerasTheanoNetworkReaderTest {
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
 	@Test
-	public void test() throws IOException, InvalidPathException, MalformedURLException {
+	public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
+			DLInvalidContextException {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
 				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
-		DLKerasTheanoNetwork network;
-		try {
-			network = reader.read(source);
-		} catch (IllegalArgumentException | IOException e) {
-			throw new RuntimeException(e);
-		}
+		final DLKerasTheanoNetwork network = reader.read(source);
 		// TODO: test against known specs
 	}
 }
