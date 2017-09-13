@@ -52,6 +52,8 @@ import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,6 +66,7 @@ import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -77,6 +80,7 @@ import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
+import org.knime.dl.core.DLUnavailableDependencyException;
 import org.knime.dl.keras.core.DLKerasNetworkType;
 
 /**
@@ -84,6 +88,8 @@ import org.knime.dl.keras.core.DLKerasNetworkType;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 final class DLKerasReaderNodeDialog extends NodeDialogPane {
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
 
 	private final FilesHistoryPanel m_files;
 
@@ -174,14 +180,25 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
-		final List<DLNetworkType<?, ?>> availableNetworkTypes = DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
-				.stream() //
-				.filter((nt) -> nt instanceof DLKerasNetworkType) //
-				.sorted(Comparator.comparing(DLNetworkType::getName)) //
-				.collect(Collectors.toList());
-		// TODO: installation tests - detailed error messages!
+		final List<DLKerasNetworkType<?, ?>> availableNetworkTypes =
+				DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
+						.stream() //
+						.filter(nt -> nt instanceof DLKerasNetworkType) //
+						.map(nt -> (DLKerasNetworkType<?, ?>) nt).sorted(Comparator.comparing(DLNetworkType::getName)) //
+						.collect(Collectors.toList());
+		final List<String> unavailableNetworkTypeIds = new ArrayList<>();
+		for (int i = availableNetworkTypes.size() - 1; i >= 0; i--) {
+			final DLKerasNetworkType<?, ?> kerasNetworkType = availableNetworkTypes.get(i);
+			try {
+				kerasNetworkType.checkAvailability(false);
+			} catch (final DLUnavailableDependencyException e) {
+				availableNetworkTypes.remove(i);
+				unavailableNetworkTypeIds.add(kerasNetworkType.getIdentifier());
+			}
+		}
 		if (availableNetworkTypes.size() == 0) {
-			throw new NotConfigurableException("There is no available Keras back end.");
+			throw new NotConfigurableException(
+					"There is no available Keras back end. Please check your local installation.");
 		}
 		final String[] names = new String[availableNetworkTypes.size()];
 		final String[] ids = new String[availableNetworkTypes.size()];
@@ -191,7 +208,26 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 			ids[i] = networkType.getIdentifier();
 		}
 		final String[] backend = m_smBackend.getStringArrayValue();
-		final String selectedName = backend[1] != null ? backend[0] : names[0];
+		final String selectedName;
+		if (backend[1] != null) {
+			final int idx;
+			if ((idx = Arrays.asList(ids).indexOf(backend[1])) != -1) {
+				selectedName = names[idx];
+			} else {
+				final String msg;
+				if (unavailableNetworkTypeIds.contains(backend[1])) {
+					msg = "Selected Keras back end '" + backend[0]
+							+ "' is not available anymore. Please check your local installation.";
+				} else {
+					msg = "Selected Keras back end '" + backend[0]
+							+ "' cannot be found. Are you missing a KNIME deep learning extension?";
+				}
+				LOGGER.warn(msg);
+				selectedName = names[0];
+			}
+		} else {
+			selectedName = names[0];
+		}
 		m_dcBackend.replaceListItems(names, ids, selectedName);
 
 		m_dcCopyNetwork.loadSettingsFrom(settings, specs);

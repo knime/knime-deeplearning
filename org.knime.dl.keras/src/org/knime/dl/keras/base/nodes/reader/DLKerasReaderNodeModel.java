@@ -78,6 +78,7 @@ import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
+import org.knime.dl.core.DLUnavailableDependencyException;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkType;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
@@ -143,8 +144,14 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		} catch (InvalidPathException | MalformedURLException e) {
 			throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
 		}
-		// TODO: also check installation
 		final DLKerasNetworkType<?, ?> backend = getBackend(backendId);
+		try {
+			backend.checkAvailability(false);
+		} catch (final DLUnavailableDependencyException e) {
+			throw new InvalidSettingsException(
+					"Selected Keras back end '" + backend.getName() + "' is not available anymore. "
+							+ "Please check your local installation.\nDetails: " + e.getMessage());
+		}
 		try {
 			backend.getLoader().validateSource(url);
 		} catch (final DLInvalidSourceException e) {
@@ -229,10 +236,10 @@ final class DLKerasReaderNodeModel extends NodeModel {
 
 	private DLKerasNetworkType<?, ?> getBackend(final String backendId) throws InvalidSettingsException {
 		final DLNetworkType<?, ?> backend = DLNetworkTypeRegistry.getInstance().getNetworkType(backendId)
-				.orElseThrow(() -> new InvalidSettingsException(
-						"Keras back end '" + backendId + "' cannot be found. Are you missing a KNIME extension?"));
+				.orElseThrow(() -> new InvalidSettingsException("Selected Keras back end '" + backendId
+						+ "' cannot be found. Are you missing a KNIME extension?"));
 		if (!(backend instanceof DLKerasNetworkType)) {
-			throw new InvalidSettingsException("The selected back end '" + backendId
+			throw new InvalidSettingsException("Selected back end '" + backendId
 					+ "' is not a valid Keras back end. This is an implementation error.");
 		}
 		return (DLKerasNetworkType<?, ?>) backend;
