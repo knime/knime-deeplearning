@@ -76,13 +76,9 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 	 *
 	 * @return the singleton instance
 	 */
-	public static DLLayerDataRegistry getInstance() {
+	public static synchronized DLLayerDataRegistry getInstance() {
 		if (instance == null) {
-			synchronized (DLLayerDataRegistry.class) {
-				if (instance == null) {
-					instance = new DLLayerDataRegistry();
-				}
-			}
+			instance = new DLLayerDataRegistry();
 		}
 		return instance;
 	}

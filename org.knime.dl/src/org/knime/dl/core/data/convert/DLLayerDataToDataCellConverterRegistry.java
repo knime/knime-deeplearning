@@ -82,13 +82,9 @@ public final class DLLayerDataToDataCellConverterRegistry extends DLAbstractExte
 	 *
 	 * @return the singleton instance
 	 */
-	public static DLLayerDataToDataCellConverterRegistry getInstance() {
+	public static synchronized DLLayerDataToDataCellConverterRegistry getInstance() {
 		if (instance == null) {
-			synchronized (DLLayerDataToDataCellConverterRegistry.class) {
-				if (instance == null) {
-					instance = new DLLayerDataToDataCellConverterRegistry();
-				}
-			}
+			instance = new DLLayerDataToDataCellConverterRegistry();
 		}
 		return instance;
 	}

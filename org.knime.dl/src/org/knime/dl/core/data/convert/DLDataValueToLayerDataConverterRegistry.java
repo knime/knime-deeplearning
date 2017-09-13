@@ -82,13 +82,9 @@ public final class DLDataValueToLayerDataConverterRegistry extends DLAbstractExt
 	 *
 	 * @return the singleton instance
 	 */
-	public static DLDataValueToLayerDataConverterRegistry getInstance() {
+	public static synchronized DLDataValueToLayerDataConverterRegistry getInstance() {
 		if (instance == null) {
-			synchronized (DLDataValueToLayerDataConverterRegistry.class) {
-				if (instance == null) {
-					instance = new DLDataValueToLayerDataConverterRegistry();
-				}
-			}
+			instance = new DLDataValueToLayerDataConverterRegistry();
 		}
 		return instance;
 	}

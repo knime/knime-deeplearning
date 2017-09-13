@@ -77,13 +77,9 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 *
 	 * @return the singleton instance
 	 */
-	public static DLExecutionContextRegistry getInstance() {
+	public static synchronized DLExecutionContextRegistry getInstance() {
 		if (instance == null) {
-			synchronized (DLExecutionContextRegistry.class) {
-				if (instance == null) {
-					instance = new DLExecutionContextRegistry();
-				}
-			}
+			instance = new DLExecutionContextRegistry();
 		}
 		return instance;
 	}

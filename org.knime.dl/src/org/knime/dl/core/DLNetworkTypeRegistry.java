@@ -71,13 +71,9 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	 *
 	 * @return the singleton instance
 	 */
-	public static DLNetworkTypeRegistry getInstance() {
+	public static synchronized DLNetworkTypeRegistry getInstance() {
 		if (instance == null) {
-			synchronized (DLNetworkTypeRegistry.class) {
-				if (instance == null) {
-					instance = new DLNetworkTypeRegistry();
-				}
-			}
+			instance = new DLNetworkTypeRegistry();
 		}
 		return instance;
 	}
