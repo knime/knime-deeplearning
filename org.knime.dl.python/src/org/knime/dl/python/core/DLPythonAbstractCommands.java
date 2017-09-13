@@ -56,9 +56,12 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLLayerDataBatch;
@@ -85,8 +88,6 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValu
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
 import org.knime.python2.generic.ScriptingNodeUtils;
-import org.knime.python2.kernel.PythonKernel;
-import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -96,59 +97,143 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
-	// TODO: for long running KNIME instances, a static flag might not be the best idea
-	private static boolean testedInstallation = false;
+	private static final String INSTALLATION_TEST_OK_MSG = "DL Python installation test: OK\n";
 
-	public static PythonKernel createKernel() throws IOException {
-		return new PythonKernel(new PythonKernelOptions());
-	}
+	private static final String INSTALLATION_TEST_FAIL_MSG = "DL Python installation test: FAIL\n";
 
-	protected final PythonKernel m_kernel;
+	protected final DLPythonContext m_context;
 
 	protected final CFG m_config;
 
-	protected DLPythonAbstractCommands(final CFG config) throws IOException {
-		this(config, createKernel());
+	/**
+	 * @param config the config
+	 * @throws DLInvalidContextException if failed to create a valid Python back end. This includes failures during the
+	 *             setup of the Python kernel as well as the deep learning specific setup of the Python environment,
+	 *             installation tests, registration of all Python deep learning back ends and the setup of the Python
+	 *             back end that corresponds to this commands instance. The thrown exception contains a detailed error
+	 *             message that is suitable to be displayed to the user.
+	 */
+	protected DLPythonAbstractCommands(final CFG config) throws DLInvalidContextException {
+		this(config, new DLPythonDefaultContext());
 	}
 
-	protected DLPythonAbstractCommands(final CFG config, final PythonKernel kernel) throws IOException {
-		m_kernel = kernel;
+	/**
+	 * @param config the config
+	 * @param context the Python kernel
+	 * @throws DLInvalidContextException if failed to create a valid Python back end. This includes failures during the
+	 *             deep learning specific setup of the Python environment, installation tests, registration of all
+	 *             Python deep learning back ends and the setup of the Python back end that corresponds to this commands
+	 *             instance. The thrown exception contains a detailed error message that is suitable to be displayed to
+	 *             the user.
+	 */
+	protected DLPythonAbstractCommands(final CFG config, final DLPythonContext context)
+			throws DLInvalidContextException {
+		m_context = context;
 		m_config = config;
-		setupEnvironment();
-		if (!testedInstallation) {
-			if (!testInstallation()) {
-				throw new IOException("Python installation tests failed. "
-						+ "Please ensure that Python and all required packages are properly installed. "
-						+ "See log for details.");
-			}
-			testedInstallation = true;
-		}
-		setupBackend();
 	}
 
 	public abstract DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-			final DLPythonTypeMap typeMap) throws IOException;
+			final DLPythonTypeMap typeMap) throws DLInvalidContextException, IOException;
 
-	public PythonKernel getKernel() {
-		return m_kernel;
+	public DLPythonContext getContext() {
+		return m_context;
+	}
+
+	public void setupEnvironment() throws DLInvalidContextException {
+		try {
+			final String error = m_context.getKernel().execute(m_config.getSetupEnvironmentCode())[1];
+			if (!error.isEmpty()) {
+				throw new DLInvalidContextException(
+						"Deep learning Python back end environment could not be set up.\nCause: " + error);
+			}
+		} catch (final IOException e) {
+			throw new DLInvalidContextException("An error occurred while communicating with Python "
+					+ "(while setting up the Python back end environment)." + e.getMessage() != null
+							? "\nCause: " + e.getMessage()
+							: "",
+					e);
+		}
+	}
+
+	public void testInstallation() throws DLInvalidContextException {
+		try {
+			final String code = m_config.getSetupEnvironmentCode() + "\n" + m_config.getTestInstallationCode();
+			final String[] output =
+					m_context.isKernelOpen() ? m_context.getKernel().execute(code) : m_context.execute(code);
+			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
+				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
+				final String cause = idx != -1 //
+						? "\nCause: " + output[0].substring(idx + INSTALLATION_TEST_FAIL_MSG.length())
+						: "";
+				final String further = !output[1].isEmpty() ? "\nFurther output: " + output[1] : "";
+				if (!cause.isEmpty()) {
+					throw new DLInvalidContextException(
+							"Deep learning Python back end installation tests failed." + cause + further);
+				} else {
+					throw new DLInvalidContextException(
+							"Deep learning Python back end installation tests failed for unknown reasons." + further);
+				}
+			}
+		} catch (final IOException e) {
+			throw new DLInvalidContextException("An error occurred while communicating with Python "
+					+ "(while testing the installation of the Python back end)." + e.getMessage() != null
+							? "\nCause: " + e.getMessage()
+							: "",
+					e);
+		}
+	}
+
+	public void registerBackends() throws DLInvalidContextException {
+		try {
+			final String error = m_context.getKernel().execute(DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
+					.stream() //
+					.filter(nt -> nt instanceof DLPythonNetworkType) //
+					.map(nt -> "import " + ((DLPythonNetworkType<?, ?>) nt).getPythonModuleName() + "\n") //
+					.collect(Collectors.joining()))[1];
+			if (!error.isEmpty()) {
+				throw new DLInvalidContextException(
+						"Deep learning Python back ends could not be registered.\nCause: " + error);
+			}
+		} catch (final IOException e) {
+			throw new DLInvalidContextException(
+					"An error occurred while communicating with Python (while registering the Python back ends)."
+							+ e.getMessage() != null ? "\nCause: " + e.getMessage() : "",
+					e);
+		}
+	}
+
+	public void setupBackend() throws DLInvalidContextException {
+		try {
+			final String error = m_context.getKernel().execute(m_config.getSetupBackendCode())[1];
+			if (!error.isEmpty()) {
+				throw new DLInvalidContextException(
+						"Deep learning Python back end could not be set up.\nCause: " + error);
+			}
+		} catch (final IOException e) {
+			throw new DLInvalidContextException(
+					"An error occurred while communicating with Python (while setting up the Python back end)."
+							+ e.getMessage() != null ? "\nCause: " + e.getMessage() : "",
+					e);
+		}
 	}
 
 	// TODO: we should get the model name (= handle identifier) from Python
-	public DLPythonNetworkHandle loadNetwork(final String path) throws IOException {
-		m_kernel.execute(m_config.getLoadCode(path));
+	public DLPythonNetworkHandle loadNetwork(final String path) throws DLInvalidContextException, IOException {
+		m_context.getKernel().execute(m_config.getLoadNetworkCode(path));
 		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
 	}
 
-	public void saveNetwork(final DLPythonNetworkHandle handle, final String path) throws IOException {
-		m_kernel.execute(m_config.getSaveCode(handle, path));
+	public void saveNetwork(final DLPythonNetworkHandle handle, final String path)
+			throws DLInvalidContextException, IOException {
+		m_context.getKernel().execute(m_config.getSaveNetworkCode(handle, path));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public synchronized void setNetworkInputs(final DLPythonNetworkHandle handle, // TODO: implement handle
 			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input, final long batchSize)
-			throws IOException {
+			throws DLInvalidContextException, IOException {
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
-			m_kernel.putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
+			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
 
 				int i = 0;
 
@@ -234,19 +319,20 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 	}
 
 	public void executeNetwork(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs)
-			throws IOException {
-		final String[] output = m_kernel.execute(m_config.getExecuteCode(handle, requestedOutputs));
+			throws DLInvalidContextException, IOException {
+		final String[] output = m_context.getKernel().execute(m_config.getExecuteNetworkCode(handle, requestedOutputs));
 		if (!output[1].isEmpty()) {
 			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
 		}
 	}
 
 	public synchronized void getNetworkOutputs(final DLPythonNetworkHandle handle, // TODO: implement handle
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output) throws IOException {
+			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output)
+			throws DLInvalidContextException, IOException {
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> out : output.entrySet()) {
 			final DLLayerDataSpec spec = out.getKey();
 			final DLLayerDataBatch<? extends DLReadableBuffer> batch = out.getValue();
-			m_kernel.getData(spec.getName(), new TableCreatorFactory() {
+			m_context.getKernel().getData(spec.getName(), new TableCreatorFactory() {
 
 				@Override
 				public TableCreator<DLLayerDataBatch<? extends DLReadableBuffer>> createTableCreator(
@@ -303,54 +389,31 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		}
 	}
 
-	public void putParameter(final String key, final String parameter) throws IOException {
+	public void putParameter(final String key, final String parameter) throws DLInvalidContextException, IOException {
 		putParameter(key, new CellImpl(parameter));
 	}
 
-	public void putParameter(final String key, final int parameter) throws IOException {
+	public void putParameter(final String key, final int parameter) throws DLInvalidContextException, IOException {
 		putParameter(key, new CellImpl(parameter));
 	}
 
-	public void putParameter(final String key, final long parameter) throws IOException {
+	public void putParameter(final String key, final long parameter) throws DLInvalidContextException, IOException {
 		putParameter(key, new CellImpl(parameter));
 	}
 
 	/**
-	 * Closes the underlying {@link PythonKernel Python kernel}.
+	 * Closes the underlying {@link DLPythonContext Python context}.
 	 */
 	@Override
 	public void close() throws Exception {
-		m_kernel.close();
+		m_context.close();
 	}
 
-	private void putParameter(final String key, final Cell cell) throws IOException {
+	private void putParameter(final String key, final Cell cell) throws DLInvalidContextException, IOException {
 		final TableSpec spec =
 				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
 		final RowImpl row = new RowImpl(key, 1);
 		row.setCell(cell, 0);
-		m_kernel.putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
-	}
-
-	private void setupEnvironment() throws IOException {
-		m_kernel.execute(m_config.getSetupEnvironmentCode());
-	}
-
-	private boolean testInstallation() {
-		try {
-			final String[] output = m_kernel.execute(m_config.getTestInstallationCode());
-			if (!output[1].isEmpty()) {
-				LOGGER.error("Python installation tests failed. "
-						+ "Please ensure that Python and all required packages are properly installed. Test results: "
-						+ output[1]);
-				return false;
-			}
-			return true;
-		} catch (final Exception e) {
-			return false;
-		}
-	}
-
-	private void setupBackend() throws IOException {
-		m_kernel.execute(m_config.getSetupBackendCode());
+		m_context.getKernel().putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
 	}
 }

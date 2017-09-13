@@ -48,10 +48,10 @@
  */
 package org.knime.dl.python.core.execution;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.knime.dl.core.DLAbstractExecutableNetwork;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -78,7 +78,7 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 		super(network);
 	}
 
-	protected abstract C createCommands() throws IOException;
+	protected abstract C createCommands() throws DLInvalidContextException;
 
 	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLLayerDataBatch.class" isn't really
 	// informative here.
@@ -100,7 +100,7 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 		if (m_commands == null) {
 			m_commands = createCommands();
 			m_handle = m_network.getSpec().getNetworkType().getLoader().load(m_network.getSource(),
-					m_commands.getKernel());
+					m_commands.getContext());
 		}
 		m_commands.setNetworkInputs(m_handle, input, batchSize);
 		m_commands.executeNetwork(m_handle, output.keySet());

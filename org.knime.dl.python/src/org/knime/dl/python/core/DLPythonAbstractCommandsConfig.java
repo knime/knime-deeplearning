@@ -52,10 +52,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.util.DLUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -81,26 +79,23 @@ public abstract class DLPythonAbstractCommandsConfig {
 
 	public abstract String getTestInstallationCode();
 
-	public abstract String getLoadCode(final String path);
+	public abstract String getLoadNetworkCode(final String path);
 
 	public String getSetupEnvironmentCode() {
 		return "";
 	}
 
 	public String getSetupBackendCode() {
-		return DLNetworkTypeRegistry.getInstance().getAllNetworkTypes().stream()
-				.filter(nt -> nt instanceof DLPythonNetworkType)
-				.map(nt -> "import " + ((DLPythonNetworkType<?, ?>) nt).getPythonModuleName() + "\n")
-				.collect(Collectors.joining());
+		return "";
 	}
 
-	public String getSaveCode(final DLPythonNetworkHandle handle, final String path) {
+	public String getSaveNetworkCode(final DLPythonNetworkHandle handle, final String path) {
 		return "import DLPythonNetwork\n" + //
 				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //
 				"network.save(r'" + path + "')";
 	}
 
-	public String getExtractSpecsCode(final DLPythonNetworkHandle handle) throws IOException {
+	public String getExtractNetworkSpecsCode(final DLPythonNetworkHandle handle) throws IOException {
 		return "import DLPythonNetworkSpecExtractor\n" + //
 				"global " + INPUT_SPECS_NAME + "\n" + //
 				"global " + INTERMEDIATE_OUTPUT_SPECS_NAME + "\n" + //
@@ -109,7 +104,7 @@ public abstract class DLPythonAbstractCommandsConfig {
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + handle.getIdentifier() + "')";
 	}
 
-	public String getExecuteCode(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs) {
+	public String getExecuteNetworkCode(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs) {
 		// TODO: add requestedOutputs functionality
 		return "import DLPythonNetwork\n" + //
 				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //

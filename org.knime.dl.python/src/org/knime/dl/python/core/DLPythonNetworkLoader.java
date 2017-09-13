@@ -50,16 +50,16 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.knime.dl.core.DLExternalNetworkLoader;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLPythonNetworkLoader<N extends DLPythonNetwork<?>>
-		extends DLExternalNetworkLoader<N, DLPythonNetworkHandle, URL, PythonKernel> {
+		extends DLExternalNetworkLoader<N, DLPythonNetworkHandle, URL, DLPythonContext> {
 
 	/**
 	 * Returns all model file extensions that this loader is able to load from.
@@ -75,21 +75,11 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork<?>>
 	 */
 	String getSaveModelURLExtension();
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @param context kernel will not be closed by the method
-	 */
 	@Override
-	DLPythonNetworkHandle load(URL source, PythonKernel context)
-			throws DLInvalidSourceException, IllegalArgumentException, IOException;
+	DLPythonNetworkHandle load(URL source, DLPythonContext context)
+			throws DLInvalidSourceException, DLInvalidContextException, IOException;
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @param context kernel will not be closed by the method
-	 */
 	@Override
-	void save(DLPythonNetworkHandle handle, URL destination, PythonKernel context)
-			throws DLInvalidDestinationException, IllegalArgumentException, IOException;
+	void save(DLPythonNetworkHandle handle, URL destination, DLPythonContext context)
+			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidContextException, IOException;
 }

@@ -46,38 +46,20 @@
  */
 package org.knime.dl.python.core;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
-import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork<?>> implements DLPythonNetworkLoader<N> {
+public interface DLPythonContext extends AutoCloseable {
 
-	private static final long serialVersionUID = 1L;
+	boolean isKernelOpen();
 
-	protected abstract DLPythonAbstractCommands<?> createCommands(DLPythonContext context, boolean initialize)
-			throws DLInvalidContextException;
+	PythonKernel getKernel() throws DLInvalidContextException;
 
-	@Override
-	public void validateContext(final DLPythonContext context) throws DLInvalidContextException {
-		createCommands(context, false).testInstallation();
-	}
-
-	@Override
-	public void save(final DLPythonNetworkHandle handle, final URL destination, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidContextException, IOException {
-		validateDestination(destination);
-		final File destinationFile = FileUtil.getFileFromURL(destination);
-		final DLPythonAbstractCommands<?> commands = createCommands(checkNotNull(context), true);
-		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
-	}
+	String[] execute(String code, String... args) throws IOException;
 }

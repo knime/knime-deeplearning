@@ -50,34 +50,99 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
-import org.knime.core.util.FileUtil;
+import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.python2.PythonPreferencePage;
+import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.kernel.PythonKernelOptions;
+import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
+import org.knime.python2.kernel.PythonModuleExtensions;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork<?>> implements DLPythonNetworkLoader<N> {
+public final class DLPythonDefaultContext implements DLPythonContext {
 
-	private static final long serialVersionUID = 1L;
+	public static PythonKernel createKernel() throws DLInvalidContextException {
+		try {
+			final PythonKernelOptions options = new PythonKernelOptions();
+			options.setPythonVersionOption(PythonVersionOption.PYTHON3);
+			return new PythonKernel(options);
+		} catch (final IOException e) {
+			throw new DLInvalidContextException(e.getMessage(), e);
+		}
+	}
 
-	protected abstract DLPythonAbstractCommands<?> createCommands(DLPythonContext context, boolean initialize)
-			throws DLInvalidContextException;
+	private PythonKernel m_kernel;
 
-	@Override
-	public void validateContext(final DLPythonContext context) throws DLInvalidContextException {
-		createCommands(context, false).testInstallation();
+	public DLPythonDefaultContext() {
+		// kernel will be created on demand
+	}
+
+	public DLPythonDefaultContext(final PythonKernel kernel) {
+		m_kernel = checkNotNull(kernel);
 	}
 
 	@Override
-	public void save(final DLPythonNetworkHandle handle, final URL destination, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidContextException, IOException {
-		validateDestination(destination);
-		final File destinationFile = FileUtil.getFileFromURL(destination);
-		final DLPythonAbstractCommands<?> commands = createCommands(checkNotNull(context), true);
-		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
+	public boolean isKernelOpen() {
+		return m_kernel != null;
+	}
+
+	@Override
+	public PythonKernel getKernel() throws DLInvalidContextException {
+		if (m_kernel == null) {
+			m_kernel = createKernel();
+		}
+		return m_kernel;
+	}
+
+	@Override
+	public String[] execute(final String code, final String... args) throws IOException {
+		final String[] pbargs = new String[args.length + 2];
+		pbargs[0] = PythonPreferencePage.getPython3Path();
+		pbargs[1] = "-c" + code; // no space after -c option
+		for (int i = 0; i < args.length; i++) {
+			pbargs[i + 2] = args[i];
+		}
+		final ProcessBuilder pb = new ProcessBuilder(pbargs);
+		// Add all python modules to PYTHONPATH variable
+		String existingPath = pb.environment().get("PYTHONPATH");
+		existingPath = existingPath == null ? "" : existingPath;
+		final String externalPythonPath = PythonModuleExtensions.getPythonPath();
+		if ((externalPythonPath != null) && !externalPythonPath.isEmpty()) {
+			if (existingPath.isEmpty()) {
+				existingPath = externalPythonPath;
+			} else {
+				existingPath = existingPath + File.pathSeparator + externalPythonPath;
+			}
+		}
+		existingPath = existingPath + File.pathSeparator;
+		pb.environment().put("PYTHONPATH", existingPath);
+		final Process p = pb.start();
+		try {
+			final StringWriter stdout = new StringWriter();
+			IOUtils.copy(p.getInputStream(), stdout, StandardCharsets.UTF_8);
+
+			final StringWriter stderr = new StringWriter();
+			IOUtils.copy(p.getErrorStream(), stderr, StandardCharsets.UTF_8);
+
+			return new String[] { stdout.toString(), stderr.toString() };
+		} finally {
+			p.destroyForcibly();
+			IOUtils.closeQuietly(p.getOutputStream());
+			IOUtils.closeQuietly(p.getInputStream());
+			IOUtils.closeQuietly(p.getErrorStream());
+		}
+	}
+
+	@Override
+	public void close() {
+		if (isKernelOpen()) {
+			m_kernel.close();
+		}
 	}
 }

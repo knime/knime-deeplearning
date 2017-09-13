@@ -49,6 +49,8 @@ package org.knime.dl.python.core;
 import java.net.URL;
 
 import org.knime.dl.core.DLAbstractExternalNetworkType;
+import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLUnavailableDependencyException;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -59,7 +61,33 @@ public abstract class DLPythonAbstractNetworkType<N extends DLPythonNetwork<S>, 
 
 	private static final long serialVersionUID = 1L;
 
+	private InstallationTestResults m_previousTestResults;
+
 	protected DLPythonAbstractNetworkType(final String identifier) {
 		super(identifier);
+	}
+
+	@Override
+	public synchronized void checkAvailability(final boolean forceRefresh) throws DLUnavailableDependencyException {
+		if (forceRefresh || m_previousTestResults == null) {
+			m_previousTestResults = new InstallationTestResults();
+			try (DLPythonDefaultContext context = new DLPythonDefaultContext()) {
+				getLoader().validateContext(context);
+				m_previousTestResults.m_success = true;
+			} catch (final DLInvalidContextException e) {
+				m_previousTestResults.m_success = false;
+				m_previousTestResults.m_message = e.getMessage();
+			}
+		}
+		if (!m_previousTestResults.m_success) {
+			throw new DLUnavailableDependencyException(m_previousTestResults.m_message);
+		}
+	}
+
+	private static final class InstallationTestResults {
+
+		private boolean m_success;
+
+		private String m_message;
 	}
 }

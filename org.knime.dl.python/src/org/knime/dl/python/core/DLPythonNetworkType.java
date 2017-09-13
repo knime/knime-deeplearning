@@ -49,6 +49,7 @@ package org.knime.dl.python.core;
 import java.net.URL;
 
 import org.knime.dl.core.DLExternalNetworkType;
+import org.knime.python2.kernel.PythonModuleExtensions;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -60,14 +61,24 @@ public interface DLPythonNetworkType<N extends DLPythonNetwork<S>, S extends DLP
 	@Override
 	DLPythonNetworkLoader<N> getLoader();
 
-	// TODO: detailed javadoc: Python modules should not import 3rd party modules (e.g. Keras) as they are always loaded
-	// at kernel startup (plug-in discovery) - back end related stuff (e.g. the actual execution of a network) must be
-	// handled in a separate module. Proposed naming scheme: "DL*NetworkType" for discovery/as interface and
-	// "DL*Network" for implementation
 	/**
-	 * Returns the path to the module of this network type's counterpart on Python side.
+	 * Returns the name of the module that contains this network type's counterpart on Python side. The module must be
+	 * discoverable via the PYTHONPATH (this can be ensured by registration at extension point
+	 * {@link PythonModuleExtensions}).
+	 * <P>
+	 * The network type class on Python side has to extend the abstract base class <code>DLPythonNetworkType</code> from
+	 * module <code>DLPythonNetworkType</code> and implement its abstract properties and methods. A singleton instance
+	 * of the class has to be created and registered via <code>DLPythonNetworkType.add_network_type(instance)</code>.
+	 * <P>
+	 * The network type's module must not import any third party modules (i.e. no modules that are not part of the
+	 * Python standard library or not provided by KNIME - especially no modules that belong to the network type's back
+	 * end).<br>
+	 * Thus, the actual implementation of the network type's functionality must be kept within a separate module
+	 * (recommended naming scheme is <code>DL*NetworkType</code> for the network type's module and
+	 * <code>DL*Network</code> for the module that contains the implementation). The network type class may only import
+	 * the implementation module lazily (i.e. in method scope).
 	 *
-	 * @return the module path
+	 * @return the module name
 	 */
 	String getPythonModuleName();
 }
