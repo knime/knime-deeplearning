@@ -83,24 +83,74 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	private DLNetworkTypeRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
 		register();
+		for (final DLNetworkType<?, ?> type : m_types.values()) {
+			if (type instanceof DLExternalNetworkType) {
+				try {
+					((DLExternalNetworkType<?, ?, ?>) type).checkAvailability(true);
+				} catch (final DLUnavailableDependencyException e) {
+					// ignore - we just want to trigger installation tests here
+				}
+			}
+		}
 	}
 
 	// access methods:
 
+	/**
+	 * Returns the network type with the given identifier if present.
+	 *
+	 * @param identifier the identifier
+	 * @return the network type if present
+	 */
 	public Optional<DLNetworkType<?, ?>> getNetworkType(final String identifier) {
 		return Optional.ofNullable(m_types.get(identifier));
 	}
 
+	/**
+	 * Returns all registered network types.
+	 *
+	 * @return all registered network types
+	 */
 	public Collection<DLNetworkType<?, ?>> getAllNetworkTypes() {
 		return new ArrayList<>(m_types.values());
 	}
 
+	/**
+	 * Returns all registered, available network types. {@link DLExternalNetwork External networks} are available if
+	 * their {@link DLExternalNetworkType#checkAvailability() external dependencies} are available.
+	 *
+	 * @return all registered, available network types
+	 *
+	 * @see DLExternalNetworkType#checkAvailability()
+	 * @see DLInstallationTester
+	 */
+	public Collection<DLNetworkType<?, ?>> getAllAvailableNetworkTypes() {
+		final ArrayList<DLNetworkType<?, ?>> types = new ArrayList<>(m_types.values());
+		for (int i = types.size() - 1; i >= 0; i--) {
+			final DLNetworkType<?, ?> type = types.get(i);
+			if (type instanceof DLExternalNetworkType) {
+				try {
+					((DLExternalNetworkType<?, ?, ?>) type).checkAvailability(false);
+				} catch (final DLUnavailableDependencyException e) {
+					types.remove(i);
+				}
+			}
+		}
+		return types;
+	}
 	// :access methods
 
 	// registration:
 
-	public void registerNetworkType(final DLNetworkType<?, ?> formatHandler) throws IllegalArgumentException {
-		registerNetworkTypeInternal(formatHandler);
+	/**
+	 * Registers a network type.
+	 *
+	 * @param type the network type
+	 *
+	 * @throws IllegalArgumentException if the network type is already registered
+	 */
+	public void registerNetworkType(final DLNetworkType<?, ?> type) throws IllegalArgumentException {
+		registerNetworkTypeInternal(type);
 	}
 
 	@Override
@@ -110,11 +160,11 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	}
 
 	private synchronized void registerNetworkTypeInternal(final DLNetworkType<?, ?> type) {
-		if (!m_types.containsKey(type)) {
+		if (!m_types.containsKey(type.getIdentifier())) {
 			m_types.put(type.getIdentifier(), type);
 		} else {
 			throw new IllegalArgumentException(
-					"DLNetworkType with identifier " + type.getIdentifier() + " already registered!");
+					"The network type with identifier '" + type.getIdentifier() + "' is already registered!");
 		}
 	}
 	// :registration

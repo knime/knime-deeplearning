@@ -46,43 +46,25 @@
  */
 package org.knime.dl.core;
 
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkType<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
-		extends DLNetworkType<N, S> {
+public class Activator implements BundleActivator {
 
-	/**
-	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not.
-	 * <P>
-	 * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-	 * should cache the results of their first invocation to improve the response time of subsequent calls.
-	 *
-	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-	 *            will be redone. Otherwise, previous test results will be used if available.
-	 *
-	 * @throws DLUnavailableDependencyException if the external dependencies of this network type are unavailable
-	 */
-	void checkAvailability(boolean forceRefresh) throws DLUnavailableDependencyException;
+	@Override
+	public void start(final BundleContext context) throws Exception {
+		// TODO: This triggers instantiation of the network type registry which includes installation tests for external
+		// network types. Actually, we should keep the instantiation as lazy as possible. This is just a workaround to
+		// prevent installation tests from being executed while e.g. a node dialog is opening.
+		DLNetworkTypeRegistry.getInstance();
+	}
 
-	/**
-	 * Returns the {@link DLExternalNetworkLoader loader} for this network type.
-	 * <P>
-	 * Implementing classes and extending interfaces should narrow the return type of this method.
-	 *
-	 * @return the loader for this network type
-	 */
-	DLExternalNetworkLoader<N, ?, R, ?> getLoader();
-
-	/**
-	 * Creates a {@link DLExternalNetwork network} from a source and a spec.
-	 *
-	 * @param spec the spec
-	 * @param source the source
-	 * @return the network
-	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IllegalArgumentException if the spec is invalid
-	 */
-	N wrap(S spec, R source) throws DLInvalidSourceException, IllegalArgumentException;
+	@Override
+	public void stop(final BundleContext context) throws Exception {
+		// no op
+	}
 }

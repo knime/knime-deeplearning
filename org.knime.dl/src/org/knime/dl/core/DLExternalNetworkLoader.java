@@ -58,7 +58,17 @@ import java.io.Serializable;
 public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R, C> extends Serializable {
 
 	/**
-	 * Checks if a given source is valid.
+	 * Checks if the given context is valid.
+	 *
+	 * @param context the context
+	 * @throws DLInvalidContextException if the context validation failed.
+	 *             {@link DLInvalidContextException#getMessage()} contains the detailed test report that is suitable to
+	 *             be displayed to the user.
+	 */
+	void validateContext(C context) throws DLInvalidContextException;
+
+	/**
+	 * Checks if the given source is valid.
 	 *
 	 * @param source the source
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
@@ -66,7 +76,7 @@ public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R
 	void validateSource(R source) throws DLInvalidSourceException;
 
 	/**
-	 * Checks if a given destination is valid.
+	 * Checks if the given destination is valid.
 	 *
 	 * @param destination the destination
 	 * @throws DLInvalidDestinationException if the destination is invalid
@@ -74,16 +84,16 @@ public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R
 	void validateDestination(R destination) throws DLInvalidDestinationException;
 
 	/**
-	 * Loads a network handle from a source into a context.
+	 * Loads a network from a source into a context.
 	 *
 	 * @param source the source
 	 * @param context the context
 	 * @return the network handle
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IllegalArgumentException if the context is invalid
-	 * @throws IOException if failed to load the network handle
+	 * @throws DLInvalidContextException if the context is invalid
+	 * @throws IOException if failed to load the network
 	 */
-	H load(R source, C context) throws DLInvalidSourceException, IllegalArgumentException, IOException;
+	H load(R source, C context) throws DLInvalidSourceException, DLInvalidContextException, IOException;
 
 	/**
 	 * Fetches the network representation of a handle from a context.
@@ -92,22 +102,25 @@ public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R
 	 * @param source the source
 	 * @param context the context
 	 * @return the network
+	 * @throws IllegalArgumentException if the handle is invalid
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 * @throws IllegalArgumentException if handle or context are invalid
+	 * @throws DLInvalidContextException if the context is invalid
 	 * @throws IOException if failed to fetch the network
 	 */
-	N fetch(H handle, R source, C context) throws DLInvalidSourceException, IllegalArgumentException, IOException;
+	N fetch(H handle, R source, C context)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException;
 
 	/**
-	 * Saves a network handle from a context to a destination.
+	 * Saves a network from a context to a destination.
 	 *
 	 * @param handle the handle
 	 * @param destination the destination
 	 * @param context the context
+	 * @throws IllegalArgumentException if the handle is invalid
 	 * @throws DLInvalidDestinationException if the destination is invalid
-	 * @throws IllegalArgumentException if handle or context are invalid
-	 * @throws IOException if failed to save the network handle
+	 * @throws DLInvalidContextException if the context is invalid
+	 * @throws IOException if failed to save the network
 	 */
 	void save(H handle, R destination, C context)
-			throws DLInvalidDestinationException, IllegalArgumentException, IOException;
+			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidContextException, IOException;
 }
