@@ -48,28 +48,67 @@
 @author Christian Dietz, KNIME, Konstanz, Germany
 '''
 
-import abc
+class DLPythonInstallationTester(object):
 
-from DLPythonNetworkType import DLPythonNetworkType 
-
-
-class DLKerasNetworkType(DLPythonNetworkType):
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, identifier, keras_backend_name):
-        super().__init__(identifier)
-        self._keras_backend_name = keras_backend_name
-
-    @property
-    def keras_backend_name(self):
-        return self._keras_backend_name
+    # TODO: this class duplicates code of PythonKernelTester.py.
+    # We should refactor the kernel tester for reusability and use that instead.
     
-    def supports_model(self, model):
-        model_type = str(type(model))
-        if model_type.startswith("<class '" + 'keras'):
-            from keras import backend as K
-            return K.backend() == self._keras_backend_name 
-        return False
+    def __init__(self):
+        self._messages = []
+    
+    def get_report_lines(self):
+        return list(self._messages)
+    
+    def check_lib(self, lib, cls=None, min_version=None, max_version=None):
+        """
+        Checks a specific library.
 
-    def _test_installation(self, tester):
-        tester.check_lib('keras')
+        :param lib: the library's name
+        :param cls: a list of classes to check for availability 
+        :param min_version: the minimum library version
+        :param max_version: the maximum library version
+        :returns: True if all constraints are fulfilled, False otherwise
+        """
+        
+        if cls is None:
+            cls = []
+        error = False
+        if not self._is_lib_available(lib):
+            error = True
+            msg = "Python library '" + lib + "' or one of its dependencies is missing."
+            if min_version is not None:
+                msg += ' Required minimum version is ' + min_version + '.'
+            if max_version is not None:
+                msg += ' Required maximum version is ' + max_version + '.'
+            self._messages.append(msg)
+        else:
+            # TODO: check lib version bounds
+            for cl in cls:
+                if not self._is_class_available(lib, cl):
+                    error = True
+                    self._messages.append("Class '" + cl + "' in Python library '" + lib + "' or one of its dependencies is missing.")
+        return not error
+    
+    def _is_lib_available(self, lib):
+        """
+        Checks if a specific library is available.
+        
+        :returns: True if the library is available, False otherwise.
+        """
+        
+        local_env = {}
+        exec('try:\n\timport ' + lib + '\n\tsuccess = True\nexcept:\n\tsuccess = False', {}, local_env)
+        return local_env['success']
+    
+    def _is_class_available(self, lib, cls):
+        """
+        Checks if a specific class of a specific library is available.
+        
+        :param lib: the library name
+        :param cls: the class name
+        :returns: True if the class is available, False otherwise.
+        """
+        
+        local_env = {}
+        exec('try:\n\tfrom ' + lib + ' import ' + cls + '\n\tsuccess = True\nexcept:\n\tsuccess = False', {}, local_env)
+        return local_env['success']

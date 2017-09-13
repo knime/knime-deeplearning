@@ -66,6 +66,10 @@ class DLKerasTensorFlowNetworkType(DLKerasNetworkType):
     def wrap_model(self, model):
         from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetwork
         return DLKerasTensorFlowNetwork(model)
+    
+    def _test_installation(self, tester):
+        tester.check_lib('tensorflow')
+        super()._test_installation(tester)
 
 
 # pseudo-singleton:

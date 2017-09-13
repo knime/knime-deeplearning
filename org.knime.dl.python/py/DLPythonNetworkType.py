@@ -43,12 +43,14 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-'''
+"""
 @author Marcel Wiedenmann, KNIME, Konstanz, Germany
 @author Christian Dietz, KNIME, Konstanz, Germany
-'''
+"""
 
 import abc
+
+from DLPythonInstallationTester import DLPythonInstallationTester
 
 
 _network_types = {}
@@ -86,10 +88,26 @@ class DLPythonNetworkType(object):
     def reader(self):
         return
     
+    def test_installation(self):
+        tester = DLPythonInstallationTester()
+        self._test_installation(tester)
+        results = tester.get_report_lines()
+        if results:
+            # prepended message is expected on Java side - do not change
+            results = "DL Python installation test: FAIL\n" + "\n".join(results)
+        else:
+            # message is expected on Java side - do not change
+            results = "DL Python installation test: OK\n"
+        return results
+
     @abc.abstractmethod
     def supports_model(self, model):
         return
     
     @abc.abstractmethod
     def wrap_model(self, model):
+        return
+    
+    @abc.abstractmethod 
+    def _test_installation(self, tester):
         return

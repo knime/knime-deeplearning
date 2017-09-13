@@ -54,19 +54,22 @@ import DLPythonNetworkType
 
 
 class DLKerasTheanoNetworkType(DLKerasNetworkType):
-    
+
     def __init__(self):
         super().__init__('org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType', 'theano')
-    
+
     @property
     def reader(self):
         from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader
         return DLKerasTheanoNetworkReader()
-    
+
     def wrap_model(self, model):
         from DLKerasTheanoNetwork import DLKerasTheanoNetwork
         return DLKerasTheanoNetwork(model)
 
+    def _test_installation(self, tester):
+        tester.check_lib('theano')
+        super()._test_installation(tester)
 
 # pseudo-singleton:
 _instance = DLKerasTheanoNetworkType()

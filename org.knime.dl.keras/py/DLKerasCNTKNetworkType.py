@@ -49,23 +49,26 @@
 '''
 
 from DLKerasNetworkType import DLKerasNetworkType
-
 import DLPythonNetworkType
 
 
 class DLKerasCNTKNetworkType(DLKerasNetworkType):
-    
+
     def __init__(self):
         super().__init__('org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType', 'cntk')
-    
+
     @property
     def reader(self):
         from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader 
         return DLKerasCNTKNetworkReader()
-    
+
     def wrap_model(self, model):
         from DLKerasCNTKNetwork import DLKerasCNTKNetwork
         return DLKerasCNTKNetwork(model)
+
+    def _test_installation(self, tester):
+        tester.check_lib('cntk')
+        super()._test_installation(tester)
 
 
 # pseudo-singleton:
