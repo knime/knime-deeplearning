@@ -62,7 +62,11 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.python2.kernel.PythonKernel;
@@ -79,15 +83,21 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 
 	static final int IN_DATA_PORT_IDX = 1;
 
-	static void setupNetwork(final DLPythonNetwork<?> network, final PythonKernel kernel)
-			throws IOException, IllegalArgumentException {
+	static void setupNetwork(final DLPythonNetwork<?> network, final DLPythonContext context)
+			throws DLInvalidSourceException, DLInvalidContextException, IOException {
 		final DLPythonNetworkHandle networkHandle =
-				network.getSpec().getNetworkType().getLoader().load(network.getSource(), kernel);
+				network.getSpec().getNetworkType().getLoader().load(network.getSource(), context);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonExecutorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
-		kernel.execute("import DLPythonNetwork\n" + //
-				"global " + inputNetworkName + "\n" + //
-				inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+		try {
+			context.getKernel()
+					.execute("import DLPythonNetwork\n" + //
+							"global " + inputNetworkName + "\n" + //
+							inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+		} catch (final IOException e) {
+			throw new IOException(
+					"An error occurred while communicating with Python (while setting up the Python network).", e);
+		}
 	}
 
 	private DataTableSpec m_lastIncomingTableSpec;
@@ -118,7 +128,8 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 					getAvailableFlowVariables().values());
 
 			final DLPythonNetwork<?> network = (DLPythonNetwork<?>) portObject.getNetwork();
-			setupNetwork(network, kernel);
+			final DLPythonDefaultContext context = new DLPythonDefaultContext(kernel);
+			setupNetwork(network, context);
 
 			exec.createSubProgress(0.1).setProgress(1);
 			kernel.putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,

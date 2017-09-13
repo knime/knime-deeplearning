@@ -66,6 +66,8 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -152,7 +154,8 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 					DLExternalNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(), exec);
 			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-			loader.save(handle, fileStoreURL, kernel);
+			final DLPythonContext context = new DLPythonDefaultContext(kernel);
+			loader.save(handle, fileStoreURL, context);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
@@ -160,7 +163,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 
 			addNewVariables(variables);
 
-			final DLPythonNetwork<?> outNetwork = loader.fetch(handle, fileStoreURL, kernel);
+			final DLPythonNetwork<?> outNetwork = loader.fetch(handle, fileStoreURL, context);
 			return new DLNetworkPortObject[] { new DLExternalNetworkPortObject(outNetwork, fileStore) };
 		} finally {
 			kernel.close();

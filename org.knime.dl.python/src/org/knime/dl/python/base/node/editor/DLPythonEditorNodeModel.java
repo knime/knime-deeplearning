@@ -64,9 +64,13 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.dl.base.portobjects.DLExternalNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -83,15 +87,21 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 
 	static final int IN_NETWORK_PORT_IDX = 0;
 
-	static void setupNetwork(final DLPythonNetwork<?> inputNetwork, final PythonKernel kernel)
-			throws IOException, IllegalArgumentException {
+	static void setupNetwork(final DLPythonNetwork<?> inputNetwork, final DLPythonContext context)
+			throws DLInvalidSourceException, DLInvalidContextException, IOException {
 		final DLPythonNetworkHandle networkHandle =
-				inputNetwork.getSpec().getNetworkType().getLoader().load(inputNetwork.getSource(), kernel);
+				inputNetwork.getSpec().getNetworkType().getLoader().load(inputNetwork.getSource(), context);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
-		kernel.execute("import DLPythonNetwork\n" + //
-				"global " + inputNetworkName + "\n" + //
-				inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+		try {
+			context.getKernel()
+					.execute("import DLPythonNetwork\n" + //
+							"global " + inputNetworkName + "\n" + //
+							inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+		} catch (final IOException e) {
+			throw new IOException(
+					"An error occurred while communicating with Python (while setting up the Python network).", e);
+		}
 	}
 
 	static void checkExecutePostConditions(final PythonKernel kernel) throws Exception {
@@ -133,7 +143,8 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					getAvailableFlowVariables().values());
 
 			final DLPythonNetwork<?> inNetwork = (DLPythonNetwork<?>) portObject.getNetwork();
-			setupNetwork(inNetwork, kernel);
+			final DLPythonDefaultContext context = new DLPythonDefaultContext(kernel);
+			setupNetwork(inNetwork, context);
 
 			final String loadBackendCode = DLNetworkTypeRegistry.getInstance().getAllNetworkTypes().stream()
 					.filter(nt -> nt instanceof DLPythonNetworkType)
@@ -174,7 +185,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					DLExternalNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(), exec);
 			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-			loader.save(handle, fileStoreURL, kernel);
+			loader.save(handle, fileStoreURL, context);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
@@ -182,7 +193,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 
 			addNewVariables(variables);
 
-			final DLPythonNetwork<?> outNetwork = loader.fetch(handle, fileStoreURL, kernel);
+			final DLPythonNetwork<?> outNetwork = loader.fetch(handle, fileStoreURL, context);
 			return new DLNetworkPortObject[] { new DLExternalNetworkPortObject(outNetwork, fileStore) };
 		} finally {
 			kernel.close();
