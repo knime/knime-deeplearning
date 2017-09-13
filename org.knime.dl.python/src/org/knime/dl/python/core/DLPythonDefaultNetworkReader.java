@@ -49,6 +49,7 @@ package org.knime.dl.python.core;
 import java.io.IOException;
 import java.net.URL;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.io.DLExternalNetworkReader;
 import org.knime.python2.kernel.PythonKernel;
@@ -67,18 +68,13 @@ public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork<S>, S extend
 	}
 
 	@Override
-	public N read(final URL source) throws DLInvalidSourceException, IOException {
-		m_loader.validateSource(source);
-		final PythonKernel kernel;
+	public N read(final URL source) throws DLInvalidSourceException, DLInvalidContextException, IOException {
+		m_loader.validateSource(source); // fail fast - spares us creating the Python kernel
+		final PythonKernel kernel = DLPythonDefaultContext.createKernel();
+		final DLPythonContext context = new DLPythonDefaultContext(kernel);
 		try {
-			kernel = DLPythonAbstractCommands.createKernel();
-		} catch (final IOException e) {
-			throw new IOException("Connection to the deep learning Python back end could not be established. "
-					+ "An exception occurred while setting up the Python kernel. See log for details.", e);
-		}
-		try {
-			final DLPythonNetworkHandle handle = m_loader.load(source, kernel);
-			return m_loader.fetch(handle, source, kernel);
+			final DLPythonNetworkHandle handle = m_loader.load(source, context);
+			return m_loader.fetch(handle, source, context);
 		} finally {
 			kernel.close();
 		}
