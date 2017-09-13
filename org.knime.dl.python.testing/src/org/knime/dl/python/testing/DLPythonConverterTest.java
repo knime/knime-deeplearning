@@ -87,6 +87,7 @@ import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNetworkSpecSerializer;
+import org.knime.dl.core.DLUnavailableDependencyException;
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
@@ -294,6 +295,11 @@ public class DLPythonConverterTest {
 		@Override
 		public String getName() {
 			return "Baz";
+		}
+
+		@Override
+		public void checkAvailability(final boolean forceRefresh) throws DLUnavailableDependencyException {
+			throw new RuntimeException("not yet implemented"); // TODO: NYI
 		}
 
 		@Override

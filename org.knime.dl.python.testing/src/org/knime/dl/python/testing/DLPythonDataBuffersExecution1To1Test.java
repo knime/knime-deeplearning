@@ -60,6 +60,7 @@ import org.junit.Test;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
 import org.knime.dl.core.DLDefaultLayerDataSpec;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerData;
 import org.knime.dl.core.DLLayerDataShape;
 import org.knime.dl.core.DLLayerDataSpec;
@@ -81,8 +82,6 @@ import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.kernel.PythonKernel;
-import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
  * @author Marcel Wiedenmann,KNIME,Konstanz,Germany
@@ -112,7 +111,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	private Random m_rng;
 
 	@Before
-	public void setUp() throws IOException {
+	public void setUp() throws DLInvalidContextException {
 		m_commands = new DLPythonAbstractCommands<DLPythonAbstractCommandsConfig>(new DLPythonAbstractCommandsConfig() {
 
 			@Override
@@ -121,10 +120,10 @@ public class DLPythonDataBuffersExecution1To1Test {
 			}
 
 			@Override
-			public String getLoadCode(final String path) {
+			public String getLoadNetworkCode(final String path) {
 				throw new RuntimeException("not yet implemented"); // TODO: NYI
 			}
-		}, new PythonKernel(new PythonKernelOptions())) {
+		}) {
 			@Override
 			public DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle network,
 					final DLPythonTypeMap typeMap) throws IOException {
@@ -140,7 +139,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testDouble() throws IOException {
+	public void testDouble() throws IOException, DLInvalidContextException {
 		final ArrayList<DLLayerData<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
@@ -163,8 +162,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
-		m_commands.getKernel().execute(code);
-
+		m_commands.getContext().getKernel().execute(code);
 		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
 				new HashMap<>();
 		for (final String outputLayerDataName : OUT_LAYER_DATA_SELECTED) {
@@ -192,7 +190,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testFloat() throws IOException {
+	public void testFloat() throws IOException, DLInvalidContextException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
@@ -214,7 +212,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
-		m_commands.getKernel().execute(code);
+		m_commands.getContext().getKernel().execute(code);
 
 		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
 				new HashMap<>();
@@ -242,7 +240,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testInt() throws IOException {
+	public void testInt() throws IOException, DLInvalidContextException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec = new DLDefaultLayerDataSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class);
@@ -263,7 +261,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
-		m_commands.getKernel().execute(code);
+		m_commands.getContext().getKernel().execute(code);
 
 		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
 				new HashMap<>();
@@ -291,7 +289,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testLong() throws IOException {
+	public void testLong() throws IOException, DLInvalidContextException {
 		final ArrayList<DLLayerData<?>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLLayerDataSpec spec =
@@ -313,7 +311,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
-		m_commands.getKernel().execute(code);
+		m_commands.getContext().getKernel().execute(code);
 
 		final HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> outputLayerDataSpecs =
 				new HashMap<>();
