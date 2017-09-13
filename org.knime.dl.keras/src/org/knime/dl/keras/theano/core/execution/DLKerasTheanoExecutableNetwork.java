@@ -46,8 +46,7 @@
  */
 package org.knime.dl.keras.theano.core.execution;
 
-import java.io.IOException;
-
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
@@ -65,7 +64,12 @@ public final class DLKerasTheanoExecutableNetwork extends
 	}
 
 	@Override
-	protected DLKerasTheanoCommands createCommands() throws IOException {
-		return new DLKerasTheanoCommands();
+	protected DLKerasTheanoCommands createCommands() throws DLInvalidContextException {
+		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands();
+		commands.setupEnvironment();
+		commands.testInstallation();
+		commands.registerBackends();
+		commands.setupBackend();
+		return commands;
 	}
 }

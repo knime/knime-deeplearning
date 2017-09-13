@@ -46,8 +46,7 @@
  */
 package org.knime.dl.keras.cntk.core.execution;
 
-import java.io.IOException;
-
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
@@ -65,7 +64,12 @@ public final class DLKerasCNTKExecutableNetwork
 	}
 
 	@Override
-	protected DLKerasCNTKCommands createCommands() throws IOException {
-		return new DLKerasCNTKCommands();
+	protected DLKerasCNTKCommands createCommands() throws DLInvalidContextException {
+		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands();
+		commands.setupEnvironment();
+		commands.testInstallation();
+		commands.registerBackends();
+		commands.setupBackend();
+		return commands;
 	}
 }

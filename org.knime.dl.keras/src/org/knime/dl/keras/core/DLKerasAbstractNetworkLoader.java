@@ -54,11 +54,12 @@ import java.net.URL;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -70,40 +71,47 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> 
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	protected abstract DLKerasAbstractCommands<?> createCommands(PythonKernel kernel) throws IOException;
+	protected abstract DLKerasAbstractCommands<?> createCommands(DLPythonContext context, boolean initialize)
+			throws DLInvalidContextException;
 
 	@Override
 	public void validateSource(final URL source) throws DLInvalidSourceException {
-		final File sourceFile = FileUtil.getFileFromURL(source);
+		final File sourceFile;
+		try {
+			sourceFile = FileUtil.getFileFromURL(source);
+		} catch (final IllegalArgumentException e) {
+			throw new DLInvalidSourceException(
+					"An error occurred while resolving the Keras network file location.\nCause\n:" + e.getMessage());
+		}
 		if (sourceFile == null || !sourceFile.exists()) {
-			throw new DLInvalidSourceException("Cannot find Keras model file at location '" + source.toString() + "'.");
+			throw new DLInvalidSourceException(
+					"Cannot find Keras network file at location '" + source.toString() + "'.");
 		}
 	}
 
 	@Override
 	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
-		final File destinationFile = FileUtil.getFileFromURL(destination);
+		final File destinationFile;
+		try {
+			destinationFile = FileUtil.getFileFromURL(destination);
+		} catch (final IllegalArgumentException e) {
+			throw new DLInvalidDestinationException(
+					"An error occurred while resolving the Keras network file location.\nCause\n:" + e.getMessage());
+		}
 		if (destinationFile == null || destinationFile.exists()) {
 			throw new DLInvalidDestinationException(
-					"Invalid destination or destination already exists: '" + destination.toString() + "'.");
+					"Invalid file destination or file already exists: '" + destination.toString() + "'.");
 		}
 	}
 
 	@Override
-	public DLPythonNetworkHandle load(final URL source, final PythonKernel kernel)
-			throws DLInvalidSourceException, IllegalArgumentException, IOException {
+	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel)
+			throws DLInvalidSourceException, DLInvalidContextException, IOException {
 		validateSource(source);
-		File sourceFile;
+		final String filePath = FileUtil.getFileFromURL(source).getAbsolutePath();
+		final String fileExtension = FilenameUtils.getExtension(filePath);
+		final DLKerasAbstractCommands<?> commands = createCommands(checkNotNull(kernel), true);
 		try {
-			sourceFile = FileUtil.getFileFromURL(source);
-		} catch (final Exception e) {
-			throw new DLInvalidSourceException(
-					"Invalid network source URL '" + source.toString() + "'. URL could not be resolved.");
-		}
-		final String filePath = sourceFile.getAbsolutePath();
-		try {
-			final String fileExtension = FilenameUtils.getExtension(filePath);
-			final DLKerasAbstractCommands<?> commands = createCommands(checkNotNull(kernel));
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
 				networkHandle = commands.loadNetwork(filePath);
@@ -113,11 +121,12 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> 
 				networkHandle = commands.loadNetworkFromYaml(filePath);
 			} else {
 				throw new DLInvalidSourceException(
-						"Keras network reader only supports files of type h5, json and yaml.");
+						"Keras network reader only supports network files of type h5, json and yaml.");
 			}
 			return networkHandle;
-		} catch (final Exception e) {
-			throw new IOException("An exception occurred while reading in the Keras network.", e);
+		} catch (final IOException e) {
+			throw new IOException(
+					"An error occurred while communicating with Python (while reading in the Keras network).", e);
 		}
 	}
 }

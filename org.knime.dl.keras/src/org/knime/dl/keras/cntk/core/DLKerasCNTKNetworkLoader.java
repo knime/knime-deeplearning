@@ -51,11 +51,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -66,17 +67,25 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final URL source, final PythonKernel context)
-			throws DLInvalidSourceException, IllegalArgumentException, IOException {
+	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final URL source, final DLPythonContext context)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
 		validateSource(source);
-		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context));
+		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context), true);
 		final DLKerasCNTKNetworkSpec spec =
 				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
 		return new DLKerasCNTKNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasCNTKCommands createCommands(final PythonKernel kernel) throws IOException {
-		return new DLKerasCNTKCommands(kernel);
+	protected DLKerasCNTKCommands createCommands(final DLPythonContext context, final boolean initialize)
+			throws DLInvalidContextException {
+		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands(context);
+		if (initialize) {
+			commands.setupEnvironment();
+			commands.testInstallation();
+			commands.registerBackends();
+			commands.setupBackend();
+		}
+		return commands;
 	}
 }

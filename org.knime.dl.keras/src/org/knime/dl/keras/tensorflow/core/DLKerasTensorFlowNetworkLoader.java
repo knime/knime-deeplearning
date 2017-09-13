@@ -51,11 +51,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -67,16 +68,25 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
 
 	@Override
 	public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
-			final PythonKernel context) throws DLInvalidSourceException, IllegalArgumentException, IOException {
+			final DLPythonContext context)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
 		validateSource(source);
-		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
+		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context), true);
 		final DLKerasTensorFlowNetworkSpec spec =
 				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
 		return new DLKerasTensorFlowNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands(final PythonKernel kernel) throws IOException {
-		return new DLKerasTensorFlowCommands(kernel);
+	protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context, final boolean initialize)
+			throws DLInvalidContextException {
+		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands(context);
+		if (initialize) {
+			commands.setupEnvironment();
+			commands.testInstallation();
+			commands.registerBackends();
+			commands.setupBackend();
+		}
+		return commands;
 	}
 }

@@ -51,11 +51,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -66,17 +67,26 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final URL source, final PythonKernel context)
-			throws DLInvalidSourceException, IllegalArgumentException, IOException {
+	public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
+			final DLPythonContext context)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
 		validateSource(source);
-		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
+		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context), true);
 		final DLKerasTheanoNetworkSpec spec =
 				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
 		return new DLKerasTheanoNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasTheanoCommands createCommands(final PythonKernel kernel) throws IOException {
-		return new DLKerasTheanoCommands(kernel);
+	protected DLKerasTheanoCommands createCommands(final DLPythonContext context, final boolean initialize)
+			throws DLInvalidContextException {
+		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands(context);
+		if (initialize) {
+			commands.setupEnvironment();
+			commands.testInstallation();
+			commands.registerBackends();
+			commands.setupBackend();
+		}
+		return commands;
 	}
 }

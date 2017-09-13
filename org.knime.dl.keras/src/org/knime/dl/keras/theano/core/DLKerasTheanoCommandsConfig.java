@@ -62,7 +62,13 @@ public final class DLKerasTheanoCommandsConfig extends DLKerasAbstractCommandsCo
 	}
 
 	@Override
-	public String getLoadCode(final String path) {
+	public String getTestInstallationCode() {
+		return "import DLKerasTheanoNetworkType\n" + //
+				"print(DLKerasTheanoNetworkType.instance().test_installation(), end='', flush=True)";
+	}
+
+	@Override
+	public String getLoadNetworkCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
 				"network = DLKerasTheanoNetworkReader().read(r'" + path + "')\n" + //
@@ -70,7 +76,7 @@ public final class DLKerasTheanoCommandsConfig extends DLKerasAbstractCommandsCo
 	}
 
 	@Override
-	public String getLoadFromJsonCode(final String path) {
+	public String getLoadNetworkFromJsonCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
 				"network = DLKerasTheanoNetworkReader().readFromJson(r'" + path + "')\n" + //
@@ -78,7 +84,7 @@ public final class DLKerasTheanoCommandsConfig extends DLKerasAbstractCommandsCo
 	}
 
 	@Override
-	public String getLoadFromYamlCode(final String path) {
+	public String getLoadNetworkFromYamlCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
 				"network = DLKerasTheanoNetworkReader().readFromYaml(r'" + path + "')\n" + //

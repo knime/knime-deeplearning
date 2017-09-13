@@ -48,10 +48,11 @@ package org.knime.dl.keras.core;
 
 import java.io.IOException;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -60,23 +61,24 @@ import org.knime.python2.kernel.PythonKernel;
 public abstract class DLKerasAbstractCommands<CFG extends DLKerasAbstractCommandsConfig>
 		extends DLPythonAbstractCommands<CFG> {
 
-	protected DLKerasAbstractCommands(final CFG config) throws IOException {
+	protected DLKerasAbstractCommands(final CFG config) throws DLInvalidContextException {
 		super(config);
 	}
 
-	protected DLKerasAbstractCommands(final CFG config, final PythonKernel kernel) throws IOException {
-		super(config, kernel);
+	protected DLKerasAbstractCommands(final CFG config, final DLPythonContext context)
+			throws DLInvalidContextException {
+		super(config, context);
 	}
 
 	// TODO: we should get the model name (= handle identifier) from Python, change in config as well
-	public DLPythonNetworkHandle loadNetworkFromJson(final String path) throws IOException {
-		m_kernel.execute(((DLKerasAbstractCommandsConfig) m_config).getLoadFromJsonCode(path));
+	public DLPythonNetworkHandle loadNetworkFromJson(final String path) throws DLInvalidContextException, IOException {
+		m_context.getKernel().execute(m_config.getLoadNetworkFromJsonCode(path));
 		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
 	}
 
 	// TODO: we should get the model name (= handle identifier) from Python, change in config as well
-	public DLPythonNetworkHandle loadNetworkFromYaml(final String path) throws IOException {
-		m_kernel.execute(((DLKerasAbstractCommandsConfig) m_config).getLoadFromYamlCode(path));
+	public DLPythonNetworkHandle loadNetworkFromYaml(final String path) throws DLInvalidContextException, IOException {
+		m_context.getKernel().execute(m_config.getLoadNetworkFromYamlCode(path));
 		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
 	}
 }

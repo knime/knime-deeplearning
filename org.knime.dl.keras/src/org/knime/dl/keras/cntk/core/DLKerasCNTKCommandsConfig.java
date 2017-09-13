@@ -62,7 +62,13 @@ public final class DLKerasCNTKCommandsConfig extends DLKerasAbstractCommandsConf
 	}
 
 	@Override
-	public String getLoadCode(final String path) {
+	public String getTestInstallationCode() {
+		return "import DLKerasCNTKNetworkType\n" + //
+				"print(DLKerasCNTKNetworkType.instance().test_installation(), end='', flush=True)";
+	}
+
+	@Override
+	public String getLoadNetworkCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
 				"network = DLKerasCNTKNetworkReader().read(r'" + path + "')\n" + //
@@ -70,7 +76,7 @@ public final class DLKerasCNTKCommandsConfig extends DLKerasAbstractCommandsConf
 	}
 
 	@Override
-	public String getLoadFromJsonCode(final String path) {
+	public String getLoadNetworkFromJsonCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
 				"network = DLKerasCNTKNetworkReader().readFromJson(r'" + path + "')\n" + //
@@ -78,7 +84,7 @@ public final class DLKerasCNTKCommandsConfig extends DLKerasAbstractCommandsConf
 	}
 
 	@Override
-	public String getLoadFromYamlCode(final String path) {
+	public String getLoadNetworkFromYamlCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
 				"network = DLKerasCNTKNetworkReader().readFromYaml(r'" + path + "')\n" + //

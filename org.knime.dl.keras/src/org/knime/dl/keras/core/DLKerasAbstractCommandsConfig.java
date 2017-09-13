@@ -54,19 +54,7 @@ import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
  */
 public abstract class DLKerasAbstractCommandsConfig extends DLPythonAbstractCommandsConfig {
 
-	public abstract String getLoadFromJsonCode(final String path);
+	public abstract String getLoadNetworkFromJsonCode(final String path);
 
-	public abstract String getLoadFromYamlCode(final String path);
-
-	@Override
-	public String getSetupEnvironmentCode() {
-		return "";
-	}
-
-	// TODO: we should introduce an own module on Python side to do such testing, see PythonKernelTester.py
-	@Override
-	public String getTestInstallationCode() {
-		return "import keras\n" + //
-				"import h5py\n";
-	}
+	public abstract String getLoadNetworkFromYamlCode(final String path);
 }

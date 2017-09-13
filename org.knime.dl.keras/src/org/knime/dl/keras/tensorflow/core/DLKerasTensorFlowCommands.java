@@ -48,11 +48,12 @@ package org.knime.dl.keras.tensorflow.core;
 
 import java.io.IOException;
 
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasLayerDataSpecTableCreatorFactory;
-import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.python2.kernel.PythonKernel;
@@ -63,27 +64,28 @@ import org.knime.python2.kernel.PythonKernel;
  */
 public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands<DLKerasTensorFlowCommandsConfig> {
 
-	public DLKerasTensorFlowCommands() throws IOException {
-		this(DLPythonAbstractCommands.createKernel());
+	public DLKerasTensorFlowCommands() throws DLInvalidContextException {
+		super(new DLKerasTensorFlowCommandsConfig());
 	}
 
-	public DLKerasTensorFlowCommands(final PythonKernel kernel) throws IOException {
-		super(new DLKerasTensorFlowCommandsConfig(), kernel);
+	public DLKerasTensorFlowCommands(final DLPythonContext context) throws DLInvalidContextException {
+		super(new DLKerasTensorFlowCommandsConfig(), context);
 	}
 
 	@Override
 	public DLKerasTensorFlowNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-			final DLPythonTypeMap typeMap) throws IOException {
-		m_kernel.execute(m_config.getExtractSpecsCode(handle));
-		final DLLayerDataSpec[] inputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
+			final DLPythonTypeMap typeMap) throws DLInvalidContextException, IOException {
+		final PythonKernel kernel = m_context.getKernel();
+		kernel.execute(m_config.getExtractNetworkSpecsCode(handle));
+		final DLLayerDataSpec[] inputSpecs =
+				(DLLayerDataSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME,
+						new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
 		// final DLLayerDataSpec[] intermediateOutputSpecs =
 		// (DLLayerDataSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
 		// new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
-		final DLLayerDataSpec[] outputSpecs = (DLLayerDataSpec[]) m_kernel
-				.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME, new DLKerasLayerDataSpecTableCreatorFactory(typeMap))
-				.getTable();
+		final DLLayerDataSpec[] outputSpecs =
+				(DLLayerDataSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME,
+						new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
 
 		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.

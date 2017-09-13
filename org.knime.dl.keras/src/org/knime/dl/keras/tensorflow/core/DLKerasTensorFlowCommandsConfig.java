@@ -62,7 +62,13 @@ public final class DLKerasTensorFlowCommandsConfig extends DLKerasAbstractComman
 	}
 
 	@Override
-	public String getLoadCode(final String path) {
+	public String getTestInstallationCode() {
+		return "import DLKerasTensorFlowNetworkType\n" + //
+				"print(DLKerasTensorFlowNetworkType.instance().test_installation(), end='', flush=True)";
+	}
+
+	@Override
+	public String getLoadNetworkCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
 				"network = DLKerasTensorFlowNetworkReader().read(r'" + path + "')\n" + //
@@ -70,7 +76,7 @@ public final class DLKerasTensorFlowCommandsConfig extends DLKerasAbstractComman
 	}
 
 	@Override
-	public String getLoadFromJsonCode(final String path) {
+	public String getLoadNetworkFromJsonCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
 				"network = DLKerasTensorFlowNetworkReader().readFromJson(r'" + path + "')\n" + //
@@ -78,7 +84,7 @@ public final class DLKerasTensorFlowCommandsConfig extends DLKerasAbstractComman
 	}
 
 	@Override
-	public String getLoadFromYamlCode(final String path) {
+	public String getLoadNetworkFromYamlCode(final String path) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
 				"network = DLKerasTensorFlowNetworkReader().readFromYaml(r'" + path + "')\n" + //

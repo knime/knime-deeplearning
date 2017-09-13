@@ -46,8 +46,7 @@
  */
 package org.knime.dl.keras.tensorflow.core.execution;
 
-import java.io.IOException;
-
+import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
@@ -66,7 +65,12 @@ public final class DLKerasTensorFlowExecutableNetwork
 	}
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands() throws IOException {
-		return new DLKerasTensorFlowCommands();
+	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidContextException {
+		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands();
+		commands.setupEnvironment();
+		commands.testInstallation();
+		commands.registerBackends();
+		commands.setupBackend();
+		return commands;
 	}
 }
