@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkeraslearner.png" type="Learner">
+	<name>DL Keras Network Learner</name>
+
+	<shortDescription>
+		Performs supervised training on a Keras deep learning
+		network.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node performs supervised training on a Keras deep learning
+			network.
+		</intro>
+		<tab name="General Settings">
+			<option name="Back end">
+				The deep learning back end which is used to
+				train
+				the input network.
+			</option>
+			<option name="Epochs">
+				The number of iterations over the input training
+				data.
+			</option>
+			<option name="Batch size">
+				The number of rows that are used for a single
+				gradient update.
+			</option>
+		</tab>
+		<tab name="Optimizer Settings">
+			<option name="Optimizer">
+				The optimization algorithm. The following optimizers are available:
+				<ul>
+					<li>
+						<a href="https://arxiv.org/abs/1212.5701">Adadelta</a>
+					</li>
+					<li>
+						<a href="http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf">Adagrad</a>
+					</li>
+					<li>
+						<a href="https://arxiv.org/abs/1412.6980">Adam</a>
+					</li>
+					<li>
+						<a href="https://arxiv.org/pdf/1412.6980.pdf">Adamax</a>
+					</li>
+					<li>
+						<a href="http://cs229.stanford.edu/proj2015/054_report.pdf">Nadam</a>
+					</li>
+					<li>
+						<a
+							href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent#RMSProp">RMSProp</a>
+					</li>
+					<li>
+						<a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">Stochastic gradient descent</a>
+					</li>
+				</ul>
+				Please refer to
+				<a href="https://keras.io/optimizers/">the Keras documentation</a>
+				or the algorithms' original sources for further information on
+				parametrization.
+			</option>
+			<option name="Clip norm">
+				If checked, gradients whose L2 norm exceeds the
+				given norm will be clipped to that norm.
+			</option>
+			<option name="Clip value">
+				If checked, gradients whose absolute value
+				exceeds the given value will be clipped to that value (or the
+				negated value, respectively).
+			</option>
+		</tab>
+		<tab name="Learning Behavior">
+			<option name="Terminate on NaN loss">
+				If checked, training is terminated when a NaN loss is encountered,
+				i.e. when the loss is numerically unstable.
+				Corresponds to the
+				<a href="https://keras.io/callbacks/#terminateonnan">TerminateOnNaN Keras callback</a>.
+			</option>
+			<option name="Terminate on training stagnation (early stopping)">
+				If checked, training is terminated when the loss has stopped improving.
+				<ul>
+					<li>Min. delta: minimum change of the loss which qualifies as an improvement.
+					Absolute changes below this value are considered a stagnation.</li>
+					<li>Patience: number of epochs with no improvements after which training will be stopped.</li>
+				</ul>
+				Corresponds to the
+				<a href="https://keras.io/callbacks/#earlystopping">EarlyStopping Keras callback</a>.
+			</option>
+			<option name="Reduce learning rate on training stagnation">
+				If checked, the learning rate is reduced when the loss has stopped improving.
+				<ul>
+					<li>Factor: factor by which the learning rate will be reduced</li>
+					<li>Patience: number of epochs with no improvements after which the learning rate will be reduced.</li>
+					<li>Epsilon: threshold for measuring the new optimum, to only focus on significant changes.</li>
+					<li>Cooldown: number of epochs to wait before resuming normal operation after the learning rate has been reduced.</li>
+					<li>Min. learning rate: lower bound of the learning rate. The learning rate is not reduced below this value.</li>
+				</ul>
+				Corresponds to the
+				<a href="https://keras.io/callbacks/#reducelronplateau">ReduceLROnPlateau Keras callback</a>.
+			</option>
+		</tab>
+		<tab name="Training Inputs">
+			<option name="Training input">
+				For each input, the following options
+				must be set:
+			</option>
+			<option name="Conversion">
+				The converter that is used to transform the
+				selected input columns into a format that is accepted by the
+				respective network input specification.
+			</option>
+			<option name="Input columns">
+				The table columns that are part of the respective
+				network input.
+				The availability of a column depends on the currently
+				selected input converter.
+			</option>
+		</tab>
+		<tab name="Training Targets">
+			<option name="Training target">
+				For each target, the following options
+				must be set:
+			</option>
+			<option name="Conversion">
+				The converter that is used to transform the
+				selected target columns into a format that is accepted by the
+				respective network target specification.
+			</option>
+			<option name="Target columns">
+				The table columns that are part of the respective
+				network target.
+				The availability of a column depends on the currently
+				selected input converter.
+			</option>
+			<option name="Loss function">
+				The loss function for the network target.
+			</option>
+		</tab>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Deep Learning Network">The input Keras deep learning network.
+		</inPort>
+		<inPort index="1" name="Data Table">The input table that contains training
+			and target columns.</inPort>
+		<outPort index="0" name="Deep Learning Network">The trained output Keras deep learning
+			network.
+		</outPort>
+	</ports>
+</knimeNode>

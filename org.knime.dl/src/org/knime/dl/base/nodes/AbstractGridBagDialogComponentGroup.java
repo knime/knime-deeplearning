@@ -86,6 +86,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ColumnSelectionPanel;
+import org.knime.dl.base.settings.ConfigEntry;
 
 /**
  * Abstract implementation of a {@link IDialogComponentGroup} using a GridBagLayout to layout the contained
@@ -338,6 +339,37 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		}
 	}
 
+	protected void addToggleComponentGroup(final ConfigEntry<?> entry, final String label,
+			final IDialogComponentGroup componentGroup) {
+		final SettingsModelBoolean toggleSettings = new SettingsModelBoolean(entry.getEntryKey() + "_toggle_settings",
+				entry.getEnabled());
+		entry.addEnabledChangeOrLoadListener((e, oldValue) -> toggleSettings.setBooleanValue(e.getEnabled()));
+		toggleSettings.addChangeListener(l -> entry.setEnabled(toggleSettings.getBooleanValue()));
+
+		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
+
+		m_components.addAll(componentGroup.getComponents());
+		m_components.add(booleanComponent);
+
+		addDoubleColumnRow(booleanComponent.getComponentPanel(), componentGroup.getComponentGroupPanel());
+	}
+
+	protected void addToggleNumberEditRowComponent(final ConfigEntry<?> entry, final String label,
+			final SettingsModelNumber numberSettings) {
+		final SettingsModelBoolean toggleSettings = new SettingsModelBoolean(entry.getEntryKey() + "_toggle_settings",
+				entry.getEnabled());
+		entry.addEnabledChangeOrLoadListener((e, oldValue) -> toggleSettings.setBooleanValue(e.getEnabled()));
+		toggleSettings.addChangeListener(l -> entry.setEnabled(toggleSettings.getBooleanValue()));
+
+		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
+		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(numberSettings, label, 7);
+
+		m_components.add(numberComponent);
+		m_components.add(booleanComponent);
+
+		addDoubleColumnRow(booleanComponent.getComponentPanel(), getFirstComponent(numberComponent, JTextField.class));
+	}
+
 	/**
 	 * Adds a row containing a checkbox and two number edit fields. The checkbox is intended to toggle the enable status
 	 * of the number edit fields.
@@ -353,10 +385,10 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final String toggleLabel, final SettingsModelNumber leftNumberSettings, final String leftLabel,
 			final SettingsModelNumber rightNumberSettings, final String rightLabel) {
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, toggleLabel);
-		final DialogComponentNumberEdit leftNumberComponent =
-				new DialogComponentNumberEdit(leftNumberSettings, leftLabel, 7);
-		final DialogComponentNumberEdit rightNumberComponent =
-				new DialogComponentNumberEdit(rightNumberSettings, rightLabel, 7);
+		final DialogComponentNumberEdit leftNumberComponent = new DialogComponentNumberEdit(leftNumberSettings,
+				leftLabel, 7);
+		final DialogComponentNumberEdit rightNumberComponent = new DialogComponentNumberEdit(rightNumberSettings,
+				rightLabel, 7);
 
 		m_components.add(leftNumberComponent);
 		m_components.add(rightNumberComponent);
@@ -412,8 +444,8 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final String toggleLabel, final SettingsModelNumber leftNumberSettings, final String leftLabel,
 			final SettingsModelString rightStringSettings, final String rightLabel) {
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, toggleLabel);
-		final DialogComponentNumberEdit leftNumberComponent =
-				new DialogComponentNumberEdit(leftNumberSettings, leftLabel, 7);
+		final DialogComponentNumberEdit leftNumberComponent = new DialogComponentNumberEdit(leftNumberSettings,
+				leftLabel, 7);
 		final DialogComponentString rightStringComponent = new DialogComponentString(rightStringSettings, rightLabel);
 
 		m_components.add(leftNumberComponent);
@@ -467,8 +499,8 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	protected void addToggleComboBoxRow(final SettingsModelBoolean toggleSettings, final String label,
 			final SettingsModelString comboBoxSettings, final Collection<String> values) {
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
-		final DialogComponentStringSelection comboBoxComponent =
-				new DialogComponentStringSelection(comboBoxSettings, label, values);
+		final DialogComponentStringSelection comboBoxComponent = new DialogComponentStringSelection(comboBoxSettings,
+				label, values);
 
 		m_components.add(comboBoxComponent);
 		m_components.add(booleanComponent);
@@ -609,8 +641,8 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 */
 	protected void addComboBoxRow(final SettingsModelString settings, final String label,
 			final Collection<String> values) {
-		final DialogComponentStringSelection comboBoxComponent =
-				new DialogComponentStringSelection(settings, label, values);
+		final DialogComponentStringSelection comboBoxComponent = new DialogComponentStringSelection(settings, label,
+				values);
 		m_components.add(comboBoxComponent);
 
 		final JLabel labelComp = getFirstComponent(comboBoxComponent, JLabel.class);
@@ -630,13 +662,13 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	@SuppressWarnings("unchecked")
 	protected void addColumnNameSelectionRowComponent(final SettingsModelString settings, final String label,
 			final int specIndex, final Class<? extends DataValue>... classFilter) {
-		final DialogComponentColumnNameSelection nameSelectionComponent =
-				new DialogComponentColumnNameSelection(settings, label, specIndex, classFilter);
+		final DialogComponentColumnNameSelection nameSelectionComponent = new DialogComponentColumnNameSelection(
+				settings, label, specIndex, classFilter);
 		m_components.add(nameSelectionComponent);
 
 		final JLabel labelComp = getFirstComponent(nameSelectionComponent, JLabel.class);
-		final ColumnSelectionPanel selectionComp =
-				getFirstComponent(nameSelectionComponent, ColumnSelectionPanel.class);
+		final ColumnSelectionPanel selectionComp = getFirstComponent(nameSelectionComponent,
+				ColumnSelectionPanel.class);
 
 		addDoubleColumnRow(labelComp, selectionComp);
 	}

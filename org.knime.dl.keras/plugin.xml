@@ -82,6 +82,11 @@
       <node
             category-path="/labs/deeplearning/keras"
             deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.learner.DLKerasLearnerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.reader.DLKerasReaderNodeFactory">
       </node>
   </extension>
