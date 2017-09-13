@@ -116,9 +116,12 @@ class DLKerasCNTKNetwork(DLKerasNetwork):
                     for i, inp in enumerate(inputs):
                         if inp in model_inputs and inp not in visited:
                             visited.add(inp)
+                            input_name = inp.name
+                            if input_name is None or input_name == '':
+                                input_name = l.name + '_' + str(idx) + ':' + str(i)
                             shape = input_shapes[i]
-                            element_type = inp.dtype.name
-                            spec = DLPythonLayerDataSpec(inp.name, shape[0], list(shape[1:]), element_type)
+                            element_type = inp.dtype.__name__ # CNTK returns a numpy type here
+                            spec = DLPythonLayerDataSpec(input_name, shape[0], list(shape[1:]), element_type)
                             input_specs.append(spec)
                 # outputs:
                 for idx in range (0, len(l.inbound_nodes)):  # inbound_nodes (sic)
@@ -131,9 +134,12 @@ class DLKerasCNTKNetwork(DLKerasNetwork):
                     for i, out in enumerate(outputs):
                         if out not in visited:
                             visited.add(out)
+                            output_name = out.name
+                            if output_name is None or output_name == '':
+                                output_name = l.name + '_' + str(idx) + ':' + str(i)
                             shape = output_shapes[i]
-                            element_type = inp.dtype.name
-                            spec = DLPythonLayerDataSpec(out.name, shape[0], list(shape[1:]), element_type)
+                            element_type = inp.dtype.__name__ # CNTK returns a numpy type here
+                            spec = DLPythonLayerDataSpec(output_name, shape[0], list(shape[1:]), element_type)
                             if out in model_outputs:
                                 output_specs.append(spec)
                             else:
