@@ -99,10 +99,9 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
-			context.getKernel()
-					.execute("import DLPythonNetwork\n" + //
-							"global " + inputNetworkName + "\n" + //
-							inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+			context.getKernel().execute("import DLPythonNetwork\n" + //
+					"global " + inputNetworkName + "\n" + //
+					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
 		} catch (final IOException e) {
 			throw new IOException(
 					"An error occurred while communicating with Python (while setting up the Python network).", e);
@@ -144,11 +143,15 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 		if (!(portObject.getNetwork() instanceof DLPythonNetwork)) {
 			throw new InvalidSettingsException("Input deep learning network is not Python compatible.");
 		}
+		final DLPythonNetwork<?> inNetwork = (DLPythonNetwork<?>) portObject.getNetwork();
 
-		// warn user if input table is empty which could lead to unexpected problems in the Python code
+		// if the input table is empty, we simply copy and output the input network
 		final BufferedDataTable inTable = (BufferedDataTable) inData[IN_DATA_PORT_IDX];
 		if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
-			setWarningMessage("Input table is empty.");
+			inNetwork.getSpec().getNetworkType().getLoader().validateSource(inNetwork.getSource());
+			setWarningMessage("Input table is empty. Output network equals input network.");
+			final FileStore fileStore = DLExternalNetworkPortObject.createFileStoreForCopy(inNetwork.getSource(), exec);
+			return new DLNetworkPortObject[] { new DLExternalNetworkPortObject(inNetwork, fileStore) };
 		}
 
 		final PythonKernel kernel = new PythonKernel(getKernelOptions());
@@ -156,7 +159,6 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			kernel.putFlowVariables(DLPythonLearnerNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 
-			final DLPythonNetwork<?> inNetwork = (DLPythonNetwork<?>) portObject.getNetwork();
 			final DLPythonContext context = new DLPythonDefaultContext(kernel);
 			setupNetwork(inNetwork, context);
 
