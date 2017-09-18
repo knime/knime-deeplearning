@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.tensorflow.core;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.knime.dl.keras.core.DLKerasAbstractCommandsConfig;
 
 /**
@@ -62,9 +65,8 @@ public final class DLKerasTensorFlowCommandsConfig extends DLKerasAbstractComman
 	}
 
 	@Override
-	public String getTestInstallationCode() {
-		return "import DLKerasTensorFlowNetworkType\n" + //
-				"print(DLKerasTensorFlowNetworkType.instance().test_installation(), end='', flush=True)";
+	public File getInstallationTestScript() throws IOException {
+		return getSnippetFile("py/DLKerasTensorFlowNetworkTester.py");
 	}
 
 	@Override

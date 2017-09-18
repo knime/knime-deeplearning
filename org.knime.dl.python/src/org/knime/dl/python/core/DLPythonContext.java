@@ -46,6 +46,7 @@
  */
 package org.knime.dl.python.core;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.knime.dl.core.DLInvalidContextException;
@@ -61,5 +62,8 @@ public interface DLPythonContext extends AutoCloseable {
 
 	PythonKernel getKernel() throws DLInvalidContextException;
 
-	String[] execute(String code, String... args) throws IOException;
+	// NB: we cannot offer an execute method that allows direct execution of a source code string as there are known
+	// issues when trying to execute Python with "-c" option enabled from a Windows batch file.
+	
+	String[] execute(File script, String... args) throws IOException;
 }

@@ -43,71 +43,15 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-"""
+'''
 @author Marcel Wiedenmann, KNIME, Konstanz, Germany
 @author Christian Dietz, KNIME, Konstanz, Germany
-"""
+'''
 
-import abc
+def test():
+	import os
+	os.environ['KERAS_BACKEND'] = 'tensorflow'
+	import DLKerasTensorFlowNetworkType
+	print(DLKerasTensorFlowNetworkType.instance().test_installation(), end='', flush=True)
 
-from DLPythonInstallationTester import DLPythonInstallationTester
-
-
-_network_types = {}
-
-def get_network_type(identifier):
-    return _network_types[identifier]
-
-def add_network_type(network_type):
-    if network_type.identifier in _network_types:
-        raise ValueError("Network type'" + network_type.identifier + "' already exists.")
-    _network_types[network_type.identifier] = network_type
-    
-def remove_network_type(identifier):
-    if identifier in _network_types:
-        del _network_types[identifier]
-
-def get_model_network_type(model):
-    for _, network_type in _network_types.items():
-            if network_type.supports_model(model):
-                return network_type
-    raise TypeError("No deep learning network type associated with Python type '" + str(type(model)) + "'.")
-
-
-class DLPythonNetworkType(object):
-    __metaclass__ = abc.ABCMeta
-    
-    def __init__(self, identifier):
-        self._identifier = identifier
-    
-    @property
-    def identifier(self):
-        return self._identifier
-    
-    @abc.abstractproperty
-    def reader(self):
-        return
-    
-    def test_installation(self):
-        tester = DLPythonInstallationTester()
-        self._test_installation(tester)
-        results = tester.get_report_lines()
-        if results:
-            # prepended message is expected on Java side - do not change
-            results = "[DL Python installation test: FAIL]" + "\n".join(results)
-        else:
-            # message is expected on Java side - do not change
-            results = "[DL Python installation test: OK]"
-        return results
-
-    @abc.abstractmethod
-    def supports_model(self, model):
-        return
-    
-    @abc.abstractmethod
-    def wrap_model(self, model):
-        return
-    
-    @abc.abstractmethod 
-    def _test_installation(self, tester):
-        return
+test()

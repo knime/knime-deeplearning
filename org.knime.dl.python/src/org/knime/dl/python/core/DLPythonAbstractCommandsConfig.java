@@ -77,7 +77,7 @@ public abstract class DLPythonAbstractCommandsConfig {
 
 	public static final String OUTPUT_TABLE_NAME = "output_table";
 
-	public abstract String getTestInstallationCode();
+	public abstract File getInstallationTestScript() throws IOException;
 
 	public abstract String getLoadNetworkCode(final String path);
 

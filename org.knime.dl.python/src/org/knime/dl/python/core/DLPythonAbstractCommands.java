@@ -48,6 +48,7 @@
  */
 package org.knime.dl.python.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,6 +71,7 @@ import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
 import org.knime.dl.python.core.data.serde.DLSerializerFactory;
+import org.knime.dl.util.DLUtils;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
 import org.knime.python.typeextension.KnimeToPythonExtension;
@@ -97,9 +99,9 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
-	private static final String INSTALLATION_TEST_OK_MSG = "DL Python installation test: OK\n";
+	private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
 
-	private static final String INSTALLATION_TEST_FAIL_MSG = "DL Python installation test: FAIL\n";
+	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
 
 	protected final DLPythonContext m_context;
 
@@ -157,9 +159,9 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 	public void testInstallation() throws DLInvalidContextException {
 		try {
-			final String code = m_config.getSetupEnvironmentCode() + "\n" + m_config.getTestInstallationCode();
+			final File script = m_config.getInstallationTestScript();
 			final String[] output =
-					m_context.isKernelOpen() ? m_context.getKernel().execute(code) : m_context.execute(code);
+					m_context.isKernelOpen() ? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script)) : m_context.execute(script);
 			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
 				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
 				final String cause = idx != -1 //

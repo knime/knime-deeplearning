@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.theano.core;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.knime.dl.keras.core.DLKerasAbstractCommandsConfig;
 
 /**
@@ -62,9 +65,8 @@ public final class DLKerasTheanoCommandsConfig extends DLKerasAbstractCommandsCo
 	}
 
 	@Override
-	public String getTestInstallationCode() {
-		return "import DLKerasTheanoNetworkType\n" + //
-				"print(DLKerasTheanoNetworkType.instance().test_installation(), end='', flush=True)";
+	public File getInstallationTestScript() throws IOException {
+		return getSnippetFile("py/DLKerasTheanoNetworkTester.py");
 	}
 
 	@Override

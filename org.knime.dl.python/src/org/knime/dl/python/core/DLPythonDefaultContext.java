@@ -101,10 +101,10 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 	}
 
 	@Override
-	public String[] execute(final String code, final String... args) throws IOException {
+	public String[] execute(File script, final String... args) throws IOException {
 		final String[] pbargs = new String[args.length + 2];
 		pbargs[0] = PythonPreferencePage.getPython3Path();
-		pbargs[1] = "-c" + code; // no space after -c option
+		pbargs[1] = script.getAbsolutePath();
 		for (int i = 0; i < args.length; i++) {
 			pbargs[i + 2] = args[i];
 		}

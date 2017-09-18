@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.cntk.core;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.knime.dl.keras.core.DLKerasAbstractCommandsConfig;
 
 /**
@@ -62,9 +65,8 @@ public final class DLKerasCNTKCommandsConfig extends DLKerasAbstractCommandsConf
 	}
 
 	@Override
-	public String getTestInstallationCode() {
-		return "import DLKerasCNTKNetworkType\n" + //
-				"print(DLKerasCNTKNetworkType.instance().test_installation(), end='', flush=True)";
+	public File getInstallationTestScript() throws IOException {
+		return getSnippetFile("py/DLKerasCNTKNetworkTester.py");
 	}
 
 	@Override

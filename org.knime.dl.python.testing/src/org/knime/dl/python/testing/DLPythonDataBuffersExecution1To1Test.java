@@ -48,6 +48,7 @@
  */
 package org.knime.dl.python.testing;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,8 +116,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands = new DLPythonAbstractCommands<DLPythonAbstractCommandsConfig>(new DLPythonAbstractCommandsConfig() {
 
 			@Override
-			public String getTestInstallationCode() {
-				return "";
+			public File getInstallationTestScript() {
+				return null;
 			}
 
 			@Override
