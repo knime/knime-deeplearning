@@ -1,0 +1,6 @@
+- Network
+- Network Spec
+- Network Type, register at extension point
+- Network Loader
+- Buffers (see org.knime.dl.core.data and org.knime.dl.python.core.data)
+- Layer Data Factory, register at extension point
