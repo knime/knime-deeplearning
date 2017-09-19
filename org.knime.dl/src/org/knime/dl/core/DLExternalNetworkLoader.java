@@ -47,15 +47,12 @@
 package org.knime.dl.core;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 /**
- * Implementations of this interface must be {@link Serializable serializable}.
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R, C> extends Serializable {
+public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R, C> extends DLNetworkLoader<R> {
 
 	/**
 	 * Checks if the given context is valid.
@@ -66,22 +63,6 @@ public interface DLExternalNetworkLoader<N extends DLExternalNetwork<?, R>, H, R
 	 *             be displayed to the user.
 	 */
 	void validateContext(C context) throws DLInvalidContextException;
-
-	/**
-	 * Checks if the given source is valid.
-	 *
-	 * @param source the source
-	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 */
-	void validateSource(R source) throws DLInvalidSourceException;
-
-	/**
-	 * Checks if the given destination is valid.
-	 *
-	 * @param destination the destination
-	 * @throws DLInvalidDestinationException if the destination is invalid
-	 */
-	void validateDestination(R destination) throws DLInvalidDestinationException;
 
 	/**
 	 * Loads a network from a source into a context.

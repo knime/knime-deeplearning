@@ -60,12 +60,14 @@ import java.io.Serializable;
  * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
  * objects or external resources. Spec objects are stateless.
  *
+ * @param <R> the source type of the network that holds this network spec
+ *
  * @author Christian Dietz, KNIME, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  */
-public interface DLNetworkSpec extends Serializable {
+public interface DLNetworkSpec<R> extends Serializable {
 
-	DLNetworkType<?, ?> getNetworkType();
+	DLNetworkType<?, ?, R> getNetworkType();
 
 	DLLayerDataSpec[] getInputSpecs();
 

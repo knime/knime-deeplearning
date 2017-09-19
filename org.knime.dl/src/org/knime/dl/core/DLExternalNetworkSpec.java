@@ -50,7 +50,7 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkSpec<R> extends DLNetworkSpec {
+public interface DLExternalNetworkSpec<R> extends DLNetworkSpec<R> {
 
 	@Override
 	DLExternalNetworkType<?, ?, R> getNetworkType();

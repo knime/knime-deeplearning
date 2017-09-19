@@ -46,26 +46,29 @@
  */
 package org.knime.dl.core;
 
+import java.io.Serializable;
+
 /**
+ * Implementations of this interface must be {@link Serializable serializable}.
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkType<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
-		extends DLNetworkType<N, S, R> {
+public interface DLNetworkLoader<R> extends Serializable {
 
 	/**
-	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not.
-	 * <P>
-	 * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-	 * should cache the results of their first invocation to improve the response time of subsequent calls.
+	 * Checks if the given source is valid.
 	 *
-	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-	 *            will be redone. Otherwise, previous test results will be used if available.
-	 *
-	 * @throws DLUnavailableDependencyException if the external dependencies of this network type are unavailable
+	 * @param source the source
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
 	 */
-	void checkAvailability(boolean forceRefresh) throws DLUnavailableDependencyException;
+	void validateSource(R source) throws DLInvalidSourceException;
 
-	@Override
-	DLExternalNetworkLoader<N, ?, R, ?> getLoader();
+	/**
+	 * Checks if the given destination is valid.
+	 *
+	 * @param destination the destination
+	 * @throws DLInvalidDestinationException if the destination is invalid
+	 */
+	void validateDestination(R destination) throws DLInvalidDestinationException;
 }

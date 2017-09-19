@@ -56,28 +56,52 @@ import java.io.Serializable;
  * Network, network spec and network type must be part of the same bundle (or rather: loaded by the same class loader)
  * for serialization reasons. The respective serializers must be part of that bundle as well.
  *
+ * @param <N> the {@link DLNetwork network} that is associated with this network type
+ * @param <S> the {@link DLNetworkSpec network spec} that is associated with this network type
+ * @param <R> the source type of the network that is associated with this network type
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkType<N extends DLNetwork<S>, S extends DLNetworkSpec> extends Serializable {
+public interface DLNetworkType<N extends DLNetwork<S, R>, S extends DLNetworkSpec<R>, R> extends Serializable {
 
 	String getIdentifier();
 
 	String getName();
 
 	/**
-	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader)
+	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader).
 	 *
 	 * @return the network serializer
 	 */
 	DLNetworkSerializer<N, S> getNetworkSerializer();
 
 	/**
-	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader)
+	 * Note: serializer and network type must be part of the same bundle (or rather: loaded by the same class loader).
 	 *
 	 * @return the network spec serializer
 	 */
 	DLNetworkSpecSerializer<S> getNetworkSpecSerializer();
+
+	/**
+	 * Returns the {@link DLNetworkLoader loader} for this network type.
+	 * <P>
+	 * Implementing classes and extending interfaces should narrow the return type of this method.
+	 *
+	 * @return the loader for this network type
+	 */
+	DLNetworkLoader<R> getLoader();
+
+	/**
+	 * Creates a {@link DLExternalNetwork network} from a source and a spec.
+	 *
+	 * @param spec the spec
+	 * @param source the source
+	 * @return the network
+	 * @throws DLInvalidSourceException if the source is unavailable or invalid
+	 * @throws IllegalArgumentException if the spec is invalid
+	 */
+	N wrap(S spec, R source) throws DLInvalidSourceException, IllegalArgumentException;
 
 	/**
 	 * Value-based.

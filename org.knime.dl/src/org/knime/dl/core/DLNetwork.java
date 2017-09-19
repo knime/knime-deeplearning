@@ -53,12 +53,17 @@ package org.knime.dl.core;
  * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
  * <P>
  *
+ * @param <S> the network spec that is held by this network
+ * @param <R> the source type of the network
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetwork<S extends DLNetworkSpec> {
+public interface DLNetwork<S extends DLNetworkSpec<R>, R> {
 
 	S getSpec();
+
+	R getSource();
 
 	/**
 	 * Value-based.
