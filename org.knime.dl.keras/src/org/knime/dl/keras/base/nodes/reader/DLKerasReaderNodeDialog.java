@@ -203,7 +203,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		final String[] names = new String[availableNetworkTypes.size()];
 		final String[] ids = new String[availableNetworkTypes.size()];
 		for (int i = 0; i < availableNetworkTypes.size(); i++) {
-			final DLNetworkType<?, ?> networkType = availableNetworkTypes.get(i);
+			final DLNetworkType<?, ?, ?> networkType = availableNetworkTypes.get(i);
 			names[i] = networkType.getName();
 			ids[i] = networkType.getIdentifier();
 		}

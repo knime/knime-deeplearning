@@ -110,9 +110,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private JButton m_addOutputButton;
 
-	private DLNetworkSpec m_lastIncomingNetworkSpec;
+	private DLNetworkSpec<?> m_lastIncomingNetworkSpec;
 
-	private DLNetworkSpec m_lastConfiguredNetworkSpec;
+	private DLNetworkSpec<?> m_lastConfiguredNetworkSpec;
 
 	/**
 	 * Creates a new dialog.
@@ -163,7 +163,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			throw new NotConfigurableException("Input port object's deep learning network type is missing.");
 		}
 
-		final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
+		final DLNetworkSpec<?> networkSpec = currNetworkSpec.getNetworkSpec();
 		m_lastIncomingNetworkSpec = networkSpec;
 
 		if (networkSpec.getInputSpecs().length == 0) {
@@ -262,7 +262,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec, final DataTableSpec tableSpec)
 			throws NotConfigurableException {
-		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
+		final DLNetworkSpec<?> networkSpec = portObjectSpec.getNetworkSpec();
 
 		// general settings:
 		m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec);

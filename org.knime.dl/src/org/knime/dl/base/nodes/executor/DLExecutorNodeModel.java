@@ -458,14 +458,14 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <N extends DLNetwork<?>> void executeInternal(final PortObject portObject, final RowInput rowInput,
+	private <N extends DLNetwork<?, ?>> void executeInternal(final PortObject portObject, final RowInput rowInput,
 			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
 		if (!(portObject instanceof DLNetworkPortObject)) {
 			throw new IllegalStateException("Unsupported deep learning network type at input port.");
 		}
 
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
-		final DLNetworkSpec networkSpec = network.getSpec();
+		final DLNetworkSpec<?> networkSpec = network.getSpec();
 		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
 
 		if (inDataSpec.getNumColumns() == 0) {

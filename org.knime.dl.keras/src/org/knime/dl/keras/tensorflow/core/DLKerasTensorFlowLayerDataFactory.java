@@ -56,7 +56,7 @@ import org.knime.dl.keras.core.DLKerasAbstractLayerDataFactory;
 public final class DLKerasTensorFlowLayerDataFactory extends DLKerasAbstractLayerDataFactory {
 
 	@Override
-	public DLNetworkType<?, ?> getNetworkType() {
+	public DLNetworkType<?, ?, ?> getNetworkType() {
 		return DLKerasTensorFlowNetworkType.INSTANCE;
 	}
 }

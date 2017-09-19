@@ -78,12 +78,12 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 		return instance;
 	}
 
-	private final HashMap<String, DLNetworkType<?, ?>> m_types = new HashMap<>();
+	private final HashMap<String, DLNetworkType<?, ?, ?>> m_types = new HashMap<>();
 
 	private DLNetworkTypeRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
 		register();
-		for (final DLNetworkType<?, ?> type : m_types.values()) {
+		for (final DLNetworkType<?, ?, ?> type : m_types.values()) {
 			if (type instanceof DLExternalNetworkType) {
 				try {
 					((DLExternalNetworkType<?, ?, ?>) type).checkAvailability(true);
@@ -102,7 +102,7 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	 * @param identifier the identifier
 	 * @return the network type if present
 	 */
-	public Optional<DLNetworkType<?, ?>> getNetworkType(final String identifier) {
+	public Optional<DLNetworkType<?, ?, ?>> getNetworkType(final String identifier) {
 		return Optional.ofNullable(m_types.get(identifier));
 	}
 
@@ -111,7 +111,7 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	 *
 	 * @return all registered network types
 	 */
-	public Collection<DLNetworkType<?, ?>> getAllNetworkTypes() {
+	public Collection<DLNetworkType<?, ?, ?>> getAllNetworkTypes() {
 		return new ArrayList<>(m_types.values());
 	}
 
@@ -124,10 +124,10 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	 * @see DLExternalNetworkType#checkAvailability()
 	 * @see DLInstallationTester
 	 */
-	public Collection<DLNetworkType<?, ?>> getAllAvailableNetworkTypes() {
-		final ArrayList<DLNetworkType<?, ?>> types = new ArrayList<>(m_types.values());
+	public Collection<DLNetworkType<?, ?, ?>> getAllAvailableNetworkTypes() {
+		final ArrayList<DLNetworkType<?, ?, ?>> types = new ArrayList<>(m_types.values());
 		for (int i = types.size() - 1; i >= 0; i--) {
-			final DLNetworkType<?, ?> type = types.get(i);
+			final DLNetworkType<?, ?, ?> type = types.get(i);
 			if (type instanceof DLExternalNetworkType) {
 				try {
 					((DLExternalNetworkType<?, ?, ?>) type).checkAvailability(false);
@@ -149,17 +149,17 @@ public class DLNetworkTypeRegistry extends DLAbstractExtensionPointRegistry {
 	 *
 	 * @throws IllegalArgumentException if the network type is already registered
 	 */
-	public void registerNetworkType(final DLNetworkType<?, ?> type) throws IllegalArgumentException {
+	public void registerNetworkType(final DLNetworkType<?, ?, ?> type) throws IllegalArgumentException {
 		registerNetworkTypeInternal(type);
 	}
 
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {
-		registerNetworkTypeInternal((DLNetworkType<?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
+		registerNetworkTypeInternal((DLNetworkType<?, ?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
 	}
 
-	private synchronized void registerNetworkTypeInternal(final DLNetworkType<?, ?> type) {
+	private synchronized void registerNetworkTypeInternal(final DLNetworkType<?, ?, ?> type) {
 		if (!m_types.containsKey(type.getIdentifier())) {
 			m_types.put(type.getIdentifier(), type);
 		} else {

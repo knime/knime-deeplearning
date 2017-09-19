@@ -83,7 +83,7 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 		return instance;
 	}
 
-	private final HashMap<DLNetworkType<?, ?>, DLLayerDataFactory> m_layerData = new HashMap<>();
+	private final HashMap<DLNetworkType<?, ?, ?>, DLLayerDataFactory> m_layerData = new HashMap<>();
 
 	public DLLayerDataRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -98,7 +98,7 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 	 * @param network the network type
 	 * @return the layer data factory
 	 */
-	public Optional<DLLayerDataFactory> getLayerDataFactory(final DLNetworkType<?, ?> networkType) {
+	public Optional<DLLayerDataFactory> getLayerDataFactory(final DLNetworkType<?, ?, ?> networkType) {
 		final DLLayerDataFactory layerData = m_layerData.get(networkType);
 		return Optional.ofNullable(layerData);
 	}
@@ -124,7 +124,7 @@ public final class DLLayerDataRegistry extends DLAbstractExtensionPointRegistry 
 	}
 
 	private synchronized void registerLayerDataInternal(final DLLayerDataFactory layerData) {
-		final DLNetworkType<?, ?> networkType = layerData.getNetworkType();
+		final DLNetworkType<?, ?, ?> networkType = layerData.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The layer data factory's associated network type must not be null.");
 		}

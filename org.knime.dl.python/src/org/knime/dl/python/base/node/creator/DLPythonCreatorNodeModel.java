@@ -141,7 +141,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 					kernel.getFlowVariables(DLPythonCreatorNodeConfig.getVariableNames().getFlowVariables());
 			final String networkTypeIdentifier = ((StringValue) kernel
 					.getDataTable("network_type_identifier", exec, exec).iterator().next().getCell(0)).getStringValue();
-			final DLNetworkType<?, ?> networkType = DLNetworkTypeRegistry.getInstance()
+			final DLNetworkType<?, ?, ?> networkType = DLNetworkTypeRegistry.getInstance()
 					.getNetworkType(networkTypeIdentifier).orElseThrow(() -> new IllegalStateException(
 							"Execution back end '" + networkTypeIdentifier + "' could not be found."));
 			if (!(networkType instanceof DLPythonNetworkType)) {

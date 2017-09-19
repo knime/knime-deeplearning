@@ -52,8 +52,8 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkType<N extends DLNetwork<S>, S extends DLNetworkSpec>
-		implements DLNetworkType<N, S> {
+public abstract class DLAbstractNetworkType<N extends DLNetwork<S, R>, S extends DLNetworkSpec<R>, R>
+		implements DLNetworkType<N, S, R> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -78,10 +78,10 @@ public abstract class DLAbstractNetworkType<N extends DLNetwork<S>, S extends DL
 		if (obj == this) {
 			return true;
 		}
-		if (obj == null) {
+		if (obj == null || !(obj instanceof DLNetworkType)) {
 			return false;
 		}
-		final DLNetworkType<?, ?> other = (DLNetworkType<?, ?>) obj;
+		final DLNetworkType<?, ?, ?> other = (DLNetworkType<?, ?, ?>) obj;
 		return m_id.equals(other.getIdentifier());
 	}
 }

@@ -66,8 +66,7 @@ public interface DLNetworkPortObjectSpec extends PortObjectSpec {
 	 *
 	 * @return the network spec
 	 */
-	DLNetworkSpec getNetworkSpec();
-
+	DLNetworkSpec<?> getNetworkSpec();
 
 	@Override
 	default JComponent[] getViews() {

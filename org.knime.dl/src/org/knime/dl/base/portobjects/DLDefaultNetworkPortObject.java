@@ -81,7 +81,7 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 
 	private DLNetworkPortObjectSpec m_spec;
 
-	private DLNetwork<?> m_network;
+	private DLNetwork<?, ?> m_network;
 
 	/**
 	 * Creates a new instance of this port object. s
@@ -89,7 +89,7 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 	 * @param networkReference the source of the network
 	 * @param spec the corresponding port object spec
 	 */
-	public DLDefaultNetworkPortObject(final DLNetwork<?> network) {
+	public DLDefaultNetworkPortObject(final DLNetwork<?, ?> network) {
 		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
 		m_network = network;
 	}
@@ -107,7 +107,7 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 	}
 
 	@Override
-	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
+	public DLNetwork<?, ?> getNetwork() throws DLInvalidSourceException, IOException {
 		if (m_network instanceof DLExternalNetwork) {
 			// check if network source is still available
 			validateNetworkSource((DLExternalNetwork<?, ?>) m_network);
@@ -120,11 +120,11 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 			throws IOException, CanceledExecutionException {
 		out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
 		final ObjectOutputStream objOut = new ObjectOutputStream(out);
-		final DLNetworkType<?, ?> type = m_network.getSpec().getNetworkType();
+		final DLNetworkType<?, ?, ?> type = m_network.getSpec().getNetworkType();
 		objOut.writeUTF(type.getIdentifier());
 		@SuppressWarnings({ "unchecked" }) // serializer is fetched from network's type - they must match
-		final DLNetworkSerializer<DLNetwork<?>, ?> ser =
-				(DLNetworkSerializer<DLNetwork<?>, ?>) type.getNetworkSerializer();
+		final DLNetworkSerializer<DLNetwork<?, ?>, ?> ser =
+				(DLNetworkSerializer<DLNetwork<?, ?>, ?>) type.getNetworkSerializer();
 		ser.serialize(objOut, m_network);
 	}
 
@@ -136,10 +136,10 @@ public class DLDefaultNetworkPortObject extends AbstractPortObject implements DL
 		final ObjectInputStream objIn = new ObjectInputStream(in);
 		final String id = objIn.readUTF();
 		@SuppressWarnings("unchecked") // if this cast fails, there is an implementation error in the registry
-		final DLNetworkType<?, DLNetworkSpec> type =
-				(DLNetworkType<?, DLNetworkSpec>) DLNetworkTypeRegistry.getInstance().getNetworkType(id).orElseThrow(
-						() -> new IllegalStateException("Failed to load deep learning network. Network type '" + id
-								+ "' could not be found. Are you missing a KNIME Deep Learning extension?."));
+		final DLNetworkType<?, DLNetworkSpec<?>, ?> type = (DLNetworkType<?, DLNetworkSpec<?>, ?>) DLNetworkTypeRegistry
+				.getInstance().getNetworkType(id)
+				.orElseThrow(() -> new IllegalStateException("Failed to load deep learning network. Network type '" + id
+						+ "' could not be found. Are you missing a KNIME Deep Learning extension?."));
 		m_network = type.getNetworkSerializer().deserialize(objIn, m_spec.getNetworkSpec());
 	}
 

@@ -235,7 +235,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	}
 
 	private DLKerasNetworkType<?, ?> getBackend(final String backendId) throws InvalidSettingsException {
-		final DLNetworkType<?, ?> backend = DLNetworkTypeRegistry.getInstance().getNetworkType(backendId)
+		final DLNetworkType<?, ?, ?> backend = DLNetworkTypeRegistry.getInstance().getNetworkType(backendId)
 				.orElseThrow(() -> new InvalidSettingsException("Selected Keras back end '" + backendId
 						+ "' cannot be found. Are you missing a KNIME extension?"));
 		if (!(backend instanceof DLKerasNetworkType)) {

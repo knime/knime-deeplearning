@@ -74,7 +74,7 @@ public interface DLNetworkPortObject extends PortObject {
 	/**
 	 * Summary of the deep learning port object.
 	 */
-	String SUMMARY = "Deep Learning Network Model";
+	String SUMMARY = "Deep Learning Network";
 
 	/**
 	 * Returns the contained {@link DLNetwork}.
@@ -83,7 +83,7 @@ public interface DLNetworkPortObject extends PortObject {
 	 * @throws DLInvalidSourceException if network source has become unavailable or invalid
 	 * @throws IOException if retrieving the network implied I/O which failed (optional)
 	 */
-	DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException;
+	DLNetwork<?, ?> getNetwork() throws DLInvalidSourceException, IOException;
 
 	@Override
 	default String getSummary() {

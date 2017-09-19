@@ -60,7 +60,7 @@ import org.knime.dl.core.DLNetworkSpec;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExecutableNetwork<I, O, S extends DLNetworkSpec> extends DLNetwork<S>, AutoCloseable {
+public interface DLExecutableNetwork<I, O, S extends DLNetworkSpec<R>, R> extends DLNetwork<S, R>, AutoCloseable {
 
 	Class<?> getInputType();
 

@@ -58,7 +58,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> implements DLNetworkSpec {
+public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R> implements DLNetworkSpec<R> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -92,7 +92,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> impl
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	protected abstract boolean equalsInternal(DLNetworkSpec other);
+	protected abstract boolean equalsInternal(DLNetworkSpec<?> other);
 
 	@Override
 	public NT getNetworkType() {
@@ -127,7 +127,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?>> impl
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLNetworkSpec other = (DLNetworkSpec) obj;
+		final DLNetworkSpec<?> other = (DLNetworkSpec<?>) obj;
 		return other.getNetworkType().equals(getNetworkType()) //
 				&& other.getInputSpecs().length == getInputSpecs().length //
 				&& other.getIntermediateOutputSpecs().length == getIntermediateOutputSpecs().length //

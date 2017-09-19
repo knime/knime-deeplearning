@@ -48,6 +48,7 @@
  */
 package org.knime.dl.python.core.execution;
 
+import java.net.URL;
 import java.util.Map;
 
 import org.knime.dl.core.DLAbstractExecutableNetwork;
@@ -68,7 +69,7 @@ import org.knime.dl.python.core.DLPythonNetworkSpec;
 public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
 		C extends DLPythonAbstractCommands<?>>
 		extends DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
-				DLLayerDataBatch<? extends DLReadableBuffer>, N, S> {
+				DLLayerDataBatch<? extends DLReadableBuffer>, N, S, URL> {
 
 	private C m_commands;
 

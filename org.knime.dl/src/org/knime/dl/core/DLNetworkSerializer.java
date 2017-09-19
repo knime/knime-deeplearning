@@ -56,7 +56,7 @@ import java.io.OutputStream;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkSerializer<N extends DLNetwork<S>, S extends DLNetworkSpec> {
+public interface DLNetworkSerializer<N extends DLNetwork<S, ?>, S extends DLNetworkSpec<?>> {
 
 	void serialize(OutputStream out, N network) throws IOException;
 

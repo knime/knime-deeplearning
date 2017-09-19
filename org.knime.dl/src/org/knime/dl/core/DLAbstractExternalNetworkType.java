@@ -51,7 +51,7 @@ package org.knime.dl.core;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public abstract class DLAbstractExternalNetworkType<N extends DLExternalNetwork<S, R>, S extends DLExternalNetworkSpec<R>, R>
-		extends DLAbstractNetworkType<N, S> implements DLExternalNetworkType<N, S, R> {
+		extends DLAbstractNetworkType<N, S, R> implements DLExternalNetworkType<N, S, R> {
 
 	private static final long serialVersionUID = 1L;
 

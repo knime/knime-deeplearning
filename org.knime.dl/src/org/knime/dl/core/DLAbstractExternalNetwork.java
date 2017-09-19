@@ -46,36 +46,14 @@
  */
 package org.knime.dl.core;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLAbstractNetwork<S>
+public abstract class DLAbstractExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLAbstractNetwork<S, R>
 		implements DLExternalNetwork<S, R> {
 
-	private final R m_source;
-
 	protected DLAbstractExternalNetwork(final S spec, final R source) {
-		super(spec);
-		m_source = checkNotNull(source, "External network source must not be null.");
-	}
-
-	@Override
-	public R getSource() {
-		return m_source;
-	}
-
-	@Override
-	protected boolean equalsInternal(final DLNetwork<?> other) {
-		return ((DLExternalNetwork<?, ?>) other).getSource().equals(getSource());
-	}
-
-	@Override
-	protected void hashCodeInternal(final HashCodeBuilder b) {
-		b.append(m_source.hashCode());
+		super(spec, source);
 	}
 }

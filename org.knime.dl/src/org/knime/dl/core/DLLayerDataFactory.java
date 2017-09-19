@@ -56,7 +56,7 @@ import org.knime.dl.core.execution.DLLayerDataBatch;
  */
 public interface DLLayerDataFactory {
 
-	DLNetworkType<?, ?> getNetworkType();
+	DLNetworkType<?, ?, ?> getNetworkType();
 
 	// Only return basic interfaces such as "DLWritableDoubleBuffer" etc. Else matching in
 	// DLDataValueToLayerDataConverterRegistry#getConverterFactories does not work anymore.

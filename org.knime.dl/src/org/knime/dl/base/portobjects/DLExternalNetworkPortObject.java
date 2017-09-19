@@ -64,7 +64,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLExternalNetworkSpec;
 import org.knime.dl.core.DLExternalNetworkType;
 import org.knime.dl.core.DLInvalidSourceException;
@@ -90,11 +89,11 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 		return exec.createFileStore(UUID.randomUUID().toString() + FilenameUtils.EXTENSION_SEPARATOR + ext);
 	}
 
-	private DLExternalNetwork<?, URL> m_network;
+	private DLNetwork<?, URL> m_network;
 
 	private DLNetworkPortObjectSpec m_spec;
 
-	public <N extends DLExternalNetwork<S, URL>, S extends DLExternalNetworkSpec<URL>> DLExternalNetworkPortObject(
+	public <N extends DLNetwork<S, URL>, S extends DLExternalNetworkSpec<URL>> DLExternalNetworkPortObject(
 			final N network, final FileStore store) throws IOException {
 		super(Collections.singletonList(store));
 		m_network = network;
@@ -111,7 +110,7 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	}
 
 	@Override
-	public DLNetwork<?> getNetwork() throws DLInvalidSourceException, IOException {
+	public DLNetwork<?, ?> getNetwork() throws DLInvalidSourceException, IOException {
 		if (m_network == null) {
 			try {
 				@SuppressWarnings("unchecked") // type constraint is fulfilled, see constructor
@@ -119,12 +118,12 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 				// TODO: this can be fixed when KNIME properly supports generic POs
 				final DLExternalNetworkType type = spec.getNetworkType();
 				final URL source = getFileStore(0).getFile().toURI().toURL();
-				return type.wrap(spec, source);
+				m_network = type.wrap(spec, source);
 			} catch (final DLInvalidSourceException e) {
 				LOGGER.debug(e.getMessage(), e);
 				throw e;
 			} catch (final IOException e) {
-				LOGGER.debug("Failed to load deep learning network from file store. See log for details.", e);
+				LOGGER.debug("Failed to load deep learning network from file store.", e);
 				throw e;
 			}
 		}

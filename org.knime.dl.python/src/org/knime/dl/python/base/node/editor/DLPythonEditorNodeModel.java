@@ -94,10 +94,9 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
-			context.getKernel()
-					.execute("import DLPythonNetwork\n" + //
-							"global " + inputNetworkName + "\n" + //
-							inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+			context.getKernel().execute("import DLPythonNetwork\n" + //
+					"global " + inputNetworkName + "\n" + //
+					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
 		} catch (final IOException e) {
 			throw new IOException(
 					"An error occurred while communicating with Python (while setting up the Python network).", e);
@@ -172,7 +171,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					kernel.getFlowVariables(DLPythonEditorNodeConfig.getVariableNames().getFlowVariables());
 			final String networkTypeIdentifier = ((StringValue) kernel
 					.getDataTable("network_type_identifier", exec, exec).iterator().next().getCell(0)).getStringValue();
-			final DLNetworkType<?, ?> networkType = DLNetworkTypeRegistry.getInstance()
+			final DLNetworkType<?, ?, ?> networkType = DLNetworkTypeRegistry.getInstance()
 					.getNetworkType(networkTypeIdentifier).orElseThrow(() -> new IllegalStateException(
 							"Execution back end '" + networkTypeIdentifier + "' could not be found."));
 			if (!(networkType instanceof DLPythonNetworkType)) {

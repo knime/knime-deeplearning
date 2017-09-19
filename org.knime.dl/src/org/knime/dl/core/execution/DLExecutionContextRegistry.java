@@ -84,7 +84,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 		return instance;
 	}
 
-	private final HashMap<DLNetworkType<?, ?>, Set<DLExecutionContext<?>>> m_ctxs = new HashMap<>();
+	private final HashMap<DLNetworkType<?, ?, ?>, Set<DLExecutionContext<?>>> m_ctxs = new HashMap<>();
 
 	private DLExecutionContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -99,7 +99,8 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param networkType the network type
 	 * @return the execution contexts
 	 */
-	public Collection<DLExecutionContext<?>> getExecutionContextsForNetworkType(final DLNetworkType<?, ?> networkType) {
+	public Collection<DLExecutionContext<?>> getExecutionContextsForNetworkType(
+			final DLNetworkType<?, ?, ?> networkType) {
 		return Collections.unmodifiableCollection(m_ctxs.get(networkType));
 	}
 
@@ -135,7 +136,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	}
 
 	private synchronized void registerExecutionContextInternal(final DLExecutionContext<?> ctx) {
-		final DLNetworkType<?, ?> networkType = ctx.getNetworkType();
+		final DLNetworkType<?, ?, ?> networkType = ctx.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The execution context's associated network type must not be null.");
 		}

@@ -52,8 +52,8 @@ import org.knime.dl.core.execution.DLExecutableNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractExecutableNetwork<I, O, N extends DLNetwork<S>, S extends DLNetworkSpec>
-		implements DLExecutableNetwork<I, O, S> {
+public abstract class DLAbstractExecutableNetwork<I, O, N extends DLNetwork<S, R>, S extends DLNetworkSpec<R>, R>
+		implements DLExecutableNetwork<I, O, S, R> {
 
 	protected final N m_network;
 
@@ -64,5 +64,10 @@ public abstract class DLAbstractExecutableNetwork<I, O, N extends DLNetwork<S>, 
 	@Override
 	public S getSpec() {
 		return m_network.getSpec();
+	}
+
+	@Override
+	public R getSource() {
+		return m_network.getSource();
 	}
 }

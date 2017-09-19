@@ -66,9 +66,9 @@ public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
 
 	private static final String ZIP_ENTRY_NAME = "DLDefaultNetworkPortObjectSpec";
 
-	private DLNetworkSpec m_spec;
+	private DLNetworkSpec<?> m_spec;
 
-	public DLDefaultNetworkPortObjectSpec(final DLNetworkSpec spec) {
+	public DLDefaultNetworkPortObjectSpec(final DLNetworkSpec<?> spec) {
 		m_spec = spec;
 	}
 
@@ -80,7 +80,7 @@ public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
 	}
 
 	@Override
-	public DLNetworkSpec getNetworkSpec() {
+	public DLNetworkSpec<?> getNetworkSpec() {
 		return m_spec;
 	}
 
@@ -90,11 +90,11 @@ public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
 				final PortObjectSpecZipOutputStream out) throws IOException {
 			out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
 			final ObjectOutputStream objOut = new ObjectOutputStream(out);
-			final DLNetworkType<?, ?> type = portObjectSpec.m_spec.getNetworkType();
+			final DLNetworkType<?, ?, ?> type = portObjectSpec.m_spec.getNetworkType();
 			objOut.writeUTF(type.getIdentifier());
 			@SuppressWarnings("unchecked")
-			final DLNetworkSpecSerializer<DLNetworkSpec> serializer =
-					((DLNetworkSpecSerializer<DLNetworkSpec>) type.getNetworkSpecSerializer());
+			final DLNetworkSpecSerializer<DLNetworkSpec<?>> serializer =
+					((DLNetworkSpecSerializer<DLNetworkSpec<?>>) type.getNetworkSpecSerializer());
 			serializer.serialize(objOut, portObjectSpec.m_spec);
 		}
 
@@ -107,11 +107,10 @@ public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
 			}
 			final ObjectInputStream objIn = new ObjectInputStream(in);
 			final String id = objIn.readUTF();
-			final DLNetworkType<?, ? extends DLNetworkSpec> type =
-					DLNetworkTypeRegistry.getInstance().getNetworkType(id)
-							.orElseThrow(() -> new IOException("Failed to load deep learning network. Network type '"
-									+ id + "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-			final DLNetworkSpec deserialized = type.getNetworkSpecSerializer().deserialize(objIn);
+			final DLNetworkType<?, ?, ?> type = DLNetworkTypeRegistry.getInstance().getNetworkType(id)
+					.orElseThrow(() -> new IOException("Failed to load deep learning network. Network type '" + id
+							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
+			final DLNetworkSpec<?> deserialized = type.getNetworkSpecSerializer().deserialize(objIn);
 			return new DLDefaultNetworkPortObjectSpec(deserialized);
 		}
 	}

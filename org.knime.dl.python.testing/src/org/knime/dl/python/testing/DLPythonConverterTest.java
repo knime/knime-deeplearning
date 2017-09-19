@@ -133,7 +133,7 @@ public class DLPythonConverterTest {
 
 		final DLBazNetworkReader reader = new DLBazNetworkReader();
 		final DLBazNetwork network = reader.read("dummy-source");
-		final DLNetworkSpec networkSpec = network.getSpec();
+		final DLNetworkSpec<?> networkSpec = network.getSpec();
 
 		// input data:
 
@@ -256,7 +256,7 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType>
+	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType, String>
 			implements DLExternalNetworkSpec<String> {
 
 		private static final long serialVersionUID = 1L;
@@ -272,7 +272,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		protected boolean equalsInternal(final DLNetworkSpec other) {
+		protected boolean equalsInternal(final DLNetworkSpec<?> other) {
 			// no op
 			return true;
 		}
@@ -368,8 +368,9 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazExecutableNetwork extends
-			DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec> {
+	static class DLBazExecutableNetwork
+			extends DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
+					DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec, String> {
 
 		public DLBazExecutableNetwork(final DLBazNetwork network) {
 			super(network);
@@ -412,7 +413,7 @@ public class DLPythonConverterTest {
 
 	static class DLBazExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
-		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?> network,
+		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
 				final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
 			super(network, layerDataFactory, requestedOutputs);
 		}

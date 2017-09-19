@@ -58,15 +58,14 @@ import org.knime.dl.core.DLNetworkType;
 /**
  * Executes a {@link DLExecutableNetwork deep learning network}.
  *
- * @param <N>
- *            the {@link DLExecutableNetwork network} type
+ * @param <N> the {@link DLExecutableNetwork network} type
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExecutionContext<N extends DLNetwork<?>> {
+public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
 
-	DLNetworkType<N, ?> getNetworkType();
+	DLNetworkType<N, ?, ?> getNetworkType();
 
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
@@ -79,10 +78,8 @@ public interface DLExecutionContext<N extends DLNetwork<?>> {
 	/**
 	 * Executes a {@link DLExecutableNetwork} given its input.
 	 *
-	 * @param network
-	 *            the {@link DLExecutableNetwork} to execute
-	 * @throws RuntimeException
-	 *             if failed to execute the network
+	 * @param network the {@link DLExecutableNetwork} to execute
+	 * @throws RuntimeException if failed to execute the network
 	 */
 	DLExecutableNetworkAdapter executable(N network, Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException;
 }

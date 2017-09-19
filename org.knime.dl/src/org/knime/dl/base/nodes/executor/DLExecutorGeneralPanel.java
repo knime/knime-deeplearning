@@ -78,11 +78,11 @@ class DLExecutorGeneralPanel extends JPanel {
 
 	private final DLExecutorGeneralConfig m_cfg;
 
-	private final DLNetworkSpec m_networkSpec;
+	private final DLNetworkSpec<?> m_networkSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcBackend;
 
-	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec networkSpec)
+	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec<?> networkSpec)
 			throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;

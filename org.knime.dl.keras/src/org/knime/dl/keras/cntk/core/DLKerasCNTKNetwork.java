@@ -48,6 +48,8 @@ package org.knime.dl.keras.cntk.core;
 
 import java.net.URL;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.keras.core.DLKerasAbstractNetwork;
 
 /**
@@ -58,5 +60,16 @@ public final class DLKerasCNTKNetwork extends DLKerasAbstractNetwork<DLKerasCNTK
 
 	public DLKerasCNTKNetwork(final DLKerasCNTKNetworkSpec spec, final URL source) {
 		super(spec, source);
+	}
+
+	@Override
+	protected void hashCodeInternal(final HashCodeBuilder b) {
+		// no op - everything's handled in abstract base class
+	}
+
+	@Override
+	protected boolean equalsInternal(final DLNetwork<?, ?> other) {
+		// no op - everything's handled in abstract base class
+		return true;
 	}
 }

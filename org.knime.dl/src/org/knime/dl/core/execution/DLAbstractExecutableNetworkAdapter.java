@@ -64,7 +64,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
  */
 public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutableNetworkAdapter {
 
-	private final DLExecutableNetwork<?, ?, ?> m_network;
+	private final DLExecutableNetwork<?, ?, ?, ?> m_network;
 
 	private final DLLayerDataFactory m_layerDataFactory;
 
@@ -74,7 +74,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	private HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> m_output;
 
-	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?> network,
+	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
 			final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
 		m_network = network;
 		m_layerDataFactory = layerDataFactory;
@@ -88,7 +88,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 			Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> adapterOutput);
 
 	@Override
-	public DLExecutableNetwork<?, ?, ?> getNetwork() {
+	public DLExecutableNetwork<?, ?, ?, ?> getNetwork() {
 		return m_network;
 	}
 
@@ -129,7 +129,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	// TODO: type safety
 	private <I, O> void executeInternal(final long batchSize) throws Exception {
-		final DLExecutableNetwork<I, O, ?> network = (DLExecutableNetwork<I, O, ?>) m_network;
+		final DLExecutableNetwork<I, O, ?, ?> network = (DLExecutableNetwork<I, O, ?, ?>) m_network;
 		final Map<DLLayerDataSpec, I> networkInput = (Map<DLLayerDataSpec, I>) extractNetworkInput(m_input);
 		final Map<DLLayerDataSpec, O> networkOutput = (Map<DLLayerDataSpec, O>) extractNetworkOutput(m_output);
 		network.execute(networkInput, networkOutput, batchSize);
