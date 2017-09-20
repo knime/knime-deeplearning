@@ -48,25 +48,22 @@
  */
 package org.knime.dl.python.core.data;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
-import java.util.Arrays;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.dl.core.data.DLDefaultIntBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 
 /**
- * Int type implementation of {@link DLPythonDataBuffer}.
+ * Int type implementation of {@link DLPythonAbstractDataBuffer}.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-@SuppressWarnings("serial")
-public class DLPythonIntBuffer extends DLPythonAbstractDataBuffer<int[]>
+@SuppressWarnings("serial") // not intended for serialization
+public class DLPythonIntBuffer extends DLPythonAbstractDataBuffer<DLDefaultIntBuffer, int[]>
 		implements DLWritableIntBuffer, DLReadableIntBuffer {
 
 	/**
@@ -80,120 +77,76 @@ public class DLPythonIntBuffer extends DLPythonAbstractDataBuffer<int[]>
 	 * @param capacity the immutable capacity of the buffer
 	 */
 	public DLPythonIntBuffer(final long capacity) {
-		super(capacity);
-	}
-
-	@Override
-	public void setStorage(final int[] storage, final long storageSize) throws IllegalArgumentException {
-		checkArgument(storage.length == m_capacity, "Input storage capacity does not match buffer capacity.");
-		m_storage = storage;
-		m_nextWrite = (int) storageSize;
-		resetRead();
+		super(new DLDefaultIntBuffer(capacity));
 	}
 
 	@Override
 	public double readNextDouble() throws BufferUnderflowException {
-		checkUnderflow(m_nextRead < m_nextWrite);
-		return m_storage[m_nextRead++];
+		return m_buffer.readNextDouble();
 	}
 
 	@Override
 	public double[] toDoubleArray() {
-		final double[] tmp = new double[m_storage.length];
-		for (int i = 0; i < m_storage.length; i++) {
-			tmp[i] = m_storage[i];
-		}
-		return tmp;
+		return m_buffer.toDoubleArray();
 	}
 
 	@Override
 	public int readNextInt() throws BufferUnderflowException {
-		checkUnderflow(m_nextRead < m_nextWrite);
-		return m_storage[m_nextRead++];
+		return m_buffer.readNextInt();
 	}
 
 	@Override
 	public int[] toIntArray() {
-		return m_storage.clone();
+		return m_buffer.toIntArray();
 	}
 
 	@Override
 	public long readNextLong() throws BufferUnderflowException {
-		checkUnderflow(m_nextRead < m_nextWrite);
-		return m_storage[m_nextRead++];
+		return m_buffer.readNextLong();
 	}
 
 	@Override
 	public long[] toLongArray() {
-		final long[] tmp = new long[m_storage.length];
-		for (int i = 0; i < m_storage.length; i++) {
-			tmp[i] = m_storage[i];
-		}
-		return tmp;
+		return m_buffer.toLongArray();
 	}
 
 	@Override
 	public void put(final boolean value) throws BufferOverflowException {
-		checkOverflow(m_nextWrite < m_capacity);
-		m_storage[m_nextWrite++] = value ? 1 : 0;
+		m_buffer.put(value);
 	}
 
 	@Override
 	public void putAll(final boolean[] values) throws BufferOverflowException {
-		checkOverflow(m_nextWrite + values.length <= m_capacity);
-		for (int i = 0; i < values.length; i++) {
-			m_storage[m_nextWrite++] = values[i] ? 1 : 0;
-		}
+		m_buffer.putAll(values);
 	}
 
 	@Override
 	public void put(final byte value) throws BufferOverflowException {
-		checkOverflow(m_nextWrite < m_capacity);
-		m_storage[m_nextWrite++] = value;
+		m_buffer.put(value);
 	}
 
 	@Override
 	public void putAll(final byte[] values) throws BufferOverflowException {
-		checkOverflow(m_nextWrite + values.length <= m_capacity);
-		for (int i = 0; i < values.length; i++) {
-			m_storage[m_nextWrite++] = values[i];
-		}
+		m_buffer.putAll(values);
 	}
 
 	@Override
 	public void put(final int value) throws BufferOverflowException {
-		checkOverflow(m_nextWrite < m_capacity);
-		m_storage[m_nextWrite++] = value;
+		m_buffer.put(value);
 	}
 
 	@Override
 	public void putAll(final int[] values) throws BufferOverflowException {
-		checkOverflow(m_nextWrite + values.length <= m_capacity);
-		System.arraycopy(values, 0, m_storage, m_nextWrite, values.length);
-		m_nextWrite += values.length;
+		m_buffer.putAll(values);
 	}
 
 	@Override
 	public void put(final short value) throws BufferOverflowException {
-		checkOverflow(m_nextWrite < m_capacity);
-		m_storage[m_nextWrite++] = value;
+		m_buffer.put(value);
 	}
 
 	@Override
 	public void putAll(final short[] values) throws BufferOverflowException {
-		checkOverflow(m_nextWrite + values.length <= m_capacity);
-		for (int i = 0; i < values.length; i++) {
-			m_storage[m_nextWrite++] = values[i];
-		}
-	}
-
-	@Override
-	protected int[] createStorage() {
-		return new int[m_capacity];
-	}
-
-	@Override
-	protected boolean equalsDataCell(final DataCell dc) {
-		return Arrays.equals(m_storage, ((DLPythonIntBuffer) dc).m_storage);
+		m_buffer.putAll(values);
 	}
 }

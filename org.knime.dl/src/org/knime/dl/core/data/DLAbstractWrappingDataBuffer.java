@@ -43,100 +43,119 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 28, 2017 (marcel): created
  */
-package org.knime.dl.python.core.data;
+package org.knime.dl.core.data;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
-import org.knime.core.data.DataType;
-import org.knime.dl.core.data.DLDefaultFloatBuffer;
-import org.knime.dl.core.data.DLReadableFloatBuffer;
-import org.knime.dl.core.data.DLWritableFloatBuffer;
-
 /**
- * Float type implementation of {@link DLPythonAbstractDataBuffer}.
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-@SuppressWarnings("serial") // not intended for serialization
-public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<DLDefaultFloatBuffer, float[]>
-		implements DLWritableFloatBuffer, DLReadableFloatBuffer {
+public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataBuffer<S> {
 
 	/**
-	 * This buffer's {@link DataType}.
+	 * @param expression a boolean expression
+	 * @throws BufferOverflowException if {@code expression} is false
 	 */
-	public static final DataType TYPE = DataType.getType(DLPythonFloatBuffer.class);
+	protected static void checkOverflow(final boolean expression) throws BufferOverflowException {
+		if (!expression) {
+			throw new BufferOverflowException();
+		}
+	}
+
+	/**
+	 * @param expression a boolean expression
+	 * @throws BufferUnderflowException if {@code expression} is false *
+	 */
+	protected static void checkUnderflow(final boolean expression) throws BufferUnderflowException {
+		if (!expression) {
+			throw new BufferUnderflowException();
+		}
+	}
+
+	/**
+	 * The immutable capacity of the buffer.
+	 */
+	protected final int m_capacity;
+
+	/**
+	 * The internal storage.
+	 */
+	protected S m_storage;
+
+	/**
+	 * The next write position. Equals {@links #size()}.
+	 */
+	protected int m_nextWrite = 0;
+
+	/**
+	 * The next read position.
+	 */
+	protected int m_nextRead = 0;
 
 	/**
 	 * Creates a new instance of this buffer.
 	 *
 	 * @param capacity the immutable capacity of the buffer
 	 */
-	public DLPythonFloatBuffer(final long capacity) {
-		super(new DLDefaultFloatBuffer(capacity));
+	protected DLAbstractWrappingDataBuffer(final long capacity) {
+		checkArgument(capacity <= Integer.MAX_VALUE,
+				"Invalid input capacity. Buffer only supports capacities up to " + Integer.MAX_VALUE + ".");
+		m_capacity = (int) capacity;
+		m_storage = createStorage();
+	}
+
+	/**
+	 * Creates the internal storage of this buffer. This method is only called once during construction of the instance.
+	 *
+	 * @return the internal storage
+	 */
+	protected abstract S createStorage();
+
+	@Override
+	public long size() {
+		return m_nextWrite;
 	}
 
 	@Override
-	public double readNextDouble() throws BufferUnderflowException {
-		return m_buffer.readNextDouble();
+	public long getCapacity() {
+		return m_capacity;
 	}
 
 	@Override
-	public double[] toDoubleArray() {
-		return m_buffer.toDoubleArray();
+	public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
+		checkUnderflow(startPos + length <= m_nextWrite);
+		return m_storage;
 	}
 
 	@Override
-	public float readNextFloat() throws BufferUnderflowException {
-		return m_buffer.readNextFloat();
+	public S getStorageForWriting(final long startPos, final long length) throws BufferOverflowException {
+		checkOverflow(startPos + length <= m_capacity);
+		m_nextWrite = (int) (startPos + length);
+		return m_storage;
 	}
 
 	@Override
-	public float[] toFloatArray() {
-		return m_buffer.toFloatArray();
+	public void resetRead() {
+		m_nextRead = 0;
 	}
 
 	@Override
-	public void put(final boolean value) throws BufferOverflowException {
-		m_buffer.put(value);
+	public void resetWrite() {
+		m_nextWrite = 0;
 	}
 
 	@Override
-	public void putAll(final boolean[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+	public void close() throws Exception {
+		m_storage = null;
 	}
 
 	@Override
-	public void put(final byte value) throws BufferOverflowException {
-		m_buffer.put(value);
-	}
-
-	@Override
-	public void putAll(final byte[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
-	}
-
-	@Override
-	public void put(final float value) throws BufferOverflowException {
-		m_buffer.put(value);
-	}
-
-	@Override
-	public void putAll(final float[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
-	}
-
-	@Override
-	public void put(final short value) throws BufferOverflowException {
-		m_buffer.put(value);
-	}
-
-	@Override
-	public void putAll(final short[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+	public String toString() {
+		return "Buffer with capacity: " + m_capacity;
 	}
 }

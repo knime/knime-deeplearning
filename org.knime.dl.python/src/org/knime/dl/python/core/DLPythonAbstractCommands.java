@@ -64,9 +64,9 @@ import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLWrappingDataBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -161,7 +161,8 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		try {
 			final File script = m_config.getInstallationTestScript();
 			final String[] output =
-					m_context.isKernelOpen() ? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script)) : m_context.execute(script);
+					m_context.isKernelOpen() ? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
+							: m_context.execute(script);
 			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
 				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
 				final String cause = idx != -1 //
@@ -241,7 +242,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 				int numRemaining = (int) batchSize;
 
-				private Serializer<DLPythonDataBuffer> m_serializer;
+				private Serializer<DLWrappingDataBuffer> m_serializer;
 				{
 					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
 							.filter(new Predicate<KnimeToPythonExtension>() {
@@ -255,7 +256,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 								}
 							}).findFirst();
 
-					m_serializer = (Serializer<DLPythonDataBuffer>) extensions
+					m_serializer = (Serializer<DLWrappingDataBuffer>) extensions
 							.orElseThrow(() -> new RuntimeException(
 									"Transmitting input data to Python failed. No matching serializer available."))
 							.getJavaSerializerFactory().createSerializer();
@@ -270,7 +271,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 					try {
 						final Cell cell = new CellImpl(
-								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer()));
+								m_serializer.serialize((DLWrappingDataBuffer) in.getValue().getBatch()[i].getBuffer()));
 						row.setCell(cell, 0);
 					} catch (final IOException ex) {
 						throw new RuntimeException("Transmitting input data to Keras failed.", ex);

@@ -48,141 +48,94 @@
  */
 package org.knime.dl.python.core.data;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
 import org.knime.core.data.DataCell;
 import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLWrappingDataBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.python.typeextension.Deserializer;
 
 /**
  * Abstract base class for {@link DLReadableBuffer readable} and {@link DLWritableBuffer writable} buffers specifically
- * for use with Python deep learning back ends.
+ * for use with Python deep learning back ends. Instances of this class simply delegate to another matching buffer
+ * instance.<br>
+ * This is needed because {@link Deserializer Python deserializers} are working with {@link DataCell}.
  *
+ * @param <B> the delegate buffer type
  * @param <S> the storage type
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractDataBuffer<S> extends DataCell implements DLPythonDataBuffer<S> {
+@SuppressWarnings("serial") // not intended for serialization
+public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<S>, S> extends DataCell
+		implements DLWrappingDataBuffer<S> {
 
-	private static final long serialVersionUID = 1L;
-
-	/**
-	 * @param expression a boolean expression
-	 * @throws BufferOverflowException if {@code expression} is false
-	 */
-	protected static void checkOverflow(final boolean expression) throws BufferOverflowException {
-		if (!expression) {
-			throw new BufferOverflowException();
-		}
-	}
-
-	/**
-	 * @param expression a boolean expression
-	 * @throws BufferUnderflowException if {@code expression} is false *
-	 */
-	protected static void checkUnderflow(final boolean expression) throws BufferUnderflowException {
-		if (!expression) {
-			throw new BufferUnderflowException();
-		}
-	}
-
-	/**
-	 * The immutable capacity of the buffer.
-	 */
-	protected final int m_capacity;
-
-	/**
-	 * The internal storage.
-	 */
-	protected S m_storage;
-
-	/**
-	 * The next write position. Equals {@links #size()}.
-	 */
-	protected int m_nextWrite = 0;
-
-	/**
-	 * The next read position.
-	 */
-	protected int m_nextRead = 0;
+	protected final B m_buffer;
 
 	/**
 	 * Creates a new instance of this buffer.
 	 *
-	 * @param capacity the immutable capacity of the buffer
+	 * @param buffer the delegate buffer
 	 */
-	protected DLPythonAbstractDataBuffer(final long capacity) {
-		checkArgument(capacity <= Integer.MAX_VALUE,
-				"Invalid input capacity. Buffer only supports capacities up to " + Integer.MAX_VALUE + ".");
-		m_capacity = (int) capacity;
-		m_storage = createStorage();
+	protected DLPythonAbstractDataBuffer(final B buffer) {
+		m_buffer = buffer;
 	}
-
-	/**
-	 * Creates the internal storage of this buffer. This method is only called once during construction of the instance.
-	 *
-	 * @return the internal storage
-	 */
-	protected abstract S createStorage();
-
 
 	@Override
 	public long size() {
-		return m_nextWrite;
+		return m_buffer.size();
 	}
-
 
 	@Override
 	public long getCapacity() {
-		return m_capacity;
+		return m_buffer.getCapacity();
 	}
 
+	@Override
+	public void setStorage(final S storage, final long storageSize) throws IllegalArgumentException {
+		m_buffer.setStorage(storage, storageSize);
+	}
 
 	@Override
 	public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
-		checkUnderflow(startPos + length <= m_nextWrite);
-		return m_storage;
+		return m_buffer.getStorageForReading(startPos, length);
 	}
-
 
 	@Override
 	public S getStorageForWriting(final long startPos, final long length) throws BufferOverflowException {
-		checkOverflow(startPos + length <= m_capacity);
-		m_nextWrite = (int) (startPos + length);
-		return m_storage;
+		return m_buffer.getStorageForWriting(startPos, length);
 	}
-
 
 	@Override
 	public void resetRead() {
-		m_nextRead = 0;
+		m_buffer.resetRead();
 	}
-
 
 	@Override
 	public void resetWrite() {
-		m_nextWrite = 0;
+		m_buffer.resetWrite();
 	}
-
 
 	@Override
 	public void close() throws Exception {
-		m_storage = null;
+		m_buffer.close();
 	}
-
 
 	@Override
-	public int hashCode() {
-		return m_storage.hashCode();
+	public int hashCode() { // DataCell#equals(Object) is final
+		return m_buffer.hashCode();
 	}
-
 
 	@Override
 	public String toString() {
-		return "Buffer with capacity: " + m_capacity;
+		return m_buffer.toString();
+	}
+
+	@Override
+	protected boolean equalsDataCell(final DataCell dc) {
+		return m_buffer.equals(((DLPythonAbstractDataBuffer<?, ?>) dc).m_buffer);
 	}
 }

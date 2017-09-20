@@ -46,97 +46,122 @@
  * History
  *   Jun 28, 2017 (marcel): created
  */
-package org.knime.dl.python.core.data;
+package org.knime.dl.core.data;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
-import org.knime.core.data.DataType;
-import org.knime.dl.core.data.DLDefaultFloatBuffer;
-import org.knime.dl.core.data.DLReadableFloatBuffer;
-import org.knime.dl.core.data.DLWritableFloatBuffer;
-
 /**
- * Float type implementation of {@link DLPythonAbstractDataBuffer}.
+ * Float type implementation of {@link DLWrappingDataBuffer}.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-@SuppressWarnings("serial") // not intended for serialization
-public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<DLDefaultFloatBuffer, float[]>
+public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 		implements DLWritableFloatBuffer, DLReadableFloatBuffer {
-
-	/**
-	 * This buffer's {@link DataType}.
-	 */
-	public static final DataType TYPE = DataType.getType(DLPythonFloatBuffer.class);
 
 	/**
 	 * Creates a new instance of this buffer.
 	 *
 	 * @param capacity the immutable capacity of the buffer
 	 */
-	public DLPythonFloatBuffer(final long capacity) {
-		super(new DLDefaultFloatBuffer(capacity));
+	public DLDefaultFloatBuffer(final long capacity) {
+		super(capacity);
+	}
+
+	@Override
+	public void setStorage(final float[] storage, final long storageSize) throws IllegalArgumentException {
+		checkArgument(storage.length == m_capacity, "Input storage capacity does not match buffer capacity.");
+		m_storage = storage;
+		m_nextWrite = (int) storageSize;
+		resetRead();
 	}
 
 	@Override
 	public double readNextDouble() throws BufferUnderflowException {
-		return m_buffer.readNextDouble();
+		checkUnderflow(m_nextRead < m_nextWrite);
+		return m_storage[m_nextRead++];
 	}
 
 	@Override
 	public double[] toDoubleArray() {
-		return m_buffer.toDoubleArray();
+		final double[] tmp = new double[m_storage.length];
+		for (int i = 0; i < m_storage.length; i++) {
+			tmp[i] = m_storage[i];
+		}
+		return tmp;
 	}
 
 	@Override
 	public float readNextFloat() throws BufferUnderflowException {
-		return m_buffer.readNextFloat();
+		checkUnderflow(m_nextRead < m_nextWrite);
+		return m_storage[m_nextRead++];
 	}
 
 	@Override
 	public float[] toFloatArray() {
-		return m_buffer.toFloatArray();
+		return m_storage.clone();
 	}
 
 	@Override
 	public void put(final boolean value) throws BufferOverflowException {
-		m_buffer.put(value);
+		checkOverflow(m_nextWrite < m_capacity);
+		m_storage[m_nextWrite++] = value ? 1f : 0f;
 	}
 
 	@Override
 	public void putAll(final boolean[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+		checkOverflow(m_nextWrite + values.length <= m_capacity);
+		for (int i = 0; i < values.length; i++) {
+			m_storage[m_nextWrite++] = values[i] ? 1f : 0f;
+		}
 	}
 
 	@Override
 	public void put(final byte value) throws BufferOverflowException {
-		m_buffer.put(value);
+		checkOverflow(m_nextWrite < m_capacity);
+		m_storage[m_nextWrite++] = value;
 	}
 
 	@Override
 	public void putAll(final byte[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+		checkOverflow(m_nextWrite + values.length <= m_capacity);
+		for (int i = 0; i < values.length; i++) {
+			m_storage[m_nextWrite++] = values[i];
+		}
 	}
 
 	@Override
 	public void put(final float value) throws BufferOverflowException {
-		m_buffer.put(value);
+		checkOverflow(m_nextWrite < m_capacity);
+		m_storage[m_nextWrite++] = value;
 	}
 
 	@Override
 	public void putAll(final float[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+		checkOverflow(m_nextWrite + values.length <= m_capacity);
+		System.arraycopy(values, 0, m_storage, m_nextWrite, values.length);
+		m_nextWrite += values.length;
 	}
 
 	@Override
 	public void put(final short value) throws BufferOverflowException {
-		m_buffer.put(value);
+		checkOverflow(m_nextWrite < m_capacity);
+		m_storage[m_nextWrite++] = value;
 	}
 
 	@Override
 	public void putAll(final short[] values) throws BufferOverflowException {
-		m_buffer.putAll(values);
+		checkOverflow(m_nextWrite + values.length <= m_capacity);
+		for (int i = 0; i < values.length; i++) {
+			m_storage[m_nextWrite++] = values[i];
+		}
+	}
+
+	@Override
+	protected float[] createStorage() {
+		return new float[m_capacity];
 	}
 }
