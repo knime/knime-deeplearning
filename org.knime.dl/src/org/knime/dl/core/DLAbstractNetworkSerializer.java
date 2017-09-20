@@ -44,16 +44,23 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core;
+package org.knime.dl.core;
 
-import org.knime.dl.core.DLAbstractNetworkSerializer;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkSerializer<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		extends DLAbstractNetworkSerializer<N, S> {
+public abstract class DLAbstractNetworkSerializer<N extends DLNetwork<S, ?>, S extends DLNetworkSpec<?>>
+		implements DLNetworkSerializer<N, S> {
 
-	// nothing to do here - everything's handled in base class
+	@Override
+	public void serialize(final OutputStream out, final N network) throws IOException {
+		final ObjectOutputStream objOut = new ObjectOutputStream(out);
+		objOut.writeObject(network.getSource());
+		objOut.flush();
+	}
 }
