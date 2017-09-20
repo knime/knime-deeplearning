@@ -77,7 +77,7 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 
 	private final Class<?> m_elementType;
 
-	private final int m_hashCode;
+	private int m_hashCode = 0;
 
 	/**
 	 * @param name the name of the layer data, not empty
@@ -93,7 +93,6 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = checkNotNull(shape);
 		m_elementType = checkNotNull(elementType);
-		m_hashCode = hashCodeInternal();
 	}
 
 	/**
@@ -106,7 +105,6 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 		m_batchSize = OptionalLong.empty();
 		m_shape = checkNotNull(shape);
 		m_elementType = checkNotNull(elementType);
-		m_hashCode = hashCodeInternal();
 	}
 
 	/**
@@ -121,7 +119,6 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = DLUnknownLayerDataShape.INSTANCE;
 		m_elementType = checkNotNull(elementType);
-		m_hashCode = hashCodeInternal();
 	}
 
 	/**
@@ -133,7 +130,6 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 		m_batchSize = OptionalLong.empty();
 		m_shape = DLUnknownLayerDataShape.INSTANCE;
 		m_elementType = checkNotNull(elementType);
-		m_hashCode = hashCodeInternal();
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
@@ -162,6 +158,9 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 
 	@Override
 	public int hashCode() {
+		if (m_hashCode == 0) {
+			m_hashCode = hashCodeInternal();
+		}
 		return m_hashCode;
 	}
 
@@ -198,7 +197,7 @@ public abstract class DLAbstractLayerDataSpec implements DLLayerDataSpec {
 	}
 
 	private int hashCodeInternal() {
-		final HashCodeBuilder b = new HashCodeBuilder();
+		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		b.append(getName());
 		b.append(getBatchSize());
 		b.append(getShape());

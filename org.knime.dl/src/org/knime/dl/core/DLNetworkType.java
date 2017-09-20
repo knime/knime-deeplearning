@@ -93,7 +93,7 @@ public interface DLNetworkType<N extends DLNetwork<S, R>, S extends DLNetworkSpe
 	DLNetworkLoader<R> getLoader();
 
 	/**
-	 * Creates a {@link DLExternalNetwork network} from a source and a spec.
+	 * Creates a {@link DLNetwork network} from a source and a spec.
 	 *
 	 * @param spec the spec
 	 * @param source the source

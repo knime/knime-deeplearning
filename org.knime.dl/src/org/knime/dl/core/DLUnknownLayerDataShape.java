@@ -59,43 +59,34 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public final class DLUnknownLayerDataShape extends DLAbstractLayerDataShape {
 
 	private static final long serialVersionUID = 1L;
-	
-    /**
-     * The singleton instance.
-     */
-    public static final DLUnknownLayerDataShape INSTANCE = new DLUnknownLayerDataShape();
 
-    private DLUnknownLayerDataShape() {
-    }
+	/**
+	 * The singleton instance.
+	 */
+	public static final DLUnknownLayerDataShape INSTANCE = new DLUnknownLayerDataShape();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNumDimensions() {
-        return 0;
-    }
+	private DLUnknownLayerDataShape() {
+	}
 
-    @Override
-    public String toString() {
-    	return "unknown";
-    }
+	@Override
+	public int getNumDimensions() {
+		return 0;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void hashCodeInternal(final HashCodeBuilder b) {
-        // no op - everything's handled in abstract base class
-    }
+	@Override
+	public String toString() {
+		return "unknown";
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean equalsInternal(final DLLayerDataShape other) {
-        // no op - everything's handled in abstract base class, this method will never be invoked
-        return false;
-    }
+	@Override
+	protected void hashCodeInternal(final HashCodeBuilder b) {
+		// no op - everything's handled in abstract base class
+	}
+
+	@Override
+	protected boolean equalsInternal(final DLLayerDataShape other) {
+		// no op - everything's handled in abstract base class, this method will never be invoked
+		return false;
+	}
 
 }

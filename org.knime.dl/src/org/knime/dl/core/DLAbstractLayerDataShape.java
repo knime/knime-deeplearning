@@ -60,25 +60,19 @@ public abstract class DLAbstractLayerDataShape implements DLLayerDataShape {
 
 	private static final long serialVersionUID = 1L;
 
-	private final int m_hashCode;
-
-	/**
-	 * Creates a new instance of this shape.
-	 */
-	protected DLAbstractLayerDataShape() {
-		m_hashCode = hashCodeInternal();
-	}
+	private int m_hashCode = 0;
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
 	protected abstract boolean equalsInternal(DLLayerDataShape other);
 
-
 	@Override
 	public int hashCode() {
+		if (m_hashCode == 0) {
+			m_hashCode = hashCodeInternal();
+		}
 		return m_hashCode;
 	}
-
 
 	@Override
 	public boolean equals(final Object obj) {
@@ -93,7 +87,7 @@ public abstract class DLAbstractLayerDataShape implements DLLayerDataShape {
 	}
 
 	private int hashCodeInternal() {
-		final HashCodeBuilder b = new HashCodeBuilder();
+		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}

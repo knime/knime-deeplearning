@@ -70,7 +70,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	private final DLLayerDataSpec[] m_outputSpecs;
 
-	private final int m_hashCode;
+	private int m_hashCode = 0;
 
 	/**
 	 * Creates a new instance of this network spec.
@@ -87,7 +87,6 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 		m_intermediateOutputSpecs = checkNotNull(intermediateOutputSpecs,
 				"Intermediate output data specs must not be null, but may be empty.");
 		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
-		m_hashCode = hashCodeInternal();
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
@@ -116,6 +115,9 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	@Override
 	public int hashCode() {
+		if (m_hashCode == 0) {
+			m_hashCode = hashCodeInternal();
+		}
 		return m_hashCode;
 	}
 
@@ -139,7 +141,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	}
 
 	private int hashCodeInternal() {
-		final HashCodeBuilder b = new HashCodeBuilder();
+		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		b.append(m_networkType);
 		b.append(m_inputSpecs);
 		b.append(m_intermediateOutputSpecs);
