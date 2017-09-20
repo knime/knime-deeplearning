@@ -51,7 +51,7 @@ import java.net.URL;
 
 import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.io.DLExternalNetworkReader;
+import org.knime.dl.core.io.DLNetworkReader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -59,7 +59,7 @@ import org.knime.python2.kernel.PythonKernel;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		implements DLExternalNetworkReader<N, S, URL> {
+		implements DLNetworkReader<N, S, URL> {
 
 	private final DLPythonNetworkLoader<N> m_loader;
 

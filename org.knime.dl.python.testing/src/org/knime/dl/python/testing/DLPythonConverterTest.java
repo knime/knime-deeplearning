@@ -108,7 +108,7 @@ import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
 import org.knime.dl.core.execution.DLLayerDataBatch;
-import org.knime.dl.core.io.DLExternalNetworkReader;
+import org.knime.dl.core.io.DLNetworkReader;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
@@ -324,7 +324,7 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetworkReader implements DLExternalNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
+	static class DLBazNetworkReader implements DLNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
 
 		@Override
 		public DLBazNetwork read(final String source) throws DLInvalidSourceException, IOException {

@@ -48,11 +48,10 @@ package org.knime.dl.core.io;
 
 import java.io.IOException;
 
-import org.knime.dl.core.DLExternalNetwork;
-import org.knime.dl.core.DLExternalNetworkSpec;
 import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSpec;
 
 /**
  * Instances of this interface must be stateless as they will be shared by multiple networks.
@@ -60,7 +59,7 @@ import org.knime.dl.core.DLNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetworkReader<N extends DLExternalNetwork<S, ?>, S extends DLExternalNetworkSpec<?>, R> {
+public interface DLNetworkReader<N extends DLNetwork<S, ?>, S extends DLNetworkSpec<?>, R> {
 
 	// NB: type parameter R does not necessarily need to correspond to the R of the network
 
