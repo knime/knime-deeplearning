@@ -64,10 +64,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLExternalNetworkSpec;
-import org.knime.dl.core.DLExternalNetworkType;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -93,8 +93,8 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 
 	private DLNetworkPortObjectSpec m_spec;
 
-	public <N extends DLNetwork<S, URL>, S extends DLExternalNetworkSpec<URL>> DLExternalNetworkPortObject(
-			final N network, final FileStore store) throws IOException {
+	public <N extends DLNetwork<S, URL>, S extends DLNetworkSpec<URL>> DLExternalNetworkPortObject(final N network,
+			final FileStore store) throws IOException {
 		super(Collections.singletonList(store));
 		m_network = network;
 		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
@@ -114,9 +114,9 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 		if (m_network == null) {
 			try {
 				@SuppressWarnings("unchecked") // type constraint is fulfilled, see constructor
-				final DLExternalNetworkSpec<URL> spec = (DLExternalNetworkSpec<URL>) m_spec.getNetworkSpec();
+				final DLNetworkSpec<URL> spec = (DLNetworkSpec<URL>) m_spec.getNetworkSpec();
 				// TODO: this can be fixed when KNIME properly supports generic POs
-				final DLExternalNetworkType type = spec.getNetworkType();
+				final DLNetworkType type = spec.getNetworkType();
 				final URL source = getFileStore(0).getFile().toURI().toURL();
 				m_network = type.wrap(spec, source);
 			} catch (final DLInvalidSourceException e) {
