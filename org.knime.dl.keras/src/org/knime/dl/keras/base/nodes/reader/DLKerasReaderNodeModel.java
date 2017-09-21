@@ -60,6 +60,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -83,6 +84,8 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkType;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -94,6 +97,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	private static final String CFG_KEY_BACKEND = "backend";
 
 	private static final String CFG_KEY_COPY_NETWORK = "copy_network";
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
 
 	static SettingsModelString createFilePathStringModel(final String defaultPath) {
 		return new SettingsModelString(CFG_KEY_FILE_PATH, defaultPath);
@@ -165,6 +170,9 @@ final class DLKerasReaderNodeModel extends NodeModel {
 				if (e instanceof DLException) {
 					message = e.getMessage();
 				} else {
+					if (!Strings.isNullOrEmpty(e.getMessage())) {
+						LOGGER.error(e.getMessage());
+					}
 					message = "Failed to read deep learning network specification. See log for details.";
 				}
 				throw new InvalidSettingsException(message, e);

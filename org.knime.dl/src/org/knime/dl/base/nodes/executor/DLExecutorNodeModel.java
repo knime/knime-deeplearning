@@ -112,6 +112,8 @@ import org.knime.dl.core.execution.DLInvalidNetworkInputException;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
 import org.knime.dl.util.DLUtils;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -599,6 +601,9 @@ final class DLExecutorNodeModel extends NodeModel {
 				if (e instanceof DLException) {
 					message = e.getMessage();
 				} else {
+					if (!Strings.isNullOrEmpty(e.getMessage())) {
+						LOGGER.error(e.getMessage());
+					}
 					message = "Error occured during execution of network model. See log for details.";
 				}
 				throw new RuntimeException(message, e);
