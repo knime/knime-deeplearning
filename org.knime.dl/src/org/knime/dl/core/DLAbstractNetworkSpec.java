@@ -140,6 +140,14 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 				&& equalsInternal(other);
 	}
 
+	@Override
+	public String toString() {
+		return "Type: " + m_networkType.getName() + "\n" + //
+				"Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
+				"Intermediate: " + Arrays.toString(m_intermediateOutputSpecs) + "\n" + //
+				"Outputs: " + Arrays.toString(m_outputSpecs);
+	}
+	
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		b.append(m_networkType);
