@@ -49,6 +49,7 @@ package org.knime.dl.base.portobjects;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
@@ -63,11 +64,14 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
+import org.knime.core.util.DuplicateKeyException;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNetworkType;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -86,7 +90,13 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	}
 
 	public static FileStore createFileStoreForSaving(final String ext, final ExecutionContext exec) throws IOException {
-		return exec.createFileStore(UUID.randomUUID().toString() + FilenameUtils.EXTENSION_SEPARATOR + ext);
+		final String path = UUID.randomUUID().toString()
+				+ (!Strings.isNullOrEmpty(ext) ? FilenameUtils.EXTENSION_SEPARATOR + ext : "");
+		try {
+			return exec.createFileStore(path);
+		} catch (final DuplicateKeyException e) {
+			throw new IOException(e.getMessage(), e);
+		}
 	}
 
 	private DLNetwork<?, URL> m_network;
@@ -138,10 +148,12 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	// TODO: not called by framework, should be
 	@Override
 	protected void flushToFileStore() throws IOException {
+		final URL networkSource = m_network.getSource();
 		final File fileStoreFile = getFileStore(0).getFile();
-		if (!fileStoreFile.toURI().toURL().equals(m_network.getSource())) {
-			try (FileOutputStream fos = new FileOutputStream(fileStoreFile)) {
-				FileUtil.copy(m_network.getSource().openStream(), fos);
+		if (!fileStoreFile.toURI().toURL().equals(networkSource)) {
+			try (InputStream in = networkSource.openStream();
+					FileOutputStream out = new FileOutputStream(fileStoreFile)) {
+				FileUtil.copy(in, out);
 			}
 		}
 	}
