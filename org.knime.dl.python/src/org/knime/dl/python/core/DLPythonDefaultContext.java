@@ -61,6 +61,8 @@ import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
 import org.knime.python2.kernel.PythonModuleExtensions;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -73,7 +75,10 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 			options.setPythonVersionOption(PythonVersionOption.PYTHON3);
 			return new PythonKernel(options);
 		} catch (final IOException e) {
-			throw new DLInvalidContextException(e.getMessage(), e);
+			final String msg = !Strings.isNullOrEmpty(e.getMessage())
+					? "An error occurred while trying to launch Python: " + e.getMessage()
+					: "An unknown error occurred while trying to launch Python. See log for details.";
+			throw new DLInvalidContextException(msg, e);
 		}
 	}
 
