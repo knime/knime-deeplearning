@@ -64,9 +64,9 @@ import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.DLWrappingDataBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -242,21 +242,15 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 				int numRemaining = (int) batchSize;
 
-				private Serializer<DLWrappingDataBuffer> m_serializer;
+				private Serializer<DLPythonDataBuffer> m_serializer;
 				{
 					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
-							.filter(new Predicate<KnimeToPythonExtension>() {
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[i].getBuffer().getClass()))
+							.findFirst();
 
-								@Override
-								public boolean test(final KnimeToPythonExtension ext) {
-									return (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-											&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-													.isAssignableFrom(
-															in.getValue().getBatch()[i].getBuffer().getClass());
-								}
-							}).findFirst();
-
-					m_serializer = (Serializer<DLWrappingDataBuffer>) extensions
+					m_serializer = (Serializer<DLPythonDataBuffer>) extensions
 							.orElseThrow(() -> new RuntimeException(
 									"Transmitting input data to Python failed. No matching serializer available."))
 							.getJavaSerializerFactory().createSerializer();
@@ -271,7 +265,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 					try {
 						final Cell cell = new CellImpl(
-								m_serializer.serialize((DLWrappingDataBuffer) in.getValue().getBatch()[i].getBuffer()));
+								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer()));
 						row.setCell(cell, 0);
 					} catch (final IOException ex) {
 						throw new RuntimeException("Transmitting input data to Keras failed.", ex);

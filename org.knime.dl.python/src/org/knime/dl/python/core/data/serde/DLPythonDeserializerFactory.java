@@ -48,12 +48,12 @@
  */
 package org.knime.dl.python.core.data.serde;
 
-import org.knime.dl.core.data.DLWrappingDataBuffer;
+import org.knime.dl.python.core.data.DLPythonDataBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLPythonDeserializerFactory {
-	Class<? extends DLWrappingDataBuffer<?>> getBufferType();
+	Class<? extends DLPythonDataBuffer<?>> getBufferType();
 }

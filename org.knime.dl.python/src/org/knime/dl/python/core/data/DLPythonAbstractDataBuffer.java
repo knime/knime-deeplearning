@@ -65,13 +65,12 @@ import org.knime.python.typeextension.Deserializer;
  *
  * @param <B> the delegate buffer type
  * @param <S> the storage type
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 @SuppressWarnings("serial") // not intended for serialization
 public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<S>, S> extends DataCell
-		implements DLWrappingDataBuffer<S> {
+		implements DLPythonDataBuffer<S> {
 
 	protected final B m_buffer;
 
