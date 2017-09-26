@@ -82,13 +82,30 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
 
 	/**
-	 * @param source <i>not</i> the relative path of the file store itself
+	 * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
+	 * which equals the extension of the given source URL. This is useful if a certain file extension is expected when
+	 * reading in the stored network at a later point.
+	 *
+	 * @param source the URL of the source file, <i>not</i> the URL of the file store that will be created
+	 * @param exec the execution context that is used to create the file store
+	 * @return the created file store
+	 * @throws IOException if creating the file store failed for some reason
 	 */
 	public static FileStore createFileStoreForCopy(final URL source, final ExecutionContext exec) throws IOException {
 		final String ext = FilenameUtils.getExtension(source.getFile());
 		return createFileStoreForSaving(ext, exec);
 	}
 
+	/**
+	 * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
+	 * which can be specified via the respective parameter.
+	 *
+	 * @param ext the file extension of the file store, may be null or empty in which case the created file store has no
+	 *            file extension
+	 * @param exec the execution context that is used to create the file store
+	 * @return the created file store
+	 * @throws IOException if failed to create the file store
+	 */
 	public static FileStore createFileStoreForSaving(final String ext, final ExecutionContext exec) throws IOException {
 		final String path = UUID.randomUUID().toString()
 				+ (!Strings.isNullOrEmpty(ext) ? FilenameUtils.EXTENSION_SEPARATOR + ext : "");
@@ -103,12 +120,19 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 
 	private DLNetworkPortObjectSpec m_spec;
 
+	/**
+	 * Creates a new instance of this port object. The given network will be stored in the given file store.
+	 *
+	 * @param network the network to store
+	 * @param store the file store in which to store the network
+	 * @throws IOException if failed to store the network
+	 */
 	public <N extends DLNetwork<S, URL>, S extends DLNetworkSpec<URL>> DLExternalNetworkPortObject(final N network,
 			final FileStore store) throws IOException {
 		super(Collections.singletonList(store));
 		m_network = network;
 		m_spec = new DLDefaultNetworkPortObjectSpec(network.getSpec());
-		// actually, the framework should do that for us, but it doesn't
+		// Copy network to file store.
 		flushToFileStore();
 	}
 
@@ -145,7 +169,6 @@ public class DLExternalNetworkPortObject extends FileStorePortObject implements 
 		return m_spec;
 	}
 
-	// TODO: not called by framework, should be
 	@Override
 	protected void flushToFileStore() throws IOException {
 		final URL networkSource = m_network.getSource();
