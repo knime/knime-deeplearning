@@ -99,6 +99,7 @@ public class DLPythonFloatBufferSerializerFactory extends SerializerFactory<DLPy
 							+ Integer.MAX_VALUE + "bytes.");
 				}
 				final FloatBuffer floatBuffer = FloatBuffer.wrap(value.getStorageForReading(0, size));
+				floatBuffer.limit((int)size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
 				buffer.asFloatBuffer().put(floatBuffer);

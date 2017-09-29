@@ -99,6 +99,7 @@ public class DLPythonDoubleBufferSerializerFactory extends SerializerFactory<DLP
 							+ Integer.MAX_VALUE + "bytes.");
 				}
 				final DoubleBuffer doubleBuffer = DoubleBuffer.wrap(value.getStorageForReading(0, size));
+				doubleBuffer.limit((int)size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
 				buffer.asDoubleBuffer().put(doubleBuffer);

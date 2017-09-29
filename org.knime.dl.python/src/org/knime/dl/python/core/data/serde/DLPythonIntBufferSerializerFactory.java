@@ -99,6 +99,7 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 							+ Integer.MAX_VALUE + "bytes.");
 				}
 				final IntBuffer intBuffer = IntBuffer.wrap(value.getStorageForReading(0, size));
+				intBuffer.limit((int)size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
 				buffer.asIntBuffer().put(intBuffer);

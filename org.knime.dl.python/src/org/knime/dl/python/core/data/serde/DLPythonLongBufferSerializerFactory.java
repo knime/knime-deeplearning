@@ -99,6 +99,7 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 							+ Integer.MAX_VALUE + "bytes.");
 				}
 				final LongBuffer longBuffer = LongBuffer.wrap(value.getStorageForReading(0, size));
+				longBuffer.limit((int)size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
 				buffer.asLongBuffer().put(longBuffer);
