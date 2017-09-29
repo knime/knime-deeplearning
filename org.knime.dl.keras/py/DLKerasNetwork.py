@@ -66,11 +66,11 @@ import pandas as pd
 
 class DLKerasNetworkReader(DLPythonNetworkReader):
     __metaclass__ = abc.ABCMeta
-    
+
     @abc.abstractmethod
     def readFromJson(self, path):
         return
-    
+
     @abc.abstractmethod
     def readFromYaml(self, path):
         return
@@ -78,21 +78,23 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
 
 class DLKerasNetwork(DLPythonNetwork):
     __metaclass__ = abc.ABCMeta
-    
+
     def __init__(self, model):
         super().__init__(model)
-    
+        # TODO: Do we really want to introduce state here? Alternatively, add config parameter to train method.
+        self._training_config = None
+
     @property
     def spec(self):
-        if self._spec is None:            
+        if self._spec is None:
             model_inputs = set(self._model.inputs)
             model_outputs = set(self._model.outputs)
             visited = set()
-            
+
             input_specs = list()
             intermediate_output_specs = list()
             output_specs = list()
-            
+
             for l in self._model.layers:
                 # inputs:
                 for idx in range (0, len(l.inbound_nodes)):
@@ -136,18 +138,51 @@ class DLKerasNetwork(DLPythonNetwork):
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs)
         return self._spec
 
+    @property
+    def training_config(self):
+        return self._training_config
+
+    @training_config.setter
+    def training_config(self, config):
+        self._training_config = config
+        loss = []
+        for output_spec in self.spec.output_specs:
+            loss.append(config.loss[output_spec.name])
+        self._model.compile(loss=loss, optimizer=config.optimizer, metrics=config.metrics)
+
     def execute(self, in_data):
-        # TODO: this does not yet take (predefined) batch size (of the input) into account
+        X = self._format_input(in_data)
+        Y = self._model.predict(X, verbose=0)  # don't change to predict_proba
+        return self._format_output(Y)
+
+    def train(self, training_data, target_data):
+        config = self._training_config
+        if not config:
+            raise ValueError("No training configuration available. Set configuration before training the network.")
+        X1 = self._format_input(training_data)
+        X2 = self._format_target(target_data)
+        history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1)
+        return history.history
+
+    def save(self, path):
+        self._model.save(path)
+
+    # "Protected" helper methods:
+
+    def _format_input(self, in_data):
+        # TODO: this does not yet take (predefined) batch size of the input into account
         X = []
         for input_spec in self.spec.input_specs:
             data = in_data[input_spec.name].values
             data = list(map((lambda b: b[0].array.reshape([1] + input_spec.shape)), data))
             X.append(np.vstack(data))
-        Y = self._model.predict(X, verbose=0)  # don't change to predict_proba
+        return X
+
+    def _format_output(self, Y):
         # some networks have multiple outputs, some do not
         if not isinstance(Y, (list, tuple)):
             Y = [Y]
-        # TODO: output selected outputs only, intermediate outputs
+        # TODO: output selected outputs only, output intermediate outputs
         output = {}
         for idx, output_spec in enumerate(self.spec.output_specs):
             batch_size = 1
@@ -155,17 +190,21 @@ class DLKerasNetwork(DLPythonNetwork):
                 batch_size = Y[idx].shape[0]
             out = []
             for i in range(0, batch_size):
-                out.append(self.__putInMatchingBuffer(Y[idx][i]))
+                out.append(self._putInMatchingBuffer(Y[idx][i]))
             out = pd.DataFrame({output_spec.name:out})
             output[output_spec.name] = out
-        return output
+        return Y
 
-    def save(self, path):
-        self._model.save(path)
+    def _format_target(self, target_data):
+        # TODO: this does not yet take (predefined) batch size of the output into account
+        X = []
+        for output_spec in self.spec.output_specs:
+            data = target_data[output_spec.name].values
+            data = list(map((lambda b: b[0].array.reshape([1] + output_spec.shape)), data))
+            X.append(np.vstack(data))
+        return X
 
-    # Private helper methods:
-
-    def __putInMatchingBuffer(self, y):
+    def _putInMatchingBuffer(self, y):
         t = y.dtype
         if t == np.float64:
             return DLPythonDoubleBuffer(y)
@@ -177,7 +216,7 @@ class DLKerasNetwork(DLPythonNetwork):
             return DLPythonLongBuffer(y)
         # TODO: support more types
         else:
-            # TODO: warning to stderr?
+            # TODO: warning to stderr? fail?
             return DLPythonDoubleBuffer(y)
 
 
@@ -186,3 +225,53 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 
     def __init__(self, input_specs, intermediate_output_specs, output_specs):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
+
+
+class DLKerasTrainingConfig(object):
+
+    def __init__(self):
+        self._batch_size = 32
+        self._epochs = 1
+        self._optimizer = None
+        self._loss = {}
+        self._metrics = ['accuracy']
+
+    @property
+    def batch_size(self):
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, batch_size):
+        self._batch_size = batch_size
+
+    @property
+    def epochs(self):
+        return self._epochs
+
+    @epochs.setter
+    def epochs(self, epochs):
+        self._epochs = epochs
+
+    @property
+    def optimizer(self):
+        return self._optimizer
+
+    @optimizer.setter
+    def optimizer(self, optimizer):
+        self._optimizer = optimizer
+
+    @property
+    def loss(self):
+        return self._loss
+
+    @loss.setter
+    def loss(self, loss):
+        self._loss = loss
+
+    @property
+    def metrics(self):
+        return self._metrics
+
+    @metrics.setter
+    def metrics(self, metrics):
+        self._metrics = metrics
