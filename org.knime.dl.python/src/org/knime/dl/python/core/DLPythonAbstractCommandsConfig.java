@@ -69,7 +69,7 @@ public abstract class DLPythonAbstractCommandsConfig {
 
 	public static final String INPUT_SPECS_NAME = "input_specs";
 
-	public static final String INTERMEDIATE_OUTPUT_SPECS_NAME = "intermediate_output_specs";
+	public static final String HIDDEN_OUTPUT_SPECS_NAME = "intermediate_output_specs";
 
 	public static final String OUTPUT_SPECS_NAME = "output_specs";
 
@@ -98,9 +98,9 @@ public abstract class DLPythonAbstractCommandsConfig {
 	public String getExtractNetworkSpecsCode(final DLPythonNetworkHandle handle) throws IOException {
 		return "import DLPythonNetworkSpecExtractor\n" + //
 				"global " + INPUT_SPECS_NAME + "\n" + //
-				"global " + INTERMEDIATE_OUTPUT_SPECS_NAME + "\n" + //
+				"global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
 				"global " + OUTPUT_SPECS_NAME + "\n" + //
-				INPUT_SPECS_NAME + ", " + INTERMEDIATE_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + " = " + //
+				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + " = " + //
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + handle.getIdentifier() + "')";
 	}
 

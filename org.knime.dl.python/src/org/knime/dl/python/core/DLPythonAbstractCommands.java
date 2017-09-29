@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
@@ -71,6 +70,8 @@ import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
 import org.knime.dl.python.core.data.serde.DLSerializerFactory;
+import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
+import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
@@ -81,7 +82,6 @@ import org.knime.python.typeextension.Serializer;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
-import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
@@ -160,9 +160,9 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 	public void testInstallation() throws DLInvalidContextException {
 		try {
 			final File script = m_config.getInstallationTestScript();
-			final String[] output =
-					m_context.isKernelOpen() ? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
-							: m_context.execute(script);
+			final String[] output = m_context.isKernelOpen()
+					? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
+					: m_context.execute(script);
 			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
 				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
 				final String cause = idx != -1 //
@@ -283,19 +283,10 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 				@Override
 				public TableSpec getTableSpec() {
 					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
-							.filter(new Predicate<KnimeToPythonExtension>() {
-								/**
-								 * {@inheritDoc}
-								 */
-								@Override
-								public boolean test(final KnimeToPythonExtension ext) {
-									// TODO check if switch
-									return (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-											&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-													.isAssignableFrom(
-															in.getValue().getBatch()[0].getBuffer().getClass());
-								}
-							}).findFirst();
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[0].getBuffer().getClass()))
+							.findFirst();
 					// TODO: if nothing found, we should also try to match
 					// primitive types with their wrapper types
 					// (guava Primitives.wrap etc.)
@@ -329,28 +320,23 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> out : output.entrySet()) {
 			final DLLayerDataSpec spec = out.getKey();
 			final DLLayerDataBatch<? extends DLReadableBuffer> batch = out.getValue();
-			m_context.getKernel().getData(spec.getName(), new TableCreatorFactory() {
-
-				@Override
-				public TableCreator<DLLayerDataBatch<? extends DLReadableBuffer>> createTableCreator(
-						final TableSpec tableSpec, final int tableSize) {
-					return new TableCreator<DLLayerDataBatch<? extends DLReadableBuffer>>() {
+			m_context.getKernel().getData(spec.getName(),
+					(tableSpec, tableSize) -> new TableCreator<DLLayerDataBatch<? extends DLReadableBuffer>>() {
 
 						private Deserializer m_deserializer;
 
 						int i = 0;
 						{
 							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
-							final DeserializerFactory deserializerFactory =
-									PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
+							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
+									.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
 								LOGGER.coding(
 										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
 							}
 							m_deserializer = deserializerFactory.createDeserializer();
 							if (!(m_deserializer instanceof DLPythonDeserializer)) {
-								final String msg =
-										"An exception occurred while collecting network output from Python. Unsupported deserializer.";
+								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
 								LOGGER.error(msg);
 								// TODO
 								throw new RuntimeException(msg);
@@ -380,10 +366,177 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 						public DLLayerDataBatch<? extends DLReadableBuffer> getTable() {
 							return batch;
 						}
-					};
-				}
-			});
+					});
 		}
+	}
+
+	public synchronized void setNetworkTrainingInputs(final DLPythonNetworkHandle handle,
+			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> trainingData,
+			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> targetData, final long batchSize)
+			throws DLInvalidContextException, IOException {
+		// training data:
+		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : trainingData.entrySet()) {
+			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
+
+				int i = 0;
+
+				int numRemaining = (int) batchSize;
+
+				private Serializer<DLPythonDataBuffer> m_serializer;
+				{
+					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[i].getBuffer().getClass()))
+							.findFirst();
+
+					m_serializer = (Serializer<DLPythonDataBuffer>) extensions
+							.orElseThrow(() -> new RuntimeException(
+									"Transmitting input data to Python failed. No matching serializer available."))
+							.getJavaSerializerFactory().createSerializer();
+				}
+
+				@Override
+				public Row next() {
+					final Row row = new RowImpl(in.getKey().getName() + "[" + i + "]", 1);
+					// TODO: if nothing found, we should also try to match
+					// primitive types with their wrapper types
+					// (guava or apache) (and print a warning in such cases)
+
+					try {
+						final Cell cell = new CellImpl(
+								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer()));
+						row.setCell(cell, 0);
+					} catch (final IOException ex) {
+						throw new RuntimeException("Transmitting input data to Keras failed.", ex);
+					}
+					i++;
+					numRemaining--;
+					return row;
+				}
+
+				@Override
+				public boolean hasNext() {
+					return i < batchSize;
+				}
+
+				@Override
+				public TableSpec getTableSpec() {
+					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[0].getBuffer().getClass()))
+							.findFirst();
+					// TODO: if nothing found, we should also try to match
+					// primitive types with their wrapper types
+					// (guava Primitives.wrap etc.)
+					final String serializerId = extensions
+							.orElseThrow(() -> new RuntimeException(
+									"Transmitting input data to Python failed. No matching serializer available."))
+							.getId();
+					return new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { in.getKey().getName() },
+							Collections.singletonMap(in.getKey().getName(), serializerId));
+				}
+
+				@Override
+				public int getNumberRemainingRows() {
+					return numRemaining;
+				}
+			}), (int) batchSize);
+		}
+		// target data:
+		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : targetData.entrySet()) {
+			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
+
+				int i = 0;
+
+				int numRemaining = (int) batchSize;
+
+				private Serializer<DLPythonDataBuffer> m_serializer;
+				{
+					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[i].getBuffer().getClass()))
+							.findFirst();
+
+					m_serializer = (Serializer<DLPythonDataBuffer>) extensions
+							.orElseThrow(() -> new RuntimeException(
+									"Transmitting input data to Python failed. No matching serializer available."))
+							.getJavaSerializerFactory().createSerializer();
+				}
+
+				@Override
+				public Row next() {
+					final Row row = new RowImpl(in.getKey().getName() + "[" + i + "]", 1);
+					// TODO: if nothing found, we should also try to match
+					// primitive types with their wrapper types
+					// (guava or apache) (and print a warning in such cases)
+
+					try {
+						final Cell cell = new CellImpl(
+								m_serializer.serialize((DLPythonDataBuffer) in.getValue().getBatch()[i].getBuffer()));
+						row.setCell(cell, 0);
+					} catch (final IOException ex) {
+						throw new RuntimeException("Transmitting input data to Keras failed.", ex);
+					}
+					i++;
+					numRemaining--;
+					return row;
+				}
+
+				@Override
+				public boolean hasNext() {
+					return i < batchSize;
+				}
+
+				@Override
+				public TableSpec getTableSpec() {
+					final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
+							.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+									&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+											.isAssignableFrom(in.getValue().getBatch()[0].getBuffer().getClass()))
+							.findFirst();
+					// TODO: if nothing found, we should also try to match
+					// primitive types with their wrapper types
+					// (guava Primitives.wrap etc.)
+					final String serializerId = extensions
+							.orElseThrow(() -> new RuntimeException(
+									"Transmitting input data to Python failed. No matching serializer available."))
+							.getId();
+					return new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { in.getKey().getName() },
+							Collections.singletonMap(in.getKey().getName(), serializerId));
+				}
+
+				@Override
+				public int getNumberRemainingRows() {
+					return numRemaining;
+				}
+
+			}), (int) batchSize);
+		}
+	}
+
+	public synchronized void trainNetwork(final DLPythonNetworkHandle handle)
+			throws DLInvalidContextException, IOException {
+		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+				.a("import DLPythonNetwork") //
+				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")") //
+				.n("training_data = {}") //
+				.n("for input_spec in network.spec.input_specs:") //
+				.n().t().a("training_data[input_spec.name] = globals()[input_spec.name]") //
+				.n("target_data = {}") //
+				.n("for output_spec in network.spec.output_specs:") //
+				.n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
+				.n("network.train(training_data, target_data)");
+		final String[] output = m_context.getKernel().execute(b.toString());
+		if (!output[1].isEmpty()) {
+			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
+		}
+	}
+
+	public synchronized void getTrainingResults(final DLPythonNetworkHandle handle) {
+		// TODO
 	}
 
 	public void putParameter(final String key, final String parameter) throws DLInvalidContextException, IOException {
@@ -407,8 +560,8 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 	}
 
 	private void putParameter(final String key, final Cell cell) throws DLInvalidContextException, IOException {
-		final TableSpec spec =
-				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
+		final TableSpec spec = new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key },
+				new HashMap<>(0));
 		final RowImpl row = new RowImpl(key, 1);
 		row.setCell(cell, 0);
 		m_context.getKernel().putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
