@@ -5,13 +5,15 @@ Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
 Bundle-Version: 3.4.1.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Export-Package: org.knime.dl.keras.core
+Export-Package: org.knime.dl.keras.core,
+ org.knime.dl.keras.core.training
 Require-Bundle: org.knime.base;bundle-version="[3.4.0,4.0.0)",
  org.knime.core;bundle-version="[3.4.0,4.0.0)",
  org.knime.dl;bundle-version="[3.4.0,4.0.0)",
  org.knime.python2;bundle-version="[3.4.0,4.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  org.knime.dl.python;bundle-version="[3.4.0,4.0.0)",
- com.google.guava;bundle-version="[19.0.0,19.0.0]"
+ com.google.guava;bundle-version="[19.0.0,19.0.0]",
+ scijava-common
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

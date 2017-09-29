@@ -38,6 +38,18 @@
       </DLNetworkType>
    </extension>
    <extension
+         point="org.knime.dl.DLTrainingContext">
+      <DLTrainingContext
+            DLTrainingContext="org.knime.dl.keras.cntk.core.training.DLKerasCNTKDefaultTrainingContext">
+      </DLTrainingContext>
+      <DLTrainingContext
+            DLTrainingContext="org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowDefaultTrainingContext">
+      </DLTrainingContext>
+      <DLTrainingContext
+            DLTrainingContext="org.knime.dl.keras.theano.core.training.DLKerasTheanoDefaultTrainingContext">
+      </DLTrainingContext>
+   </extension>
+   <extension
          point="org.knime.python2.modules">
       <directory
             path="py/">
