@@ -60,8 +60,8 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec<DLK
 	private static final long serialVersionUID = 1L;
 
 	public DLKerasCNTKNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(DLKerasCNTKNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(DLKerasCNTKNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	@Override

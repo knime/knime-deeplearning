@@ -116,7 +116,7 @@ public final class DLUtils {
 		public static Optional<DLLayerDataSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
 			checkNotNullOrEmpty(name);
 			checkNotNull(networkSpec);
-			return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getIntermediateOutputSpecs(),
+			return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getHiddenOutputSpecs(),
 					networkSpec.getOutputSpecs());
 		}
 

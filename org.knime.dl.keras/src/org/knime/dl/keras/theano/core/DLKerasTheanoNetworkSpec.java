@@ -60,8 +60,8 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec<D
 	private static final long serialVersionUID = 1L;
 
 	public DLKerasTheanoNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(DLKerasTheanoNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(DLKerasTheanoNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	@Override

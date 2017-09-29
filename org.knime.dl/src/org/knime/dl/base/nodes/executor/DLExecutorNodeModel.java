@@ -238,7 +238,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		if (networkSpec.getInputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no input specs.");
 		}
-		if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getIntermediateOutputSpecs().length == 0) {
+		if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getHiddenOutputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no output specs.");
 		}
 

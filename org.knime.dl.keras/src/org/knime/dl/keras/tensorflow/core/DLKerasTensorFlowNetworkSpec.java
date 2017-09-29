@@ -60,8 +60,8 @@ public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSp
 	private static final long serialVersionUID = 1L;
 
 	public DLKerasTensorFlowNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(DLKerasTensorFlowNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(DLKerasTensorFlowNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	@Override

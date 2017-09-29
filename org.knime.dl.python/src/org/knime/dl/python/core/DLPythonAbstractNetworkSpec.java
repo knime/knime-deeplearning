@@ -61,7 +61,7 @@ public abstract class DLPythonAbstractNetworkSpec<NT extends DLPythonNetworkType
 	private static final long serialVersionUID = 1L;
 
 	protected DLPythonAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(networkType, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(networkType, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 }

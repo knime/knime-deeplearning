@@ -56,7 +56,7 @@ public abstract class DLAbstractExternalNetworkSpec<NT extends DLExternalNetwork
 	private static final long serialVersionUID = 1L;
 
 	protected DLAbstractExternalNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(networkType, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(networkType, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 }

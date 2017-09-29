@@ -169,7 +169,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		if (networkSpec.getInputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no input specs.");
 		}
-		if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getIntermediateOutputSpecs().length == 0) {
+		if (networkSpec.getOutputSpecs().length == 0 && networkSpec.getHiddenOutputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no output specs.");
 		}
 
@@ -203,7 +203,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				if (!m_outputPanels.containsKey(layerName)) {
 					// add output to the dialog (when loading the dialog for the first time)
 					final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
-							networkSpec.getOutputSpecs(), networkSpec.getIntermediateOutputSpecs());
+							networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
 					if (spec.isPresent()) {
 						addOutputPanel(spec.get(), m_generalCfg);
 					}
@@ -327,7 +327,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				addOutputDialogConstr.fill = GridBagConstraints.VERTICAL;
 				// available outputs
 				final ArrayList<String> availableOutputs = new ArrayList<>(networkSpec.getOutputSpecs().length
-						+ networkSpec.getIntermediateOutputSpecs().length - m_outputPanels.size());
+						+ networkSpec.getHiddenOutputSpecs().length - m_outputPanels.size());
 				final HashMap<String, DLLayerDataSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
 				for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
 					final String outputName = outputSpec.getName();
@@ -336,8 +336,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 						availableOutputsMap.put(outputName, outputSpec);
 					}
 				}
-				for (int i = networkSpec.getIntermediateOutputSpecs().length - 1; i >= 0; i--) {
-					final DLLayerDataSpec intermediateSpec = networkSpec.getIntermediateOutputSpecs()[i];
+				for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
+					final DLLayerDataSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
 					final String intermediateName = intermediateSpec.getName();
 					if (!m_outputPanels.containsKey(intermediateName)) {
 						final String intermediateDisplayName = intermediateName + " (hidden)";
@@ -407,7 +407,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			m_outputPanels.put(outputName, outputPanel);
 			m_root.add(outputPanel, m_rootConstr);
 			m_rootConstr.gridy++;
-			if (m_outputPanels.size() == m_lastIncomingNetworkSpec.getIntermediateOutputSpecs().length
+			if (m_outputPanels.size() == m_lastIncomingNetworkSpec.getHiddenOutputSpecs().length
 					+ m_lastIncomingNetworkSpec.getOutputSpecs().length) {
 				m_addOutputButton.setEnabled(false);
 			}
@@ -419,7 +419,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 	}
 
 	private void removeOutputPanel(final String outputName, final JPanel outputPanel,
-			final DLExecutorOutputConfig m_cfg) {
+			final DLExecutorOutputConfig outoutCfg) {
 		if (m_outputPanels.remove(outputName) != null) {
 			m_root.remove(outputPanel);
 			m_addOutputButton.setEnabled(true);

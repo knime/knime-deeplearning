@@ -59,7 +59,7 @@ public abstract class DLKerasAbstractNetworkSpec<NT extends DLKerasNetworkType<?
 	private static final long serialVersionUID = 1L;
 
 	protected DLKerasAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
-		super(networkType, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+		super(networkType, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 }

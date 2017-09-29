@@ -66,7 +66,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	private final DLLayerDataSpec[] m_inputSpecs;
 
-	private final DLLayerDataSpec[] m_intermediateOutputSpecs;
+	private final DLLayerDataSpec[] m_hiddenOutputSpecs;
 
 	private final DLLayerDataSpec[] m_outputSpecs;
 
@@ -77,15 +77,15 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	 *
 	 * @param type the network type
 	 * @param inputSpecs the input layer data specs, can be empty
-	 * @param intermediateOutputSpecs the intermediate output layer data specs, can be empty
+	 * @param hiddenOutputSpecs the hidden output layer data specs, can be empty
 	 * @param outputSpecs the output layer data specs, can be empty
 	 */
 	protected DLAbstractNetworkSpec(final NT type, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] intermediateOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
 		m_networkType = checkNotNull(type, "Network type must not be null.");
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
-		m_intermediateOutputSpecs = checkNotNull(intermediateOutputSpecs,
-				"Intermediate output data specs must not be null, but may be empty.");
+		m_hiddenOutputSpecs =
+				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
 		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
 	}
 
@@ -104,8 +104,8 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	}
 
 	@Override
-	public DLLayerDataSpec[] getIntermediateOutputSpecs() {
-		return m_intermediateOutputSpecs;
+	public DLLayerDataSpec[] getHiddenOutputSpecs() {
+		return m_hiddenOutputSpecs;
 	}
 
 	@Override
@@ -132,10 +132,10 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 		final DLNetworkSpec<?> other = (DLNetworkSpec<?>) obj;
 		return other.getNetworkType().equals(getNetworkType()) //
 				&& other.getInputSpecs().length == getInputSpecs().length //
-				&& other.getIntermediateOutputSpecs().length == getIntermediateOutputSpecs().length //
+				&& other.getHiddenOutputSpecs().length == getHiddenOutputSpecs().length //
 				&& other.getOutputSpecs().length == getOutputSpecs().length //
 				&& Arrays.deepEquals(other.getInputSpecs(), getInputSpecs()) //
-				&& Arrays.deepEquals(other.getIntermediateOutputSpecs(), getIntermediateOutputSpecs()) //
+				&& Arrays.deepEquals(other.getHiddenOutputSpecs(), getHiddenOutputSpecs()) //
 				&& Arrays.deepEquals(other.getOutputSpecs(), getOutputSpecs()) //
 				&& equalsInternal(other);
 	}
@@ -144,15 +144,15 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	public String toString() {
 		return "Type: " + m_networkType.getName() + "\n" + //
 				"Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
-				"Intermediate: " + Arrays.toString(m_intermediateOutputSpecs) + "\n" + //
+				"Hidden outputs: " + Arrays.toString(m_hiddenOutputSpecs) + "\n" + //
 				"Outputs: " + Arrays.toString(m_outputSpecs);
 	}
-	
+
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		b.append(m_networkType);
 		b.append(m_inputSpecs);
-		b.append(m_intermediateOutputSpecs);
+		b.append(m_hiddenOutputSpecs);
 		b.append(m_outputSpecs);
 		hashCodeInternal(b);
 		return b.toHashCode();

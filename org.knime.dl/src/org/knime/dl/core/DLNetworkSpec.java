@@ -71,7 +71,7 @@ public interface DLNetworkSpec<R> extends Serializable {
 
 	DLLayerDataSpec[] getInputSpecs();
 
-	DLLayerDataSpec[] getIntermediateOutputSpecs();
+	DLLayerDataSpec[] getHiddenOutputSpecs();
 
 	DLLayerDataSpec[] getOutputSpecs();
 

@@ -71,7 +71,6 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLAbstractExecutableNetwork;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLDefaultFixedLayerDataShape;
 import org.knime.dl.core.DLDefaultLayerData;
@@ -101,6 +100,7 @@ import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
 import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverter;
 import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
 import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLDefaultLayerDataBatch;
 import org.knime.dl.core.execution.DLExecutableNetwork;
@@ -164,7 +164,7 @@ public class DLPythonConverterTest {
 		}
 		// output converters:
 		final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters =
-				new HashMap<>(networkSpec.getOutputSpecs().length + networkSpec.getIntermediateOutputSpecs().length);
+				new HashMap<>(networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
 		for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
 			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
 					.getInstance()
@@ -174,7 +174,7 @@ public class DLPythonConverterTest {
 					}).findFirst().get();
 			outputConverters.put(outputSpec, converter);
 		}
-		for (final DLLayerDataSpec outputSpec : networkSpec.getIntermediateOutputSpecs()) {
+		for (final DLLayerDataSpec outputSpec : networkSpec.getHiddenOutputSpecs()) {
 			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
 					.getInstance()
 					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
