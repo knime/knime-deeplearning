@@ -10,7 +10,9 @@ Export-Package: org.knime.dl.python.base.node.executor,
  org.knime.dl.python.core,
  org.knime.dl.python.core.data,
  org.knime.dl.python.core.data.serde,
- org.knime.dl.python.core.execution
+ org.knime.dl.python.core.execution,
+ org.knime.dl.python.core.training,
+ org.knime.dl.python.util
 Require-Bundle: org.knime.python2;bundle-version="[3.4.0,4.0.0)",
  org.knime.core;bundle-version="[3.4.0,4.0.0)",
  org.knime.dl;bundle-version="[3.4.0,4.0.0)",
