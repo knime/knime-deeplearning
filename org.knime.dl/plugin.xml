@@ -7,6 +7,7 @@
    <extension-point id="DLLayerDataToDataCellConverterFactory" name="DLLayerDataToDataCellConverterFactory" schema="schema/org.knime.dl.DLLayerDataToDataCellConverterFactory.exsd"/>
    <extension-point id="DLNetworkReader" name="DLNetworkReader" schema="schema/org.knime.dl.DLNetworkReader.exsd"/>
    <extension-point id="DLNetworkType" name="DLNetworkType" schema="schema/org.knime.dl.DLNetworkType.exsd"/>
+   <extension-point id="DLTrainingContext" name="DLTrainingContext" schema="schema/org.knime.dl.DLTrainingContext.exsd"/>
    <extension
          point="org.knime.core.PortType">
       <portType
