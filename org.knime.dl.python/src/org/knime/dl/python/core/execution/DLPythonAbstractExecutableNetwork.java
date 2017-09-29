@@ -51,11 +51,11 @@ package org.knime.dl.python.core.execution;
 import java.net.URL;
 import java.util.Map;
 
-import org.knime.dl.core.DLAbstractExecutableNetwork;
 import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
 import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonNetwork;

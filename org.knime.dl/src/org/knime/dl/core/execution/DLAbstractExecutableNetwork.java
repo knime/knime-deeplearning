@@ -44,9 +44,10 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core;
+package org.knime.dl.core.execution;
 
-import org.knime.dl.core.execution.DLExecutableNetwork;
+import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -57,7 +58,7 @@ public abstract class DLAbstractExecutableNetwork<I, O, N extends DLNetwork<S, R
 
 	protected final N m_network;
 
-	public DLAbstractExecutableNetwork(final N network) {
+	protected DLAbstractExecutableNetwork(final N network) {
 		m_network = network;
 	}
 
