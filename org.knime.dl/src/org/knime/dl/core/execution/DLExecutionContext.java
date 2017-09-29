@@ -56,30 +56,48 @@ import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkType;
 
 /**
- * Executes a {@link DLExecutableNetwork deep learning network}.
+ * Creates {@link DLExecutableNetwork executable deep learning networks}.
  *
- * @param <N> the {@link DLExecutableNetwork network} type
- *
+ * @param <N> the {@link DLNetwork network} type from which to create executable networks
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
 
+	/**
+	 * Returns the network type this execution context is associated to.
+	 *
+	 * @return the network type this execution context is associated to.
+	 */
 	DLNetworkType<N, ?, ?> getNetworkType();
 
+	/**
+	 * Returns the identifier of this execution context which is neither null nor empty and must be unique across all
+	 * execution contexts.
+	 *
+	 * @return the identifier of this execution context
+	 */
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
 	}
 
+	/**
+	 * Returns the friendly name of this execution context which is neither null nor empty and is suitable for
+	 * presentation to the user.
+	 *
+	 * @return the friendly name of this execution context
+	 */
 	String getName();
 
+	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
+	// etc.)
 	DLLayerDataFactory getLayerDataFactory();
 
 	/**
-	 * Executes a {@link DLExecutableNetwork} given its input.
+	 * Creates a {@link DLExecutableNetworkAdapter executable network} given a {@link DLNetwork network}.
 	 *
-	 * @param network the {@link DLExecutableNetwork} to execute
-	 * @throws RuntimeException if failed to execute the network
+	 * @param network the network
+	 * @throws RuntimeException if failed to create the executable network
 	 */
 	DLExecutableNetworkAdapter executable(N network, Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException;
 }

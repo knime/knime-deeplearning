@@ -49,7 +49,6 @@ package org.knime.dl.keras.theano.core.execution;
 import java.util.Set;
 
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
@@ -63,14 +62,14 @@ import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
 public final class DLKerasTheanoDefaultExecutionContext
 		extends DLKerasAbstractExecutionContext<DLKerasTheanoNetworkType, DLKerasTheanoNetwork> {
 
-	private static final String EXEC_CTX_NAME = "Keras (Theano)";
+	private static final String EXECUTION_CONTEXT_NAME = "Keras (Theano)";
 
 	public DLKerasTheanoDefaultExecutionContext() {
-		super(DLKerasTheanoNetworkType.INSTANCE, EXEC_CTX_NAME);
+		super(DLKerasTheanoNetworkType.INSTANCE, EXECUTION_CONTEXT_NAME);
 	}
 
 	@Override
-	public DLExecutableNetworkAdapter executable(final DLKerasTheanoNetwork network,
+	public DLKerasExecutableNetworkAdapter executable(final DLKerasTheanoNetwork network,
 			final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
 		final DLKerasAbstractExecutableNetwork<?, ?, ?> execNetwork = new DLKerasTheanoExecutableNetwork(network);
 		return new DLKerasExecutableNetworkAdapter(execNetwork, getLayerDataFactory(), requestedOutputs);

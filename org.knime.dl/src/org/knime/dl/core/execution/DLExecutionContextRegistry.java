@@ -114,7 +114,6 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 		return m_ctxs.values().stream().flatMap(Set::stream).filter(ctx -> ctx.getIdentifier().equals(identifier))
 				.findFirst();
 	}
-
 	// :access methods
 
 	// registration:

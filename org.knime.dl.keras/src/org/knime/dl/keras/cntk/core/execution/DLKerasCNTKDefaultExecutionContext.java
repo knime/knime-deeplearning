@@ -49,10 +49,8 @@ package org.knime.dl.keras.cntk.core.execution;
 import java.util.Set;
 
 import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 
@@ -63,16 +61,16 @@ import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 public final class DLKerasCNTKDefaultExecutionContext
 		extends DLKerasAbstractExecutionContext<DLKerasCNTKNetworkType, DLKerasCNTKNetwork> {
 
-	private static final String EXEC_CTX_NAME = "Keras (CNTK)";
+	private static final String EXECUTION_CONTEXT_NAME = "Keras (CNTK)";
 
 	public DLKerasCNTKDefaultExecutionContext() {
-		super(DLKerasCNTKNetworkType.INSTANCE, EXEC_CTX_NAME);
+		super(DLKerasCNTKNetworkType.INSTANCE, EXECUTION_CONTEXT_NAME);
 	}
 
 	@Override
-	public DLExecutableNetworkAdapter executable(final DLKerasCNTKNetwork network,
+	public DLKerasExecutableNetworkAdapter executable(final DLKerasCNTKNetwork network,
 			final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
-		final DLKerasAbstractExecutableNetwork<?, ?, ?> execNetwork = new DLKerasCNTKExecutableNetwork(network);
+		final DLKerasCNTKExecutableNetwork execNetwork = new DLKerasCNTKExecutableNetwork(network);
 		return new DLKerasExecutableNetworkAdapter(execNetwork, getLayerDataFactory(), requestedOutputs);
 	}
 }
