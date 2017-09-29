@@ -44,15 +44,24 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.keras.core.training;
 
-import java.util.function.Supplier;
+import java.util.Map;
+
+import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.python.core.training.DLPythonTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLossFunction<H> extends Supplier<H> {
+public interface DLKerasTrainingConfig extends DLPythonTrainingConfig {
 
-	// NB: marker interface
+	public int getBatchSize();
+
+	public int getEpochs();
+
+	public DLKerasOptimizer getOptimizer();
+
+	public Map<DLLayerDataSpec, ? extends DLKerasLossFunction> getLosses();
 }

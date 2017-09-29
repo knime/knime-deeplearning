@@ -44,15 +44,50 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.keras.core.training;
 
-import java.util.function.Supplier;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.knime.dl.core.DLLayerDataSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLossFunction<H> extends Supplier<H> {
+public abstract class DLKerasAbstractTrainingConfig implements DLKerasTrainingConfig {
 
-	// NB: marker interface
+	private final int m_batchSize;
+	private final int m_epochs;
+	private final DLKerasOptimizer m_optimizer;
+	private final Map<DLLayerDataSpec, DLKerasLossFunction> m_losses;
+
+	public DLKerasAbstractTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
+			final Map<DLLayerDataSpec, DLKerasLossFunction> losses) {
+		m_batchSize = batchSize;
+		m_epochs = epochs;
+		m_optimizer = optimizer;
+		m_losses = new HashMap<>(losses);
+	}
+
+	@Override
+	public int getBatchSize() {
+		return m_batchSize;
+	}
+
+	@Override
+	public int getEpochs() {
+		return m_epochs;
+	}
+
+	@Override
+	public DLKerasOptimizer getOptimizer() {
+		return m_optimizer;
+	}
+
+	@Override
+	public Map<DLLayerDataSpec, DLKerasLossFunction> getLosses() {
+		return Collections.unmodifiableMap(m_losses);
+	}
 }

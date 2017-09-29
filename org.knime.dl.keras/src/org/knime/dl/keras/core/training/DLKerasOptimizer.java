@@ -44,15 +44,66 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.keras.core.training;
 
-import java.util.function.Supplier;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.text.StrSubstitutor;
+import org.knime.dl.core.training.DLOptimizer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLossFunction<H> extends Supplier<H> {
+public interface DLKerasOptimizer extends DLOptimizer<String> {
 
 	// NB: marker interface
+
+	// TODO: we should add a "since" attribute to these optimizers to enable checking if they're available for the local
+	// Keras installation
+
+	public static class DLKerasRMSProp implements DLKerasOptimizer {
+
+		private final float lr = 0.001f;
+
+		private final float rho = 0.9f;
+
+		private final float epsilon = 1e-8f;
+
+		private final float decay = 0f;
+
+		@Override
+		public String get() {
+			final String template = "keras.optimizers.RMSprop(lr=${lr}, rho=${rho}, epsilon=${epsilon}, decay=${decay})";
+			final Map<String, String> values = new HashMap<>();
+			values.put("lr", String.valueOf(lr));
+			values.put("rho", String.valueOf(rho));
+			values.put("epsilon", String.valueOf(epsilon));
+			values.put("decay", String.valueOf(decay));
+			return StrSubstitutor.replace(template, values);
+		}
+	}
+
+	public static class DLKerasStochasticGradientDescent implements DLKerasOptimizer {
+
+		private final float lr = 0.01f;
+
+		private final float momentum = 0f;
+
+		private final float decay = 0f;
+
+		private final boolean nesterov = false;
+
+		@Override
+		public String get() {
+			final String template = "keras.optimizers.SGD(lr=${lr}, momentum=${momentum}, decay=${decay}, nesterov=${nesterov})";
+			final Map<String, String> values = new HashMap<>();
+			values.put("lr", String.valueOf(lr));
+			values.put("momentum", String.valueOf(momentum));
+			values.put("decay", String.valueOf(decay));
+			values.put("nesterov", String.valueOf(nesterov));
+			return StrSubstitutor.replace(template, values);
+		}
+	}
 }

@@ -44,15 +44,66 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.keras.core.training;
 
-import java.util.function.Supplier;
+import org.knime.dl.core.training.DLLossFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLossFunction<H> extends Supplier<H> {
+public interface DLKerasLossFunction extends DLLossFunction<String> {
 
 	// NB: marker interface
+
+	// TODO: we should add a "since" attribute to these losses to enable checking if they're available for the local
+	// Keras installation
+
+	public static class DLKerasMeanSquaredError implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.mse";
+		}
+	}
+
+	public static class DLKerasMeanAbsoluteError implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.mae";
+		}
+	}
+
+	public static class DLKerasMeanAbsolutePercentageError implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.mape";
+		}
+	}
+
+	public static class DLKerasMeanSquaredLogarithmicError implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.msle";
+		}
+	}
+
+	public static class DLKerasKullbackLeiblerDivergence implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.kld";
+		}
+	}
+
+	public static class DLKerasCosineProximity implements DLKerasLossFunction {
+
+		@Override
+		public String get() {
+			return "keras.losses.cosine";
+		}
+	}
 }

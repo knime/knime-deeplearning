@@ -48,13 +48,11 @@ package org.knime.dl.core.training;
 
 import java.util.function.Supplier;
 
-import org.scijava.plugin.SciJavaPlugin;
-
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLOptimizer<H> extends Supplier<H>, SciJavaPlugin {
+public interface DLOptimizer<H> extends Supplier<H> {
 
 	// NB: marker interface
 }
