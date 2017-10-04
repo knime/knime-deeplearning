@@ -65,6 +65,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
@@ -147,5 +148,30 @@ class DLExecutorGeneralPanel extends JPanel {
 		}
 		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
 		m_dcBackend.replaceListItems(names, ids, selectedName);
+
+		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network
+		// are not supported (for networks with multiple inputs).
+		long batchSize = -1;
+		for (final DLTensorSpec inputSpec : m_networkSpec.getInputSpecs()) {
+			if (inputSpec.getBatchSize().isPresent()) {
+				final long bs = inputSpec.getBatchSize().getAsLong();
+				if (batchSize == -1) {
+					batchSize = bs;
+				} else {
+					if (batchSize != bs) {
+						throw new NotConfigurableException(
+								"The input network has multiple inputs with different pre-defined batch sizes. "
+										+ "This is not supported. Please make sure to use a network with uniform "
+										+ "input batch sizes or no pre-defined batch size at all.");
+					}
+				}
+			}
+		}
+		if (batchSize != -1) {
+			m_cfg.getBatchSizeModel().setIntValue((int) batchSize);
+			m_cfg.getBatchSizeModel().setEnabled(false);
+		} else {
+			m_cfg.getBatchSizeModel().setEnabled(true);
+		}
 	}
 }
