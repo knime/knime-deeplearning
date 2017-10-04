@@ -88,7 +88,11 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					&& colTypes[0].equals(Type.STRING) //
 					&& (colTypes[1].equals(Type.LONG) //
 							|| colTypes[1].equals(Type.INTEGER) //
-							|| colTypes[1].equals(Type.STRING) /* TODO */) //
+							|| colTypes[1].equals(Type.DOUBLE) //
+							|| colTypes[1].equals(Type.STRING) /*
+																 * TODO: we should only allow long/integer and force
+																 * Python to comply
+																 */) //
 					&& (colTypes[2].equals(Type.LONG_LIST) //
 							|| colTypes[2].equals(Type.INTEGER_LIST)) //
 					&& colTypes[3].equals(Type.STRING);
@@ -122,6 +126,10 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					layerBatchSize = row.getCell(1).getLongValue();
 				} else if (row.getCell(1).getColumnType().equals(Type.INTEGER)) {
 					layerBatchSize = row.getCell(1).getIntegerValue();
+				} else if (row.getCell(1).getColumnType().equals(Type.DOUBLE)) {
+					layerBatchSize = (long) (row.getCell(1).getDoubleValue() + 0.5);
+				} else if (row.getCell(1).getColumnType().equals(Type.STRING)) {
+					layerBatchSize = Long.parseLong(row.getCell(1).getStringValue());
 				}
 			}
 			DLTensorShape layerDataShape = null;
@@ -146,7 +154,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 			final Class<?> layerDataType = m_typeMap.getPreferredInternalType(row.getCell(3).getStringValue());
 			// TODO: a builder would be nice
 			final DLDefaultTensorSpec spec;
-			if (layerBatchSize != -1) {
+			if (layerBatchSize > 0) {
 				if (layerDataShape != null) {
 					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, layerDataShape, layerDataType);
 				} else {
