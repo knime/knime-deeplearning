@@ -101,7 +101,8 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 */
 	public Collection<DLExecutionContext<?>> getExecutionContextsForNetworkType(
 			final DLNetworkType<?, ?, ?> networkType) {
-		return Collections.unmodifiableCollection(m_ctxs.get(networkType));
+		final Set<DLExecutionContext<?>> ctxs = m_ctxs.get(networkType);
+		return ctxs != null ? Collections.unmodifiableCollection(ctxs) : Collections.emptyList();
 	}
 
 	/**

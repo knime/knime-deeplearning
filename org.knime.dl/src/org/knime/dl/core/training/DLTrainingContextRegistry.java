@@ -101,7 +101,8 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 */
 	public Collection<DLTrainingContext<?, ?>> getTrainingContextsForNetworkType(
 			final DLNetworkType<?, ?, ?> networkType) {
-		return Collections.unmodifiableCollection(m_ctxs.get(networkType));
+		final Set<DLTrainingContext<?, ?>> ctxs = m_ctxs.get(networkType);
+		return ctxs != null ? Collections.unmodifiableCollection(ctxs) : Collections.emptyList();
 	}
 
 	/**
