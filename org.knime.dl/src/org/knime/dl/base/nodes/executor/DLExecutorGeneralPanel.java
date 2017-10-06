@@ -122,7 +122,14 @@ class DLExecutorGeneralPanel extends JPanel {
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
+		refreshAvailableBackends();
+	}
 
+	void saveToSettings(final NodeSettingsWO settings) {
+		m_cfg.saveToSettings(settings);
+	}
+
+	void refreshAvailableBackends() throws NotConfigurableException {
 		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
 				.getExecutionContextsForNetworkType((m_networkSpec.getNetworkType())) //
 				.stream() //
@@ -140,9 +147,5 @@ class DLExecutorGeneralPanel extends JPanel {
 		}
 		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
 		m_dcBackend.replaceListItems(names, ids, selectedName);
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) {
-		m_cfg.saveToSettings(settings);
 	}
 }

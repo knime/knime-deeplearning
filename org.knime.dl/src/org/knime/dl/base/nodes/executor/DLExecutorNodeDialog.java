@@ -178,39 +178,45 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		if (networkChanged) {
 			resetDialog();
 			createDialogContent(currNetworkSpec, currTableSpec);
-		}
-
-		m_generalPanel.loadFromSettings(settings, specs);
-		if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
-			final NodeSettingsRO inputSettings;
-			try {
-				inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
-			} catch (final InvalidSettingsException e) {
-				throw new NotConfigurableException(e.getMessage(), e);
-			}
+			m_generalPanel.refreshAvailableBackends();
 			for (final DLExecutorInputPanel inputPanel : m_inputPanels) {
-				inputPanel.loadFromSettings(inputSettings, specs);
+				inputPanel.refreshAvailableConverters();
+				inputPanel.refreshAllowedInputColumns();
 			}
 		}
-		if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
-			final NodeSettingsRO outputSettings;
-			try {
-				outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
-			} catch (final InvalidSettingsException e) {
-				throw new NotConfigurableException(e.getMessage(), e);
-			}
-			for (final String layerName : outputSettings) {
-				if (!m_outputPanels.containsKey(layerName)) {
-					// add output to the dialog (when loading the dialog for the first time)
-					final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
-							networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
-					if (spec.isPresent()) {
-						addOutputPanel(spec.get(), m_generalCfg);
-					}
+		if (m_lastConfiguredNetworkSpec == null || !networkChanged) {
+			m_generalPanel.loadFromSettings(settings, specs);
+			if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
+				final NodeSettingsRO inputSettings;
+				try {
+					inputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_INPUTS);
+				} catch (final InvalidSettingsException e) {
+					throw new NotConfigurableException(e.getMessage(), e);
+				}
+				for (final DLExecutorInputPanel inputPanel : m_inputPanels) {
+					inputPanel.loadFromSettings(inputSettings, specs);
 				}
 			}
-			for (final DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
-				outputPanel.loadFromSettings(outputSettings, specs);
+			if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
+				final NodeSettingsRO outputSettings;
+				try {
+					outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
+				} catch (final InvalidSettingsException e) {
+					throw new NotConfigurableException(e.getMessage(), e);
+				}
+				for (final String layerName : outputSettings) {
+					if (!m_outputPanels.containsKey(layerName)) {
+						// add output to the dialog (when loading the dialog for the first time)
+						final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
+								networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
+						if (spec.isPresent()) {
+							addOutputPanel(spec.get(), m_generalCfg);
+						}
+					}
+				}
+				for (final DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
+					outputPanel.loadFromSettings(outputSettings, specs);
+				}
 			}
 		}
 	}

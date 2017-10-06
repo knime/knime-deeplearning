@@ -206,7 +206,7 @@ final class DLExecutorInputPanel extends JPanel {
 		}
 	}
 
-	private void refreshAvailableConverters() throws NotConfigurableException {
+	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLExecutionContext<?> executionContext =
 				DLExecutionContextRegistry.getInstance()
 						.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
@@ -246,7 +246,7 @@ final class DLExecutorInputPanel extends JPanel {
 		m_dcConverter.replaceListItems(names, ids, null);
 	}
 
-	private void refreshAllowedInputColumns() throws NotConfigurableException {
+	void refreshAllowedInputColumns() throws NotConfigurableException {
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType =
 				DLDataValueToLayerDataConverterRegistry.getInstance()
