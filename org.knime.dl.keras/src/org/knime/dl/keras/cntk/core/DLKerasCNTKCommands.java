@@ -49,9 +49,9 @@ package org.knime.dl.keras.cntk.core;
 import java.io.IOException;
 
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
-import org.knime.dl.keras.core.DLKerasLayerDataSpecTableCreatorFactory;
+import org.knime.dl.keras.core.DLKerasTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -77,19 +77,19 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands<DLKerasCN
 			throws DLInvalidContextException, IOException {
 		final PythonKernel kernel = m_context.getKernel();
 		kernel.execute(m_config.getExtractNetworkSpecsCode(handle));
-		final DLLayerDataSpec[] inputSpecs =
-				(DLLayerDataSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME,
-						new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
-		// final DLLayerDataSpec[] intermediateOutputSpecs =
-		// (DLLayerDataSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
-		final DLLayerDataSpec[] outputSpecs =
-				(DLLayerDataSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME,
-						new DLKerasLayerDataSpecTableCreatorFactory(typeMap)).getTable();
+		final DLTensorSpec[] inputSpecs =
+				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME,
+						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
+		// final DLTensorSpec[] intermediateOutputSpecs =
+		// (DLTensorSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
+		// new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
+		final DLTensorSpec[] outputSpecs =
+				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME,
+						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
 
 		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasCNTKNetworkSpec(inputSpecs, new DLLayerDataSpec[0] /* TODO intermediateOutputSpecs */,
+		return new DLKerasCNTKNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO intermediateOutputSpecs */,
 				outputSpecs);
 	}
 }

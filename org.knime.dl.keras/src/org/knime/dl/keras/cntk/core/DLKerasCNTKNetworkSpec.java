@@ -47,7 +47,7 @@
 package org.knime.dl.keras.cntk.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
 
@@ -59,8 +59,8 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec<DLK
 
 	private static final long serialVersionUID = 1L;
 
-	public DLKerasCNTKNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	public DLKerasCNTKNetworkSpec(final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		super(DLKerasCNTKNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 

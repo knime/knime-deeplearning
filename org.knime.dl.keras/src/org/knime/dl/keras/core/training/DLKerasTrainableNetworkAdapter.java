@@ -46,7 +46,7 @@
  */
 package org.knime.dl.keras.core.training;
 
-import org.knime.dl.core.DLLayerDataFactory;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetworkAdapter;
 
 /**
@@ -57,7 +57,7 @@ public class DLKerasTrainableNetworkAdapter
 		extends DLPythonAbstractTrainableNetworkAdapter<DLKerasTrainableNetwork<?>> {
 
 	public DLKerasTrainableNetworkAdapter(final DLKerasTrainableNetwork<?> network,
-			final DLLayerDataFactory layerDataFactory) {
+			final DLTensorFactory layerDataFactory) {
 		super(network, layerDataFactory);
 	}
 }

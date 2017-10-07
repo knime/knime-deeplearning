@@ -76,9 +76,9 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.util.DLUtils;
@@ -93,7 +93,7 @@ final class DLExecutorInputPanel extends JPanel {
 
 	private final DLExecutorInputConfig m_cfg;
 
-	private final DLLayerDataSpec m_inputDataSpec;
+	private final DLTensorSpec m_inputDataSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
@@ -101,7 +101,7 @@ final class DLExecutorInputPanel extends JPanel {
 
 	private DataTableSpec m_lastTableSpec;
 
-	DLExecutorInputPanel(final DLExecutorInputConfig cfg, final DLLayerDataSpec inputDataSpec,
+	DLExecutorInputPanel(final DLExecutorInputConfig cfg, final DLTensorSpec inputDataSpec,
 			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
@@ -214,28 +214,28 @@ final class DLExecutorInputPanel extends JPanel {
 								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final HashSet<DataType> inputTypes = new HashSet<>();
-		final HashSet<DLDataValueToLayerDataConverterFactory<?, ?>> converterFactories = new HashSet<>();
-		final DLDataValueToLayerDataConverterRegistry converters =
-				DLDataValueToLayerDataConverterRegistry.getInstance();
+		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
+		final DLDataValueToTensorConverterRegistry converters =
+				DLDataValueToTensorConverterRegistry.getInstance();
 		// for each distinct column type in the input table, add the preferred converter to the list of selectable
 		// converters
 		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToLayerDataConverterFactory<?, ?>> converter =
+				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter =
 						converters.getPreferredConverterFactory(inputColSpec.getType(),
-								executionContext.getLayerDataFactory().getWritableBufferType(m_inputDataSpec));
+								executionContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
 				if (converter.isPresent()) {
 					converterFactories.add(converter.get());
 				}
 			}
 		}
-		final List<DLDataValueToLayerDataConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
-				.sorted(Comparator.comparing(DLDataValueToLayerDataConverterFactory::getName))
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
+				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
 				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
 		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
-			final DLDataValueToLayerDataConverterFactory<?, ?> converter = converterFactoriesSorted.get(i);
+			final DLDataValueToTensorConverterFactory<?, ?> converter = converterFactoriesSorted.get(i);
 			names[i] = "From " + converter.getName();
 			ids[i] = converter.getIdentifier();
 		}
@@ -249,7 +249,7 @@ final class DLExecutorInputPanel extends JPanel {
 	void refreshAllowedInputColumns() throws NotConfigurableException {
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType =
-				DLDataValueToLayerDataConverterRegistry.getInstance()
+				DLDataValueToTensorConverterRegistry.getInstance()
 						.getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
 						.orElseThrow(() -> new NotConfigurableException("Converter '"
 								+ m_cfg.getConverterModel().getStringArrayValue()[0] + " ("

@@ -55,7 +55,7 @@ import java.nio.DoubleBuffer;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
@@ -106,7 +106,7 @@ public class DLPythonDoubleBufferDeserializerFactory extends DeserializerFactory
             }
 
             @Override
-            public void deserialize(final byte[] bytes, final DLLayerData<DLPythonDoubleBuffer> data) {
+            public void deserialize(final byte[] bytes, final DLTensor<DLPythonDoubleBuffer> data) {
                 final ByteBuffer buffer = ByteBuffer.wrap(bytes);
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
                 // TODO: we serialize to a flat buffer for now

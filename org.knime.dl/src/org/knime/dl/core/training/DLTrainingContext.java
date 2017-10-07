@@ -48,7 +48,7 @@ package org.knime.dl.core.training;
 
 import java.util.Collection;
 
-import org.knime.dl.core.DLLayerDataFactory;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.core.execution.DLExecutableNetwork;
@@ -89,7 +89,7 @@ public interface DLTrainingContext<N extends DLNetwork<?, ?>, CFG extends DLTrai
 
 	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
 	// etc.)
-	DLLayerDataFactory getLayerDataFactory();
+	DLTensorFactory getTensorFactory();
 
 	/**
 	 * Returns the available {@link DLLossFunction loss functions} in this training context.

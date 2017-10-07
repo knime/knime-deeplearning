@@ -48,7 +48,7 @@ package org.knime.dl.keras.tensorflow.core.execution;
 
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
@@ -70,8 +70,8 @@ public final class DLKerasTensorFlowDefaultExecutionContext
 
 	@Override
 	public DLKerasExecutableNetworkAdapter executable(final DLKerasTensorFlowNetwork network,
-			final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
+			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
 		final DLKerasAbstractExecutableNetwork<?, ?, ?> execNetwork = new DLKerasTensorFlowExecutableNetwork(network);
-		return new DLKerasExecutableNetworkAdapter(execNetwork, getLayerDataFactory(), requestedOutputs);
+		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
 	}
 }

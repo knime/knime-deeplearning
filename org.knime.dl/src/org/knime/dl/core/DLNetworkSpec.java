@@ -73,11 +73,11 @@ public interface DLNetworkSpec<R> extends Serializable {
 	// ends (e.g. Keras when training multi-output networks) require ordered collections of specs and should narrow
 	// the return type.
 
-	DLLayerDataSpec[] getInputSpecs();
+	DLTensorSpec[] getInputSpecs();
 
-	DLLayerDataSpec[] getHiddenOutputSpecs();
+	DLTensorSpec[] getHiddenOutputSpecs();
 
-	DLLayerDataSpec[] getOutputSpecs();
+	DLTensorSpec[] getOutputSpecs();
 
 	/**
 	 * Value-based.

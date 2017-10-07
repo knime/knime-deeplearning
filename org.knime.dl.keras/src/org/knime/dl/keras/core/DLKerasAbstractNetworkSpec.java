@@ -46,7 +46,7 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.python.core.DLPythonAbstractNetworkSpec;
 
 /**
@@ -58,8 +58,8 @@ public abstract class DLKerasAbstractNetworkSpec<NT extends DLKerasNetworkType<?
 
 	private static final long serialVersionUID = 1L;
 
-	protected DLKerasAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	protected DLKerasAbstractNetworkSpec(final NT networkType, final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		super(networkType, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 }

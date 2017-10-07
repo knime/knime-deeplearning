@@ -50,7 +50,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -61,10 +61,10 @@ public abstract class DLKerasAbstractTrainingConfig implements DLKerasTrainingCo
 	private final int m_batchSize;
 	private final int m_epochs;
 	private final DLKerasOptimizer m_optimizer;
-	private final Map<DLLayerDataSpec, DLKerasLossFunction> m_losses;
+	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
 
 	public DLKerasAbstractTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLLayerDataSpec, DLKerasLossFunction> losses) {
+			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
 		m_batchSize = batchSize;
 		m_epochs = epochs;
 		m_optimizer = optimizer;
@@ -87,7 +87,7 @@ public abstract class DLKerasAbstractTrainingConfig implements DLKerasTrainingCo
 	}
 
 	@Override
-	public Map<DLLayerDataSpec, DLKerasLossFunction> getLosses() {
+	public Map<DLTensorSpec, DLKerasLossFunction> getLosses() {
 		return Collections.unmodifiableMap(m_losses);
 	}
 }

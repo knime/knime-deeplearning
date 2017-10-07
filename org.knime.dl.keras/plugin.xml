@@ -14,16 +14,16 @@
       </DLExecutionContext>
    </extension>
    <extension
-         point="org.knime.dl.DLLayerDataFactory">
-      <DLLayerDataFactory
-            DLLayerDataFactory="org.knime.dl.keras.cntk.core.DLKerasCNTKLayerDataFactory">
-      </DLLayerDataFactory>
-      <DLLayerDataFactory
-            DLLayerDataFactory="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowLayerDataFactory">
-      </DLLayerDataFactory>
-      <DLLayerDataFactory
-            DLLayerDataFactory="org.knime.dl.keras.theano.core.DLKerasTheanoLayerDataFactory">
-      </DLLayerDataFactory>
+         point="org.knime.dl.DLTensorFactory">
+      <DLTensorFactory
+            DLTensorFactory="org.knime.dl.keras.cntk.core.DLKerasCNTKTensorFactory">
+      </DLTensorFactory>
+      <DLTensorFactory
+            DLTensorFactory="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowTensorFactory">
+      </DLTensorFactory>
+      <DLTensorFactory
+            DLTensorFactory="org.knime.dl.keras.theano.core.DLKerasTheanoTensorFactory">
+      </DLTensorFactory>
    </extension>
    <extension
          point="org.knime.dl.DLNetworkType">

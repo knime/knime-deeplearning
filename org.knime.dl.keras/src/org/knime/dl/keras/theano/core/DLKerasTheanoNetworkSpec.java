@@ -47,7 +47,7 @@
 package org.knime.dl.keras.theano.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
 
@@ -59,8 +59,8 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec<D
 
 	private static final long serialVersionUID = 1L;
 
-	public DLKerasTheanoNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		super(DLKerasTheanoNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 

@@ -68,6 +68,6 @@ public final class DLKerasCNTKDefaultTrainingContext
 	public DLKerasTrainableNetworkAdapter trainable(final DLKerasCNTKNetwork network,
 			final DLKerasCNTKTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasCNTKTrainableNetwork trainNetwork = new DLKerasCNTKTrainableNetwork(network, trainingConfig);
-		return new DLKerasTrainableNetworkAdapter(trainNetwork, getLayerDataFactory());
+		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
 	}
 }

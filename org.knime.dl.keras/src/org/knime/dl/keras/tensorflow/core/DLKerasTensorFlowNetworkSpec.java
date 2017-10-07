@@ -47,7 +47,7 @@
 package org.knime.dl.keras.tensorflow.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
 
@@ -59,8 +59,8 @@ public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSp
 
 	private static final long serialVersionUID = 1L;
 
-	public DLKerasTensorFlowNetworkSpec(final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	public DLKerasTensorFlowNetworkSpec(final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		super(DLKerasTensorFlowNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 

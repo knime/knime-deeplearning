@@ -119,7 +119,7 @@ class DLPythonNetworkSpec(object):
     def output_specs(self):
         return self._output_specs
     
-class DLPythonLayerDataSpec(object):
+class DLPythonTensorSpec(object):
         
     def __init__(self, name, batch_size, shape, element_type):
         self._name = name

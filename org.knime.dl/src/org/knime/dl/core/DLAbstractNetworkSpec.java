@@ -64,11 +64,11 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	private final NT m_networkType;
 
-	private final DLLayerDataSpec[] m_inputSpecs;
+	private final DLTensorSpec[] m_inputSpecs;
 
-	private final DLLayerDataSpec[] m_hiddenOutputSpecs;
+	private final DLTensorSpec[] m_hiddenOutputSpecs;
 
-	private final DLLayerDataSpec[] m_outputSpecs;
+	private final DLTensorSpec[] m_outputSpecs;
 
 	private int m_hashCode = 0;
 
@@ -76,12 +76,12 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	 * Creates a new instance of this network spec.
 	 *
 	 * @param type the network type
-	 * @param inputSpecs the input layer data specs, can be empty
-	 * @param hiddenOutputSpecs the hidden output layer data specs, can be empty
-	 * @param outputSpecs the output layer data specs, can be empty
+	 * @param inputSpecs the input tensor specs, can be empty
+	 * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+	 * @param outputSpecs the output tensor specs, can be empty
 	 */
-	protected DLAbstractNetworkSpec(final NT type, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	protected DLAbstractNetworkSpec(final NT type, final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		m_networkType = checkNotNull(type, "Network type must not be null.");
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
 		m_hiddenOutputSpecs =
@@ -99,17 +99,17 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	}
 
 	@Override
-	public DLLayerDataSpec[] getInputSpecs() {
+	public DLTensorSpec[] getInputSpecs() {
 		return m_inputSpecs;
 	}
 
 	@Override
-	public DLLayerDataSpec[] getHiddenOutputSpecs() {
+	public DLTensorSpec[] getHiddenOutputSpecs() {
 		return m_hiddenOutputSpecs;
 	}
 
 	@Override
-	public DLLayerDataSpec[] getOutputSpecs() {
+	public DLTensorSpec[] getOutputSpecs() {
 		return m_outputSpecs;
 	}
 

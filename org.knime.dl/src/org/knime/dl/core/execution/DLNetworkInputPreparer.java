@@ -48,7 +48,7 @@ package org.knime.dl.core.execution;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -57,5 +57,5 @@ import org.knime.dl.core.DLLayerDataSpec;
 @FunctionalInterface
 public interface DLNetworkInputPreparer<I> {
 
-	void prepare(Map<DLLayerDataSpec, I> input);
+	void prepare(Map<DLTensorSpec, I> input);
 }

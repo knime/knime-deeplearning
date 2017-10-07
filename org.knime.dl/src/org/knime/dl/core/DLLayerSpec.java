@@ -67,9 +67,9 @@ public interface DLLayerSpec {
 
 	// TODO: getActivationFunction(), etc. etc.
 
-	DLLayerDataSpec[] getInputSpecs();
+	DLTensorSpec[] getInputSpecs();
 
-	DLLayerDataSpec[] getOutputSpecs();
+	DLTensorSpec[] getOutputSpecs();
 
 	/**
 	 * Value-based.

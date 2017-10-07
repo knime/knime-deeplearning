@@ -68,6 +68,6 @@ public final class DLKerasTheanoDefaultTrainingContext extends
 	public DLKerasTrainableNetworkAdapter trainable(final DLKerasTheanoNetwork network,
 			final DLKerasTheanoTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasTheanoTrainableNetwork trainNetwork = new DLKerasTheanoTrainableNetwork(network, trainingConfig);
-		return new DLKerasTrainableNetworkAdapter(trainNetwork, getLayerDataFactory());
+		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
 	}
 }

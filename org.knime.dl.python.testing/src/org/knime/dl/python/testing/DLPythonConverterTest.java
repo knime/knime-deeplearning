@@ -72,20 +72,20 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
 import org.knime.dl.core.DLAbstractNetworkSpec;
-import org.knime.dl.core.DLDefaultFixedLayerDataShape;
-import org.knime.dl.core.DLDefaultLayerData;
-import org.knime.dl.core.DLDefaultLayerDataSpec;
+import org.knime.dl.core.DLDefaultFixedTensorShape;
+import org.knime.dl.core.DLDefaultTensor;
+import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLExternalNetwork;
 import org.knime.dl.core.DLExternalNetworkLoader;
 import org.knime.dl.core.DLExternalNetworkSpec;
 import org.knime.dl.core.DLExternalNetworkType;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
 import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNetworkSpecSerializer;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLUnavailableDependencyException;
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
@@ -94,20 +94,19 @@ import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverter;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverter;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
-import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLDefaultLayerDataBatch;
+import org.knime.dl.core.execution.DLDefaultTensorBatch;
 import org.knime.dl.core.execution.DLExecutableNetwork;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
-import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.core.io.DLNetworkReader;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
@@ -124,9 +123,9 @@ public class DLPythonConverterTest {
 	@Test
 	public void testFooToBar() throws Exception {
 		// register converters:
-		DLDataValueToLayerDataConverterRegistry.getInstance()
-				.registerConverter(new DLFooDataValueToFloatLayerConverterFactory());
-		DLLayerDataToDataCellConverterRegistry.getInstance()
+		DLDataValueToTensorConverterRegistry.getInstance()
+				.registerConverter(new DLFooDataValueToFloatTensorConverterFactory());
+		DLTensorToDataCellConverterRegistry.getInstance()
 				.registerConverter(new DLDoubleBufferToBarDataCellConverterFactory());
 
 		// network:
@@ -154,30 +153,29 @@ public class DLPythonConverterTest {
 		final DLBazExecutionContext exec = new DLBazExecutionContext();
 
 		// input converters:
-		final HashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters =
-				new HashMap<>(networkSpec.getInputSpecs().length);
-		for (final DLLayerDataSpec inputSpec : networkSpec.getInputSpecs()) {
-			final DLDataValueToLayerDataConverterFactory<?, ?> converter =
-					DLDataValueToLayerDataConverterRegistry.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
-							exec.getLayerDataFactory().getWritableBufferType(inputSpec)).get();
+		final HashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters = new HashMap<>(
+				networkSpec.getInputSpecs().length);
+		for (final DLTensorSpec inputSpec : networkSpec.getInputSpecs()) {
+			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
+					.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
+							exec.getTensorFactory().getWritableBufferType(inputSpec))
+					.get();
 			inputConverters.put(inputSpec, converter);
 		}
 		// output converters:
-		final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters =
-				new HashMap<>(networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
-		for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
-			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-					.getInstance()
-					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
+		final Map<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverters = new HashMap<>(
+				networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
+		for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
+			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
+					.getFactoriesForSourceType(exec.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
 					.stream().filter(c -> {
 						return c.getDestType().getCellClass() == BarDataCell.class;
 					}).findFirst().get();
 			outputConverters.put(outputSpec, converter);
 		}
-		for (final DLLayerDataSpec outputSpec : networkSpec.getHiddenOutputSpecs()) {
-			final DLLayerDataToDataCellConverterFactory<?, ?> converter = DLLayerDataToDataCellConverterRegistry
-					.getInstance()
-					.getFactoriesForSourceType(exec.getLayerDataFactory().getReadableBufferType(outputSpec), outputSpec)
+		for (final DLTensorSpec outputSpec : networkSpec.getHiddenOutputSpecs()) {
+			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
+					.getFactoriesForSourceType(exec.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
 					.stream().filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
 			outputConverters.put(outputSpec, converter);
 		}
@@ -188,35 +186,31 @@ public class DLPythonConverterTest {
 			// "execute":
 
 			// assign inputs to 'network input ports'/specs:
-			final Map<DLLayerDataSpec, Iterable<DataValue>[]> inputs = new HashMap<>(inputConverters.size());
+			final Map<DLTensorSpec, Iterable<DataValue>[]> inputs = new HashMap<>(inputConverters.size());
 			for (final Entry<String, DataCell[]> input : inputCells.entrySet()) {
-				final Optional<DLLayerDataSpec> inputSpec = Arrays.stream(network.getSpec().getInputSpecs())
+				final Optional<DLTensorSpec> inputSpec = Arrays.stream(network.getSpec().getInputSpecs())
 						.filter(i -> i.getName().equals(input.getKey())).findFirst();
 				final List<DataCell> val = Arrays.asList(input.getValue());
 				inputs.put(inputSpec.get(), new Iterable[] { val });
 			}
 
-			final HashMap<DLLayerDataSpec, DataCell[]> outputs = new HashMap<>(outputConverters.size());
+			final HashMap<DLTensorSpec, DataCell[]> outputs = new HashMap<>(outputConverters.size());
 
-			knimeExec.execute(inputs, new Consumer<Map<DLLayerDataSpec, DataCell[][]>>() {
-
-				@Override
-				public void accept(final Map<DLLayerDataSpec, DataCell[][]> output) {
-					for (final Entry<DLLayerDataSpec, DataCell[][]> o : output.entrySet()) {
-						DataCell[] dataCells = outputs.get(o.getKey());
-						if (dataCells == null) {
-							dataCells = o.getValue()[0];
-						} else {
-							dataCells = ArrayUtils.addAll(dataCells, o.getValue()[0]);
-						}
-						outputs.put(o.getKey(), dataCells);
+			knimeExec.execute(inputs, output -> {
+				for (final Entry<DLTensorSpec, DataCell[][]> o : output.entrySet()) {
+					DataCell[] dataCells = outputs.get(o.getKey());
+					if (dataCells == null) {
+						dataCells = o.getValue()[0];
+					} else {
+						dataCells = ArrayUtils.addAll(dataCells, o.getValue()[0]);
 					}
+					outputs.put(o.getKey(), dataCells);
 				}
 			}, null, 1);
 
 			// check if conversion succeeded:
 			Assert.assertEquals(outputs.size(), outputConverters.size());
-			for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
+			for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
 					.entrySet()) {
 				final Iterable<DataValue> inputsForSpec = inputs.get(networkSpec.getInputSpecs()[0])[0];
 				final DataCell[] outputsForSpec = outputs.get(outputSpecPair.getKey());
@@ -261,8 +255,8 @@ public class DLPythonConverterTest {
 
 		private static final long serialVersionUID = 1L;
 
-		public DLBazNetworkSpec(final DLLayerDataSpec[] inputSpecs, final DLLayerDataSpec[] intermediateOutputSpecs,
-				final DLLayerDataSpec[] outputSpecs) {
+		public DLBazNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] intermediateOutputSpecs,
+				final DLTensorSpec[] outputSpecs) {
 			super(DLBazNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
 		}
 
@@ -328,13 +322,13 @@ public class DLPythonConverterTest {
 
 		@Override
 		public DLBazNetwork read(final String source) throws DLInvalidSourceException, IOException {
-			final DLLayerDataSpec[] inputSpecs = new DLLayerDataSpec[1];
-			inputSpecs[0] = new DLDefaultLayerDataSpec("in0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
+			final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
+			inputSpecs[0] = new DLDefaultTensorSpec("in0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }),
 					float.class);
-			final DLLayerDataSpec[] intermediateOutputSpecs = new DLLayerDataSpec[0];
+			final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
 			// intermediate outputs stay empty
-			final DLLayerDataSpec[] outputSpecs = new DLLayerDataSpec[1];
-			outputSpecs[0] = new DLDefaultLayerDataSpec("out0", new DLDefaultFixedLayerDataShape(new long[] { 10, 10 }),
+			final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
+			outputSpecs[0] = new DLDefaultTensorSpec("out0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }),
 					double.class);
 			final DLBazNetworkSpec spec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
 			return new DLBazNetwork(spec, source);
@@ -343,7 +337,7 @@ public class DLPythonConverterTest {
 
 	static class DLBazExecutionContext implements DLExecutionContext<DLBazNetwork> {
 
-		private final DLLayerDataFactory m_layerDataFactory = new DLBazLayerDataFactory();
+		private final DLTensorFactory m_layerDataFactory = new DLBazTensorFactory();
 
 		@Override
 		public DLBazNetworkType getNetworkType() {
@@ -356,21 +350,20 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLLayerDataFactory getLayerDataFactory() {
+		public DLTensorFactory getTensorFactory() {
 			return m_layerDataFactory;
 		}
 
 		@Override
 		public DLExecutableNetworkAdapter executable(final DLBazNetwork network,
-				final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
+				final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
 			final DLBazExecutableNetwork execNetwork = new DLBazExecutableNetwork(network);
 			return new DLBazExecutableNetworkAdapter(execNetwork, m_layerDataFactory, requestedOutputs);
 		}
 	}
 
-	static class DLBazExecutableNetwork
-			extends DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
-					DLLayerDataBatch<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec, String> {
+	static class DLBazExecutableNetwork extends DLAbstractExecutableNetwork<DLTensorBatch<? extends DLWritableBuffer>, //
+			DLTensorBatch<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec, String> {
 
 		public DLBazExecutableNetwork(final DLBazNetwork network) {
 			super(network);
@@ -378,21 +371,21 @@ public class DLPythonConverterTest {
 
 		@Override
 		public Class<?> getInputType() {
-			return DLLayerDataBatch.class;
+			return DLTensorBatch.class;
 		}
 
 		@Override
 		public Class<?> getOutputType() {
-			return DLLayerDataBatch.class;
+			return DLTensorBatch.class;
 		}
 
 		@Override
-		public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
-				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output, final long batchSize)
+		public void execute(final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> input,
+				final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> output, final long batchSize)
 				throws Exception {
 			// we fake some network activity here: unwrap floats, calc some
 			// stuff, create doubles...
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
+			for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
 				// TODO: we can't be sure that casting will work here
 				final DLPythonFloatBuffer buffer = (DLPythonFloatBuffer) in.getValue().getBatch()[0].getBuffer();
 				final float[] inArr = buffer.getStorageForReading(0, buffer.size());
@@ -400,7 +393,7 @@ public class DLPythonConverterTest {
 				for (int i = 0; i < inArr.length; i++) {
 					outArr[i] = inArr[i] * 5.0;
 				}
-				final DLLayerDataSpec outSpec = output.keySet().stream().findFirst().get();
+				final DLTensorSpec outSpec = output.keySet().stream().findFirst().get();
 				((DLWritableDoubleBuffer) output.get(outSpec).getBatch()[0].getBuffer()).putAll(outArr);
 			}
 		}
@@ -414,24 +407,24 @@ public class DLPythonConverterTest {
 	static class DLBazExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
 		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
-				final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
+				final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 			super(network, layerDataFactory, requestedOutputs);
 		}
 
 		@Override
-		protected Map<DLLayerDataSpec, ?> extractNetworkInput(
-				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput) {
+		protected Map<DLTensorSpec, ?> extractNetworkInput(
+				final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> adapterInput) {
 			return adapterInput;
 		}
 
 		@Override
-		protected Map<DLLayerDataSpec, ?> extractNetworkOutput(
-				final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> adapterOutput) {
+		protected Map<DLTensorSpec, ?> extractNetworkOutput(
+				final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> adapterOutput) {
 			return adapterOutput;
 		}
 	}
 
-	static class DLBazLayerDataFactory implements DLLayerDataFactory {
+	static class DLBazTensorFactory implements DLTensorFactory {
 
 		@Override
 		public DLBazNetworkType getNetworkType() {
@@ -439,7 +432,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public Class<? extends DLWritableBuffer> getWritableBufferType(final DLLayerDataSpec spec) {
+		public Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec) {
 			final Class<?> t = spec.getElementType();
 			if (t.equals(double.class)) {
 				return DLWritableDoubleBuffer.class;
@@ -451,7 +444,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public Class<? extends DLReadableBuffer> getReadableBufferType(final DLLayerDataSpec spec) {
+		public Class<? extends DLReadableBuffer> getReadableBufferType(final DLTensorSpec spec) {
 			final Class<?> t = spec.getElementType();
 			if (t.equals(double.class)) {
 				return DLReadableDoubleBuffer.class;
@@ -463,24 +456,24 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLLayerData<? extends DLReadableBuffer> createReadableLayerData(final DLLayerDataSpec spec)
+		public DLTensor<? extends DLReadableBuffer> createReadableTensor(final DLTensorSpec spec)
 				throws IllegalArgumentException {
-			return createLayerDataInternal(spec, 1, DLReadableBuffer.class)[0];
+			return createTensorInternal(spec, 1, DLReadableBuffer.class)[0];
 		}
 
 		@Override
-		public DLLayerDataBatch<? extends DLReadableBuffer> createReadableLayerDataBatch(final DLLayerDataSpec spec,
+		public DLTensorBatch<? extends DLReadableBuffer> createReadableTensorBatch(final DLTensorSpec spec,
 				final long batchSize) throws IllegalArgumentException {
-			final DLLayerData<DLReadableBuffer>[] layerData =
-					createLayerDataInternal(spec, batchSize, DLReadableBuffer.class);
-			return new DLDefaultLayerDataBatch<>(layerData);
+			final DLTensor<DLReadableBuffer>[] layerData = createTensorInternal(spec, batchSize,
+					DLReadableBuffer.class);
+			return new DLDefaultTensorBatch<>(layerData);
 		}
 
 		@SuppressWarnings("unchecked")
-		private <B extends DLBuffer> DLLayerData<B>[] createLayerDataInternal(final DLLayerDataSpec spec,
-				final long batchSize, final Class<B> bufferType) {
-			final long[] shape =
-					DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
+		private <B extends DLBuffer> DLTensor<B>[] createTensorInternal(final DLTensorSpec spec, final long batchSize,
+				final Class<B> bufferType) {
+			final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
+					.orElseThrow(() -> new IllegalArgumentException(
 							"Layer data spec does not provide a shape. Layer data cannot be created."));
 			checkArgument(batchSize <= Integer.MAX_VALUE,
 					"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
@@ -496,32 +489,32 @@ public class DLPythonConverterTest {
 			} else if (t.equals(long.class)) {
 				s = () -> (B) new DLPythonLongBuffer(size);
 			} else {
-				throw new IllegalArgumentException("No matching layer data type.");
+				throw new IllegalArgumentException("No matching tensor type.");
 			}
-			final DLLayerData<B>[] layerData = (DLLayerData<B>[]) Array.newInstance(DLLayerData.class, (int) batchSize);
+			final DLTensor<B>[] layerData = (DLTensor<B>[]) Array.newInstance(DLTensor.class, (int) batchSize);
 			for (int i = 0; i < batchSize; i++) {
-				layerData[i] = new DLDefaultLayerData<>(spec, s.get());
+				layerData[i] = new DLDefaultTensor<>(spec, s.get());
 			}
 			return layerData;
 		}
 
 		@Override
-		public DLLayerData<? extends DLWritableBuffer> createWritableLayerData(final DLLayerDataSpec spec)
+		public DLTensor<? extends DLWritableBuffer> createWritableTensor(final DLTensorSpec spec)
 				throws IllegalArgumentException {
-			return createLayerDataInternal(spec, 1, DLWritableBuffer.class)[0];
+			return createTensorInternal(spec, 1, DLWritableBuffer.class)[0];
 		}
 
 		@Override
-		public DLLayerDataBatch<? extends DLWritableBuffer> createWritableLayerDataBatch(final DLLayerDataSpec spec,
+		public DLTensorBatch<? extends DLWritableBuffer> createWritableTensorBatch(final DLTensorSpec spec,
 				final long batchSize) throws IllegalArgumentException {
-			final DLLayerData<DLWritableBuffer>[] layerData =
-					createLayerDataInternal(spec, batchSize, DLWritableBuffer.class);
-			return new DLDefaultLayerDataBatch<>(layerData);
+			final DLTensor<DLWritableBuffer>[] layerData = createTensorInternal(spec, batchSize,
+					DLWritableBuffer.class);
+			return new DLDefaultTensorBatch<>(layerData);
 		}
 	}
 
-	static class DLFooDataValueToFloatLayerConverterFactory
-			implements DLDataValueToLayerDataConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+	static class DLFooDataValueToFloatTensorConverterFactory
+			implements DLDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
 
 		@Override
 		public String getName() {
@@ -539,21 +532,16 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer> createConverter() {
-			return new DLDataValueToLayerDataConverter<FooDataValue, DLWritableFloatBuffer>() {
-
-				@Override
-				public void convert(final Iterable<? extends FooDataValue> input,
-						final DLLayerData<DLWritableFloatBuffer> output) {
-					final DLWritableFloatBuffer buf = output.getBuffer();
-					buf.putAll(input.iterator().next().getFloatArray());
-				}
+		public DLDataValueToTensorConverter<FooDataValue, DLWritableFloatBuffer> createConverter() {
+			return (input, output) -> {
+				final DLWritableFloatBuffer buf = output.getBuffer();
+				buf.putAll(input.iterator().next().getFloatArray());
 			};
 		}
 	}
 
 	static class DLDoubleBufferToBarDataCellConverterFactory
-			implements DLLayerDataToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
+			implements DLTensorToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
 
 		@Override
 		public String getName() {
@@ -571,20 +559,15 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		public DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {
-			return new DLLayerDataToDataCellConverter<DLReadableDoubleBuffer, BarDataCell>() {
-
-				@Override
-				public void convert(final ExecutionContext exec, final DLLayerData<DLReadableDoubleBuffer> input,
-						final Consumer<BarDataCell> out) {
-					final DLReadableDoubleBuffer buf = input.getBuffer();
-					out.accept(new BarDataCell(buf.toDoubleArray()));
-				}
+		public DLTensorToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {
+			return (exec, input, out) -> {
+				final DLReadableDoubleBuffer buf = input.getBuffer();
+				out.accept(new BarDataCell(buf.toDoubleArray()));
 			};
 		}
 
 		@Override
-		public long getDestCount(final DLLayerDataSpec spec) {
+		public long getDestCount(final DLTensorSpec spec) {
 			return 1;
 		}
 	}

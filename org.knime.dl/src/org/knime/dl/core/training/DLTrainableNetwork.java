@@ -48,7 +48,7 @@ package org.knime.dl.core.training;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 
@@ -66,6 +66,6 @@ public interface DLTrainableNetwork<I, O, S extends DLNetworkSpec<R>, R> extends
 
 	DLTrainingConfig getTrainingConfig();
 
-	void train(final Map<DLLayerDataSpec, I> trainingData, final Map<DLLayerDataSpec, O> targetData,
+	void train(final Map<DLTensorSpec, I> trainingData, final Map<DLTensorSpec, O> targetData,
 			final long batchSize) throws Exception;
 }

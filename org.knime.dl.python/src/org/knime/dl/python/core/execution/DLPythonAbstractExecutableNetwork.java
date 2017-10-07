@@ -52,11 +52,11 @@ import java.net.URL;
 import java.util.Map;
 
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
-import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -68,8 +68,8 @@ import org.knime.dl.python.core.DLPythonNetworkSpec;
  */
 public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
 		C extends DLPythonAbstractCommands<?>>
-		extends DLAbstractExecutableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
-				DLLayerDataBatch<? extends DLReadableBuffer>, N, S, URL> {
+		extends DLAbstractExecutableNetwork<DLTensorBatch<? extends DLWritableBuffer>, //
+				DLTensorBatch<? extends DLReadableBuffer>, N, S, URL> {
 
 	private C m_commands;
 
@@ -81,22 +81,22 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 
 	protected abstract C createCommands() throws DLInvalidContextException;
 
-	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLLayerDataBatch.class" isn't really
+	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLTensorBatch.class" isn't really
 	// informative here.
 
 	@Override
 	public Class<?> getInputType() {
-		return DLLayerDataBatch.class;
+		return DLTensorBatch.class;
 	}
 
 	@Override
 	public Class<?> getOutputType() {
-		return DLLayerDataBatch.class;
+		return DLTensorBatch.class;
 	}
 
 	@Override
-	public void execute(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input,
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output, final long batchSize)
+	public void execute(final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> input,
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> output, final long batchSize)
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();

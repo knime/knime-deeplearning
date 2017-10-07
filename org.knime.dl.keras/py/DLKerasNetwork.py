@@ -55,7 +55,7 @@ from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
-from DLPythonNetwork import DLPythonLayerDataSpec
+from DLPythonNetwork import DLPythonTensorSpec
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
@@ -112,7 +112,7 @@ class DLKerasNetwork(DLPythonNetwork):
                             # Theano returns a string, TensorFlow a dtype object
                             if(not isinstance(element_type, str)):
                                 element_type = element_type.name
-                            spec = DLPythonLayerDataSpec(inp.name, shape[0], list(shape[1:]), element_type)
+                            spec = DLPythonTensorSpec(inp.name, shape[0], list(shape[1:]), element_type)
                             input_specs.append(spec)
                 # outputs:
                 for idx in range (0, len(l.inbound_nodes)):  # inbound_nodes (sic)
@@ -130,7 +130,7 @@ class DLKerasNetwork(DLPythonNetwork):
                             # Theano returns a string, TensorFlow a dtype object
                             if(not isinstance(element_type, str)):
                                 element_type = element_type.name
-                            specs = DLPythonLayerDataSpec(out.name, shape[0], list(shape[1:]), element_type)
+                            specs = DLPythonTensorSpec(out.name, shape[0], list(shape[1:]), element_type)
                             if out in model_outputs:
                                 output_specs.append(specs)
                             else:

@@ -82,7 +82,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.util.DLUtils;
 
@@ -207,7 +207,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				for (final String layerName : outputSettings) {
 					if (!m_outputPanels.containsKey(layerName)) {
 						// add output to the dialog (when loading the dialog for the first time)
-						final Optional<DLLayerDataSpec> spec = DLUtils.Networks.findSpec(layerName,
+						final Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName,
 								networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
 						if (spec.isPresent()) {
 							addOutputPanel(spec.get(), m_generalCfg);
@@ -292,7 +292,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_root.add(inputsSeparator, m_rootConstr);
 		m_rootConstr.gridy++;
 		// inputs
-		for (final DLLayerDataSpec inputDataSpec : networkSpec.getInputSpecs()) {
+		for (final DLTensorSpec inputDataSpec : networkSpec.getInputSpecs()) {
 			if (!DLUtils.Shapes.isFixed(inputDataSpec.getShape())) {
 				throw new NotConfigurableException("Input '" + inputDataSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported.");
@@ -334,8 +334,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				// available outputs
 				final ArrayList<String> availableOutputs = new ArrayList<>(networkSpec.getOutputSpecs().length
 						+ networkSpec.getHiddenOutputSpecs().length - m_outputPanels.size());
-				final HashMap<String, DLLayerDataSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
-				for (final DLLayerDataSpec outputSpec : networkSpec.getOutputSpecs()) {
+				final HashMap<String, DLTensorSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
+				for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
 					final String outputName = outputSpec.getName();
 					if (!m_outputPanels.containsKey(outputName)) {
 						availableOutputs.add(outputName);
@@ -343,7 +343,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 					}
 				}
 				for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
-					final DLLayerDataSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
+					final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
 					final String intermediateName = intermediateSpec.getName();
 					if (!m_outputPanels.containsKey(intermediateName)) {
 						final String intermediateDisplayName = intermediateName + " (hidden)";
@@ -359,7 +359,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
 						outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 				if (selectedOption == JOptionPane.OK_OPTION) {
-					final DLLayerDataSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
+					final DLTensorSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
 					if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
 						final String msg = "Output '" + outputDataSpec.getName()
 								+ "' has an (at least partially) unknown shape. This is not supported.";
@@ -384,10 +384,10 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_rootConstr.gridy++;
 	}
 
-	private void addInputPanel(final DLLayerDataSpec inputDataSpec, final DataTableSpec tableSpec,
+	private void addInputPanel(final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec,
 			final DLExecutorGeneralConfig generalCfg) throws NotConfigurableException {
 		final DLExecutorInputConfig inputCfg =
-				DLExecutorNodeModel.createInputLayerDataModelConfig(inputDataSpec.getName(), generalCfg);
+				DLExecutorNodeModel.createInputTensorModelConfig(inputDataSpec.getName(), generalCfg);
 		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputDataSpec, tableSpec);
 		// add input panel to dialog
 		m_inputPanels.add(inputPanel);
@@ -395,12 +395,12 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_rootConstr.gridy++;
 	}
 
-	private void addOutputPanel(final DLLayerDataSpec outputDataSpec, final DLExecutorGeneralConfig generalCfg)
+	private void addOutputPanel(final DLTensorSpec outputDataSpec, final DLExecutorGeneralConfig generalCfg)
 			throws NotConfigurableException {
 		final String outputName = outputDataSpec.getName();
 		if (!m_outputPanels.containsKey(outputName)) {
 			final DLExecutorOutputConfig outputCfg =
-					DLExecutorNodeModel.createOutputLayerDataModelConfig(outputName, generalCfg);
+					DLExecutorNodeModel.createOutputTensorModelConfig(outputName, generalCfg);
 			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputDataSpec);
 			outputPanel.addRemoveListener(new ChangeListener() {
 

@@ -69,6 +69,6 @@ public final class DLKerasTensorFlowDefaultTrainingContext extends
 			final DLKerasTensorFlowTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasTensorFlowTrainableNetwork trainNetwork = new DLKerasTensorFlowTrainableNetwork(network,
 				trainingConfig);
-		return new DLKerasTrainableNetworkAdapter(trainNetwork, getLayerDataFactory());
+		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
 	}
 }

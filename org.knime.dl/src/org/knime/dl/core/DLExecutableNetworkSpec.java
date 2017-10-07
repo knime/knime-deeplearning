@@ -59,9 +59,9 @@
 // */
 //public interface DLExecutableNetworkSpec {
 //
-//	DLLayerDataSpec[] getInputSpecs();
+//	DLTensorSpec[] getInputSpecs();
 //
-//	DLLayerDataSpec[] getIntermediateOutputSpecs();
+//	DLTensorSpec[] getIntermediateOutputSpecs();
 //
-//	DLLayerDataSpec[] getOutputSpecs();
+//	DLTensorSpec[] getOutputSpecs();
 //}

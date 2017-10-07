@@ -57,7 +57,7 @@ public interface DLExecutableNetworkAdapter extends AutoCloseable {
 
 	DLExecutableNetwork<?, ?, ?, ?> getNetwork();
 
-	void execute(DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> inputPreparer,
-			DLNetworkOutputConsumer<DLLayerDataBatch<? extends DLReadableBuffer>> outputConsumer, long batchSize)
+	void execute(DLNetworkInputPreparer<DLTensorBatch<? extends DLWritableBuffer>> inputPreparer,
+			DLNetworkOutputConsumer<DLTensorBatch<? extends DLReadableBuffer>> outputConsumer, long batchSize)
 			throws Exception;
 }

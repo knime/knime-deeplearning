@@ -98,13 +98,13 @@ import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFi
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLException;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterRegistry;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
@@ -138,12 +138,12 @@ final class DLExecutorNodeModel extends NodeModel {
 		return new DLExecutorGeneralConfig("<none>", null, 100);
 	}
 
-	static DLExecutorInputConfig createInputLayerDataModelConfig(final String configKey,
+	static DLExecutorInputConfig createInputTensorModelConfig(final String configKey,
 			final DLExecutorGeneralConfig generalCfg) {
 		return new DLExecutorInputConfig(configKey, generalCfg);
 	}
 
-	static DLExecutorOutputConfig createOutputLayerDataModelConfig(final String configKey,
+	static DLExecutorOutputConfig createOutputTensorModelConfig(final String configKey,
 			final DLExecutorGeneralConfig generalCfg) {
 		return new DLExecutorOutputConfig(configKey, generalCfg);
 	}
@@ -160,9 +160,9 @@ final class DLExecutorNodeModel extends NodeModel {
 
 	private SettingsModelStringArray m_smOutputOrder;
 
-	private LinkedHashMap<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> m_inputConverters;
+	private LinkedHashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> m_inputConverters;
 
-	private LinkedHashMap<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> m_outputConverters;
+	private LinkedHashMap<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> m_outputConverters;
 
 	private DLNetworkSpec m_lastIncomingNetworkSpec;
 
@@ -316,7 +316,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_inputCfgs.clear();
 		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
 		for (final String layerName : inputSettings) {
-			final DLExecutorInputConfig inputCfg = createInputLayerDataModelConfig(layerName, m_generalCfg);
+			final DLExecutorInputConfig inputCfg = createInputTensorModelConfig(layerName, m_generalCfg);
 			m_inputCfgs.put(layerName, inputCfg);
 			inputCfg.validateSettings(inputSettings);
 		}
@@ -324,7 +324,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_outputCfgs.clear();
 		final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
 		for (final String layerName : outputSettings) {
-			final DLExecutorOutputConfig outputCfg = createOutputLayerDataModelConfig(layerName, m_generalCfg);
+			final DLExecutorOutputConfig outputCfg = createOutputTensorModelConfig(layerName, m_generalCfg);
 			m_outputCfgs.put(layerName, outputCfg);
 			outputCfg.validateSettings(outputSettings);
 		}
@@ -379,7 +379,7 @@ final class DLExecutorNodeModel extends NodeModel {
 	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
 			throws InvalidSettingsException {
 		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
-		for (final DLLayerDataSpec layerDataSpec : networkSpec.getInputSpecs()) {
+		for (final DLTensorSpec layerDataSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
 			if (!DLUtils.Shapes.isFixed(layerDataSpec.getShape())) {
 				throw new InvalidSettingsException("Input '" + layerDataSpec.getName()
@@ -391,12 +391,12 @@ final class DLExecutorNodeModel extends NodeModel {
 						"Network input '" + layerDataSpec.getName() + "' is not yet configured.");
 			}
 			// get selected converter
-			final DLDataValueToLayerDataConverterFactory<?, ?> converter = DLDataValueToLayerDataConverterRegistry
+			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
 					.getInstance().getConverterFactory(inputCfg.getConverterModel().getStringArrayValue()[1])
 					.orElseThrow(() -> new InvalidSettingsException(
 							"Converter '" + inputCfg.getConverterModel().getStringArrayValue()[0] + " ("
 									+ inputCfg.getConverterModel().getStringArrayValue()[1] + ")' of input '"
-									+ inputCfg.getInputLayerDataName()
+									+ inputCfg.getInputTensorName()
 									+ "' could not be found. Are you missing a KNIME extension?"));
 			m_inputConverters.put(layerDataSpec, converter);
 
@@ -422,7 +422,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
 		for (final String layerDataName : m_smOutputOrder.getStringArrayValue()) {
 			// validate layer spec
-			final DLLayerDataSpec layerDataSpec = DLUtils.Networks.findSpec(layerDataName, networkSpec)
+			final DLTensorSpec layerDataSpec = DLUtils.Networks.findSpec(layerDataName, networkSpec)
 					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
 							+ "' could not be found in the input deep learning network."));
 			DLUtils.Shapes.getFixedShape(layerDataSpec.getShape())
@@ -430,8 +430,8 @@ final class DLExecutorNodeModel extends NodeModel {
 							+ "' has an (at least partially) unknown shape. This is not supported."));
 			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
 			// get selected converter
-			final DLLayerDataToDataCellConverterFactory<?, ?> converter =
-					DLLayerDataToDataCellConverterRegistry.getInstance()
+			final DLTensorToDataCellConverterFactory<?, ?> converter =
+					DLTensorToDataCellConverterRegistry.getInstance()
 							.getConverterFactory(cfg.getConverterModel().getStringArrayValue()[1])
 							.orElseThrow(() -> new InvalidSettingsException("Converter '"
 									+ cfg.getConverterModel().getStringArrayValue()[0] + " ("
@@ -445,10 +445,10 @@ final class DLExecutorNodeModel extends NodeModel {
 		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsModel().getBooleanValue();
 		final ArrayList<DataColumnSpec> outputSpecs = new ArrayList<>();
 		final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(keepInputColumns ? inDataSpec : null);
-		for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> output : m_outputConverters
+		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> output : m_outputConverters
 				.entrySet()) {
-			final DLLayerDataSpec layerDataSpec = output.getKey();
-			final DLLayerDataToDataCellConverterFactory<?, ?> converter = output.getValue();
+			final DLTensorSpec layerDataSpec = output.getKey();
+			final DLTensorToDataCellConverterFactory<?, ?> converter = output.getValue();
 			final long count = converter.getDestCount(layerDataSpec);
 			final String prefix = m_outputCfgs.get(layerDataSpec.getName()).getPrefixModel().getStringValue();
 			for (int i = 0; i < count; i++) {
@@ -503,8 +503,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		final DLExecutableNetworkAdapter executableNetwork = ctx.executable(network, m_outputConverters.keySet());
 
 		// assign input column indices to network inputs
-		final List<Pair<DLLayerDataSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
-		for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> input : m_inputConverters
+		final List<Pair<DLTensorSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
+		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> input : m_inputConverters
 				.entrySet()) {
 			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(input.getKey().getName());
 			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsModel();
@@ -552,8 +552,8 @@ final class DLExecutorNodeModel extends NodeModel {
 					exec.checkCanceled();
 					// gather input
 					// TODO
-					final Map<DLLayerDataSpec, List<DataValue>[]> temp = new HashMap<>();
-					for (final Pair<DLLayerDataSpec, int[]> entry : inputs) {
+					final Map<DLTensorSpec, List<DataValue>[]> temp = new HashMap<>();
+					for (final Pair<DLTensorSpec, int[]> entry : inputs) {
 						temp.put(entry.getFirst(), new ArrayList[batch.size()]);
 						for (int j = 0; j < batch.size(); j++) {
 							final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
@@ -617,8 +617,8 @@ final class DLExecutorNodeModel extends NodeModel {
 	// TODO: workaround
 	// when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
-		final DLDataValueToLayerDataConverterFactory<? extends DataValue, ?> conv =
-				DLDataValueToLayerDataConverterRegistry.getInstance()
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv =
+				DLDataValueToTensorConverterRegistry.getInstance()
 						.getConverterFactory(inputCfg.getConverterModel().getStringArrayValue()[1])
 						.orElseThrow(() -> new IllegalStateException(
 								"Converter '" + inputCfg.getConverterModel().getStringArrayValue()[0] + " ("
@@ -627,23 +627,23 @@ final class DLExecutorNodeModel extends NodeModel {
 		return conv.getSourceType();
 	}
 
-	private static class DLNetworkExecutorOutputConsumer implements Consumer<Map<DLLayerDataSpec, DataCell[][]>> {
+	private static class DLNetworkExecutorOutputConsumer implements Consumer<Map<DLTensorSpec, DataCell[][]>> {
 
 		// TODO: performance (looping here and in #execute, copying)
 
 		private final List<DataCell[]> m_tmpList = new ArrayList<>();
 
-		private final List<DLLayerDataSpec> m_orderedOutputs;
+		private final List<DLTensorSpec> m_orderedOutputs;
 
-		private DLNetworkExecutorOutputConsumer(final List<DLLayerDataSpec> orderedOutput) {
+		private DLNetworkExecutorOutputConsumer(final List<DLTensorSpec> orderedOutput) {
 			m_orderedOutputs = orderedOutput;
 		}
 
 		@Override
-		public void accept(final Map<DLLayerDataSpec, DataCell[][]> output) {
+		public void accept(final Map<DLTensorSpec, DataCell[][]> output) {
 			m_tmpList.clear();
 			final ArrayList<DataCell[][]> a = new ArrayList<>(m_orderedOutputs.size());
-			for (final DLLayerDataSpec spec : m_orderedOutputs) {
+			for (final DLTensorSpec spec : m_orderedOutputs) {
 				a.add(output.get(spec));
 			}
 			for (int i = 0; i < a.get(0).length; i++) { // iterate over batch

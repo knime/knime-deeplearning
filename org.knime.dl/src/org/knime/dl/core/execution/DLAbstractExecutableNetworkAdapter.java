@@ -52,9 +52,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 
@@ -66,26 +66,26 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	private final DLExecutableNetwork<?, ?, ?, ?> m_network;
 
-	private final DLLayerDataFactory m_layerDataFactory;
+	private final DLTensorFactory m_layerDataFactory;
 
-	private final Collection<DLLayerDataSpec> m_requestedOutputs;
+	private final Collection<DLTensorSpec> m_requestedOutputs;
 
-	private HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> m_input;
+	private HashMap<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> m_input;
 
-	private HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> m_output;
+	private HashMap<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> m_output;
 
 	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
-			final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
+			final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 		m_network = network;
 		m_layerDataFactory = layerDataFactory;
 		m_requestedOutputs = new ArrayList<>(requestedOutputs);
 	}
 
-	protected abstract Map<DLLayerDataSpec, ?> extractNetworkInput(
-			Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput);
+	protected abstract Map<DLTensorSpec, ?> extractNetworkInput(
+			Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> adapterInput);
 
-	protected abstract Map<DLLayerDataSpec, ?> extractNetworkOutput(
-			Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> adapterOutput);
+	protected abstract Map<DLTensorSpec, ?> extractNetworkOutput(
+			Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> adapterOutput);
 
 	@Override
 	public DLExecutableNetwork<?, ?, ?, ?> getNetwork() {
@@ -93,30 +93,30 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	}
 
 	@Override
-	public void execute(final DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> inputPreparer,
-			final DLNetworkOutputConsumer<DLLayerDataBatch<? extends DLReadableBuffer>> outputConsumer,
+	public void execute(final DLNetworkInputPreparer<DLTensorBatch<? extends DLWritableBuffer>> inputPreparer,
+			final DLNetworkOutputConsumer<DLTensorBatch<? extends DLReadableBuffer>> outputConsumer,
 			final long batchSize) throws Exception {
 		if (m_input == null) {
-			final DLLayerDataSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
+			final DLTensorSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
 			m_input = new HashMap<>(inputSpecs.length);
-			for (final DLLayerDataSpec spec : inputSpecs) {
-				m_input.put(spec, m_layerDataFactory.createWritableLayerDataBatch(spec, batchSize));
+			for (final DLTensorSpec spec : inputSpecs) {
+				m_input.put(spec, m_layerDataFactory.createWritableTensorBatch(spec, batchSize));
 			}
 			m_output = new HashMap<>(m_requestedOutputs.size());
-			for (final DLLayerDataSpec spec : m_requestedOutputs) {
-				m_output.put(spec, m_layerDataFactory.createReadableLayerDataBatch(spec, batchSize));
+			for (final DLTensorSpec spec : m_requestedOutputs) {
+				m_output.put(spec, m_layerDataFactory.createReadableTensorBatch(spec, batchSize));
 			}
 		}
 		inputPreparer.prepare(m_input);
 		executeInternal(batchSize);
-		for (final DLLayerDataBatch<?> input : m_input.values()) {
-			for (final DLLayerData<?> layerData : input.getBatch()) {
+		for (final DLTensorBatch<?> input : m_input.values()) {
+			for (final DLTensor<?> layerData : input.getBatch()) {
 				layerData.getBuffer().reset();
 			}
 		}
 		outputConsumer.accept(m_output);
-		for (final DLLayerDataBatch<?> output : m_output.values()) {
-			for (final DLLayerData<?> layerData : output.getBatch()) {
+		for (final DLTensorBatch<?> output : m_output.values()) {
+			for (final DLTensor<?> layerData : output.getBatch()) {
 				layerData.getBuffer().reset();
 			}
 		}
@@ -130,8 +130,8 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	// TODO: type safety
 	private <I, O> void executeInternal(final long batchSize) throws Exception {
 		final DLExecutableNetwork<I, O, ?, ?> network = (DLExecutableNetwork<I, O, ?, ?>) m_network;
-		final Map<DLLayerDataSpec, I> networkInput = (Map<DLLayerDataSpec, I>) extractNetworkInput(m_input);
-		final Map<DLLayerDataSpec, O> networkOutput = (Map<DLLayerDataSpec, O>) extractNetworkOutput(m_output);
+		final Map<DLTensorSpec, I> networkInput = (Map<DLTensorSpec, I>) extractNetworkInput(m_input);
+		final Map<DLTensorSpec, O> networkOutput = (Map<DLTensorSpec, O>) extractNetworkOutput(m_output);
 		network.execute(networkInput, networkOutput, batchSize);
 	}
 }

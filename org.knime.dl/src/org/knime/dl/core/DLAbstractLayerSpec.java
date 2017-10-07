@@ -60,16 +60,16 @@ public abstract class DLAbstractLayerSpec implements DLLayerSpec {
 	// TODO: we eventually want to have a lower bound here
 	private final Class<?> m_layerType;
 
-	private final DLLayerDataSpec[] m_inputSpecs;
+	private final DLTensorSpec[] m_inputSpecs;
 
-	private final DLLayerDataSpec[] m_outputSpecs;
+	private final DLTensorSpec[] m_outputSpecs;
 
 	/**
 	 *
 	 * @param name can be null
 	 */
-	public DLAbstractLayerSpec(final String name, final Class<?> layerType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] outputSpecs) {
+	public DLAbstractLayerSpec(final String name, final Class<?> layerType, final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] outputSpecs) {
 		m_name = name;
 		m_layerType = layerType;
 		m_inputSpecs = inputSpecs;
@@ -87,14 +87,14 @@ public abstract class DLAbstractLayerSpec implements DLLayerSpec {
 	}
 
 	@Override
-	public DLLayerDataSpec[] getInputSpecs() {
+	public DLTensorSpec[] getInputSpecs() {
 		return m_inputSpecs;
 	}
 
 	@Override
-	public DLLayerDataSpec[] getOutputSpecs() {
+	public DLTensorSpec[] getOutputSpecs() {
 		return m_outputSpecs;
 	}
 
-	// TODO: equals and hashCode (see DLAbstractLayerDataSpec)
+	// TODO: equals and hashCode (see DLAbstractTensorSpec)
 }

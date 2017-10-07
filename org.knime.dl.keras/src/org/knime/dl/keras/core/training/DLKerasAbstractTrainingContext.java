@@ -50,8 +50,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataRegistry;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorRegistry;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkType;
@@ -75,7 +75,7 @@ public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkTy
 
 	private final String m_name;
 
-	private final DLLayerDataFactory m_layerDataFactory;
+	private final DLTensorFactory m_layerDataFactory;
 
 	private final Collection<DLKerasLossFunction> m_losses;
 
@@ -84,7 +84,7 @@ public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkTy
 	protected DLKerasAbstractTrainingContext(final NT networkType, final String name) {
 		m_networkType = networkType;
 		m_name = name;
-		m_layerDataFactory = DLLayerDataRegistry.getInstance().getLayerDataFactory(m_networkType)
+		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
 				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
 						+ "' is not supported. No layer data factory found."));
 
@@ -117,7 +117,7 @@ public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkTy
 	}
 
 	@Override
-	public DLLayerDataFactory getLayerDataFactory() {
+	public DLTensorFactory getTensorFactory() {
 		return m_layerDataFactory;
 	}
 

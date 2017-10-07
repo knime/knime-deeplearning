@@ -48,7 +48,7 @@ package org.knime.dl.keras.core.training;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.python.core.training.DLPythonTrainingConfig;
 
 /**
@@ -63,5 +63,5 @@ public interface DLKerasTrainingConfig extends DLPythonTrainingConfig {
 
 	public DLKerasOptimizer getOptimizer();
 
-	public Map<DLLayerDataSpec, ? extends DLKerasLossFunction> getLosses();
+	public Map<DLTensorSpec, ? extends DLKerasLossFunction> getLosses();
 }

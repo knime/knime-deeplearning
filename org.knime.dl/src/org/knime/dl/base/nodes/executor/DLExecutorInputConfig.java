@@ -74,7 +74,7 @@ class DLExecutorInputConfig {
 
 	private static final String CFG_KEY_INPUT_COL = "input_columns";
 
-	private final String m_inputLayerDataName;
+	private final String m_inputTensorName;
 
 	private final DLExecutorGeneralConfig m_generalConfig;
 
@@ -82,8 +82,8 @@ class DLExecutorInputConfig {
 
 	private DataColumnSpecFilterConfiguration m_smInputCol;
 
-	DLExecutorInputConfig(final String inputLayerDataName, final DLExecutorGeneralConfig generalCfg) {
-		m_inputLayerDataName = checkNotNullOrEmpty(inputLayerDataName);
+	DLExecutorInputConfig(final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
+		m_inputTensorName = checkNotNullOrEmpty(inputTensorName);
 		m_generalConfig = checkNotNull(generalCfg);
 		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
 		m_smInputCol =
@@ -91,14 +91,14 @@ class DLExecutorInputConfig {
 	}
 
 	/**
-	 * Equivalent to {@link #getInputLayerDataName()}.
+	 * Equivalent to {@link #getInputTensorName()}.
 	 */
 	String getConfigKey() {
-		return m_inputLayerDataName;
+		return m_inputTensorName;
 	}
 
-	String getInputLayerDataName() {
-		return m_inputLayerDataName;
+	String getInputTensorName() {
+		return m_inputTensorName;
 	}
 
 	DLExecutorGeneralConfig getGeneralConfig() {
@@ -118,14 +118,14 @@ class DLExecutorInputConfig {
 	}
 
 	NodeSettingsRO validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_inputLayerDataName);
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_inputTensorName);
 		m_smConverter.validateSettings(cfgSettings);
 		return cfgSettings;
 	}
 
 	void loadFromSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO child = settings.getNodeSettings(m_inputLayerDataName);
-		if (settings.containsKey(m_inputLayerDataName)) {
+		final NodeSettingsRO child = settings.getNodeSettings(m_inputTensorName);
+		if (settings.containsKey(m_inputTensorName)) {
 			m_smConverter.loadSettingsFrom(child);
 			m_smInputCol.loadConfigurationInModel(child);
 		}
@@ -135,15 +135,15 @@ class DLExecutorInputConfig {
 			throws InvalidSettingsException {
 		// we enforce inclusion by default
 		m_smInputCol.loadDefault(spec, null, true);
-		final NodeSettingsRO child = settings.getNodeSettings(m_inputLayerDataName);
-		if (settings.containsKey(m_inputLayerDataName)) {
+		final NodeSettingsRO child = settings.getNodeSettings(m_inputTensorName);
+		if (settings.containsKey(m_inputTensorName)) {
 			m_smConverter.loadSettingsFrom(child);
 			m_smInputCol.loadConfigurationInDialog(child, spec);
 		}
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) {
-		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_inputLayerDataName);
+		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_inputTensorName);
 		m_smConverter.saveSettingsTo(cfgSettings);
 		m_smInputCol.saveConfiguration(cfgSettings);
 	}

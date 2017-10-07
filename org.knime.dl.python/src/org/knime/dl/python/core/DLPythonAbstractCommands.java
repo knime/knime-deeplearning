@@ -60,11 +60,11 @@ import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkTypeRegistry;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
@@ -233,9 +233,9 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public synchronized void setNetworkInputs(final DLPythonNetworkHandle handle, // TODO: implement handle
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> input, final long batchSize)
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> input, final long batchSize)
 			throws DLInvalidContextException, IOException {
-		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
+		for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> in : input.entrySet()) {
 			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
 
 				int i = 0;
@@ -306,7 +306,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		}
 	}
 
-	public void executeNetwork(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs)
+	public void executeNetwork(final DLPythonNetworkHandle handle, final Set<DLTensorSpec> requestedOutputs)
 			throws DLInvalidContextException, IOException {
 		final String[] output = m_context.getKernel().execute(m_config.getExecuteNetworkCode(handle, requestedOutputs));
 		if (!output[1].isEmpty()) {
@@ -315,13 +315,13 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 	}
 
 	public synchronized void getNetworkOutputs(final DLPythonNetworkHandle handle, // TODO: implement handle
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> output)
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> output)
 			throws DLInvalidContextException, IOException {
-		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> out : output.entrySet()) {
-			final DLLayerDataSpec spec = out.getKey();
-			final DLLayerDataBatch<? extends DLReadableBuffer> batch = out.getValue();
+		for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> out : output.entrySet()) {
+			final DLTensorSpec spec = out.getKey();
+			final DLTensorBatch<? extends DLReadableBuffer> batch = out.getValue();
 			m_context.getKernel().getData(spec.getName(),
-					(tableSpec, tableSize) -> new TableCreator<DLLayerDataBatch<? extends DLReadableBuffer>>() {
+					(tableSpec, tableSize) -> new TableCreator<DLTensorBatch<? extends DLReadableBuffer>>() {
 
 						private Deserializer m_deserializer;
 
@@ -363,7 +363,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 						}
 
 						@Override
-						public DLLayerDataBatch<? extends DLReadableBuffer> getTable() {
+						public DLTensorBatch<? extends DLReadableBuffer> getTable() {
 							return batch;
 						}
 					});
@@ -371,11 +371,11 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 	}
 
 	public synchronized void setNetworkTrainingInputs(final DLPythonNetworkHandle handle,
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> trainingData,
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> targetData, final long batchSize)
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> trainingData,
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> targetData, final long batchSize)
 			throws DLInvalidContextException, IOException {
 		// training data:
-		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : trainingData.entrySet()) {
+		for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> in : trainingData.entrySet()) {
 			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
 
 				int i = 0;
@@ -445,7 +445,7 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 			}), (int) batchSize);
 		}
 		// target data:
-		for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> in : targetData.entrySet()) {
+		for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> in : targetData.entrySet()) {
 			m_context.getKernel().putData(in.getKey().getName(), new DLSingletonTableChunker(new TableIterator() {
 
 				int i = 0;

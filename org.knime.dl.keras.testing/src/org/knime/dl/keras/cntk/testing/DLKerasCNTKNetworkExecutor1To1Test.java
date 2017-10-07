@@ -56,13 +56,13 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
@@ -92,10 +92,10 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 			throw new RuntimeException(e);
 		}
 		final DLNetworkSpec networkSpec = network.getSpec();
-		final Set<DLLayerDataSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
+		final Set<DLTensorSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
 		final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs);
 		execNetwork.execute(in -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : in.entrySet()) {
+			for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> entry : in.entrySet()) {
 				populate(entry.getValue().getBatch()[0]);
 			}
 		}, out -> {
@@ -103,7 +103,7 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 		}, 1);
 	}
 
-	private static void populate(final DLLayerData<?> data) {
+	private static void populate(final DLTensor<?> data) {
 		if (data.getBuffer() instanceof DLWritableFloatBuffer) {
 			final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer) data.getBuffer();
 			buffer.resetWrite();

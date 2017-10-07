@@ -48,7 +48,7 @@
  */
 package org.knime.dl.python.core.data.serde;
 
-import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.python.typeextension.Deserializer;
 
@@ -60,5 +60,5 @@ import org.knime.python.typeextension.Deserializer;
 public interface DLPythonDeserializer<S extends DLWritableBuffer> extends Deserializer {
 
 	// TODO FIXME AS SOON AS THE PYTHON BRIDGE CAN HANDLE primitive types :-(
-	void deserialize(byte[] bytes, DLLayerData<S> data);
+	void deserialize(byte[] bytes, DLTensor<S> data);
 }

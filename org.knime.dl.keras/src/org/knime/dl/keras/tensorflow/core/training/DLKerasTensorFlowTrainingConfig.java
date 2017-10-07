@@ -48,7 +48,7 @@ package org.knime.dl.keras.tensorflow.core.training;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
@@ -60,7 +60,7 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer;
 public class DLKerasTensorFlowTrainingConfig extends DLKerasAbstractTrainingConfig {
 
 	public DLKerasTensorFlowTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLLayerDataSpec, DLKerasLossFunction> losses) {
+			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
 		super(batchSize, epochs, optimizer, losses);
 	}
 }

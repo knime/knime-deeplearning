@@ -50,7 +50,7 @@ package org.knime.dl.core.execution;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 
@@ -66,5 +66,5 @@ public interface DLExecutableNetwork<I, O, S extends DLNetworkSpec<R>, R> extend
 
 	Class<?> getOutputType();
 
-	void execute(Map<DLLayerDataSpec, I> input, Map<DLLayerDataSpec, O> output, long batchSize) throws Exception;
+	void execute(Map<DLTensorSpec, I> input, Map<DLTensorSpec, O> output, long batchSize) throws Exception;
 }

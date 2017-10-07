@@ -72,9 +72,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
-import org.knime.dl.core.DLLayerDataSpec;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterRegistry;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
@@ -88,13 +88,13 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private final DLExecutorOutputConfig m_cfg;
 
-	private final DLLayerDataSpec m_outputDataSpec;
+	private final DLTensorSpec m_outputDataSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
 	private final CopyOnWriteArrayList<ChangeListener> m_removeListeners;
 
-	DLExecutorOutputPanel(final DLExecutorOutputConfig cfg, final DLLayerDataSpec outputDataSpec)
+	DLExecutorOutputPanel(final DLExecutorOutputConfig cfg, final DLTensorSpec outputDataSpec)
 			throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
@@ -196,15 +196,15 @@ final class DLExecutorOutputPanel extends JPanel {
 						.orElseThrow(() -> new NotConfigurableException("Execution back end '"
 								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
-		final List<DLLayerDataToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
-				DLLayerDataToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
-						executionContext.getLayerDataFactory().getReadableBufferType(m_outputDataSpec),
+		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
+				DLTensorToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
+						executionContext.getTensorFactory().getReadableBufferType(m_outputDataSpec),
 						m_outputDataSpec);
-		converterFactories.sort(Comparator.comparing(DLLayerDataToDataCellConverterFactory::getName));
+		converterFactories.sort(Comparator.comparing(DLTensorToDataCellConverterFactory::getName));
 		final String[] names = new String[converterFactories.size()];
 		final String[] ids = new String[converterFactories.size()];
 		for (int i = 0; i < converterFactories.size(); i++) {
-			final DLLayerDataToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactories.get(i);
+			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactories.get(i);
 			names[i] = "To " + converter.getName();
 			ids[i] = converter.getIdentifier();
 		}

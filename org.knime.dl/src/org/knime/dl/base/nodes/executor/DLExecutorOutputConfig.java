@@ -67,7 +67,7 @@ class DLExecutorOutputConfig {
 
 	private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
 
-	private final String m_outputLayerDataName;
+	private final String m_outputTensorName;
 
 	private final DLExecutorGeneralConfig m_generalConfig;
 
@@ -75,22 +75,22 @@ class DLExecutorOutputConfig {
 
 	private final SettingsModelString m_smPrefix;
 
-	DLExecutorOutputConfig(final String outputLayerDataName, final DLExecutorGeneralConfig generalConfig) {
-		m_outputLayerDataName = checkNotNullOrEmpty(outputLayerDataName);
+	DLExecutorOutputConfig(final String outputTensorName, final DLExecutorGeneralConfig generalConfig) {
+		m_outputTensorName = checkNotNullOrEmpty(outputTensorName);
 		m_generalConfig = checkNotNull(generalConfig);
 		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
-		m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputLayerDataName + "_");
+		m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputTensorName + "_");
 	}
 
 	/**
-	 * Equivalent to {@link #getOutputLayerDataName()}.
+	 * Equivalent to {@link #getOutputTensorName()}.
 	 */
 	String getConfigKey() {
-		return m_outputLayerDataName;
+		return m_outputTensorName;
 	}
 
-	String getOutputLayerDataName() {
-		return m_outputLayerDataName;
+	String getOutputTensorName() {
+		return m_outputTensorName;
 	}
 
 	DLExecutorGeneralConfig getGeneralConfig() {
@@ -106,19 +106,19 @@ class DLExecutorOutputConfig {
 	}
 
 	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputTensorName);
 		m_smConverter.validateSettings(cfgSettings);
 		m_smPrefix.validateSettings(cfgSettings);
 	}
 
 	void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputLayerDataName);
+		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputTensorName);
 		m_smConverter.loadSettingsFrom(cfgSettings);
 		m_smPrefix.loadSettingsFrom(cfgSettings);
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) {
-		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputLayerDataName);
+		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputTensorName);
 		m_smConverter.saveSettingsTo(cfgSettings);
 		m_smPrefix.saveSettingsTo(cfgSettings);
 	}

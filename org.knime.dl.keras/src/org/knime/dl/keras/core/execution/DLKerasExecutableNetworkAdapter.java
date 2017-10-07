@@ -49,12 +49,12 @@ package org.knime.dl.keras.core.execution;
 import java.util.Map;
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLLayerDataBatch;
+import org.knime.dl.core.execution.DLTensorBatch;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -63,19 +63,19 @@ import org.knime.dl.core.execution.DLLayerDataBatch;
 public class DLKerasExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
 	public DLKerasExecutableNetworkAdapter(final DLKerasAbstractExecutableNetwork<?, ?, ?> network,
-			final DLLayerDataFactory layerDataFactory, final Set<DLLayerDataSpec> requestedOutputs) {
+			final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 		super(network, layerDataFactory, requestedOutputs);
 	}
 
 	@Override
-	protected Map<DLLayerDataSpec, ?> extractNetworkInput(
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput) {
+	protected Map<DLTensorSpec, ?> extractNetworkInput(
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> adapterInput) {
 		return adapterInput;
 	}
 
 	@Override
-	protected Map<DLLayerDataSpec, ?> extractNetworkOutput(
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> adapterOutput) {
+	protected Map<DLTensorSpec, ?> extractNetworkOutput(
+			final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> adapterOutput) {
 		return adapterOutput;
 	}
 }

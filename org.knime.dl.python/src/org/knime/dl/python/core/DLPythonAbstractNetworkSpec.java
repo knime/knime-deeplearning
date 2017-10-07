@@ -49,7 +49,7 @@ package org.knime.dl.python.core;
 import java.net.URL;
 
 import org.knime.dl.core.DLAbstractExternalNetworkSpec;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -60,8 +60,8 @@ public abstract class DLPythonAbstractNetworkSpec<NT extends DLPythonNetworkType
 
 	private static final long serialVersionUID = 1L;
 
-	protected DLPythonAbstractNetworkSpec(final NT networkType, final DLLayerDataSpec[] inputSpecs,
-			final DLLayerDataSpec[] hiddenOutputSpecs, final DLLayerDataSpec[] outputSpecs) {
+	protected DLPythonAbstractNetworkSpec(final NT networkType, final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
 		super(networkType, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 }

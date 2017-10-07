@@ -63,9 +63,9 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLFixedLayerDataShape;
-import org.knime.dl.core.DLLayerDataShape;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLFixedTensorShape;
+import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.osgi.framework.Bundle;
 
@@ -113,14 +113,14 @@ public final class DLUtils {
 		private Networks() {
 		}
 
-		public static Optional<DLLayerDataSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
+		public static Optional<DLTensorSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
 			checkNotNullOrEmpty(name);
 			checkNotNull(networkSpec);
 			return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getHiddenOutputSpecs(),
 					networkSpec.getOutputSpecs());
 		}
 
-		public static Optional<DLLayerDataSpec> findSpec(final String name, final DLLayerDataSpec[]... specs) {
+		public static Optional<DLTensorSpec> findSpec(final String name, final DLTensorSpec[]... specs) {
 			checkNotNullOrEmpty(name);
 			checkNotNull(specs);
 			return Arrays.stream(specs).flatMap(s -> Arrays.stream(s)).filter(s -> s.getName().equals(name))
@@ -184,18 +184,18 @@ public final class DLUtils {
 		private Shapes() {
 		}
 
-		public static boolean isFixed(final DLLayerDataShape shape) {
-			return shape instanceof DLFixedLayerDataShape;
+		public static boolean isFixed(final DLTensorShape shape) {
+			return shape instanceof DLFixedTensorShape;
 		}
 
-		public static Optional<long[]> getFixedShape(final DLLayerDataShape shape) {
+		public static Optional<long[]> getFixedShape(final DLTensorShape shape) {
 			if (isFixed(shape)) {
-				return Optional.of(((DLFixedLayerDataShape) shape).getShape());
+				return Optional.of(((DLFixedTensorShape) shape).getShape());
 			}
 			return Optional.empty();
 		}
 
-		public static OptionalLong getFixedSize(final DLLayerDataShape shape) {
+		public static OptionalLong getFixedSize(final DLTensorShape shape) {
 			final Optional<long[]> fixedShape = getFixedShape(shape);
 			if (fixedShape.isPresent()) {
 				return OptionalLong.of(getSize(fixedShape.get()));

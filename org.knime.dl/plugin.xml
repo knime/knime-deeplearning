@@ -2,9 +2,9 @@
 <?eclipse version="3.0"?>
 <plugin>
    <extension-point id="DLExecutionContext" name="DLExecutionContext" schema="schema/org.knime.dl.DLExecutionContext.exsd"/>
-   <extension-point id="DLLayerDataFactory" name="DLLayerDataFactory" schema="schema/org.knime.dl.DLLayerDataFactory.exsd"/>
-   <extension-point id="DLDataValueToLayerDataConverterFactory" name="DLDataValueToLayerDataConverterFactory" schema="schema/org.knime.dl.DLDataValueToLayerDataConverterFactory.exsd"/>
-   <extension-point id="DLLayerDataToDataCellConverterFactory" name="DLLayerDataToDataCellConverterFactory" schema="schema/org.knime.dl.DLLayerDataToDataCellConverterFactory.exsd"/>
+   <extension-point id="DLTensorFactory" name="DLTensorFactory" schema="schema/org.knime.dl.DLTensorFactory.exsd"/>
+   <extension-point id="DLDataValueToTensorConverterFactory" name="DLDataValueToTensorConverterFactory" schema="schema/org.knime.dl.DLDataValueToTensorConverterFactory.exsd"/>
+   <extension-point id="DLTensorToDataCellConverterFactory" name="DLTensorToDataCellConverterFactory" schema="schema/org.knime.dl.DLTensorToDataCellConverterFactory.exsd"/>
    <extension-point id="DLNetworkReader" name="DLNetworkReader" schema="schema/org.knime.dl.DLNetworkReader.exsd"/>
    <extension-point id="DLNetworkType" name="DLNetworkType" schema="schema/org.knime.dl.DLNetworkType.exsd"/>
    <extension-point id="DLTrainingContext" name="DLTrainingContext" schema="schema/org.knime.dl.DLTrainingContext.exsd"/>
@@ -48,45 +48,45 @@
       </node>
    </extension>
    <extension
-         point="org.knime.dl.DLDataValueToLayerDataConverterFactory">
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLBitVectorToBitLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLBooleanValueToBitLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLByteVectorToByteLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLDoubleValueToDoubleLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLDoubleValueToFloatLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLIntValueToFloatLayerDataConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLIntValueToIntLayerConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLLongValueToDoubleLayerDataConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
-      <DLDataValueToLayerDataConverterFactory
-            DLDataValueToLayerDataConverterFactory="org.knime.dl.core.data.convert.DLLongValueToLongLayerDataConverterFactory">
-      </DLDataValueToLayerDataConverterFactory>
+         point="org.knime.dl.DLDataValueToTensorConverterFactory">
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLBitVectorToBitTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLBooleanValueToBitTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLByteVectorToByteTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLDoubleValueToDoubleTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLDoubleValueToFloatTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLIntValueToFloatTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLIntValueToIntTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLLongValueToDoubleTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLLongValueToLongTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
    </extension>
    <extension
-         point="org.knime.dl.DLLayerDataToDataCellConverterFactory">
-      <DLLayerDataToDataCellConverterFactory
-            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.DLDoubleLayerDataToDoubleCellConverterFactory">
-      </DLLayerDataToDataCellConverterFactory>
-      <DLLayerDataToDataCellConverterFactory
-            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.DLIntLayerDataToIntCellConverterFactory">
-      </DLLayerDataToDataCellConverterFactory>
-      <DLLayerDataToDataCellConverterFactory
-            DLLayerDataToDataCellConverterFactory="org.knime.dl.core.data.convert.DLLongLayerDataToLongCellConverterFactory">
-      </DLLayerDataToDataCellConverterFactory>
+         point="org.knime.dl.DLTensorToDataCellConverterFactory">
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLDoubleTensorToDoubleCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLIntTensorToIntCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLLongTensorToLongCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
    </extension>
 </plugin>

@@ -53,7 +53,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.util.DLUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -104,7 +104,7 @@ public abstract class DLPythonAbstractCommandsConfig {
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + handle.getIdentifier() + "')";
 	}
 
-	public String getExecuteNetworkCode(final DLPythonNetworkHandle handle, final Set<DLLayerDataSpec> requestedOutputs) {
+	public String getExecuteNetworkCode(final DLPythonNetworkHandle handle, final Set<DLTensorSpec> requestedOutputs) {
 		// TODO: add requestedOutputs functionality
 		return "import DLPythonNetwork\n" + //
 				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //

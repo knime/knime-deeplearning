@@ -55,7 +55,7 @@ import java.nio.LongBuffer;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.dl.core.DLLayerData;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
@@ -104,7 +104,7 @@ public class DLPythonLongBufferDeserializerFactory extends DeserializerFactory i
             }
 
             @Override
-            public void deserialize(final byte[] bytes, final DLLayerData<DLPythonLongBuffer> data) {
+            public void deserialize(final byte[] bytes, final DLTensor<DLPythonLongBuffer> data) {
                 final ByteBuffer buffer = ByteBuffer.wrap(bytes);
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
                 // TODO: we serialize to a flat buffer for now

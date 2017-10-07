@@ -59,14 +59,14 @@ import java.util.function.Consumer;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverter;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverter;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -76,43 +76,43 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 
 	private final DLExecutableNetworkAdapter m_network;
 
-	private final Map<DLLayerDataSpec, DLDataValueToLayerDataConverter<DataValue, ?>> m_inputConverters;
+	private final Map<DLTensorSpec, DLDataValueToTensorConverter<DataValue, ?>> m_inputConverters;
 
-	private final Map<DLLayerDataSpec, DLLayerDataToDataCellConverter<?, DataCell>> m_outputConverters;
+	private final Map<DLTensorSpec, DLTensorToDataCellConverter<?, DataCell>> m_outputConverters;
 
 	@SuppressWarnings("unchecked")
 	public DLKnimeNetworkExecutor(final DLExecutableNetworkAdapter network,
-			final Map<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters,
-			final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters) {
+			final Map<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters,
+			final Map<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverters) {
 		m_network = network;
 		m_inputConverters = new HashMap<>(inputConverters.size());
-		for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverter : inputConverters
+		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverter : inputConverters
 				.entrySet()) {
 			m_inputConverters.put(inputConverter.getKey(),
-					(DLDataValueToLayerDataConverter<DataValue, ?>) inputConverter.getValue().createConverter());
+					(DLDataValueToTensorConverter<DataValue, ?>) inputConverter.getValue().createConverter());
 		}
 		m_outputConverters = new HashMap<>(outputConverters.size());
-		for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverter : outputConverters
+		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverter : outputConverters
 				.entrySet()) {
 			m_outputConverters.put(outputConverter.getKey(),
-					(DLLayerDataToDataCellConverter<?, DataCell>) outputConverter.getValue().createConverter());
+					(DLTensorToDataCellConverter<?, DataCell>) outputConverter.getValue().createConverter());
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void execute(final Map<DLLayerDataSpec, ? extends Iterable<DataValue>[]> inputs,
-			final Consumer<Map<DLLayerDataSpec, DataCell[][]>> outputConsumer, final ExecutionContext exec,
+	public void execute(final Map<DLTensorSpec, ? extends Iterable<DataValue>[]> inputs,
+			final Consumer<Map<DLTensorSpec, DataCell[][]>> outputConsumer, final ExecutionContext exec,
 			final int batchSize) throws Exception {
 		m_network.execute(in -> {
 			// Filling network inputs
-			for (final Entry<DLLayerDataSpec, ? extends Iterable<DataValue>[]> input : inputs.entrySet()) {
+			for (final Entry<DLTensorSpec, ? extends Iterable<DataValue>[]> input : inputs.entrySet()) {
 				final Iterable<DataValue>[] batch = input.getValue();
 				// buffer for single layer
-				final DLLayerDataBatch<?> converted = in.get(input.getKey());
-				final DLDataValueToLayerDataConverter<DataValue, ?> inConverter = m_inputConverters.get(input.getKey());
+				final DLTensorBatch<?> converted = in.get(input.getKey());
+				final DLDataValueToTensorConverter<DataValue, ?> inConverter = m_inputConverters.get(input.getKey());
 
 				for (int i = 0; i < batch.length; i++) {
-					final DLLayerData buffer = converted.getBatch()[i];
+					final DLTensor buffer = converted.getBatch()[i];
 					try {
 						inConverter.convert(batch[i], buffer);
 					} catch (final BufferOverflowException ex) {
@@ -137,11 +137,11 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 		}, out -> {
 			// TODO: we don't want to allocate a new map each time
 			// output for each layerdataspec as a batch of rows (cells)
-			final HashMap<DLLayerDataSpec, DataCell[][]> convertedOutput = new HashMap<>(out.size());
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLReadableBuffer>> o : out.entrySet()) {
+			final HashMap<DLTensorSpec, DataCell[][]> convertedOutput = new HashMap<>(out.size());
+			for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> o : out.entrySet()) {
 				// TODO move out of loop
-				// array of rows. for each DL layer data we create a row.
-				final DLLayerDataToDataCellConverter<?, DataCell> converter = m_outputConverters.get(o.getKey());
+				// array of rows. for each DL tensor we create a row.
+				final DLTensorToDataCellConverter<?, DataCell> converter = m_outputConverters.get(o.getKey());
 				convertedOutput.put(o.getKey(), new DataCell[batchSize][]);
 				final ArrayList<DataCell>[] toCollect = new ArrayList[batchSize];
 				for (int i = 0; i < batchSize; i++) {
@@ -149,7 +149,7 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 					try {
 						final int j = i;
 						toCollect[i] = new ArrayList<>();
-						converter.convert(exec, (DLLayerData) o.getValue().getBatch()[i], new Consumer<DataCell>() {
+						converter.convert(exec, (DLTensor) o.getValue().getBatch()[i], new Consumer<DataCell>() {
 
 							@Override
 							public void accept(final DataCell t) {

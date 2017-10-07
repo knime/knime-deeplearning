@@ -48,9 +48,10 @@ package org.knime.dl.keras.cntk.core.execution;
 
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
+import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 
@@ -69,8 +70,8 @@ public final class DLKerasCNTKDefaultExecutionContext
 
 	@Override
 	public DLKerasExecutableNetworkAdapter executable(final DLKerasCNTKNetwork network,
-			final Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException {
+			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
 		final DLKerasCNTKExecutableNetwork execNetwork = new DLKerasCNTKExecutableNetwork(network);
-		return new DLKerasExecutableNetworkAdapter(execNetwork, getLayerDataFactory(), requestedOutputs);
+		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
 	}
 }

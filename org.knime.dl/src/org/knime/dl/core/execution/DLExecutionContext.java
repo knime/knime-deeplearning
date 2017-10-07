@@ -50,8 +50,8 @@ package org.knime.dl.core.execution;
 
 import java.util.Set;
 
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkType;
 
@@ -91,7 +91,7 @@ public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
 
 	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
 	// etc.)
-	DLLayerDataFactory getLayerDataFactory();
+	DLTensorFactory getTensorFactory();
 
 	/**
 	 * Creates a {@link DLExecutableNetworkAdapter executable network} given a {@link DLNetwork network}.
@@ -99,5 +99,5 @@ public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
 	 * @param network the network
 	 * @throws RuntimeException if failed to create the executable network
 	 */
-	DLExecutableNetworkAdapter executable(N network, Set<DLLayerDataSpec> requestedOutputs) throws RuntimeException;
+	DLExecutableNetworkAdapter executable(N network, Set<DLTensorSpec> requestedOutputs) throws RuntimeException;
 }
