@@ -46,7 +46,10 @@
  */
 package org.knime.dl.core.data.convert;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 import org.knime.core.data.DataCell;
@@ -57,11 +60,11 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @param <I> the input {@link DLReadableBuffer buffer type}
  * @param <OE> the {@link DataCell element type} of the output collection
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -74,8 +77,7 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 	 * @param elementConverterFactory the converter factory that is responsible for converting the elements of the
 	 *            output collection
 	 */
-	public DLTensorToListCellConverterFactory(
-			final DLTensorToDataCellConverterFactory<I, OE> elementConverterFactory) {
+	public DLTensorToListCellConverterFactory(final DLTensorToDataCellConverterFactory<I, OE> elementConverterFactory) {
 		m_elementConverterFactory = elementConverterFactory;
 	}
 
@@ -114,7 +116,16 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 					throws Exception {
 				final ArrayList<OE> temp = new ArrayList<>();
 				elementConverter.convert(exec, input, temp::add);
-				out.accept(CollectionCellFactory.createListCell(temp));
+				long exampleSizeLong = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).orElseThrow(
+						() -> new IllegalArgumentException("Tensor spec does not provide a fully defined shape."));
+				checkArgument(exampleSizeLong <= Integer.MAX_VALUE,
+						"Invalid example size. Converter only supports sizes up to " + Integer.MAX_VALUE + ".");
+				int exampleSize = (int) exampleSizeLong;
+				int numLists = temp.size() / exampleSize;
+				for (int i = 0; i < numLists; i++) {
+					out.accept(
+							CollectionCellFactory.createListCell(temp.subList(i * exampleSize, (i + 1) * exampleSize)));
+				}
 			}
 		};
 	}
