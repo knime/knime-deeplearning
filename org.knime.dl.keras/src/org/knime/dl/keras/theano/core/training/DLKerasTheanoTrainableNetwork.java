@@ -71,7 +71,6 @@ public final class DLKerasTheanoTrainableNetwork extends
 	protected DLKerasTheanoCommands createCommands() throws DLInvalidContextException {
 		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands();
 		commands.setupEnvironment();
-		commands.testInstallation();
 		commands.registerBackends();
 		commands.setupBackend();
 		return commands;

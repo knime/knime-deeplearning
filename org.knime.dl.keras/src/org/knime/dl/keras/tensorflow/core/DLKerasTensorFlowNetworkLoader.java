@@ -83,7 +83,6 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
 		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands(context);
 		if (initialize) {
 			commands.setupEnvironment();
-			commands.testInstallation();
 			commands.registerBackends();
 			commands.setupBackend();
 		}

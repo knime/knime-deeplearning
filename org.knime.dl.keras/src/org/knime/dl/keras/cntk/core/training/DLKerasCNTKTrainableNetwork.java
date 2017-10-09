@@ -71,7 +71,6 @@ public final class DLKerasCNTKTrainableNetwork extends
 	protected DLKerasCNTKCommands createCommands() throws DLInvalidContextException {
 		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands();
 		commands.setupEnvironment();
-		commands.testInstallation();
 		commands.registerBackends();
 		commands.setupBackend();
 		return commands;

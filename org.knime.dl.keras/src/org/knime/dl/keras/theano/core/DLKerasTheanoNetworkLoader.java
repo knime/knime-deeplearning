@@ -83,7 +83,6 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands(context);
 		if (initialize) {
 			commands.setupEnvironment();
-			commands.testInstallation();
 			commands.registerBackends();
 			commands.setupBackend();
 		}

@@ -82,7 +82,6 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands(context);
 		if (initialize) {
 			commands.setupEnvironment();
-			commands.testInstallation();
 			commands.registerBackends();
 			commands.setupBackend();
 		}

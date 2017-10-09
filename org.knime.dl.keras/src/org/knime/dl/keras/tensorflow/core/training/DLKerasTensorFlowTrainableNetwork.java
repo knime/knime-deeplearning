@@ -72,7 +72,6 @@ public final class DLKerasTensorFlowTrainableNetwork
 	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidContextException {
 		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands();
 		commands.setupEnvironment();
-		commands.testInstallation();
 		commands.registerBackends();
 		commands.setupBackend();
 		return commands;
