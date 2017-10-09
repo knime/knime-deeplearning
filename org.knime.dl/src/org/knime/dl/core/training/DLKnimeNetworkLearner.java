@@ -56,15 +56,14 @@ import java.util.Map.Entry;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverter;
-import org.knime.dl.core.data.convert.DLDataValueToLayerDataConverterFactory;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverter;
-import org.knime.dl.core.data.convert.DLLayerDataToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.execution.DLInvalidNetworkInputException;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -74,93 +73,90 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 
 	private final DLTrainableNetworkAdapter m_network;
 
-	private final Map<DLLayerDataSpec, DLDataValueToLayerDataConverter<DataValue, ?>> m_inputConverters;
+	private final Map<DLTensorSpec, DLDataValueToTensorConverter<DataValue, ?>> m_inputConverters;
 
-	private final Map<DLLayerDataSpec, DLLayerDataToDataCellConverter<?, DataCell>> m_outputConverters;
+	private final Map<DLTensorSpec, DLTensorToDataCellConverter<?, DataCell>> m_outputConverters;
 
 	@SuppressWarnings("unchecked")
 	public DLKnimeNetworkLearner(final DLTrainableNetworkAdapter network,
-			final Map<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverters,
-			final Map<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverters) {
+			final Map<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters,
+			final Map<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverters) {
 		m_network = network;
 		m_inputConverters = new HashMap<>(inputConverters.size());
-		for (final Entry<DLLayerDataSpec, DLDataValueToLayerDataConverterFactory<?, ?>> inputConverter : inputConverters
+		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverter : inputConverters
 				.entrySet()) {
 			m_inputConverters.put(inputConverter.getKey(),
-					(DLDataValueToLayerDataConverter<DataValue, ?>) inputConverter.getValue().createConverter());
+					(DLDataValueToTensorConverter<DataValue, ?>) inputConverter.getValue().createConverter());
 		}
 		m_outputConverters = new HashMap<>(outputConverters.size());
-		for (final Entry<DLLayerDataSpec, DLLayerDataToDataCellConverterFactory<?, ?>> outputConverter : outputConverters
+		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverter : outputConverters
 				.entrySet()) {
 			m_outputConverters.put(outputConverter.getKey(),
-					(DLLayerDataToDataCellConverter<?, DataCell>) outputConverter.getValue().createConverter());
+					(DLTensorToDataCellConverter<?, DataCell>) outputConverter.getValue().createConverter());
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void train(final Map<DLLayerDataSpec, ? extends Iterable<DataValue>[]> trainingData,
-			final Map<DLLayerDataSpec, ? extends Iterable<DataValue>[]> targetData, final ExecutionContext exec,
+	public void train(final Map<DLTensorSpec, ? extends Iterable<DataValue>[]> trainingData,
+			final Map<DLTensorSpec, ? extends Iterable<DataValue>[]> targetData, final ExecutionContext exec,
 			final int batchSize) throws Exception {
 		m_network.train(training -> {
 			// Fill training data
 			// TODO: these input population routines are shared by executor and learner, abstract!
-			for (final Entry<DLLayerDataSpec, ? extends Iterable<DataValue>[]> trainingBatch : trainingData
-					.entrySet()) {
+			for (final Entry<DLTensorSpec, ? extends Iterable<DataValue>[]> trainingBatch : trainingData.entrySet()) {
 				final Iterable<DataValue>[] batch = trainingBatch.getValue();
 				// buffer for single layer
-				final DLLayerDataBatch<?> converted = training.get(trainingBatch.getKey());
-				final DLDataValueToLayerDataConverter<DataValue, ?> inConverter =
+				final DLTensor<?> tensor = training.get(trainingBatch.getKey());
+				final DLDataValueToTensorConverter<DataValue, ?> inConverter =
 						m_inputConverters.get(trainingBatch.getKey());
 
 				for (int i = 0; i < batch.length; i++) {
-					final DLLayerData buffer = converted.getBatch()[i];
 					try {
-						inConverter.convert(batch[i], buffer);
+						inConverter.convert(batch[i], (DLTensor) tensor);
 					} catch (final BufferOverflowException ex) {
 						throw new DLInvalidNetworkInputException(
 								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Node input exceeded the neuron count of "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".",
+										+ tensor.getSpec().getName() + "'. Node input exceeded the neuron count of "
+										+ ((DLWritableBuffer) tensor.getBuffer()).getCapacity() + ".",
 								ex);
 					}
 					// TODO: the cast to writable buffer should not be necessary here!
-					if (buffer.getBuffer().size() != ((DLWritableBuffer) buffer.getBuffer()).getCapacity()) {
+					if (tensor.getBuffer().size() != ((DLWritableBuffer) tensor.getBuffer()).getCapacity()) {
 						throw new DLInvalidNetworkInputException(
 								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Neuron count is "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity()
-										+ ", node input size was " + buffer.getBuffer().size() + ".");
+										+ tensor.getSpec().getName() + "'. Neuron count is "
+										+ ((DLWritableBuffer) tensor.getBuffer()).getCapacity()
+										+ ", node input size was " + tensor.getBuffer().size() + ".");
 					}
 				}
 			}
 		}, target -> {
 			// Fill target data
 			// TODO: these input population routines are shared by executor and learner, abstract!
-			for (final Entry<DLLayerDataSpec, ? extends Iterable<DataValue>[]> targetBatch : targetData.entrySet()) {
+			for (final Entry<DLTensorSpec, ? extends Iterable<DataValue>[]> targetBatch : targetData.entrySet()) {
 				final Iterable<DataValue>[] batch = targetBatch.getValue();
 				// buffer for single layer
-				final DLLayerDataBatch<?> converted = target.get(targetBatch.getKey());
-				final DLDataValueToLayerDataConverter<DataValue, ?> inConverter =
+				final DLTensor<?> tensor = target.get(targetBatch.getKey());
+				final DLDataValueToTensorConverter<DataValue, ?> inConverter =
 						m_inputConverters.get(targetBatch.getKey());
 
 				for (int i = 0; i < batch.length; i++) {
-					final DLLayerData buffer = converted.getBatch()[i];
 					try {
-						inConverter.convert(batch[i], buffer);
+						inConverter.convert(batch[i], (DLTensor) tensor);
 					} catch (final BufferOverflowException ex) {
 						throw new DLInvalidNetworkInputException(
 								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Node input exceeded the neuron count of "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".",
+										+ tensor.getSpec().getName() + "'. Node input exceeded the neuron count of "
+										+ ((DLWritableBuffer) tensor.getBuffer()).getCapacity() + ".",
 								ex);
 					}
 					// TODO: the cast to writable buffer should not be necessary here!
-					if (buffer.getBuffer().size() != ((DLWritableBuffer) buffer.getBuffer()).getCapacity()) {
+					if (tensor.getBuffer().size() != ((DLWritableBuffer) tensor.getBuffer()).getCapacity()) {
 						throw new DLInvalidNetworkInputException(
 								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Neuron count is "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity()
-										+ ", node input size was " + buffer.getBuffer().size() + ".");
+										+ tensor.getSpec().getName() + "'. Neuron count is "
+										+ ((DLWritableBuffer) tensor.getBuffer()).getCapacity()
+										+ ", node input size was " + tensor.getBuffer().size() + ".");
 					}
 				}
 			}

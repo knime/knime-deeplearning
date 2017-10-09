@@ -52,6 +52,7 @@ import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
@@ -67,6 +68,7 @@ import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -108,29 +110,34 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 			for (final Entry<DLTensorSpec, ? extends Iterable<DataValue>[]> input : inputs.entrySet()) {
 				final Iterable<DataValue>[] batch = input.getValue();
 				// buffer for single layer
-				final DLTensorBatch<?> converted = in.get(input.getKey());
+				final DLTensor<?> converted = in.get(input.getKey());
 				final DLDataValueToTensorConverter<DataValue, ?> inConverter = m_inputConverters.get(input.getKey());
 
 				for (int i = 0; i < batch.length; i++) {
-					final DLTensor buffer = converted.getBatch()[i];
 					try {
-						inConverter.convert(batch[i], buffer);
+						inConverter.convert(batch[i], (DLTensor) converted);
 					} catch (final BufferOverflowException ex) {
 						throw new DLInvalidNetworkInputException(
 								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Node input exceeded the neuron count of "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity() + ".",
+										+ converted.getSpec().getName() + "'. Node input exceeded the neuron count of "
+										+ ((DLWritableBuffer) converted.getBuffer()).getCapacity() + ".",
 								ex);
 					}
-					// TODO: the cast to writable buffer should not be
-					// necessary
-					// here!
-					if (buffer.getBuffer().size() != ((DLWritableBuffer) buffer.getBuffer()).getCapacity()) {
+				}
+				// TODO: the cast to writable buffer should not be necessary here!
+				if (converted.getBuffer().size() != ((DLWritableBuffer) converted.getBuffer()).getCapacity()) {
+					final long shape = DLUtils.Shapes.getFixedSize(input.getKey().getShape())
+							.orElseThrow(() -> new DLInvalidNetworkInputException(
+									"Tensor spec does not provide a fully defined shape."));
+					if (converted.getBuffer().size() != shape * batchSize) {
+						// TODO: if batch size was pre-defined and buffer is only partially filled, we should pad it
+						// (last batch only! - previous batches still have to fail with an underflow)
 						throw new DLInvalidNetworkInputException(
-								"Node input size did not match neuron count of network input '"
-										+ buffer.getSpec().getName() + "'. Neuron count is "
-										+ ((DLWritableBuffer) buffer.getBuffer()).getCapacity()
-										+ ", node input size was " + buffer.getBuffer().size() + ".");
+								"Node input size did not match the expected input size of network input '"
+										+ converted.getSpec().getName() + "'. Neuron count is " + shape
+										+ ", batch size is " + batchSize + ". Thus, expected input size is "
+										+ shape * batchSize + " .Node input size was " + converted.getBuffer().size()
+										+ ".");
 					}
 				}
 			}
@@ -138,39 +145,33 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 			// TODO: we don't want to allocate a new map each time
 			// output for each layerdataspec as a batch of rows (cells)
 			final HashMap<DLTensorSpec, DataCell[][]> convertedOutput = new HashMap<>(out.size());
-			for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> o : out.entrySet()) {
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> o : out.entrySet()) {
 				// TODO move out of loop
 				// array of rows. for each DL tensor we create a row.
 				final DLTensorToDataCellConverter<?, DataCell> converter = m_outputConverters.get(o.getKey());
-				convertedOutput.put(o.getKey(), new DataCell[batchSize][]);
-				final ArrayList<DataCell>[] toCollect = new ArrayList[batchSize];
-				for (int i = 0; i < batchSize; i++) {
-					// thanks java
-					try {
-						final int j = i;
-						toCollect[i] = new ArrayList<>();
-						converter.convert(exec, (DLTensor) o.getValue().getBatch()[i], new Consumer<DataCell>() {
-
-							@Override
-							public void accept(final DataCell t) {
-								toCollect[j].add(t);
-							}
-						});
-					} catch (final BufferUnderflowException ex) {
-						throw new DLInvalidNetworkOutputException("Unexpected network output. Size of network output '"
-								+ o.getKey().getName() + "' did not match its specification.");
-					} catch (final Exception e) {
-						// TODO
-						throw new RuntimeException(e);
-					}
+				final ArrayList<DataCell> toCollect = new ArrayList<>();
+				try {
+					converter.convert(exec, (DLTensor) o.getValue(), toCollect::add);
+				} catch (final BufferUnderflowException ex) {
+					throw new DLInvalidNetworkOutputException("Unexpected network output. Size of network output '"
+							+ o.getKey().getName() + "' did not match its specification.");
+				} catch (final Exception e) {
 					// TODO
-					convertedOutput.get(o.getKey())[i] = toCollect[i].toArray(new DataCell[toCollect[i].size()]);
+					throw new RuntimeException(e);
 				}
+				final DataCell[][] output = new DataCell[batchSize][toCollect.size() / batchSize];
+				final Iterator<DataCell> collectedIterator = toCollect.iterator();
+				for (int i = 0; i < batchSize; i++) {
+					for (int j = 0; j < toCollect.size() / batchSize; j++) {
+						output[i][j] = collectedIterator.next();
+					}
+				}
+				convertedOutput.put(o.getKey(), output);
 			}
 			outputConsumer.accept(convertedOutput);
 		}, batchSize);
-	}
 
+	}
 
 	@Override
 	public void close() throws Exception {
