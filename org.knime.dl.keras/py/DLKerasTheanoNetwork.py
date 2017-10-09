@@ -56,15 +56,7 @@ from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
 
-from DLPythonDataBuffers import DLPythonDoubleBuffer
-from DLPythonDataBuffers import DLPythonFloatBuffer
-from DLPythonDataBuffers import DLPythonIntBuffer
-from DLPythonDataBuffers import DLPythonLongBuffer
-
 from DLPythonNetwork import DLPythonTensorSpec
-
-import numpy as np
-import pandas as pd
 
 
 class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
@@ -146,50 +138,6 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
                                 intermediate_output_specs.append(spec)
             self._spec = DLKerasTheanoNetworkSpec(input_specs, intermediate_output_specs, output_specs)
         return self._spec
-    
-    def execute(self, in_data):
-        # TODO: this does not yet take (predefined) batch size (of the input) into account
-        X = []
-        for input_spec in self.spec.input_specs:
-            data = in_data[input_spec.name].values
-            data = list(map((lambda b: b[0].array.reshape([1] + input_spec.shape)), data))
-            X.append(np.vstack(data))
-        Y = self._model.predict(X, verbose=0)  # don't change to predict_proba
-        # some networks have multiple outputs, some do not
-        if not isinstance(Y, (list, tuple)):
-            Y = [Y]
-        # TODO: output selected outputs only, intermediate outputs
-        output = {}
-        for idx, output_spec in enumerate(self.spec.output_specs):
-            batch_size = 1
-            if len(Y[idx].shape) > len(output_spec.shape):
-                batch_size = Y[idx].shape[0]
-            out = []
-            for i in range(0, batch_size):
-                out.append(self.__putInMatchingBuffer(Y[idx][i]))
-            out = pd.DataFrame({output_spec.name:out})
-            output[output_spec.name] = out
-        return output
-            
-    def save(self, path):
-        self._model.save(path)
-    
-    # Private helper methods:
-        
-    def __putInMatchingBuffer(self, y):
-        t = y.dtype
-        if t == np.float64:
-            return DLPythonDoubleBuffer(y)
-        elif t == np.float32:
-            return DLPythonFloatBuffer(y)
-        elif t == np.int32:
-            return DLPythonIntBuffer(y)
-        elif t == np.int64:
-            return DLPythonLongBuffer(y)
-        # TODO: support more types
-        else:
-            # TODO: warning to stderr?
-            return DLPythonDoubleBuffer(y)
 
 
 class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
