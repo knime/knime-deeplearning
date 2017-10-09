@@ -48,7 +48,6 @@ package org.knime.dl.core;
 
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLTensorBatch;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -63,18 +62,12 @@ public interface DLTensorFactory {
 	// TODO: improve matching in registry (more sophisticated traversal of implemented interfaces etc.)?
 	Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec);
 
-	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec)
-			throws IllegalArgumentException;
-
-	DLTensorBatch<? extends DLWritableBuffer> createWritableTensorBatch(DLTensorSpec spec, long batchSize)
-			throws IllegalArgumentException;
-
 	// Only return basic interfaces such as "DLReadableDoubleBuffer" etc. [...]
 	Class<? extends DLReadableBuffer> getReadableBufferType(final DLTensorSpec spec);
 
-	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec)
+	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec, long batchSize)
 			throws IllegalArgumentException;
 
-	DLTensorBatch<? extends DLReadableBuffer> createReadableTensorBatch(DLTensorSpec spec, long batchSize)
+	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec, long batchSize)
 			throws IllegalArgumentException;
 }

@@ -48,7 +48,6 @@ package org.knime.dl.keras.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.lang.reflect.Array;
 import java.util.function.Supplier;
 
 import org.knime.dl.core.DLDefaultTensor;
@@ -66,8 +65,6 @@ import org.knime.dl.core.data.DLWritableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
-import org.knime.dl.core.execution.DLDefaultTensorBatch;
-import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
@@ -97,20 +94,6 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 	}
 
 	@Override
-	public DLTensor<? extends DLWritableBuffer> createWritableTensor(final DLTensorSpec spec)
-			throws IllegalArgumentException {
-		return createTensorInternal(spec, 1, DLWritableBuffer.class)[0];
-	}
-
-	@Override
-	public DLTensorBatch<? extends DLWritableBuffer> createWritableTensorBatch(final DLTensorSpec spec,
-			final long batchSize) throws IllegalArgumentException {
-		final DLTensor<DLWritableBuffer>[] layerData =
-				createTensorInternal(spec, batchSize, DLWritableBuffer.class);
-		return new DLDefaultTensorBatch<>(layerData);
-	}
-
-	@Override
 	public Class<? extends DLReadableBuffer> getReadableBufferType(final DLTensorSpec spec) {
 		final Class<?> t = spec.getElementType();
 		if (t.equals(double.class)) {
@@ -127,28 +110,25 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 	}
 
 	@Override
-	public DLTensor<? extends DLReadableBuffer> createReadableTensor(final DLTensorSpec spec)
+	public DLTensor<? extends DLWritableBuffer> createWritableTensor(final DLTensorSpec spec, final long batchSize)
 			throws IllegalArgumentException {
-		return createTensorInternal(spec, 1, DLReadableBuffer.class)[0];
+		return createTensorInternal(spec, batchSize, DLWritableBuffer.class);
 	}
 
 	@Override
-	public DLTensorBatch<? extends DLReadableBuffer> createReadableTensorBatch(final DLTensorSpec spec,
-			final long batchSize) throws IllegalArgumentException {
-		final DLTensor<DLReadableBuffer>[] layerData =
-				createTensorInternal(spec, batchSize, DLReadableBuffer.class);
-		return new DLDefaultTensorBatch<>(layerData);
+	public DLTensor<? extends DLReadableBuffer> createReadableTensor(final DLTensorSpec spec, final long batchSize)
+			throws IllegalArgumentException {
+		return createTensorInternal(spec, batchSize, DLReadableBuffer.class);
 	}
 
-	private <B extends DLBuffer> DLTensor<B>[] createTensorInternal(final DLTensorSpec spec,
-			final long batchSize, final Class<B> readableOrWritableBufferType) {
-		final long[] shape =
-				DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
-						"Tensor spec does not provide a shape. Tensor cannot be created."));
+	private <B extends DLBuffer> DLTensor<B> createTensorInternal(final DLTensorSpec spec, final long batchSize,
+			final Class<B> readableOrWritableBufferType) {
+		final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(
+				() -> new IllegalArgumentException("Tensor spec does not provide a shape. Tensor cannot be created."));
 		checkArgument(batchSize <= Integer.MAX_VALUE,
 				"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
 		final Class<?> t = spec.getElementType();
-		final long size = DLUtils.Shapes.getSize(shape);
+		final long size = DLUtils.Shapes.getSize(shape) * batchSize;
 		// TODO: handle unsafe casts
 		final Supplier<B> s;
 		if (t.equals(double.class)) {
@@ -162,10 +142,6 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 		} else {
 			throw new IllegalArgumentException("No matching tensor type.");
 		}
-		final DLTensor<B>[] layerData = (DLTensor<B>[]) Array.newInstance(DLTensor.class, (int) batchSize);
-		for (int i = 0; i < batchSize; i++) {
-			layerData[i] = new DLDefaultTensor<>(spec, s.get());
-		}
-		return layerData;
+		return new DLDefaultTensor<>(spec, s.get());
 	}
 }
