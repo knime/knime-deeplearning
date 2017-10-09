@@ -150,17 +150,17 @@ class DLKerasNetwork(DLPythonNetwork):
             loss.append(config.loss[output_spec.name])
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=config.metrics)
 
-    def execute(self, in_data):
-        X = self._format_input(in_data)
-        Y = self._model.predict(X, verbose=0)  # don't change to predict_proba
+    def execute(self, in_data, batch_size):
+        X = self._format_input(in_data, batch_size)
+        Y = self._model.predict(X, batch_size=batch_size, verbose=0)  # don't change to predict_proba
         return self._format_output(Y)
 
     def train(self, training_data, target_data):
         config = self._training_config
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
-        X1 = self._format_input(training_data)
-        X2 = self._format_target(target_data)
+        X1 = self._format_input(training_data, config.batch_size)
+        X2 = self._format_target(target_data, config.batch_size)
         history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1)
         return history.history
 
@@ -169,13 +169,12 @@ class DLKerasNetwork(DLPythonNetwork):
 
     # "Protected" helper methods:
 
-    def _format_input(self, in_data):
-        # TODO: this does not yet take (predefined) batch size of the input into account
+    def _format_input(self, in_data, batch_size):
         X = []
         for input_spec in self.spec.input_specs:
-            data = in_data[input_spec.name].values
-            data = list(map((lambda b: b[0].array.reshape([1] + input_spec.shape)), data))
-            X.append(np.vstack(data))
+            tensor = in_data[input_spec.name].values[0][0].array
+            tensor = tensor.reshape([batch_size] + input_spec.shape)
+            X.append(tensor)
         return X
 
     def _format_output(self, Y):
@@ -185,26 +184,21 @@ class DLKerasNetwork(DLPythonNetwork):
         # TODO: output selected outputs only, output intermediate outputs
         output = {}
         for idx, output_spec in enumerate(self.spec.output_specs):
-            batch_size = 1
-            if len(Y[idx].shape) > len(output_spec.shape):
-                batch_size = Y[idx].shape[0]
-            out = []
-            for i in range(0, batch_size):
-                out.append(self._putInMatchingBuffer(Y[idx][i]))
-            out = pd.DataFrame({output_spec.name:out})
+            out = self._put_in_matching_buffer(Y[idx])
+            out = pd.DataFrame({output_spec.name:[out]})
             output[output_spec.name] = out
-        return Y
+        return output
 
-    def _format_target(self, target_data):
+    def _format_target(self, target_data, batch_size):
         # TODO: this does not yet take (predefined) batch size of the output into account
         X = []
         for output_spec in self.spec.output_specs:
-            data = target_data[output_spec.name].values
-            data = list(map((lambda b: b[0].array.reshape([1] + output_spec.shape)), data))
-            X.append(np.vstack(data))
+            tensor = target_data[output_spec.name].values[0][0].array
+            tensor = tensor.reshape([batch_size] + output_spec.shape)
+            X.append(tensor)
         return X
 
-    def _putInMatchingBuffer(self, y):
+    def _put_in_matching_buffer(self, y):
         t = y.dtype
         if t == np.float64:
             return DLPythonDoubleBuffer(y)

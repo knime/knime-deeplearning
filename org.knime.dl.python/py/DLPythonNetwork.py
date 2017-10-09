@@ -88,7 +88,7 @@ class DLPythonNetwork(object):
         return
     
     @abc.abstractmethod
-    def execute(self, inData):
+    def execute(self, in_data, batch_size):
         return
     
     @abc.abstractmethod
