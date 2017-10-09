@@ -61,68 +61,69 @@ import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLPythonDoubleBufferDeserializerFactory extends DeserializerFactory
-    implements DLPythonDeserializerFactory {
+		implements DLPythonDeserializerFactory {
 
-    /**
-     * The unique identifier of this deserializer factory.
-     */
-    public static final String IDENTIFIER =
-        "org.knime.dl.python.core.data.serde.DLPythonDoubleBufferDeserializerFactory";
+	/**
+	 * The unique identifier of this deserializer factory.
+	 */
+	public static final String IDENTIFIER = "org.knime.dl.python.core.data.serde.DLPythonDoubleBufferDeserializerFactory";
 
-    /**
-     * Empty framework constructor.
-     */
-    public DLPythonDoubleBufferDeserializerFactory() {
-        super(DLPythonDoubleBuffer.TYPE);
-    }
+	/**
+	 * Empty framework constructor.
+	 */
+	public DLPythonDoubleBufferDeserializerFactory() {
+		super(DLPythonDoubleBuffer.TYPE);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Deserializer createDeserializer() {
-        return new DLPythonDeserializer<DLPythonDoubleBuffer>() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Deserializer createDeserializer() {
+		return new DLPythonDeserializer<DLPythonDoubleBuffer>() {
 
-            @Override
-            public DataCell deserialize(final byte[] bytes, final FileStoreFactory fileStoreFactory)
-                throws IOException {
-                final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                // TODO: we serialize to a flat buffer for now
-                // final int numDimensions = buffer.getInt();
-                // final long[] shape = new long[numDimensions];
-                // for (int i = 0; i < numDimensions; i++) {
-                // shape[i] = buffer.getLong();
-                // }
-                final DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
-                final DLPythonDoubleBuffer value = new DLPythonDoubleBuffer(buffer.capacity() / Double.BYTES);
-                doubleBuffer.get(value.getStorageForWriting(0, doubleBuffer.limit()));
-                return value;
-            }
+			@Override
+			public DataCell deserialize(final byte[] bytes, final FileStoreFactory fileStoreFactory)
+					throws IOException {
+				final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+				buffer.order(ByteOrder.LITTLE_ENDIAN);
+				// TODO: we serialize to a flat buffer for now
+				// final int numDimensions = buffer.getInt();
+				// final long[] shape = new long[numDimensions];
+				// for (int i = 0; i < numDimensions; i++) {
+				// shape[i] = buffer.getLong();
+				// }
+				final DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+				final DLPythonDoubleBuffer value = new DLPythonDoubleBuffer(buffer.capacity() / Double.BYTES);
+				doubleBuffer.get(value.getStorageForWriting(0, doubleBuffer.limit()));
+				return value;
+			}
 
-            @Override
-            public void deserialize(final byte[] bytes, final DLTensor<DLPythonDoubleBuffer> data) {
-                final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                // TODO: we serialize to a flat buffer for now
-                // final int numDimensions = buffer.getInt();
-                // final long[] shape = new long[numDimensions];
-                // for (int i = 0; i < numDimensions; i++) {
-                // shape[i] = buffer.getLong();
-                // }
-                final DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
-                doubleBuffer.get(data.getBuffer().getStorageForWriting(0, doubleBuffer.limit()));
-            }
-        };
-    }
+			@Override
+			public void deserialize(final byte[] bytes, final DLTensor<DLPythonDoubleBuffer> data) {
+				final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+				buffer.order(ByteOrder.LITTLE_ENDIAN);
+				// TODO: we serialize to a flat buffer for now
+				// final int numDimensions = buffer.getInt();
+				// final long[] shape = new long[numDimensions];
+				// for (int i = 0; i < numDimensions; i++) {
+				// shape[i] = buffer.getLong();
+				// }
+				final DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+				final DLPythonDoubleBuffer tensorBuffer = data.getBuffer();
+				final int writeStart = (int) tensorBuffer.size();
+				final double[] tensorStorage = tensorBuffer.getStorageForWriting(writeStart, doubleBuffer.limit());
+				doubleBuffer.get(tensorStorage, writeStart, doubleBuffer.limit());
+			}
+		};
+	}
 
-    @Override
-    public Class<? extends DLPythonDoubleBuffer> getBufferType() {
-        return DLPythonDoubleBuffer.class;
-    }
+	@Override
+	public Class<? extends DLPythonDoubleBuffer> getBufferType() {
+		return DLPythonDoubleBuffer.class;
+	}
 }

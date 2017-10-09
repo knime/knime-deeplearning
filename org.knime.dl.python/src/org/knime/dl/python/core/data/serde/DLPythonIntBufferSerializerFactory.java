@@ -59,7 +59,6 @@ import org.knime.python.typeextension.Serializer;
 import org.knime.python.typeextension.SerializerFactory;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -78,7 +77,6 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 		super(DLPythonIntBuffer.class);
 	}
 
-
 	@Override
 	public Serializer<? extends DLPythonIntBuffer> createSerializer() {
 
@@ -89,20 +87,18 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 				// TODO: we serialize to flat buffers for now
 				// final int numDimensions = value.getNumDimensions();
 				// final long[] shape = value.getShape();
-				final long size = value.size();
+				final long size = value.size() - value.getNextReadPosition();
 				final long numBytes = /*
-										 * Integer.BYTES + numDimensions *
-										 * Long.BYTES +
+										 * Integer.BYTES + numDimensions * Long.BYTES +
 										 */ size * Integer.BYTES;
 				if (numBytes > Integer.MAX_VALUE) {
 					throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
 							+ Integer.MAX_VALUE + "bytes.");
 				}
-				final IntBuffer intBuffer = IntBuffer.wrap(value.getStorageForReading(0, size));
-				intBuffer.limit((int)size);
+				int[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
-				buffer.asIntBuffer().put(intBuffer);
+				buffer.asIntBuffer().put(tensorStorage, (int) value.getNextReadPosition(), (int) size);
 				// TODO: we serialize to flat buffers for now
 				// buffer.putInt(numDimensions);
 				// for (final long dim : shape) {
@@ -112,7 +108,6 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 			}
 		};
 	}
-
 
 	@Override
 	public Class<? extends DLBuffer> getBufferType() {

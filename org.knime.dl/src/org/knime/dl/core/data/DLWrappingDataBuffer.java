@@ -58,6 +58,8 @@ import java.nio.BufferUnderflowException;
  */
 public interface DLWrappingDataBuffer<S> extends DLReadableBuffer, DLWritableBuffer {
 
+	long getNextReadPosition();
+
 	/**
 	 * Returns the actual storage object that holds the buffer's data. The returned object must not be modified. It can
 	 * be read in a way that conforms to the arguments.

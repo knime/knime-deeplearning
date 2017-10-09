@@ -61,7 +61,6 @@ import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -78,7 +77,6 @@ public class DLPythonFloatBufferDeserializerFactory extends DeserializerFactory 
 	public DLPythonFloatBufferDeserializerFactory() {
 		super(DLPythonFloatBuffer.TYPE);
 	}
-
 
 	@Override
 	public Deserializer createDeserializer() {
@@ -111,9 +109,11 @@ public class DLPythonFloatBufferDeserializerFactory extends DeserializerFactory 
 				// for (int i = 0; i < numDimensions; i++) {
 				// shape[i] = buffer.getLong();
 				// }
-
 				final FloatBuffer floatBuffer = buffer.asFloatBuffer();
-				floatBuffer.get(data.getBuffer().getStorageForWriting(0, floatBuffer.limit()));
+				final DLPythonFloatBuffer tensorBuffer = data.getBuffer();
+				final int writeStart = (int) tensorBuffer.size();
+				final float[] tensorStorage = tensorBuffer.getStorageForWriting(writeStart, floatBuffer.limit());
+				floatBuffer.get(tensorStorage, writeStart, floatBuffer.limit());
 			}
 		};
 	}

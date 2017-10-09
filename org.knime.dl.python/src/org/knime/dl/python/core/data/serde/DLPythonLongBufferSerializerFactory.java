@@ -89,7 +89,7 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 				// TODO: we serialize to flat buffers for now
 				// final int numDimensions = value.getNumDimensions();
 				// final long[] shape = value.getShape();
-				final long size = value.size();
+				final long size = value.size() - value.getNextReadPosition();
 				final long numBytes = /*
 										 * Integer.BYTES + numDimensions *
 										 * Long.BYTES +
@@ -98,11 +98,10 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 					throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
 							+ Integer.MAX_VALUE + "bytes.");
 				}
-				final LongBuffer longBuffer = LongBuffer.wrap(value.getStorageForReading(0, size));
-				longBuffer.limit((int)size);
+				long[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
 				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
 				buffer.order(ByteOrder.LITTLE_ENDIAN);
-				buffer.asLongBuffer().put(longBuffer);
+				buffer.asLongBuffer().put(tensorStorage, (int)value.getNextReadPosition(), (int)size);
 				// TODO: we serialize to flat buffers for now
 				// buffer.putInt(numDimensions);
 				// for (final long dim : shape) {

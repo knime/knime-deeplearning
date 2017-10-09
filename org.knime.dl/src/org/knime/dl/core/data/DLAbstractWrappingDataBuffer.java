@@ -127,6 +127,11 @@ public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataB
 	}
 
 	@Override
+	public long getNextReadPosition() {
+		return m_nextRead;
+	}
+
+	@Override
 	public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
 		checkUnderflow(startPos + length <= m_nextWrite);
 		return m_storage;

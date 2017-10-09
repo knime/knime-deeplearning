@@ -99,6 +99,11 @@ public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<
 	}
 
 	@Override
+	public long getNextReadPosition() {
+		return m_buffer.getNextReadPosition();
+	}
+
+	@Override
 	public S getStorageForReading(final long startPos, final long length) throws BufferUnderflowException {
 		return m_buffer.getStorageForReading(startPos, length);
 	}
