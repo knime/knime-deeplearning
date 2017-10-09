@@ -46,8 +46,8 @@
  */
 package org.knime.dl.core.training;
 
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 
 /**
@@ -58,7 +58,7 @@ public interface DLTrainableNetworkAdapter extends AutoCloseable {
 
 	DLTrainableNetwork<?, ?, ?, ?> getNetwork();
 
-	void train(DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> trainingDataPreparer,
-			DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> testDataPreparer, long batchSize)
+	void train(DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> trainingDataPreparer,
+			DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> testDataPreparer, long batchSize)
 			throws Exception;
 }

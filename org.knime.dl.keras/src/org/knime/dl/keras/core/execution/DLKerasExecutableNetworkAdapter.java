@@ -49,12 +49,12 @@ package org.knime.dl.keras.core.execution;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLTensorBatch;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -69,13 +69,13 @@ public class DLKerasExecutableNetworkAdapter extends DLAbstractExecutableNetwork
 
 	@Override
 	protected Map<DLTensorSpec, ?> extractNetworkInput(
-			final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> adapterInput) {
+			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput) {
 		return adapterInput;
 	}
 
 	@Override
 	protected Map<DLTensorSpec, ?> extractNetworkOutput(
-			final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> adapterOutput) {
+			final Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> adapterOutput) {
 		return adapterOutput;
 	}
 }

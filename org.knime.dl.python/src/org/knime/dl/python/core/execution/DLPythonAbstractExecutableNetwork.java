@@ -52,11 +52,11 @@ import java.net.URL;
 import java.util.Map;
 
 import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
-import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -68,8 +68,8 @@ import org.knime.dl.python.core.DLPythonNetworkSpec;
  */
 public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
 		C extends DLPythonAbstractCommands<?>>
-		extends DLAbstractExecutableNetwork<DLTensorBatch<? extends DLWritableBuffer>, //
-				DLTensorBatch<? extends DLReadableBuffer>, N, S, URL> {
+	extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, //
+			DLTensor<? extends DLReadableBuffer>, N, S, URL> {
 
 	private C m_commands;
 
@@ -81,22 +81,22 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 
 	protected abstract C createCommands() throws DLInvalidContextException;
 
-	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLTensorBatch.class" isn't really
+	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLTensor.class" isn't really
 	// informative here.
 
 	@Override
 	public Class<?> getInputType() {
-		return DLTensorBatch.class;
+		return DLTensor.class;
 	}
 
 	@Override
 	public Class<?> getOutputType() {
-		return DLTensorBatch.class;
+		return DLTensor.class;
 	}
 
 	@Override
-	public void execute(final Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> input,
-			final Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> output, final long batchSize)
+	public void execute(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
+			final Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> output, final long batchSize)
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
@@ -104,7 +104,7 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 					m_commands.getContext());
 		}
 		m_commands.setNetworkInputs(m_handle, input, batchSize);
-		m_commands.executeNetwork(m_handle, output.keySet());
+		m_commands.executeNetwork(m_handle, output.keySet(), batchSize);
 		m_commands.getNetworkOutputs(m_handle, output);
 	}
 

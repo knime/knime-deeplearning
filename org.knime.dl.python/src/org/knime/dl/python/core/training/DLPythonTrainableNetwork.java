@@ -48,8 +48,8 @@ package org.knime.dl.python.core.training;
 
 import java.net.URL;
 
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.training.DLTrainableNetwork;
 import org.knime.dl.python.core.DLPythonNetworkSpec;
 
@@ -58,8 +58,8 @@ import org.knime.dl.python.core.DLPythonNetworkSpec;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public interface DLPythonTrainableNetwork<S extends DLPythonNetworkSpec>
-		extends DLTrainableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
-				DLLayerDataBatch<? extends DLWritableBuffer>, S, URL> {
+		extends DLTrainableNetwork<DLTensor<? extends DLWritableBuffer>, //
+				DLTensor<? extends DLWritableBuffer>, S, URL> {
 
 	// NB: marker interface
 }

@@ -70,9 +70,9 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	private final Collection<DLTensorSpec> m_requestedOutputs;
 
-	private HashMap<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> m_input;
+	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_input;
 
-	private HashMap<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> m_output;
+	private HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> m_output;
 
 	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
 			final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
@@ -82,10 +82,10 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	}
 
 	protected abstract Map<DLTensorSpec, ?> extractNetworkInput(
-			Map<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> adapterInput);
+			Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput);
 
 	protected abstract Map<DLTensorSpec, ?> extractNetworkOutput(
-			Map<DLTensorSpec, DLTensorBatch<? extends DLReadableBuffer>> adapterOutput);
+			Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> adapterOutput);
 
 	@Override
 	public DLExecutableNetwork<?, ?, ?, ?> getNetwork() {
@@ -93,32 +93,29 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	}
 
 	@Override
-	public void execute(final DLNetworkInputPreparer<DLTensorBatch<? extends DLWritableBuffer>> inputPreparer,
-			final DLNetworkOutputConsumer<DLTensorBatch<? extends DLReadableBuffer>> outputConsumer,
-			final long batchSize) throws Exception {
+	public void execute(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
+			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer, final long batchSize)
+			throws Exception {
 		if (m_input == null) {
 			final DLTensorSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
 			m_input = new HashMap<>(inputSpecs.length);
 			for (final DLTensorSpec spec : inputSpecs) {
-				m_input.put(spec, m_layerDataFactory.createWritableTensorBatch(spec, batchSize));
+				// TODO: here's where we need the inferred shape for the first time (in case of partially defined shapes)
+				m_input.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
 			}
 			m_output = new HashMap<>(m_requestedOutputs.size());
 			for (final DLTensorSpec spec : m_requestedOutputs) {
-				m_output.put(spec, m_layerDataFactory.createReadableTensorBatch(spec, batchSize));
+				m_output.put(spec, m_layerDataFactory.createReadableTensor(spec, batchSize));
 			}
 		}
 		inputPreparer.prepare(m_input);
 		executeInternal(batchSize);
-		for (final DLTensorBatch<?> input : m_input.values()) {
-			for (final DLTensor<?> layerData : input.getBatch()) {
-				layerData.getBuffer().reset();
-			}
+		for (final DLTensor<?> input : m_input.values()) {
+			input.getBuffer().reset();
 		}
 		outputConsumer.accept(m_output);
-		for (final DLTensorBatch<?> output : m_output.values()) {
-			for (final DLTensor<?> layerData : output.getBatch()) {
-				layerData.getBuffer().reset();
-			}
+		for (final DLTensor<?> output : m_output.values()) {
+			output.getBuffer().reset();
 		}
 	}
 

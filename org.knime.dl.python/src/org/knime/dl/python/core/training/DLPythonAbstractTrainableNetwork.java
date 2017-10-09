@@ -51,9 +51,9 @@ import java.net.URL;
 import java.util.Map;
 
 import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.training.DLAbstractTrainableNetwork;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
@@ -66,8 +66,8 @@ import org.knime.dl.python.core.DLPythonNetworkSpec;
  */
 public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
 		CFG extends DLPythonTrainingConfig, C extends DLPythonAbstractCommands<?>>
-	extends DLAbstractTrainableNetwork<DLLayerDataBatch<? extends DLWritableBuffer>, //
-			DLLayerDataBatch<? extends DLWritableBuffer>, CFG, N, S, URL>
+		extends DLAbstractTrainableNetwork<DLTensor<? extends DLWritableBuffer>, //
+				DLTensor<? extends DLWritableBuffer>, CFG, N, S, URL>
 		implements DLPythonTrainableNetwork<S> {
 
 	private C m_commands;
@@ -88,17 +88,17 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 
 	@Override
 	public Class<?> getTrainingDataType() {
-		return DLLayerDataBatch.class;
+		return DLTensor.class;
 	}
 
 	@Override
 	public Class<?> getTargetDataType() {
-		return DLLayerDataBatch.class;
+		return DLTensor.class;
 	}
 
 	@Override
-	public void train(final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> trainingData,
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> targetData, final long batchSize)
+	public void train(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> trainingData,
+			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> targetData, final long batchSize)
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
@@ -107,7 +107,7 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 			setNetworkTrainingConfig(m_handle, m_commands, m_trainingConfig);
 		}
 		m_commands.setNetworkTrainingInputs(m_handle, trainingData, targetData, batchSize);
-		m_commands.trainNetwork(m_handle);
+		m_commands.trainNetwork(m_handle, batchSize);
 		m_commands.getTrainingResults(m_handle);
 	}
 

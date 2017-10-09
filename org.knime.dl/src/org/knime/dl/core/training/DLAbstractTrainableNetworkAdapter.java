@@ -49,11 +49,10 @@ package org.knime.dl.core.training;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 
 /**
@@ -65,22 +64,22 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 
 	private final N m_network;
 
-	private final DLLayerDataFactory m_layerDataFactory;
+	private final DLTensorFactory m_layerDataFactory;
 
-	private HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> m_trainingData;
+	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_trainingData;
 
-	private HashMap<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> m_targetData;
+	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_targetData;
 
-	protected DLAbstractTrainableNetworkAdapter(final N network, final DLLayerDataFactory layerDataFactory) {
+	protected DLAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {
 		m_network = network;
 		m_layerDataFactory = layerDataFactory;
 	}
 
-	protected abstract Map<DLLayerDataSpec, ?> extractTrainingData(
-			Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput);
+	protected abstract Map<DLTensorSpec, ?> extractTrainingData(
+			Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput);
 
-	protected abstract Map<DLLayerDataSpec, ?> extractTargetData(
-			Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterOutput);
+	protected abstract Map<DLTensorSpec, ?> extractTargetData(
+			Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterOutput);
 
 	@Override
 	public N getNetwork() {
@@ -88,33 +87,29 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 	}
 
 	@Override
-	public void train(final DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> trainingDataPreparer,
-			final DLNetworkInputPreparer<DLLayerDataBatch<? extends DLWritableBuffer>> testDataPreparer,
-			final long batchSize) throws Exception {
+	public void train(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> trainingDataPreparer,
+			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> testDataPreparer, final long batchSize)
+			throws Exception {
 		if (m_trainingData == null) {
-			final DLLayerDataSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
+			final DLTensorSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
 			m_trainingData = new HashMap<>(inputSpecs.length);
-			for (final DLLayerDataSpec spec : inputSpecs) {
-				m_trainingData.put(spec, m_layerDataFactory.createWritableLayerDataBatch(spec, batchSize));
+			for (final DLTensorSpec spec : inputSpecs) {
+				m_trainingData.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
 			}
-			final DLLayerDataSpec[] outputSpecs = m_network.getSpec().getOutputSpecs();
+			final DLTensorSpec[] outputSpecs = m_network.getSpec().getOutputSpecs();
 			m_targetData = new HashMap<>(outputSpecs.length);
-			for (final DLLayerDataSpec spec : outputSpecs) {
-				m_targetData.put(spec, m_layerDataFactory.createWritableLayerDataBatch(spec, batchSize));
+			for (final DLTensorSpec spec : outputSpecs) {
+				m_targetData.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
 			}
 		}
 		trainingDataPreparer.prepare(m_trainingData);
 		testDataPreparer.prepare(m_targetData);
 		trainInternal(batchSize);
-		for (final DLLayerDataBatch<?> input : m_trainingData.values()) {
-			for (final DLLayerData<?> layerData : input.getBatch()) {
-				layerData.getBuffer().reset();
-			}
+		for (final DLTensor<?> training : m_trainingData.values()) {
+			training.getBuffer().reset();
 		}
-		for (final DLLayerDataBatch<?> output : m_targetData.values()) {
-			for (final DLLayerData<?> layerData : output.getBatch()) {
-				layerData.getBuffer().reset();
-			}
+		for (final DLTensor<?> target : m_targetData.values()) {
+			target.getBuffer().reset();
 		}
 	}
 
@@ -126,8 +121,8 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 	// TODO: type safety
 	private <I, O> void trainInternal(final long batchSize) throws Exception {
 		final DLTrainableNetwork<I, O, ?, ?> network = (DLTrainableNetwork<I, O, ?, ?>) m_network;
-		final Map<DLLayerDataSpec, I> trainingData = (Map<DLLayerDataSpec, I>) extractTrainingData(m_trainingData);
-		final Map<DLLayerDataSpec, O> targetData = (Map<DLLayerDataSpec, O>) extractTargetData(m_targetData);
+		final Map<DLTensorSpec, I> trainingData = (Map<DLTensorSpec, I>) extractTrainingData(m_trainingData);
+		final Map<DLTensorSpec, O> targetData = (Map<DLTensorSpec, O>) extractTargetData(m_targetData);
 		network.train(trainingData, targetData, batchSize);
 	}
 }

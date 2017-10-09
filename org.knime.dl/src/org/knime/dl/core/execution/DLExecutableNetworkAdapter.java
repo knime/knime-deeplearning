@@ -46,6 +46,7 @@
  */
 package org.knime.dl.core.execution;
 
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 
@@ -57,7 +58,7 @@ public interface DLExecutableNetworkAdapter extends AutoCloseable {
 
 	DLExecutableNetwork<?, ?, ?, ?> getNetwork();
 
-	void execute(DLNetworkInputPreparer<DLTensorBatch<? extends DLWritableBuffer>> inputPreparer,
-			DLNetworkOutputConsumer<DLTensorBatch<? extends DLReadableBuffer>> outputConsumer, long batchSize)
+	void execute(DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
+			DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer, long batchSize)
 			throws Exception;
 }

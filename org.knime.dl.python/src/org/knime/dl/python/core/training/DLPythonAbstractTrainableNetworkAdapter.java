@@ -48,10 +48,10 @@ package org.knime.dl.python.core.training;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLLayerDataFactory;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.core.training.DLAbstractTrainableNetworkAdapter;
 
 /**
@@ -61,19 +61,19 @@ import org.knime.dl.core.training.DLAbstractTrainableNetworkAdapter;
 public abstract class DLPythonAbstractTrainableNetworkAdapter<N extends DLPythonTrainableNetwork<?>>
 		extends DLAbstractTrainableNetworkAdapter<N> {
 
-	protected DLPythonAbstractTrainableNetworkAdapter(final N network, final DLLayerDataFactory layerDataFactory) {
+	protected DLPythonAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {
 		super(network, layerDataFactory);
 	}
 
 	@Override
-	protected Map<DLLayerDataSpec, ?> extractTrainingData(
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterInput) {
+	protected Map<DLTensorSpec, ?> extractTrainingData(
+			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput) {
 		return adapterInput;
 	}
 
 	@Override
-	protected Map<DLLayerDataSpec, ?> extractTargetData(
-			final Map<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> adapterOutput) {
+	protected Map<DLTensorSpec, ?> extractTargetData(
+			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterOutput) {
 		return adapterOutput;
 	}
 }
