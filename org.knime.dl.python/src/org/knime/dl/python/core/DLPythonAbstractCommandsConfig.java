@@ -54,6 +54,7 @@ import java.nio.file.Paths;
 import java.util.Set;
 
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
 import org.osgi.framework.FrameworkUtil;
 
@@ -104,14 +105,15 @@ public abstract class DLPythonAbstractCommandsConfig {
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + handle.getIdentifier() + "')";
 	}
 
-	public String getExecuteNetworkCode(final DLPythonNetworkHandle handle, final Set<DLTensorSpec> requestedOutputs) {
+	public String getExecuteNetworkCode(final DLPythonNetworkHandle handle, final Set<DLTensorSpec> requestedOutputs,
+			final long batchSize) {
 		// TODO: add requestedOutputs functionality
 		return "import DLPythonNetwork\n" + //
 				"network = DLPythonNetwork.get_network('" + handle.getIdentifier() + "')\n" + //
 				"in_data = {}\n" + //
 				"for input_spec in network.spec.input_specs:\n" + //
 				"	in_data[input_spec.name] = globals()[input_spec.name]\n" + //
-				"out_data = network.execute(in_data)\n" + //
+				"out_data = network.execute(in_data, " + DLPythonUtils.toPython(batchSize) + ")\n" + //
 				"for name, data in out_data.items():\n" + //
 				"	globals()[name] = data";
 	}
