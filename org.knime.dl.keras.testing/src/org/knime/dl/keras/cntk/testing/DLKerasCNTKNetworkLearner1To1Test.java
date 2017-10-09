@@ -58,11 +58,10 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
@@ -107,29 +106,26 @@ public class DLKerasCNTKNetworkLearner1To1Test {
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
 		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
-		final Map<DLLayerDataSpec, DLKerasLossFunction> losses =
-				new HashMap<>(network.getSpec().getOutputSpecs().length);
+		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < losses.size(); i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
 		final DLKerasCNTKTrainingConfig config = new DLKerasCNTKTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : trainingData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, targetData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : targetData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, batchSize);
 		// test:
 		// TODO!
 	}
 
-	private static void populate(final DLLayerData<?> data) {
+	private static void populate(final DLTensor<?> data) {
 		if (data.getBuffer() instanceof DLWritableFloatBuffer) {
 			final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer) data.getBuffer();
 			buffer.resetWrite();

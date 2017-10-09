@@ -54,21 +54,25 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
-import org.knime.dl.core.execution.DLTensorBatch;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
 import org.knime.dl.keras.cntk.core.execution.DLKerasCNTKDefaultExecutionContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.Activator;
+import org.knime.python2.PythonPreferencePage;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -78,13 +82,22 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
+	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
+
+	@Before
+	public void setup() throws Exception {
+		final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
+		prefs.flush();
+	}
+	
 	@Test
 	public void test() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 		final DLKerasCNTKDefaultExecutionContext exec = new DLKerasCNTKDefaultExecutionContext();
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasCNTKNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader = new DLPythonDefaultNetworkReader<>(
+				DLKerasCNTKNetworkType.INSTANCE.getLoader());
 		DLKerasCNTKNetwork network;
 		try {
 			network = reader.read(source);
@@ -95,8 +108,8 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 		final Set<DLTensorSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
 		final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs);
 		execNetwork.execute(in -> {
-			for (final Entry<DLTensorSpec, DLTensorBatch<? extends DLWritableBuffer>> entry : in.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : in.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, out -> {
 			// TODO: test against known results - this is sth. that should rather be tested via a test workflow

@@ -58,11 +58,10 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLLayerData;
-import org.knime.dl.core.DLLayerDataSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.execution.DLLayerDataBatch;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
@@ -94,36 +93,33 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		prefs.flush();
 	}
 
-	 @Test
+	@Test
 	public void test1To1() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader = new DLPythonDefaultNetworkReader<>(
-				DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
 		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
-		final Map<DLLayerDataSpec, DLKerasLossFunction> losses = new HashMap<>(
-				network.getSpec().getOutputSpecs().length);
+		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTensorFlowTrainingConfig config = new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer,
-				losses);
+		final DLKerasTensorFlowTrainingConfig config =
+				new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : trainingData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, targetData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : targetData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, batchSize);
 		// test:
@@ -132,41 +128,38 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 
 	@Test
 	public void test2To2() throws Exception {
-		final URL source = FileUtil
-				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
+		final URL source =
+				FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader = new DLPythonDefaultNetworkReader<>(
-				DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
 		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
-		final Map<DLLayerDataSpec, DLKerasLossFunction> losses = new HashMap<>(
-				network.getSpec().getOutputSpecs().length);
+		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTensorFlowTrainingConfig config = new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer,
-				losses);
+		final DLKerasTensorFlowTrainingConfig config =
+				new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : trainingData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, targetData -> {
-			for (final Entry<DLLayerDataSpec, DLLayerDataBatch<? extends DLWritableBuffer>> entry : targetData
-					.entrySet()) {
-				populate(entry.getValue().getBatch()[0]);
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
+				populate(entry.getValue());
 			}
 		}, batchSize);
 		// test:
 		// TODO!
 	}
 
-	private static void populate(final DLLayerData<?> data) {
+	private static void populate(final DLTensor<?> data) {
 		if (data.getBuffer() instanceof DLWritableFloatBuffer) {
 			final DLWritableFloatBuffer buffer = (DLWritableFloatBuffer) data.getBuffer();
 			buffer.resetWrite();

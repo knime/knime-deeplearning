@@ -53,6 +53,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidContextException;
@@ -62,6 +65,8 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.Activator;
+import org.knime.python2.PythonPreferencePage;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -70,6 +75,15 @@ import org.knime.dl.util.DLUtils;
 public class DLKerasTensorFlowNetworkReaderTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+
+	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
+
+	@Before
+	public void setup() throws Exception {
+		final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
+		prefs.flush();
+	}
 
 	@Test
 	public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
