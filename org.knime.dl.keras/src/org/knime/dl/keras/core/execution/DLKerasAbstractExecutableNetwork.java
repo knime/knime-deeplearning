@@ -48,6 +48,8 @@
  */
 package org.knime.dl.keras.core.execution;
 
+import org.knime.core.node.NodeLogger;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
@@ -62,5 +64,19 @@ public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork<
 
 	protected DLKerasAbstractExecutableNetwork(final N network) {
 		super(network);
+		boolean hasFixedBatchSizes = false;
+		boolean hasVariableBatchSizes = false;
+		for (final DLTensorSpec inputSpec : network.getSpec().getInputSpecs()) {
+			if (inputSpec.getBatchSize().isPresent()) {
+				hasFixedBatchSizes = true;
+			} else {
+				hasVariableBatchSizes = true;
+			}
+		}
+		if (hasFixedBatchSizes && hasVariableBatchSizes) {
+			NodeLogger.getLogger(DLKerasAbstractExecutableNetwork.class)
+					.warn("Input network has both inputs with pre-defined batch size and variable batch size. "
+							+ "This may not be supported by Keras and could lead to a runtime error.");
+		}
 	}
 }
