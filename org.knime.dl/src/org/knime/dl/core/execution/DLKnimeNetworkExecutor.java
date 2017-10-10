@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 import org.knime.core.data.DataCell;
@@ -105,6 +106,11 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 	public void execute(final Map<DLTensorSpec, ? extends Iterable<DataValue>[]> inputs,
 			final Consumer<Map<DLTensorSpec, DataCell[][]>> outputConsumer, final ExecutionContext exec,
 			final int batchSize) throws Exception {
+		final int expectedBatchSize = (int) inputs.keySet().stream() //
+				.map(DLTensorSpec::getBatchSize) //
+				.filter(OptionalLong::isPresent) //
+				.mapToLong(OptionalLong::getAsLong) //
+				.findAny().orElse(batchSize);
 		m_network.execute(in -> {
 			// Filling network inputs
 			for (final Entry<DLTensorSpec, ? extends Iterable<DataValue>[]> input : inputs.entrySet()) {
@@ -117,10 +123,17 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 					try {
 						inConverter.convert(batch[i], (DLTensor) converted);
 					} catch (final BufferOverflowException ex) {
+						final long shape = DLUtils.Shapes.getFixedSize(input.getKey().getShape())
+								.orElseThrow(() -> new DLInvalidNetworkInputException(
+										"Tensor spec does not provide a fully defined shape."));
 						throw new DLInvalidNetworkInputException(
-								"Node input size did not match neuron count of network input '"
-										+ converted.getSpec().getName() + "'. Node input exceeded the neuron count of "
-										+ ((DLWritableBuffer) converted.getBuffer()).getCapacity() + ".",
+								"Input size did not match the expected input size of network input '"
+										+ converted.getSpec().getName() + "'. Neuron count is " + shape
+										+ ", batch size is " + expectedBatchSize + ". Thus, expected input size is "
+										+ shape * expectedBatchSize + ". However, node input size was "
+										+ converted.getBuffer().size()
+										+ ". Please check the column selection for this input "
+										+ "and validate the node's input data.",
 								ex);
 					}
 				}
@@ -129,15 +142,18 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 					final long shape = DLUtils.Shapes.getFixedSize(input.getKey().getShape())
 							.orElseThrow(() -> new DLInvalidNetworkInputException(
 									"Tensor spec does not provide a fully defined shape."));
-					if (converted.getBuffer().size() != shape * batchSize) {
-						// TODO: if batch size was pre-defined and buffer is only partially filled, we should pad it
-						// (last batch only! - previous batches still have to fail with an underflow)
+					if (converted.getSpec().getBatchSize().isPresent() && expectedBatchSize > batchSize) {
+						// pad buffer if its only partially filled and the batch size is pre-defined
+						((DLWritableBuffer) converted.getBuffer()).setSize(shape * expectedBatchSize);
+					} else if (converted.getBuffer().size() != shape * expectedBatchSize) {
 						throw new DLInvalidNetworkInputException(
-								"Node input size did not match the expected input size of network input '"
+								"Input size did not match the expected input size of network input '"
 										+ converted.getSpec().getName() + "'. Neuron count is " + shape
-										+ ", batch size is " + batchSize + ". Thus, expected input size is "
-										+ shape * batchSize + " .Node input size was " + converted.getBuffer().size()
-										+ ".");
+										+ ", batch size is " + expectedBatchSize + ". Thus, expected input size is "
+										+ shape * expectedBatchSize + ". However, node input size was "
+										+ converted.getBuffer().size()
+										+ ". Please check the column selection for this input "
+										+ "and validate the node's input data.");
 					}
 				}
 			}
@@ -159,18 +175,17 @@ public class DLKnimeNetworkExecutor implements AutoCloseable {
 					// TODO
 					throw new RuntimeException(e);
 				}
-				final DataCell[][] output = new DataCell[batchSize][toCollect.size() / batchSize];
+				final DataCell[][] output = new DataCell[batchSize][toCollect.size() / expectedBatchSize];
 				final Iterator<DataCell> collectedIterator = toCollect.iterator();
 				for (int i = 0; i < batchSize; i++) {
-					for (int j = 0; j < toCollect.size() / batchSize; j++) {
+					for (int j = 0; j < toCollect.size() / expectedBatchSize; j++) {
 						output[i][j] = collectedIterator.next();
 					}
 				}
 				convertedOutput.put(o.getKey(), output);
 			}
 			outputConsumer.accept(convertedOutput);
-		}, batchSize);
-
+		}, expectedBatchSize);
 	}
 
 	@Override
