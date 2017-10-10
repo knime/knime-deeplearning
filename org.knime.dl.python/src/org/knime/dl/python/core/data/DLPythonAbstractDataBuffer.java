@@ -89,6 +89,11 @@ public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<
 	}
 
 	@Override
+	public void setSize(final long size) throws BufferOverflowException, BufferUnderflowException {
+		m_buffer.setSize(size);
+	}
+
+	@Override
 	public long getCapacity() {
 		return m_buffer.getCapacity();
 	}
