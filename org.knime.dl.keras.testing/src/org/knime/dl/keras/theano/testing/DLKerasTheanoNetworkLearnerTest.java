@@ -2,7 +2,7 @@
  * ------------------------------------------------------------------------
  *
  *  Copyright by KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.com; Email: contact@knime.com
+ *  Website: http://www.knime.org; Email: contact@knime.org
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License, Version 3, as
@@ -46,7 +46,7 @@
  * History
  *   May 23, 2017 (marcel): created
  */
-package org.knime.dl.keras.cntk.testing;
+package org.knime.dl.keras.theano.testing;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -62,13 +62,14 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
-import org.knime.dl.keras.cntk.core.training.DLKerasCNTKDefaultTrainingContext;
-import org.knime.dl.keras.cntk.core.training.DLKerasCNTKTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
+import org.knime.dl.keras.theano.core.training.DLKerasTheanoDefaultTrainingContext;
+import org.knime.dl.keras.theano.core.training.DLKerasTheanoTrainingConfig;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
@@ -78,12 +79,11 @@ import org.knime.python2.PythonPreferencePage;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasCNTKNetworkLearner1To1Test {
+public class DLKerasTheanoNetworkLearnerTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-	// TODO: we somehow need to apply the appropriate preferences on the test
-	// machines
+	// TODO: we somehow need to apply the appropriate preferences on the test machines
 	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 
 	@Before
@@ -94,23 +94,57 @@ public class DLKerasCNTKNetworkLearner1To1Test {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void test1To1() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLKerasCNTKDefaultTrainingContext training = new DLKerasCNTKDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
-				new DLKerasCNTKNetworkLoader());
-		final DLKerasCNTKNetwork network = reader.read(source);
+		final DLKerasTheanoDefaultTrainingContext training = new DLKerasTheanoDefaultTrainingContext();
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
+		final DLKerasTheanoNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
 		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
-		for (int i = 0; i < losses.size(); i++) {
+		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasCNTKTrainingConfig config = new DLKerasCNTKTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTheanoTrainingConfig config =
+				new DLKerasTheanoTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
+		trainNetwork.train(trainingData -> {
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
+				populate(entry.getValue());
+			}
+		}, targetData -> {
+			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
+				populate(entry.getValue());
+			}
+		}, batchSize);
+		// test:
+		// TODO!
+	}
+
+	@Test
+	public void test2To2() throws Exception {
+		final URL source =
+				FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
+		final DLKerasTheanoDefaultTrainingContext training = new DLKerasTheanoDefaultTrainingContext();
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
+				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
+		final DLKerasTheanoNetwork network = reader.read(source);
+		// training:
+		final int batchSize = 1;
+		final int epochs = 2;
+		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
+		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
+		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
+		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
+			losses.put(network.getSpec().getOutputSpecs()[i], loss);
+		}
+		final DLKerasTheanoTrainingConfig config =
+				new DLKerasTheanoTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
