@@ -90,7 +90,8 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
         if self._spec is None:      
             model_inputs = set(self._model.inputs)
             model_outputs = set(self._model.outputs)
-            visited = set()
+            visited_inputs = set()
+            visited_outputs = set()
             
             input_specs = list()
             intermediate_output_specs = list()
@@ -106,8 +107,8 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
                         inputs = [inputs]
                         input_shapes = [input_shapes]
                     for i, inp in enumerate(inputs):
-                        if inp in model_inputs and inp not in visited:
-                            visited.add(inp)
+                        if inp in model_inputs and inp not in visited_inputs:
+                            visited_inputs.add(inp)
                             input_name = inp.name
                             if input_name is None:
                                 input_name = l.name + '_' + str(idx) + ':' + str(i)
@@ -124,8 +125,8 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
                         outputs = [outputs]
                         output_shapes = [output_shapes]
                     for i, out in enumerate(outputs):
-                        if out not in visited:
-                            visited.add(out)
+                        if out not in visited_outputs:
+                            visited_outputs.add(out)
                             output_name = out.name
                             if output_name is None:
                                 output_name = l.name + '_' + str(idx) + ':' + str(i)
