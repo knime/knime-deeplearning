@@ -88,55 +88,11 @@ class DLKerasTensorFlowNetwork(DLKerasNetwork):
     
     def __init__(self, model):
         super().__init__(model)
-    
-    @property
-    def spec(self):
-        if self._spec is None:
-            model_inputs = set(self._model.inputs)
-            model_outputs = set(self._model.outputs)
-            visited_inputs = set()
-            visited_outputs = set()
-            
-            input_specs = list()
-            intermediate_output_specs = list()
-            output_specs = list()
-            
-            for l in self._model.layers:
-                # inputs:
-                for idx in range (0, len(l.inbound_nodes)):
-                    inputs = l.get_input_at(idx)
-                    input_shapes = l.get_input_shape_at(idx)
-                    # some layers have multiple inputs, some do not
-                    if not isinstance(inputs, list):
-                        inputs = [inputs]
-                        input_shapes = [input_shapes]
-                    for i, inp in enumerate(inputs):
-                        if inp in model_inputs and inp not in visited_inputs:
-                            visited_inputs.add(inp)
-                            shape = input_shapes[i]
-                            element_type = inp.dtype.name
-                            spec = DLPythonTensorSpec(inp.name, shape[0], list(shape[1:]), element_type)
-                            input_specs.append(spec)
-                # outputs:
-                for idx in range (0, len(l.inbound_nodes)):  # inbound_nodes (sic)
-                    outputs = l.get_output_at(idx)
-                    output_shapes = l.get_output_shape_at(idx)
-                    # some layers have multiple outputs, some do not
-                    if not isinstance(outputs, list):
-                        outputs = [outputs]
-                        output_shapes = [output_shapes]
-                    for i, out in enumerate(outputs):
-                        if out not in visited_outputs:
-                            visited_outputs.add(out)
-                            shape = output_shapes[i]
-                            element_type = inp.dtype.name
-                            spec = DLPythonTensorSpec(out.name, shape[0], list(shape[1:]), element_type)
-                            if out in model_outputs:
-                                output_specs.append(spec)
-                            else:
-                                intermediate_output_specs.append(spec)
-            self._spec = DLKerasTensorFlowNetworkSpec(input_specs, intermediate_output_specs, output_specs)
-        return self._spec
+
+    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
+        name = tensor.name
+        element_type = tensor.dtype.name  # TensorFlow returns a TF dtype
+        return DLPythonTensorSpec(name, tensor_shape[0], list(tensor_shape[1:]), element_type)
 
 
 class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):

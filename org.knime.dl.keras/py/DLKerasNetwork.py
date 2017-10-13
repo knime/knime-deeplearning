@@ -55,7 +55,6 @@ from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
-from DLPythonNetwork import DLPythonTensorSpec
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
@@ -81,14 +80,21 @@ class DLKerasNetwork(DLPythonNetwork):
 
     def __init__(self, model):
         super().__init__(model)
+
+    @abc.abstractmethod
+    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
+        raise NotImplementedError()
         # TODO: Do we really want to introduce state here? Alternatively, add config parameter to train method.
         self._training_config = None
 
     @property
     def spec(self):
         if self._spec is None:
-            model_inputs = set(self._model.inputs)
-            model_outputs = set(self._model.outputs)
+            model = self._model
+            model_inputs = set(model.inputs)
+            model_outputs = set(model.outputs)
+
+            # tensors:
             visited_inputs = set()
             visited_outputs = set()
             
@@ -96,44 +102,42 @@ class DLKerasNetwork(DLPythonNetwork):
             intermediate_output_specs = list()
             output_specs = list()
 
-            for l in self._model.layers:
-                # inputs:
-                for idx in range (0, len(l.inbound_nodes)):
-                    inputs = l.get_input_at(idx)
-                    input_shapes = l.get_input_shape_at(idx)
+            for layer in model.layers:
+                for node_idx in range(0, len(layer.inbound_nodes)):
+                    # inputs:
+                    input_tensors = layer.get_input_at(node_idx)
+                    input_shapes = layer.get_input_shape_at(node_idx)
                     # some layers have multiple inputs, some do not
-                    if not isinstance(inputs, list):
-                        inputs = [inputs]
+                    if not isinstance(input_tensors, list):
+                        input_tensors = [input_tensors]
                         input_shapes = [input_shapes]
-                    for i, inp in enumerate(inputs):
-                        if inp in model_inputs and inp not in visited_inputs:
-                            visited_inputs.add(inp)
-                            shape = input_shapes[i]
-                            element_type = inp.dtype
-                            # Theano returns a string, TensorFlow a dtype object
-                            if(not isinstance(element_type, str)):
-                                element_type = element_type.name
-                            spec = DLPythonTensorSpec(inp.name, shape[0], list(shape[1:]), element_type)
-                            input_specs.append(spec)
-                # outputs:
-                for idx in range (0, len(l.inbound_nodes)):  # inbound_nodes (sic)
-                    outputs = l.get_output_at(idx)
-                    output_shapes = l.get_output_shape_at(idx)
+                    for tensor_idx, input_tensor in enumerate(input_tensors):
+                        if input_tensor in model_inputs and input_tensor not in visited_inputs:
+                            visited_inputs.add(input_tensor)
+                            # back end independent 'canonical' name
+                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
+                            tensor_shape = input_shapes[tensor_idx]
+                            tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
+                                                                tensor_id, input_tensor, tensor_shape)
+                            input_specs.append(tensor_spec)
+                    # outputs:
+                    output_tensors = layer.get_output_at(node_idx)
+                    output_shapes = layer.get_output_shape_at(node_idx)
                     # some layers have multiple outputs, some do not
-                    if not isinstance(outputs, list):
-                        outputs = [outputs]
+                    if not isinstance(output_tensors, list):
+                        output_tensors = [output_tensors]
                         output_shapes = [output_shapes]
-                    for i, out in enumerate(outputs):
-                        if out not in visited_outputs:
-                            visited_outputs.add(out)
-                            shape = output_shapes[i]
-                            element_type = out.dtype
-                            # Theano returns a string, TensorFlow a dtype object
-                            if(not isinstance(element_type, str)):
-                                element_type = element_type.name
-                            specs = DLPythonTensorSpec(out.name, shape[0], list(shape[1:]), element_type)
-                            if out in model_outputs:
-                                output_specs.append(specs)
+                    for tensor_idx, output_tensor in enumerate(output_tensors):
+                        if output_tensor not in visited_outputs:
+                            visited_outputs.add(output_tensor)
+                            # back end independent 'canonical' name
+                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
+                            tensor_shape = output_shapes[tensor_idx]
+                            tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
+                                                                tensor_id, output_tensor, tensor_shape)
+                            if output_tensor in model_outputs:
+                                output_specs.append(tensor_spec)
+                                output_layer_tensor_names.setdefault(layer.name, []).append(tensor_spec.name)
                             else:
                                 intermediate_output_specs.append(specs)
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs)
