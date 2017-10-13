@@ -150,13 +150,13 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLNetworkSpec other = (DLNetworkSpec) obj;
-		return other.getInputSpecs().length == getInputSpecs().length //
-				&& other.getHiddenOutputSpecs().length == getHiddenOutputSpecs().length //
-				&& other.getOutputSpecs().length == getOutputSpecs().length //
-				&& Arrays.deepEquals(other.getInputSpecs(), getInputSpecs()) //
-				&& Arrays.deepEquals(other.getHiddenOutputSpecs(), getHiddenOutputSpecs()) //
-				&& Arrays.deepEquals(other.getOutputSpecs(), getOutputSpecs()) //
+		final DLAbstractNetworkSpec other = (DLAbstractNetworkSpec) obj;
+		return other.m_inputSpecs.length == m_inputSpecs.length //
+				&& other.m_hiddenOutputSpecs.length == m_hiddenOutputSpecs.length //
+				&& other.m_outputSpecs.length == m_outputSpecs.length //
+				&& Arrays.deepEquals(other.m_inputSpecs, m_inputSpecs) //
+				&& Arrays.deepEquals(other.m_hiddenOutputSpecs, m_hiddenOutputSpecs) //
+				&& Arrays.deepEquals(other.m_outputSpecs, m_outputSpecs) //
 				&& other.m_trainingConfig.equals(m_trainingConfig)//
 				&& equalsInternal(other);
 	}

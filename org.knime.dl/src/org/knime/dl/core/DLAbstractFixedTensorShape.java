@@ -95,16 +95,16 @@ public abstract class DLAbstractFixedTensorShape extends DLAbstractTensorShape i
 
 	@Override
 	public String toString() {
-		return Arrays.toString(getShape());
+		return Arrays.toString(m_shape);
 	}
 
 	@Override
 	protected void hashCodeInternal(final HashCodeBuilder b) {
-		b.append(getShape());
+		b.append(m_shape);
 	}
 
 	@Override
 	protected boolean equalsInternal(final DLTensorShape other) {
-		return Arrays.equals(((DLFixedTensorShape) other).getShape(), getShape());
+		return Arrays.equals(((DLAbstractFixedTensorShape) other).m_shape, m_shape);
 	}
 }

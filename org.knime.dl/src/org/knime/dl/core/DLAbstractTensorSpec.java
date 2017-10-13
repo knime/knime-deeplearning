@@ -170,17 +170,18 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLTensorSpec other = (DLTensorSpec) obj;
-		return other.getName().equals(getName()) //
-				&& other.getBatchSize().equals(getBatchSize()) //
-				&& other.getShape().equals(getShape()) //
-				&& other.getElementType() == getElementType() //
+		final DLAbstractTensorSpec other = (DLAbstractTensorSpec) obj;
+		return other.m_name.equals(m_name) //
+				&& other.m_batchSize.equals(m_batchSize) //
+				&& other.m_shape.equals(m_shape) //
+				&& other.m_elementType.equals(m_elementType) //
 				&& equalsInternal(other);
 	}
 
 	@Override
 	public String toString() {
-		return getName() + ": " + getShape().toString() + ", " + getElementType().getSimpleName();
+		return m_name + ": " + (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString()
+				+ ", " + m_elementType.getSimpleName();
 	}
 
 	private void writeObject(final ObjectOutputStream stream) throws IOException {
@@ -196,10 +197,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
-		b.append(getName());
-		b.append(getBatchSize());
-		b.append(getShape());
-		b.append(getElementType());
+		b.append(m_name);
+		b.append(m_batchSize);
+		b.append(m_shape);
+		b.append(m_elementType);
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}
