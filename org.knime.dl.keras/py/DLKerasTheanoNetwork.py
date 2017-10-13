@@ -60,19 +60,19 @@ from DLPythonNetwork import DLPythonTensorSpec
 
 
 class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
-    
+
     def read(self, path):
         model = load_model(path)
         return DLKerasTheanoNetwork(model)
-    
-    def readFromJson(self, path):
+
+    def read_from_json(self, path):
         f = open(path, 'r')
         model_json_string = f.read()
         f.close()
         model = model_from_json(model_json_string)
         return DLKerasTheanoNetwork(model)
-    
-    def readFromYaml(self, path):
+
+    def read_from_yaml(self, path):
         f = open(path, 'r')
         model_yaml_string = f.read()
         f.close()
@@ -81,7 +81,7 @@ class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
 
 
 class DLKerasTheanoNetwork(DLKerasNetwork):
-    
+
     def __init__(self, model):
         super().__init__(model)
 
@@ -94,10 +94,10 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
 
 
 class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
-    
+
     def __init__(self, input_specs, intermediate_output_specs, output_specs):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
-    
+
     @property
     def network_type(self):
         from DLKerasTheanoNetworkType import instance as Theano

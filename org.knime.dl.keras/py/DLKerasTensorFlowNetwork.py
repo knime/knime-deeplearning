@@ -60,19 +60,19 @@ from DLPythonNetwork import DLPythonTensorSpec
 
 
 class DLKerasTensorFlowNetworkReader(DLKerasNetworkReader):
-    
+
     def read(self, path):
         model = load_model(path)
         return DLKerasTensorFlowNetwork(model)
-    
-    def readFromJson(self, path):
+
+    def read_from_json(self, path):
         f = open(path, 'r')
         model_json_string = f.read()
         f.close()
         model = model_from_json(model_json_string)
         return DLKerasTensorFlowNetwork(model)
-    
-    def readFromYaml(self, path):
+
+    def read_from_yaml(self, path):
         f = open(path, 'r')
         model_yaml_string = f.read()
         f.close()
@@ -81,11 +81,7 @@ class DLKerasTensorFlowNetworkReader(DLKerasNetworkReader):
 
 
 class DLKerasTensorFlowNetwork(DLKerasNetwork):
-    
-    # TODO: add DLKerasTensorFlowNetwork etc. - add 'backend_name' arg to constructor;
-    # Keras backend has to be set accordingly whenever Keras is invoked.
-    # Check if there could be collisions.
-    
+
     def __init__(self, model):
         super().__init__(model)
 
@@ -96,10 +92,10 @@ class DLKerasTensorFlowNetwork(DLKerasNetwork):
 
 
 class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):
-    
+
     def __init__(self, input_specs, intermediate_output_specs, output_specs):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
-    
+
     @property
     def network_type(self):
         from DLKerasTensorFlowNetworkType import instance as TensorFlow

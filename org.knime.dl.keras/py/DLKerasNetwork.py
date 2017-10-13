@@ -67,12 +67,12 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def readFromJson(self, path):
-        return
+    def read_from_json(self, path):
+        raise NotImplementedError()
 
     @abc.abstractmethod
-    def readFromYaml(self, path):
-        return
+    def read_from_yaml(self, path):
+        raise NotImplementedError()
 
 
 class DLKerasNetwork(DLPythonNetwork):
@@ -84,8 +84,6 @@ class DLKerasNetwork(DLPythonNetwork):
     @abc.abstractmethod
     def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
         raise NotImplementedError()
-        # TODO: Do we really want to introduce state here? Alternatively, add config parameter to train method.
-        self._training_config = None
 
     @property
     def spec(self):
@@ -190,7 +188,7 @@ class DLKerasNetwork(DLPythonNetwork):
         output = {}
         for idx, output_spec in enumerate(self.spec.output_specs):
             out = self._put_in_matching_buffer(Y[idx])
-            out = pd.DataFrame({output_spec.name:[out]})
+            out = pd.DataFrame({output_spec.name: [out]})
             output[output_spec.name] = out
         return output
 
