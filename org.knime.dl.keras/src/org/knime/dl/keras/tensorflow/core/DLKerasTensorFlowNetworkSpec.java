@@ -68,6 +68,11 @@ public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSp
 		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
+	public DLKerasTensorFlowNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs, final DLKerasTensorFlowTrainingConfig trainingConfig) {
+		super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+	}
+
 	@Override
 	protected void hashCodeInternal(final HashCodeBuilder b) {
 		// no op - everything's handled in abstract base class

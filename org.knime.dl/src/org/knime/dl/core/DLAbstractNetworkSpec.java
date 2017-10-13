@@ -48,9 +48,14 @@ package org.knime.dl.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
  * Abstract base class for network spec implementations.
@@ -68,6 +73,8 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 
 	private final DLTensorSpec[] m_outputSpecs;
 
+	private transient Optional<CFG> m_trainingConfig;
+
 	private int m_hashCode = 0;
 
 	/**
@@ -83,6 +90,24 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 		m_hiddenOutputSpecs =
 				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
 		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
+		m_trainingConfig = Optional.empty();
+	}
+
+	/**
+	 * Creates a new instance of this network spec.
+	 *
+	 * @param inputSpecs the input tensor specs, can be empty
+	 * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+	 * @param outputSpecs the output tensor specs, can be empty
+	 * @param the {@link DLTrainingConfig training configuration}
+	 */
+	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
+			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs, final CFG trainingConfig) {
+		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
+		m_hiddenOutputSpecs =
+				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
+		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
+		m_trainingConfig = Optional.of(checkNotNull(trainingConfig, "Training configuration must not be null."));
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
@@ -102,6 +127,11 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 	@Override
 	public DLTensorSpec[] getOutputSpecs() {
 		return m_outputSpecs;
+	}
+
+	@Override
+	public Optional<CFG> getTrainingConfig() {
+		return m_trainingConfig;
 	}
 
 	@Override
@@ -127,6 +157,7 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 				&& Arrays.deepEquals(other.getInputSpecs(), getInputSpecs()) //
 				&& Arrays.deepEquals(other.getHiddenOutputSpecs(), getHiddenOutputSpecs()) //
 				&& Arrays.deepEquals(other.getOutputSpecs(), getOutputSpecs()) //
+				&& other.m_trainingConfig.equals(m_trainingConfig)//
 				&& equalsInternal(other);
 	}
 
@@ -134,7 +165,21 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 	public String toString() {
 		return "Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
 				"Hidden outputs: " + Arrays.toString(m_hiddenOutputSpecs) + "\n" + //
-				"Outputs: " + Arrays.toString(m_outputSpecs);
+				"Outputs: " + Arrays.toString(m_outputSpecs) + "\n" + //
+				"Training config: " + //
+				(m_trainingConfig.isPresent() ? "\n" + m_trainingConfig.get().toString() : "none");
+	}
+
+	private void writeObject(final ObjectOutputStream stream) throws IOException {
+		stream.defaultWriteObject();
+		stream.writeObject(m_trainingConfig.orElse(null));
+	}
+
+	private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		@SuppressWarnings("unchecked") // we know what we serialized
+		final CFG trainingConfig = (CFG) stream.readObject();
+		m_trainingConfig = Optional.ofNullable(trainingConfig);
 	}
 
 	private int hashCodeInternal() {
@@ -142,6 +187,7 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 		b.append(m_inputSpecs);
 		b.append(m_hiddenOutputSpecs);
 		b.append(m_outputSpecs);
+		b.append(m_trainingConfig);
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}

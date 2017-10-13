@@ -68,6 +68,11 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec {
 		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
+	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs, final DLKerasTheanoTrainingConfig trainingConfig) {
+		super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+	}
+
 	@Override
 	protected void hashCodeInternal(final HashCodeBuilder b) {
 		// no op - everything's handled in abstract base class

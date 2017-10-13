@@ -49,6 +49,9 @@
 package org.knime.dl.core;
 
 import java.io.Serializable;
+import java.util.Optional;
+
+import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
  * The spec of a {@link DLNetwork}.
@@ -74,6 +77,17 @@ public interface DLNetworkSpec extends Serializable {
 	DLTensorSpec[] getHiddenOutputSpecs();
 
 	DLTensorSpec[] getOutputSpecs();
+
+	/**
+	 * Returns the {@link DLTrainingConfig training configuration} of the network that is described by this spec if it
+	 * was configured.
+	 *
+	 * @return the {@link DLTrainingConfig training configuration} of the network that is described by this spec if it
+	 *         was configured
+	 */
+	default Optional<? extends DLTrainingConfig> getTrainingConfig() {
+		return Optional.empty();
+	}
 
 	/**
 	 * Value-based.
