@@ -58,6 +58,7 @@ from DLPythonDataBuffers import DLPythonLongBuffer
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
+from DLPythonNetwork import DLPythonTrainingConfig
 
 import numpy as np
 import pandas as pd
@@ -95,10 +96,12 @@ class DLKerasNetwork(DLPythonNetwork):
             # tensors:
             visited_inputs = set()
             visited_outputs = set()
-            
+
             input_specs = list()
             intermediate_output_specs = list()
             output_specs = list()
+
+            output_layer_tensor_names = {}
 
             for layer in model.layers:
                 for node_idx in range(0, len(layer.inbound_nodes)):
@@ -137,21 +140,64 @@ class DLKerasNetwork(DLPythonNetwork):
                                 output_specs.append(tensor_spec)
                                 output_layer_tensor_names.setdefault(layer.name, []).append(tensor_spec.name)
                             else:
-                                intermediate_output_specs.append(specs)
-            self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs)
+                                intermediate_output_specs.append(tensor_spec)
+
+            # training configuration:
+            training_config = None
+            from keras.models import Sequential
+            if isinstance(model, Sequential):
+                model = model.model
+            # else, no training configuration is available
+            if hasattr(model, 'optimizer') and hasattr(model, 'loss') and hasattr(model, 'metrics'):
+                # optimizer:
+                optimizer = model.optimizer
+                # loss functions:
+                # can be either a string, function, list or dict according to the Keras
+                # API. In the end, we want a dictionary that maps an output tensor name to
+                # a loss.
+                if isinstance(model.loss, str) or callable(model.loss):
+                    # normalize to list
+                    losses = [model.loss] * len(output_specs)
+                else:
+                    losses = model.loss
+                if not isinstance(losses, dict):
+                    # must be a list, normalize to dict
+                    losses = {output_specs[i].name: losses[i] for i in range(len(output_specs))}
+                else:
+                    # Keras stores dicts that map an output _layer_ name to a loss. We want an output tensor name.
+                    temp = {}
+                    for layer_name, loss in losses.items():
+                        for tensor_name in output_layer_tensor_names[layer_name]:
+                            temp[tensor_name] = loss
+                    losses = temp
+                import keras.losses as kl
+                for tensor, loss in losses.items():
+                    losses[tensor] = kl.get(loss).__name__
+                # metrics:
+                metrics = model.metrics
+                if not isinstance(metrics, dict):
+                    metrics = {output_specs[i].name: metrics for i in range(len(output_specs))}
+                else:
+                    # Keras stores dicts that map an output _layer_ name to a (list of)
+                    # metric(s). We want an output tensor name.
+                    temp = {}
+                    for layer_name, metric in metrics.items():
+                        if isinstance(metric, str) or callable(metric):
+                            # normalize to list
+                            metric = [metric]
+                        for tensor_name in output_layer_tensor_names[layer_name]:
+                            temp[tensor_name] = metric
+                    metrics = temp
+                import keras.metrics as km
+                for tensor, metric in metrics.items():
+                    for idx, met in enumerate(metric):
+                        metrics[tensor][idx] = km.get(met).__name__ if met != 'accuracy' and met != 'acc' else 'acc'
+                training_config = DLKerasTrainingConfig()
+                training_config.optimizer = optimizer
+                training_config.loss = losses
+                training_config.metrics = metrics
+            self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs, training_config)
         return self._spec
-
-    @property
-    def training_config(self):
-        return self._training_config
-
-    @training_config.setter
-    def training_config(self, config):
-        self._training_config = config
-        loss = []
-        for output_spec in self.spec.output_specs:
-            loss.append(config.loss[output_spec.name])
-        self._model.compile(loss=loss, optimizer=config.optimizer, metrics=config.metrics)
 
     def execute(self, in_data, batch_size):
         X = self._format_input(in_data, batch_size)
@@ -220,11 +266,26 @@ class DLKerasNetwork(DLPythonNetwork):
 class DLKerasNetworkSpec(DLPythonNetworkSpec):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, input_specs, intermediate_output_specs, output_specs):
+    def __init__(self, input_specs, intermediate_output_specs, output_specs, training_config=None):
         super().__init__(input_specs, intermediate_output_specs, output_specs)
+        self._training_config = training_config
+
+    @property
+    def training_config(self):
+        return self._training_config
+
+    @training_config.setter
+    def training_config(self, training_config):
+        self._training_config = training_config
 
 
-class DLKerasTrainingConfig(object):
+#self._training_config = config
+#loss = []
+# for output_spec in self.spec.output_specs:
+#    loss.append(config.loss[output_spec.name])
+#self._model.compile(loss=loss, optimizer=config.optimizer, metrics=config.metrics)
+
+class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
     def __init__(self):
         self._batch_size = 32
