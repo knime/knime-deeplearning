@@ -62,7 +62,7 @@
       </DLPythonNetworkLoader>
    </extension>
    <extension
-         point="org.knime.python2.modules">
+         point="org.knime.python.modules">
       <directory
             path="py/">
       </directory>
