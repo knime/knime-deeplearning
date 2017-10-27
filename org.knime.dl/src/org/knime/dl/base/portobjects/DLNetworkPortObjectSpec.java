@@ -51,6 +51,7 @@ package org.knime.dl.base.portobjects;
 import javax.swing.JComponent;
 
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 
 /**
@@ -62,11 +63,18 @@ import org.knime.dl.core.DLNetworkSpec;
 public interface DLNetworkPortObjectSpec extends PortObjectSpec {
 
 	/**
-	 * Returns the contained {@link DLExecutableNetworkSpec}.
+	 * Returns the contained {@link DLNetworkSpec}.
 	 *
 	 * @return the network spec
 	 */
-	DLNetworkSpec<?> getNetworkSpec();
+	DLNetworkSpec getNetworkSpec();
+
+	/**
+	 * Returns the type of the network that is associated with the contained network spec.
+	 *
+	 * @return the type of the network
+	 */
+	Class<? extends DLNetwork> getNetworkType();
 
 	@Override
 	default JComponent[] getViews() {

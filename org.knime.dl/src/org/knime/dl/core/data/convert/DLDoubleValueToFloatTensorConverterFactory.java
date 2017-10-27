@@ -50,7 +50,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 
 /**
@@ -77,16 +76,11 @@ public class DLDoubleValueToFloatTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<DoubleValue, DLWritableFloatBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<DoubleValue, DLWritableFloatBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends DoubleValue> input,
-					final DLTensor<DLWritableFloatBuffer> output) {
-				final DLWritableFloatBuffer buf = output.getBuffer();
-				for (final DoubleValue val : input) {
-					// explicitly lossy cast
-					buf.put((float) val.getDoubleValue());
-				}
+		return (input, output) -> {
+			final DLWritableFloatBuffer buf = output.getBuffer();
+			for (final DoubleValue val : input) {
+				// explicitly lossy cast
+				buf.put((float) val.getDoubleValue());
 			}
 		};
 	}

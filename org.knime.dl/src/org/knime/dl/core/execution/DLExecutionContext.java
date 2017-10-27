@@ -50,10 +50,9 @@ package org.knime.dl.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkType;
 
 /**
  * Creates {@link DLExecutableNetwork executable deep learning networks}.
@@ -62,14 +61,14 @@ import org.knime.dl.core.DLNetworkType;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
+public interface DLExecutionContext<N extends DLNetwork> {
 
 	/**
-	 * Returns the network type this execution context is associated to.
+	 * Returns the network type that's associated with this execution context.
 	 *
-	 * @return the network type this execution context is associated to.
+	 * @return the network type that's associated with this execution context
 	 */
-	DLNetworkType<N, ?, ?> getNetworkType();
+	Class<N> getNetworkType();
 
 	/**
 	 * Returns the identifier of this execution context which is neither null nor empty and must be unique across all
@@ -89,7 +88,8 @@ public interface DLExecutionContext<N extends DLNetwork<?, ?>> {
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
+	// TODO: remove, register at combination of network type and "execution
+	// mode"/input type (local/BufferedDataTable
 	// etc.)
 	DLTensorFactory getTensorFactory();
 

@@ -53,10 +53,9 @@ import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetworkAdapter
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasTrainableNetworkAdapter
-		extends DLPythonAbstractTrainableNetworkAdapter<DLKerasTrainableNetwork<?>> {
+public class DLKerasTrainableNetworkAdapter extends DLPythonAbstractTrainableNetworkAdapter<DLKerasTrainableNetwork> {
 
-	public DLKerasTrainableNetworkAdapter(final DLKerasTrainableNetwork<?> network,
+	public DLKerasTrainableNetworkAdapter(final DLKerasTrainableNetwork network,
 			final DLTensorFactory layerDataFactory) {
 		super(network, layerDataFactory);
 	}

@@ -49,17 +49,15 @@ package org.knime.dl.python.core;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.io.DLNetworkReader;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec>
-		implements DLNetworkReader<N, S, URL> {
+public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork> {
 
 	private final DLPythonNetworkLoader<N> m_loader;
 
@@ -67,8 +65,7 @@ public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork<S>, S extend
 		m_loader = loader;
 	}
 
-	@Override
-	public N read(final URL source) throws DLInvalidSourceException, DLInvalidContextException, IOException {
+	public N read(final URL source) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		m_loader.validateSource(source); // fail fast - spares us creating the Python kernel
 		final PythonKernel kernel = DLPythonDefaultContext.createKernel();
 		final DLPythonContext context = new DLPythonDefaultContext(kernel);

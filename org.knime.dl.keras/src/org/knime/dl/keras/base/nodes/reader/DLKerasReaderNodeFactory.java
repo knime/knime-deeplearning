@@ -58,44 +58,29 @@ import org.knime.core.node.NodeView;
  */
 public class DLKerasReaderNodeFactory extends NodeFactory<DLKerasReaderNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLKerasReaderNodeModel createNodeModel() {
-        return new DLKerasReaderNodeModel();
-    }
+	@Override
+	public DLKerasReaderNodeModel createNodeModel() {
+		return new DLKerasReaderNodeModel();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+	@Override
+	protected int getNrNodeViews() {
+		return 0;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DLKerasReaderNodeModel> createNodeView(final int viewIndex,
-        final DLKerasReaderNodeModel nodeModel) {
-        return null;
-    }
+	@Override
+	public NodeView<DLKerasReaderNodeModel> createNodeView(final int viewIndex,
+			final DLKerasReaderNodeModel nodeModel) {
+		return null;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+	@Override
+	protected boolean hasDialog() {
+		return true;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DLKerasReaderNodeDialog();
-    }
+	@Override
+	protected NodeDialogPane createNodeDialogPane() {
+		return new DLKerasReaderNodeDialog();
+	}
 }

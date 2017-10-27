@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.theano.core;
 
-import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 
 /**
@@ -56,7 +55,7 @@ import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 public final class DLKerasTheanoTensorFactory extends DLKerasAbstractTensorFactory {
 
 	@Override
-	public DLNetworkType<?, ?, ?> getNetworkType() {
-		return DLKerasTheanoNetworkType.INSTANCE;
+	public Class<DLKerasTheanoNetwork> getNetworkType() {
+		return DLKerasTheanoNetwork.class;
 	}
 }

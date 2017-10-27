@@ -59,7 +59,7 @@ import org.knime.dl.core.execution.DLNetworkInputPreparer;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNetwork<?, ?, ?, ?>>
+public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNetwork<?, ?>>
 		implements DLTrainableNetworkAdapter {
 
 	private final N m_network;
@@ -120,7 +120,7 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 
 	// TODO: type safety
 	private <I, O> void trainInternal(final long batchSize) throws Exception {
-		final DLTrainableNetwork<I, O, ?, ?> network = (DLTrainableNetwork<I, O, ?, ?>) m_network;
+		final DLTrainableNetwork<I, O> network = (DLTrainableNetwork<I, O>) m_network;
 		final Map<DLTensorSpec, I> trainingData = (Map<DLTensorSpec, I>) extractTrainingData(m_trainingData);
 		final Map<DLTensorSpec, O> targetData = (Map<DLTensorSpec, O>) extractTargetData(m_targetData);
 		network.train(trainingData, targetData, batchSize);

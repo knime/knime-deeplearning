@@ -49,14 +49,11 @@ package org.knime.dl.core.data.convert;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.SetCell;
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.util.DLUtils;
@@ -108,23 +105,17 @@ public final class DLTensorToSetCellConverterFactory<I extends DLReadableBuffer,
 	@Override
 	public DLTensorToDataCellConverter<I, SetCell> createConverter() {
 		final DLTensorToDataCellConverter<I, OE> elementConverter = m_elementConverterFactory.createConverter();
-		return new DLTensorToDataCellConverter<I, SetCell>() {
-
-			@Override
-			public void convert(final ExecutionContext exec, final DLTensor<I> input, final Consumer<SetCell> out)
-					throws Exception {
-				final ArrayList<OE> temp = new ArrayList<>();
-				elementConverter.convert(exec, input, temp::add);
-				long exampleSizeLong = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).orElseThrow(
-						() -> new IllegalArgumentException("Tensor spec does not provide a fully defined shape."));
-				checkArgument(exampleSizeLong <= Integer.MAX_VALUE,
-						"Invalid example size. Converter only supports sizes up to " + Integer.MAX_VALUE + ".");
-				int exampleSize = (int) exampleSizeLong;
-				int numLists = temp.size() / exampleSize;
-				for (int i = 0; i < numLists; i++) {
-					out.accept(
-							CollectionCellFactory.createSetCell(temp.subList(i * exampleSize, (i + 1) * exampleSize)));
-				}
+		return (exec, input, out) -> {
+			final ArrayList<OE> temp = new ArrayList<>();
+			elementConverter.convert(exec, input, temp::add);
+			final long exampleSizeLong = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).orElseThrow(
+					() -> new IllegalArgumentException("Tensor spec does not provide a fully defined shape."));
+			checkArgument(exampleSizeLong <= Integer.MAX_VALUE,
+					"Invalid example size. Converter only supports sizes up to " + Integer.MAX_VALUE + ".");
+			final int exampleSize = (int) exampleSizeLong;
+			final int numLists = temp.size() / exampleSize;
+			for (int i = 0; i < numLists; i++) {
+				out.accept(CollectionCellFactory.createSetCell(temp.subList(i * exampleSize, (i + 1) * exampleSize)));
 			}
 		};
 	}

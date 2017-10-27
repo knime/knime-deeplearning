@@ -60,23 +60,23 @@ import org.knime.python2.kernel.FlowVariableOptions;
 import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
- * Shamelessly copied and pasted from python predictor.
+ * Shamelessly copied and pasted from knime-python.
  *
- * @author Christian Dietz, KNIME
- *
- * @param <Config> the python source code config type
+ * @param <CFG> the python source code config type
+ * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonNodeModel<Config extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
+public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
 
-	private Config m_config = createConfig();
+	private CFG m_config = createConfig();
 
 	public DLPythonNodeModel(final PortType[] inPortTypes, final PortType[] outPortTypes) {
 		super(inPortTypes, outPortTypes);
 	}
 
-	protected abstract Config createConfig();
+	protected abstract CFG createConfig();
 
-	protected final Config getConfig() {
+	protected final CFG getConfig() {
 		return m_config;
 	}
 
@@ -140,13 +140,13 @@ public abstract class DLPythonNodeModel<Config extends PythonSourceCodeConfig> e
 
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final Config config = createConfig();
+		final CFG config = createConfig();
 		config.loadFrom(settings);
 	}
 
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final Config config = createConfig();
+		final CFG config = createConfig();
 		config.loadFrom(settings);
 		m_config = config;
 	}

@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.tensorflow.core;
 
-import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 
 /**
@@ -56,7 +55,7 @@ import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 public final class DLKerasTensorFlowTensorFactory extends DLKerasAbstractTensorFactory {
 
 	@Override
-	public DLNetworkType<?, ?, ?> getNetworkType() {
-		return DLKerasTensorFlowNetworkType.INSTANCE;
+	public Class<DLKerasTensorFlowNetwork> getNetworkType() {
+		return DLKerasTensorFlowNetwork.class;
 	}
 }

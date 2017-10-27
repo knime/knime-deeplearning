@@ -98,9 +98,10 @@ import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFi
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLException;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
@@ -229,6 +230,7 @@ final class DLExecutorNodeModel extends NodeModel {
 
 		final DLNetworkPortObjectSpec portObjectSpec = ((DLNetworkPortObjectSpec) inSpecs[IN_NETWORK_PORT_IDX]);
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
+		final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
 		final DataTableSpec inDataSpec = ((DataTableSpec) inSpecs[IN_DATA_PORT_IDX]);
 
 		if (networkSpec == null) {
@@ -255,9 +257,13 @@ final class DLExecutorNodeModel extends NodeModel {
 			m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 		}
 
-		configureGeneral(networkSpec);
-		configureInputs(networkSpec, inDataSpec);
-		configureOutputs(networkSpec);
+		try {
+			configureGeneral(networkSpec, networkType);
+			configureInputs(networkSpec, inDataSpec);
+			configureOutputs(networkSpec);
+		} catch (final Exception e) {
+			throw new InvalidSettingsException(e.getMessage(), e);
+		}
 
 		final DataTableSpec outDataSpec = createOutputSpec(inDataSpec);
 		return new PortObjectSpec[] { outDataSpec };
@@ -270,8 +276,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		final DataTableSpec inDataSpec = inData.getDataTableSpec();
 
 		final RowInput rowInput = new DataTableRowInput(inData);
-		final BufferedDataTableRowOutput rowOutput =
-				new BufferedDataTableRowOutput(exec.createDataContainer(createOutputSpec(inDataSpec)));
+		final BufferedDataTableRowOutput rowOutput = new BufferedDataTableRowOutput(
+				exec.createDataContainer(createOutputSpec(inDataSpec)));
 
 		executeInternal(portObject, rowInput, rowOutput, exec);
 
@@ -358,26 +364,28 @@ final class DLExecutorNodeModel extends NodeModel {
 		// no op
 	}
 
-	private void configureGeneral(final DLNetworkSpec networkSpec) throws InvalidSettingsException {
+	private void configureGeneral(final DLNetworkSpec networkSpec, final Class<? extends DLNetwork> networkType)
+			throws Exception {
 		final String[] selectedBackend = m_generalCfg.getExecutionContext();
-		final DLExecutionContext<?> backend =
-				DLExecutionContextRegistry.getInstance().getExecutionContext(selectedBackend[1]).orElseThrow(() -> {
-					if (DLExecutionContextRegistry.getInstance()
-							.getExecutionContextsForNetworkType(networkSpec.getNetworkType()).size() > 0) {
+		final DLExecutionContext<?> backend = DLExecutionContextRegistry.getInstance()
+				.getExecutionContext(selectedBackend[1]).orElseThrow(() -> {
+					if (DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType(networkType)
+							.isEmpty()) {
+						return new DLMissingExtensionException(
+								"No compatible execution back end available. Are you missing a KNIME Deep Learning extension?");
+					} else {
 						return new InvalidSettingsException(
 								"No execution back end selected. Please configure the node.");
-					} else {
-						return new InvalidSettingsException("No compatible execution back end available.");
 					}
 				});
-		if (!backend.getNetworkType().equals(networkSpec.getNetworkType())) {
+		if (!backend.getNetworkType().isAssignableFrom(networkType)) {
 			throw new InvalidSettingsException(
 					"Selected back end is not compatible to the input deep learning network. Please reconfigure the node.");
 		}
 	}
 
 	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
-			throws InvalidSettingsException {
+			throws DLMissingExtensionException, InvalidSettingsException {
 		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
 		for (final DLTensorSpec layerDataSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
@@ -393,7 +401,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			// get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
 					.getInstance().getConverterFactory(inputCfg.getConverterModel().getStringArrayValue()[1])
-					.orElseThrow(() -> new InvalidSettingsException(
+					.orElseThrow(() -> new DLMissingExtensionException(
 							"Converter '" + inputCfg.getConverterModel().getStringArrayValue()[0] + " ("
 									+ inputCfg.getConverterModel().getStringArrayValue()[1] + ")' of input '"
 									+ inputCfg.getInputTensorName()
@@ -415,7 +423,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 	}
 
-	private void configureOutputs(final DLNetworkSpec networkSpec) throws InvalidSettingsException {
+	private void configureOutputs(final DLNetworkSpec networkSpec)
+			throws DLMissingExtensionException, InvalidSettingsException {
 		if (m_outputCfgs.size() == 0) {
 			throw new InvalidSettingsException("No network output was selected.");
 		}
@@ -430,18 +439,17 @@ final class DLExecutorNodeModel extends NodeModel {
 							+ "' has an (at least partially) unknown shape. This is not supported."));
 			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
 			// get selected converter
-			final DLTensorToDataCellConverterFactory<?, ?> converter =
-					DLTensorToDataCellConverterRegistry.getInstance()
-							.getConverterFactory(cfg.getConverterModel().getStringArrayValue()[1])
-							.orElseThrow(() -> new InvalidSettingsException("Converter '"
-									+ cfg.getConverterModel().getStringArrayValue()[0] + " ("
+			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
+					.getConverterFactory(cfg.getConverterModel().getStringArrayValue()[1])
+					.orElseThrow(() -> new DLMissingExtensionException(
+							"Converter '" + cfg.getConverterModel().getStringArrayValue()[0] + " ("
 									+ cfg.getConverterModel().getStringArrayValue()[1] + ")' for output '"
 									+ layerDataName + "' could not be found. Are you missing a KNIME extension?"));
 			m_outputConverters.put(layerDataSpec, converter);
 		}
 	}
 
-	private DataTableSpec createOutputSpec(final DataTableSpec inDataSpec) throws InvalidSettingsException {
+	private DataTableSpec createOutputSpec(final DataTableSpec inDataSpec) {
 		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsModel().getBooleanValue();
 		final ArrayList<DataColumnSpec> outputSpecs = new ArrayList<>();
 		final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(keepInputColumns ? inDataSpec : null);
@@ -460,14 +468,10 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <N extends DLNetwork<?, ?>> void executeInternal(final PortObject portObject, final RowInput rowInput,
+	private <N extends DLNetwork> void executeInternal(final PortObject portObject, final RowInput rowInput,
 			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
-		if (!(portObject instanceof DLNetworkPortObject)) {
-			throw new IllegalStateException("Unsupported deep learning network type at input port.");
-		}
-
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
-		final DLNetworkSpec<?> networkSpec = network.getSpec();
+		final DLNetworkSpec networkSpec = network.getSpec();
 		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
 
 		if (inDataSpec.getNumColumns() == 0) {
@@ -494,11 +498,12 @@ final class DLExecutorNodeModel extends NodeModel {
 
 		final String[] selectedCtx = m_generalCfg.getExecutionContext();
 		final DLExecutionContext<N> ctx = (DLExecutionContext<N>) DLExecutionContextRegistry.getInstance()
-				.getExecutionContextsForNetworkType(networkSpec.getNetworkType()).stream()
+				.getExecutionContextsForNetworkType(network.getClass()).stream()
 				.filter(inner -> inner.getIdentifier().equals(selectedCtx[1])).findFirst()
-				.orElseThrow(() -> new InvalidSettingsException("There is no available execution back end of name '"
-						+ selectedCtx[0] + " (" + selectedCtx[1] + ")' that supports the input network of type '"
-						+ networkSpec.getNetworkType().getIdentifier() + "'."));
+				.orElseThrow(() -> new DLMissingExtensionException(
+						"There is no available execution back end of name '" + selectedCtx[0] + " (" + selectedCtx[1]
+								+ ")' that supports the input network of type '" + network.getClass().getCanonicalName()
+								+ "'. Are you missing a KNIME Deep Learning extension?"));
 
 		final DLExecutableNetworkAdapter executableNetwork = ctx.executable(network, m_outputConverters.keySet());
 
@@ -521,8 +526,8 @@ final class DLExecutorNodeModel extends NodeModel {
 			inputs.add(new Pair<>(input.getKey(), indices));
 		}
 
-		try (DLKnimeNetworkExecutor executor =
-				new DLKnimeNetworkExecutor(executableNetwork, m_inputConverters, m_outputConverters)) {
+		try (DLKnimeNetworkExecutor executor = new DLKnimeNetworkExecutor(executableNetwork, m_inputConverters,
+				m_outputConverters)) {
 
 			final DLNetworkExecutorOutputConsumer networkOutputConsumer = new DLNetworkExecutorOutputConsumer(
 					m_outputConverters.keySet().stream().collect(Collectors.toList()));
@@ -615,15 +620,16 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	// TODO: workaround
-	// when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
-	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv =
-				DLDataValueToTensorConverterRegistry.getInstance()
-						.getConverterFactory(inputCfg.getConverterModel().getStringArrayValue()[1])
-						.orElseThrow(() -> new IllegalStateException(
-								"Converter '" + inputCfg.getConverterModel().getStringArrayValue()[0] + " ("
-										+ inputCfg.getConverterModel().getStringArrayValue()[1]
-										+ ")' could not be found. Are you missing a KNIME extension?"));
+	// when changing code here, also update
+	// DLExecutorInputPanel#getAllowedInputColumnType
+	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg)
+			throws DLMissingExtensionException {
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv = DLDataValueToTensorConverterRegistry
+				.getInstance().getConverterFactory(inputCfg.getConverterModel().getStringArrayValue()[1])
+				.orElseThrow(() -> new DLMissingExtensionException(
+						"Converter '" + inputCfg.getConverterModel().getStringArrayValue()[0] + " ("
+								+ inputCfg.getConverterModel().getStringArrayValue()[1]
+								+ ")' could not be found. Are you missing a KNIME extension?"));
 		return conv.getSourceType();
 	}
 

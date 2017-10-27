@@ -55,11 +55,11 @@ import DLPythonNetworkType
 class DLKerasCNTKNetworkType(DLKerasNetworkType):
 
     def __init__(self):
-        super().__init__('org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType', 'cntk')
+        super().__init__('org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork', 'cntk')
 
     @property
     def reader(self):
-        from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader 
+        from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader
         return DLKerasCNTKNetworkReader()
 
     def wrap_model(self, model):
@@ -76,5 +76,7 @@ _instance = DLKerasCNTKNetworkType()
 # register network type
 DLPythonNetworkType.add_network_type(_instance)
 # access point for other modules
+
+
 def instance():
     return _instance

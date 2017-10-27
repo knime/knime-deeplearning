@@ -55,11 +55,14 @@ import org.knime.dl.core.data.DLWritableBuffer;
  */
 public interface DLTensorFactory {
 
-	DLNetworkType<?, ?, ?> getNetworkType();
+	Class<?> getNetworkType();
 
-	// Only return basic interfaces such as "DLWritableDoubleBuffer" etc. Else matching in
-	// DLDataValueToTensorConverterRegistry#getConverterFactories does not work anymore.
-	// TODO: improve matching in registry (more sophisticated traversal of implemented interfaces etc.)?
+	// Only return basic interfaces such as "DLWritableDoubleBuffer" etc. Else
+	// matching in
+	// DLDataValueToTensorConverterRegistry#getConverterFactories does not work
+	// anymore.
+	// TODO: improve matching in registry (more sophisticated traversal of
+	// implemented interfaces etc.)?
 	Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec);
 
 	// Only return basic interfaces such as "DLReadableDoubleBuffer" etc. [...]

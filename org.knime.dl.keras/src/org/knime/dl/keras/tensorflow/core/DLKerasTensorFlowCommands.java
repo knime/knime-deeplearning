@@ -46,50 +46,89 @@
  */
 package org.knime.dl.keras.tensorflow.core;
 
+import java.io.File;
 import java.io.IOException;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasTensorSpecTableCreatorFactory;
-import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.data.DLPythonTypeMap;
+import org.knime.dl.python.core.DLPythonNumPyTypeMap;
+import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands<DLKerasTensorFlowCommandsConfig> {
+public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 
-	public DLKerasTensorFlowCommands() throws DLInvalidContextException {
-		super(new DLKerasTensorFlowCommandsConfig());
+	public DLKerasTensorFlowCommands() {
 	}
 
-	public DLKerasTensorFlowCommands(final DLPythonContext context) throws DLInvalidContextException {
-		super(new DLKerasTensorFlowCommandsConfig(), context);
+	public DLKerasTensorFlowCommands(final DLPythonContext context) {
+		super(context);
 	}
 
 	@Override
-	public DLKerasTensorFlowNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-			final DLPythonTypeMap typeMap) throws DLInvalidContextException, IOException {
+	public DLKerasTensorFlowNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle)
+			throws DLInvalidEnvironmentException, IOException {
 		final PythonKernel kernel = m_context.getKernel();
-		kernel.execute(m_config.getExtractNetworkSpecsCode(handle));
-		final DLTensorSpec[] inputSpecs =
-				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME,
-						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-		// final DLTensorSpec[] intermediateOutputSpecs =
+		kernel.execute(getExtractNetworkSpecsCode(handle));
+		final DLTensorSpec[] inputSpecs = (DLTensorSpec[]) kernel
+				.getData(INPUT_SPECS_NAME, new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
+				.getTable();
+		// final DLTensorSpec[] hiddenOutputSpecs =
 		// (DLTensorSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-		final DLTensorSpec[] outputSpecs =
-				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME,
-						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-
-		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
+		// new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE)).getTable();
+		final DLTensorSpec[] outputSpecs = (DLTensorSpec[]) kernel
+				.getData(OUTPUT_SPECS_NAME, new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
+				.getTable();
+		// TODO: Keras does not expose "hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasTensorFlowNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO intermediateOutputSpecs */,
+		return new DLKerasTensorFlowNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO hiddenOutputSpecs */,
 				outputSpecs);
+	}
+
+	@Override
+	protected String getSetupEnvironmentCode() {
+		return "import os\n" + //
+				"os.environ['KERAS_BACKEND'] = 'tensorflow'\n";
+	}
+
+	@Override
+	protected File getInstallationTestFile() throws IOException {
+		return DLUtils.Files.getFileFromSameBundle(this, "py/DLKerasTensorFlowNetworkTester.py");
+	}
+
+	@Override
+	protected String getSetupBackendCode() {
+		return "";
+	}
+
+	@Override
+	protected String getLoadNetworkCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
+				"network = DLKerasTensorFlowNetworkReader().read(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
+	}
+
+	@Override
+	protected String getLoadNetworkFromJsonCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
+				"network = DLKerasTensorFlowNetworkReader().readFromJson(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
+	}
+
+	@Override
+	protected String getLoadNetworkFromYamlCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
+				"network = DLKerasTensorFlowNetworkReader().readFromYaml(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
 	}
 }

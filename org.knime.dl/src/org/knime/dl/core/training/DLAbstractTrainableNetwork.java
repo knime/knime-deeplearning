@@ -53,8 +53,8 @@ import org.knime.dl.core.DLNetworkSpec;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractTrainableNetwork<I, O, CFG extends DLTrainingConfig, N extends DLNetwork<S, R>, S extends DLNetworkSpec<R>, R>
-		implements DLTrainableNetwork<I, O, S, R> {
+public abstract class DLAbstractTrainableNetwork<I, O, CFG extends DLTrainingConfig, N extends DLNetwork>
+		implements DLTrainableNetwork<I, O> {
 
 	protected final N m_network;
 	protected final CFG m_trainingConfig;
@@ -65,13 +65,8 @@ public abstract class DLAbstractTrainableNetwork<I, O, CFG extends DLTrainingCon
 	}
 
 	@Override
-	public S getSpec() {
+	public DLNetworkSpec getSpec() {
 		return m_network.getSpec();
-	}
-
-	@Override
-	public R getSource() {
-		return m_network.getSource();
 	}
 
 	@Override

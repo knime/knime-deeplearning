@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.cntk.core;
 
-import org.knime.dl.core.DLNetworkType;
 import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 
 /**
@@ -56,7 +55,7 @@ import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
 public final class DLKerasCNTKTensorFactory extends DLKerasAbstractTensorFactory {
 
 	@Override
-	public DLNetworkType<?, ?, ?> getNetworkType() {
-		return DLKerasCNTKNetworkType.INSTANCE;
+	public Class<DLKerasCNTKNetwork> getNetworkType() {
+		return DLKerasCNTKNetwork.class;
 	}
 }

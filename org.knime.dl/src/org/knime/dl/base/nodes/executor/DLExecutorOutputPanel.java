@@ -51,8 +51,6 @@ package org.knime.dl.base.nodes.executor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -138,23 +136,13 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(dcPrefix.getComponentPanel(), constr);
 		constr.gridy++;
 		// 'remove' button click event: remove output
-		outputRemoveBtn.addActionListener(new ActionListener() {
+		outputRemoveBtn.addActionListener(e -> onRemove());
 
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				onRemove();
-			}
-		});
-
-		m_cfg.getGeneralConfig().addExecutionContextChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				try {
-					refreshAvailableConverters();
-				} catch (final NotConfigurableException ex) {
-					throw new IllegalStateException(ex.getMessage(), ex);
-				}
+		m_cfg.getGeneralConfig().addExecutionContextChangeListener(e -> {
+			try {
+				refreshAvailableConverters();
+			} catch (final NotConfigurableException ex) {
+				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
 
@@ -198,8 +186,7 @@ final class DLExecutorOutputPanel extends JPanel {
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
 				DLTensorToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
-						executionContext.getTensorFactory().getReadableBufferType(m_outputDataSpec),
-						m_outputDataSpec);
+						executionContext.getTensorFactory().getReadableBufferType(m_outputDataSpec), m_outputDataSpec);
 		converterFactories.sort(Comparator.comparing(DLTensorToDataCellConverterFactory::getName));
 		final String[] names = new String[converterFactories.size()];
 		final String[] ids = new String[converterFactories.size()];

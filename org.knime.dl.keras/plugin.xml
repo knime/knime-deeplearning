@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?eclipse version="3.0"?>
 <plugin>
+ <extension
+         point="org.knime.core.PortType">
+      <portType
+            color="#8fb3c2"
+            hidden="false"
+            name="Keras Deep Learning Network"
+            objectClass="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject"
+            objectSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject$Serializer"
+            specClass="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec"
+            specSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec$Serializer">
+      </portType>
+   </extension>
    <extension
          point="org.knime.dl.DLExecutionContext">
       <DLExecutionContext
@@ -26,18 +38,6 @@
       </DLTensorFactory>
    </extension>
    <extension
-         point="org.knime.dl.DLNetworkType">
-      <DLNetworkType
-            DLNetworkType="org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType">
-      </DLNetworkType>
-      <DLNetworkType
-            DLNetworkType="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType">
-      </DLNetworkType>
-      <DLNetworkType
-            DLNetworkType="org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType">
-      </DLNetworkType>
-   </extension>
-   <extension
          point="org.knime.dl.DLTrainingContext">
       <DLTrainingContext
             DLTrainingContext="org.knime.dl.keras.cntk.core.training.DLKerasCNTKDefaultTrainingContext">
@@ -48,6 +48,18 @@
       <DLTrainingContext
             DLTrainingContext="org.knime.dl.keras.theano.core.training.DLKerasTheanoDefaultTrainingContext">
       </DLTrainingContext>
+   </extension>
+   <extension
+         point="org.knime.dl.python.DLPythonNetworkLoader">
+      <DLPythonNetworkLoader
+            DLPythonNetworkLoader="org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader">
+      </DLPythonNetworkLoader>
+      <DLPythonNetworkLoader
+            DLPythonNetworkLoader="org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader">
+      </DLPythonNetworkLoader>
+      <DLPythonNetworkLoader
+            DLPythonNetworkLoader="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader">
+      </DLPythonNetworkLoader>
    </extension>
    <extension
          point="org.knime.python2.modules">

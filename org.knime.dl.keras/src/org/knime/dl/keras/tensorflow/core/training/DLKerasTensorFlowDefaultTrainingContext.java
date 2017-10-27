@@ -49,19 +49,18 @@ package org.knime.dl.keras.tensorflow.core.training;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTensorFlowDefaultTrainingContext extends
-	DLKerasAbstractTrainingContext<DLKerasTensorFlowNetworkType, DLKerasTensorFlowNetwork, DLKerasTensorFlowTrainingConfig> {
+public final class DLKerasTensorFlowDefaultTrainingContext
+	extends DLKerasAbstractTrainingContext<DLKerasTensorFlowNetwork, DLKerasTensorFlowTrainingConfig> {
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (TensorFlow)";
 
 	public DLKerasTensorFlowDefaultTrainingContext() {
-		super(DLKerasTensorFlowNetworkType.INSTANCE, TRAINING_CONTEXT_NAME);
+		super(DLKerasTensorFlowNetwork.class, TRAINING_CONTEXT_NAME);
 	}
 
 	@Override

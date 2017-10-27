@@ -64,30 +64,30 @@ import java.nio.BufferUnderflowException;
  */
 public interface DLWritableBuffer extends DLBuffer {
 
-    /**
-     * Returns the capacity of the buffer, i.e. the number of elements which can potentially be stored in this buffer.
-     * In contrast, {@link DLBuffer#size() size} indicates how many elements are actually stored in this buffer.
-     *
-     * @return the capacity of the buffer
-     * @see DLBuffer#size()
-     */
-    long getCapacity();
+	/**
+	 * Returns the capacity of the buffer, i.e. the number of elements which can potentially be stored in this buffer.
+	 * In contrast, {@link DLBuffer#size() size} indicates how many elements are actually stored in this buffer.
+	 *
+	 * @return the capacity of the buffer
+	 * @see DLBuffer#size()
+	 */
+	long getCapacity();
 
-    void setSize(long size) throws BufferOverflowException, BufferUnderflowException;
-    
-    /**
-     * Resets the write state of this buffer. Subsequent calls of write methods will start from the beginning of the
-     * buffer.
-     */
-    void resetWrite();
+	void setSize(long size) throws BufferOverflowException, BufferUnderflowException;
 
-    /**
-     * Equivalent to {@link #resetWrite()}.
-     * <P>
-     * Inherited documentation: {@inheritDoc}
-     */
-    @Override
-    default void reset() {
-        resetWrite();
-    }
+	/**
+	 * Resets the write state of this buffer. Subsequent calls of write methods will start from the beginning of the
+	 * buffer.
+	 */
+	void resetWrite();
+
+	/**
+	 * Equivalent to {@link #resetWrite()}.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	default void reset() {
+		resetWrite();
+	}
 }

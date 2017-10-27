@@ -65,46 +65,46 @@ public abstract class DLAbstractFixedTensorShape extends DLAbstractTensorShape i
 
 	private static final long serialVersionUID = 1L;
 
-    private final long[] m_shape;
+	private final long[] m_shape;
 
-    /**
-     * @param shape the shape of the tensor. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
-     */
-    protected DLAbstractFixedTensorShape(final long[] shape) {
-        checkNotNull(shape);
-        checkArgument(shape.length > 0, "Invalid tensor shape. Expected dimensionality greater than 0, was %s.",
-            shape.length);
-        for (int d = 0; d < shape.length; d++) {
-            checkArgument(shape[d] > 0,
-                "Invalid tensor shape. Expected shape dimension greater than 0, was %s in dimension %s.", shape[d],
-                d);
-        }
-        m_shape = shape.clone();
-    }
+	/**
+	 * @param shape the shape of the tensor. Must be at least one-dimensional. Each shape dimension must be greater than
+	 *            zero.
+	 */
+	protected DLAbstractFixedTensorShape(final long[] shape) {
+		checkNotNull(shape);
+		checkArgument(shape.length > 0, "Invalid tensor shape. Expected dimensionality greater than 0, was %s.",
+				shape.length);
+		for (int d = 0; d < shape.length; d++) {
+			checkArgument(shape[d] > 0,
+					"Invalid tensor shape. Expected shape dimension greater than 0, was %s in dimension %s.", shape[d],
+					d);
+		}
+		m_shape = shape.clone();
+	}
 
-    @Override
-    public int getNumDimensions() {
-        return m_shape.length;
-    }
+	@Override
+	public int getNumDimensions() {
+		return m_shape.length;
+	}
 
-    @Override
-    public long[] getShape() {
-        return m_shape;
-    }
+	@Override
+	public long[] getShape() {
+		return m_shape;
+	}
 
-    @Override
-    public String toString() {
-    	return Arrays.toString(getShape());
-    }
+	@Override
+	public String toString() {
+		return Arrays.toString(getShape());
+	}
 
-    @Override
-    protected void hashCodeInternal(final HashCodeBuilder b) {
+	@Override
+	protected void hashCodeInternal(final HashCodeBuilder b) {
 		b.append(getShape());
-    }
+	}
 
-    @Override
-    protected boolean equalsInternal(final DLTensorShape other) {
+	@Override
+	protected boolean equalsInternal(final DLTensorShape other) {
 		return Arrays.equals(((DLFixedTensorShape) other).getShape(), getShape());
-    }
+	}
 }

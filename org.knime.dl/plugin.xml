@@ -1,52 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?eclipse version="3.0"?>
 <plugin>
+   <extension-point id="DLDataValueToTensorConverterFactory" name="DLDataValueToTensorConverterFactory" schema="schema/org.knime.dl.DLDataValueToTensorConverterFactory.exsd"/>
    <extension-point id="DLExecutionContext" name="DLExecutionContext" schema="schema/org.knime.dl.DLExecutionContext.exsd"/>
    <extension-point id="DLTensorFactory" name="DLTensorFactory" schema="schema/org.knime.dl.DLTensorFactory.exsd"/>
-   <extension-point id="DLDataValueToTensorConverterFactory" name="DLDataValueToTensorConverterFactory" schema="schema/org.knime.dl.DLDataValueToTensorConverterFactory.exsd"/>
    <extension-point id="DLTensorToDataCellConverterFactory" name="DLTensorToDataCellConverterFactory" schema="schema/org.knime.dl.DLTensorToDataCellConverterFactory.exsd"/>
-   <extension-point id="DLNetworkReader" name="DLNetworkReader" schema="schema/org.knime.dl.DLNetworkReader.exsd"/>
-   <extension-point id="DLNetworkType" name="DLNetworkType" schema="schema/org.knime.dl.DLNetworkType.exsd"/>
    <extension-point id="DLTrainingContext" name="DLTrainingContext" schema="schema/org.knime.dl.DLTrainingContext.exsd"/>
-   <extension
-         point="org.knime.core.PortType">
-      <portType
-            color="#8fb3c2"
-            hidden="false"
-            name="Deep Learning Network"
-            objectClass="org.knime.dl.base.portobjects.DLDefaultNetworkPortObject"
-            objectSerializer="org.knime.dl.base.portobjects.DLDefaultNetworkPortObject$Serializer"
-            specClass="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec"
-            specSerializer="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec$Serializer">
-      </portType>
-      <portType
-            color="#8fb3c2"
-            hidden="false"
-            name="Deep Learning Network"
-            objectClass="org.knime.dl.base.portobjects.DLExternalNetworkPortObject"
-            objectSerializer="org.knime.dl.base.portobjects.DLExternalNetworkPortObject$Serializer"
-            specClass="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec"
-            specSerializer="org.knime.dl.base.portobjects.DLDefaultNetworkPortObjectSpec$Serializer">
-      </portType>
-   </extension>
-      <extension
-         point="org.knime.workbench.repository.categories">
-      <category
-            icon="icons/category.png"
-            level-id="deeplearning"
-            locked="false"
-            name="Deep Learning"
-            path="/labs">
-      </category>
-   </extension>
-   <extension
-         point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/labs/deeplearning/keras"
-            deprecated="false"
-            factory-class="org.knime.dl.base.nodes.executor.DLExecutorNodeFactory">
-      </node>
-   </extension>
    <extension
          point="org.knime.dl.DLDataValueToTensorConverterFactory">
       <DLDataValueToTensorConverterFactory
@@ -88,5 +47,23 @@
       <DLTensorToDataCellConverterFactory
             DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLLongTensorToLongCellConverterFactory">
       </DLTensorToDataCellConverterFactory>
+   </extension>
+      <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/category.png"
+            level-id="deeplearning"
+            locked="false"
+            name="Deep Learning"
+            path="/labs">
+      </category>
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
+            factory-class="org.knime.dl.base.nodes.executor.DLExecutorNodeFactory">
+      </node>
    </extension>
 </plugin>

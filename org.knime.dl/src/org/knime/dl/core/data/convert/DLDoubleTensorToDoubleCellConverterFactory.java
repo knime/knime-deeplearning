@@ -48,12 +48,8 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.function.Consumer;
-
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.util.DLUtils;
@@ -87,15 +83,10 @@ public class DLDoubleTensorToDoubleCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableDoubleBuffer, DoubleCell> createConverter() {
-		return new DLTensorToDataCellConverter<DLReadableDoubleBuffer, DoubleCell>() {
-
-			@Override
-			public void convert(final ExecutionContext exec, final DLTensor<DLReadableDoubleBuffer> input,
-					final Consumer<DoubleCell> out) {
-				final DLReadableDoubleBuffer buf = input.getBuffer();
-				for (int i = 0; i < buf.size(); i++) {
-					out.accept(new DoubleCell(buf.readNextDouble()));
-				}
+		return (exec, input, out) -> {
+			final DLReadableDoubleBuffer buf = input.getBuffer();
+			for (int i = 0; i < buf.size(); i++) {
+				out.accept(new DoubleCell(buf.readNextDouble()));
 			}
 		};
 	}

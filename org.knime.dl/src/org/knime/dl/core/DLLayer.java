@@ -57,9 +57,9 @@ import org.knime.dl.core.data.DLReadableBuffer;
  */
 public interface DLLayer {
 
-    DLLayerSpec getSpec();
+	DLLayerSpec getSpec();
 
-    DLReadableBuffer getWeights();
+	DLReadableBuffer getWeights();
 
-    DLReadableBuffer getBias();
+	DLReadableBuffer getBias();
 }

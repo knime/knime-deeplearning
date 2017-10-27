@@ -61,7 +61,8 @@ public interface DLKerasOptimizer extends DLOptimizer<String> {
 	// NB: marker interface
 
 	// TODO: we should add a "since" attribute to these optimizers to enable checking if they're available for the local
-	// Keras installation
+	// Keras installation.This implies changes in the installation testers on Python side as they have to extract the
+	// libs' versions.
 
 	public static class DLKerasRMSProp implements DLKerasOptimizer {
 
@@ -75,7 +76,8 @@ public interface DLKerasOptimizer extends DLOptimizer<String> {
 
 		@Override
 		public String get() {
-			final String template = "keras.optimizers.RMSprop(lr=${lr}, rho=${rho}, epsilon=${epsilon}, decay=${decay})";
+			final String template =
+					"keras.optimizers.RMSprop(lr=${lr}, rho=${rho}, epsilon=${epsilon}, decay=${decay})";
 			final Map<String, String> values = new HashMap<>();
 			values.put("lr", String.valueOf(lr));
 			values.put("rho", String.valueOf(rho));
@@ -97,7 +99,8 @@ public interface DLKerasOptimizer extends DLOptimizer<String> {
 
 		@Override
 		public String get() {
-			final String template = "keras.optimizers.SGD(lr=${lr}, momentum=${momentum}, decay=${decay}, nesterov=${nesterov})";
+			final String template =
+					"keras.optimizers.SGD(lr=${lr}, momentum=${momentum}, decay=${decay}, nesterov=${nesterov})";
 			final Map<String, String> values = new HashMap<>();
 			values.put("lr", String.valueOf(lr));
 			values.put("momentum", String.valueOf(momentum));

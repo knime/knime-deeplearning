@@ -51,12 +51,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -64,27 +63,32 @@ import org.knime.dl.python.core.DLPythonNumPyTypeMap;
  */
 public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasCNTKNetwork> {
 
-	private static final long serialVersionUID = 1L;
+	@Override
+	public Class<DLKerasCNTKNetwork> getNetworkType() {
+		return DLKerasCNTKNetwork.class;
+	}
+
+	@Override
+	public String getName() {
+		return "Keras (CNTK)";
+	}
+
+	@Override
+	public String getPythonModuleName() {
+		return "DLKerasCNTKNetworkType";
+	}
 
 	@Override
 	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final URL source, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
-		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context), true);
-		final DLKerasCNTKNetworkSpec spec =
-				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
+		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context));
+		final DLKerasCNTKNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasCNTKNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasCNTKCommands createCommands(final DLPythonContext context, final boolean initialize)
-			throws DLInvalidContextException {
-		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands(context);
-		if (initialize) {
-			commands.setupEnvironment();
-			commands.registerBackends();
-			commands.setupBackend();
-		}
-		return commands;
+	protected DLKerasCNTKCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+		return new DLKerasCNTKCommands(context);
 	}
 }

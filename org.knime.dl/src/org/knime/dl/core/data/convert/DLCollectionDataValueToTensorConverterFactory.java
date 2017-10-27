@@ -49,7 +49,6 @@ package org.knime.dl.core.data.convert;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.CollectionDataValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
@@ -100,15 +99,11 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 	@Override
 	public DLDataValueToTensorConverter<CollectionDataValue, O> createConverter() {
 		final DLDataValueToTensorConverter<IE, O> elementConverter = m_elementConverterFactory.createConverter();
-		return new DLDataValueToTensorConverter<CollectionDataValue, O>() {
-
-			@Override
-			public void convert(final Iterable<? extends CollectionDataValue> input, final DLTensor<O> output) {
-				for (final CollectionDataValue val : input) {
-					@SuppressWarnings("unchecked")
-					final Iterable<? extends IE> casted = (Iterable<? extends IE>) val;
-					elementConverter.convert(casted, output);
-				}
+		return (input, output) -> {
+			for (final CollectionDataValue val : input) {
+				@SuppressWarnings("unchecked")
+				final Iterable<? extends IE> casted = (Iterable<? extends IE>) val;
+				elementConverter.convert(casted, output);
 			}
 		};
 	}
@@ -127,8 +122,7 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 			return false;
 		}
 		@SuppressWarnings("rawtypes")
-		final DLCollectionDataValueToTensorConverterFactory other =
-				(DLCollectionDataValueToTensorConverterFactory) obj;
+		final DLCollectionDataValueToTensorConverterFactory other = (DLCollectionDataValueToTensorConverterFactory) obj;
 		return other.m_elementConverterFactory.equals(m_elementConverterFactory);
 	}
 }

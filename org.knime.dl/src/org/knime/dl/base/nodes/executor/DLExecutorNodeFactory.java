@@ -58,43 +58,43 @@ import org.knime.core.node.NodeView;
  */
 public class DLExecutorNodeFactory extends NodeFactory<DLExecutorNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DLExecutorNodeModel createNodeModel() {
-        return new DLExecutorNodeModel();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DLExecutorNodeModel createNodeModel() {
+		return new DLExecutorNodeModel();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected int getNrNodeViews() {
+		return 0;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DLExecutorNodeModel> createNodeView(final int viewIndex, final DLExecutorNodeModel nodeModel) {
-        return null;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public NodeView<DLExecutorNodeModel> createNodeView(final int viewIndex, final DLExecutorNodeModel nodeModel) {
+		return null;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected boolean hasDialog() {
+		return true;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DLExecutorNodeDialog();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected NodeDialogPane createNodeDialogPane() {
+		return new DLExecutorNodeDialog();
+	}
 }

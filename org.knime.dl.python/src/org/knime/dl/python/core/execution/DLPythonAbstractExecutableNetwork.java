@@ -48,28 +48,26 @@
  */
 package org.knime.dl.python.core.execution;
 
-import java.net.URL;
 import java.util.Map;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
-import org.knime.dl.python.core.DLPythonAbstractCommands;
+import org.knime.dl.python.core.DLPythonCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork<S>, S extends DLPythonNetworkSpec, //
-		C extends DLPythonAbstractCommands<?>>
-	extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, //
-			DLTensor<? extends DLReadableBuffer>, N, S, URL> {
+public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork, C extends DLPythonCommands>
+	extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, DLTensor<? extends DLReadableBuffer>, N> {
 
 	private C m_commands;
 
@@ -79,10 +77,10 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 		super(network);
 	}
 
-	protected abstract C createCommands() throws DLInvalidContextException;
+	protected abstract C createCommands() throws DLInvalidEnvironmentException;
 
 	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLTensor.class" isn't really
-	// informative here.
+	// informative here. (Or remove those properties altogether.)
 
 	@Override
 	public Class<?> getInputType() {
@@ -100,8 +98,10 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
-			m_handle = m_network.getSpec().getNetworkType().getLoader().load(m_network.getSource(),
-					m_commands.getContext());
+			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
+					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
+							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
+					.load(m_network.getSource(), m_commands.getContext());
 		}
 		m_commands.setNetworkInputs(m_handle, input, batchSize);
 		m_commands.executeNetwork(m_handle, output.keySet(), batchSize);

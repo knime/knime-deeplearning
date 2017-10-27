@@ -44,23 +44,27 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core;
+package org.knime.dl.python.core;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkSerializer<N extends DLNetwork<S, ?>, S extends DLNetworkSpec<?>>
-		implements DLNetworkSerializer<N, S> {
+public class Activator implements BundleActivator {
 
 	@Override
-	public void serialize(final OutputStream out, final N network) throws IOException {
-		final ObjectOutputStream objOut = new ObjectOutputStream(out);
-		objOut.writeObject(network.getSource());
-		objOut.flush();
+	public void start(final BundleContext context) throws Exception {
+		// TODO: This triggers instantiation of the Python loader registry which includes installation tests for Python
+		// dependencies. Actually, we should keep the instantiation as lazy as possible. This is just a workaround to
+		// prevent installation tests from being executed while e.g. a node dialog is opening.
+		DLPythonNetworkLoaderRegistry.getInstance();
+	}
+
+	@Override
+	public void stop(final BundleContext context) throws Exception {
+		// no op
 	}
 }

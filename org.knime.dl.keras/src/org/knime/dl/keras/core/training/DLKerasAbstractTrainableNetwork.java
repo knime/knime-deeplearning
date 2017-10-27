@@ -50,7 +50,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetwork;
 
@@ -58,9 +57,9 @@ import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec, //
-		CFG extends DLKerasTrainingConfig, C extends DLKerasAbstractCommands<?>>
-		extends DLPythonAbstractTrainableNetwork<N, S, CFG, C> implements DLKerasTrainableNetwork<S> {
+public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, //
+		CFG extends DLKerasTrainingConfig, C extends DLKerasAbstractCommands>
+	extends DLPythonAbstractTrainableNetwork<N, CFG, C> implements DLKerasTrainableNetwork {
 
 	protected DLKerasAbstractTrainableNetwork(final N network, final CFG trainingConfig) {
 		super(network, trainingConfig);

@@ -63,8 +63,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 /**
- * Wrapper for a Guava Cache that listens to memory alerts from
- * {@link MemoryAlertSystem} and cleans the cache if memory gets low.
+ * Wrapper for a Guava Cache that listens to memory alerts from {@link MemoryAlertSystem} and cleans the cache if memory
+ * gets low.
  *
  */
 public class DLMemoryAlertAwareGuavaCache {
@@ -75,11 +75,11 @@ public class DLMemoryAlertAwareGuavaCache {
 	public final static DLMemoryAlertAwareGuavaCache CACHE = new DLMemoryAlertAwareGuavaCache();
 
 	// TODO make property on property page
-	private boolean m_enableVerbose = false;
+	private final boolean m_enableVerbose = false;
 
 	private Cache<UUID, Object> m_cache;
 
-	private Semaphore m_gate = new Semaphore(1);
+	private final Semaphore m_gate = new Semaphore(1);
 
 	private final int m_cacheSize = 20;
 
@@ -107,9 +107,8 @@ public class DLMemoryAlertAwareGuavaCache {
 	}
 
 	/**
-	 * Associates value with key in this cache. If the cache previously
-	 * contained a value associated with key, the old value is replaced by
-	 * value.
+	 * Associates value with key in this cache. If the cache previously contained a value associated with key, the old
+	 * value is replaced by value.
 	 *
 	 * @param key
 	 * @param value
@@ -123,14 +122,14 @@ public class DLMemoryAlertAwareGuavaCache {
 	}
 
 	/**
-	 * Returns the value associated with key in this cache, or
-	 * <code>Optional.empty</code> if there is no cached value for key.
+	 * Returns the value associated with key in this cache, or <code>Optional.empty</code> if there is no cached value
+	 * for key.
 	 *
 	 * @param key
 	 * @return the value associated with key
 	 */
 	public Optional<Object> get(final UUID key) {
-		Object o = m_cache.getIfPresent(key);
+		final Object o = m_cache.getIfPresent(key);
 		if (m_enableVerbose) {
 			LOGGER.debug("Get: " + m_cache.stats());
 			LOGGER.debug("Cache size: " + m_cache.size());
@@ -139,8 +138,7 @@ public class DLMemoryAlertAwareGuavaCache {
 	}
 
 	/**
-	 * Returns the value associated with key in this cache, obtaining that value
-	 * from valueLoader if necessary.
+	 * Returns the value associated with key in this cache, obtaining that value from valueLoader if necessary.
 	 *
 	 * @param key
 	 * @param valueLoader
@@ -152,7 +150,7 @@ public class DLMemoryAlertAwareGuavaCache {
 		// NB: guava takes care about synchronization.
 		// see:
 		// https://google.github.io/guava/releases/21.0/api/docs/com/google/common/cache/Cache.html
-		V o = (V) m_cache.get(key, valueLoader);
+		final V o = (V) m_cache.get(key, valueLoader);
 		if (m_enableVerbose) {
 			LOGGER.debug("GetOrLoad: " + m_cache.stats());
 			LOGGER.debug("Cache size: " + m_cache.size());

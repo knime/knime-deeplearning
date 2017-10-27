@@ -54,10 +54,10 @@ import org.knime.dl.python.core.DLPythonAbstractNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractNetwork<S extends DLKerasNetworkSpec> extends DLPythonAbstractNetwork<S>
-		implements DLKerasNetwork<S> {
+public abstract class DLKerasAbstractNetwork extends DLPythonAbstractNetwork<DLKerasNetworkSpec>
+		implements DLKerasNetwork {
 
-	protected DLKerasAbstractNetwork(final S spec, final URL source) {
+	protected DLKerasAbstractNetwork(final DLKerasNetworkSpec spec, final URL source) {
 		super(spec, source);
 	}
 }

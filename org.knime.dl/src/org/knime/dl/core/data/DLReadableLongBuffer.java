@@ -58,18 +58,18 @@ import java.nio.BufferUnderflowException;
  */
 public interface DLReadableLongBuffer extends DLReadableBuffer {
 
-    /**
-     * Reads the next value from the buffer.
-     *
-     * @return the value
-     * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
-     */
-    long readNextLong() throws BufferUnderflowException;
+	/**
+	 * Reads the next value from the buffer.
+	 *
+	 * @return the value
+	 * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
+	 */
+	long readNextLong() throws BufferUnderflowException;
 
-    /**
-     * Returns a copy of the buffer's content.
-     *
-     * @return the buffer's content
-     */
-    long[] toLongArray();
+	/**
+	 * Returns a copy of the buffer's content.
+	 *
+	 * @return the buffer's content
+	 */
+	long[] toLongArray();
 }

@@ -44,17 +44,28 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core;
-
-import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
+package org.knime.dl.core;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractCommandsConfig extends DLPythonAbstractCommandsConfig {
+public class DLInvalidEnvironmentException extends DLCheckedException {
 
-	public abstract String getLoadNetworkFromJsonCode(final String path);
+	private static final long serialVersionUID = 1L;
 
-	public abstract String getLoadNetworkFromYamlCode(final String path);
+	/**
+	 * @param message must be neither null nor empty
+	 */
+	public DLInvalidEnvironmentException(final String message) {
+		super(message);
+	}
+
+	/**
+	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
+	 */
+	public DLInvalidEnvironmentException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
 }

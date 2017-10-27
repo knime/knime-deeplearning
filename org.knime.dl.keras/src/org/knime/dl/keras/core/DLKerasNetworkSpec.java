@@ -46,14 +46,20 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import java.net.URL;
+
+import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
+public interface DLKerasNetworkSpec extends DLNetworkSpec {
 
-	@Override
-	DLKerasNetworkType<?, ?> getNetworkType();
+	/**
+	 * Creates a network which {@link DLNetwork#getSpec()} returns this spec.
+	 */
+	DLKerasNetwork create(URL source) throws DLInvalidSourceException;
 }

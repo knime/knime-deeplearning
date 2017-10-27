@@ -47,7 +47,6 @@
 package org.knime.dl.keras.cntk.core.training;
 
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 
@@ -56,12 +55,12 @@ import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasCNTKDefaultTrainingContext
-		extends DLKerasAbstractTrainingContext<DLKerasCNTKNetworkType, DLKerasCNTKNetwork, DLKerasCNTKTrainingConfig> {
+	extends DLKerasAbstractTrainingContext<DLKerasCNTKNetwork, DLKerasCNTKTrainingConfig> {
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (CNTK)";
 
 	public DLKerasCNTKDefaultTrainingContext() {
-		super(DLKerasCNTKNetworkType.INSTANCE, TRAINING_CONTEXT_NAME);
+		super(DLKerasCNTKNetwork.class, TRAINING_CONTEXT_NAME);
 	}
 
 	@Override

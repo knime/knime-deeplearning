@@ -46,20 +46,16 @@
  */
 package org.knime.dl.python.core.training;
 
-import java.net.URL;
-
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainableNetwork;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonTrainableNetwork<S extends DLPythonNetworkSpec>
-		extends DLTrainableNetwork<DLTensor<? extends DLWritableBuffer>, //
-				DLTensor<? extends DLWritableBuffer>, S, URL> {
+public interface DLPythonTrainableNetwork extends DLTrainableNetwork<DLTensor<? extends DLWritableBuffer>, //
+		DLTensor<? extends DLWritableBuffer>> {
 
 	// NB: marker interface
 }

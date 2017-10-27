@@ -58,16 +58,14 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
+import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.WorkspacePreparer;
 import org.knime.python2.kernel.FlowVariableOptions;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * Shamelessly copied and pasted from python predictor.
@@ -113,13 +111,14 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
 			throws NotConfigurableException {
-		final DLNetworkPortObject portObject = (DLNetworkPortObject) input[DLPythonEditorNodeModel.IN_NETWORK_PORT_IDX];
+		final DLPythonNetworkPortObject<?> portObject =
+				(DLPythonNetworkPortObject<?>) input[DLPythonEditorNodeModel.IN_NETWORK_PORT_IDX];
 		if (portObject == null) {
 			throw new NotConfigurableException("Input deep learning network port object is missing.");
 		}
-		final DLPythonNetwork<? extends DLPythonNetworkSpec> network;
+		final DLPythonNetwork network;
 		try {
-			network = (DLPythonNetwork<?>) portObject.getNetwork();
+			network = portObject.getNetwork();
 		} catch (final DLInvalidSourceException | IOException e) {
 			throw new NotConfigurableException(e.getMessage());
 		}
@@ -136,18 +135,14 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 		if (m_workspacePreparer != null) {
 			m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
 		}
-		m_workspacePreparer = new WorkspacePreparer() {
-
-			@Override
-			public void prepareWorkspace(final PythonKernel kernel) {
-				try {
-					NodeContext.pushContext(DLPythonEditorNodeDialog.this.getNodeContext());
-					DLPythonEditorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel));
-					m_sourceCodePanel.updateVariables();
-				} catch (final Exception e) {
-					m_sourceCodePanel.errorToConsole(
-							"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
-				}
+		m_workspacePreparer = kernel -> {
+			try {
+				NodeContext.pushContext(DLPythonEditorNodeDialog.this.getNodeContext());
+				DLPythonEditorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel));
+				m_sourceCodePanel.updateVariables();
+			} catch (final Exception e) {
+				m_sourceCodePanel.errorToConsole(
+						"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
 			}
 		};
 		m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);

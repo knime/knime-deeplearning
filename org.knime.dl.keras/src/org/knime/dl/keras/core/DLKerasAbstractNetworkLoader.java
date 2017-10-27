@@ -53,26 +53,28 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.commons.io.FilenameUtils;
+import org.knime.core.data.filestore.FileStore;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkPortObject;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> extends DLPythonAbstractNetworkLoader<N>
+public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> extends DLPythonAbstractNetworkLoader<N>
 		implements DLKerasNetworkLoader<N> {
 
-	private static final long serialVersionUID = 1L;
-
 	@Override
-	protected abstract DLKerasAbstractCommands<?> createCommands(DLPythonContext context, boolean initialize)
-			throws DLInvalidContextException;
+	protected abstract DLKerasAbstractCommands createCommands(DLPythonContext context)
+			throws DLInvalidEnvironmentException;
 
 	@Override
 	public void validateSource(final URL source) throws DLInvalidSourceException {
@@ -106,11 +108,11 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> 
 
 	@Override
 	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel)
-			throws DLInvalidSourceException, DLInvalidContextException, IOException {
+			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
 		final String filePath = FileUtil.getFileFromURL(source).getAbsolutePath();
 		final String fileExtension = FilenameUtils.getExtension(filePath);
-		final DLKerasAbstractCommands<?> commands = createCommands(checkNotNull(kernel), true);
+		final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 		try {
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
@@ -128,5 +130,11 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork<?>> 
 			throw new IOException(
 					"An error occurred while communicating with Python (while reading in the Keras network).", e);
 		}
+	}
+
+	@Override
+	public DLPythonNetworkPortObject<? extends DLPythonNetwork> createPortObject(final N network,
+			final FileStore fileStore) throws IOException {
+		return new DLKerasNetworkPortObject(network, fileStore);
 	}
 }

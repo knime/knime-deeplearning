@@ -63,18 +63,18 @@ import org.knime.dl.core.DLTensor;
  */
 public interface DLBuffer extends AutoCloseable {
 
-    /**
-     * Returns the size of the buffer, i.e. the number of elements which are actually stored in this buffer.
-     *
-     * @return the size of the buffer
-     */
-    long size();
+	/**
+	 * Returns the size of the buffer, i.e. the number of elements which are actually stored in this buffer.
+	 *
+	 * @return the size of the buffer
+	 */
+	long size();
 
-    /**
-     * Resets the state of the buffer.
-     * <P>
-     * {@link DLReadableBuffer Readable buffers} reset their read state, {@link DLWritableBuffer writable buffers} reset
-     * their write state.
-     */
-    void reset();
+	/**
+	 * Resets the state of the buffer.
+	 * <P>
+	 * {@link DLReadableBuffer Readable buffers} reset their read state, {@link DLWritableBuffer writable buffers} reset
+	 * their write state.
+	 */
+	void reset();
 }

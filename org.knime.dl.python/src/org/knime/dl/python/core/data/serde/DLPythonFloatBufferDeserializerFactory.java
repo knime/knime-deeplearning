@@ -69,7 +69,8 @@ public class DLPythonFloatBufferDeserializerFactory extends DeserializerFactory 
 	/**
 	 * The unique identifier of this deserializer factory.
 	 */
-	public static final String IDENTIFIER = "org.knime.dl.python.core.data.serde.DLPythonFloatBufferDeserializerFactory";
+	public static final String IDENTIFIER =
+			"org.knime.dl.python.core.data.serde.DLPythonFloatBufferDeserializerFactory";
 
 	/**
 	 * Empty framework constructor.

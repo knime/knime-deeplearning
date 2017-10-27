@@ -50,8 +50,6 @@ import java.util.Set;
 
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 
@@ -59,13 +57,12 @@ import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasCNTKDefaultExecutionContext
-		extends DLKerasAbstractExecutionContext<DLKerasCNTKNetworkType, DLKerasCNTKNetwork> {
+public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExecutionContext<DLKerasCNTKNetwork> {
 
 	private static final String EXECUTION_CONTEXT_NAME = "Keras (CNTK)";
 
 	public DLKerasCNTKDefaultExecutionContext() {
-		super(DLKerasCNTKNetworkType.INSTANCE, EXECUTION_CONTEXT_NAME);
+		super(DLKerasCNTKNetwork.class, EXECUTION_CONTEXT_NAME);
 	}
 
 	@Override

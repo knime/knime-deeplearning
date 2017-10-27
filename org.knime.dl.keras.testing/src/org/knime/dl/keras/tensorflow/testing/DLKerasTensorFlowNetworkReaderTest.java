@@ -58,11 +58,10 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
@@ -87,12 +86,12 @@ public class DLKerasTensorFlowNetworkReaderTest {
 
 	@Test
 	public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
-			DLInvalidContextException {
+			DLInvalidEnvironmentException {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
-		final DLKerasTensorFlowNetwork network = reader.read(source);
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTensorFlowNetworkLoader());
+		reader.read(source);
 		// TODO: test against known specs
 	}
 }

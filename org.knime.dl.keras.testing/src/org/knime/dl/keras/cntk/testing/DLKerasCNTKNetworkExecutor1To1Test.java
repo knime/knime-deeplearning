@@ -66,8 +66,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.cntk.core.execution.DLKerasCNTKDefaultExecutionContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
@@ -90,14 +89,14 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
 		prefs.flush();
 	}
-	
+
 	@Test
 	public void test() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 		final DLKerasCNTKDefaultExecutionContext exec = new DLKerasCNTKDefaultExecutionContext();
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader = new DLPythonDefaultNetworkReader<>(
-				DLKerasCNTKNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasCNTKNetworkLoader());
 		DLKerasCNTKNetwork network;
 		try {
 			network = reader.read(source);

@@ -54,7 +54,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
@@ -69,7 +69,7 @@ import com.google.common.base.Strings;
  */
 public final class DLPythonDefaultContext implements DLPythonContext {
 
-	public static PythonKernel createKernel() throws DLInvalidContextException {
+	public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
 		try {
 			final PythonKernelOptions options = new PythonKernelOptions();
 			options.setPythonVersionOption(PythonVersionOption.PYTHON3);
@@ -78,7 +78,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 			final String msg = !Strings.isNullOrEmpty(e.getMessage())
 					? "An error occurred while trying to launch Python: " + e.getMessage()
 					: "An unknown error occurred while trying to launch Python. See log for details.";
-			throw new DLInvalidContextException(msg, e);
+			throw new DLInvalidEnvironmentException(msg, e);
 		}
 	}
 
@@ -98,7 +98,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 	}
 
 	@Override
-	public PythonKernel getKernel() throws DLInvalidContextException {
+	public PythonKernel getKernel() throws DLInvalidEnvironmentException {
 		if (m_kernel == null) {
 			m_kernel = createKernel();
 		}
@@ -106,7 +106,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 	}
 
 	@Override
-	public String[] execute(File script, final String... args) throws IOException {
+	public String[] execute(final File script, final String... args) throws IOException {
 		final String[] pbargs = new String[args.length + 2];
 		pbargs[0] = PythonPreferencePage.getPython3Path();
 		pbargs[1] = script.getAbsolutePath();

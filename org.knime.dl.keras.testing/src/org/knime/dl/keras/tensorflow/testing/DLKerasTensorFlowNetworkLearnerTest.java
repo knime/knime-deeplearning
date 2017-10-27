@@ -66,8 +66,7 @@ import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowDefaultTrainingContext;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowTrainingConfig;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
@@ -83,7 +82,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-	// TODO: we somehow need to apply the appropriate preferences on the test machines
+	// TODO: we somehow need to apply the appropriate preferences on the test
+	// machines
 	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 
 	@Before
@@ -98,8 +98,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
@@ -110,8 +110,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTensorFlowTrainingConfig config =
-				new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTensorFlowTrainingConfig config = new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer,
+				losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
@@ -128,11 +128,11 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 
 	@Test
 	public void test2To2() throws Exception {
-		final URL source =
-				FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasTensorFlowNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
@@ -143,8 +143,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTensorFlowTrainingConfig config =
-				new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTensorFlowTrainingConfig config = new DLKerasTensorFlowTrainingConfig(batchSize, epochs, optimizer,
+				losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {

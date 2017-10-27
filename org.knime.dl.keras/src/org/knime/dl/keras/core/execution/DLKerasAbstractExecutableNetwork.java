@@ -52,15 +52,15 @@ import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.python.core.execution.DLPythonAbstractExecutableNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork<S>, S extends DLKerasNetworkSpec, //
-		C extends DLKerasAbstractCommands<?>> extends DLPythonAbstractExecutableNetwork<N, S, C> {
+public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork, //
+		C extends DLKerasAbstractCommands>
+	extends DLPythonAbstractExecutableNetwork<N, C> {
 
 	protected DLKerasAbstractExecutableNetwork(final N network) {
 		super(network);

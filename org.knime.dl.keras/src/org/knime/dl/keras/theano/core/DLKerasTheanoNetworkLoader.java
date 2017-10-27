@@ -51,12 +51,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -64,28 +63,33 @@ import org.knime.dl.python.core.DLPythonNumPyTypeMap;
  */
 public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTheanoNetwork> {
 
-	private static final long serialVersionUID = 1L;
+	@Override
+	public Class<DLKerasTheanoNetwork> getNetworkType() {
+		return DLKerasTheanoNetwork.class;
+	}
+
+	@Override
+	public String getName() {
+		return "Keras (Theano)";
+	}
+
+	@Override
+	public String getPythonModuleName() {
+		return "DLKerasTheanoNetworkType";
+	}
 
 	@Override
 	public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
 			final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
-		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context), true);
-		final DLKerasTheanoNetworkSpec spec =
-				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
+		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
+		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTheanoNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasTheanoCommands createCommands(final DLPythonContext context, final boolean initialize)
-			throws DLInvalidContextException {
-		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands(context);
-		if (initialize) {
-			commands.setupEnvironment();
-			commands.registerBackends();
-			commands.setupBackend();
-		}
-		return commands;
+	protected DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+		return new DLKerasTheanoCommands(context);
 	}
 }

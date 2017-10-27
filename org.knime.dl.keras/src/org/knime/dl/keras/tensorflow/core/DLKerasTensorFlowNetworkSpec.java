@@ -46,22 +46,26 @@
  */
 package org.knime.dl.keras.tensorflow.core;
 
+import java.net.URL;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSpec<DLKerasTensorFlowNetworkType> {
+public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
 
-	public DLKerasTensorFlowNetworkSpec(final DLTensorSpec[] inputSpecs,
-			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
-		super(DLKerasTensorFlowNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
+	public DLKerasTensorFlowNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs) {
+		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	@Override
@@ -73,5 +77,11 @@ public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSp
 	protected boolean equalsInternal(final DLNetworkSpec other) {
 		// no op - everything's handled in abstract base class
 		return true;
+	}
+
+	@Override
+	public DLKerasNetwork create(final URL source) throws DLInvalidSourceException {
+		new DLKerasTensorFlowNetworkLoader().validateSource(source);
+		return new DLKerasTensorFlowNetwork(this, source);
 	}
 }

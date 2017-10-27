@@ -58,11 +58,10 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
@@ -85,14 +84,14 @@ public class DLKerasCNTKNetworkReaderTest {
 		prefs.flush();
 	}
 
+	// TODO
 	@Test
 	public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
-			DLInvalidContextException {
+			DLInvalidEnvironmentException {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasCNTKNetworkType.INSTANCE.getLoader());
-		final DLKerasCNTKNetwork network = reader.read(source);
-		// TODO: test against known specs
+		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasCNTKNetworkLoader());
+		reader.read(source);
 	}
 }

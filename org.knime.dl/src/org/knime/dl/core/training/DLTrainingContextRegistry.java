@@ -47,16 +47,15 @@
 package org.knime.dl.core.training;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
-import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.DLNetwork;
 
 /**
  * Registry for deep learning {@link DLTrainingContext training contexts}.
@@ -84,7 +83,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 		return instance;
 	}
 
-	private final HashMap<DLNetworkType<?, ?, ?>, Set<DLTrainingContext<?, ?>>> m_ctxs = new HashMap<>();
+	private final Set<DLTrainingContext<?, ?>> m_ctxs = new HashSet<>();
 
 	private DLTrainingContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -94,15 +93,16 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	// access methods:
 
 	/**
-	 * Returns all training contexts that match the given network type.
+	 * Returns all training contexts that are compatible to the given network type.
 	 *
 	 * @param networkType the network type
 	 * @return the training contexts
 	 */
 	public Collection<DLTrainingContext<?, ?>> getTrainingContextsForNetworkType(
-			final DLNetworkType<?, ?, ?> networkType) {
-		final Set<DLTrainingContext<?, ?>> ctxs = m_ctxs.get(networkType);
-		return ctxs != null ? Collections.unmodifiableCollection(ctxs) : Collections.emptyList();
+			final Class<? extends DLNetwork> networkType) {
+		return m_ctxs.stream() //
+				.filter(ctx -> ctx.getNetworkType().isAssignableFrom(networkType)) //
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -112,7 +112,8 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @return the training context if present
 	 */
 	public Optional<DLTrainingContext<?, ?>> getTrainingContext(final String identifier) {
-		return m_ctxs.values().stream().flatMap(Set::stream).filter(ctx -> ctx.getIdentifier().equals(identifier))
+		return m_ctxs.stream() //
+				.filter(ctx -> ctx.getIdentifier().equals(identifier)) //
 				.findFirst();
 	}
 	// :access methods
@@ -136,16 +137,11 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	}
 
 	private synchronized void registerTrainingContextInternal(final DLTrainingContext<?, ?> ctx) {
-		final DLNetworkType<?, ?, ?> networkType = ctx.getNetworkType();
+		final Class<? extends DLNetwork> networkType = ctx.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The training context's associated network type must not be null.");
 		}
-		Set<DLTrainingContext<?, ?>> ctxs = m_ctxs.get(networkType);
-		if (ctxs == null) {
-			ctxs = new HashSet<>();
-			m_ctxs.put(networkType, ctxs);
-		}
-		ctxs.add(ctx);
+		m_ctxs.add(ctx);
 	}
 	// :registration
 }

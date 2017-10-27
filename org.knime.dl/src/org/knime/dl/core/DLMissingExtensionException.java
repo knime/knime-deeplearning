@@ -50,10 +50,22 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLAbstractNetwork<S, R>
-		implements DLExternalNetwork<S, R> {
+public class DLMissingExtensionException extends DLCheckedException {
 
-	protected DLAbstractExternalNetwork(final S spec, final R source) {
-		super(spec, source);
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @param message must be neither null nor empty
+	 */
+	public DLMissingExtensionException(final String message) {
+		super(message);
+	}
+
+	/**
+	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
+	 */
+	public DLMissingExtensionException(final String message, final Throwable cause) {
+		super(message, cause);
 	}
 }

@@ -53,25 +53,23 @@ import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTheanoDefaultExecutionContext
-		extends DLKerasAbstractExecutionContext<DLKerasTheanoNetworkType, DLKerasTheanoNetwork> {
+public final class DLKerasTheanoDefaultExecutionContext extends DLKerasAbstractExecutionContext<DLKerasTheanoNetwork> {
 
 	private static final String EXECUTION_CONTEXT_NAME = "Keras (Theano)";
 
 	public DLKerasTheanoDefaultExecutionContext() {
-		super(DLKerasTheanoNetworkType.INSTANCE, EXECUTION_CONTEXT_NAME);
+		super(DLKerasTheanoNetwork.class, EXECUTION_CONTEXT_NAME);
 	}
 
 	@Override
 	public DLKerasExecutableNetworkAdapter executable(final DLKerasTheanoNetwork network,
 			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
-		final DLKerasAbstractExecutableNetwork<?, ?, ?> execNetwork = new DLKerasTheanoExecutableNetwork(network);
+		final DLKerasAbstractExecutableNetwork<?, ?> execNetwork = new DLKerasTheanoExecutableNetwork(network);
 		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
 	}
 }

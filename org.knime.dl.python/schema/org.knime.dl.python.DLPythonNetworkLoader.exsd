@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.knime.dl" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.knime.dl.python" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.knime.dl" id="DLNetworkType" name="DLNetworkType"/>
+         <meta.schema plugin="org.knime.dl.python" id="DLPythonNetworkLoader" name="DLPythonNetworkLoader"/>
       </appInfo>
       <documentation>
-         Extension point for deep learning network types.
+         Extension point for Python deep learning network loaders.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="DLNetworkType"/>
+            <element ref="DLPythonNetworkLoader"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,15 +47,15 @@
       </complexType>
    </element>
 
-   <element name="DLNetworkType">
+   <element name="DLPythonNetworkLoader">
       <complexType>
-         <attribute name="DLNetworkType" type="string" use="required">
+         <attribute name="DLPythonNetworkLoader" type="string" use="required">
             <annotation>
                <documentation>
-                  The converter factory class that implements the DLFormatHandler interface. Must provide an empty public constructor.
+                  The loader class that implements the DLPythonNetworkLoader interface.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.dl.core.DLNetworkType"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.python.core.DLPythonNetworkLoader"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -67,7 +67,7 @@
          <meta.section type="since"/>
       </appInfo>
       <documentation>
-         KNIME v3.4
+         KNIME v3.5
       </documentation>
    </annotation>
 
@@ -77,7 +77,7 @@
          <meta.section type="apiinfo"/>
       </appInfo>
       <documentation>
-         Network types must implement the DLNetworkType interface and provide an empty public constructor.
+         Loader classes must implement the DLPythonNetworkLoader interface and provide an empty public constructor.
       </documentation>
    </annotation>
 

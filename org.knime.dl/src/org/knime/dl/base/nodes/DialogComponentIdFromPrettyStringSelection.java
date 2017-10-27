@@ -53,17 +53,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
@@ -113,20 +109,11 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		getComponentPanel().add(m_combobox);
 		m_selectionChangeListener = selectionChangeListener;
 
-		getModel().addChangeListener(new ChangeListener() {
+		getModel().addChangeListener(e -> updateComponent());
 
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				updateComponent();
-			}
-		});
-
-		m_combobox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(final ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					onSelectionChanged();
-				}
+		m_combobox.addItemListener(e -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				onSelectionChanged();
 			}
 		});
 	}
@@ -243,12 +230,7 @@ public final class DialogComponentIdFromPrettyStringSelection extends DialogComp
 		final String newPretty = (String) m_combobox.getSelectedItem();
 		if (newPretty == null) {
 			m_combobox.setBackground(Color.RED);
-			m_combobox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(final ActionEvent e) {
-					m_combobox.setBackground(DialogComponent.DEFAULT_BG);
-				}
-			});
+			m_combobox.addActionListener(e -> m_combobox.setBackground(DialogComponent.DEFAULT_BG));
 			m_selectionChangeListener.accept(new ChangeEvent(this));
 			throw new IllegalStateException("Please select an item from the list.");
 		}

@@ -70,7 +70,8 @@ public class DLPythonDoubleBufferDeserializerFactory extends DeserializerFactory
 	/**
 	 * The unique identifier of this deserializer factory.
 	 */
-	public static final String IDENTIFIER = "org.knime.dl.python.core.data.serde.DLPythonDoubleBufferDeserializerFactory";
+	public static final String IDENTIFIER =
+			"org.knime.dl.python.core.data.serde.DLPythonDoubleBufferDeserializerFactory";
 
 	/**
 	 * Empty framework constructor.

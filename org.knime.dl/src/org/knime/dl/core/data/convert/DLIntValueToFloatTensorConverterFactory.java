@@ -48,7 +48,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.IntValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 
 /**
@@ -75,18 +74,13 @@ public class DLIntValueToFloatTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<IntValue, DLWritableFloatBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<IntValue, DLWritableFloatBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends IntValue> input,
-					final DLTensor<DLWritableFloatBuffer> output) {
-				final DLWritableFloatBuffer buf = output.getBuffer();
-				for (final IntValue val : input) {
-					// implicit widening primitive conversion from int to float; loss of precision
-					// NB: our type system treats int and float as incompatible, that's why we need this converter
-					// explicitly (for UX reasons)
-					buf.put(val.getIntValue());
-				}
+		return (input, output) -> {
+			final DLWritableFloatBuffer buf = output.getBuffer();
+			for (final IntValue val : input) {
+				// implicit widening primitive conversion from int to float; loss of precision
+				// NB: our type system treats int and float as incompatible, that's why we need this converter
+				// explicitly (for UX reasons)
+				buf.put(val.getIntValue());
 			}
 		};
 	}

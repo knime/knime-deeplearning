@@ -62,14 +62,17 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.dl.base.portobjects.DLNetworkPortObject;
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -84,10 +87,14 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 
 	static final int IN_DATA_PORT_IDX = 1;
 
-	static void setupNetwork(final DLPythonNetwork<?> network, final DLPythonContext context)
-			throws DLInvalidSourceException, DLInvalidContextException, IOException {
-		final DLPythonNetworkHandle networkHandle =
-				network.getSpec().getNetworkType().getLoader().load(network.getSource(), context);
+	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context)
+			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+		final DLPythonNetworkLoader<? extends DLPythonNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
+				.getNetworkLoader(inputNetwork.getClass())
+				.orElseThrow(() -> new DLMissingExtensionException(
+						"Python back end '" + inputNetwork.getClass().getCanonicalName()
+								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
+		final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource(), context);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonExecutorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
@@ -103,17 +110,12 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 	private DataTableSpec m_lastIncomingTableSpec;
 
 	DLPythonExecutorNodeModel() {
-		super(new PortType[] { DLNetworkPortObject.TYPE, BufferedDataTable.TYPE },
+		super(new PortType[] { DLPythonNetworkPortObject.TYPE, BufferedDataTable.TYPE },
 				new PortType[] { BufferedDataTable.TYPE });
 	}
 
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-		final DLNetworkPortObject portObject = (DLNetworkPortObject) inData[IN_NETWORK_PORT_IDX];
-		if (!(portObject.getNetwork() instanceof DLPythonNetwork)) {
-			throw new InvalidSettingsException("Input deep learning network is not Python compatible.");
-		}
-
 		// if the input table is empty, we simply output another empty table
 		final BufferedDataTable inTable = (BufferedDataTable) inData[IN_DATA_PORT_IDX];
 		if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
@@ -126,14 +128,12 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 		final PythonKernel kernel = new PythonKernel(getKernelOptions());
 		BufferedDataTable outTable = null;
 		try {
-
 			kernel.putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
-
-			final DLPythonNetwork<?> network = (DLPythonNetwork<?>) portObject.getNetwork();
+			final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
+			final DLPythonNetwork network = portObject.getNetwork();
 			final DLPythonDefaultContext context = new DLPythonDefaultContext(kernel);
 			setupNetwork(network, context);
-
 			exec.createSubProgress(0.1).setProgress(1);
 			kernel.putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
@@ -141,8 +141,8 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.4).setProgress(1);
-			final Collection<FlowVariable> variables =
-					kernel.getFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables());
+			final Collection<FlowVariable> variables = kernel
+					.getFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables());
 			outTable = kernel.getDataTable(DLPythonExecutorNodeConfig.getVariableNames().getOutputTables()[0], exec,
 					exec.createSubProgress(0.3));
 			addNewVariables(variables);

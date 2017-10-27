@@ -66,6 +66,7 @@ public class DLCheckedException extends Exception implements DLException {
 
 	/**
 	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
 	 */
 	public DLCheckedException(final String message, final Throwable cause) {
 		super(checkNotNullOrEmpty(message), cause);
@@ -73,6 +74,9 @@ public class DLCheckedException extends Exception implements DLException {
 
 	/**
 	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 */
 	public DLCheckedException(final String message, final Throwable cause, final boolean enableSuppression,
 			final boolean writableStackTrace) {

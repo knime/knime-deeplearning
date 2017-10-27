@@ -50,9 +50,8 @@ package org.knime.dl.core.execution;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * Base interface for deep learning networks that can be executed.
@@ -60,7 +59,7 @@ import org.knime.dl.core.DLNetworkSpec;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExecutableNetwork<I, O, S extends DLNetworkSpec<R>, R> extends DLNetwork<S, R>, AutoCloseable {
+public interface DLExecutableNetwork<I, O> extends DLNetwork, AutoCloseable {
 
 	Class<?> getInputType();
 

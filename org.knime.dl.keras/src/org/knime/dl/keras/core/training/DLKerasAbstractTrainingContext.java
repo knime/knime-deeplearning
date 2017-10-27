@@ -54,7 +54,6 @@ import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorRegistry;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkType;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCosineProximity;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasKullbackLeiblerDivergence;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanAbsoluteError;
@@ -68,10 +67,10 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradie
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkType<N, ?>, N extends DLKerasNetwork<?>, CFG extends DLKerasTrainingConfig>
+public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork, CFG extends DLKerasTrainingConfig>
 		implements DLTrainingContext<N, CFG> {
 
-	private final NT m_networkType;
+	private final Class<N> m_networkType;
 
 	private final String m_name;
 
@@ -81,7 +80,7 @@ public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkTy
 
 	private final Collection<DLKerasOptimizer> m_optimizers;
 
-	protected DLKerasAbstractTrainingContext(final NT networkType, final String name) {
+	protected DLKerasAbstractTrainingContext(final Class<N> networkType, final String name) {
 		m_networkType = networkType;
 		m_name = name;
 		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
@@ -107,7 +106,7 @@ public abstract class DLKerasAbstractTrainingContext<NT extends DLKerasNetworkTy
 	public abstract DLKerasTrainableNetworkAdapter trainable(N network, CFG trainingConfig) throws RuntimeException;
 
 	@Override
-	public NT getNetworkType() {
+	public Class<N> getNetworkType() {
 		return m_networkType;
 	}
 

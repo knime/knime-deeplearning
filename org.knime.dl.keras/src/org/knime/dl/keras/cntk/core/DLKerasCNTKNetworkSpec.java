@@ -46,22 +46,26 @@
  */
 package org.knime.dl.keras.cntk.core;
 
+import java.net.URL;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec<DLKerasCNTKNetworkType> {
+public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
 
-	public DLKerasCNTKNetworkSpec(final DLTensorSpec[] inputSpecs,
-			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
-		super(DLKerasCNTKNetworkType.INSTANCE, inputSpecs, hiddenOutputSpecs, outputSpecs);
+	public DLKerasCNTKNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs) {
+		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	@Override
@@ -73,5 +77,11 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec<DLK
 	protected boolean equalsInternal(final DLNetworkSpec other) {
 		// no op - everything's handled in abstract base class
 		return true;
+	}
+
+	@Override
+	public DLKerasNetwork create(final URL source) throws DLInvalidSourceException {
+		new DLKerasCNTKNetworkLoader().validateSource(source);
+		return new DLKerasCNTKNetwork(this, source);
 	}
 }

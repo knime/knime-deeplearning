@@ -48,9 +48,8 @@ package org.knime.dl.core.training;
 
 import java.util.Map;
 
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * Base interface for deep learning networks that can be trained.
@@ -58,7 +57,7 @@ import org.knime.dl.core.DLNetworkSpec;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLTrainableNetwork<I, O, S extends DLNetworkSpec<R>, R> extends DLNetwork<S, R>, AutoCloseable {
+public interface DLTrainableNetwork<I, O> extends DLNetwork, AutoCloseable {
 
 	Class<?> getTrainingDataType();
 
@@ -66,6 +65,6 @@ public interface DLTrainableNetwork<I, O, S extends DLNetworkSpec<R>, R> extends
 
 	DLTrainingConfig getTrainingConfig();
 
-	void train(final Map<DLTensorSpec, I> trainingData, final Map<DLTensorSpec, O> targetData,
-			final long batchSize) throws Exception;
+	void train(final Map<DLTensorSpec, I> trainingData, final Map<DLTensorSpec, O> targetData, final long batchSize)
+			throws Exception;
 }

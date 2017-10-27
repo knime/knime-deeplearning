@@ -46,50 +46,88 @@
  */
 package org.knime.dl.keras.theano.core;
 
+import java.io.File;
 import java.io.IOException;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasTensorSpecTableCreatorFactory;
-import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.data.DLPythonTypeMap;
+import org.knime.dl.python.core.DLPythonNumPyTypeMap;
+import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTheanoCommands extends DLKerasAbstractCommands<DLKerasTheanoCommandsConfig> {
+public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 
-	public DLKerasTheanoCommands() throws DLInvalidContextException {
-		super(new DLKerasTheanoCommandsConfig());
+	public DLKerasTheanoCommands() throws DLInvalidEnvironmentException {
 	}
 
-	public DLKerasTheanoCommands(final DLPythonContext context) throws DLInvalidContextException {
-		super(new DLKerasTheanoCommandsConfig(), context);
+	public DLKerasTheanoCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+		super(context);
 	}
 
 	@Override
-	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-			final DLPythonTypeMap typeMap) throws DLInvalidContextException, IOException {
+	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle)
+			throws DLInvalidEnvironmentException, IOException {
 		final PythonKernel kernel = m_context.getKernel();
-		kernel.execute(m_config.getExtractNetworkSpecsCode(handle));
-		final DLTensorSpec[] inputSpecs =
-				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.INPUT_SPECS_NAME,
-						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-		// final DLTensorSpec[] intermediateOutputSpecs =
+		kernel.execute(getExtractNetworkSpecsCode(handle));
+		final DLTensorSpec[] inputSpecs = (DLTensorSpec[]) kernel
+				.getData(INPUT_SPECS_NAME, new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
+				.getTable();
+		// final DLTensorSpec[] hiddenOutputSpecs =
 		// (DLTensorSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-		final DLTensorSpec[] outputSpecs =
-				(DLTensorSpec[]) kernel.getData(DLPythonAbstractCommandsConfig.OUTPUT_SPECS_NAME,
-						new DLKerasTensorSpecTableCreatorFactory(typeMap)).getTable();
-
-		// TODO: Keras does not expose "intermediate/hidden outputs" (see above) for the moment as we're not yet able to
+		// new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE)).getTable();
+		final DLTensorSpec[] outputSpecs = (DLTensorSpec[]) kernel
+				.getData(OUTPUT_SPECS_NAME, new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
+				.getTable();
+		// TODO: Keras does not expose "hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasTheanoNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO intermediateOutputSpecs */,
-				outputSpecs);
+		return new DLKerasTheanoNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO hiddenOutputSpecs */, outputSpecs);
+	}
+
+	@Override
+	protected String getSetupEnvironmentCode() {
+		return "import os\n" + //
+				"os.environ['KERAS_BACKEND'] = 'theano'\n";
+	}
+
+	@Override
+	protected File getInstallationTestFile() throws IOException {
+		return DLUtils.Files.getFileFromSameBundle(this, "py/DLKerasTheanoNetworkTester.py");
+	}
+
+	@Override
+	protected String getSetupBackendCode() {
+		return "";
+	}
+
+	@Override
+	protected String getLoadNetworkCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
+				"network = DLKerasTheanoNetworkReader().read(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
+	}
+
+	@Override
+	protected String getLoadNetworkFromJsonCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
+				"network = DLKerasTheanoNetworkReader().readFromJson(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
+	}
+
+	@Override
+	protected String getLoadNetworkFromYamlCode(final String path) {
+		return "import DLPythonNetwork\n" + //
+				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
+				"network = DLKerasTheanoNetworkReader().readFromYaml(r'" + path + "')\n" + //
+				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
 	}
 }

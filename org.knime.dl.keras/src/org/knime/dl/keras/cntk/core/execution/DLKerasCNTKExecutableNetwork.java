@@ -46,10 +46,9 @@
  */
 package org.knime.dl.keras.cntk.core.execution;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 
 /**
@@ -57,18 +56,14 @@ import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasCNTKExecutableNetwork
-		extends DLKerasAbstractExecutableNetwork<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec, DLKerasCNTKCommands> {
+	extends DLKerasAbstractExecutableNetwork<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
 
 	public DLKerasCNTKExecutableNetwork(final DLKerasCNTKNetwork network) {
 		super(network);
 	}
 
 	@Override
-	protected DLKerasCNTKCommands createCommands() throws DLInvalidContextException {
-		final DLKerasCNTKCommands commands = new DLKerasCNTKCommands();
-		commands.setupEnvironment();
-		commands.registerBackends();
-		commands.setupBackend();
-		return commands;
+	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasCNTKCommands();
 	}
 }

@@ -64,6 +64,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
@@ -79,15 +80,18 @@ class DLExecutorGeneralPanel extends JPanel {
 
 	private final DLExecutorGeneralConfig m_cfg;
 
-	private final DLNetworkSpec<?> m_networkSpec;
+	private final DLNetworkSpec m_networkSpec;
+
+	private final Class<? extends DLNetwork> m_networkType;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcBackend;
 
-	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec<?> networkSpec)
-			throws NotConfigurableException {
+	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec networkSpec,
+			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
 		m_networkSpec = networkSpec;
+		m_networkType = networkType;
 
 		// construct panel:
 
@@ -131,12 +135,12 @@ class DLExecutorGeneralPanel extends JPanel {
 	}
 
 	void refreshAvailableBackends() throws NotConfigurableException {
-		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
-				.getExecutionContextsForNetworkType((m_networkSpec.getNetworkType())) //
-				.stream() //
-				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
-				.collect(Collectors.toList());
-		if (availableExecutionContexts.size() == 0) {
+		final List<DLExecutionContext<?>> availableExecutionContexts =
+				DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType((m_networkType)) //
+						.stream() //
+						.sorted(Comparator.comparing(DLExecutionContext::getName)) //
+						.collect(Collectors.toList());
+		if (availableExecutionContexts.isEmpty()) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		}
 		final String[] names = new String[availableExecutionContexts.size()];

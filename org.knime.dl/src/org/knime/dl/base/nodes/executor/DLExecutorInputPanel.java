@@ -60,8 +60,6 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -151,26 +149,18 @@ final class DLExecutorInputPanel extends JPanel {
 		add(inputColumnsFilter, constr);
 		constr.gridy++;
 
-		m_cfg.getGeneralConfig().addExecutionContextChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				try {
-					refreshAvailableConverters();
-				} catch (final NotConfigurableException ex) {
-					throw new IllegalStateException(ex.getMessage(), ex);
-				}
+		m_cfg.getGeneralConfig().addExecutionContextChangeListener(e -> {
+			try {
+				refreshAvailableConverters();
+			} catch (final NotConfigurableException ex) {
+				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
-		m_cfg.getConverterModel().addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				try {
-					refreshAllowedInputColumns();
-				} catch (final NotConfigurableException ex) {
-					throw new IllegalStateException(ex.getMessage(), ex);
-				}
+		m_cfg.getConverterModel().addChangeListener(e -> {
+			try {
+				refreshAllowedInputColumns();
+			} catch (final NotConfigurableException ex) {
+				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
 	}
@@ -215,9 +205,9 @@ final class DLExecutorInputPanel extends JPanel {
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final HashSet<DataType> inputTypes = new HashSet<>();
 		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
-		final DLDataValueToTensorConverterRegistry converters =
-				DLDataValueToTensorConverterRegistry.getInstance();
-		// for each distinct column type in the input table, add the preferred converter to the list of selectable
+		final DLDataValueToTensorConverterRegistry converters = DLDataValueToTensorConverterRegistry.getInstance();
+		// for each distinct column type in the input table, add the preferred
+		// converter to the list of selectable
 		// converters
 		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
@@ -229,9 +219,9 @@ final class DLExecutorInputPanel extends JPanel {
 				}
 			}
 		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
-				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
-				.collect(Collectors.toList());
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted =
+				converterFactories.stream().sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+						.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
 		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
@@ -259,9 +249,13 @@ final class DLExecutorInputPanel extends JPanel {
 		m_cfg.setInputColumnsModelFilter(new DLDataTypeColumnFilter(allowedColType));
 		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsModel());
 		// FIXME (knime-core):
-		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always
-		// null because it doesn't get set in #updateWithNewConfiguration (only in the super class).
-		// Also see NameFilterPanel#loadConfiguration where #getRemovedFromIncludeList and #getRemovedFromExcludeList
-		// get added to the panel, which makes sense in general but not really when updating the filter config).
+		// Strange behavior within DataColumnSpecFilterPanel (see
+		// #toFilteredStringArray where m_filter is always
+		// null because it doesn't get set in #updateWithNewConfiguration (only
+		// in the super class).
+		// Also see NameFilterPanel#loadConfiguration where
+		// #getRemovedFromIncludeList and #getRemovedFromExcludeList
+		// get added to the panel, which makes sense in general but not really
+		// when updating the filter config).
 	}
 }

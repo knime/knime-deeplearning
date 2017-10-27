@@ -50,7 +50,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
@@ -77,16 +76,11 @@ public class DLBitVectorToBitTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends BitVectorValue> input,
-					final DLTensor<DLWritableBitBuffer> output) {
-				final DLWritableBitBuffer buf = output.getBuffer();
-				for (final BitVectorValue val : input) {
-					for (int i = 0; i < val.cardinality(); i++) {
-						buf.put(val.get(i));
-					}
+		return (input, output) -> {
+			final DLWritableBitBuffer buf = output.getBuffer();
+			for (final BitVectorValue val : input) {
+				for (int i = 0; i < val.cardinality(); i++) {
+					buf.put(val.get(i));
 				}
 			}
 		};

@@ -48,12 +48,8 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.function.Consumer;
-
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.util.DLUtils;
@@ -87,15 +83,10 @@ public class DLIntTensorToIntCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableIntBuffer, IntCell> createConverter() {
-		return new DLTensorToDataCellConverter<DLReadableIntBuffer, IntCell>() {
-
-			@Override
-			public void convert(final ExecutionContext exec, final DLTensor<DLReadableIntBuffer> input,
-					final Consumer<IntCell> out) {
-				final DLReadableIntBuffer buf = input.getBuffer();
-				for (int i = 0; i < buf.size(); i++) {
-					out.accept(new IntCell(buf.readNextInt()));
-				}
+		return (exec, input, out) -> {
+			final DLReadableIntBuffer buf = input.getBuffer();
+			for (int i = 0; i < buf.size(); i++) {
+				out.accept(new IntCell(buf.readNextInt()));
 			}
 		};
 	}

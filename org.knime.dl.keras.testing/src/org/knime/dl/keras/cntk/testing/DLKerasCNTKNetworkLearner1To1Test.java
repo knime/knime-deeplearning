@@ -63,8 +63,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkType;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.cntk.core.training.DLKerasCNTKDefaultTrainingContext;
 import org.knime.dl.keras.cntk.core.training.DLKerasCNTKTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
@@ -83,7 +82,8 @@ public class DLKerasCNTKNetworkLearner1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-	// TODO: we somehow need to apply the appropriate preferences on the test machines
+	// TODO: we somehow need to apply the appropriate preferences on the test
+	// machines
 	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 
 	@Before
@@ -98,8 +98,8 @@ public class DLKerasCNTKNetworkLearner1To1Test {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLKerasCNTKDefaultTrainingContext training = new DLKerasCNTKDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasCNTKNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasCNTKNetworkLoader());
 		final DLKerasCNTKNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;

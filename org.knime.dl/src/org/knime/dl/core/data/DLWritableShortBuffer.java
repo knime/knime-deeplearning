@@ -10,19 +10,19 @@ import java.nio.BufferOverflowException;
  */
 public interface DLWritableShortBuffer extends DLWritableByteBuffer {
 
-    /**
-     * Writes a value into the buffer.
-     *
-     * @param value the value
-     * @throws BufferOverflowException if the buffer's {@link #getCapacity() capacity} is exceeded.
-     */
-    void put(short value) throws BufferOverflowException;
+	/**
+	 * Writes a value into the buffer.
+	 *
+	 * @param value the value
+	 * @throws BufferOverflowException if the buffer's {@link #getCapacity() capacity} is exceeded.
+	 */
+	void put(short value) throws BufferOverflowException;
 
-    /**
-     * Copies an array into the buffer.
-     *
-     * @param values the array
-     * @throws BufferOverflowException if the buffer's {@link #getCapacity() capacity} is exceeded.
-     */
-    void putAll(short[] values) throws BufferOverflowException;
+	/**
+	 * Copies an array into the buffer.
+	 *
+	 * @param values the array
+	 * @throws BufferOverflowException if the buffer's {@link #getCapacity() capacity} is exceeded.
+	 */
+	void putAll(short[] values) throws BufferOverflowException;
 }

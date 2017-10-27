@@ -51,7 +51,6 @@ package org.knime.dl.python.core.data.serde;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.DoubleBuffer;
 
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
@@ -78,37 +77,31 @@ public class DLPythonDoubleBufferSerializerFactory extends SerializerFactory<DLP
 		super(DLPythonDoubleBuffer.class);
 	}
 
-
 	@Override
 	public Serializer<? extends DLPythonDoubleBuffer> createSerializer() {
 
-		return new Serializer<DLPythonDoubleBuffer>() {
-
-			@Override
-			public byte[] serialize(final DLPythonDoubleBuffer value) throws IOException {
-				// TODO: we serialize to flat buffers for now
-				// final int numDimensions = value.getNumDimensions();
-				// final long[] shape = value.getShape();
-				final long size = value.size() - value.getNextReadPosition();
-				final long numBytes = /*
-										 * Integer.BYTES + numDimensions *
-										 * Long.BYTES +
-										 */ size * Double.BYTES;
-				if (numBytes > Integer.MAX_VALUE) {
-					throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
-							+ Integer.MAX_VALUE + "bytes.");
-				}
-				double[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(),size);
-				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
-				buffer.order(ByteOrder.LITTLE_ENDIAN);
-				buffer.asDoubleBuffer().put(tensorStorage, (int)value.getNextReadPosition(), (int)size);
-				// TODO: we serialize to flat buffers for now
-				// buffer.putInt(numDimensions);
-				// for (final long dim : shape) {
-				// buffer.putLong(dim);
-				// }
-				return buffer.array();
+		return value -> {
+			// TODO: we serialize to flat buffers for now
+			// final int numDimensions = value.getNumDimensions();
+			// final long[] shape = value.getShape();
+			final long size = value.size() - value.getNextReadPosition();
+			final long numBytes = /*
+									 * Integer.BYTES + numDimensions * Long.BYTES +
+									 */ size * Double.BYTES;
+			if (numBytes > Integer.MAX_VALUE) {
+				throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
+						+ Integer.MAX_VALUE + "bytes.");
 			}
+			final double[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
+			final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
+			buffer.order(ByteOrder.LITTLE_ENDIAN);
+			buffer.asDoubleBuffer().put(tensorStorage, (int) value.getNextReadPosition(), (int) size);
+			// TODO: we serialize to flat buffers for now
+			// buffer.putInt(numDimensions);
+			// for (final long dim : shape) {
+			// buffer.putLong(dim);
+			// }
+			return buffer.array();
 		};
 	}
 

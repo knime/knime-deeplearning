@@ -102,8 +102,8 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	// access methods:
 
 	/**
-	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create
-	 * converters which convert a specific source type into a specific destination buffer.
+	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
+	 * which convert a specific source type into a specific destination buffer.
 	 *
 	 * @param sourceType the source type
 	 * @param bufferType the destination type
@@ -166,8 +166,8 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	}
 
 	/**
-	 * Returns the deep learning {@link DLDataValueToTensorConverterFactory converter factory} with the given
-	 * identifier if present.
+	 * Returns the deep learning {@link DLDataValueToTensorConverterFactory converter factory} with the given identifier
+	 * if present.
 	 *
 	 * @param identifier the identifier of the converter factory
 	 * @return the deep learning converter factory that matches the identifier

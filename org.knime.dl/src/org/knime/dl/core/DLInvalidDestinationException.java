@@ -63,6 +63,7 @@ public class DLInvalidDestinationException extends DLCheckedException {
 
 	/**
 	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
 	 */
 	public DLInvalidDestinationException(final String message, final Throwable cause) {
 		super(message, cause);

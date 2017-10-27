@@ -63,8 +63,8 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
- * Registry for deep learning output converter factories that allow conversion of {@link DLTensor tensor} types
- * into {@link DataCell data cells}.
+ * Registry for deep learning output converter factories that allow conversion of {@link DLTensor tensor} types into
+ * {@link DataCell data cells}.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
@@ -102,8 +102,8 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	// access methods:
 
 	/**
-	 * Returns all deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create
-	 * converters which convert a specific source type considering a source spec.
+	 * Returns all deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create converters
+	 * which convert a specific source type considering a source spec.
 	 *
 	 * @param sourceType the source type
 	 * @param sourceSpec the source spec
@@ -175,8 +175,8 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 			}
 		}
 		if (identifier.startsWith(DLTensorToSetCellConverterFactory.class.getName())) {
-			final String elementConverterId = identifier.substring(
-					DLTensorToSetCellConverterFactory.class.getName().length() + 1, identifier.length() - 1);
+			final String elementConverterId = identifier
+					.substring(DLTensorToSetCellConverterFactory.class.getName().length() + 1, identifier.length() - 1);
 			final Optional<DLTensorToDataCellConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
 			if (conv.isPresent()) {
 				return Optional.of(new DLTensorToSetCellConverterFactory<>(conv.get()));

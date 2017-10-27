@@ -48,7 +48,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.LongValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 
 /**
@@ -75,15 +74,10 @@ public class DLLongValueToLongTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<LongValue, DLWritableLongBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<LongValue, DLWritableLongBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends LongValue> input,
-					final DLTensor<DLWritableLongBuffer> output) {
-				final DLWritableLongBuffer buf = output.getBuffer();
-				for (final LongValue val : input) {
-					buf.put(val.getLongValue());
-				}
+		return (input, output) -> {
+			final DLWritableLongBuffer buf = output.getBuffer();
+			for (final LongValue val : input) {
+				buf.put(val.getLongValue());
 			}
 		};
 	}

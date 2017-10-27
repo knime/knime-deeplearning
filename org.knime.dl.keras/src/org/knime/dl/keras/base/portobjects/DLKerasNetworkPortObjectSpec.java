@@ -2,7 +2,7 @@
  * ------------------------------------------------------------------------
  *
  *  Copyright by KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.com; Email: contact@knime.com
+ *  Website: http://www.knime.org; Email: contact@knime.org
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License, Version 3, as
@@ -44,74 +44,85 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.base.portobjects;
+package org.knime.dl.keras.base.portobjects;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.zip.ZipEntry;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.port.PortObjectSpecZipInputStream;
 import org.knime.core.node.port.PortObjectSpecZipOutputStream;
-import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.DLNetworkSpecSerializer;
-import org.knime.dl.core.DLNetworkType;
-import org.knime.dl.core.DLNetworkTypeRegistry;
+import org.knime.dl.base.portobjects.DLAbstractNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
 
 /**
+ * The spec of {@link DLKerasNetworkPortObject}.
+ *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLDefaultNetworkPortObjectSpec implements DLNetworkPortObjectSpec {
+public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObjectSpec<DLKerasNetworkSpec> {
 
-	private static final String ZIP_ENTRY_NAME = "DLDefaultNetworkPortObjectSpec";
-
-	private DLNetworkSpec<?> m_spec;
-
-	public DLDefaultNetworkPortObjectSpec(final DLNetworkSpec<?> spec) {
-		m_spec = spec;
-	}
+	private static final String ZIP_ENTRY_NAME = "DLKerasNetworkPortObjectSpec";
 
 	/**
-	 * Empty framework constructor. Must not be called by client code.
+	 * Creates a new Keras deep learning network port object spec.
+	 *
+	 * @param spec the Keras deep learning network spec
+	 * @param type the type of the Keras network that is associated with the network spec
 	 */
-	public DLDefaultNetworkPortObjectSpec() {
-		// fields get populated by serializer
+	public DLKerasNetworkPortObjectSpec(final DLKerasNetworkSpec spec, final Class<? extends DLKerasNetwork> type) {
+		super(spec, type);
 	}
 
 	@Override
-	public DLNetworkSpec<?> getNetworkSpec() {
-		return m_spec;
+	protected void hashCodeInternal(final HashCodeBuilder b) {
+		// no op - everything's handled in abstract base class
 	}
 
-	public static final class Serializer extends PortObjectSpecSerializer<DLDefaultNetworkPortObjectSpec> {
+	@Override
+	protected boolean equalsInternal(final org.knime.dl.base.portobjects.DLNetworkPortObjectSpec other) {
+		// no op - everything's handled in abstract base class
+		return true;
+	}
+
+	/**
+	 * Serializer of {@link DLKerasNetworkPortObjectSpec}.
+	 */
+	public static final class Serializer extends PortObjectSpecSerializer<DLKerasNetworkPortObjectSpec> {
 		@Override
-		public void savePortObjectSpec(final DLDefaultNetworkPortObjectSpec portObjectSpec,
+		public void savePortObjectSpec(final DLKerasNetworkPortObjectSpec portObjectSpec,
 				final PortObjectSpecZipOutputStream out) throws IOException {
 			out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
 			final ObjectOutputStream objOut = new ObjectOutputStream(out);
-			final DLNetworkType<?, ?, ?> type = portObjectSpec.m_spec.getNetworkType();
-			objOut.writeUTF(type.getIdentifier());
-			@SuppressWarnings("unchecked")
-			final DLNetworkSpecSerializer<DLNetworkSpec<?>> serializer =
-					((DLNetworkSpecSerializer<DLNetworkSpec<?>>) type.getNetworkSpecSerializer());
-			serializer.serialize(objOut, portObjectSpec.m_spec);
+			objOut.writeObject(portObjectSpec.m_spec);
+			objOut.writeObject(portObjectSpec.m_type);
 		}
 
 		@Override
-		public DLDefaultNetworkPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in)
+		public DLKerasNetworkPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in)
 				throws IOException {
 			final ZipEntry entry = in.getNextEntry();
 			if (!ZIP_ENTRY_NAME.equals(entry.getName())) {
-				throw new IOException("Expected zip entry '" + ZIP_ENTRY_NAME + "', got " + entry.getName());
+				throw new IOException("Failed to load Keras deep learning network. Invalid zip entry name '"
+						+ entry.getName() + "', expected '" + ZIP_ENTRY_NAME + "'.");
 			}
 			final ObjectInputStream objIn = new ObjectInputStream(in);
-			final String id = objIn.readUTF();
-			final DLNetworkType<?, ?, ?> type = DLNetworkTypeRegistry.getInstance().getNetworkType(id)
-					.orElseThrow(() -> new IOException("Failed to load deep learning network. Network type '" + id
-							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-			final DLNetworkSpec<?> deserialized = type.getNetworkSpecSerializer().deserialize(objIn);
-			return new DLDefaultNetworkPortObjectSpec(deserialized);
+			try {
+				final DLKerasNetworkSpec spec = (DLKerasNetworkSpec) objIn.readObject();
+				@SuppressWarnings("unchecked") // we know what we serialized
+				final Class<? extends DLKerasNetwork> type = (Class<? extends DLKerasNetwork>) objIn.readObject();
+				return new DLKerasNetworkPortObjectSpec(spec, type);
+			} catch (final ClassNotFoundException e) {
+				throw new IOException(
+						"Failed to load Keras deep learning network. Are you missing a KNIME Deep Learning extension?",
+						e);
+			} catch (final Throwable t) {
+				throw new IOException("Failed to load Keras deep learning network.", t);
+			}
 		}
 	}
 }

@@ -50,7 +50,22 @@ package org.knime.dl.core;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLExternalNetwork<S extends DLExternalNetworkSpec<R>, R> extends DLNetwork<S, R> {
+public class DLMissingDependencyException extends DLCheckedException {
 
-	// NB: marker interface
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @param message must be neither null nor empty
+	 */
+	public DLMissingDependencyException(final String message) {
+		super(message);
+	}
+
+	/**
+	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
+	 */
+	public DLMissingDependencyException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
 }

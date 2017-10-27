@@ -50,7 +50,7 @@ package org.knime.dl.python.testing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -72,18 +72,10 @@ import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
 import org.knime.dl.core.DLDefaultTensorSpec;
-import org.knime.dl.core.DLExternalNetwork;
-import org.knime.dl.core.DLExternalNetworkLoader;
-import org.knime.dl.core.DLExternalNetworkSpec;
-import org.knime.dl.core.DLExternalNetworkType;
-import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNetworkSerializer;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.DLNetworkSpecSerializer;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLUnavailableDependencyException;
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
@@ -103,7 +95,7 @@ import org.knime.dl.core.execution.DLExecutableNetwork;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
-import org.knime.dl.core.io.DLNetworkReader;
+import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
@@ -126,9 +118,16 @@ public class DLPythonConverterTest {
 
 		// network:
 
-		final DLBazNetworkReader reader = new DLBazNetworkReader();
-		final DLBazNetwork network = reader.read("dummy-source");
-		final DLNetworkSpec<?> networkSpec = network.getSpec();
+		final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
+		inputSpecs[0] = new DLDefaultTensorSpec("in0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }),
+				float.class);
+		final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
+		// intermediate outputs stay empty
+		final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
+		outputSpecs[0] = new DLDefaultTensorSpec("out0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }),
+				double.class);
+		final DLBazNetworkSpec networkSpec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
+		final DLBazNetwork network = new DLBazNetwork(networkSpec, null);
 
 		// input data:
 
@@ -149,17 +148,18 @@ public class DLPythonConverterTest {
 		final DLBazExecutionContext exec = new DLBazExecutionContext();
 
 		// input converters:
-		final HashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters =
-				new HashMap<>(networkSpec.getInputSpecs().length);
+		final HashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters = new HashMap<>(
+				networkSpec.getInputSpecs().length);
 		for (final DLTensorSpec inputSpec : networkSpec.getInputSpecs()) {
-			final DLDataValueToTensorConverterFactory<?, ?> converter =
-					DLDataValueToTensorConverterRegistry.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
-							exec.getTensorFactory().getWritableBufferType(inputSpec)).get();
+			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
+					.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
+							exec.getTensorFactory().getWritableBufferType(inputSpec))
+					.get();
 			inputConverters.put(inputSpec, converter);
 		}
 		// output converters:
-		final Map<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverters =
-				new HashMap<>(networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
+		final Map<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> outputConverters = new HashMap<>(
+				networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
 		for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
 			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
 					.getFactoriesForSourceType(exec.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
@@ -223,19 +223,19 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetwork implements DLExternalNetwork<DLBazNetworkSpec, String> {
+	static class DLBazNetwork implements DLPythonNetwork {
 
-		private final String m_source;
+		private final URL m_source;
 
 		private final DLBazNetworkSpec m_spec;
 
-		private DLBazNetwork(final DLBazNetworkSpec spec, final String source) {
+		private DLBazNetwork(final DLBazNetworkSpec spec, final URL source) {
 			m_source = source;
 			m_spec = spec;
 		}
 
 		@Override
-		public String getSource() {
+		public URL getSource() {
 			return m_source;
 		}
 
@@ -245,14 +245,13 @@ public class DLPythonConverterTest {
 		}
 	}
 
-	static class DLBazNetworkSpec extends DLAbstractNetworkSpec<DLBazNetworkType, String>
-			implements DLExternalNetworkSpec<String> {
+	static class DLBazNetworkSpec extends DLAbstractNetworkSpec {
 
 		private static final long serialVersionUID = 1L;
 
 		public DLBazNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] intermediateOutputSpecs,
 				final DLTensorSpec[] outputSpecs) {
-			super(DLBazNetworkType.INSTANCE, inputSpecs, intermediateOutputSpecs, outputSpecs);
+			super(inputSpecs, intermediateOutputSpecs, outputSpecs);
 		}
 
 		@Override
@@ -261,72 +260,9 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		protected boolean equalsInternal(final DLNetworkSpec<?> other) {
+		protected boolean equalsInternal(final DLNetworkSpec other) {
 			// no op
 			return true;
-		}
-	}
-
-	static class DLBazNetworkType implements DLExternalNetworkType<DLBazNetwork, DLBazNetworkSpec, String> {
-
-		private static final long serialVersionUID = 1L;
-
-		public static final DLBazNetworkType INSTANCE = new DLBazNetworkType();
-
-		private DLBazNetworkType() {
-		}
-
-		@Override
-		public String getIdentifier() {
-			return getClass().getCanonicalName();
-		}
-
-		@Override
-		public String getName() {
-			return "Baz";
-		}
-
-		@Override
-		public void checkAvailability(final boolean forceRefresh) throws DLUnavailableDependencyException {
-			throw new RuntimeException("not yet implemented"); // TODO: NYI
-		}
-
-		@Override
-		public DLExternalNetworkLoader<DLBazNetwork, ?, String, ?> getLoader() {
-			throw new RuntimeException("not yet implemented"); // TODO: NYI
-		}
-
-		@Override
-		public DLNetworkSerializer<DLBazNetwork, DLBazNetworkSpec> getNetworkSerializer() {
-			throw new RuntimeException("not yet implemented"); // TODO: NYI
-		}
-
-		@Override
-		public DLNetworkSpecSerializer<DLBazNetworkSpec> getNetworkSpecSerializer() {
-			throw new RuntimeException("not yet implemented"); // TODO: NYI
-		}
-
-		@Override
-		public DLBazNetwork wrap(final DLBazNetworkSpec spec, final String source)
-				throws DLInvalidSourceException, IllegalArgumentException {
-			return new DLBazNetwork(spec, source);
-		}
-	}
-
-	static class DLBazNetworkReader implements DLNetworkReader<DLBazNetwork, DLBazNetworkSpec, String> {
-
-		@Override
-		public DLBazNetwork read(final String source) throws DLInvalidSourceException, IOException {
-			final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
-			inputSpecs[0] =
-					new DLDefaultTensorSpec("in0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class);
-			final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
-			// intermediate outputs stay empty
-			final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
-			outputSpecs[0] =
-					new DLDefaultTensorSpec("out0", new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class);
-			final DLBazNetworkSpec spec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
-			return new DLBazNetwork(spec, source);
 		}
 	}
 
@@ -335,8 +271,8 @@ public class DLPythonConverterTest {
 		private final DLTensorFactory m_layerDataFactory = new DLBazTensorFactory();
 
 		@Override
-		public DLBazNetworkType getNetworkType() {
-			return DLBazNetworkType.INSTANCE;
+		public Class<DLBazNetwork> getNetworkType() {
+			return DLBazNetwork.class;
 		}
 
 		@Override
@@ -358,7 +294,7 @@ public class DLPythonConverterTest {
 	}
 
 	static class DLBazExecutableNetwork extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, //
-			DLTensor<? extends DLReadableBuffer>, DLBazNetwork, DLBazNetworkSpec, String> {
+			DLTensor<? extends DLReadableBuffer>, DLBazNetwork> {
 
 		public DLBazExecutableNetwork(final DLBazNetwork network) {
 			super(network);
@@ -401,7 +337,7 @@ public class DLPythonConverterTest {
 
 	static class DLBazExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
-		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
+		protected DLBazExecutableNetworkAdapter(final DLExecutableNetwork<?, ?> network,
 				final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 			super(network, layerDataFactory, requestedOutputs);
 		}
@@ -422,8 +358,8 @@ public class DLPythonConverterTest {
 	static class DLBazTensorFactory implements DLTensorFactory {
 
 		@Override
-		public DLBazNetworkType getNetworkType() {
-			return DLBazNetworkType.INSTANCE;
+		public Class<?> getNetworkType() {
+			return DLBazNetwork.class;
 		}
 
 		@Override
@@ -464,8 +400,8 @@ public class DLPythonConverterTest {
 
 		private <B extends DLBuffer> DLTensor<B> createTensorInternal(final DLTensorSpec spec, final long batchSize,
 				final Class<B> bufferType) {
-			final long[] shape =
-					DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(() -> new IllegalArgumentException(
+			final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
+					.orElseThrow(() -> new IllegalArgumentException(
 							"Layer data spec does not provide a shape. Layer data cannot be created."));
 			checkArgument(batchSize <= Integer.MAX_VALUE,
 					"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");

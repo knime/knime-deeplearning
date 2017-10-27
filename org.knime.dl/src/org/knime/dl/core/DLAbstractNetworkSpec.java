@@ -58,11 +58,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R> implements DLNetworkSpec<R> {
+public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
-
-	private final NT m_networkType;
 
 	private final DLTensorSpec[] m_inputSpecs;
 
@@ -75,14 +73,12 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 	/**
 	 * Creates a new instance of this network spec.
 	 *
-	 * @param type the network type
 	 * @param inputSpecs the input tensor specs, can be empty
 	 * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
 	 * @param outputSpecs the output tensor specs, can be empty
 	 */
-	protected DLAbstractNetworkSpec(final NT type, final DLTensorSpec[] inputSpecs,
-			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
-		m_networkType = checkNotNull(type, "Network type must not be null.");
+	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs) {
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
 		m_hiddenOutputSpecs =
 				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
@@ -91,12 +87,7 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	protected abstract boolean equalsInternal(DLNetworkSpec<?> other);
-
-	@Override
-	public NT getNetworkType() {
-		return m_networkType;
-	}
+	protected abstract boolean equalsInternal(DLNetworkSpec other);
 
 	@Override
 	public DLTensorSpec[] getInputSpecs() {
@@ -129,9 +120,8 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLNetworkSpec<?> other = (DLNetworkSpec<?>) obj;
-		return other.getNetworkType().equals(getNetworkType()) //
-				&& other.getInputSpecs().length == getInputSpecs().length //
+		final DLNetworkSpec other = (DLNetworkSpec) obj;
+		return other.getInputSpecs().length == getInputSpecs().length //
 				&& other.getHiddenOutputSpecs().length == getHiddenOutputSpecs().length //
 				&& other.getOutputSpecs().length == getOutputSpecs().length //
 				&& Arrays.deepEquals(other.getInputSpecs(), getInputSpecs()) //
@@ -142,15 +132,13 @@ public abstract class DLAbstractNetworkSpec<NT extends DLNetworkType<?, ?, R>, R
 
 	@Override
 	public String toString() {
-		return "Type: " + m_networkType.getName() + "\n" + //
-				"Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
+		return "Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
 				"Hidden outputs: " + Arrays.toString(m_hiddenOutputSpecs) + "\n" + //
 				"Outputs: " + Arrays.toString(m_outputSpecs);
 	}
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
-		b.append(m_networkType);
 		b.append(m_inputSpecs);
 		b.append(m_hiddenOutputSpecs);
 		b.append(m_outputSpecs);

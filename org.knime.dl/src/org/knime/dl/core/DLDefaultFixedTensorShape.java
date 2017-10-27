@@ -58,11 +58,11 @@ public class DLDefaultFixedTensorShape extends DLAbstractFixedTensorShape {
 
 	private static final long serialVersionUID = 1L;
 
-    /**
-     * @param shape the shape of the tensor. Must be at least one-dimensional. Each shape dimension must be greater
-     *            than zero.
-     */
-    public DLDefaultFixedTensorShape(final long[] shape) {
-        super(shape);
-    }
+	/**
+	 * @param shape the shape of the tensor. Must be at least one-dimensional. Each shape dimension must be greater than
+	 *            zero.
+	 */
+	public DLDefaultFixedTensorShape(final long[] shape) {
+		super(shape);
+	}
 }

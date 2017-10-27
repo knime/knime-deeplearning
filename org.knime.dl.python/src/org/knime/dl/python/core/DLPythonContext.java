@@ -49,7 +49,7 @@ package org.knime.dl.python.core;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -60,10 +60,10 @@ public interface DLPythonContext extends AutoCloseable {
 
 	boolean isKernelOpen();
 
-	PythonKernel getKernel() throws DLInvalidContextException;
+	PythonKernel getKernel() throws DLInvalidEnvironmentException;
 
 	// NB: we cannot offer an execute method that allows direct execution of a source code string as there are known
 	// issues when trying to execute Python with "-c" option enabled from a Windows batch file.
-	
+
 	String[] execute(File script, String... args) throws IOException;
 }

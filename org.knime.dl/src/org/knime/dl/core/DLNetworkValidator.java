@@ -46,15 +46,14 @@
  */
 package org.knime.dl.core;
 
-import java.io.Serializable;
+import java.net.URL;
 
 /**
- * Implementations of this interface must be {@link Serializable serializable}.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkLoader<R> extends Serializable {
+public interface DLNetworkValidator {
 
 	/**
 	 * Checks if the given source is valid.
@@ -62,7 +61,7 @@ public interface DLNetworkLoader<R> extends Serializable {
 	 * @param source the source
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
 	 */
-	void validateSource(R source) throws DLInvalidSourceException;
+	void validateSource(URL source) throws DLInvalidSourceException;
 
 	/**
 	 * Checks if the given destination is valid.
@@ -70,5 +69,18 @@ public interface DLNetworkLoader<R> extends Serializable {
 	 * @param destination the destination
 	 * @throws DLInvalidDestinationException if the destination is invalid
 	 */
-	void validateDestination(R destination) throws DLInvalidDestinationException;
+	void validateDestination(URL destination) throws DLInvalidDestinationException;
+
+	/**
+	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not.
+	 * <P>
+	 * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
+	 * should cache the results of their first invocation to improve the response time of subsequent calls.
+	 *
+	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
+	 *            will be redone. Otherwise, previous test results will be used if available.
+	 *
+	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
+	 */
+	void checkAvailability(boolean forceRefresh) throws DLMissingDependencyException;
 }

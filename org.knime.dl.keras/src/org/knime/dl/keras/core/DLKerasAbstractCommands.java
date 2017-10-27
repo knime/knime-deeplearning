@@ -48,49 +48,47 @@ package org.knime.dl.keras.core;
 
 import java.io.IOException;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
-import org.knime.dl.python.core.DLPythonAbstractCommandsConfig;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.knime.python2.generic.ScriptingNodeUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractCommands<CFG extends DLKerasAbstractCommandsConfig>
-	extends DLPythonAbstractCommands<CFG> {
+public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasAbstractCommands.class);
-
-	protected DLKerasAbstractCommands(final CFG config) throws DLInvalidContextException {
-		super(config);
+	protected DLKerasAbstractCommands() {
 	}
 
-	protected DLKerasAbstractCommands(final CFG config, final DLPythonContext context)
-			throws DLInvalidContextException {
-		super(config, context);
+	protected DLKerasAbstractCommands(final DLPythonContext context) {
+		super(context);
 	}
 
-	// TODO: we should get the model name (= handle identifier) from Python, change in config as well
-	public DLPythonNetworkHandle loadNetworkFromJson(final String path) throws DLInvalidContextException, IOException {
-		m_context.getKernel().execute(m_config.getLoadNetworkFromJsonCode(path));
-		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
+	protected abstract String getLoadNetworkFromJsonCode(String path);
+
+	protected abstract String getLoadNetworkFromYamlCode(String path);
+
+	public DLPythonNetworkHandle loadNetworkFromJson(final String path)
+			throws DLInvalidEnvironmentException, IOException {
+		m_context.getKernel().execute(getLoadNetworkFromJsonCode(path));
+		// TODO: we should get the model name (= handle identifier) from Python
+		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
 
-	// TODO: we should get the model name (= handle identifier) from Python, change in config as well
-	public DLPythonNetworkHandle loadNetworkFromYaml(final String path) throws DLInvalidContextException, IOException {
-		m_context.getKernel().execute(m_config.getLoadNetworkFromYamlCode(path));
-		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
+	public DLPythonNetworkHandle loadNetworkFromYaml(final String path)
+			throws DLInvalidEnvironmentException, IOException {
+		m_context.getKernel().execute(getLoadNetworkFromYamlCode(path));
+		// TODO: we should get the model name (= handle identifier) from Python
+		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config)
-			throws DLInvalidContextException, IOException {
+			throws DLInvalidEnvironmentException, IOException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("from DLKerasNetwork import DLKerasTrainingConfig") //
 				.n("config = DLKerasTrainingConfig()") //
@@ -105,9 +103,6 @@ public abstract class DLKerasAbstractCommands<CFG extends DLKerasAbstractCommand
 				.n("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
 				.n("network.training_config = config");
-		final String[] output = m_context.getKernel().execute(b.toString());
-		if (!output[1].isEmpty()) {
-			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
-		}
+		m_context.getKernel().execute(b.toString());
 	}
 }

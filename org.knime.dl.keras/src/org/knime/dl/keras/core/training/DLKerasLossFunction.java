@@ -57,7 +57,8 @@ public interface DLKerasLossFunction extends DLLossFunction<String> {
 	// NB: marker interface
 
 	// TODO: we should add a "since" attribute to these losses to enable checking if they're available for the local
-	// Keras installation
+	// Keras installation. This implies changes in the installation testers on Python side as they have to extract the
+	// libs' versions.
 
 	public static class DLKerasMeanSquaredError implements DLKerasLossFunction {
 

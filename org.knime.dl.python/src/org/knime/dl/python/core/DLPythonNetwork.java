@@ -48,13 +48,13 @@ package org.knime.dl.python.core;
 
 import java.net.URL;
 
-import org.knime.dl.core.DLExternalNetwork;
+import org.knime.dl.core.DLNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetwork<S extends DLPythonNetworkSpec> extends DLExternalNetwork<S, URL> {
+public interface DLPythonNetwork extends DLNetwork {
 
-	// NB: marker interface
+	URL getSource();
 }

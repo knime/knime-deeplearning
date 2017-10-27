@@ -53,16 +53,18 @@ import java.util.Optional;
 import org.eclipse.core.runtime.IConfigurationElement;
 
 /**
- * Registry for deep learning tensor factories that create {@link Tensor tensor} representations for certain
- * network types.
+ * Registry for deep learning tensor factories that create {@link Tensor tensor} representations for certain network
+ * types.
  *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLTensorRegistry extends DLAbstractExtensionPointRegistry {
 
-	// TODO: needed? could be property of the type - this is a 1:1 mapping anyway...
-	// or we register pairs of execution/training contexts and tensor factories - that's where we need them anyway
+	// TODO: needed? could be property of the type - this is a 1:1 mapping
+	// anyway...
+	// or we register pairs of execution/training contexts and tensor factories
+	// - that's where we need them anyway
 	// (could be part of the exec/training registries)
 
 	private static final String EXT_POINT_ID = "org.knime.dl.DLTensorFactory";
@@ -83,7 +85,7 @@ public final class DLTensorRegistry extends DLAbstractExtensionPointRegistry {
 		return instance;
 	}
 
-	private final HashMap<DLNetworkType<?, ?, ?>, DLTensorFactory> m_layerData = new HashMap<>();
+	private final HashMap<Class<?>, DLTensorFactory> m_layerData = new HashMap<>();
 
 	public DLTensorRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -98,7 +100,7 @@ public final class DLTensorRegistry extends DLAbstractExtensionPointRegistry {
 	 * @param network the network type
 	 * @return the tensor factory
 	 */
-	public Optional<DLTensorFactory> getTensorFactory(final DLNetworkType<?, ?, ?> networkType) {
+	public Optional<DLTensorFactory> getTensorFactory(final Class<?> networkType) {
 		final DLTensorFactory layerData = m_layerData.get(networkType);
 		return Optional.ofNullable(layerData);
 	}
@@ -124,7 +126,7 @@ public final class DLTensorRegistry extends DLAbstractExtensionPointRegistry {
 	}
 
 	private synchronized void registerTensorInternal(final DLTensorFactory layerData) {
-		final DLNetworkType<?, ?, ?> networkType = layerData.getNetworkType();
+		final Class<?> networkType = layerData.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The tensor factory's associated network type must not be null.");
 		}

@@ -55,7 +55,6 @@ import org.knime.dl.core.DLTensorRegistry;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkType;
 
 /**
  * Executes a {@link DLKerasAbstractExecutableNetwork}.
@@ -63,16 +62,15 @@ import org.knime.dl.keras.core.DLKerasNetworkType;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractExecutionContext<NT extends DLKerasNetworkType<N, ?>, N extends DLKerasNetwork<?>>
-		implements DLExecutionContext<N> {
-
-	private final NT m_networkType;
+public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> implements DLExecutionContext<N> {
 
 	private final String m_name;
 
 	private final DLTensorFactory m_layerDataFactory;
 
-	protected DLKerasAbstractExecutionContext(final NT networkType, final String name) {
+	private final Class<N> m_networkType;
+
+	protected DLKerasAbstractExecutionContext(final Class<N> networkType, final String name) {
 		m_networkType = networkType;
 		m_name = name;
 		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
@@ -84,7 +82,7 @@ public abstract class DLKerasAbstractExecutionContext<NT extends DLKerasNetworkT
 	public abstract DLKerasExecutableNetworkAdapter executable(N network, Set<DLTensorSpec> requestedOutputs);
 
 	@Override
-	public NT getNetworkType() {
+	public Class<N> getNetworkType() {
 		return m_networkType;
 	}
 

@@ -50,7 +50,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.IntValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 
 /**
@@ -77,15 +76,10 @@ public class DLIntValueToIntTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<IntValue, DLWritableIntBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<IntValue, DLWritableIntBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends IntValue> input,
-					final DLTensor<DLWritableIntBuffer> output) {
-				final DLWritableIntBuffer buf = output.getBuffer();
-				for (final IntValue val : input) {
-					buf.put(val.getIntValue());
-				}
+		return (input, output) -> {
+			final DLWritableIntBuffer buf = output.getBuffer();
+			for (final IntValue val : input) {
+				buf.put(val.getIntValue());
 			}
 		};
 	}

@@ -51,22 +51,18 @@ package org.knime.dl.python.core;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.dl.core.DLInvalidContextException;
-import org.knime.dl.core.DLNetworkTypeRegistry;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
-import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
 import org.knime.dl.python.core.data.serde.DLSerializerFactory;
@@ -81,6 +77,7 @@ import org.knime.python.typeextension.PythonToKnimeExtensions;
 import org.knime.python.typeextension.Serializer;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
@@ -88,13 +85,26 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImp
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValueTableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
-import org.knime.python2.generic.ScriptingNodeUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractCommandsConfig> implements AutoCloseable {
+public abstract class DLPythonAbstractCommands implements DLPythonCommands {
+
+	// String constants that are used on Python side:
+
+	public static final String DEFAULT_MODEL_NAME = "model";
+
+	public static final String INPUT_SPECS_NAME = "input_specs";
+
+	public static final String HIDDEN_OUTPUT_SPECS_NAME = "intermediate_output_specs";
+
+	public static final String OUTPUT_SPECS_NAME = "output_specs";
+
+	public static final String INPUT_TABLE_NAME = "input_table";
+
+	public static final String OUTPUT_TABLE_NAME = "output_table";
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
@@ -102,63 +112,96 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 
 	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
 
+	/**
+	 * Methods that require a properly setup Python environment should not access this field directly. Instead, they
+	 * should use {@link #getContext()}.
+	 */
 	protected final DLPythonContext m_context;
 
-	protected final CFG m_config;
+	/**
+	 * Set to <code>true</code> if the setup steps in {@link #getContext()} were successful.
+	 */
+	private boolean m_contextSetup = false;
 
 	/**
-	 * @param config the config
-	 * @throws DLInvalidContextException if failed to create a valid Python back end. This includes failures during the
-	 *             setup of the Python kernel as well as the deep learning specific setup of the Python environment,
-	 *             installation tests, registration of all Python deep learning back ends and the setup of the Python
-	 *             back end that corresponds to this commands instance. The thrown exception contains a detailed error
-	 *             message that is suitable to be displayed to the user.
+	 * Creates a new instance of this commands class.
 	 */
-	protected DLPythonAbstractCommands(final CFG config) throws DLInvalidContextException {
-		this(config, new DLPythonDefaultContext());
+	protected DLPythonAbstractCommands() {
+		this(new DLPythonDefaultContext());
 	}
 
 	/**
-	 * @param config the config
-	 * @param context the Python kernel
-	 * @throws DLInvalidContextException if failed to create a valid Python back end. This includes failures during the
-	 *             deep learning specific setup of the Python environment, installation tests, registration of all
-	 *             Python deep learning back ends and the setup of the Python back end that corresponds to this commands
-	 *             instance. The thrown exception contains a detailed error message that is suitable to be displayed to
-	 *             the user.
+	 * Creates a new instance of this commands class that uses the given context to communicate with Python.
+	 *
+	 * @param context the Python context
 	 */
-	protected DLPythonAbstractCommands(final CFG config, final DLPythonContext context)
-			throws DLInvalidContextException {
+	protected DLPythonAbstractCommands(final DLPythonContext context) {
 		m_context = context;
-		m_config = config;
 	}
 
-	public abstract DLPythonNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-			final DLPythonTypeMap typeMap) throws DLInvalidContextException, IOException;
+	protected abstract String getSetupEnvironmentCode();
 
-	public DLPythonContext getContext() {
+	protected abstract File getInstallationTestFile() throws IOException;
+
+	protected abstract String getSetupBackendCode();
+
+	protected abstract String getLoadNetworkCode(String path);
+
+	@Override
+	public final synchronized DLPythonContext getContext() throws DLInvalidEnvironmentException {
+		if (!m_contextSetup) {
+			// Setup Python process environment:
+			try {
+				final String error = m_context.getKernel().execute(getSetupEnvironmentCode())[1];
+				if (!error.isEmpty()) {
+					throw new DLInvalidEnvironmentException(
+							"Deep learning Python back end environment could not be set up.\nCause: " + error);
+				}
+			} catch (final IOException e) {
+				throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
+						+ "(while setting up the Python back end environment)."
+						+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
+			}
+			// Register all back ends:
+			try {
+				final String error = m_context.getKernel()
+						.execute(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
+								.stream() //
+								.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
+								.collect(Collectors.joining()))[1];
+				if (!error.isEmpty()) {
+					throw new DLInvalidEnvironmentException(
+							"Deep learning Python back ends could not be registered.\nCause: " + error);
+				}
+			} catch (final IOException e) {
+				throw new DLInvalidEnvironmentException(
+						"An error occurred while communicating with Python (while registering the Python back ends)."
+								+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
+						e);
+			}
+			// Setup the actual back end:
+			try {
+				final String error = m_context.getKernel().execute(getSetupBackendCode())[1];
+				if (!error.isEmpty()) {
+					throw new DLInvalidEnvironmentException(
+							"Deep learning Python back end could not be set up.\nCause: " + error);
+				}
+			} catch (final IOException e) {
+				throw new DLInvalidEnvironmentException(
+						"An error occurred while communicating with Python (while setting up the Python back end)."
+								+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
+						e);
+			}
+
+			m_contextSetup = true;
+		}
 		return m_context;
 	}
 
-	public void setupEnvironment() throws DLInvalidContextException {
+	@Override
+	public synchronized void testInstallation() throws DLInvalidEnvironmentException {
 		try {
-			final String error = m_context.getKernel().execute(m_config.getSetupEnvironmentCode())[1];
-			if (!error.isEmpty()) {
-				throw new DLInvalidContextException(
-						"Deep learning Python back end environment could not be set up.\nCause: " + error);
-			}
-		} catch (final IOException e) {
-			throw new DLInvalidContextException("An error occurred while communicating with Python "
-					+ "(while setting up the Python back end environment)." + e.getMessage() != null
-							? "\nCause: " + e.getMessage()
-							: "",
-					e);
-		}
-	}
-
-	public void testInstallation() throws DLInvalidContextException {
-		try {
-			final File script = m_config.getInstallationTestScript();
+			final File script = getInstallationTestFile();
 			final String[] output = m_context.isKernelOpen()
 					? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
 					: m_context.execute(script);
@@ -169,15 +212,15 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 						: "";
 				final String further = !output[1].isEmpty() ? "\nFurther output: " + output[1] : "";
 				if (!cause.isEmpty()) {
-					throw new DLInvalidContextException(
+					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back end installation tests failed." + cause + further);
 				} else {
-					throw new DLInvalidContextException(
+					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back end installation tests failed for unknown reasons." + further);
 				}
 			}
 		} catch (final IOException e) {
-			throw new DLInvalidContextException("An error occurred while communicating with Python "
+			throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
 					+ "(while testing the installation of the Python back end)." + e.getMessage() != null
 							? "\nCause: " + e.getMessage()
 							: "",
@@ -185,116 +228,81 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		}
 	}
 
-	public void registerBackends() throws DLInvalidContextException {
-		try {
-			final String error = m_context.getKernel().execute(DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
-					.stream() //
-					.filter(nt -> nt instanceof DLPythonNetworkType) //
-					.map(nt -> "import " + ((DLPythonNetworkType<?, ?>) nt).getPythonModuleName() + "\n") //
-					.collect(Collectors.joining()))[1];
-			if (!error.isEmpty()) {
-				throw new DLInvalidContextException(
-						"Deep learning Python back ends could not be registered.\nCause: " + error);
-			}
-		} catch (final IOException e) {
-			throw new DLInvalidContextException(
-					"An error occurred while communicating with Python (while registering the Python back ends)."
-							+ e.getMessage() != null ? "\nCause: " + e.getMessage() : "",
-					e);
-		}
+	@Override
+	public DLPythonNetworkHandle loadNetwork(final String path) throws DLInvalidEnvironmentException, IOException {
+		getContext().getKernel().execute(getLoadNetworkCode(path));
+		// TODO: we should get the model name (= network identifier) from Python
+		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
 
-	public void setupBackend() throws DLInvalidContextException {
-		try {
-			final String error = m_context.getKernel().execute(m_config.getSetupBackendCode())[1];
-			if (!error.isEmpty()) {
-				throw new DLInvalidContextException(
-						"Deep learning Python back end could not be set up.\nCause: " + error);
-			}
-		} catch (final IOException e) {
-			throw new DLInvalidContextException(
-					"An error occurred while communicating with Python (while setting up the Python back end)."
-							+ e.getMessage() != null ? "\nCause: " + e.getMessage() : "",
-					e);
-		}
+	@Override
+	public void saveNetwork(final DLPythonNetworkHandle network, final String path)
+			throws DLInvalidEnvironmentException, IOException {
+		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+				.a("import DLPythonNetwork") //
+				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+				.n("network.save(").asr(path).a(")");
+		getContext().getKernel().execute(b.toString());
 	}
 
-	// TODO: we should get the model name (= handle identifier) from Python
-	public DLPythonNetworkHandle loadNetwork(final String path) throws DLInvalidContextException, IOException {
-		m_context.getKernel().execute(m_config.getLoadNetworkCode(path));
-		return new DLPythonNetworkHandle(DLPythonAbstractCommandsConfig.DEFAULT_MODEL_NAME);
-	}
-
-	public void saveNetwork(final DLPythonNetworkHandle handle, final String path)
-			throws DLInvalidContextException, IOException {
-		m_context.getKernel().execute(m_config.getSaveNetworkCode(handle, path));
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public synchronized void setNetworkInputs(final DLPythonNetworkHandle handle, // TODO: implement handle
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input, final long batchSize)
-			throws DLInvalidContextException, IOException {
-		for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> in : input.entrySet()) {
-			final DLTensorSpec spec = in.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = in.getValue();
-			final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
-					.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-							&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-									.isAssignableFrom(tensor.getBuffer().getClass()))
-					.findFirst();
-			// TODO: if nothing found, we should also try to match
-			// primitive types with their wrapper types
-			// (guava Primitives.wrap etc.)
-			final KnimeToPythonExtension extension = extensions.orElseThrow(() -> new RuntimeException(
-					"Transmitting input data to Python failed. No matching serializer available."));
-			final Serializer<DLPythonDataBuffer> serializer =
-					(Serializer<DLPythonDataBuffer>) extension.getJavaSerializerFactory().createSerializer();
-			final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { spec.getName() },
-					Collections.singletonMap(spec.getName(), extension.getId()));
-			final Row row = new RowImpl(spec.getName(), 1);
+	// TODO: implement network handle
+	@Override
+	public void setNetworkInputs(final DLPythonNetworkHandle network,
+			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> inputs,
+			final long batchSize) throws DLInvalidEnvironmentException, IOException {
+		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
+				.entrySet()) {
+			final DLTensorSpec spec = input.getKey();
+			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
+			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
 			try {
-				final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-				row.setCell(cell, 0);
-				final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
-				m_context.getKernel().putData(spec.getName(), new DLSingletonTableChunker(iterator), 1);
+				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
 			} catch (final IOException ex) {
 				throw new RuntimeException("Transmitting input data to Python failed.", ex);
 			}
 		}
 	}
 
-	public void executeNetwork(final DLPythonNetworkHandle handle, final Set<DLTensorSpec> requestedOutputs,
-			final long batchSize) throws DLInvalidContextException, IOException {
-		final String[] output =
-				m_context.getKernel().execute(m_config.getExecuteNetworkCode(handle, requestedOutputs, batchSize));
-		if (!output[1].isEmpty()) {
-			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
-		}
+	@Override
+	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorSpec> requestedOutputs,
+			final long batchSize) throws DLInvalidEnvironmentException, IOException {
+		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+				.a("import DLPythonNetwork") //
+				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+				.n("in_data = {}") //
+				.n("for input_spec in network.spec.input_specs:") //
+				.n().t().a("in_data[input_spec.name] = globals()[input_spec.name]") //
+				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
+				.n("for name, data in out_data.items():") //
+				.n().t().a("globals()[name] = data");
+		getContext().getKernel().execute(b.toString());
 	}
 
-	public synchronized void getNetworkOutputs(final DLPythonNetworkHandle handle, // TODO: implement handle
-			final Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> output)
-			throws DLInvalidContextException, IOException {
-		for (final Entry<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> out : output.entrySet()) {
-			final DLTensorSpec spec = out.getKey();
-			final DLTensor<? extends DLReadableBuffer> tensor = out.getValue();
+	// TODO: implement network handle
+	@Override
+	public void getNetworkOutputs(final DLPythonNetworkHandle network,
+			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
+			throws DLInvalidEnvironmentException, IOException {
+		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
+				.entrySet()) {
+			final DLTensorSpec spec = output.getKey();
+			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
-			m_context.getKernel().getData(spec.getName(),
+			getContext().getKernel().getData(spec.getName(),
 					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
 						@Override
 						public void addRow(final Row row) {
 							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
-							final DeserializerFactory deserializerFactory =
-									PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
+							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
+									.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
 								LOGGER.coding(
 										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
 							}
 							final Deserializer deserializer = deserializerFactory.createDeserializer();
 							if (!(deserializer instanceof DLPythonDeserializer)) {
-								final String msg =
-										"An exception occurred while collecting network output from Python. Unsupported deserializer.";
+								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
 								LOGGER.error(msg);
 								// TODO
 								throw new RuntimeException(msg);
@@ -321,73 +329,43 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 		}
 	}
 
-	public synchronized void setNetworkTrainingInputs(final DLPythonNetworkHandle handle,
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> trainingData,
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> targetData, final long batchSize)
-			throws DLInvalidContextException, IOException {
+	@Override
+	public void setNetworkTrainingInputs(final DLPythonNetworkHandle network,
+			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> trainingData,
+			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> targetData,
+			final long batchSize) throws DLInvalidEnvironmentException, IOException {
 		// training data:
-		for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> in : trainingData.entrySet()) {
-			final DLTensorSpec spec = in.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = in.getValue();
-			final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
-					.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-							&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-									.isAssignableFrom(tensor.getBuffer().getClass()))
-					.findFirst();
-			// TODO: if nothing found, we should also try to match
-			// primitive types with their wrapper types
-			// (guava Primitives.wrap etc.)
-			final KnimeToPythonExtension extension = extensions.orElseThrow(() -> new RuntimeException(
-					"Transmitting input data to Python failed. No matching serializer available."));
-			final Serializer<DLPythonDataBuffer> serializer =
-					(Serializer<DLPythonDataBuffer>) extension.getJavaSerializerFactory().createSerializer();
-			final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { spec.getName() },
-					Collections.singletonMap(spec.getName(), extension.getId()));
-			final Row row = new RowImpl(spec.getName(), 1);
+		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : trainingData
+				.entrySet()) {
+			final DLTensorSpec spec = input.getKey();
+			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
+			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
 			try {
-				final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-				row.setCell(cell, 0);
-				final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
-				m_context.getKernel().putData(spec.getName(), new DLSingletonTableChunker(iterator), 1);
+				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
 			} catch (final IOException ex) {
-				throw new RuntimeException("Transmitting input data to Python failed.", ex);
+				throw new RuntimeException("Transmitting data to Python failed.", ex);
 			}
 		}
 		// target data:
-		for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> in : targetData.entrySet()) {
-			final DLTensorSpec spec = in.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = in.getValue();
-			final Optional<KnimeToPythonExtension> extensions = KnimeToPythonExtensions.getExtensions().stream()
-					.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-							&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-									.isAssignableFrom(tensor.getBuffer().getClass()))
-					.findFirst();
-			// TODO: if nothing found, we should also try to match
-			// primitive types with their wrapper types
-			// (guava Primitives.wrap etc.)
-			final KnimeToPythonExtension extension = extensions.orElseThrow(() -> new RuntimeException(
-					"Transmitting input data to Python failed. No matching serializer available."));
-			final Serializer<DLPythonDataBuffer> serializer =
-					(Serializer<DLPythonDataBuffer>) extension.getJavaSerializerFactory().createSerializer();
-			final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { spec.getName() },
-					Collections.singletonMap(spec.getName(), extension.getId()));
-			final Row row = new RowImpl(spec.getName(), 1);
+		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : targetData
+				.entrySet()) {
+			final DLTensorSpec spec = input.getKey();
+			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
+			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
 			try {
-				final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-				row.setCell(cell, 0);
-				final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
-				m_context.getKernel().putData(spec.getName(), new DLSingletonTableChunker(iterator), 1);
+				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
 			} catch (final IOException ex) {
-				throw new RuntimeException("Transmitting input data to Python failed.", ex);
+				throw new RuntimeException("Transmitting data to Python failed.", ex);
 			}
 		}
 	}
 
-	public synchronized void trainNetwork(final DLPythonNetworkHandle handle, final long batchSize)
-			throws DLInvalidContextException, IOException {
+	@Override
+	public void trainNetwork(final DLPythonNetworkHandle network, final long batchSize)
+			throws DLInvalidEnvironmentException, IOException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
-				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")") //
+				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
 				.n("training_data = {}") //
 				.n("for input_spec in network.spec.input_specs:") //
 				.n().t().a("training_data[input_spec.name] = globals()[input_spec.name]") //
@@ -395,41 +373,50 @@ public abstract class DLPythonAbstractCommands<CFG extends DLPythonAbstractComma
 				.n("for output_spec in network.spec.output_specs:") //
 				.n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
 				.n("network.train(training_data, target_data)");
-		final String[] output = m_context.getKernel().execute(b.toString());
-		if (!output[1].isEmpty()) {
-			LOGGER.debug(ScriptingNodeUtils.shortenString(output[1], 1000));
-		}
+		getContext().getKernel().execute(b.toString());
 	}
 
-	public synchronized void getTrainingResults(final DLPythonNetworkHandle handle) {
+	@Override
+	public void getTrainingResults(final DLPythonNetworkHandle network) {
 		// TODO
-	}
-
-	public void putParameter(final String key, final String parameter) throws DLInvalidContextException, IOException {
-		putParameter(key, new CellImpl(parameter));
-	}
-
-	public void putParameter(final String key, final int parameter) throws DLInvalidContextException, IOException {
-		putParameter(key, new CellImpl(parameter));
-	}
-
-	public void putParameter(final String key, final long parameter) throws DLInvalidContextException, IOException {
-		putParameter(key, new CellImpl(parameter));
 	}
 
 	/**
 	 * Closes the underlying {@link DLPythonContext Python context}.
 	 */
 	@Override
-	public void close() throws Exception {
+	public synchronized void close() throws Exception {
 		m_context.close();
 	}
 
-	private void putParameter(final String key, final Cell cell) throws DLInvalidContextException, IOException {
-		final TableSpec spec =
-				new TableSpecImpl(new Type[] { cell.getColumnType() }, new String[] { key }, new HashMap<>(0));
-		final RowImpl row = new RowImpl(key, 1);
+	protected String getExtractNetworkSpecsCode(final DLPythonNetworkHandle network) {
+		return "import DLPythonNetworkSpecExtractor\n" + //
+				"global " + INPUT_SPECS_NAME + "\n" + //
+				"global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
+				"global " + OUTPUT_SPECS_NAME + "\n" + //
+				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + " = " + //
+				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + network.getIdentifier() + "')";
+	}
+
+	private TableChunker createSingleTensorTableChunker(final DLTensorSpec spec,
+			final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
+		final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
+				.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+						&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
+								.isAssignableFrom(tensor.getBuffer().getClass()))
+				.findFirst() //
+				.orElseThrow(() -> new RuntimeException(
+						"Transmitting data to Python failed. No matching serializer available."));
+		// TODO: if nothing found, we should also try to match primitive types with their wrapper types (guava
+		// Primitives.wrap etc.)
+		final Serializer<DLPythonDataBuffer> serializer = (Serializer<DLPythonDataBuffer>) extension
+				.getJavaSerializerFactory().createSerializer();
+		final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
+		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { spec.getName() },
+				Collections.singletonMap(spec.getName(), extension.getId()));
+		final Row row = new RowImpl(spec.getName(), 1);
 		row.setCell(cell, 0);
-		m_context.getKernel().putData(key, new DLSingletonTableChunker(new KeyValueTableIterator(spec, row)), 1);
+		final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
+		return new DLSingletonTableChunker(iterator);
 	}
 }

@@ -66,8 +66,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
 import org.knime.dl.keras.theano.core.execution.DLKerasTheanoDefaultExecutionContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
@@ -90,14 +89,14 @@ public class DLKerasTheanoNetworkExecutor1To1Test {
 		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
 		prefs.flush();
 	}
-	
+
 	@Test
 	public void test() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 		final DLKerasTheanoDefaultExecutionContext exec = new DLKerasTheanoDefaultExecutionContext();
-		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader = new DLPythonDefaultNetworkReader<>(
-				DLKerasTheanoNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTheanoNetworkLoader());
 		DLKerasTheanoNetwork network;
 		try {
 			network = reader.read(source);
@@ -112,7 +111,8 @@ public class DLKerasTheanoNetworkExecutor1To1Test {
 				populate(entry.getValue());
 			}
 		}, out -> {
-			// TODO: test against known results - this is sth. that should rather be tested via a test workflow
+			// TODO: test against known results - this is sth. that should
+			// rather be tested via a test workflow
 		}, 1);
 	}
 

@@ -56,7 +56,7 @@ import org.knime.python2.generic.VariableNames;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-class DLPythonLearnerNodeConfig extends PythonSourceCodeConfig {
+final class DLPythonLearnerNodeConfig extends PythonSourceCodeConfig {
 
 	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
 			"flow_variables", // flow variables

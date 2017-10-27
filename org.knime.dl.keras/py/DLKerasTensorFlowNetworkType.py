@@ -54,19 +54,19 @@ import DLPythonNetworkType
 
 
 class DLKerasTensorFlowNetworkType(DLKerasNetworkType):
-    
+
     def __init__(self):
-        super().__init__('org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType', 'tensorflow')
-    
+        super().__init__('org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork', 'tensorflow')
+
     @property
     def reader(self):
-        from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader 
+        from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader
         return DLKerasTensorFlowNetworkReader()
-    
+
     def wrap_model(self, model):
         from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetwork
         return DLKerasTensorFlowNetwork(model)
-    
+
     def _test_installation(self, tester):
         tester.check_lib('tensorflow')
         super()._test_installation(tester)
@@ -77,5 +77,7 @@ _instance = DLKerasTensorFlowNetworkType()
 # register network type
 DLPythonNetworkType.add_network_type(_instance)
 # access point for other modules
+
+
 def instance():
     return _instance

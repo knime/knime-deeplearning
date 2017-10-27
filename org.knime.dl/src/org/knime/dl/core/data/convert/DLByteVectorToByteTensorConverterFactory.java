@@ -50,7 +50,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
 
@@ -78,16 +77,11 @@ public class DLByteVectorToByteTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends ByteVectorValue> input,
-					final DLTensor<DLWritableShortBuffer> output) {
-				final DLWritableByteBuffer buf = output.getBuffer();
-				for (final ByteVectorValue val : input) {
-					for (int i = 0; i < val.cardinality(); i++) {
-						buf.put((byte) val.get(i));
-					}
+		return (input, output) -> {
+			final DLWritableByteBuffer buf = output.getBuffer();
+			for (final ByteVectorValue val : input) {
+				for (int i = 0; i < val.cardinality(); i++) {
+					buf.put((byte) val.get(i));
 				}
 			}
 		};

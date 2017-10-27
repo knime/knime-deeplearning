@@ -56,7 +56,7 @@ import DLPythonNetworkType
 class DLKerasTheanoNetworkType(DLKerasNetworkType):
 
     def __init__(self):
-        super().__init__('org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType', 'theano')
+        super().__init__('org.knime.dl.keras.theano.core.DLKerasTheanoNetwork', 'theano')
 
     @property
     def reader(self):
@@ -71,10 +71,13 @@ class DLKerasTheanoNetworkType(DLKerasNetworkType):
         tester.check_lib('theano')
         super()._test_installation(tester)
 
+
 # pseudo-singleton:
 _instance = DLKerasTheanoNetworkType()
 # register network type
 DLPythonNetworkType.add_network_type(_instance)
 # access point for other modules
+
+
 def instance():
     return _instance

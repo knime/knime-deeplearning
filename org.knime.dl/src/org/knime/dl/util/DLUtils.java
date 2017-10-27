@@ -64,10 +64,11 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLFixedTensorShape;
+import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLNetworkSpec;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 /**
  * Various utility methods and classes.
@@ -89,11 +90,24 @@ public final class DLUtils {
 				final Bundle bundle = Platform.getBundle(bundleName);
 				final URL url = FileLocator.find(bundle, new Path(relativePath), null);
 				return url != null ? FileUtil.getFileFromURL(FileLocator.toFileURL(url)) : null;
-			} catch (final IOException e) {
+			} catch (final Exception e) {
 				throw new IOException(
-						"Failed to get file '" + relativePath + "' from bundle '" + bundleName + "':" + e.getMessage(),
+						"Failed to get file '" + relativePath + "' from bundle '" + bundleName + "': " + e.getMessage(),
 						e);
 			}
+		}
+
+		public static File getFileFromSameBundle(final Object caller, final String relativePath)
+				throws IllegalArgumentException, IOException {
+			checkNotNull(caller);
+			checkNotNullOrEmpty(relativePath);
+			final Bundle bundle = FrameworkUtil.getBundle(caller.getClass());
+			if (bundle == null) {
+				throw new IllegalArgumentException(
+						"Failed to get file '" + relativePath + "' from the bundle of class '"
+								+ caller.getClass().getCanonicalName() + "'. Bundle could not be resolved.");
+			}
+			return DLUtils.Files.getFileFromBundle(bundle.getSymbolicName(), relativePath);
 		}
 
 		public static String readAllUTF8(final File f) throws IOException {
@@ -123,8 +137,7 @@ public final class DLUtils {
 		public static Optional<DLTensorSpec> findSpec(final String name, final DLTensorSpec[]... specs) {
 			checkNotNullOrEmpty(name);
 			checkNotNull(specs);
-			return Arrays.stream(specs).flatMap(s -> Arrays.stream(s)).filter(s -> s.getName().equals(name))
-					.findFirst();
+			return Arrays.stream(specs).flatMap(Arrays::stream).filter(s -> s.getName().equals(name)).findFirst();
 		}
 	}
 

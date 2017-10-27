@@ -10,18 +10,18 @@ import java.nio.BufferUnderflowException;
  */
 public interface DLReadableDoubleBuffer extends DLReadableBuffer {
 
-    /**
-     * Reads the next value from the buffer.
-     *
-     * @return the value
-     * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
-     */
-    double readNextDouble() throws BufferUnderflowException;
+	/**
+	 * Reads the next value from the buffer.
+	 *
+	 * @return the value
+	 * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
+	 */
+	double readNextDouble() throws BufferUnderflowException;
 
-    /**
-     * Returns a copy of the buffer's content.
-     *
-     * @return the buffer's content
-     */
-    double[] toDoubleArray();
+	/**
+	 * Returns a copy of the buffer's content.
+	 *
+	 * @return the buffer's content
+	 */
+	double[] toDoubleArray();
 }

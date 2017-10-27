@@ -88,8 +88,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	protected DLAbstractTensorSpec(final String name, final long batchSize, final DLTensorShape shape,
 			final Class<?> elementType) {
 		m_name = checkNotNullOrEmpty(name);
-		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.",
-				batchSize);
+		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = checkNotNull(shape);
 		m_elementType = checkNotNull(elementType);
@@ -114,8 +113,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	 */
 	protected DLAbstractTensorSpec(final String name, final long batchSize, final Class<?> elementType) {
 		m_name = checkNotNullOrEmpty(name);
-		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.",
-				batchSize);
+		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = DLUnknownTensorShape.INSTANCE;
 		m_elementType = checkNotNull(elementType);

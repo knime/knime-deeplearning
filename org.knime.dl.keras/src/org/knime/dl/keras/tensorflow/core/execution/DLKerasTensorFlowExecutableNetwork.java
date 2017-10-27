@@ -46,30 +46,24 @@
  */
 package org.knime.dl.keras.tensorflow.core.execution;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasTensorFlowExecutableNetwork
-		extends DLKerasAbstractExecutableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowNetworkSpec, //
-				DLKerasTensorFlowCommands> {
+	extends DLKerasAbstractExecutableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
 
 	public DLKerasTensorFlowExecutableNetwork(final DLKerasTensorFlowNetwork network) {
 		super(network);
 	}
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidContextException {
-		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands();
-		commands.setupEnvironment();
-		commands.registerBackends();
-		commands.setupBackend();
-		return commands;
+	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasTensorFlowCommands();
 	}
 }

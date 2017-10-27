@@ -51,7 +51,6 @@ package org.knime.dl.python.core.data.serde;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.LongBuffer;
 
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
@@ -78,40 +77,33 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 		super(DLPythonLongBuffer.class);
 	}
 
-
 	@Override
 	public Serializer<? extends DLPythonLongBuffer> createSerializer() {
 
-		return new Serializer<DLPythonLongBuffer>() {
-
-			@Override
-			public byte[] serialize(final DLPythonLongBuffer value) throws IOException {
-				// TODO: we serialize to flat buffers for now
-				// final int numDimensions = value.getNumDimensions();
-				// final long[] shape = value.getShape();
-				final long size = value.size() - value.getNextReadPosition();
-				final long numBytes = /*
-										 * Integer.BYTES + numDimensions *
-										 * Long.BYTES +
-										 */ size * Long.BYTES;
-				if (numBytes > Integer.MAX_VALUE) {
-					throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
-							+ Integer.MAX_VALUE + "bytes.");
-				}
-				long[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
-				final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
-				buffer.order(ByteOrder.LITTLE_ENDIAN);
-				buffer.asLongBuffer().put(tensorStorage, (int)value.getNextReadPosition(), (int)size);
-				// TODO: we serialize to flat buffers for now
-				// buffer.putInt(numDimensions);
-				// for (final long dim : shape) {
-				// buffer.putLong(dim);
-				// }
-				return buffer.array();
+		return value -> {
+			// TODO: we serialize to flat buffers for now
+			// final int numDimensions = value.getNumDimensions();
+			// final long[] shape = value.getShape();
+			final long size = value.size() - value.getNextReadPosition();
+			final long numBytes = /*
+									 * Integer.BYTES + numDimensions * Long.BYTES +
+									 */ size * Long.BYTES;
+			if (numBytes > Integer.MAX_VALUE) {
+				throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
+						+ Integer.MAX_VALUE + "bytes.");
 			}
+			final long[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
+			final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
+			buffer.order(ByteOrder.LITTLE_ENDIAN);
+			buffer.asLongBuffer().put(tensorStorage, (int) value.getNextReadPosition(), (int) size);
+			// TODO: we serialize to flat buffers for now
+			// buffer.putInt(numDimensions);
+			// for (final long dim : shape) {
+			// buffer.putLong(dim);
+			// }
+			return buffer.array();
 		};
 	}
-
 
 	@Override
 	public Class<? extends DLBuffer> getBufferType() {

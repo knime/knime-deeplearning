@@ -48,30 +48,40 @@ package org.knime.dl.keras.core;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 
 /**
+ * @param <N> the Keras network type
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasNetworkLoader<N extends DLKerasNetwork<?>> extends DLPythonNetworkLoader<N> {
+public interface DLKerasNetworkLoader<N extends DLKerasNetwork> extends DLPythonNetworkLoader<N> {
+
+	List<String> LOAD_MODEL_URL_EXTENSIONS = Collections.unmodifiableList(Arrays.asList("h5", "json", "yaml"));
+
+	String SAVE_MODEL_URL_EXTENSION = "h5";
+
+	String getName();
 
 	@Override
-	default String[] getLoadModelURLExtensions() {
-		return new String[] { "h5, json, yaml" };
+	default List<String> getLoadModelURLExtensions() {
+		return LOAD_MODEL_URL_EXTENSIONS;
 	}
 
 	@Override
 	default String getSaveModelURLExtension() {
-		return "h5";
+		return SAVE_MODEL_URL_EXTENSION;
 	}
 
 	@Override
 	N fetch(DLPythonNetworkHandle handle, URL source, DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException;
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
 }

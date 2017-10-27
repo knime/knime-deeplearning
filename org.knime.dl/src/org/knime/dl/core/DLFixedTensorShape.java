@@ -56,11 +56,11 @@ package org.knime.dl.core;
  */
 public interface DLFixedTensorShape extends DLTensorShape {
 
-    /**
-     * Returns the shape of the tensor. The shape is at least one-dimensional and each shape dimension is greater
-     * than zero.
-     *
-     * @return the shape of the tensor
-     */
-    long[] getShape();
+	/**
+	 * Returns the shape of the tensor. The shape is at least one-dimensional and each shape dimension is greater than
+	 * zero.
+	 *
+	 * @return the shape of the tensor
+	 */
+	long[] getShape();
 }

@@ -48,12 +48,8 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.function.Consumer;
-
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.util.DLUtils;
@@ -87,15 +83,10 @@ public class DLLongTensorToLongCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableLongBuffer, LongCell> createConverter() {
-		return new DLTensorToDataCellConverter<DLReadableLongBuffer, LongCell>() {
-
-			@Override
-			public void convert(final ExecutionContext exec, final DLTensor<DLReadableLongBuffer> input,
-					final Consumer<LongCell> out) {
-				final DLReadableLongBuffer buf = input.getBuffer();
-				for (int i = 0; i < buf.size(); i++) {
-					out.accept(new LongCell(buf.readNextLong()));
-				}
+		return (exec, input, out) -> {
+			final DLReadableLongBuffer buf = input.getBuffer();
+			for (int i = 0; i < buf.size(); i++) {
+				out.accept(new LongCell(buf.readNextLong()));
 			}
 		};
 	}

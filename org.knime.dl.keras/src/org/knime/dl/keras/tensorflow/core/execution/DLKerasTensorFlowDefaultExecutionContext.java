@@ -53,25 +53,24 @@ import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkType;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasTensorFlowDefaultExecutionContext
-		extends DLKerasAbstractExecutionContext<DLKerasTensorFlowNetworkType, DLKerasTensorFlowNetwork> {
+	extends DLKerasAbstractExecutionContext<DLKerasTensorFlowNetwork> {
 
 	private static final String EXECUTION_CONTEXT_NAME = "Keras (TensorFlow)";
 
 	public DLKerasTensorFlowDefaultExecutionContext() {
-		super(DLKerasTensorFlowNetworkType.INSTANCE, EXECUTION_CONTEXT_NAME);
+		super(DLKerasTensorFlowNetwork.class, EXECUTION_CONTEXT_NAME);
 	}
 
 	@Override
 	public DLKerasExecutableNetworkAdapter executable(final DLKerasTensorFlowNetwork network,
 			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
-		final DLKerasAbstractExecutableNetwork<?, ?, ?> execNetwork = new DLKerasTensorFlowExecutableNetwork(network);
+		final DLKerasAbstractExecutableNetwork<?, ?> execNetwork = new DLKerasTensorFlowExecutableNetwork(network);
 		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
 	}
 }

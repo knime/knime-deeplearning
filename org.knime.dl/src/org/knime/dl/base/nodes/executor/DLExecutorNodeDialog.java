@@ -52,8 +52,6 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -66,8 +64,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -82,8 +78,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -110,9 +107,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private JButton m_addOutputButton;
 
-	private DLNetworkSpec<?> m_lastIncomingNetworkSpec;
+	private DLNetworkSpec m_lastIncomingNetworkSpec;
 
-	private DLNetworkSpec<?> m_lastConfiguredNetworkSpec;
+	private DLNetworkSpec m_lastConfiguredNetworkSpec;
 
 	/**
 	 * Creates a new dialog.
@@ -159,11 +156,11 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		if (currNetworkSpec.getNetworkSpec() == null) {
 			throw new NotConfigurableException("Input port object's deep learning network spec is missing.");
 		}
-		if (currNetworkSpec.getNetworkSpec().getNetworkType() == null) {
+		if (currNetworkSpec.getNetworkType() == null) {
 			throw new NotConfigurableException("Input port object's deep learning network type is missing.");
 		}
 
-		final DLNetworkSpec<?> networkSpec = currNetworkSpec.getNetworkSpec();
+		final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
 		m_lastIncomingNetworkSpec = networkSpec;
 
 		if (networkSpec.getInputSpecs().length == 0) {
@@ -206,7 +203,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				}
 				for (final String layerName : outputSettings) {
 					if (!m_outputPanels.containsKey(layerName)) {
-						// add output to the dialog (when loading the dialog for the first time)
+						// add output to the dialog (when loading the dialog for
+						// the first time)
 						final Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName,
 								networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
 						if (spec.isPresent()) {
@@ -268,10 +266,11 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec, final DataTableSpec tableSpec)
 			throws NotConfigurableException {
-		final DLNetworkSpec<?> networkSpec = portObjectSpec.getNetworkSpec();
+		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
+		final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
 
 		// general settings:
-		m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec);
+		m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec, networkType);
 		m_root.add(m_generalPanel, m_rootConstr);
 		m_rootConstr.gridy++;
 
@@ -319,59 +318,55 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		// 'add output' button
 		m_addOutputButton = new JButton("add output");
 		// 'add output' button click event: open dialog
-		m_addOutputButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				// 'add output' dialog
-				final JPanel outputsAddDlg = new JPanel(new GridBagLayout());
-				final GridBagConstraints addOutputDialogConstr = new GridBagConstraints();
-				addOutputDialogConstr.gridx = 0;
-				addOutputDialogConstr.gridy = 0;
-				addOutputDialogConstr.weightx = 1;
-				addOutputDialogConstr.anchor = GridBagConstraints.WEST;
-				addOutputDialogConstr.fill = GridBagConstraints.VERTICAL;
-				// available outputs
-				final ArrayList<String> availableOutputs = new ArrayList<>(networkSpec.getOutputSpecs().length
-						+ networkSpec.getHiddenOutputSpecs().length - m_outputPanels.size());
-				final HashMap<String, DLTensorSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
-				for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
-					final String outputName = outputSpec.getName();
-					if (!m_outputPanels.containsKey(outputName)) {
-						availableOutputs.add(outputName);
-						availableOutputsMap.put(outputName, outputSpec);
-					}
+		m_addOutputButton.addActionListener(e -> {
+			// 'add output' dialog
+			final JPanel outputsAddDlg = new JPanel(new GridBagLayout());
+			final GridBagConstraints addOutputDialogConstr = new GridBagConstraints();
+			addOutputDialogConstr.gridx = 0;
+			addOutputDialogConstr.gridy = 0;
+			addOutputDialogConstr.weightx = 1;
+			addOutputDialogConstr.anchor = GridBagConstraints.WEST;
+			addOutputDialogConstr.fill = GridBagConstraints.VERTICAL;
+			// available outputs
+			final ArrayList<String> availableOutputs = new ArrayList<>(networkSpec.getOutputSpecs().length
+					+ networkSpec.getHiddenOutputSpecs().length - m_outputPanels.size());
+			final HashMap<String, DLTensorSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
+			for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
+				final String outputName = outputSpec.getName();
+				if (!m_outputPanels.containsKey(outputName)) {
+					availableOutputs.add(outputName);
+					availableOutputsMap.put(outputName, outputSpec);
 				}
-				for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
-					final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
-					final String intermediateName = intermediateSpec.getName();
-					if (!m_outputPanels.containsKey(intermediateName)) {
-						final String intermediateDisplayName = intermediateName + " (hidden)";
-						availableOutputs.add(intermediateDisplayName);
-						availableOutputsMap.put(intermediateDisplayName, intermediateSpec);
-					}
+			}
+			for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
+				final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
+				final String intermediateName = intermediateSpec.getName();
+				if (!m_outputPanels.containsKey(intermediateName)) {
+					final String intermediateDisplayName = intermediateName + " (hidden)";
+					availableOutputs.add(intermediateDisplayName);
+					availableOutputsMap.put(intermediateDisplayName, intermediateSpec);
 				}
-				// output selection
-				final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
-				final DialogComponentStringSelection dcOutput =
-						new DialogComponentStringSelection(smOutput, "Output", availableOutputs);
-				outputsAddDlg.add(dcOutput.getComponentPanel(), addOutputDialogConstr);
-				final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
-						outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-				if (selectedOption == JOptionPane.OK_OPTION) {
-					final DLTensorSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
-					if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
-						final String msg = "Output '" + outputDataSpec.getName()
-								+ "' has an (at least partially) unknown shape. This is not supported.";
-						LOGGER.error(msg);
-						throw new IllegalStateException(msg);
-					}
-					try {
-						addOutputPanel(outputDataSpec, m_generalCfg);
-					} catch (final Exception ex) {
-						LOGGER.error(ex.getMessage());
-						throw new IllegalStateException(ex.getMessage(), ex);
-					}
+			}
+			// output selection
+			final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
+			final DialogComponentStringSelection dcOutput =
+					new DialogComponentStringSelection(smOutput, "Output", availableOutputs);
+			outputsAddDlg.add(dcOutput.getComponentPanel(), addOutputDialogConstr);
+			final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
+					outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+			if (selectedOption == JOptionPane.OK_OPTION) {
+				final DLTensorSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
+				if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
+					final String msg = "Output '" + outputDataSpec.getName()
+							+ "' has an (at least partially) unknown shape. This is not supported.";
+					LOGGER.error(msg);
+					throw new IllegalStateException(msg);
+				}
+				try {
+					addOutputPanel(outputDataSpec, m_generalCfg);
+				} catch (final Exception ex) {
+					LOGGER.error(ex.getMessage());
+					throw new IllegalStateException(ex.getMessage(), ex);
 				}
 			}
 		});
@@ -402,13 +397,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			final DLExecutorOutputConfig outputCfg =
 					DLExecutorNodeModel.createOutputTensorModelConfig(outputName, generalCfg);
 			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputDataSpec);
-			outputPanel.addRemoveListener(new ChangeListener() {
-
-				@Override
-				public void stateChanged(final ChangeEvent e) {
-					removeOutputPanel(outputName, outputPanel, outputCfg);
-				}
-			});
+			outputPanel.addRemoveListener(e -> removeOutputPanel(outputName, outputPanel, outputCfg));
 			// add output panel to dialog
 			m_outputPanels.put(outputName, outputPanel);
 			m_root.add(outputPanel, m_rootConstr);

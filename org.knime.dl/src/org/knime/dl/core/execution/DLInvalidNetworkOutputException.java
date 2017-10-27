@@ -65,6 +65,7 @@ public class DLInvalidNetworkOutputException extends DLUncheckedException {
 
 	/**
 	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
 	 */
 	public DLInvalidNetworkOutputException(final String message, final Throwable cause) {
 		super(message, cause);
@@ -72,6 +73,9 @@ public class DLInvalidNetworkOutputException extends DLUncheckedException {
 
 	/**
 	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 */
 	public DLInvalidNetworkOutputException(final String message, final Throwable cause, final boolean enableSuppression,
 			final boolean writableStackTrace) {

@@ -46,29 +46,24 @@
  */
 package org.knime.dl.keras.theano.core.execution;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTheanoExecutableNetwork extends
-		DLKerasAbstractExecutableNetwork<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec, DLKerasTheanoCommands> {
+public final class DLKerasTheanoExecutableNetwork
+	extends DLKerasAbstractExecutableNetwork<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
 
 	public DLKerasTheanoExecutableNetwork(final DLKerasTheanoNetwork network) {
 		super(network);
 	}
 
 	@Override
-	protected DLKerasTheanoCommands createCommands() throws DLInvalidContextException {
-		final DLKerasTheanoCommands commands = new DLKerasTheanoCommands();
-		commands.setupEnvironment();
-		commands.registerBackends();
-		commands.setupBackend();
-		return commands;
+	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasTheanoCommands();
 	}
 }

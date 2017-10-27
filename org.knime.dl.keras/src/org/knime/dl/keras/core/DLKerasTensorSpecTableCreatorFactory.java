@@ -106,8 +106,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 		private final DLPythonTypeMap m_typeMap;
 
-		public DLKerasTensorSpecTableCreator(final TableSpec spec, final int tableSize,
-				final DLPythonTypeMap typeMap) {
+		public DLKerasTensorSpecTableCreator(final TableSpec spec, final int tableSize, final DLPythonTypeMap typeMap) {
 			if (!checkTableSpec(spec)) {
 				throw new IllegalStateException("Python side sent an invalid tensor specs table.");
 			}

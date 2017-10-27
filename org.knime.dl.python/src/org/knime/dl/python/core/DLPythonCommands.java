@@ -46,16 +46,58 @@
  */
 package org.knime.dl.python.core;
 
-import java.net.URL;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
-import org.knime.dl.core.DLExternalNetworkSpec;
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonNetworkSpec extends DLExternalNetworkSpec<URL> {
+public interface DLPythonCommands extends AutoCloseable {
 
-	@Override
-	DLPythonNetworkType<?, ?> getNetworkType();
+	/**
+	 * @return the Python context
+	 * @throws DLInvalidEnvironmentException if failed to properly setup the Python context. This includes failures
+	 *             during the deep learning specific setup of the Python process, installation tests, registration of
+	 *             all Python deep learning back ends and setup of the Python back end that is utilized by this commands
+	 *             instance. The thrown exception contains a detailed error message that is suitable to be displayed to
+	 *             the user.
+	 */
+	DLPythonContext getContext() throws DLInvalidEnvironmentException;
+
+	void testInstallation() throws DLInvalidEnvironmentException;
+
+	DLPythonNetworkHandle loadNetwork(String path) throws DLInvalidEnvironmentException, IOException;
+
+	DLNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network) throws DLInvalidEnvironmentException, IOException;
+
+	void saveNetwork(DLPythonNetworkHandle network, String path) throws DLInvalidEnvironmentException, IOException;
+
+	void setNetworkInputs(DLPythonNetworkHandle network,
+			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> inputs, long batchSize)
+			throws DLInvalidEnvironmentException, IOException;
+
+	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorSpec> requestedOutputs, long batchSize)
+			throws DLInvalidEnvironmentException, IOException;
+
+	void getNetworkOutputs(DLPythonNetworkHandle network,
+			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
+			throws DLInvalidEnvironmentException, IOException;
+
+	void setNetworkTrainingInputs(DLPythonNetworkHandle network,
+			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> trainingData,
+			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> targetData, long batchSize)
+			throws DLInvalidEnvironmentException, IOException;
+
+	void trainNetwork(DLPythonNetworkHandle network, long batchSize) throws DLInvalidEnvironmentException, IOException;
+
+	void getTrainingResults(DLPythonNetworkHandle network);
 }

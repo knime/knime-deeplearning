@@ -54,29 +54,21 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetwork<S extends DLNetworkSpec<R>, R> implements DLNetwork<S, R> {
+public abstract class DLAbstractNetwork<S extends DLNetworkSpec> implements DLNetwork {
 
 	private final S m_spec;
 
-	private final R m_source;
-
-	protected DLAbstractNetwork(final S spec, final R source) {
+	protected DLAbstractNetwork(final S spec) {
 		m_spec = checkNotNull(spec, "Network spec must not be null.");
-		m_source = checkNotNull(source, "External network source must not be null.");
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	protected abstract boolean equalsInternal(DLNetwork<?, ?> other);
+	protected abstract boolean equalsInternal(DLNetwork other);
 
 	@Override
 	public S getSpec() {
 		return m_spec;
-	}
-
-	@Override
-	public R getSource() {
-		return m_source;
 	}
 
 	@Override
@@ -92,16 +84,14 @@ public abstract class DLAbstractNetwork<S extends DLNetworkSpec<R>, R> implement
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLNetwork<?, ?> other = (DLNetwork<?, ?>) obj;
+		final DLNetwork other = (DLNetwork) obj;
 		return other.getSpec().equals(getSpec()) //
-				&& other.getSource().equals(getSource()) //
 				&& equalsInternal(other);
 	}
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder();
 		b.append(m_spec);
-		b.append(m_source);
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}

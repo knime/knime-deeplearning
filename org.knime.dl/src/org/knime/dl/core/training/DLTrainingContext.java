@@ -48,9 +48,8 @@ package org.knime.dl.core.training;
 
 import java.util.Collection;
 
-import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkType;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.execution.DLExecutableNetwork;
 
 /**
@@ -60,20 +59,20 @@ import org.knime.dl.core.execution.DLExecutableNetwork;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLTrainingContext<N extends DLNetwork<?, ?>, CFG extends DLTrainingConfig> {
+public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingConfig> {
 
 	/**
-	 * Returns the network type this training context is associated to.
+	 * Returns the network type that's associated with this training context.
 	 *
-	 * @return the network type this training context is associated to.
+	 * @return the network type that's associated with this training context
 	 */
-	DLNetworkType<N, ?, ?> getNetworkType();
+	Class<N> getNetworkType();
 
 	/**
-	 * Returns the identifier of this execution context which is neither null nor empty and must be unique across all
-	 * execution contexts.
+	 * Returns the identifier of this training context which is neither null nor empty and must be unique across all
+	 * training contexts.
 	 *
-	 * @return the identifier of this execution context
+	 * @return the identifier of this training context
 	 */
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
@@ -87,7 +86,8 @@ public interface DLTrainingContext<N extends DLNetwork<?, ?>, CFG extends DLTrai
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
+	// TODO: remove, register at combination of network type and "execution
+	// mode"/input type (local/BufferedDataTable
 	// etc.)
 	DLTensorFactory getTensorFactory();
 

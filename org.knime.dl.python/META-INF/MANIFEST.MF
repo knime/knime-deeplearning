@@ -5,7 +5,10 @@ Bundle-SymbolicName: org.knime.dl.python;singleton:=true
 Bundle-Version: 3.4.1.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME GmbH, Konstanz, Germany
-Export-Package: org.knime.dl.python.base.node.executor,
+Export-Package: org.knime.dl.python.base.node,
+ org.knime.dl.python.base.node.creator,
+ org.knime.dl.python.base.node.editor,
+ org.knime.dl.python.base.node.executor,
  org.knime.dl.python.base.node.learner,
  org.knime.dl.python.core,
  org.knime.dl.python.core.data,
@@ -25,3 +28,5 @@ Require-Bundle: org.knime.python2;bundle-version="[3.4.0,4.0.0)",
  com.fifesoft.autocomplete;bundle-version="[2.5.7,3.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
+Import-Package: javassist.compiler.ast
+Bundle-Activator: org.knime.dl.python.core.Activator

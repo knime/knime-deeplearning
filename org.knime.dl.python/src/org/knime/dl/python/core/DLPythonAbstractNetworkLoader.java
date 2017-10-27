@@ -53,31 +53,51 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLInvalidContextException;
 import org.knime.dl.core.DLInvalidDestinationException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLMissingDependencyException;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork<?>> implements DLPythonNetworkLoader<N> {
+public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> implements DLPythonNetworkLoader<N> {
 
-	private static final long serialVersionUID = 1L;
+	private static DLPythonInstallationTestResults previousTestResults;
 
-	protected abstract DLPythonAbstractCommands<?> createCommands(DLPythonContext context, boolean initialize)
-			throws DLInvalidContextException;
+	protected abstract DLPythonAbstractCommands createCommands(DLPythonContext context)
+			throws DLInvalidEnvironmentException;
 
 	@Override
-	public void validateContext(final DLPythonContext context) throws DLInvalidContextException {
-		createCommands(context, false).testInstallation();
+	public synchronized void checkAvailability(final boolean forceRefresh) throws DLMissingDependencyException {
+		if (forceRefresh || previousTestResults == null) {
+			previousTestResults = new DLPythonInstallationTestResults();
+			try (DLPythonDefaultContext context = new DLPythonDefaultContext()) {
+				createCommands(context).testInstallation();
+				previousTestResults.m_success = true;
+			} catch (final DLInvalidEnvironmentException e) {
+				previousTestResults.m_success = false;
+				previousTestResults.m_message = e.getMessage();
+			}
+		}
+		if (!previousTestResults.m_success) {
+			throw new DLMissingDependencyException(previousTestResults.m_message);
+		}
 	}
 
 	@Override
 	public void save(final DLPythonNetworkHandle handle, final URL destination, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidContextException, IOException {
+			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException {
 		validateDestination(destination);
 		final File destinationFile = FileUtil.getFileFromURL(destination);
-		final DLPythonAbstractCommands<?> commands = createCommands(checkNotNull(context), true);
+		final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
 		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
+	}
+
+	protected static final class DLPythonInstallationTestResults {
+
+		protected boolean m_success;
+
+		protected String m_message;
 	}
 }

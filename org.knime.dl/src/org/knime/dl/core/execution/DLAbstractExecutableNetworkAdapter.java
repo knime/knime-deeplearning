@@ -64,7 +64,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
  */
 public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutableNetworkAdapter {
 
-	private final DLExecutableNetwork<?, ?, ?, ?> m_network;
+	private final DLExecutableNetwork<?, ?> m_network;
 
 	private final DLTensorFactory m_layerDataFactory;
 
@@ -74,7 +74,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	private HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> m_output;
 
-	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?, ?, ?> network,
+	protected DLAbstractExecutableNetworkAdapter(final DLExecutableNetwork<?, ?> network,
 			final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 		m_network = network;
 		m_layerDataFactory = layerDataFactory;
@@ -88,7 +88,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 			Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> adapterOutput);
 
 	@Override
-	public DLExecutableNetwork<?, ?, ?, ?> getNetwork() {
+	public DLExecutableNetwork<?, ?> getNetwork() {
 		return m_network;
 	}
 
@@ -100,7 +100,8 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 			final DLTensorSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
 			m_input = new HashMap<>(inputSpecs.length);
 			for (final DLTensorSpec spec : inputSpecs) {
-				// TODO: here's where we need the inferred shape for the first time (in case of partially defined shapes)
+				// TODO: here's where we need the inferred shape for the first
+				// time (in case of partially defined shapes)
 				m_input.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
 			}
 			m_output = new HashMap<>(m_requestedOutputs.size());
@@ -126,7 +127,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 
 	// TODO: type safety
 	private <I, O> void executeInternal(final long batchSize) throws Exception {
-		final DLExecutableNetwork<I, O, ?, ?> network = (DLExecutableNetwork<I, O, ?, ?>) m_network;
+		final DLExecutableNetwork<I, O> network = (DLExecutableNetwork<I, O>) m_network;
 		final Map<DLTensorSpec, I> networkInput = (Map<DLTensorSpec, I>) extractNetworkInput(m_input);
 		final Map<DLTensorSpec, O> networkOutput = (Map<DLTensorSpec, O>) extractNetworkOutput(m_output);
 		network.execute(networkInput, networkOutput, batchSize);

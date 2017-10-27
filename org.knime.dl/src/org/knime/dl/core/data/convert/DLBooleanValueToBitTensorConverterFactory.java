@@ -48,7 +48,6 @@ package org.knime.dl.core.data.convert;
 
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
@@ -75,15 +74,10 @@ public class DLBooleanValueToBitTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<BooleanValue, DLWritableBitBuffer> createConverter() {
-		return new DLDataValueToTensorConverter<BooleanValue, DLWritableBitBuffer>() {
-
-			@Override
-			public void convert(final Iterable<? extends BooleanValue> input,
-					final DLTensor<DLWritableBitBuffer> output) {
-				final DLWritableBitBuffer buf = output.getBuffer();
-				for (final BooleanValue val : input) {
-					buf.put(val.getBooleanValue());
-				}
+		return (input, output) -> {
+			final DLWritableBitBuffer buf = output.getBuffer();
+			for (final BooleanValue val : input) {
+				buf.put(val.getBooleanValue());
 			}
 		};
 	}

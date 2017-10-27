@@ -48,15 +48,27 @@
  */
 package org.knime.dl.base.portobjects;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.UUID;
 
 import javax.swing.JComponent;
 
+import org.apache.commons.io.FilenameUtils;
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
+import org.knime.core.util.DuplicateKeyException;
+import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+
+import com.google.common.base.Strings;
 
 /**
  * Base interface for all deep learning port objects.
@@ -67,14 +79,60 @@ import org.knime.dl.core.DLNetwork;
 public interface DLNetworkPortObject extends PortObject {
 
 	/**
-	 * The deep learning port type.
+	 * The base deep learning network port type.
 	 */
-	PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkPortObject.class);
+	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkPortObject.class);
 
 	/**
-	 * Summary of the deep learning port object.
+	 * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
+	 * which equals the extension of the given source URL. This is useful if a certain file extension is expected when
+	 * reading in the stored network at a later point.
+	 *
+	 * @param source the URL of the source file, <i>not</i> the URL of the file store that will be created
+	 * @param exec the execution context that is used to create the file store
+	 * @return the created file store
+	 * @throws IOException if failed to create the file store
 	 */
-	String SUMMARY = "Deep Learning Network";
+	public static FileStore createFileStoreForCopy(final URL source, final ExecutionContext exec) throws IOException {
+		final String ext = FilenameUtils.getExtension(source.getFile());
+		return createFileStoreForSaving(ext, exec);
+	}
+
+	/**
+	 * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
+	 * which can be specified via the respective parameter.
+	 *
+	 * @param ext the file extension of the file store, may be null or empty in which case the created file store has no
+	 *            file extension
+	 * @param exec the execution context that is used to create the file store
+	 * @return the created file store
+	 * @throws IOException if failed to create the file store
+	 */
+	public static FileStore createFileStoreForSaving(final String ext, final ExecutionContext exec) throws IOException {
+		final String path = UUID.randomUUID().toString()
+				+ (!Strings.isNullOrEmpty(ext) ? FilenameUtils.EXTENSION_SEPARATOR + ext : "");
+		try {
+			return exec.createFileStore(path);
+		} catch (final DuplicateKeyException e) {
+			throw new IOException(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Copies a single file (no directory) from a source URL to a destination file store.
+	 *
+	 * @param fileSource the source URL
+	 * @param destination the file store
+	 * @throws IOException if copying to file store failed
+	 */
+	public static void copyFileToFileStore(final URL fileSource, final FileStore destination) throws IOException {
+		final File file = destination.getFile();
+		if (!file.toURI().toURL().equals(fileSource)) {
+			try (InputStream in = fileSource.openStream(); FileOutputStream out = new FileOutputStream(file)) {
+				FileUtil.copy(in, out);
+			}
+		}
+	}
 
 	/**
 	 * Returns the contained {@link DLNetwork}.
@@ -83,11 +141,11 @@ public interface DLNetworkPortObject extends PortObject {
 	 * @throws DLInvalidSourceException if network source has become unavailable or invalid
 	 * @throws IOException if retrieving the network implied I/O which failed (optional)
 	 */
-	DLNetwork<?, ?> getNetwork() throws DLInvalidSourceException, IOException;
+	DLNetwork getNetwork() throws DLInvalidSourceException, IOException;
 
 	@Override
 	default String getSummary() {
-		return SUMMARY;
+		return "Deep Learning Network";
 	}
 
 	@Override

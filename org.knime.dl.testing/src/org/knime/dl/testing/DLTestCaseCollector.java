@@ -56,5 +56,5 @@ import org.knime.testing.core.AbstractTestcaseCollector;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public class DLTestCaseCollector extends AbstractTestcaseCollector {
-    // registered at extension point, nothing to do here
+	// registered at extension point, nothing to do here
 }

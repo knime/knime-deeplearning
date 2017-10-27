@@ -61,8 +61,6 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -78,10 +76,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
-import org.knime.dl.core.DLNetworkType;
-import org.knime.dl.core.DLNetworkTypeRegistry;
-import org.knime.dl.core.DLUnavailableDependencyException;
-import org.knime.dl.keras.core.DLKerasNetworkType;
+import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -119,13 +116,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		m_files.setSuffixes(DLKerasReaderNodeModel.getValidInputFileExtensions().stream().map(s -> "." + s)
 				.collect(Collectors.joining("|")));
 		m_smFilePath = DLKerasReaderNodeModel.createFilePathStringModel(m_files.getSelectedFile());
-		m_files.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(final ChangeEvent e) {
-				m_smFilePath.setStringValue(m_files.getSelectedFile());
-			}
-		});
+		m_files.addChangeListener(e -> m_smFilePath.setStringValue(m_files.getSelectedFile()));
 		filesPanel.add(m_files, filesPanelConstr);
 		filesPanelConstr.gridy++;
 
@@ -180,32 +171,33 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
-		final List<DLKerasNetworkType<?, ?>> availableNetworkTypes =
-				DLNetworkTypeRegistry.getInstance().getAllNetworkTypes() //
-						.stream() //
-						.filter(nt -> nt instanceof DLKerasNetworkType) //
-						.map(nt -> (DLKerasNetworkType<?, ?>) nt).sorted(Comparator.comparing(DLNetworkType::getName)) //
-						.collect(Collectors.toList());
-		final List<String> unavailableNetworkTypeIds = new ArrayList<>();
-		for (int i = availableNetworkTypes.size() - 1; i >= 0; i--) {
-			final DLKerasNetworkType<?, ?> kerasNetworkType = availableNetworkTypes.get(i);
+		final List<DLKerasNetworkLoader<?>> availableLoaders = DLPythonNetworkLoaderRegistry.getInstance()
+				.getAllNetworkLoaders() //
+				.stream() //
+				.filter(nl -> nl instanceof DLKerasNetworkLoader) //
+				.map(nl -> (DLKerasNetworkLoader<?>) nl) //
+				.sorted(Comparator.comparing(DLKerasNetworkLoader::getName)) //
+				.collect(Collectors.toList());
+		final List<String> unavailableLoaderIds = new ArrayList<>();
+		for (int i = availableLoaders.size() - 1; i >= 0; i--) {
+			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
 			try {
-				kerasNetworkType.checkAvailability(false);
-			} catch (final DLUnavailableDependencyException e) {
-				availableNetworkTypes.remove(i);
-				unavailableNetworkTypeIds.add(kerasNetworkType.getIdentifier());
+				kerasNetworkLoader.checkAvailability(false);
+			} catch (final DLMissingDependencyException e) {
+				availableLoaders.remove(i);
+				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());
 			}
 		}
-		if (availableNetworkTypes.size() == 0) {
+		if (availableLoaders.isEmpty()) {
 			throw new NotConfigurableException(
 					"There is no available Keras back end. Please check your local installation.");
 		}
-		final String[] names = new String[availableNetworkTypes.size()];
-		final String[] ids = new String[availableNetworkTypes.size()];
-		for (int i = 0; i < availableNetworkTypes.size(); i++) {
-			final DLNetworkType<?, ?, ?> networkType = availableNetworkTypes.get(i);
-			names[i] = networkType.getName();
-			ids[i] = networkType.getIdentifier();
+		final String[] names = new String[availableLoaders.size()];
+		final String[] ids = new String[availableLoaders.size()];
+		for (int i = 0; i < availableLoaders.size(); i++) {
+			final DLKerasNetworkLoader<?> loader = availableLoaders.get(i);
+			names[i] = loader.getName();
+			ids[i] = loader.getNetworkType().getCanonicalName();
 		}
 		final String[] backend = m_smBackend.getStringArrayValue();
 		final String selectedName;
@@ -215,12 +207,12 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 				selectedName = names[idx];
 			} else {
 				final String msg;
-				if (unavailableNetworkTypeIds.contains(backend[1])) {
+				if (unavailableLoaderIds.contains(backend[1])) {
 					msg = "Selected Keras back end '" + backend[0]
 							+ "' is not available anymore. Please check your local installation.";
 				} else {
 					msg = "Selected Keras back end '" + backend[0]
-							+ "' cannot be found. Are you missing a KNIME deep learning extension?";
+							+ "' cannot be found. Are you missing a KNIME Deep Learning extension?";
 				}
 				LOGGER.warn(msg);
 				selectedName = names[0];
@@ -235,7 +227,8 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		// TODO: pressing "Apply" also shows the loading label, loading only happens on "OK" - we need to observe the
+		// TODO: pressing "Apply" also shows the loading label, loading only
+		// happens on "OK" - we need to observe the
 		// node model
 		m_loadingLayout.show(m_loading, "label");
 		m_smFilePath.saveSettingsTo(settings);

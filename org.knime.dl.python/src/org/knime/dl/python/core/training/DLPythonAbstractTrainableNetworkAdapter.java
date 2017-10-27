@@ -58,7 +58,7 @@ import org.knime.dl.core.training.DLAbstractTrainableNetworkAdapter;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLPythonAbstractTrainableNetworkAdapter<N extends DLPythonTrainableNetwork<?>>
+public abstract class DLPythonAbstractTrainableNetworkAdapter<N extends DLPythonTrainableNetwork>
 		extends DLAbstractTrainableNetworkAdapter<N> {
 
 	protected DLPythonAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {

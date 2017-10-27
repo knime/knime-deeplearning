@@ -63,19 +63,19 @@ import java.nio.BufferUnderflowException;
  */
 public interface DLReadableBuffer extends DLBuffer {
 
-    /**
-     * Resets the read state of this buffer. Subsequent calls of read methods will start from the beginning of the
-     * buffer.
-     */
-    void resetRead();
+	/**
+	 * Resets the read state of this buffer. Subsequent calls of read methods will start from the beginning of the
+	 * buffer.
+	 */
+	void resetRead();
 
-    /**
-     * Equivalent to {@link #resetRead()}.
-     * <P>
-     * Inherited documentation: {@inheritDoc}
-     */
-    @Override
-    default void reset() {
-        resetRead();
-    }
+	/**
+	 * Equivalent to {@link #resetRead()}.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	default void reset() {
+		resetRead();
+	}
 }

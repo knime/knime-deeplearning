@@ -51,12 +51,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLInvalidContextException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -64,28 +63,34 @@ import org.knime.dl.python.core.DLPythonNumPyTypeMap;
  */
 public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTensorFlowNetwork> {
 
-	private static final long serialVersionUID = 1L;
+	@Override
+	public Class<DLKerasTensorFlowNetwork> getNetworkType() {
+		return DLKerasTensorFlowNetwork.class;
+	}
+
+	@Override
+	public String getName() {
+		return "Keras (TensorFlow)";
+	}
+
+	@Override
+	public String getPythonModuleName() {
+		return "DLKerasTensorFlowNetworkType";
+	}
 
 	@Override
 	public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
 			final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidContextException, IOException {
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
-		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context), true);
-		final DLKerasTensorFlowNetworkSpec spec =
-				commands.extractNetworkSpec(checkNotNull(handle), DLPythonNumPyTypeMap.INSTANCE);
+		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
+		final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTensorFlowNetwork(spec, source);
 	}
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context, final boolean initialize)
-			throws DLInvalidContextException {
-		final DLKerasTensorFlowCommands commands = new DLKerasTensorFlowCommands(context);
-		if (initialize) {
-			commands.setupEnvironment();
-			commands.registerBackends();
-			commands.setupBackend();
-		}
-		return commands;
+	protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
+			throws DLInvalidEnvironmentException {
+		return new DLKerasTensorFlowCommands(context);
 	}
 }

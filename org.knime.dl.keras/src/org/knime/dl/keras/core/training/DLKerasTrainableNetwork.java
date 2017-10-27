@@ -46,14 +46,12 @@
  */
 package org.knime.dl.keras.core.training;
 
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.python.core.training.DLPythonTrainableNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasTrainableNetwork<S extends DLKerasNetworkSpec> extends DLPythonTrainableNetwork<S> {
-
+public interface DLKerasTrainableNetwork extends DLPythonTrainableNetwork {
 	// NB: marker interface
 }

@@ -62,7 +62,7 @@ import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
  */
 public class DLKerasExecutableNetworkAdapter extends DLAbstractExecutableNetworkAdapter {
 
-	public DLKerasExecutableNetworkAdapter(final DLKerasAbstractExecutableNetwork<?, ?, ?> network,
+	public DLKerasExecutableNetworkAdapter(final DLKerasAbstractExecutableNetwork<?, ?> network,
 			final DLTensorFactory layerDataFactory, final Set<DLTensorSpec> requestedOutputs) {
 		super(network, layerDataFactory, requestedOutputs);
 	}

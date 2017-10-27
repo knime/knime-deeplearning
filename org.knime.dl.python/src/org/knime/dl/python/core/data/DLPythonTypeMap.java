@@ -57,48 +57,48 @@ import java.util.List;
  */
 public interface DLPythonTypeMap {
 
-    /**
-     * Registers a mutual mapping of an external and an internal type.
-     *
-     * @param pythonType the string representation of the external type
-     * @param internalType the internal type
-     * @throws IllegalArgumentException when any of the types is null or the external type representation is empty
-     */
-    void registerMapping(final String pythonType, final Class<?> internalType) throws IllegalArgumentException;
+	/**
+	 * Registers a mutual mapping of an external and an internal type.
+	 *
+	 * @param pythonType the string representation of the external type
+	 * @param internalType the internal type
+	 * @throws IllegalArgumentException when any of the types is null or the external type representation is empty
+	 */
+	void registerMapping(final String pythonType, final Class<?> internalType) throws IllegalArgumentException;
 
-    /**
-     * Returns the preferred internal type that matches the given external type.
-     *
-     * @param pythonType the external type
-     * @return the preferred internal type that matches the given external type
-     * @throws IllegalArgumentException when no matching internal type was found
-     */
-    Class<?> getPreferredInternalType(String pythonType) throws IllegalArgumentException;
+	/**
+	 * Returns the preferred internal type that matches the given external type.
+	 *
+	 * @param pythonType the external type
+	 * @return the preferred internal type that matches the given external type
+	 * @throws IllegalArgumentException when no matching internal type was found
+	 */
+	Class<?> getPreferredInternalType(String pythonType) throws IllegalArgumentException;
 
-    /**
-     * Returns all internal types that match the given external type.
-     *
-     * @param pythonType the external type
-     * @return all internal types that match the given external type
-     * @throws IllegalArgumentException when no matching internal type was found
-     */
-    List<Class<?>> getInternalTypes(String pythonType) throws IllegalArgumentException;
+	/**
+	 * Returns all internal types that match the given external type.
+	 *
+	 * @param pythonType the external type
+	 * @return all internal types that match the given external type
+	 * @throws IllegalArgumentException when no matching internal type was found
+	 */
+	List<Class<?>> getInternalTypes(String pythonType) throws IllegalArgumentException;
 
-    /**
-     * Returns the preferred external type representation that matches the given internal type.
-     *
-     * @param internalType the internal type
-     * @return the preferred external type that matches the given internal type
-     * @throws IllegalArgumentException when no matching external type was found
-     */
-    String getPreferredExternalType(Class<?> internalType) throws IllegalArgumentException;
+	/**
+	 * Returns the preferred external type representation that matches the given internal type.
+	 *
+	 * @param internalType the internal type
+	 * @return the preferred external type that matches the given internal type
+	 * @throws IllegalArgumentException when no matching external type was found
+	 */
+	String getPreferredExternalType(Class<?> internalType) throws IllegalArgumentException;
 
-    /**
-     * Returns all external type representations that match the given internal type.
-     *
-     * @param internalType the internal type
-     * @return all external types that match the given internal type
-     * @throws IllegalArgumentException when no matching external type was found
-     */
-    List<String> getExternalTypes(Class<?> internalType) throws IllegalArgumentException;
+	/**
+	 * Returns all external type representations that match the given internal type.
+	 *
+	 * @param internalType the internal type
+	 * @return all external types that match the given internal type
+	 * @throws IllegalArgumentException when no matching external type was found
+	 */
+	List<String> getExternalTypes(Class<?> internalType) throws IllegalArgumentException;
 }

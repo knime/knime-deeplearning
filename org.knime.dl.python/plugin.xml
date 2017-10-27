@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?eclipse version="3.0"?>
 <plugin>
-   <extension
-         point="org.knime.python2.modules">
-      <directory
-            path="py/">
-      </directory>
-   </extension>
+   <extension-point id="DLPythonNetworkLoader" name="DLPythonNetworkLoader" schema="schema/org.knime.dl.python.DLPythonNetworkLoader.exsd"/>
    <extension
          point="org.knime.python.typeextension.knimetopython">
       <type
@@ -58,8 +53,14 @@
       </type>
    </extension>
    <extension
+         point="org.knime.python2.modules">
+      <directory
+            path="py/">
+      </directory>
+   </extension>
+   <extension
          point="org.knime.workbench.repository.nodes">
-      <node
+          <node
             category-path="/labs/deeplearning/keras"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.creator.DLPythonCreatorNodeFactory">

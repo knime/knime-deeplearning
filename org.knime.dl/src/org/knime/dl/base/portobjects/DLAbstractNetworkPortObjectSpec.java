@@ -44,33 +44,66 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core;
+package org.knime.dl.base.portobjects;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkSpec;
 
 /**
+ * Abstract base class for deep learning {@link DLNetworkPortObjectSpec network port object specs}.
+ *
+ * @param <S> the network spec type
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkType<N extends DLNetwork<S, R>, S extends DLNetworkSpec<R>, R>
-		implements DLNetworkType<N, S, R> {
+public abstract class DLAbstractNetworkPortObjectSpec<S extends DLNetworkSpec> implements DLNetworkPortObjectSpec {
 
-	private static final long serialVersionUID = 1L;
+	/**
+	 * The contained network spec. Must be populated by the port object spec's serializer.
+	 */
+	protected final S m_spec;
 
-	private final String m_id;
+	/**
+	 * The type of the network that is associated with the contained network spec. Must be populated by the port object
+	 * spec's serializer.
+	 */
+	protected final Class<? extends DLNetwork> m_type;
 
-	protected DLAbstractNetworkType(final String identifier) {
-		m_id = checkNotNullOrEmpty(identifier, "Network type identifier must neither be null nor empty.");
+	/**
+	 * Creates a new instance of this port object spec.
+	 *
+	 * @param spec the network spec
+	 * @param type the type of the network that is associated with the network spec
+	 */
+	protected DLAbstractNetworkPortObjectSpec(final S spec, final Class<? extends DLNetwork> type) {
+		m_spec = checkNotNull(spec);
+		m_type = checkNotNull(type);
+	}
+
+	protected abstract void hashCodeInternal(HashCodeBuilder b);
+
+	protected abstract boolean equalsInternal(DLNetworkPortObjectSpec other);
+
+	@Override
+	public S getNetworkSpec() {
+		return m_spec;
 	}
 
 	@Override
-	public String getIdentifier() {
-		return m_id;
+	public Class<? extends DLNetwork> getNetworkType() {
+		return m_type;
 	}
 
 	@Override
 	public final int hashCode() {
-		return m_id.hashCode();
+		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+		b.append(m_spec);
+		b.append(m_type);
+		hashCodeInternal(b);
+		return b.toHashCode();
 	}
 
 	@Override
@@ -78,10 +111,12 @@ public abstract class DLAbstractNetworkType<N extends DLNetwork<S, R>, S extends
 		if (obj == this) {
 			return true;
 		}
-		if (obj == null || !(obj instanceof DLNetworkType)) {
+		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLNetworkType<?, ?, ?> other = (DLNetworkType<?, ?, ?>) obj;
-		return m_id.equals(other.getIdentifier());
+		final DLAbstractNetworkPortObjectSpec<?> other = (DLAbstractNetworkPortObjectSpec<?>) obj;
+		return other.m_spec.equals(m_spec) //
+				&& other.m_type.equals(m_type) //
+				&& equalsInternal(other);
 	}
 }
