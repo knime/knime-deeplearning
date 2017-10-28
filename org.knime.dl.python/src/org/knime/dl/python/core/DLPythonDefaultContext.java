@@ -55,11 +55,11 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.python.typeextension.PythonModuleExtensions;
 import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
-import org.knime.python2.kernel.PythonModuleExtensions;
 
 import com.google.common.base.Strings;
 

@@ -55,7 +55,7 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.python2.kernel.PythonModuleExtensions;
+import org.knime.python.typeextension.PythonModuleExtensions;
 
 /**
  * @param <N> the Python network type
