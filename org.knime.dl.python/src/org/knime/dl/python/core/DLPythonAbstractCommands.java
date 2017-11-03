@@ -221,10 +221,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			}
 		} catch (final IOException e) {
 			throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
-					+ "(while testing the installation of the Python back end)." + e.getMessage() != null
-							? "\nCause: " + e.getMessage()
-							: "",
-					e);
+					+ "(while testing the installation of the Python back end)."
+					+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
 		}
 	}
 

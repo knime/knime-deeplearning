@@ -63,26 +63,14 @@ import org.knime.dl.core.DLMissingDependencyException;
  */
 public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> implements DLPythonNetworkLoader<N> {
 
-	private static DLPythonInstallationTestResults previousTestResults;
-
 	protected abstract DLPythonAbstractCommands createCommands(DLPythonContext context)
 			throws DLInvalidEnvironmentException;
 
+	protected abstract DLPythonInstallationTester getInstallationTester();
+
 	@Override
-	public synchronized void checkAvailability(final boolean forceRefresh) throws DLMissingDependencyException {
-		if (forceRefresh || previousTestResults == null) {
-			previousTestResults = new DLPythonInstallationTestResults();
-			try (DLPythonDefaultContext context = new DLPythonDefaultContext()) {
-				createCommands(context).testInstallation();
-				previousTestResults.m_success = true;
-			} catch (final DLInvalidEnvironmentException e) {
-				previousTestResults.m_success = false;
-				previousTestResults.m_message = e.getMessage();
-			}
-		}
-		if (!previousTestResults.m_success) {
-			throw new DLMissingDependencyException(previousTestResults.m_message);
-		}
+	public final synchronized void checkAvailability(final boolean forceRefresh) throws DLMissingDependencyException {
+		getInstallationTester().testInstallation(forceRefresh, this);
 	}
 
 	@Override
@@ -94,10 +82,32 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
 	}
 
-	protected static final class DLPythonInstallationTestResults {
+	protected static class DLPythonInstallationTester {
+
+		protected boolean m_tested = false;
 
 		protected boolean m_success;
 
 		protected String m_message;
+
+		public DLPythonInstallationTester() {
+		}
+
+		protected synchronized void testInstallation(final boolean forceRefresh,
+				final DLPythonAbstractNetworkLoader<?> loader) throws DLMissingDependencyException {
+			if (forceRefresh || !m_tested) {
+				try (DLPythonContext context = new DLPythonDefaultContext()) {
+					loader.createCommands(context).testInstallation();
+					m_success = true;
+				} catch (final DLInvalidEnvironmentException e) {
+					m_success = false;
+					m_message = e.getMessage();
+				}
+				m_tested = true;
+			}
+			if (!m_success) {
+				throw new DLMissingDependencyException(m_message);
+			}
+		}
 	}
 }

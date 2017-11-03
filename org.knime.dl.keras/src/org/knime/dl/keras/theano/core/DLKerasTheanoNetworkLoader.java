@@ -63,6 +63,8 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTheanoNetwork> {
 
+	private static DLPythonInstallationTester installationTester = new DLPythonInstallationTester();
+
 	@Override
 	public Class<DLKerasTheanoNetwork> getNetworkType() {
 		return DLKerasTheanoNetwork.class;
@@ -91,5 +93,10 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 	@Override
 	protected DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
 		return new DLKerasTheanoCommands(context);
+	}
+
+	@Override
+	protected DLPythonInstallationTester getInstallationTester() {
+		return installationTester;
 	}
 }

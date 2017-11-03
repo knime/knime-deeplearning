@@ -66,4 +66,7 @@ public interface DLPythonContext extends AutoCloseable {
 	// issues when trying to execute Python with "-c" option enabled from a Windows batch file.
 
 	String[] execute(File script, String... args) throws IOException;
+
+	@Override
+	void close();
 }
