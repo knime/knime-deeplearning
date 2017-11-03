@@ -65,10 +65,11 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.cntk.core.training.DLKerasCNTKDefaultTrainingContext;
-import org.knime.dl.keras.cntk.core.training.DLKerasCNTKTrainingConfig;
+import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
@@ -82,8 +83,7 @@ public class DLKerasCNTKNetworkLearnerTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
-	// TODO: we somehow need to apply the appropriate preferences on the test
-	// machines
+	// TODO: we somehow need to apply the appropriate preferences on the test machines
 	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 
 	@Before
@@ -104,13 +104,13 @@ public class DLKerasCNTKNetworkLearnerTest {
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasCNTKTrainingConfig config = new DLKerasCNTKTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
@@ -127,22 +127,22 @@ public class DLKerasCNTKNetworkLearnerTest {
 
 	@Test
 	public void test2To2() throws Exception {
-		final URL source =
-				FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
 		final DLKerasCNTKDefaultTrainingContext training = new DLKerasCNTKDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork, DLKerasCNTKNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasCNTKNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasCNTKNetworkLoader());
 		final DLKerasCNTKNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasCNTKTrainingConfig config = new DLKerasCNTKTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {

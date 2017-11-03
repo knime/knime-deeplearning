@@ -62,14 +62,14 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkType;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
 import org.knime.dl.keras.theano.core.training.DLKerasTheanoDefaultTrainingContext;
-import org.knime.dl.keras.theano.core.training.DLKerasTheanoTrainingConfig;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
@@ -98,20 +98,19 @@ public class DLKerasTheanoNetworkLearnerTest {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLKerasTheanoDefaultTrainingContext training = new DLKerasTheanoDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTheanoNetworkLoader());
 		final DLKerasTheanoNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTheanoTrainingConfig config =
-				new DLKerasTheanoTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
@@ -128,23 +127,22 @@ public class DLKerasTheanoNetworkLearnerTest {
 
 	@Test
 	public void test2To2() throws Exception {
-		final URL source =
-				FileUtil.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
+		final URL source = FileUtil
+				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
 		final DLKerasTheanoDefaultTrainingContext training = new DLKerasTheanoDefaultTrainingContext();
-		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork, DLKerasTheanoNetworkSpec> reader =
-				new DLPythonDefaultNetworkReader<>(DLKerasTheanoNetworkType.INSTANCE.getLoader());
+		final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader = new DLPythonDefaultNetworkReader<>(
+				new DLKerasTheanoNetworkLoader());
 		final DLKerasTheanoNetwork network = reader.read(source);
 		// training:
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.getOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.getLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTheanoTrainingConfig config =
-				new DLKerasTheanoTrainingConfig(batchSize, epochs, optimizer, losses);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
 		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
 		trainNetwork.train(trainingData -> {
 			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
