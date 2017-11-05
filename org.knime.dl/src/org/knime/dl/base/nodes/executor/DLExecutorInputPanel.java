@@ -231,7 +231,7 @@ final class DLExecutorInputPanel extends JPanel {
 		}
 		if (names.length == 0) {
 			throw new NotConfigurableException(
-					"No converters available for output '" + m_inputDataSpec.getName() + "'.");
+					"No converters available for input '" + m_inputDataSpec.getName() + "'.");
 		}
 		m_dcConverter.replaceListItems(names, ids, null);
 	}

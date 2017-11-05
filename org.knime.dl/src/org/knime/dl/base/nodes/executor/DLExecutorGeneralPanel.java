@@ -128,30 +128,6 @@ class DLExecutorGeneralPanel extends JPanel {
 			// ignore
 		}
 		refreshAvailableBackends();
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) {
-		m_cfg.saveToSettings(settings);
-	}
-
-	void refreshAvailableBackends() throws NotConfigurableException {
-		final List<DLExecutionContext<?>> availableExecutionContexts =
-				DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType((m_networkType)) //
-						.stream() //
-						.sorted(Comparator.comparing(DLExecutionContext::getName)) //
-						.collect(Collectors.toList());
-		if (availableExecutionContexts.isEmpty()) {
-			throw new NotConfigurableException("There is no available back end that supports the input network.");
-		}
-		final String[] names = new String[availableExecutionContexts.size()];
-		final String[] ids = new String[availableExecutionContexts.size()];
-		for (int i = 0; i < availableExecutionContexts.size(); i++) {
-			final DLExecutionContext<?> executionContext = availableExecutionContexts.get(i);
-			names[i] = executionContext.getName();
-			ids[i] = executionContext.getIdentifier();
-		}
-		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
-		m_dcBackend.replaceListItems(names, ids, selectedName);
 
 		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network
 		// are not supported (for networks with multiple inputs).
@@ -177,5 +153,29 @@ class DLExecutorGeneralPanel extends JPanel {
 		} else {
 			m_cfg.getBatchSizeModel().setEnabled(true);
 		}
+	}
+
+	void saveToSettings(final NodeSettingsWO settings) {
+		m_cfg.saveToSettings(settings);
+	}
+
+	void refreshAvailableBackends() throws NotConfigurableException {
+		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
+				.getExecutionContextsForNetworkType((m_networkType)) //
+				.stream() //
+				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
+				.collect(Collectors.toList());
+		if (availableExecutionContexts.isEmpty()) {
+			throw new NotConfigurableException("There is no available back end that supports the input network.");
+		}
+		final String[] names = new String[availableExecutionContexts.size()];
+		final String[] ids = new String[availableExecutionContexts.size()];
+		for (int i = 0; i < availableExecutionContexts.size(); i++) {
+			final DLExecutionContext<?> executionContext = availableExecutionContexts.get(i);
+			names[i] = executionContext.getName();
+			ids[i] = executionContext.getIdentifier();
+		}
+		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
+		m_dcBackend.replaceListItems(names, ids, selectedName);
 	}
 }
