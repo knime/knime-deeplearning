@@ -152,6 +152,7 @@ class DLPythonTensorSpec(object):
 
 
 class DLPythonTrainingConfig(object):
-
-    def __init(self):
+    __metaclass__ = abc.ABCMeta
+    
+    def __init__(self):
         pass

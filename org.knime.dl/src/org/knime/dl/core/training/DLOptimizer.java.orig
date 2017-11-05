@@ -2,7 +2,7 @@
  * ------------------------------------------------------------------------
  *
  *  Copyright by KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.com; Email: contact@knime.com
+ *  Website: http://www.knime.org; Email: contact@knime.org
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License, Version 3, as
@@ -44,14 +44,37 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.training;
+package org.knime.dl.core.training;
 
-import org.knime.dl.core.training.DLTrainingConfig;
+import org.knime.dl.base.nodes.IDialogComponentGroup;
+import org.knime.dl.base.settings.Config;
+import org.knime.dl.base.settings.ConfigEntry;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLPythonTrainingConfig extends DLTrainingConfig {
+public interface DLOptimizer extends Config {
 
+<<<<<<< HEAD
+	static String DEFAULT_CFG_KEY = "optimizer";
+
+=======
+>>>>>>> a670cb2... AP-7517 : Introduce DL Network Learner node
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
+	}
+
+	String getName();
+<<<<<<< HEAD
+
+	ConfigEntry<Double> getClipNormEntry();
+
+	ConfigEntry<Double> getClipValueEntry();
+
+	Object getBackendRepresentation();
+
+	IDialogComponentGroup getParameterDialogGroup();
+=======
+>>>>>>> a670cb2... AP-7517 : Introduce DL Network Learner node
 }

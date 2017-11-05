@@ -46,22 +46,32 @@
  */
 package org.knime.dl.keras.core.training;
 
+import java.io.IOException;
+import java.net.URL;
+
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, //
-		CFG extends DLKerasTrainingConfig, C extends DLKerasAbstractCommands>
-	extends DLPythonAbstractTrainableNetwork<N, CFG, C> implements DLKerasTrainableNetwork {
+public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, C extends DLKerasAbstractCommands>
+	extends DLPythonAbstractTrainableNetwork<N, DLKerasTrainingConfig, C> implements DLKerasTrainableNetwork {
 
-	protected DLKerasAbstractTrainableNetwork(final N network, final CFG trainingConfig) {
+	protected DLKerasAbstractTrainableNetwork(final N network, final DLKerasTrainingConfig trainingConfig) {
 		super(network, trainingConfig);
 		boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;
@@ -77,5 +87,28 @@ public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, 
 					.warn("Input network has both inputs with pre-defined batch size and variable batch size. "
 							+ "This may not be supported by Keras and could lead to a runtime error.");
 		}
+	}
+
+	@Override
+	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final C commands,
+			final DLKerasTrainingConfig config) throws DLInvalidEnvironmentException, IOException {
+		commands.setNetworkTrainingConfig(handle, config);
+	}
+
+	@Override
+	public DLKerasNetworkPortObject getTrainedNetwork(final ExecutionContext exec) throws Exception {
+		if (m_commands == null) {
+			throw new IllegalStateException("Network was not trained, yet.");
+		}
+		final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
+				.getNetworkLoader(m_network.getClass()).get();
+		final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
+				exec);
+		final URL fileStoreURL = fileStore.getFile().toURI().toURL();
+		loader.save(m_handle, fileStoreURL, m_commands.getContext());
+		if (!fileStore.getFile().exists()) {
+			throw new IllegalStateException("Failed to save trained Keras deep learning network.");
+		}
+		return new DLKerasNetworkPortObject(loader.fetch(m_handle, fileStoreURL, m_commands.getContext()), fileStore);
 	}
 }

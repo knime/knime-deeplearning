@@ -85,6 +85,15 @@ class DLKerasTensorFlowNetwork(DLKerasNetwork):
     def __init__(self, model):
         super().__init__(model)
 
+    def train(self, training_data, target_data):
+        # TODO: support TensorBoard?
+        #config = self._spec.training_config
+        #from keras.callbacks import TensorBoard
+        #if config and not any(isinstance(cb, TensorBoard) for cb in config.callbacks):
+        #    tb = TensorBoard(...) # TODO
+        #    config.callbacks.append(tb)
+        super().train(training_data, target_data)
+
     def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
         name = tensor.name
         element_type = tensor.dtype.name  # TensorFlow returns a TF dtype

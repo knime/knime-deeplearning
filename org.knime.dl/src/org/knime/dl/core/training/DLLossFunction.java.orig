@@ -44,23 +44,27 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.cntk.core.training;
-
-import java.util.Map;
-
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.training.DLKerasAbstractTrainingConfig;
-import org.knime.dl.keras.core.training.DLKerasLossFunction;
-import org.knime.dl.keras.core.training.DLKerasOptimizer;
+package org.knime.dl.core.training;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasCNTKTrainingConfig extends DLKerasAbstractTrainingConfig {
+public interface DLLossFunction {
 
-	public DLKerasCNTKTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
-		super(batchSize, epochs, optimizer, losses);
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
 	}
+
+	String getName();
+
+<<<<<<< HEAD
+	Object getBackendRepresentation();
+=======
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
+	}
+
+	String getName();
+>>>>>>> a670cb2... AP-7517 : Introduce DL Network Learner node
 }

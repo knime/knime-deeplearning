@@ -49,13 +49,13 @@ package org.knime.dl.keras.cntk.core.training;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasCNTKDefaultTrainingContext
-	extends DLKerasAbstractTrainingContext<DLKerasCNTKNetwork, DLKerasCNTKTrainingConfig> {
+public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrainingContext<DLKerasCNTKNetwork> {
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (CNTK)";
 
@@ -65,7 +65,7 @@ public final class DLKerasCNTKDefaultTrainingContext
 
 	@Override
 	public DLKerasTrainableNetworkAdapter trainable(final DLKerasCNTKNetwork network,
-			final DLKerasCNTKTrainingConfig trainingConfig) throws RuntimeException {
+			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasCNTKTrainableNetwork trainNetwork = new DLKerasCNTKTrainableNetwork(network, trainingConfig);
 		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
 	}

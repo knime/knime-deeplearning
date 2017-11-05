@@ -46,34 +46,26 @@
  */
 package org.knime.dl.keras.theano.core.training;
 
-import java.io.IOException;
-
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainableNetwork;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasTheanoTrainableNetwork
-	extends DLKerasAbstractTrainableNetwork<DLKerasTheanoNetwork, DLKerasTheanoTrainingConfig, DLKerasTheanoCommands> {
+	extends DLKerasAbstractTrainableNetwork<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
 
 	public DLKerasTheanoTrainableNetwork(final DLKerasTheanoNetwork network,
-			final DLKerasTheanoTrainingConfig trainingConfig) {
+			final DLKerasTrainingConfig trainingConfig) {
 		super(network, trainingConfig);
 	}
 
 	@Override
 	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
 		return new DLKerasTheanoCommands();
-	}
-
-	@Override
-	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTheanoCommands commands,
-			final DLKerasTheanoTrainingConfig config) throws DLInvalidEnvironmentException, IOException {
-		commands.setNetworkTrainingConfig(handle, config);
 	}
 }

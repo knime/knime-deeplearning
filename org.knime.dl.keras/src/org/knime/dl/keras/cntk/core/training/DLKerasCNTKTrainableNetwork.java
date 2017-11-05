@@ -46,34 +46,25 @@
  */
 package org.knime.dl.keras.cntk.core.training;
 
-import java.io.IOException;
-
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainableNetwork;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public final class DLKerasCNTKTrainableNetwork
-	extends DLKerasAbstractTrainableNetwork<DLKerasCNTKNetwork, DLKerasCNTKTrainingConfig, DLKerasCNTKCommands> {
+	extends DLKerasAbstractTrainableNetwork<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
 
-	public DLKerasCNTKTrainableNetwork(final DLKerasCNTKNetwork network,
-			final DLKerasCNTKTrainingConfig trainingConfig) {
+	public DLKerasCNTKTrainableNetwork(final DLKerasCNTKNetwork network, final DLKerasTrainingConfig trainingConfig) {
 		super(network, trainingConfig);
 	}
 
 	@Override
 	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
 		return new DLKerasCNTKCommands();
-	}
-
-	@Override
-	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasCNTKCommands commands,
-			final DLKerasCNTKTrainingConfig config) throws DLInvalidEnvironmentException, IOException {
-		commands.setNetworkTrainingConfig(handle, config);
 	}
 }

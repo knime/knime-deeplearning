@@ -48,18 +48,32 @@ package org.knime.dl.keras.core.training;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorRegistry;
-import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasEarlyStopping;
+import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau;
+import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasTerminateOnNaN;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasBinaryCrossEntropy;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCategoricalCrossEntropy;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCategoricalHinge;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCosineProximity;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasHinge;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasKullbackLeiblerDivergence;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasLogCosh;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanAbsoluteError;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanAbsolutePercentageError;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanSquaredError;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanSquaredLogarithmicError;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasPoisson;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasSparseCategoricalCrossEntropy;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasSquaredHinge;
+import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdadelta;
+import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdagrad;
+import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdam;
+import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdamax;
+import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasNadam;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasRMSProp;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradientDescent;
 
@@ -67,8 +81,7 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradie
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork, CFG extends DLKerasTrainingConfig>
-		implements DLTrainingContext<N, CFG> {
+public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> implements DLKerasTrainingContext<N> {
 
 	private final Class<N> m_networkType;
 
@@ -76,34 +89,17 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork, C
 
 	private final DLTensorFactory m_layerDataFactory;
 
-	private final Collection<DLKerasLossFunction> m_losses;
-
-	private final Collection<DLKerasOptimizer> m_optimizers;
-
 	protected DLKerasAbstractTrainingContext(final Class<N> networkType, final String name) {
 		m_networkType = networkType;
 		m_name = name;
 		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
 				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
 						+ "' is not supported. No layer data factory found."));
-
-		// TODO: these will be auto-discovered by SciJava
-
-		m_losses = Arrays.asList( //
-				new DLKerasMeanSquaredError(), //
-				new DLKerasMeanAbsoluteError(), //
-				new DLKerasMeanAbsolutePercentageError(), //
-				new DLKerasMeanSquaredLogarithmicError(), //
-				new DLKerasKullbackLeiblerDivergence(), //
-				new DLKerasCosineProximity());
-
-		m_optimizers = Arrays.asList( //
-				new DLKerasRMSProp(), //
-				new DLKerasStochasticGradientDescent());
 	}
 
 	@Override
-	public abstract DLKerasTrainableNetworkAdapter trainable(N network, CFG trainingConfig) throws RuntimeException;
+	public abstract DLKerasTrainableNetworkAdapter trainable(N network, DLKerasTrainingConfig trainingConfig)
+			throws RuntimeException;
 
 	@Override
 	public Class<N> getNetworkType() {
@@ -121,12 +117,41 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork, C
 	}
 
 	@Override
-	public Collection<? extends DLKerasLossFunction> getLossFunctions() {
-		return Collections.unmodifiableCollection(m_losses);
+	public Collection<DLKerasOptimizer> createOptimizers() {
+		return Arrays.asList( //
+				new DLKerasStochasticGradientDescent(), //
+				new DLKerasRMSProp(), //
+				new DLKerasAdagrad(), //
+				new DLKerasAdadelta(), //
+				new DLKerasAdam(), //
+				new DLKerasAdamax(), //
+				new DLKerasNadam());
 	}
 
 	@Override
-	public Collection<? extends DLKerasOptimizer> getOptimizers() {
-		return Collections.unmodifiableCollection(m_optimizers);
+	public Collection<DLKerasLossFunction> createLossFunctions() {
+		return Arrays.asList( //
+				new DLKerasMeanSquaredError(), //
+				new DLKerasMeanAbsoluteError(), //
+				new DLKerasMeanAbsolutePercentageError(), //
+				new DLKerasMeanSquaredLogarithmicError(), //
+				new DLKerasSquaredHinge(), //
+				new DLKerasHinge(), //
+				new DLKerasCategoricalHinge(), //
+				new DLKerasLogCosh(), //
+				new DLKerasCategoricalCrossEntropy(), //
+				new DLKerasSparseCategoricalCrossEntropy(), //
+				new DLKerasBinaryCrossEntropy(), //
+				new DLKerasKullbackLeiblerDivergence(), //
+				new DLKerasPoisson(), //
+				new DLKerasCosineProximity());
+	}
+
+	@Override
+	public Collection<DLKerasCallback> createCallbacks() {
+		return Arrays.asList( //
+				new DLKerasTerminateOnNaN(), //
+				new DLKerasEarlyStopping(), //
+				new DLKerasReduceLROnPlateau());
 	}
 }

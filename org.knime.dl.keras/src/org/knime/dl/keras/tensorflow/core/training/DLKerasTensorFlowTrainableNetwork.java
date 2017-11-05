@@ -46,35 +46,26 @@
  */
 package org.knime.dl.keras.tensorflow.core.training;
 
-import java.io.IOException;
-
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainableNetwork;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTensorFlowTrainableNetwork extends
-	DLKerasAbstractTrainableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowTrainingConfig, DLKerasTensorFlowCommands> {
+public final class DLKerasTensorFlowTrainableNetwork
+	extends DLKerasAbstractTrainableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
 
 	public DLKerasTensorFlowTrainableNetwork(final DLKerasTensorFlowNetwork network,
-			final DLKerasTensorFlowTrainingConfig trainingConfig) {
+			final DLKerasTrainingConfig trainingConfig) {
 		super(network, trainingConfig);
 	}
 
 	@Override
 	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
 		return new DLKerasTensorFlowCommands();
-	}
-
-	@Override
-	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle,
-			final DLKerasTensorFlowCommands commands, final DLKerasTensorFlowTrainingConfig config)
-			throws DLInvalidEnvironmentException, IOException {
-		commands.setNetworkTrainingConfig(handle, config);
 	}
 }

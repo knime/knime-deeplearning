@@ -44,23 +44,68 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.theano.core.training;
+package org.knime.dl.keras.core.training;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.training.DLKerasAbstractTrainingConfig;
-import org.knime.dl.keras.core.training.DLKerasLossFunction;
-import org.knime.dl.keras.core.training.DLKerasOptimizer;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasTheanoTrainingConfig extends DLKerasAbstractTrainingConfig {
+public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 
-	public DLKerasTheanoTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
+	private final int m_batchSize;
+	private final int m_epochs;
+	private final DLKerasOptimizer m_optimizer;
+	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
+	private final Collection<DLKerasCallback> m_callbacks;
+
+	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
 			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
-		super(batchSize, epochs, optimizer, losses);
+		m_batchSize = batchSize;
+		m_epochs = epochs;
+		m_optimizer = optimizer;
+		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
+		m_callbacks = Collections.emptyList();
+	}
+
+	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
+			final Map<DLTensorSpec, DLKerasLossFunction> losses, final Collection<DLKerasCallback> callbacks) {
+		m_batchSize = batchSize;
+		m_epochs = epochs;
+		m_optimizer = optimizer;
+		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
+		m_callbacks = Collections.unmodifiableCollection(new ArrayList<>(callbacks));
+	}
+
+	@Override
+	public int getBatchSize() {
+		return m_batchSize;
+	}
+
+	@Override
+	public int getEpochs() {
+		return m_epochs;
+	}
+
+	@Override
+	public DLKerasOptimizer getOptimizer() {
+		return m_optimizer;
+	}
+
+	@Override
+	public Map<DLTensorSpec, DLKerasLossFunction> getLosses() {
+		return m_losses;
+	}
+
+	@Override
+	public Collection<DLKerasCallback> getCallbacks() {
+		return m_callbacks;
 	}
 }

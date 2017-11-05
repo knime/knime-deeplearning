@@ -49,6 +49,7 @@
 '''
 
 import abc
+import keras
 
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
@@ -205,12 +206,24 @@ class DLKerasNetwork(DLPythonNetwork):
         return self._format_output(Y)
 
     def train(self, training_data, target_data):
-        config = self._training_config
+        config = self._spec.training_config
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
-        X1 = self._format_input(training_data, config.batch_size)
+
+        # TODO: before training: (re)compile model! (if pre-compiled: only compile if training config changed)
+        # HACK: old code
+        loss = []
+        for output_spec in self.spec.output_specs:
+            loss.append(config.loss[output_spec.name])
+        metrics = config.metrics
+
+        self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
+
+        X1 = self._format_training(training_data, config.batch_size)
         X2 = self._format_target(target_data, config.batch_size)
-        history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1)
+
+        history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1,
+                                  callbacks=config.callbacks)
         return history.history
 
     def save(self, path):
@@ -238,13 +251,49 @@ class DLKerasNetwork(DLPythonNetwork):
             output[output_spec.name] = out
         return output
 
+    # HACK: remove entire method afterwards, replace references by _format_input
+    def _format_training(self, training_data, batch_size):
+        X = []
+        for input_spec in self.spec.input_specs:
+            data = training_data[input_spec.name].values[0][0].array
+            batch_shape = [batch_size] + input_spec.shape
+            elems_per_batch = np.prod(batch_shape)
+            num_batches = int(data.size / elems_per_batch)
+            tensor_stack = []
+            for i in range(num_batches):
+                batch = data[i * elems_per_batch:(i + 1) * elems_per_batch].reshape(batch_shape)
+                tensor_stack.append(batch)
+            tensor = np.vstack(tensor_stack)
+            X.append(tensor)
+
+        return X
+
     def _format_target(self, target_data, batch_size):
-        # TODO: this does not yet take (predefined) batch size of the output into account
         X = []
         for output_spec in self.spec.output_specs:
-            tensor = target_data[output_spec.name].values[0][0].array
-            tensor = tensor.reshape([batch_size] + output_spec.shape)
+
+            # HACK >>
+
+            data = target_data[output_spec.name].values[0][0].array
+
+            batch_shape = [batch_size] + output_spec.shape
+            elems_per_batch = np.prod(batch_shape)
+            num_batches = int(data.size / elems_per_batch)
+            tensor_stack = []
+            for i in range(num_batches):
+                batch = data[i * elems_per_batch:(i + 1) * elems_per_batch].reshape(batch_shape)
+                tensor_stack.append(batch)
+            tensor = np.vstack(tensor_stack)
             X.append(tensor)
+
+            # --
+
+            # tensor = target_data[output_spec.name].values[0][0].array
+            # tensor = tensor.reshape([batch_size] + output_spec.shape)
+            # X.append(tensor)
+
+            # <<
+
         return X
 
     def _put_in_matching_buffer(self, y):
@@ -279,12 +328,6 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
         self._training_config = training_config
 
 
-#self._training_config = config
-#loss = []
-# for output_spec in self.spec.output_specs:
-#    loss.append(config.loss[output_spec.name])
-#self._model.compile(loss=loss, optimizer=config.optimizer, metrics=config.metrics)
-
 class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
     def __init__(self):
@@ -293,6 +336,7 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
         self._optimizer = None
         self._loss = {}
         self._metrics = ['accuracy']
+        self._callbacks = [DLKerasTrainingReporter(), DLKerasUserEarlyStopping()]
 
     @property
     def batch_size(self):
@@ -333,3 +377,40 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
     @metrics.setter
     def metrics(self, metrics):
         self._metrics = metrics
+
+    @property
+    def callbacks(self):
+        return self._callbacks
+
+    @callbacks.setter
+    def callbacks(self, callbacks):
+        self._callbacks = callbacks
+
+
+class DLKerasTrainingReporter(keras.callbacks.Callback):
+
+    def on_train_begin(self, logs={}):
+        metrics_names = self.params['metrics']
+        self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
+
+    def on_batch_end(self, batch, logs={}):
+        for k in self.params['metrics']:
+            self._metrics.at[0, k] = logs[k]
+        # TODO: send metrics back to Java
+
+
+class DLKerasUserEarlyStopping(keras.callbacks.Callback):
+
+    def on_train_begin(self, logs={}):
+        self._stop = False
+
+    def on_batch_end(self, batch, logs={}):
+        if self._stop:
+            self.model.stop_training = True
+
+    # def on_train_end(self, logs=None):
+    #    if self._stop:
+    #        print('Training was stopped.')
+
+    def stop(self):
+        self._stop = True

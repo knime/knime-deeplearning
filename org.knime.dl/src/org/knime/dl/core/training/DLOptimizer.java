@@ -2,7 +2,7 @@
  * ------------------------------------------------------------------------
  *
  *  Copyright by KNIME GmbH, Konstanz, Germany
- *  Website: http://www.knime.com; Email: contact@knime.com
+ *  Website: http://www.knime.org; Email: contact@knime.org
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License, Version 3, as
@@ -46,13 +46,17 @@
  */
 package org.knime.dl.core.training;
 
-import java.util.function.Supplier;
-
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLOptimizer<H> extends Supplier<H> {
+public interface DLOptimizer {
 
-	// NB: marker interface
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
+	}
+
+	String getName();
+
+	Object getBackendRepresentation();
 }

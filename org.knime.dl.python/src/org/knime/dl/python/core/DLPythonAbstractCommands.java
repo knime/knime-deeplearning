@@ -102,6 +102,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	public static final String OUTPUT_SPECS_NAME = "output_specs";
 
+	public static final String OPTIMIZER_SPECS = "optimizer_specs";
+
+	public static final String LOSS_SPECS = "loss_specs";
+
+	public static final String METRICS_SPECS = "metrics_specs";
+
 	public static final String INPUT_TABLE_NAME = "input_table";
 
 	public static final String OUTPUT_TABLE_NAME = "output_table";
@@ -392,7 +398,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				"global " + INPUT_SPECS_NAME + "\n" + //
 				"global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
 				"global " + OUTPUT_SPECS_NAME + "\n" + //
-				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + " = " + //
+				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + ", " + //
+				OPTIMIZER_SPECS + ", " + LOSS_SPECS + ", " + METRICS_SPECS + " = " + //
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + network.getIdentifier() + "')";
 	}
 

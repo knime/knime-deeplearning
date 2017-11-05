@@ -48,14 +48,14 @@ package org.knime.dl.keras.theano.core.training;
 
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public final class DLKerasTheanoDefaultTrainingContext
-	extends DLKerasAbstractTrainingContext<DLKerasTheanoNetwork, DLKerasTheanoTrainingConfig> {
+public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTrainingContext<DLKerasTheanoNetwork> {
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (Theano)";
 
@@ -65,7 +65,7 @@ public final class DLKerasTheanoDefaultTrainingContext
 
 	@Override
 	public DLKerasTrainableNetworkAdapter trainable(final DLKerasTheanoNetwork network,
-			final DLKerasTheanoTrainingConfig trainingConfig) throws RuntimeException {
+			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasTheanoTrainableNetwork trainNetwork = new DLKerasTheanoTrainableNetwork(network, trainingConfig);
 		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
 	}

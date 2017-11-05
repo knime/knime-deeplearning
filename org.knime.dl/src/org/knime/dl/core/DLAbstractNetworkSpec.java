@@ -63,7 +63,7 @@ import org.knime.dl.core.training.DLTrainingConfig;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
+public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implements DLNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
 
@@ -87,8 +87,8 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
-		m_hiddenOutputSpecs =
-				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
+		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
+				"Hidden output data specs must not be null, but may be empty.");
 		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
 		m_trainingConfig = Optional.empty();
 	}
@@ -101,11 +101,11 @@ public abstract class DLAbstractNetworkSpec implements DLNetworkSpec {
 	 * @param outputSpecs the output tensor specs, can be empty
 	 * @param the {@link DLTrainingConfig training configuration}
 	 */
-	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
-			final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs, final CFG trainingConfig) {
+	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs, final CFG trainingConfig) {
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
-		m_hiddenOutputSpecs =
-				checkNotNull(hiddenOutputSpecs, "Hidden output data specs must not be null, but may be empty.");
+		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
+				"Hidden output data specs must not be null, but may be empty.");
 		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
 		m_trainingConfig = Optional.of(checkNotNull(trainingConfig, "Training configuration must not be null."));
 	}

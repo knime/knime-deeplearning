@@ -55,6 +55,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLAbstractTrainableNetwork;
+import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.python.core.DLPythonCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -65,14 +66,14 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork, //
-		CFG extends DLPythonTrainingConfig, C extends DLPythonCommands>
+		CFG extends DLTrainingConfig, C extends DLPythonCommands>
 	extends DLAbstractTrainableNetwork<DLTensor<? extends DLWritableBuffer>, //
 			DLTensor<? extends DLWritableBuffer>, CFG, N>
 		implements DLPythonTrainableNetwork {
 
-	private C m_commands;
+	protected C m_commands;
 
-	private DLPythonNetworkHandle m_handle;
+	protected DLPythonNetworkHandle m_handle;
 
 	protected DLPythonAbstractTrainableNetwork(final N network, final CFG trainingConfig) {
 		super(network, trainingConfig);

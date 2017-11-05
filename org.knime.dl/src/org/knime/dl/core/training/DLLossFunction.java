@@ -46,13 +46,17 @@
  */
 package org.knime.dl.core.training;
 
-import java.util.function.Supplier;
-
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLLossFunction<H> extends Supplier<H> {
+public interface DLLossFunction {
 
-	// NB: marker interface
+	default String getIdentifier() {
+		return getClass().getCanonicalName();
+	}
+
+	String getName();
+
+	Object getBackendRepresentation();
 }

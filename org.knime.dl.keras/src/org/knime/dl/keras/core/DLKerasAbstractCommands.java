@@ -96,13 +96,14 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n("config.epochs = ").a(config.getEpochs()) //
 				// TODO: how to import dependencies (here: of optimizer and losses) in a generic way?
 				.n("import keras") //
-				.n("config.optimizer = ").a(config.getOptimizer().get()) //
+				.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //
 				.n(config.getLosses().entrySet(),
 						e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getName()) + "] = "
-								+ e.getValue().get()) //
+								+ e.getValue().getBackendRepresentation()) //
+				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")") //
 				.n("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
-				.n("network.training_config = config");
+				.n("network.spec.training_config = config");
 		m_context.getKernel().execute(b.toString());
 	}
 }

@@ -54,6 +54,7 @@ import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -66,6 +67,11 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec {
 	public DLKerasCNTKNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
 		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
+	}
+
+	public DLKerasCNTKNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
+		super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
 	}
 
 	@Override

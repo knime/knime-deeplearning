@@ -86,24 +86,23 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution
-	// mode"/input type (local/BufferedDataTable
+	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
 	// etc.)
 	DLTensorFactory getTensorFactory();
-
-	/**
-	 * Returns the available {@link DLLossFunction loss functions} in this training context.
-	 *
-	 * @return the available loss functions in this training context
-	 */
-	Collection<? extends DLLossFunction<?>> getLossFunctions();
 
 	/**
 	 * Returns the available {@link DLOptimizer optimizers} in this training context.
 	 *
 	 * @return the available optimizers in this training context
 	 */
-	Collection<? extends DLOptimizer<?>> getOptimizers();
+	Collection<? extends DLOptimizer> createOptimizers();
+
+	/**
+	 * Returns the available {@link DLLossFunction loss functions} in this training context.
+	 *
+	 * @return the available loss functions in this training context
+	 */
+	Collection<? extends DLLossFunction> createLossFunctions();
 
 	/**
 	 * Creates a {@link DLTrainableNetworkAdapter trainable network} given a {@link DLNetwork network}.

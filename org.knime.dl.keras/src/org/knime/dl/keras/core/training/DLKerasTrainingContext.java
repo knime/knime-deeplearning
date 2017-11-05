@@ -46,48 +46,25 @@
  */
 package org.knime.dl.keras.core.training;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
 
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.training.DLTrainingContext;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainingConfig implements DLKerasTrainingConfig {
+public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrainingContext<N, DLKerasTrainingConfig> {
 
-	private final int m_batchSize;
-	private final int m_epochs;
-	private final DLKerasOptimizer m_optimizer;
-	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
-
-	public DLKerasAbstractTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
-		m_batchSize = batchSize;
-		m_epochs = epochs;
-		m_optimizer = optimizer;
-		m_losses = new HashMap<>(losses);
-	}
+	Collection<DLKerasCallback> createCallbacks();
 
 	@Override
-	public int getBatchSize() {
-		return m_batchSize;
-	}
+	Collection<DLKerasOptimizer> createOptimizers();
 
 	@Override
-	public int getEpochs() {
-		return m_epochs;
-	}
+	Collection<DLKerasLossFunction> createLossFunctions();
 
 	@Override
-	public DLKerasOptimizer getOptimizer() {
-		return m_optimizer;
-	}
-
-	@Override
-	public Map<DLTensorSpec, DLKerasLossFunction> getLosses() {
-		return Collections.unmodifiableMap(m_losses);
-	}
+	DLKerasTrainableNetworkAdapter trainable(final N network, final DLKerasTrainingConfig trainingConfig);
 }

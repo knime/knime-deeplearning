@@ -46,22 +46,21 @@
  */
 package org.knime.dl.keras.core.training;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.python.core.training.DLPythonTrainingConfig;
+import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLKerasTrainingConfig extends DLPythonTrainingConfig {
+public interface DLKerasTrainingConfig extends DLTrainingConfig {
 
-	public int getBatchSize();
+	DLKerasOptimizer getOptimizer();
 
-	public int getEpochs();
+	Map<DLTensorSpec, DLKerasLossFunction> getLosses();
 
-	public DLKerasOptimizer getOptimizer();
-
-	public Map<DLTensorSpec, ? extends DLKerasLossFunction> getLosses();
+	Collection<DLKerasCallback> getCallbacks();
 }

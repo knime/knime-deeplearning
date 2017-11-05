@@ -25,7 +25,7 @@ public final class DLPythonUtils {
 		return createSourceCodeBuilder().a(firstCodeLine).n();
 	}
 
-	public static String toPythonString(final boolean b) {
+	public static String toPython(final boolean b) {
 		return b ? TRUE : FALSE;
 	}
 

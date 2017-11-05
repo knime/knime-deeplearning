@@ -52,4 +52,7 @@ package org.knime.dl.core.training;
  */
 public interface DLTrainingConfig {
 
+	public int getBatchSize();
+
+	int getEpochs();
 }

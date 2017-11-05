@@ -49,33 +49,46 @@ import pandas as pd
 
 
 class DLPythonNetworkSpecExtractor(object):
-	
-	def __init__(self, network_spec):
-		self._network_spec = network_spec
-		
-	def input_specs_to_data_frame(self):
-		return self.__layer_data_specs_to_data_frame(self._network_spec.input_specs)
 
-	def intermediate_output_specs_to_data_frame(self):
-		return self.__layer_data_specs_to_data_frame(self._network_spec.intermediate_output_specs)
-	
-	def output_specs_to_data_frame(self):
-		return self.__layer_data_specs_to_data_frame(self._network_spec.output_specs) 
-		
-	def __layer_data_specs_to_data_frame(self, layer_specs):
-		specs = pd.DataFrame(index=range(len(layer_specs)), columns=('name', 'batch_size', 'shape', 'type'))
-		for idx, layer_spec in enumerate(layer_specs):
-			specs.iloc[idx,0] = layer_spec.name
-			specs.iloc[idx,1] = layer_spec.batch_size
-			specs.iloc[idx,2] = layer_spec.shape
-			specs.iloc[idx,3] = layer_spec.element_type
-		return specs.convert_objects(convert_numeric=True)
+    def __init__(self, network_spec):
+        self._network_spec = network_spec
+
+    def input_specs_to_data_frame(self):
+        return self.__layer_data_specs_to_data_frame(self._network_spec.input_specs)
+
+    def intermediate_output_specs_to_data_frame(self):
+        return self.__layer_data_specs_to_data_frame(self._network_spec.intermediate_output_specs)
+
+    def output_specs_to_data_frame(self):
+        return self.__layer_data_specs_to_data_frame(self._network_spec.output_specs)
+
+    def training_config_to_data_frame(self):
+        spec = self._network_spec
+        if spec.training_config is None:
+            return None, None, None
+        # TODO: optimizer
+        optimizer_df = None
+        loss_df = pd.DataFrame.from_dict(spec.training_config.loss, orient='index')
+        # metrics_df = pd.DataFrame.from_dict(spec.training_config.metrics, orient='index')
+        metrics_df = pd.DataFrame(spec.training_config.metrics)
+        metrics_df = metrics_df.transpose()
+        return optimizer_df, loss_df, metrics_df
+
+    def __layer_data_specs_to_data_frame(self, layer_specs):
+        specs = pd.DataFrame(index=range(len(layer_specs)), columns=('name', 'batch_size', 'shape', 'type'))
+        for idx, layer_spec in enumerate(layer_specs):
+            specs.iloc[idx, 0] = layer_spec.name
+            specs.iloc[idx, 1] = layer_spec.batch_size
+            specs.iloc[idx, 2] = layer_spec.shape
+            specs.iloc[idx, 3] = layer_spec.element_type
+        return specs.convert_objects(convert_numeric=True)
 
 
 def get_layer_data_specs_as_data_frame(identifier):
-	network = DLPythonNetwork.get_network(identifier)
-	extractor = DLPythonNetworkSpecExtractor(network.spec)
-	input_specs = extractor.input_specs_to_data_frame()
-	intermediate_output_specs = extractor.intermediate_output_specs_to_data_frame()
-	output_specs = extractor.output_specs_to_data_frame()
-	return input_specs, intermediate_output_specs, output_specs
+    network = DLPythonNetwork.get_network(identifier)
+    extractor = DLPythonNetworkSpecExtractor(network.spec)
+    input_specs = extractor.input_specs_to_data_frame()
+    intermediate_output_specs = extractor.intermediate_output_specs_to_data_frame()
+    output_specs = extractor.output_specs_to_data_frame()
+    optimizer, losses, metrics = extractor.training_config_to_data_frame()
+    return input_specs, intermediate_output_specs, output_specs, optimizer, losses, metrics
