@@ -67,6 +67,12 @@ public interface DLPythonContext extends AutoCloseable {
 
 	String[] execute(File script, String... args) throws IOException;
 
+	/**
+	 * @throws DLInvalidEnvironmentException if execution failed, i.e. if the Python kernel returns an error output
+	 * @throws IOException if an error occurred while communicating with the Python kernel
+	 */
+	String[] executeInKernel(final String code) throws DLInvalidEnvironmentException, IOException;
+
 	@Override
 	void close();
 }

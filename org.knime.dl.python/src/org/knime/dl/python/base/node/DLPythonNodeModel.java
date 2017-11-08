@@ -87,9 +87,8 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 	}
 
 	/**
-	 * Push new variables to the stack.
-	 *
-	 * Only pushes new variables to the stack if they are new or changed in type or value.
+	 * Push new variables to the stack. Only pushes new variables to the stack if they are new or changed in type or
+	 * value.
 	 *
 	 * @param newVariables The flow variables to push
 	 */

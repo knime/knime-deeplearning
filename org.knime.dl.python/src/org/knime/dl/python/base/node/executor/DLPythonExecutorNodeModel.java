@@ -98,7 +98,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonExecutorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
-			context.getKernel().execute("import DLPythonNetwork\n" + //
+			context.executeInKernel("import DLPythonNetwork\n" + //
 					"global " + inputNetworkName + "\n" + //
 					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
 		} catch (final IOException e) {
@@ -124,30 +124,29 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 			setWarningMessage("Input table is empty. Node created an empty output table.");
 			return new PortObject[] { emptyContainer.getTable() };
 		}
-
-		final PythonKernel kernel = new PythonKernel(getKernelOptions());
 		BufferedDataTable outTable = null;
+		final DLPythonDefaultContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
 		try {
-			kernel.putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
+			context.getKernel().putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 			final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
 			final DLPythonNetwork network = portObject.getNetwork();
-			final DLPythonDefaultContext context = new DLPythonDefaultContext(kernel);
 			setupNetwork(network, context);
 			exec.createSubProgress(0.1).setProgress(1);
-			kernel.putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
+			context.getKernel().putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
-			final String[] output = kernel.execute(getConfig().getSourceCode(), exec);
+			final String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.4).setProgress(1);
-			final Collection<FlowVariable> variables = kernel
+			final Collection<FlowVariable> variables = context.getKernel()
 					.getFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables());
-			outTable = kernel.getDataTable(DLPythonExecutorNodeConfig.getVariableNames().getOutputTables()[0], exec,
+			outTable = context.getKernel().getDataTable(
+					DLPythonExecutorNodeConfig.getVariableNames().getOutputTables()[0], exec,
 					exec.createSubProgress(0.3));
 			addNewVariables(variables);
 		} finally {
-			kernel.close();
+			context.close();
 		}
 		return new BufferedDataTable[] { outTable };
 	}

@@ -83,7 +83,6 @@ import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.Activator;
 import org.knime.python2.PythonPreferencePage;
-import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * @author Marcel Wiedenmann,KNIME,Konstanz,Germany
@@ -115,7 +114,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	private Random m_rng;
 
 	@Before
-	public void setUp() throws DLInvalidEnvironmentException, BackingStoreException {
+	public void setUp() throws Exception {
 		final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
 		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
 		prefs.flush();
@@ -157,7 +156,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testDouble() throws IOException, DLInvalidEnvironmentException {
+	public void testDouble() throws Exception {
 		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class);
@@ -179,7 +178,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
-		m_commands.getContext().getKernel().execute(code);
+		m_commands.getContext().executeInKernel(code);
+
 		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
 			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(outputTensorName, OUT_LAYER_DATA_SHAPE,
@@ -204,7 +204,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testFloat() throws IOException, DLInvalidEnvironmentException {
+	public void testFloat() throws Exception {
 		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class);
@@ -225,7 +225,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
-		m_commands.getContext().getKernel().execute(code);
+		m_commands.getContext().executeInKernel(code);
 
 		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
@@ -271,7 +271,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
-		m_commands.getContext().getKernel().execute(code);
+		m_commands.getContext().executeInKernel(code);
 
 		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
@@ -295,7 +295,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 	}
 
 	@Test
-	public void testLong() throws IOException, DLInvalidEnvironmentException {
+	public void testLong() throws Exception {
 		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
 		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
 			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class);
@@ -316,7 +316,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
-		m_commands.getContext().getKernel().execute(code);
+		m_commands.getContext().executeInKernel(code);
 
 		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {

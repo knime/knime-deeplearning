@@ -75,8 +75,8 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 	@Override
 	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle)
 			throws DLInvalidEnvironmentException, IOException {
-		final PythonKernel kernel = m_context.getKernel();
-		kernel.execute(getExtractNetworkSpecsCode(handle));
+		getContext().executeInKernel(getExtractNetworkSpecsCode(handle));
+		final PythonKernel kernel = getContext().getKernel();
 		final DLTensorSpec[] inputSpecs = (DLTensorSpec[]) kernel
 				.getData(INPUT_SPECS_NAME, new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
 				.getTable();

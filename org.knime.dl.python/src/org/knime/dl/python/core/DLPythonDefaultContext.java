@@ -145,6 +145,15 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 	}
 
 	@Override
+	public String[] executeInKernel(final String code) throws DLInvalidEnvironmentException, IOException {
+		final String[] output = getKernel().execute(code);
+		if (!output[1].isEmpty()) {
+			throw new DLInvalidEnvironmentException("An error occurred in Python: " + output[1]);
+		}
+		return output;
+	}
+
+	@Override
 	public void close() {
 		if (isKernelOpen()) {
 			m_kernel.close();

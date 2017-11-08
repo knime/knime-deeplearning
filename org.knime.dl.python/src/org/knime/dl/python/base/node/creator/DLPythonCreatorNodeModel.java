@@ -74,6 +74,8 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
+import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -88,45 +90,49 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 		super(null, new PortType[] { DLPythonNetworkPortObject.TYPE });
 	}
 
-	static void checkExecutePostConditions(final PythonKernel kernel) throws Exception {
+	static void checkExecutePostConditions(final DLPythonContext context)
+			throws DLInvalidEnvironmentException, IOException {
 		final String outputNetworkName = DLPythonCreatorNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-		String[] output = kernel.execute("try:\n" + //
-				"	" + outputNetworkName + '\n' + //
-				"except NameError:\n" + //
-				"	print(\"Variable '" + outputNetworkName
-				+ "' is not defined. Please make sure to define it in your script.\")");
-		if (!output[0].isEmpty()) {
-			throw new Exception(output[0].trim());
-		}
-		output = kernel.execute("import DLPythonNetworkType\n" + //
-				"try:\n" + //
-				"	DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
-				"except TypeError as ex:\n" + //
-				"	print(str(ex) + " //
-				+ "'\\nPlease check your assignment of \\'" + outputNetworkName
-				+ "\\' within the script and make sure you are not missing any KNIME extensions.')");
-		if (!output[0].isEmpty()) {
-			throw new Exception(output[0].trim());
-		}
+		// check if output network variable was assigned at all
+		DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+				.a("try:") //
+				.n().t().a(outputNetworkName) //
+				.n("except NameError:") //
+				.n().t().a("raise NameError(") //
+				.as("Variable '" + outputNetworkName
+						+ "' is not defined. Please make sure to define it in your script.")
+				.a(")");
+		context.executeInKernel(b.toString());
+		// check if output network variable was assigned with a valid value
+		b = DLPythonUtils.createSourceCodeBuilder() //
+				.a("import DLPythonNetworkType") //
+				.n("try:") //
+				.n().t().a("DLPythonNetworkType.get_model_network_type(").a(outputNetworkName).a(")") //
+				.n("except TypeError as ex:") //
+				.n().t().a("raise TypeError(str(ex) + ") //
+				.as("\\nPlease check your assignment of '" + outputNetworkName
+						+ "' within the script and make sure you are not missing any KNIME extensions.") //
+				.a(")");
+		context.executeInKernel(b.toString());
 	}
 
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-		final PythonKernel kernel = new PythonKernel(getKernelOptions());
+		final DLPythonContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
 		try {
-			kernel.putFlowVariables(DLPythonCreatorNodeConfig.getVariableNames().getFlowVariables(),
+			context.getKernel().putFlowVariables(DLPythonCreatorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 			final String loadBackendCode = DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders().stream()
 					.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
 					.collect(Collectors.joining());
 			// TODO: we should move this logic out of the node in a later iteration
-			kernel.execute(loadBackendCode, exec);
+			context.getKernel().execute(loadBackendCode, exec);
 			final String outputNetworkName = DLPythonCreatorNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-			String[] output = kernel.execute(getConfig().getSourceCode(), exec);
+			String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
-			checkExecutePostConditions(kernel);
-			output = kernel.execute("import DLPythonNetwork\n" + //
+			checkExecutePostConditions(context);
+			output = context.getKernel().execute("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //
 					"network_type = DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
@@ -137,9 +143,9 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.5).setProgress(1);
-			final Collection<FlowVariable> variables = kernel
+			final Collection<FlowVariable> variables = context.getKernel()
 					.getFlowVariables(DLPythonCreatorNodeConfig.getVariableNames().getFlowVariables());
-			final String networkLoaderIdentifier = ((StringValue) kernel
+			final String networkLoaderIdentifier = ((StringValue) context.getKernel()
 					.getDataTable("network_type_identifier", exec, exec).iterator().next().getCell(0)).getStringValue();
 			final DLPythonNetworkLoader<?> loader = DLPythonNetworkLoaderRegistry.getInstance()
 					.getNetworkLoader(networkLoaderIdentifier)
@@ -149,7 +155,6 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 					exec);
 			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-			final DLPythonContext context = new DLPythonDefaultContext(kernel);
 			loader.save(handle, fileStoreURL, context);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
@@ -159,7 +164,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 			return new DLNetworkPortObject[] {
 					createOutputPortObject(loader, handle, fileStoreURL, context, fileStore) };
 		} finally {
-			kernel.close();
+			context.close();
 		}
 	}
 

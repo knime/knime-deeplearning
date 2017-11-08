@@ -234,7 +234,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	@Override
 	public DLPythonNetworkHandle loadNetwork(final String path) throws DLInvalidEnvironmentException, IOException {
-		getContext().getKernel().execute(getLoadNetworkCode(path));
+		getContext().executeInKernel(getLoadNetworkCode(path));
 		// TODO: we should get the model name (= network identifier) from Python
 		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
@@ -246,7 +246,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
 				.n("network.save(").asr(path).a(")");
-		getContext().getKernel().execute(b.toString());
+		getContext().executeInKernel(b.toString());
 	}
 
 	// TODO: implement network handle
@@ -279,7 +279,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
 				.n("for name, data in out_data.items():") //
 				.n().t().a("globals()[name] = data");
-		getContext().getKernel().execute(b.toString());
+		getContext().executeInKernel(b.toString());
 	}
 
 	// TODO: implement network handle
@@ -377,7 +377,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("for output_spec in network.spec.output_specs:") //
 				.n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
 				.n("network.train(training_data, target_data)");
-		getContext().getKernel().execute(b.toString());
+		getContext().executeInKernel(b.toString());
 	}
 
 	@Override

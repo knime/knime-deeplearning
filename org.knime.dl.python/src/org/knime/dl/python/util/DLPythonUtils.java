@@ -14,8 +14,10 @@ public final class DLPythonUtils {
 	private static final String INFINITY = "inf";
 	private static final String NAN = "NaN";
 
-	private static final String[] FORMATTED_STRING_PREFIXES = new String[] { "f", "F" };
-	private static final String[] RAW_STRING_PREFIXES = new String[] { "r", "R" };
+	private static final char QUOTE = '"';
+
+	private static final char[] FORMATTED_STRING_PREFIXES = new char[] { 'f', 'F' };
+	private static final char[] RAW_STRING_PREFIXES = new char[] { 'r', 'R' };
 
 	private DLPythonUtils() {
 	}
@@ -70,7 +72,7 @@ public final class DLPythonUtils {
 
 	public static String toPython(final String s) {
 		// TODO: check if already in quotes etc.
-		return '"' + s + '"';
+		return QUOTE + s + QUOTE;
 	}
 
 	public static String toPythonFormattedString(final String s) {

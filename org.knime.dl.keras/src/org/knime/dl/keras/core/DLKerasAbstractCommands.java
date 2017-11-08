@@ -75,14 +75,14 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
 	public DLPythonNetworkHandle loadNetworkFromJson(final String path)
 			throws DLInvalidEnvironmentException, IOException {
-		m_context.getKernel().execute(getLoadNetworkFromJsonCode(path));
+		getContext().executeInKernel(getLoadNetworkFromJsonCode(path));
 		// TODO: we should get the model name (= handle identifier) from Python
 		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
 
 	public DLPythonNetworkHandle loadNetworkFromYaml(final String path)
 			throws DLInvalidEnvironmentException, IOException {
-		m_context.getKernel().execute(getLoadNetworkFromYamlCode(path));
+		getContext().executeInKernel(getLoadNetworkFromYamlCode(path));
 		// TODO: we should get the model name (= handle identifier) from Python
 		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}
@@ -108,6 +108,6 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
 				.n("network.spec.training_config = config");
-		m_context.getKernel().execute(b.toString());
+		getContext().executeInKernel(b.toString());
 	}
 }
