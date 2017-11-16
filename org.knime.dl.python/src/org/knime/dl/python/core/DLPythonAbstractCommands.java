@@ -62,6 +62,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLNetworkInputProvider;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -85,6 +86,9 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImp
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValueTableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
+import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
+import org.knime.python2.kernel.Commands;
+import org.knime.python2.kernel.PythonToJavaMessage;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -334,50 +338,52 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public void setNetworkTrainingInputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> trainingData,
-			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> targetData,
-			final long batchSize) throws DLInvalidEnvironmentException, IOException {
-		// training data:
-		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : trainingData
-				.entrySet()) {
-			final DLTensorSpec spec = input.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
-			try {
-				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
-			} catch (final IOException ex) {
-				throw new RuntimeException("Transmitting data to Python failed.", ex);
-			}
-		}
-		// target data:
-		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : targetData
-				.entrySet()) {
-			final DLTensorSpec spec = input.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
-			try {
-				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
-			} catch (final IOException ex) {
-				throw new RuntimeException("Transmitting data to Python failed.", ex);
-			}
-		}
-	}
-
-	@Override
-	public void trainNetwork(final DLPythonNetworkHandle network, final long batchSize)
+	public void trainNetwork(final DLPythonNetworkHandle network,
+			final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
 			throws DLInvalidEnvironmentException, IOException {
+		final Commands commands = getContext().getKernel().getCommands();
+		final AbstractPythonToJavaMessageHandler dataRequestHandler = new AbstractPythonToJavaMessageHandler(
+				"request_training_data") {
+
+			@Override
+			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				final long batchIndex = Long.parseLong(msg.getValue());
+				final Map<? extends DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input = inputSupplier
+						.get(batchIndex);
+				for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> entry : input
+						.entrySet()) {
+					final DLTensorSpec tensorSpec = entry.getKey();
+					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+					final TableChunker tableChunker = createSingleTensorTableChunker(tensorSpec, tensor);
+					try {
+						getContext().getKernel().putData(tensorSpec.getName(), tableChunker, 1);
+					} catch (final IOException ex) {
+						throw new IOException("Transmitting data to Python failed.", ex);
+					} finally {
+						tensor.getBuffer().reset();
+					}
+				}
+				commands.answer(msg, "");
+			}
+		};
+		commands.registerMessageHandler(dataRequestHandler);
+
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				.n("training_data = {}") //
-				.n("for input_spec in network.spec.input_specs:") //
-				.n().t().a("training_data[input_spec.name] = globals()[input_spec.name]") //
-				.n("target_data = {}") //
-				.n("for output_spec in network.spec.output_specs:") //
-				.n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
-				.n("network.train(training_data, target_data)");
+				// .n("training_data = {}") //
+				// .n("for input_spec in network.spec.input_specs:") //
+				// .n().t().a("training_data[input_spec.name] = globals()[input_spec.name]") //
+				// .n("target_data = {}") //
+				// .n("for output_spec in network.spec.output_specs:") //
+				// .n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
+				.n("from DLKerasNetwork import DLDataSupplier") //
+				.n("data_supplier = DLDataSupplier(").a(inputSupplier.size())
+				.a(", request_from_java, network, globals())") //
+				.n("network.train(data_supplier)");
 		getContext().executeInKernel(b.toString());
+
+		commands.unregisterMessageHandler(dataRequestHandler);
 	}
 
 	@Override

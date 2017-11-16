@@ -56,6 +56,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLNetworkInputProvider;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -92,12 +93,9 @@ public interface DLPythonCommands extends AutoCloseable {
 			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void setNetworkTrainingInputs(DLPythonNetworkHandle network,
-			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> trainingData,
-			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> targetData, long batchSize)
+	public void trainNetwork(DLPythonNetworkHandle network,
+			DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
 			throws DLInvalidEnvironmentException, IOException;
-
-	void trainNetwork(DLPythonNetworkHandle network, long batchSize) throws DLInvalidEnvironmentException, IOException;
 
 	void getTrainingResults(DLPythonNetworkHandle network);
 }
