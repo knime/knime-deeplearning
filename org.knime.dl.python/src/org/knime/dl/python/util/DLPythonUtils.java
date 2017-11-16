@@ -11,6 +11,9 @@ public final class DLPythonUtils {
 	private static final String TRUE = "True";
 	private static final String FALSE = "False";
 
+	private static final String INFINITY = "inf";
+	private static final String NAN = "NaN";
+
 	private static final String[] FORMATTED_STRING_PREFIXES = new String[] { "f", "F" };
 	private static final String[] RAW_STRING_PREFIXES = new String[] { "r", "R" };
 
@@ -30,10 +33,30 @@ public final class DLPythonUtils {
 	}
 
 	public static String toPython(final double d) {
+		if (Double.isInfinite(d)) {
+			if (d > 0) {
+				return INFINITY;
+			} else {
+				return "-" + INFINITY;
+			}
+		}
+		if (Double.isNaN(d)) {
+			return NAN;
+		}
 		return String.valueOf(d);
 	}
 
 	public static String toPython(final float f) {
+		if (Float.isInfinite(f)) {
+			if (f > 0) {
+				return INFINITY;
+			} else {
+				return "-" + INFINITY;
+			}
+		}
+		if (Float.isNaN(f)) {
+			return NAN;
+		}
 		return String.valueOf(f);
 	}
 

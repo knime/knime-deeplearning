@@ -73,6 +73,11 @@ public final class DLPythonSourceCodeBuilder {
 		return this;
 	}
 
+	public DLPythonSourceCodeBuilder a(final boolean b) {
+		a(DLPythonUtils.toPython(b));
+		return this;
+	}
+
 	public DLPythonSourceCodeBuilder a(final double d) {
 		a(DLPythonUtils.toPython(d));
 		return this;
