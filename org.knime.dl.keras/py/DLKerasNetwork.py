@@ -308,8 +308,6 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
         self.loss = {}
         self.metrics = ['accuracy']
         self.callbacks = [DLKerasTrainingReporter(), DLKerasUserEarlyStopping()]
-        self.validation_split = None
-        self.shuffle = False
 
 
 class DLKerasTrainingReporter(keras.callbacks.Callback):

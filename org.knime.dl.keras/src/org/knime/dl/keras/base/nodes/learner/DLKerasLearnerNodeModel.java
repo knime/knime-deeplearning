@@ -403,8 +403,6 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			return inPortObject;
 		}
 
-		final int batchSize = (int) inDataSize; // TODO: HACK
-
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getTrainingContextEntry()
 				.getValue();
 
@@ -428,12 +426,8 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 		if (m_generalCfg.getReduceLROnPlateauEntry().getEnabled()) {
 			callbacks.add(m_generalCfg.getReduceLROnPlateauEntry().getValue());
 		}
-		final Double validationSplit = m_generalCfg.getValidationSplitEntry().getEnabled()
-				? m_generalCfg.getValidationSplitEntry().getValue()
-				: null;
-		final boolean shuffle = m_generalCfg.getShuffleEntry().getValue();
 		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer,
-				lossFunctions, callbacks, validationSplit, shuffle);
+				lossFunctions, callbacks);
 
 		final DLKerasTrainableNetworkAdapter trainableNetwork = ctx.trainable(inNetwork, trainingConfig);
 
