@@ -86,10 +86,10 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	 */
 	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
-		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
+		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.").clone();
 		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
-				"Hidden output data specs must not be null, but may be empty.");
-		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
+				"Hidden output data specs must not be null, but may be empty.").clone();
+		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.").clone();
 		m_trainingConfig = Optional.empty();
 	}
 
@@ -103,10 +103,10 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	 */
 	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final CFG trainingConfig) {
-		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.");
+		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.").clone();
 		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
-				"Hidden output data specs must not be null, but may be empty.");
-		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.");
+				"Hidden output data specs must not be null, but may be empty.").clone();
+		m_outputSpecs = checkNotNull(outputSpecs, "Output data specs must not be null, but may be empty.").clone();
 		m_trainingConfig = Optional.of(checkNotNull(trainingConfig, "Training configuration must not be null."));
 	}
 
