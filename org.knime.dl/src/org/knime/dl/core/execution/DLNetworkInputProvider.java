@@ -55,9 +55,9 @@ import org.knime.dl.core.DLTensorSpec;
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLNetworkInputPreparer<I> {
+public interface DLNetworkInputProvider<O> {
 
 	long size();
 
-	void prepare(Map<DLTensorSpec, I> input, long batchIndex) throws CanceledExecutionException;
+	Map<DLTensorSpec, O> get(long batchIndex) throws CanceledExecutionException;
 }
