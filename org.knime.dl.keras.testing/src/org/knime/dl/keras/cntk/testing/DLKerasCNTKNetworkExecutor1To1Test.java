@@ -51,6 +51,7 @@ package org.knime.dl.keras.cntk.testing;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -58,6 +59,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
@@ -65,6 +67,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.cntk.core.execution.DLKerasCNTKDefaultExecutionContext;
@@ -105,14 +108,25 @@ public class DLKerasCNTKNetworkExecutor1To1Test {
 		}
 		final DLNetworkSpec networkSpec = network.getSpec();
 		final Set<DLTensorSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
-		final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs);
-		execNetwork.execute(in -> {
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : in.entrySet()) {
-				populate(entry.getValue());
-			}
-		}, out -> {
-			// TODO: test against known results - this is sth. that should rather be tested via a test workflow
-		}, 1);
+		try (final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs)) {
+			execNetwork.execute(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+
+				@Override
+				public long size() {
+					return -1;
+				}
+
+				@Override
+				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
+						final long batchIndex) throws CanceledExecutionException {
+					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+						populate(entry.getValue());
+					}
+				}
+			}, out -> {
+				// TODO: test against known results - this is sth. that should rather be tested via a test workflow
+			}, 1);
+		}
 	}
 
 	private static void populate(final DLTensor<?> data) {

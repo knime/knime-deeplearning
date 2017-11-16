@@ -57,11 +57,13 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.Before;
 import org.junit.Test;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
@@ -102,6 +104,7 @@ public class DLKerasTheanoNetworkLearnerTest {
 				new DLKerasTheanoNetworkLoader());
 		final DLKerasTheanoNetwork network = reader.read(source);
 		// training:
+		final int dataSetSize = 10;
 		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
@@ -110,19 +113,27 @@ public class DLKerasTheanoNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
-		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
-		trainNetwork.train(trainingData -> {
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
-				populate(entry.getValue());
-			}
-		}, targetData -> {
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
-				populate(entry.getValue());
-			}
-		}, batchSize);
-		// test:
-		// TODO!
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
+				null);
+		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
+			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+
+				@Override
+				public long size() {
+					return dataSetSize;
+				}
+
+				@Override
+				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
+						final long batchIndex) throws CanceledExecutionException {
+					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+						populate(entry.getValue());
+					}
+				}
+			});
+			// test:
+			// TODO!
+		}
 	}
 
 	@Test
@@ -134,6 +145,7 @@ public class DLKerasTheanoNetworkLearnerTest {
 				new DLKerasTheanoNetworkLoader());
 		final DLKerasTheanoNetwork network = reader.read(source);
 		// training:
+		final int dataSetSize = 10;
 		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
@@ -142,19 +154,27 @@ public class DLKerasTheanoNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
-		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses);
-		final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config);
-		trainNetwork.train(trainingData -> {
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : trainingData.entrySet()) {
-				populate(entry.getValue());
-			}
-		}, targetData -> {
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : targetData.entrySet()) {
-				populate(entry.getValue());
-			}
-		}, batchSize);
-		// test:
-		// TODO!
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
+				null);
+		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
+			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+
+				@Override
+				public long size() {
+					return dataSetSize;
+				}
+
+				@Override
+				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
+						final long batchIndex) throws CanceledExecutionException {
+					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+						populate(entry.getValue());
+					}
+				}
+			});
+			// test:
+			// TODO!
+		}
 	}
 
 	private static void populate(final DLTensor<?> data) {
