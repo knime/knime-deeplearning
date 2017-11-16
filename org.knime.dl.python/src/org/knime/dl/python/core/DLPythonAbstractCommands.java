@@ -160,7 +160,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	@Override
 	public final synchronized DLPythonContext getContext() throws DLInvalidEnvironmentException {
 		if (!m_contextSetup) {
-			// Setup Python process environment:
+			// setup Python process environment
 			try {
 				final String error = m_context.getKernel().execute(getSetupEnvironmentCode())[1];
 				if (!error.isEmpty()) {
@@ -172,7 +172,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						+ "(while setting up the Python back end environment)."
 						+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
 			}
-			// Register all back ends:
+			// register all back ends
 			try {
 				final String error = m_context.getKernel()
 						.execute(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
@@ -189,7 +189,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 								+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
 						e);
 			}
-			// Setup the actual back end:
+			// setup the actual back end
 			try {
 				final String error = m_context.getKernel().execute(getSetupBackendCode())[1];
 				if (!error.isEmpty()) {

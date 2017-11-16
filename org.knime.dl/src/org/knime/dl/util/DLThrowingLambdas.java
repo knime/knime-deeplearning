@@ -44,15 +44,29 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.util;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public interface DLTrainingConfig {
+public final class DLThrowingLambdas {
 
-	public long getBatchSize();
+	@FunctionalInterface
+	public interface DLThrowingConsumer<I, X extends Exception> {
 
-	int getEpochs();
+		void accept(I in) throws X;
+	}
+
+	@FunctionalInterface
+	public interface DLThrowingFunction<I, O, X extends Exception> {
+
+		O apply(I in) throws X;
+	}
+
+	@FunctionalInterface
+	public interface DLThrowingSupplier<O, X extends Exception> {
+
+		O get() throws X;
+	}
 }
