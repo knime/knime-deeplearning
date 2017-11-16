@@ -109,7 +109,7 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 				m_output.put(spec, m_layerDataFactory.createReadableTensor(spec, batchSize));
 			}
 		}
-		inputPreparer.prepare(m_input);
+		inputPreparer.prepare(m_input, -1);
 		executeInternal(batchSize);
 		for (final DLTensor<?> input : m_input.values()) {
 			input.getBuffer().reset();
@@ -123,6 +123,8 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	@Override
 	public void close() throws Exception {
 		m_network.close();
+		m_input.values().forEach(DLTensor::close);
+		m_output.values().forEach(DLTensor::close);
 	}
 
 	// TODO: type safety
