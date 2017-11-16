@@ -100,7 +100,11 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n(config.getLosses().entrySet(),
 						e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getName()) + "] = "
 								+ e.getValue().getBackendRepresentation()) //
-				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")") //
+				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")");
+		if (config.getValidationSplit().isPresent()) {
+			b.n("config.validation_split = ").a(config.getValidationSplit().getAsDouble());
+		}
+		b.n("config.shuffle = ").a(config.getShuffle()) //
 				.n("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
 				.n("network.spec.training_config = config");
