@@ -52,7 +52,6 @@ package org.knime.dl.core;
 import org.knime.dl.core.data.DLBuffer;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -67,5 +66,5 @@ public interface DLTensor<B extends DLBuffer> extends AutoCloseable {
 	 * Closes the associated buffer.
 	 */
 	@Override
-	void close() throws Exception;
+	void close();
 }

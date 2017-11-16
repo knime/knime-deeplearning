@@ -129,7 +129,7 @@ public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		m_buffer.close();
 	}
 

@@ -165,7 +165,7 @@ public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataB
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		m_storage = null;
 	}
 

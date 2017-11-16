@@ -74,7 +74,7 @@ public abstract class DLAbstractTensor<B extends DLBuffer> implements DLTensor<B
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		m_buffer.close();
 	}
 }

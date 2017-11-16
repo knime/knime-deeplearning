@@ -57,7 +57,6 @@ import org.knime.dl.core.DLTensor;
  * storage access.
  *
  * @see DLTensor#getBuffer()
- *
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
@@ -77,4 +76,7 @@ public interface DLBuffer extends AutoCloseable {
 	 * their write state.
 	 */
 	void reset();
+
+	@Override
+	void close();
 }
