@@ -61,6 +61,8 @@ from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
 from DLPythonNetwork import DLPythonTrainingConfig
 
+from PythonToJavaMessage import PythonToJavaMessage
+
 import numpy as np
 import pandas as pd
 
@@ -205,7 +207,7 @@ class DLKerasNetwork(DLPythonNetwork):
         Y = self._model.predict(X, batch_size=batch_size, verbose=0)  # don't change to predict_proba
         return self._format_output(Y)
 
-    def train(self, training_data, target_data):
+    def train(self, data_supplier):
         config = self._spec.training_config
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
@@ -219,12 +221,18 @@ class DLKerasNetwork(DLPythonNetwork):
 
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
-        X1 = self._format_training(training_data, config.batch_size)
-        X2 = self._format_target(target_data, config.batch_size)
+        table_size = data_supplier.size
+        import math
+        steps_per_epoch = math.ceil(table_size / config.batch_size)
 
-        history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1,
-                                  callbacks=config.callbacks, validation_split=config.validation_split,
-                                  shuffle=config.shuffle)
+        history = self._model.fit_generator(data_supplier.get(config.batch_size, table_size, steps_per_epoch,
+                                            self._format_input,
+                                            self._format_target),
+                                            steps_per_epoch,
+                                            epochs=config.epochs,
+                                            verbose=1,
+                                            callbacks=config.callbacks,
+                                            **{'max_q_size': 2})  # TODO: called 'max_queue_size' from Keras 2.0.6 onwards
         return history.history
 
     def save(self, path):
@@ -252,50 +260,13 @@ class DLKerasNetwork(DLPythonNetwork):
             output[output_spec.name] = out
         return output
 
-    # HACK: remove entire method afterwards, replace references by _format_input
-    def _format_training(self, training_data, batch_size):
-        X = []
-        for input_spec in self.spec.input_specs:
-            data = training_data[input_spec.name].values[0][0].array
-            batch_shape = [batch_size] + input_spec.shape
-            elems_per_batch = np.prod(batch_shape)
-            num_batches = int(data.size / elems_per_batch)
-            tensor_stack = []
-            for i in range(num_batches):
-                batch = data[i * elems_per_batch:(i + 1) * elems_per_batch].reshape(batch_shape)
-                tensor_stack.append(batch)
-            tensor = np.vstack(tensor_stack)
-            X.append(tensor)
-
-        return X
-
-    def _format_target(self, target_data, batch_size):
-        X = []
+    def _format_target(self, in_data, batch_size):
+        Y = []
         for output_spec in self.spec.output_specs:
-
-            # HACK >>
-
-            data = target_data[output_spec.name].values[0][0].array
-
-            batch_shape = [batch_size] + output_spec.shape
-            elems_per_batch = np.prod(batch_shape)
-            num_batches = int(data.size / elems_per_batch)
-            tensor_stack = []
-            for i in range(num_batches):
-                batch = data[i * elems_per_batch:(i + 1) * elems_per_batch].reshape(batch_shape)
-                tensor_stack.append(batch)
-            tensor = np.vstack(tensor_stack)
-            X.append(tensor)
-
-            # --
-
-            # tensor = target_data[output_spec.name].values[0][0].array
-            # tensor = tensor.reshape([batch_size] + output_spec.shape)
-            # X.append(tensor)
-
-            # <<
-
-        return X
+            tensor = in_data[output_spec.name].values[0][0].array
+            tensor = tensor.reshape([batch_size] + output_spec.shape)
+            Y.append(tensor)
+        return Y
 
     def _put_in_matching_buffer(self, y):
         t = y.dtype
@@ -330,7 +301,6 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 
 
 class DLKerasTrainingConfig(DLPythonTrainingConfig):
-
     def __init__(self):
         self.batch_size = 32
         self.epochs = 1
@@ -343,19 +313,19 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
 
 class DLKerasTrainingReporter(keras.callbacks.Callback):
-
     def on_train_begin(self, logs={}):
         metrics_names = self.params['metrics']
         self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
 
     def on_batch_end(self, batch, logs={}):
         for k in self.params['metrics']:
-            self._metrics.at[0, k] = logs[k]
-        # TODO: send metrics back to Java
+            # TODO: val_loss (when validation set is present)
+            # self._metrics.at[0, k] = logs[k]
+            # TODO: send metrics back to Java
+            pass
 
 
 class DLKerasUserEarlyStopping(keras.callbacks.Callback):
-
     def on_train_begin(self, logs={}):
         self._stop = False
 
@@ -369,3 +339,41 @@ class DLKerasUserEarlyStopping(keras.callbacks.Callback):
 
     def stop(self):
         self._stop = True
+
+
+class DLDataSupplier:
+    def __init__(self, size, request_func, network, global_dict):
+        self._size = size
+        self._request_func = request_func
+        self._network = network
+        self._global_dict = global_dict
+
+    @property
+    def size(self):
+        return self._size 
+
+    def get(self, batch_size, table_size, steps, training_data_formatter, test_data_formatter):
+        i = 0
+        while True:
+            if i == steps:
+                i = 0
+            request = DLTrainingDataRequest(self._network, self._global_dict, i)
+            (x, y) = self._request_func(request)
+            i += 1
+            yield (training_data_formatter(x, batch_size), test_data_formatter(y, batch_size))
+
+
+class DLTrainingDataRequest(PythonToJavaMessage):
+    def __init__(self, network, global_dict, batch_index):
+        super().__init__('request_training_data', batch_index, True)
+        self._network = network
+        self._global_dict = global_dict
+
+    def parse_response_string(self, val):
+        training_data = {}
+        for input_spec in self._network.spec.input_specs:
+            training_data[input_spec.name] = self._global_dict[input_spec.name]
+        target_data = {}
+        for output_spec in self._network.spec.output_specs:
+            target_data[output_spec.name] = self._global_dict[output_spec.name]
+        return training_data, target_data
