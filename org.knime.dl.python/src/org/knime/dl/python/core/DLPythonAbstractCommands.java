@@ -88,6 +88,8 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
 import org.knime.python2.kernel.Commands;
+import org.knime.python2.kernel.DefaultJavaToPythonResponse;
+import org.knime.python2.kernel.Messages;
 import org.knime.python2.kernel.PythonToJavaMessage;
 
 /**
@@ -341,7 +343,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public void trainNetwork(final DLPythonNetworkHandle network,
 			final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
 			throws DLInvalidEnvironmentException, IOException {
-		final Commands commands = getContext().getKernel().getCommands();
+		final Messages messages = getContext().getKernel().getMessages();
 		final AbstractPythonToJavaMessageHandler dataRequestHandler = new AbstractPythonToJavaMessageHandler(
 				"request_training_data") {
 
@@ -363,27 +365,21 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						tensor.getBuffer().reset();
 					}
 				}
-				commands.answer(msg, "");
+				messages.answer(new DefaultJavaToPythonResponse(msg, ""));
 			}
 		};
-		commands.registerMessageHandler(dataRequestHandler);
+		messages.registerMessageHandler(dataRequestHandler);
 
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				// .n("training_data = {}") //
-				// .n("for input_spec in network.spec.input_specs:") //
-				// .n().t().a("training_data[input_spec.name] = globals()[input_spec.name]") //
-				// .n("target_data = {}") //
-				// .n("for output_spec in network.spec.output_specs:") //
-				// .n().t().a("target_data[output_spec.name] = globals()[output_spec.name]") //
 				.n("from DLKerasNetwork import DLDataSupplier") //
 				.n("data_supplier = DLDataSupplier(").a(inputSupplier.size())
 				.a(", request_from_java, network, globals())") //
 				.n("network.train(data_supplier)");
 		getContext().executeInKernel(b.toString());
 
-		commands.unregisterMessageHandler(dataRequestHandler);
+		messages.unregisterMessageHandler(dataRequestHandler);
 	}
 
 	@Override
