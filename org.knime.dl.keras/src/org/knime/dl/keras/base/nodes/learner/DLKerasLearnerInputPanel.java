@@ -98,8 +98,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 
 	private DataTableSpec m_lastTableSpec;
 
-	DLKerasLearnerInputPanel(final DLKerasLearnerInputConfig cfg, final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec)
-			throws NotConfigurableException {
+	DLKerasLearnerInputPanel(final DLKerasLearnerInputConfig cfg, final DLTensorSpec inputDataSpec,
+			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
 		m_inputDataSpec = inputDataSpec;
@@ -200,8 +200,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		// converters
 		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter =
-						converters.getPreferredConverterFactory(inputColSpec.getType(),
+				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter = converters
+						.getPreferredConverterFactory(inputColSpec.getType(),
 								trainingContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
 				if (converter.isPresent()) {
 					converterFactories.add(converter.get());
@@ -212,9 +212,9 @@ final class DLKerasLearnerInputPanel extends JPanel {
 			throw new NotConfigurableException(
 					"No converters available for input '" + m_inputDataSpec.getName() + "'.");
 		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted =
-				converterFactories.stream().sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
-						.collect(Collectors.toList());
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
+				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+				.collect(Collectors.toList());
 		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}
 
@@ -223,8 +223,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
 
 		m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
-				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL,
-				new org.knime.dl.keras.base.nodes.learner.DLKerasLearnerInputConfig.DLDataTypeColumnFilter(allowedColType)));
+				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
 		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsEntry().getValue());
 		// FIXME (knime-core):
 		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always

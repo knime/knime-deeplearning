@@ -44,68 +44,51 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.keras.base.nodes.learner;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.util.filter.InputFilter;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
-public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
+final class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
 
-	private final long m_batchSize;
-	private final int m_epochs;
-	private final DLKerasOptimizer m_optimizer;
-	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
-	private final Collection<DLKerasCallback> m_callbacks;
+	private Class<? extends DataValue>[] m_filterClasses;
 
-	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
-		m_batchSize = batchSize;
-		m_epochs = epochs;
-		m_optimizer = optimizer;
-		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
-		m_callbacks = Collections.emptyList();
+	@SafeVarargs
+	public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
+		setFilterClasses(filterValueClasses);
 	}
 
-	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses, final Collection<DLKerasCallback> callbacks) {
-		m_batchSize = batchSize;
-		m_epochs = epochs;
-		m_optimizer = optimizer;
-		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
-		m_callbacks = Collections.unmodifiableCollection(new ArrayList<>(callbacks));
+	public Class<? extends DataValue>[] getFilterClasses() {
+		return m_filterClasses;
 	}
 
-	@Override
-	public long getBatchSize() {
-		return m_batchSize;
+	@SafeVarargs
+	public final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
+		if (filterValueClasses == null || filterValueClasses.length == 0) {
+			throw new NullPointerException("Classes must not be null");
+		}
+		final List<Class<? extends DataValue>> list = Arrays.asList(filterValueClasses);
+		if (list.contains(null)) {
+			throw new NullPointerException("List of value classes must not contain null elements.");
+		}
+		m_filterClasses = filterValueClasses;
 	}
 
 	@Override
-	public int getEpochs() {
-		return m_epochs;
-	}
-
-	@Override
-	public DLKerasOptimizer getOptimizer() {
-		return m_optimizer;
-	}
-
-	@Override
-	public Map<DLTensorSpec, DLKerasLossFunction> getLosses() {
-		return m_losses;
-	}
-
-	@Override
-	public Collection<DLKerasCallback> getCallbacks() {
-		return m_callbacks;
+	public boolean include(final DataColumnSpec cspec) {
+		for (final Class<? extends DataValue> cl : m_filterClasses) {
+			if (cspec.getType().isCompatible(cl)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

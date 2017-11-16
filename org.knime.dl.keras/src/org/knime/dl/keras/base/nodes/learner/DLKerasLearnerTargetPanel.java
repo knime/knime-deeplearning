@@ -232,10 +232,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
 
-		m_cfg.getInputColumnsEntry()
-				.setValue(new DataColumnSpecFilterConfiguration(DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL,
-						new org.knime.dl.keras.base.nodes.learner.DLKerasLearnerInputConfig.DLDataTypeColumnFilter(
-								allowedColType)));
+		m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
+				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
 		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsEntry().getValue());
 		// FIXME (knime-core):
 		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always

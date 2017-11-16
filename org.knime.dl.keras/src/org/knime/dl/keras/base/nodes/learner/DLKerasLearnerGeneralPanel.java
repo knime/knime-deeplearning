@@ -90,7 +90,6 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getTrainingContextEntry(), DLTrainingContext::getName,
 				"Back end");
-		getComponents().add(m_dcBackend);
 		addDoubleColumnRow(getFirstComponent(m_dcBackend, JLabel.class),
 				getFirstComponent(m_dcBackend, JComboBox.class));
 
@@ -110,12 +109,6 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 	@Override
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		// load config from settings
-		try {
-			m_cfg.loadFromSettings(settings);
-		} catch (final InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage(), e);
-		}
 		refreshAvailableBackends();
 
 		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network

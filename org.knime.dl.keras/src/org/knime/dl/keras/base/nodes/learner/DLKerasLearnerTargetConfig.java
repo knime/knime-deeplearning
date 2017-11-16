@@ -51,16 +51,11 @@ package org.knime.dl.keras.base.nodes.learner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.AbstractConfigEntry;
@@ -193,43 +188,6 @@ final class DLKerasLearnerTargetConfig extends AbstractConfig {
 			final NodeSettingsRO inputColumnSettings = settings.getNodeSettings(getConfigKey())
 					.getNodeSettings(CFG_KEY_INPUT_COL).getNodeSettings(CFG_KEY_INPUT_COL);
 			inputColumnConfig.loadConfigurationInDialog(inputColumnSettings, spec);
-		}
-	}
-
-	// TODO: this is a workaround
-	static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
-
-		private Class<? extends DataValue>[] m_filterClasses;
-
-		@SafeVarargs
-		public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
-			setFilterClasses(filterValueClasses);
-		}
-
-		@Override
-		public final boolean include(final DataColumnSpec cspec) {
-			for (final Class<? extends DataValue> cl : m_filterClasses) {
-				if (cspec.getType().isCompatible(cl)) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		Class<? extends DataValue>[] getFilterClasses() {
-			return m_filterClasses;
-		}
-
-		@SafeVarargs
-		final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
-			if (filterValueClasses == null || filterValueClasses.length == 0) {
-				throw new NullPointerException("Classes must not be null");
-			}
-			final List<Class<? extends DataValue>> list = Arrays.asList(filterValueClasses);
-			if (list.contains(null)) {
-				throw new NullPointerException("List of value classes must not contain null elements.");
-			}
-			m_filterClasses = filterValueClasses;
 		}
 	}
 }

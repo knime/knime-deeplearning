@@ -127,6 +127,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 		super.saveSettingsTo(settings);
 
+		m_generalCfg.saveToSettings(settings);
+
 		final NodeSettingsWO inputSettings = settings.addNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TRAINING);
 		for (final DLKerasLearnerInputPanel inputPanel : m_inputPanels) {
 			inputPanel.saveToSettings(inputSettings);
@@ -199,6 +201,12 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			}
 		}
 		if (m_lastConfiguredNetworkSpec == null || !networkChanged) {
+			try {
+				m_generalCfg.loadFromSettings(settings);
+			} catch (final InvalidSettingsException e1) {
+				throw new NotConfigurableException(e1.getMessage());
+			}
+
 			super.loadSettingsFrom(settings, specs);
 
 			if (settings.containsKey(DLKerasLearnerNodeModel.CFG_KEY_TRAINING)) {

@@ -90,8 +90,7 @@ public class DLKerasLearningBehaviorPanel extends AbstractGridBagDialogComponent
 
 	@Override
 	public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		// save config to settings
-		m_cfg.saveToSettings(settings);
+		// no op
 	}
 
 	@Override
