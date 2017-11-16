@@ -223,7 +223,8 @@ class DLKerasNetwork(DLPythonNetwork):
         X2 = self._format_target(target_data, config.batch_size)
 
         history = self._model.fit(X1, X2, batch_size=config.batch_size, epochs=config.epochs, verbose=1,
-                                  callbacks=config.callbacks)
+                                  callbacks=config.callbacks, validation_split=config.validation_split,
+                                  shuffle=config.shuffle)
         return history.history
 
     def save(self, path):
@@ -331,60 +332,14 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
     def __init__(self):
-        self._batch_size = 32
-        self._epochs = 1
-        self._optimizer = None
-        self._loss = {}
-        self._metrics = ['accuracy']
-        self._callbacks = [DLKerasTrainingReporter(), DLKerasUserEarlyStopping()]
-
-    @property
-    def batch_size(self):
-        return self._batch_size
-
-    @batch_size.setter
-    def batch_size(self, batch_size):
-        self._batch_size = batch_size
-
-    @property
-    def epochs(self):
-        return self._epochs
-
-    @epochs.setter
-    def epochs(self, epochs):
-        self._epochs = epochs
-
-    @property
-    def optimizer(self):
-        return self._optimizer
-
-    @optimizer.setter
-    def optimizer(self, optimizer):
-        self._optimizer = optimizer
-
-    @property
-    def loss(self):
-        return self._loss
-
-    @loss.setter
-    def loss(self, loss):
-        self._loss = loss
-
-    @property
-    def metrics(self):
-        return self._metrics
-
-    @metrics.setter
-    def metrics(self, metrics):
-        self._metrics = metrics
-
-    @property
-    def callbacks(self):
-        return self._callbacks
-
-    @callbacks.setter
-    def callbacks(self, callbacks):
-        self._callbacks = callbacks
+        self.batch_size = 32
+        self.epochs = 1
+        self.optimizer = None
+        self.loss = {}
+        self.metrics = ['accuracy']
+        self.callbacks = [DLKerasTrainingReporter(), DLKerasUserEarlyStopping()]
+        self.validation_split = None
+        self.shuffle = False
 
 
 class DLKerasTrainingReporter(keras.callbacks.Callback):
