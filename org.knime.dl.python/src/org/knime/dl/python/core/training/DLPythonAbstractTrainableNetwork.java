@@ -47,13 +47,12 @@
 package org.knime.dl.python.core.training;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLNetworkInputProvider;
 import org.knime.dl.core.training.DLAbstractTrainableNetwork;
 import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.python.core.DLPythonCommands;
@@ -98,8 +97,7 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 	}
 
 	@Override
-	public void train(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> trainingData,
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> targetData, final long batchSize)
+	public void train(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
 			throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
@@ -109,8 +107,7 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 					.load(m_network.getSource(), m_commands.getContext());
 			setNetworkTrainingConfig(m_handle, m_commands, m_trainingConfig);
 		}
-		m_commands.setNetworkTrainingInputs(m_handle, trainingData, targetData, batchSize);
-		m_commands.trainNetwork(m_handle, batchSize);
+		m_commands.trainNetwork(m_handle, inputSupplier);
 		m_commands.getTrainingResults(m_handle);
 	}
 

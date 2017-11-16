@@ -58,7 +58,5 @@ public interface DLTrainableNetworkAdapter extends AutoCloseable {
 
 	DLTrainableNetwork<?, ?> getNetwork();
 
-	void train(DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> trainingDataPreparer,
-			DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> testDataPreparer, long batchSize)
-			throws Exception;
+	void train(DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer) throws Exception;
 }

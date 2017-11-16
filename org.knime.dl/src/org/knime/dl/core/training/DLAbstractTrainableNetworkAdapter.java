@@ -49,11 +49,14 @@ package org.knime.dl.core.training;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkInputProvider;
 
 /**
  * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
@@ -66,20 +69,15 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 
 	private final DLTensorFactory m_layerDataFactory;
 
-	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_trainingData;
-
-	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_targetData;
+	private HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> m_input;
 
 	protected DLAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {
 		m_network = network;
 		m_layerDataFactory = layerDataFactory;
 	}
 
-	protected abstract Map<DLTensorSpec, ?> extractTrainingData(
+	protected abstract Map<DLTensorSpec, ?> extractNetworkTensors(
 			Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput);
-
-	protected abstract Map<DLTensorSpec, ?> extractTargetData(
-			Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterOutput);
 
 	@Override
 	public N getNetwork() {
@@ -87,42 +85,45 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 	}
 
 	@Override
-	public void train(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> trainingDataPreparer,
-			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> testDataPreparer, final long batchSize)
+	public void train(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer)
 			throws Exception {
-		if (m_trainingData == null) {
-			final DLTensorSpec[] inputSpecs = m_network.getSpec().getInputSpecs();
-			m_trainingData = new HashMap<>(inputSpecs.length);
-			for (final DLTensorSpec spec : inputSpecs) {
-				m_trainingData.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
-			}
-			final DLTensorSpec[] outputSpecs = m_network.getSpec().getOutputSpecs();
-			m_targetData = new HashMap<>(outputSpecs.length);
-			for (final DLTensorSpec spec : outputSpecs) {
-				m_targetData.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
+		if (m_input == null) {
+			// pre-allocate network tensors, they will be filled by the given preparer and reset after each batch
+			final long batchSize = m_network.getTrainingConfig().getBatchSize();
+			final DLTensorSpec[] tensorSpecs = ArrayUtils.addAll(m_network.getSpec().getInputSpecs(),
+					m_network.getSpec().getOutputSpecs());
+			m_input = new HashMap<>(tensorSpecs.length);
+			for (final DLTensorSpec spec : tensorSpecs) {
+				m_input.put(spec, m_layerDataFactory.createWritableTensor(spec, batchSize));
 			}
 		}
-		trainingDataPreparer.prepare(m_trainingData);
-		testDataPreparer.prepare(m_targetData);
-		trainInternal(batchSize);
-		for (final DLTensor<?> training : m_trainingData.values()) {
-			training.getBuffer().reset();
-		}
-		for (final DLTensor<?> target : m_targetData.values()) {
-			target.getBuffer().reset();
-		}
+
+		trainInternal(new DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>>() {
+
+			@Override
+			public long size() {
+				return inputPreparer.size();
+			}
+
+			@Override
+			public Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> get(final long batchIndex)
+					throws CanceledExecutionException {
+				inputPreparer.prepare(m_input, batchIndex);
+				return m_input;
+			}
+		});
 	}
 
 	@Override
 	public void close() throws Exception {
 		m_network.close();
+		m_input.values().forEach(DLTensor::close);
 	}
 
 	// TODO: type safety
-	private <I, O> void trainInternal(final long batchSize) throws Exception {
-		final DLTrainableNetwork<I, O> network = (DLTrainableNetwork<I, O>) m_network;
-		final Map<DLTensorSpec, I> trainingData = (Map<DLTensorSpec, I>) extractTrainingData(m_trainingData);
-		final Map<DLTensorSpec, O> targetData = (Map<DLTensorSpec, O>) extractTargetData(m_targetData);
-		network.train(trainingData, targetData, batchSize);
+	private <I, O> void trainInternal(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
+			throws Exception {
+		// HACK: just for poc
+		((DLTrainableNetwork) m_network).train(inputSupplier);
 	}
 }

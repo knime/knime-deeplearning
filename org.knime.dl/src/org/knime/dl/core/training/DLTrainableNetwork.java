@@ -46,10 +46,8 @@
  */
 package org.knime.dl.core.training;
 
-import java.util.Map;
-
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputProvider;
 
 /**
  * Base interface for deep learning networks that can be trained.
@@ -65,6 +63,5 @@ public interface DLTrainableNetwork<I, O> extends DLNetwork, AutoCloseable {
 
 	DLTrainingConfig getTrainingConfig();
 
-	void train(final Map<DLTensorSpec, I> trainingData, final Map<DLTensorSpec, O> targetData, final long batchSize)
-			throws Exception;
+	void train(DLNetworkInputProvider<I> inputSupplier) throws Exception;
 }

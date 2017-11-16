@@ -59,21 +59,15 @@ import org.knime.dl.core.training.DLAbstractTrainableNetworkAdapter;
  * @author Christian Dietz, KNIME, Konstanz, Germany
  */
 public abstract class DLPythonAbstractTrainableNetworkAdapter<N extends DLPythonTrainableNetwork>
-		extends DLAbstractTrainableNetworkAdapter<N> {
+	extends DLAbstractTrainableNetworkAdapter<N> {
 
 	protected DLPythonAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {
 		super(network, layerDataFactory);
 	}
 
 	@Override
-	protected Map<DLTensorSpec, ?> extractTrainingData(
+	protected Map<DLTensorSpec, ?> extractNetworkTensors(
 			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput) {
 		return adapterInput;
-	}
-
-	@Override
-	protected Map<DLTensorSpec, ?> extractTargetData(
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterOutput) {
-		return adapterOutput;
 	}
 }
