@@ -51,10 +51,12 @@ package org.knime.dl.keras.base.nodes.learner;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -172,11 +174,34 @@ final class DLKerasLearnerInputPanel extends JPanel {
 						+ "' has an (at least partially) unknown shape. This is not supported.")));
 		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
 		m_cfg.saveToSettings(settings);
+		// validate input: get user-selected columns and converter, ask converter for its output size given the input
+		// columns (if possible) and compare to number of available input neurons
 		final FilterResult filter = m_cfg.getInputColumnsEntry().getValue().applyTo(m_lastTableSpec);
-		if (filter.getIncludes().length > inputSize) {
-			throw new InvalidSettingsException("More training data columns selected (" + filter.getIncludes().length
-					+ ") than input neurons available (" + inputSize + ") for input '" + m_inputDataSpec.getName()
-					+ "'. Try removing some columns from the selection.");
+		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
+				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
+				.getValue();
+		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
+		if (destSizeOpt.isPresent()) {
+			final long converterOutputSize = destSizeOpt.getAsLong();
+			if (converterOutputSize > inputSize) {
+				throw new InvalidSettingsException("Selected input columns provide more input elements ("
+						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
+						+ m_inputDataSpec.getName() + "'. Try removing some columns from the selection.");
+			}
+			if (converterOutputSize < inputSize) {
+				throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
+						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
+						+ m_inputDataSpec.getName() + "'. Try adding some columns to the selection.");
+			}
+		} else {
+			// we still can check if there are more input columns than input neurons since every column provides at
+			// least one element
+			if (includedColSpecs.size() > inputSize) {
+				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
+						+ ") than neurons available (" + inputSize + ") for network input '" + m_inputDataSpec.getName()
+						+ "'. Try removing some columns from the selection.");
+			}
 		}
 	}
 

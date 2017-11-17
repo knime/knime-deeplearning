@@ -51,10 +51,12 @@ package org.knime.dl.base.nodes.executor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -188,20 +190,46 @@ final class DLExecutorInputPanel extends JPanel {
 		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get());
 		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
 		m_cfg.saveToSettings(settings);
+		// validate input: get user-selected columns and converter, ask converter for its output size given the input
+		// columns (if possible) and compare to number of available input neurons
 		final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
-		if (filter.getIncludes().length > inputSize) {
-			throw new InvalidSettingsException("More input columns selected (" + filter.getIncludes().length
-					+ ") than input neurons available (" + inputSize + ") for input '" + m_inputDataSpec.getName()
-					+ "'. Try removing some columns from the selection.");
+		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
+				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = DLDataValueToTensorConverterRegistry
+				.getInstance().getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
+				.orElseThrow(() -> new InvalidSettingsException(
+						"Converter '" + m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
+								+ m_cfg.getConverterModel().getStringArrayValue()[1]
+								+ ")' could not be found. Are you missing a KNIME extension?"));
+		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
+		if (destSizeOpt.isPresent()) {
+			final long converterOutputSize = destSizeOpt.getAsLong();
+			if (converterOutputSize > inputSize) {
+				throw new InvalidSettingsException("Selected input columns provide more input elements ("
+						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
+						+ m_inputDataSpec.getName() + "'. Try removing some columns from the selection.");
+			}
+			if (converterOutputSize < inputSize) {
+				throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
+						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
+						+ m_inputDataSpec.getName() + "'. Try adding some columns to the selection.");
+			}
+		} else {
+			// we still can check if there are more input columns than input neurons since every column provides at
+			// least one element
+			if (includedColSpecs.size() > inputSize) {
+				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
+						+ ") than neurons available (" + inputSize + ") for network input '" + m_inputDataSpec.getName()
+						+ "'. Try removing some columns from the selection.");
+			}
 		}
 	}
 
 	void refreshAvailableConverters() throws NotConfigurableException {
-		final DLExecutionContext<?> executionContext =
-				DLExecutionContextRegistry.getInstance()
-						.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
-						.orElseThrow(() -> new NotConfigurableException("Execution back end '"
-								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
+		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
+				.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
+				.orElseThrow(() -> new NotConfigurableException(
+						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final HashSet<DataType> inputTypes = new HashSet<>();
 		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
@@ -211,17 +239,17 @@ final class DLExecutorInputPanel extends JPanel {
 		// converters
 		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter =
-						converters.getPreferredConverterFactory(inputColSpec.getType(),
+				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter = converters
+						.getPreferredConverterFactory(inputColSpec.getType(),
 								executionContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
 				if (converter.isPresent()) {
 					converterFactories.add(converter.get());
 				}
 			}
 		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted =
-				converterFactories.stream().sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
-						.collect(Collectors.toList());
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
+				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
 		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
@@ -238,13 +266,12 @@ final class DLExecutorInputPanel extends JPanel {
 
 	void refreshAllowedInputColumns() throws NotConfigurableException {
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
-		final Class<? extends DataValue> allowedColType =
-				DLDataValueToTensorConverterRegistry.getInstance()
-						.getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
-						.orElseThrow(() -> new NotConfigurableException("Converter '"
-								+ m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
+		final Class<? extends DataValue> allowedColType = DLDataValueToTensorConverterRegistry.getInstance()
+				.getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
+				.orElseThrow(() -> new NotConfigurableException(
+						"Converter '" + m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
 								+ m_cfg.getConverterModel().getStringArrayValue()[1] + ")' could not be found."))
-						.getSourceType();
+				.getSourceType();
 
 		m_cfg.setInputColumnsModelFilter(new DLDataTypeColumnFilter(allowedColType));
 		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsModel());
