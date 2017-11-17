@@ -2,7 +2,7 @@
 <feature
       id="org.knime.features.dl.keras"
       label="KNIME Deep Learning - Keras Integration"
-      version="3.4.1.qualifier"
+      version="3.5.0.qualifier"
       provider-name="KNIME GmbH, Konstanz, Germany">
 
    <description>
