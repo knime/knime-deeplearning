@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -66,6 +67,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLAbstractNetworkSpec;
@@ -439,6 +441,11 @@ public class DLPythonConverterTest {
 		@Override
 		public Class<DLWritableFloatBuffer> getBufferType() {
 			return DLWritableFloatBuffer.class;
+		}
+
+		@Override
+		public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+			return OptionalLong.empty();
 		}
 
 		@Override
