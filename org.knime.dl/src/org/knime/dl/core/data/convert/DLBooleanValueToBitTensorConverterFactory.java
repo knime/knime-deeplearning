@@ -46,7 +46,11 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
 import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
@@ -70,6 +74,11 @@ public class DLBooleanValueToBitTensorConverterFactory
 	@Override
 	public Class<DLWritableBitBuffer> getBufferType() {
 		return DLWritableBitBuffer.class;
+	}
+
+	@Override
+	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+		return OptionalLong.of(spec.size());
 	}
 
 	@Override

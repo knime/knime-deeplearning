@@ -48,6 +48,10 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.dl.core.data.DLWritableByteBuffer;
@@ -76,11 +80,16 @@ public class DLByteVectorToByteTensorConverterFactory
 	}
 
 	@Override
+	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+		return OptionalLong.empty();
+	}
+
+	@Override
 	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
 		return (input, output) -> {
 			final DLWritableByteBuffer buf = output.getBuffer();
 			for (final ByteVectorValue val : input) {
-				for (int i = 0; i < val.cardinality(); i++) {
+				for (int i = 0; i < val.length(); i++) {
 					buf.put((byte) val.get(i));
 				}
 			}

@@ -46,7 +46,11 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -54,7 +58,6 @@ import org.knime.dl.core.data.DLWritableBuffer;
 /**
  * @param <IE> the {@link DataCell element type} of the input collection
  * @param <O> the output {@link DLWritableBuffer buffer type}
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -94,6 +97,11 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 	@Override
 	public Class<O> getBufferType() {
 		return m_elementConverterFactory.getBufferType();
+	}
+
+	@Override
+	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+		return OptionalLong.empty();
 	}
 
 	@Override

@@ -48,6 +48,10 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.IntValue;
 import org.knime.dl.core.data.DLWritableIntBuffer;
@@ -72,6 +76,11 @@ public class DLIntValueToIntTensorConverterFactory
 	@Override
 	public Class<DLWritableIntBuffer> getBufferType() {
 		return DLWritableIntBuffer.class;
+	}
+
+	@Override
+	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+		return OptionalLong.of(spec.size());
 	}
 
 	@Override

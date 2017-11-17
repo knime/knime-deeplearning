@@ -46,6 +46,10 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.LongValue;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
@@ -70,6 +74,11 @@ public class DLLongValueToDoubleTensorConverterFactory
 	@Override
 	public Class<DLWritableDoubleBuffer> getBufferType() {
 		return DLWritableDoubleBuffer.class;
+	}
+
+	@Override
+	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
+		return OptionalLong.of(spec.size());
 	}
 
 	@Override
