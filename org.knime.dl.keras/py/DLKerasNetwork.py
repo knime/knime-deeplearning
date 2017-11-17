@@ -367,7 +367,7 @@ class DLTrainingDataRequest(PythonToJavaMessage):
         self._network = network
         self._global_dict = global_dict
 
-    def parse_response_string(self, val):
+    def process_response(self, val):
         training_data = {}
         for input_spec in self._network.spec.input_specs:
             training_data[input_spec.name] = self._global_dict[input_spec.name]
