@@ -72,8 +72,8 @@ import org.knime.python2.port.PickledObject;
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 

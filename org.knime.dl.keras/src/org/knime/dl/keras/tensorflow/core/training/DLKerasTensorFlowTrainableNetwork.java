@@ -53,8 +53,8 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasTensorFlowTrainableNetwork
 	extends DLKerasAbstractTrainableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {

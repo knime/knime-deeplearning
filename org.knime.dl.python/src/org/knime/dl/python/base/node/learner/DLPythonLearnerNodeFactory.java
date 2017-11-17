@@ -56,8 +56,8 @@ import org.knime.core.node.NodeView;
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLPythonLearnerNodeFactory extends NodeFactory<DLPythonLearnerNodeModel> {
 

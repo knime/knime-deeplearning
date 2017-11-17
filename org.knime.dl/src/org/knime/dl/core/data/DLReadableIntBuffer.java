@@ -53,8 +53,8 @@ import java.nio.BufferUnderflowException;
 /**
  * A {@link DLReadableBuffer readable} int buffer.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLReadableIntBuffer extends DLReadableDoubleBuffer, DLReadableLongBuffer {
 

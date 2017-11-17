@@ -47,8 +47,8 @@
 package org.knime.dl.base.settings;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DefaultConfigEntry<T> extends AbstractConfigEntry<T> {
 

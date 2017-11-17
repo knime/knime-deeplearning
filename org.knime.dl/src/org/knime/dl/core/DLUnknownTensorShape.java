@@ -53,8 +53,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 /**
  * Implementation of a {@link DLTensorShape tensor shape} of unknown dimensions.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLUnknownTensorShape extends DLAbstractTensorShape {
 

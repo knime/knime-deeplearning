@@ -49,8 +49,8 @@ package org.knime.dl.core;
 import org.knime.dl.core.data.DLBuffer;
 
 /**
- * @author Christian Dietz, KNIME, Konstanz, Germany
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractTensor<B extends DLBuffer> implements DLTensor<B> {
 

@@ -5,8 +5,8 @@ import java.nio.BufferOverflowException;
 /**
  * A {@link DLWritableBuffer writable} bit buffer.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLWritableBitBuffer extends DLWritableBuffer {
 

@@ -58,8 +58,8 @@ import java.nio.BufferUnderflowException;
  * Implementing classes and interfaces have to throw a {@link BufferUnderflowException} when a read cannot be performed
  * due to the buffer's {@link #size() read limit}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLReadableBuffer extends DLBuffer {
 

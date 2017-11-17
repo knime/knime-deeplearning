@@ -50,8 +50,8 @@ import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractExecutableNetwork<I, O, N extends DLNetwork> implements DLExecutableNetwork<I, O> {
 

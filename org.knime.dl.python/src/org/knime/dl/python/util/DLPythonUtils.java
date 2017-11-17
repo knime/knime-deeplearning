@@ -3,8 +3,8 @@ package org.knime.dl.python.util;
 /**
  * Various Python specific utility methods and classes.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLPythonUtils {
 

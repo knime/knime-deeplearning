@@ -61,8 +61,8 @@ import org.knime.dl.util.DLUtils;
 /**
  * @param <I> the input {@link DLReadableBuffer buffer type}
  * @param <OE> the {@link DataCell element type} of the output collection
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTensorToSetCellConverterFactory<I extends DLReadableBuffer, OE extends DataCell>
 		implements DLTensorToDataCellConverterFactory<I, SetCell> {

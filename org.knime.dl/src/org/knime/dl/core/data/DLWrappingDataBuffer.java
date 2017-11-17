@@ -53,8 +53,8 @@ import java.nio.BufferUnderflowException;
  * A {@link DLReadableBuffer readable} and {@link DLWritableBuffer writable} buffer that simply wraps a storage.
  *
  * @param <S> the storage type
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLWrappingDataBuffer<S> extends DLReadableBuffer, DLWritableBuffer {
 

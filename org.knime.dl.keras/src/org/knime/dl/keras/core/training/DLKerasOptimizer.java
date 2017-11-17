@@ -63,8 +63,8 @@ import org.knime.dl.core.training.DLOptimizer;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasOptimizer extends DLOptimizer, Config {
 

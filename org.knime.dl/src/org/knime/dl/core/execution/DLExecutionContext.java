@@ -58,8 +58,8 @@ import org.knime.dl.core.DLTensorSpec;
  * Creates {@link DLExecutableNetwork executable deep learning networks}.
  *
  * @param <N> the {@link DLNetwork network} type from which to create executable networks
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLExecutionContext<N extends DLNetwork> {
 

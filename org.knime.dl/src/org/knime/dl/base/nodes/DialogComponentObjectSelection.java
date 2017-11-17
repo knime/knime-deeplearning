@@ -76,8 +76,8 @@ import org.knime.dl.base.settings.ConfigEntry;
  *
  * @see DialogComponentStringSelection
  * @param <T> the item type of the selection component
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DialogComponentObjectSelection<T> extends DialogComponent {
 

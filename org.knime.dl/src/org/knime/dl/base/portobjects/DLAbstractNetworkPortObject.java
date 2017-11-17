@@ -64,8 +64,8 @@ import org.knime.dl.core.DLNetwork;
  *
  * @param <N> the network type
  * @param <S> the port object spec type
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends DLNetworkPortObjectSpec>
 		extends FileStorePortObject implements DLNetworkPortObject {

@@ -59,8 +59,8 @@ import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkInputProvider;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNetwork<?, ?>>
 		implements DLTrainableNetworkAdapter {

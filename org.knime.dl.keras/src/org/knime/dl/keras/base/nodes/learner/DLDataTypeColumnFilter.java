@@ -54,8 +54,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.util.filter.InputFilter;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
 

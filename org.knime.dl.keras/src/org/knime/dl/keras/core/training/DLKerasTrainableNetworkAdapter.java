@@ -50,8 +50,8 @@ import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetworkAdapter;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasTrainableNetworkAdapter extends DLPythonAbstractTrainableNetworkAdapter<DLKerasTrainableNetwork> {
 

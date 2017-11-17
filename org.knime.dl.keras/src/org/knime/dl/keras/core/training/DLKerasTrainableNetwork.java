@@ -51,8 +51,8 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.python.core.training.DLPythonTrainableNetwork;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasTrainableNetwork extends DLPythonTrainableNetwork {
 

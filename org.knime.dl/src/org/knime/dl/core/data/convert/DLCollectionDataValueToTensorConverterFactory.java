@@ -55,8 +55,8 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @param <IE> the {@link DataCell element type} of the input collection
  * @param <O> the output {@link DLWritableBuffer buffer type}
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLCollectionDataValueToTensorConverterFactory<IE extends DataValue, O extends DLWritableBuffer>
 		implements DLDataValueToTensorConverterFactory<CollectionDataValue, O> {

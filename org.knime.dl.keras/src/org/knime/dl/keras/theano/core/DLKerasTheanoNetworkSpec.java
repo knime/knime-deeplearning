@@ -57,8 +57,8 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec {
 

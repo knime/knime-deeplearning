@@ -63,8 +63,8 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork, C extends DLPythonCommands>
 	extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, DLTensor<? extends DLReadableBuffer>, N> {

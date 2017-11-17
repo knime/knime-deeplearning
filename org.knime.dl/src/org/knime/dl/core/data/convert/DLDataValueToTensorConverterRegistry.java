@@ -66,8 +66,8 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * Registry for deep learning input converter factories that allow conversion of {@link DataValue data values} into
  * {@link DLWritableBuffer tensor buffer} types.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtensionPointRegistry {
 

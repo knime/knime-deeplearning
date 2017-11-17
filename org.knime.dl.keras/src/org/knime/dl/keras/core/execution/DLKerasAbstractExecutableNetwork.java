@@ -55,8 +55,8 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.python.core.execution.DLPythonAbstractExecutableNetwork;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork, //
 		C extends DLKerasAbstractCommands>

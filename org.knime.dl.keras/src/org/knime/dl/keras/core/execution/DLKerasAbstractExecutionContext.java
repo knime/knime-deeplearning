@@ -59,8 +59,8 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 /**
  * Executes a {@link DLKerasAbstractExecutableNetwork}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> implements DLExecutionContext<N> {
 

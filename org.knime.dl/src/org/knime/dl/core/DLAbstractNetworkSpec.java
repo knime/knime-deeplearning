@@ -60,8 +60,8 @@ import org.knime.dl.core.training.DLTrainingConfig;
 /**
  * Abstract base class for network spec implementations.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implements DLNetworkSpec {
 

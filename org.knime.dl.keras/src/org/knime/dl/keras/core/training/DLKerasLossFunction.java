@@ -51,8 +51,8 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 import org.knime.dl.core.training.DLLossFunction;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasLossFunction extends DLLossFunction {
 

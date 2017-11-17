@@ -56,8 +56,8 @@ import org.knime.dl.core.DLTensorSpec;
 /**
  * Base interface for deep learning networks that can be executed.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLExecutableNetwork<I, O> extends DLNetwork, AutoCloseable {
 

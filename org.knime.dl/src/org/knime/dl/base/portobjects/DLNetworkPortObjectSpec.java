@@ -57,8 +57,8 @@ import org.knime.dl.core.DLNetworkSpec;
 /**
  * Base interface for all deep learning port object specs.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetworkPortObjectSpec extends PortObjectSpec {
 

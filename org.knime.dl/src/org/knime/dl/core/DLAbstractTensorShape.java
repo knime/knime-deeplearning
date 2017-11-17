@@ -53,8 +53,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 /**
  * Abstract base class for {@link DLTensorShape shapes}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractTensorShape implements DLTensorShape {
 

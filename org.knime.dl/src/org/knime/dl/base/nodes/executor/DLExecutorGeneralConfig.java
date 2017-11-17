@@ -64,8 +64,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
  * tools for saving/loading across all dl nodes. (e.g., they could implement a common super interface
  * 'DLNodeModelConfig' etc.)
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 class DLExecutorGeneralConfig {
 

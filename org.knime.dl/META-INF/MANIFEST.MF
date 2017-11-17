@@ -4,7 +4,7 @@ Bundle-Name: KNIME Deep Learning - Core
 Bundle-SymbolicName: org.knime.dl;singleton:=true
 Bundle-Version: 3.4.0.qualifier
 Bundle-ClassPath: .
-Bundle-Vendor: KNIME GmbH, Konstanz, Germany
+Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.base.nodes,
  org.knime.dl.base.portobjects,
  org.knime.dl.base.settings,

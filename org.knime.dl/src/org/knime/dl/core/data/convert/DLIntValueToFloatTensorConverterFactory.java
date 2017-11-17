@@ -51,8 +51,8 @@ import org.knime.core.data.IntValue;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLIntValueToFloatTensorConverterFactory
 		implements DLDataValueToTensorConverterFactory<IntValue, DLWritableFloatBuffer> {

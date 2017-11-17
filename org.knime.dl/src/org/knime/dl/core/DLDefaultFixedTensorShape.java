@@ -51,8 +51,8 @@ package org.knime.dl.core;
 /**
  * Default implementation of a {@link DLFixedTensorShape fixed-size tensor shape}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLDefaultFixedTensorShape extends DLAbstractFixedTensorShape {
 

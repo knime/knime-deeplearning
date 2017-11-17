@@ -52,8 +52,8 @@ import org.knime.dl.core.data.DLBuffer;
 
 /**
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLSerializerFactory {
 	Class<? extends DLBuffer> getBufferType();

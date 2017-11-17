@@ -60,8 +60,8 @@ import org.knime.dl.core.DLNetwork;
 /**
  * Registry for deep learning {@link DLTrainingContext training contexts}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTrainingContextRegistry extends DLAbstractExtensionPointRegistry {
 

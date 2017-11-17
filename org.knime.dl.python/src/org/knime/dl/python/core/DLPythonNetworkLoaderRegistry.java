@@ -60,8 +60,8 @@ import org.knime.dl.core.DLMissingDependencyException;
 /**
  * Registry for deep learning {@link DLPythonNetworkLoader network Python loaders}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPointRegistry {
 

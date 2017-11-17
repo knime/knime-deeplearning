@@ -11,8 +11,8 @@ import org.knime.dl.core.DLNetwork;
 /**
  * Base interface for all Python deep learning port objects.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @param <N> the type of the contained Python network
  */
 public interface DLPythonNetworkPortObject<N extends DLNetwork & DLPythonNetwork> extends DLNetworkPortObject {

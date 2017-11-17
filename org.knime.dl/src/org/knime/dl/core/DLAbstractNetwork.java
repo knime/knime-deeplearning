@@ -51,8 +51,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetwork<S extends DLNetworkSpec> implements DLNetwork {
 

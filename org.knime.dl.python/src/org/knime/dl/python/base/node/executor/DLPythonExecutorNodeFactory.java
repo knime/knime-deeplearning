@@ -56,7 +56,7 @@ import org.knime.core.node.NodeView;
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLPythonExecutorNodeFactory extends NodeFactory<DLPythonExecutorNodeModel> {
 

@@ -62,8 +62,8 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @param <O> the output {@link DataType data type}
  * @see DLDataValueToTensorConverterFactory
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLTensorToDataCellConverterFactory<I extends DLReadableBuffer, O extends DataCell> {
 

@@ -63,8 +63,8 @@ import org.knime.python2.kernel.PythonKernelOptions;
  * Shamelessly copied and pasted from knime-python.
  *
  * @param <CFG> the python source code config type
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
 

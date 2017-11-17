@@ -51,8 +51,8 @@ package org.knime.dl.keras.testing;
 import org.knime.testing.core.AbstractTestcaseCollector;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasTestCaseCollector extends AbstractTestcaseCollector {
 	// registered at extension point, nothing to do here

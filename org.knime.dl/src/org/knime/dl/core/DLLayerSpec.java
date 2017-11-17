@@ -56,8 +56,8 @@ package org.knime.dl.core;
  * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
  * objects or external resources. Spec objects are stateless.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLLayerSpec {
 

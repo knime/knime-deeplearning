@@ -52,8 +52,8 @@ import java.util.function.Consumer;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 @FunctionalInterface
 public interface DLNetworkOutputConsumer<O> extends Consumer<Map<DLTensorSpec, O>> {

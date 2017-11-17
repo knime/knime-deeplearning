@@ -56,8 +56,8 @@ package org.knime.dl.core;
  * @param <S> the network spec that is held by this network
  * @param <R> the source type of the network
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetwork {
 

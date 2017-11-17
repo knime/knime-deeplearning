@@ -56,8 +56,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
  * Registry for deep learning tensor factories that create {@link Tensor tensor} representations for certain network
  * types.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTensorRegistry extends DLAbstractExtensionPointRegistry {
 

@@ -56,8 +56,8 @@ import java.nio.BufferUnderflowException;
 /**
  * Int type implementation of {@link DLWrappingDataBuffer}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 		implements DLWritableIntBuffer, DLReadableIntBuffer {

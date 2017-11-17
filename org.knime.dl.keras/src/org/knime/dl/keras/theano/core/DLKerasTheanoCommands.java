@@ -60,8 +60,8 @@ import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 

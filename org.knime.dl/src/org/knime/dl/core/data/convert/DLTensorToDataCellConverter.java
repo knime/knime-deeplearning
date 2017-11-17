@@ -57,8 +57,8 @@ import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLTensorToDataCellConverter<VIA extends DLReadableBuffer, TO extends DataCell> {
 

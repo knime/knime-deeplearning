@@ -51,8 +51,8 @@ package org.knime.dl.core;
 /**
  * Base interface for {@link DLTensorShape shapes} which dimensions are all known and of fixed sizes.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLFixedTensorShape extends DLTensorShape {
 

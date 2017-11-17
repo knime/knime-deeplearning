@@ -54,8 +54,8 @@ import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLByteVectorToByteTensorConverterFactory
 		implements DLDataValueToTensorConverterFactory<ByteVectorValue, DLWritableShortBuffer> {

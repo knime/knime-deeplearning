@@ -72,8 +72,8 @@ import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.util.DLUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 

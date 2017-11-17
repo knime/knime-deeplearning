@@ -59,8 +59,8 @@ import org.knime.python.typeextension.PythonModuleExtensions;
 
 /**
  * @param <N> the Python network type
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 

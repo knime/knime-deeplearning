@@ -53,8 +53,8 @@ import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLBitVectorToBitTensorConverterFactory
 		implements DLDataValueToTensorConverterFactory<BitVectorValue, DLWritableBitBuffer> {

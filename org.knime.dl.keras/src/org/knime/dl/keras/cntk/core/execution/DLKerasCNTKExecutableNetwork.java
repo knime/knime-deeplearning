@@ -52,8 +52,8 @@ import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasCNTKExecutableNetwork
 	extends DLKerasAbstractExecutableNetwork<DLKerasCNTKNetwork, DLKerasCNTKCommands> {

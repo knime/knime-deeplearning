@@ -81,8 +81,8 @@ import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.util.DLUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLKerasLearnerInputPanel extends JPanel {
 

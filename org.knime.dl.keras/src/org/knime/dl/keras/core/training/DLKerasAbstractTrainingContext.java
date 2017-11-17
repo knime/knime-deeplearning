@@ -78,8 +78,8 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasRMSProp;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradientDescent;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> implements DLKerasTrainingContext<N> {
 

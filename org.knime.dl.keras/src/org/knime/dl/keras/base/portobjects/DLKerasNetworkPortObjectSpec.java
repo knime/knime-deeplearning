@@ -61,8 +61,8 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
 /**
  * The spec of {@link DLKerasNetworkPortObject}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObjectSpec<DLKerasNetworkSpec> {
 

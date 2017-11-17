@@ -60,8 +60,8 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @param <O> the output {@link DLWritableBuffer buffer type}
  * @see DLTensorToDataCellConverterFactory
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLDataValueToTensorConverterFactory<I extends DataValue, O extends DLWritableBuffer> {
 

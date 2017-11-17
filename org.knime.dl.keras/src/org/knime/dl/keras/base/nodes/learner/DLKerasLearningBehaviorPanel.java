@@ -58,8 +58,8 @@ import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasTerminateOnNaN;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasLearningBehaviorPanel extends AbstractGridBagDialogComponentGroup {
 

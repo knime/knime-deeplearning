@@ -59,8 +59,8 @@ import org.knime.dl.core.data.DLWritableIntBuffer;
 /**
  * Int type implementation of {@link DLPythonAbstractDataBuffer}.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("serial") // not intended for serialization
 public class DLPythonIntBuffer extends DLPythonAbstractDataBuffer<DLDefaultIntBuffer, int[]>

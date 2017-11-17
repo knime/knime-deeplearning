@@ -5,8 +5,8 @@ import java.nio.BufferUnderflowException;
 /**
  * A {@link DLReadableBuffer readable} double buffer.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLReadableDoubleBuffer extends DLReadableBuffer {
 

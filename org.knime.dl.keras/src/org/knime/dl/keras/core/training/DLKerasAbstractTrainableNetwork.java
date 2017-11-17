@@ -65,8 +65,8 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetwork;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, C extends DLKerasAbstractCommands>
 	extends DLPythonAbstractTrainableNetwork<N, DLKerasTrainingConfig, C> implements DLKerasTrainableNetwork {

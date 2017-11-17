@@ -56,8 +56,8 @@ import org.knime.dl.core.DLNetworkSpec;
  * Abstract base class for deep learning {@link DLNetworkPortObjectSpec network port object specs}.
  *
  * @param <S> the network spec type
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkPortObjectSpec<S extends DLNetworkSpec> implements DLNetworkPortObjectSpec {
 

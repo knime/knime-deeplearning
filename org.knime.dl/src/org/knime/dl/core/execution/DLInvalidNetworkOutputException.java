@@ -49,8 +49,8 @@ package org.knime.dl.core.execution;
 import org.knime.dl.core.DLUncheckedException;
 
 /**
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLInvalidNetworkOutputException extends DLUncheckedException {
 

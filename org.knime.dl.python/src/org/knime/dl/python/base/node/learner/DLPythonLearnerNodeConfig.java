@@ -53,8 +53,8 @@ import org.knime.python2.generic.VariableNames;
 /**
  * Shamelessly copied and pasted from python predictor.
  *
- * @author Marcel Wiedenmann, KNIME, Konstanz, Germany
- * @author Christian Dietz, KNIME, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonLearnerNodeConfig extends PythonSourceCodeConfig {
 
