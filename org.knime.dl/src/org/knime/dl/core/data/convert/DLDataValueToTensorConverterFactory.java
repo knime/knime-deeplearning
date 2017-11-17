@@ -48,6 +48,10 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.List;
+import java.util.OptionalLong;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -59,7 +63,6 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @param <I> the input {@link DataValue data value}
  * @param <O> the output {@link DLWritableBuffer buffer type}
  * @see DLTensorToDataCellConverterFactory
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -95,6 +98,18 @@ public interface DLDataValueToTensorConverterFactory<I extends DataValue, O exte
 	 * @return the output buffer type
 	 */
 	Class<O> getBufferType();
+
+	/**
+	 * Returns the aggregated number of buffer elements for a single input row that will make up the output of
+	 * converters created by this factory given a number of input column specs. If the number of elements cannot be
+	 * computed, an empty optional is returned.<br>
+	 * Callers must assure that {@link #getSourceType()} is compatible to each {@link DataColumnSpec#getType()} in the
+	 * input.
+	 *
+	 * @param spec the input spec
+	 * @return the number of output elements if computable
+	 */
+	OptionalLong getDestCount(List<DataColumnSpec> spec);
 
 	/**
 	 * Creates a new converter instance.
