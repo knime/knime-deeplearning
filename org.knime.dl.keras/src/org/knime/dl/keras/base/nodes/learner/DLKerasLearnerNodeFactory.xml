@@ -147,4 +147,13 @@
 			network.
 		</outPort>
 	</ports>
+
+	<views>
+		<view index="0" name="Learning Monitor">
+			Shows information about the current learning run. Has an option for early
+			stopping of training. If training
+			is stopped before the last epoch the model will be saved in the current
+			status.
+		</view>
+	</views>  
 </knimeNode>

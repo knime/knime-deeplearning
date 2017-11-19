@@ -49,7 +49,11 @@
 package org.knime.dl.keras.base.nodes.learner;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -90,7 +94,18 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkLearner;
+import org.knime.dl.core.training.DLLossFunction;
 import org.knime.dl.core.training.DLTrainingContext;
+import org.knime.dl.core.training.DLTrainingContextRegistry;
+import org.knime.dl.keras.base.nodes.learner.view.DLInteractiveLearnerNodeModel;
+import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
+import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
+import org.knime.dl.keras.base.nodes.learner.view.DLStaticLinePlotViewData;
+import org.knime.dl.keras.base.nodes.learner.view.DLUpdatableLinePlotViewData;
+import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
+import org.knime.dl.keras.base.nodes.learner.view.DLViewSpec;
+import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLDefaultJFreeChartLinePlotViewSpec;
+import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotViewSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
@@ -110,7 +125,7 @@ import com.google.common.base.Strings;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerNodeModel extends NodeModel {
+final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLearnerNodeModel {
 
 	static final int IN_NETWORK_PORT_IDX = 0;
 
@@ -121,6 +136,8 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 	static final String CFG_KEY_TRAINING = "training";
 
 	static final String CFG_KEY_TARGET = "target";
+
+	static final String INTERNAL_FILENAME = "view.data";
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeModel.class);
 
@@ -156,12 +173,70 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 
 	private boolean m_initialLoaded;
 
+	// -- View Controls --
+	private DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
+
+	private boolean m_learningStopped = false;
+
+	private DLLinePlotViewData<?>[] m_viewData;
+
+	private DLProgressMonitor m_monitor;
+
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE },
 				new PortType[] { DLKerasNetworkPortObject.TYPE });
 		m_generalCfg = createGeneralModelConfig();
 		m_inputCfgs = new HashMap<>();
 		m_targetCfgs = new HashMap<>();
+
+		// as soon as we want to be more dynamic e.g. make views configurable we
+		// have to move this somewhere else..
+		m_viewSpecs = new DLJFreeChartLinePlotViewSpec[2];
+		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Batches", "Accuracy",
+				new String[] { "Training Data", "Validation Data" });
+		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Batches", "Loss",
+				new String[] { "Training Data", "Validation Data" });
+
+		m_viewData = new DLLinePlotViewData[2];
+
+		// TODO replace with something useful/static blah
+		m_monitor = new DLProgressMonitor() {
+
+			@Override
+			public int numEpochs() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public int numBatchesPerEpoch() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public boolean isRunning() {
+				return false;
+			}
+
+			@Override
+			public DLViewData<?>[] getDataUpdate() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public int currentEpoch() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public int currentBatchInEpoch() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+		};
 	}
 
 	@Override
@@ -224,13 +299,27 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// no op
+		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
+		try (ObjectInputStream stream = new ObjectInputStream(new FileInputStream(f))) {
+			// if stream.writeObject is too slow we need to do something smarter
+			for (int i = 0; i < m_viewSpecs.length; i++) {
+				m_viewData[i] = new DLStaticLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[i],
+						(float[][]) stream.readObject());
+			}
+		} catch (ClassNotFoundException e) {
+		}
 	}
 
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// no op
+		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
+		try (ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(f))) {
+			// if stream.writeObject is too slow we need to do something smarter
+			for (int i = 0; i < m_viewSpecs.length; i++) {
+				stream.writeObject(m_viewData[i].asArray());
+			}
+		}
 	}
 
 	@Override
@@ -290,7 +379,19 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-		// no op
+		for (int i = 0; i < m_viewData.length; i++) {
+			m_viewData[i] = null;
+		}
+
+		// not stopped.
+		m_learningStopped = false;
+
+		// reset views.
+		notifyViews(null);
+	}
+
+	protected DLViewSpec[] getViewSpecs() {
+		return m_viewSpecs;
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
@@ -487,6 +588,14 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 	@SuppressWarnings("unchecked")
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
 			final BufferedDataTable inTable, final ExecutionContext exec) throws Exception {
+
+		// for now only one line. as soon as we add validation data, we can add
+		// more lines.
+		// TODO hundred at the end of the constructor should be
+		// batchesPerEpoch*epochs.
+		m_viewData[0] = new DLUpdatableLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[0], 100);
+		m_viewData[1] = new DLUpdatableLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[1], 100);
+
 		final N inNetwork = (N) ((DLNetworkPortObject) inPortObject).getNetwork();
 		final DLKerasNetworkSpec inNetworkSpec = inNetwork.getSpec();
 		final DataTableSpec inTableSpec = inTable.getDataTableSpec();
@@ -551,6 +660,59 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 		try (final DLKnimeNetworkLearner learner = new DLKnimeNetworkLearner(trainableNetwork, m_converters);
 				final DLRowIterator iterator = new DLDefaultRowIterator(inTable, columns)) {
 			learner.train(iterator, exec);
+
+			if (m_learningStopped) {
+				// TODO stop and output current model!
+			}
+
+			// TODO
+			// one entry per line in plot. If we agree that we only have
+			// train/validate (and never more) we can save the overhead of array
+			// creation per update.
+
+			// FIXME Some demo how it could work
+			for (int i = 0; i < 100; i++) {
+				final int iter = i;
+				// Accuracy
+				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add((float) (i * 0.5f), (float) Math.random());
+				// loss
+				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add((float) (i * 0.5f), (float) Math.random());
+				notifyViews(new DLProgressMonitor() {
+
+					@Override
+					public DLViewData<?>[] getDataUpdate() {
+						return m_viewData;
+					}
+
+					@Override
+					public boolean isRunning() {
+						return true;
+					}
+
+					@Override
+					public int numBatchesPerEpoch() {
+						return 10;
+					}
+
+					@Override
+					public int numEpochs() {
+						return 10;
+					}
+
+					@Override
+					public int currentBatchInEpoch() {
+						return iter % 10;
+					}
+
+					@Override
+					public int currentEpoch() {
+						return iter / 10;
+					}
+
+				});
+				Thread.sleep(1000);
+			}
+
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return trainableNetwork.getNetwork().getTrainedNetwork(exec);
 		} catch (final CanceledExecutionException e) {
@@ -567,5 +729,15 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			}
 			throw new RuntimeException(message, e);
 		}
+	}
+
+	@Override
+	public void stopLearning() {
+		m_learningStopped = true;
+	}
+
+	@Override
+	public DLProgressMonitor getProgressMonitor() {
+		return m_monitor;
 	}
 }

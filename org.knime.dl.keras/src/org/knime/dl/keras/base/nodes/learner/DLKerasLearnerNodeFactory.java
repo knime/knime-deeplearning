@@ -51,6 +51,7 @@ package org.knime.dl.keras.base.nodes.learner;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.dl.keras.base.nodes.learner.view.DLNodeView;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -65,12 +66,13 @@ public class DLKerasLearnerNodeFactory extends NodeFactory<DLKerasLearnerNodeMod
 
 	@Override
 	protected int getNrNodeViews() {
-		return 0;
+		return 1;
 	}
 
 	@Override
-	public NodeView<DLKerasLearnerNodeModel> createNodeView(final int viewIndex, final DLKerasLearnerNodeModel nodeModel) {
-		return null;
+	public NodeView<DLKerasLearnerNodeModel> createNodeView(final int viewIndex,
+			final DLKerasLearnerNodeModel nodeModel) {
+		return new DLNodeView<>(nodeModel, nodeModel.getViewSpecs());
 	}
 
 	@Override
