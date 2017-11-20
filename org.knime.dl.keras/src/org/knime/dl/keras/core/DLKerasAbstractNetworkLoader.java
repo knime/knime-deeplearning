@@ -49,10 +49,14 @@ package org.knime.dl.keras.core;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
+import org.knime.base.filehandling.remote.files.RemoteFile;
+import org.knime.base.filehandling.remote.files.RemoteFileHandlerRegistry;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidDestinationException;
@@ -78,31 +82,30 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 
 	@Override
 	public void validateSource(final URL source) throws DLInvalidSourceException {
-		final File sourceFile;
 		try {
-			sourceFile = FileUtil.getFileFromURL(source);
-		} catch (final IllegalArgumentException e) {
+			final RemoteFile<?> file = RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
+					.createRemoteFile(source.toURI(), null, null);
+			if (!file.exists()) {
+				throw new DLInvalidSourceException(
+						"Cannot find Keras network file at location '" + source.toString() + "'.");
+			}
+		} catch (Exception e) {
 			throw new DLInvalidSourceException(
-					"An error occurred while resolving the Keras network file location.\nCause\n:" + e.getMessage());
-		}
-		if (sourceFile == null || !sourceFile.exists()) {
-			throw new DLInvalidSourceException(
-					"Cannot find Keras network file at location '" + source.toString() + "'.");
+					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
 		}
 	}
 
 	@Override
 	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
-		final File destinationFile;
 		try {
-			destinationFile = FileUtil.getFileFromURL(destination);
-		} catch (final IllegalArgumentException e) {
+			// we found a remote file handler. however, we still don't know if
+			// we can write here.
+			RemoteFileHandlerRegistry.getRemoteFileHandler(destination.getProtocol())
+					.createRemoteFile(destination.toURI(), null, null);
+
+		} catch (Exception e) {
 			throw new DLInvalidDestinationException(
-					"An error occurred while resolving the Keras network file location.\nCause\n:" + e.getMessage());
-		}
-		if (destinationFile == null || destinationFile.exists()) {
-			throw new DLInvalidDestinationException(
-					"Invalid file destination or file already exists: '" + destination.toString() + "'.");
+					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
 		}
 	}
 
@@ -110,10 +113,17 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
-		final String filePath = FileUtil.getFileFromURL(source).getAbsolutePath();
-		final String fileExtension = FilenameUtils.getExtension(filePath);
-		final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 		try {
+			File file = FileUtil.getFileFromURL(source);
+			if (file == null) {
+				file = resolveToTmpFile(RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
+						.createRemoteFile(source.toURI(), null, null));
+			}
+
+			final String filePath = file.getAbsolutePath();
+			final String fileExtension = FilenameUtils.getExtension(filePath);
+
+			final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
 				networkHandle = commands.loadNetwork(filePath);
@@ -126,10 +136,22 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 						"Keras network reader only supports network files of type h5, json and yaml.");
 			}
 			return networkHandle;
-		} catch (final IOException e) {
+
+		} catch (final Exception e) {
 			throw new IOException(
 					"An error occurred while communicating with Python (while reading in the Keras network).", e);
 		}
+	}
+
+	private File resolveToTmpFile(RemoteFile<?> remote) throws Exception {
+		// Later we may want to have a repo to store already downloaded
+		// networks...
+		final String extension = FilenameUtils.getExtension(remote.getFullName());
+		File tmp = FileUtil.createTempFile(UUID.randomUUID().toString(), "." + extension, true);
+		try (FileOutputStream stream = new FileOutputStream(tmp)) {
+			FileUtil.copy(remote.openInputStream(), stream);
+		}
+		return tmp;
 	}
 
 	@Override
