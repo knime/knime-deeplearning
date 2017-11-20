@@ -52,10 +52,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -82,8 +85,7 @@ import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkLearner;
-import org.knime.dl.core.training.DLLossFunction;
-import org.knime.dl.core.training.DLTrainingContextRegistry;
+import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
@@ -287,22 +289,35 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
-		final DLKerasTrainingContext<?> backend = m_generalCfg.getTrainingContextEntry().getValue();
+		DLKerasTrainingContext<?> backend = m_generalCfg.getTrainingContextEntry().getValue();
 		if (backend == null) {
-			if (DLTrainingContextRegistry.getInstance().getTrainingContextsForNetworkType(inNetworkType).isEmpty()) {
+			final List<DLKerasTrainingContext<?>> availableBackends = DLKerasLearnerGeneralConfig
+					.getAvailableTrainingContexts(inNetworkType).stream()
+					.sorted(Comparator.comparing(DLTrainingContext::getName)) //
+					.collect(Collectors.toList());
+			if (availableBackends.isEmpty()) {
 				throw new DLMissingDependencyException("No compatible training back end available. "
 						+ "Are you missing a KNIME Deep Learning extension?");
 			}
-			throw new InvalidSettingsException("No training back end selected. Please configure the node.");
+			backend = availableBackends.get(0);
+			m_generalCfg.getTrainingContextEntry().setValue(backend);
 		}
 		if (!backend.getNetworkType().isAssignableFrom(inNetworkType)) {
 			throw new InvalidSettingsException(
 					"Selected training back end is not compatible to the input deep learning network. "
 							+ "Please reconfigure the node.");
 		}
-		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
+		DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
 		if (optimizer == null) {
-			throw new InvalidSettingsException("No optimizer selected. Please configure the node.");
+			final List<DLKerasOptimizer> availableOptimizers = backend.createOptimizers().stream() //
+					.sorted(Comparator.comparing(DLKerasOptimizer::getName)) //
+					.collect(Collectors.toList());
+			if (availableOptimizers.isEmpty()) {
+				throw new DLMissingDependencyException(
+						"No compatible optimizers available. " + "Are you missing a KNIME Deep Learning extension?");
+			}
+			optimizer = availableOptimizers.get(0);
+			m_generalCfg.getOptimizerEntry().setValue(optimizer);
 		}
 	}
 
@@ -311,76 +326,101 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 		if (inTableSpec.getNumColumns() == 0) {
 			setWarningMessage("Input table has no columns. Output network will equal input network.");
 		}
-		m_converters = new LinkedHashMap<>(m_inputCfgs.size() + m_targetCfgs.size());
 		final DLTensorSpec[] inputSpecs = inNetworkSpec.getInputSpecs();
+		final DLTensorSpec[] targetSpecs = inNetworkSpec.getOutputSpecs();
+		m_converters = new LinkedHashMap<>(inputSpecs.length + targetSpecs.length);
 		if (inputSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no input specs.");
 		}
-		for (final DLTensorSpec tensorSpec : inNetworkSpec.getInputSpecs()) {
+		for (final DLTensorSpec tensorSpec : inputSpecs) {
+			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
+					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
 			if (!DLUtils.Shapes.isFixed(tensorSpec.getShape())) {
 				throw new InvalidSettingsException("Input '" + tensorSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported, yet.");
 			}
-			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
-			if (inputCfg == null) {
-				throw new InvalidSettingsException(
-						"Network input '" + tensorSpec.getName() + "' is not yet configured.");
-			}
 			// get selected converter
-			final DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
+			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
 			if (converter == null) {
-				throw new InvalidSettingsException(
-						"No converter selected for input '" + tensorSpec.getName() + "'. Please configure the node.");
+				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerInputConfig
+						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
+								tensorSpec)
+						.stream() //
+						.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+						.collect(Collectors.toList());
+				if (availableConverters.isEmpty()) {
+					throw new InvalidSettingsException(
+							"No converters available for input '" + tensorSpec.getName() + "'.");
+				}
+				converter = availableConverters.get(0);
+				inputCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);
+			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
+			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
+			// check if selected columns are still in input table
 			if (m_lastConfiguredTableSpec != null) {
-				// check if selected columns are still in input table
-				final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
-				((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
 				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
 				if (missingColumns.length != 0) {
 					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of input '"
 							+ tensorSpec.getName() + "' is missing in the input table. Please reconfigure the node.");
 				}
 			}
+			// TODO: check column selection (see dialog)!
 		}
-		final DLTensorSpec[] outputSpecs = inNetworkSpec.getOutputSpecs();
-		if (outputSpecs.length == 0) {
+		if (targetSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no target specs.");
 		}
-		for (final DLTensorSpec tensorSpec : outputSpecs) {
+		for (final DLTensorSpec tensorSpec : targetSpecs) {
+			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.computeIfAbsent(tensorSpec.getName(),
+					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
 			if (!DLUtils.Shapes.isFixed(tensorSpec.getShape())) {
 				throw new InvalidSettingsException("Target '" + tensorSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported, yet.");
 			}
-			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.get(tensorSpec.getName());
-			if (targetCfg == null) {
-				throw new InvalidSettingsException(
-						"Network target '" + tensorSpec.getName() + "' is not yet configured.");
-			}
 			// get selected converter
-			final DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
+			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
 			if (converter == null) {
-				throw new InvalidSettingsException(
-						"No converter selected for target '" + tensorSpec.getName() + "'. Please configure the node.");
+				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerTargetConfig
+						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
+								tensorSpec)
+						.stream() //
+						.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+						.collect(Collectors.toList());
+				if (availableConverters.isEmpty()) {
+					throw new InvalidSettingsException(
+							"No converters available for target '" + tensorSpec.getName() + "'.");
+				}
+				converter = availableConverters.get(0);
+				targetCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);
+			final DataColumnSpecFilterConfiguration filterConfig = targetCfg.getInputColumnsEntry().getValue();
+			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
+			// check if selected columns are still in input table
 			if (m_lastConfiguredTableSpec != null) {
-				// check if selected columns are still in input table
-				final DataColumnSpecFilterConfiguration filterConfig = targetCfg.getInputColumnsEntry().getValue();
-				((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
 				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
 				if (missingColumns.length != 0) {
 					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of target '"
 							+ tensorSpec.getName() + "' is missing in the input table. Please reconfigure the node.");
 				}
 			}
-			final DLLossFunction lossFunction = targetCfg.getLossFunctionEntry().getValue();
+			// TODO: check column selection (see dialog)!
+			DLKerasLossFunction lossFunction = targetCfg.getLossFunctionEntry().getValue();
 			if (lossFunction == null) {
-				throw new InvalidSettingsException("No loss function selected for target '" + tensorSpec.getName()
-						+ "'. Please configure the node.");
+				final List<DLKerasLossFunction> availableLossFunctions = m_generalCfg.getTrainingContextEntry()
+						.getValue().createLossFunctions().stream() //
+						.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
+						.collect(Collectors.toList());
+				if (availableLossFunctions.isEmpty()) {
+					throw new InvalidSettingsException("No loss functions available for target '" + tensorSpec.getName()
+							+ "' (with training context '" + m_generalCfg.getTrainingContextEntry().getValue().getName()
+							+ "').");
+				}
+				lossFunction = availableLossFunctions.get(0);
+				targetCfg.getLossFunctionEntry().setValue(lossFunction);
 			}
 		}
 	}

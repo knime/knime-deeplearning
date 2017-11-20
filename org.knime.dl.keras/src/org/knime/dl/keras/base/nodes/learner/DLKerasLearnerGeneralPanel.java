@@ -65,7 +65,6 @@ import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingContext;
-import org.knime.dl.core.training.DLTrainingContextRegistry;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 
 /**
@@ -139,11 +138,8 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	void refreshAvailableBackends() throws NotConfigurableException {
 		// refresh available back ends
-		final List<DLKerasTrainingContext<?>> availableTrainingContexts = DLTrainingContextRegistry.getInstance()
-				.getTrainingContextsForNetworkType((m_networkType)) //
-				.stream() //
-				.filter(tc -> tc instanceof DLKerasTrainingContext) //
-				.map(tc -> (DLKerasTrainingContext<?>) tc) //
+		final List<DLKerasTrainingContext<?>> availableTrainingContexts = DLKerasLearnerGeneralConfig
+				.getAvailableTrainingContexts(m_networkType).stream()
 				.sorted(Comparator.comparing(DLKerasTrainingContext::getName)) //
 				.collect(Collectors.toList());
 		if (availableTrainingContexts.isEmpty()) {

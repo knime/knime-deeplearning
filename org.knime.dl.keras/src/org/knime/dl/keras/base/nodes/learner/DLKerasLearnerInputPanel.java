@@ -52,10 +52,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
@@ -65,7 +64,6 @@ import javax.swing.JPanel;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -78,7 +76,6 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.util.DLUtils;
 
@@ -211,28 +208,15 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
 		} catch (final InvalidSettingsException e) {
-			// ignore
+			throw new NotConfigurableException(e.getMessage(), e); // TODO: remove & ignore
 		}
 		refreshAllowedInputColumns();
 	}
 
 	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
-		final HashSet<DataType> inputTypes = new HashSet<>();
-		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
-		final DLDataValueToTensorConverterRegistry converters = DLDataValueToTensorConverterRegistry.getInstance();
-		// for each distinct column type in the input table, add the preferred converter to the list of selectable
-		// converters
-		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
-			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter = converters
-						.getPreferredConverterFactory(inputColSpec.getType(),
-								trainingContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
-				if (converter.isPresent()) {
-					converterFactories.add(converter.get());
-				}
-			}
-		}
+		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerInputConfig
+				.getAvailableConverters(trainingContext, m_lastTableSpec, m_inputDataSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
 					"No converters available for input '" + m_inputDataSpec.getName() + "'.");
@@ -246,7 +230,6 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	void refreshAllowedInputColumns() {
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-
 		m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
 				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
 		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsEntry().getValue());

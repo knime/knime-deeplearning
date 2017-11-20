@@ -48,6 +48,9 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -55,6 +58,7 @@ import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.AbstractConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DefaultConfigEntry;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.training.DLTrainingContextRegistry;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasEarlyStopping;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau;
@@ -87,6 +91,14 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	static final String CFG_KEY_EARLY_STOPPING = "early_stopping";
 
 	static final String CFG_KEY_REDUCE_LR_ON_PLATEAU = "reduce_lr_on_plateau";
+
+	static Collection<DLKerasTrainingContext<?>> getAvailableTrainingContexts(final Class<? extends DLNetwork> networkType) {
+		return DLTrainingContextRegistry.getInstance().getTrainingContextsForNetworkType((networkType)) //
+				.stream() //
+				.filter(tc -> tc instanceof DLKerasTrainingContext) //
+				.map(tc -> (DLKerasTrainingContext<?>) tc) //
+				.collect(Collectors.toList());
+	}
 
 	@SuppressWarnings("rawtypes") // Java limitation
 	DLKerasLearnerGeneralConfig() {
