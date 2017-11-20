@@ -79,6 +79,7 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.core.DLPythonInstallationTestTimeoutException;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
@@ -148,8 +149,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		}
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
-			loader.checkAvailability(false);
-		} catch (final DLMissingDependencyException e) {
+			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout());
+		} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException e) {
 			throw new InvalidSettingsException(
 					"Selected Keras back end '" + loader.getName() + "' is not available anymore. "
 							+ "Please check your local installation.\nDetails: " + e.getMessage());
