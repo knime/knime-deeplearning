@@ -50,12 +50,21 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 		for (int i = 0; i < data.getViewSpec().numPlots(); i++) {
 			final XYSeries line = (XYSeries) m_dataset.getSeries().get(i);
 			Iterator<DLFloatData> it = data.getData(i);
-			final int total = line.getItemCount();
-			int j = 0;
 			while (it.hasNext()) {
-				line.add(total + j++, it.next().get());
+				plotNext(line, it.next().get());
 			}
 		}
+		m_chartPanel.repaint();
+	}
+	
+	private void plotNext(XYSeries line, float value) {
+		final int total = line.getItemCount();
+		line.add(total + 1, value);
+	}
+
+	public void plotNext(int plotIndex, float value) {
+		final XYSeries line = (XYSeries) m_dataset.getSeries().get(plotIndex);
+		plotNext(line, value);
 		m_chartPanel.repaint();
 	}
 }

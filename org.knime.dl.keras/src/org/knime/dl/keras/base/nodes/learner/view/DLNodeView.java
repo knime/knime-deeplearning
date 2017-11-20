@@ -1,5 +1,7 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,18 +9,21 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
-import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotView;
+import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotTab;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotViewSpec;
 
 // TODO actually this should just delegate to some object which can be anything (even a JavaScript thingy). We don't want to enforce an implementation here.
 public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
 
-	private Map<String, DLView<?>> m_views;
-	private JProgressBar m_progressBar;
+	private Map<String, DLJFreeChartLinePlotTab> m_views;
+	private DLLearningProgressBar m_epochProgressBar;
+	private DLLearningProgressBar m_batchProgressBar;
 	private DLViewSpec[] m_specs;
 
 	public DLNodeView(final M model, DLViewSpec... specs) {
@@ -29,41 +34,71 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		updateView(model.getProgressMonitor());
 	}
 
+	private void initView(final int maxProgressEpochs, final int maxProgressBatch) {
+		JPanel wrapper = new JPanel(new GridBagLayout());
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+		m_views = new HashMap<>();
+
+		for (final DLViewSpec spec : m_specs) {
+			// assume DLJFreeChartLinePlotViewSpec for now
+			DLJFreeChartLinePlotTab tab = new DLJFreeChartLinePlotTab((DLJFreeChartLinePlotViewSpec) spec);
+
+			m_views.put(spec.id(), tab);
+			tabbedPane.addTab(spec.title(), tab);
+		}
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 1;
+		gbc.weighty = 0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		wrapper.add(tabbedPane, gbc);
+
+		gbc.gridy++;
+		gbc.weighty = 1;
+		m_epochProgressBar = new DLLearningProgressBar(maxProgressEpochs, "Epoch", "Seconds/Epoch");
+		wrapper.add(m_epochProgressBar, gbc);
+		
+		gbc.gridy++;
+		m_batchProgressBar = new DLLearningProgressBar(maxProgressBatch, "Batch", "Seconds/Batch");
+		wrapper.add(m_batchProgressBar, gbc);
+
+		JButton stopButton = new JButton("Stop Learning");
+		stopButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				getNodeModel().stopLearning();
+			}
+		});
+		gbc.gridy++;
+		wrapper.add(stopButton, gbc);
+
+		setComponent(wrapper);
+	}
+
 	@SuppressWarnings("unchecked")
 	private void updateView(final DLProgressMonitor monitor) {
 		if (monitor.isRunning()) {
 			if (m_views == null) {
-				m_views = new HashMap<>();
-				final JPanel container = new JPanel();
-				for (final DLViewSpec spec : m_specs) {
-					final DLView<?> view = createView(spec);
-					m_views.put(spec.id(), view);
-					container.add(view.getComponent());
-				}
-
-				container.add(m_progressBar = new JProgressBar(0, monitor.numBatchesPerEpoch() * monitor.numEpochs()));
-				container.add(new JButton("Stop Learning") {
-					/**
-					 * 
-					 */
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void addChangeListener(ChangeListener l) {
-						getNodeModel().stopLearning();
-					}
-				});
-				setComponent(container);
+				initView(monitor.numBatchesPerEpoch() * monitor.numEpochs(), monitor.numBatchesPerEpoch());
 			}
-			m_progressBar
-					.setValue(monitor.numBatchesPerEpoch() * monitor.currentEpoch() + monitor.currentBatchInEpoch());
+
+			m_epochProgressBar
+					.setProgress(monitor.numBatchesPerEpoch() * monitor.currentEpoch() + monitor.currentBatchInEpoch());
+			m_epochProgressBar.setProgressText(monitor.currentEpoch(), monitor.numEpochs());
+			// clac time per epoch and set m_epochProgressBar.setTime(timeInSec)
+			
+			m_batchProgressBar.setProgress(monitor.currentBatchInEpoch());
+			m_batchProgressBar.setProgressText(monitor.currentBatchInEpoch(), monitor.numBatchesPerEpoch());
+			// clac time per epoch and set m_batchProgressBar.setTime(timeInSec)
 
 			for (DLViewData<?> data : monitor.getDataUpdate()) {
-				@SuppressWarnings("rawtypes")
-				final DLView view = m_views.get(data.getViewSpec().id());
-				view.update(data);
+				final DLJFreeChartLinePlotTab view = m_views.get(data.getViewSpec().id());
+				view.update((DLLinePlotViewData<DLJFreeChartLinePlotViewSpec>) data);
 			}
-			
+
 			getComponent().repaint();
 		} else {
 			reset();
@@ -104,17 +139,6 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	@Override
 	protected void modelChanged() {
 		// NB: Nothing to do
-	}
-
-	/* -- Internal helper -- */
-	private DLView<?> createView(DLViewSpec spec) {
-		// TODO we can add extension points for views later. for now we assume a
-		// simple single view.
-		if (spec instanceof DLJFreeChartLinePlotViewSpec) {
-			return new DLJFreeChartLinePlotView((DLJFreeChartLinePlotViewSpec) spec);
-		} else {
-			throw new IllegalArgumentException("At the moment only DLLinePlotViewSpecs are supported!");
-		}
 	}
 
 }

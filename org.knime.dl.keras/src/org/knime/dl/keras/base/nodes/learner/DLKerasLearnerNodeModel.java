@@ -94,9 +94,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkLearner;
-import org.knime.dl.core.training.DLLossFunction;
 import org.knime.dl.core.training.DLTrainingContext;
-import org.knime.dl.core.training.DLTrainingContextRegistry;
 import org.knime.dl.keras.base.nodes.learner.view.DLInteractiveLearnerNodeModel;
 import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
@@ -303,10 +301,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		try (ObjectInputStream stream = new ObjectInputStream(new FileInputStream(f))) {
 			// if stream.writeObject is too slow we need to do something smarter
 			for (int i = 0; i < m_viewSpecs.length; i++) {
-				m_viewData[i] = new DLStaticLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[i],
-						(float[][]) stream.readObject());
+				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) stream.readObject());
 			}
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 		}
 	}
 
@@ -593,8 +590,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// more lines.
 		// TODO hundred at the end of the constructor should be
 		// batchesPerEpoch*epochs.
-		m_viewData[0] = new DLUpdatableLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[0], 100);
-		m_viewData[1] = new DLUpdatableLinePlotViewData<DLJFreeChartLinePlotViewSpec>(m_viewSpecs[1], 100);
+		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], 100);
+		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], 100);
 
 		final N inNetwork = (N) ((DLNetworkPortObject) inPortObject).getNetwork();
 		final DLKerasNetworkSpec inNetworkSpec = inNetwork.getSpec();
@@ -674,9 +671,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			for (int i = 0; i < 100; i++) {
 				final int iter = i;
 				// Accuracy
-				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add((float) (i * 0.5f), (float) Math.random());
+				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(i * 0.5f, (float) Math.random());
 				// loss
-				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add((float) (i * 0.5f), (float) Math.random());
+				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(i * 0.5f, (float) Math.random());
 				notifyViews(new DLProgressMonitor() {
 
 					@Override
