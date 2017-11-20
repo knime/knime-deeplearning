@@ -343,7 +343,8 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final IDialogComponentGroup componentGroup) {
 		final SettingsModelBoolean toggleSettings = new SettingsModelBoolean(entry.getEntryKey() + "_toggle_settings",
 				entry.getEnabled());
-		entry.addEnabledChangeOrLoadListener((e, oldValue) -> toggleSettings.setBooleanValue(e.getEnabled()));
+		entry.addLoadListener(e -> toggleSettings.setBooleanValue(e.getEnabled()));
+		entry.addEnableChangeListener(e -> toggleSettings.setBooleanValue(e.getEnabled()));
 		toggleSettings.addChangeListener(l -> entry.setEnabled(toggleSettings.getBooleanValue()));
 
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
@@ -358,7 +359,8 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final SettingsModelNumber numberSettings) {
 		final SettingsModelBoolean toggleSettings = new SettingsModelBoolean(entry.getEntryKey() + "_toggle_settings",
 				entry.getEnabled());
-		entry.addEnabledChangeOrLoadListener((e, oldValue) -> toggleSettings.setBooleanValue(e.getEnabled()));
+		entry.addLoadListener(e -> toggleSettings.setBooleanValue(e.getEnabled()));
+		entry.addEnableChangeListener(e -> toggleSettings.setBooleanValue(e.getEnabled()));
 		toggleSettings.addChangeListener(l -> entry.setEnabled(toggleSettings.getBooleanValue()));
 
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);

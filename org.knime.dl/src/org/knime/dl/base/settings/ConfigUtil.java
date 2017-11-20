@@ -234,9 +234,12 @@ public class ConfigUtil {
 
 	private static <T, SM extends SettingsModel> void keepInSync(final ConfigEntry<T> entry, final SM settingsModel,
 			final Function<SM, T> settingsModelValueGetter, final BiConsumer<SM, T> settingsModelValueSetter) {
-		entry.addEnabledChangeOrLoadListener((e, oldEnabled) -> settingsModel.setEnabled(e.getEnabled()));
-		entry.addValueChangeOrLoadListener(
-				(e, oldValue) -> settingsModelValueSetter.accept(settingsModel, e.getValue()));
+		entry.addLoadListener(e -> {
+			settingsModel.setEnabled(e.getEnabled());
+			settingsModelValueSetter.accept(settingsModel, e.getValue());
+		});
+		entry.addEnableChangeListener(e -> settingsModel.setEnabled(e.getEnabled()));
+		entry.addValueChangeListener((e, oldValue) -> settingsModelValueSetter.accept(settingsModel, e.getValue()));
 		settingsModel.addChangeListener(e -> {
 			entry.setEnabled(settingsModel.isEnabled());
 			entry.setValue(settingsModelValueGetter.apply(settingsModel));

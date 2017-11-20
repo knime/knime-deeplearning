@@ -91,7 +91,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		final JXCollapsiblePane optimizerParamGroupWrapper = new JXCollapsiblePane(Direction.UP);
 		optimizerParamGroupWrapper.setAnimated(false);
 		addComponent(optimizerParamGroupWrapper);
-		optimizer.addValueChangeOrLoadListener((entry, oldValue) -> {
+		optimizer.addValueChangeListener((entry, oldValue) -> {
 			copyClipSettingsToOptimizer();
 			// display the parameter group of the currently selected optimizer
 			optimizerParamGroupWrapper.setCollapsed(true);

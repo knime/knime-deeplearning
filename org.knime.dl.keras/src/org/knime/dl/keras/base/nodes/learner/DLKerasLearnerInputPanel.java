@@ -147,14 +147,14 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		add(inputColumnsFilter, constr);
 		constr.gridy++;
 
-		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeOrLoadListener((entry, oldValue) -> {
+		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
 			try {
 				refreshAvailableConverters();
 			} catch (final NotConfigurableException ex) {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
-		m_cfg.getConverterEntry().addValueChangeOrLoadListener((entry, oldValue) -> refreshAllowedInputColumns());
+		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns());
 	}
 
 	DLKerasLearnerInputConfig getConfig() {

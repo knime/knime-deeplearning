@@ -123,8 +123,8 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 		};
 		m_combobox.setRenderer(renderer);
 		// Config changes
-		config.addValueChangeOrLoadListener((e, oldValue) -> updateComponent());
-		config.addEnabledChangeOrLoadListener((e, oldEnabled) -> updateComponent());
+		config.addValueChangeListener((e, oldValue) -> updateComponent());
+		config.addEnableChangeListener(e -> updateComponent());
 		// Selection changes
 		m_combobox.addItemListener(e -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {

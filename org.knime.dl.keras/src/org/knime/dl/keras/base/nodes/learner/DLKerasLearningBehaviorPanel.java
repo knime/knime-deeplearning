@@ -69,21 +69,24 @@ public class DLKerasLearningBehaviorPanel extends AbstractGridBagDialogComponent
 		m_cfg = cfg;
 
 		final ConfigEntry<DLKerasTerminateOnNaN> terminateOnNaN = m_cfg.getTerminateOnNaNEntry();
-		terminateOnNaN.addEnabledChangeOrLoadListener((e, oldEnabled) -> e.getValue().setAllEnabled(e.getEnabled()));
+		terminateOnNaN.addLoadListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
+		terminateOnNaN.addEnableChangeListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
 		addToggleComponentGroup(terminateOnNaN, terminateOnNaN.getValue().getName(),
 				terminateOnNaN.getValue().getParameterDialogGroup());
 
 		addHorizontalSeparator();
 
 		final ConfigEntry<DLKerasEarlyStopping> earlyStopping = m_cfg.getEarlyStoppingEntry();
-		earlyStopping.addEnabledChangeOrLoadListener((e, oldEnabled) -> e.getValue().setAllEnabled(e.getEnabled()));
+		earlyStopping.addLoadListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
+		earlyStopping.addEnableChangeListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
 		addToggleComponentGroup(earlyStopping, earlyStopping.getValue().getName(),
 				earlyStopping.getValue().getParameterDialogGroup());
 
 		addHorizontalSeparator();
 
 		final ConfigEntry<DLKerasReduceLROnPlateau> reduceLROnPlateau = m_cfg.getReduceLROnPlateauEntry();
-		reduceLROnPlateau.addEnabledChangeOrLoadListener((e, oldEnabled) -> e.getValue().setAllEnabled(e.getEnabled()));
+		reduceLROnPlateau.addLoadListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
+		reduceLROnPlateau.addEnableChangeListener(e -> e.getValue().setAllEnabled(e.getEnabled()));
 		addToggleComponentGroup(reduceLROnPlateau, reduceLROnPlateau.getValue().getName(),
 				reduceLROnPlateau.getValue().getParameterDialogGroup());
 	}

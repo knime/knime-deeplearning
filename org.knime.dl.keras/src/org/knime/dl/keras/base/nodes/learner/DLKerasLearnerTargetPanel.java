@@ -155,7 +155,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		add(m_dcLossFunction.getComponentPanel(), constr);
 		constr.gridy++;
 
-		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeOrLoadListener((entry, oldValue) -> {
+		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
 			try {
 				refreshAvailableConverters();
 				refreshAvailableLossFunctions();
@@ -163,7 +163,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
-		m_cfg.getConverterEntry().addValueChangeOrLoadListener((entry, oldValue) -> refreshAllowedInputColumns());
+		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns());
 	}
 
 	DLKerasLearnerTargetConfig getConfig() {
