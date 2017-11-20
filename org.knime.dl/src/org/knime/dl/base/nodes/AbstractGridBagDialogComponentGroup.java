@@ -363,11 +363,13 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
 		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(numberSettings, label, 7);
+		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
+		textFieldComp.setHorizontalAlignment(JTextField.RIGHT);
 
 		m_components.add(numberComponent);
 		m_components.add(booleanComponent);
 
-		addDoubleColumnRow(booleanComponent.getComponentPanel(), getFirstComponent(numberComponent, JTextField.class));
+		addDoubleColumnRow(booleanComponent.getComponentPanel(), textFieldComp);
 	}
 
 	/**
@@ -586,6 +588,7 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 
 		final JLabel labelComp = getFirstComponent(numberComponent, JLabel.class);
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
+		textFieldComp.setHorizontalAlignment(JTextField.RIGHT);
 
 		addDoubleColumnRow(labelComp, textFieldComp);
 	}

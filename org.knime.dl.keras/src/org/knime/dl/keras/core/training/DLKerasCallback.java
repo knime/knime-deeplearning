@@ -176,8 +176,8 @@ public interface DLKerasCallback extends Config {
 		private static class DLKerasEarlyStoppingDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasEarlyStoppingDialog(final DLKerasEarlyStopping model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_MIN_DELTA, Double.class), 0, Double.MAX_VALUE), "Min. delta", 0.01);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_MIN_DELTA, Double.class), 0, Double.MAX_VALUE), "Min. delta");
 				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
 						model.get(CFG_KEY_PATIENCE, Integer.class), 0, Integer.MAX_VALUE), "Patience", 1);
 			}
@@ -232,16 +232,16 @@ public interface DLKerasCallback extends Config {
 		private static class DLKerasReduceLROnPlateauDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasReduceLROnPlateauDialog(final DLKerasReduceLROnPlateau model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_FACTOR, Double.class), 0, Math.nextDown(1.0)), "Factor", 0.01);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_FACTOR, Double.class), 0, Math.nextDown(1.0)), "Factor");
 				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
 						model.get(CFG_KEY_PATIENCE, Integer.class), 0, Integer.MAX_VALUE), "Patience", 1);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-4);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
 				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
 						model.get(CFG_KEY_COOLDOWN, Integer.class), 0, Integer.MAX_VALUE), "Cooldown", 1);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_MIN_LR, Double.class), 0, Double.MAX_VALUE), "Min. learning rate", 0.1);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_MIN_LR, Double.class), 0, Double.MAX_VALUE), "Min. learning rate");
 			}
 		}
 	}

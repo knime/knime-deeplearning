@@ -188,12 +188,12 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasStochasticGradientDescentDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasStochasticGradientDescentDialog(final DLKerasStochasticGradientDescent model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_MOMENTUM, Double.class), 0, Double.MAX_VALUE), "Momentum", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.001);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_MOMENTUM, Double.class), 0, Double.MAX_VALUE), "Momentum");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 				addCheckboxRow(ConfigUtil.toSettingsModelBoolean(model.get(CFG_KEY_NESTEROV, Boolean.class)),
 						"Use Nesterov momentum?", false);
 			}
@@ -234,14 +234,14 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasRMSPropDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasRMSPropDialog(final DLKerasRMSProp model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_RHO, Double.class), 0, Double.MAX_VALUE), "Rho", 0.1);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.0001);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_RHO, Double.class),
+						0, Double.MAX_VALUE), "Rho");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 			}
 		}
 	}
@@ -276,12 +276,12 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasAdagradDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasAdagradDialog(final DLKerasAdagrad model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.001);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 			}
 		}
 	}
@@ -320,14 +320,14 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasAdadeltaDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasAdadeltaDialog(final DLKerasAdadelta model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.1);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_RHO, Double.class), 0, Double.MAX_VALUE), "Rho", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.1);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_RHO, Double.class),
+						0, Double.MAX_VALUE), "Rho");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 			}
 		}
 	}
@@ -370,16 +370,16 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasAdamDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasAdamDialog(final DLKerasAdam model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.0001);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 			}
 		}
 	}
@@ -422,16 +422,16 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasAdamaxDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasAdamaxDialog(final DLKerasAdamax model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay", 0.0001);
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_DECAY, Double.class), 0, Double.MAX_VALUE), "Learning rate decay");
 			}
 		}
 	}
@@ -475,17 +475,17 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		private static class DLKerasNadamDialog extends AbstractGridBagDialogComponentGroup {
 
 			private DLKerasNadamDialog(final DLKerasNadam model) {
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_LR, Double.class), 0, Double.MAX_VALUE), "Learning rate", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1", 0.01);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2", 0.001);
-				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
-						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon", 1e-8);
-				addNumberSpinnerRowComponent(
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(model.get(CFG_KEY_LR, Double.class),
+						0, Double.MAX_VALUE), "Learning rate");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_1, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 1");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_BETA_2, Double.class), Math.nextUp(0d), Math.nextDown(1d)), "Beta 2");
+				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
+						model.get(CFG_KEY_EPSILON, Double.class), 0, Double.MAX_VALUE), "Epsilon");
+				addNumberEditRowComponent(
 						ConfigUtil.toSettingsModelDouble(model.get(CFG_KEY_SCHEDULE_DECAY, Double.class)),
-						"Schedule decay", 0.001);
+						"Schedule decay");
 			}
 		}
 	}
