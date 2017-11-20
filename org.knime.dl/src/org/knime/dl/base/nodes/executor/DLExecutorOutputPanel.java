@@ -52,8 +52,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -73,6 +77,7 @@ import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
+import org.knime.dl.core.data.convert.DLTensorToListCellConverterFactory;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
@@ -131,8 +136,8 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// prefix text input
-		final DialogComponentString dcPrefix =
-				new DialogComponentString(m_cfg.getPrefixModel(), "Output columns prefix");
+		final DialogComponentString dcPrefix = new DialogComponentString(m_cfg.getPrefixModel(),
+				"Output columns prefix");
 		add(dcPrefix.getComponentPanel(), constr);
 		constr.gridy++;
 		// 'remove' button click event: remove output
@@ -178,20 +183,45 @@ final class DLExecutorOutputPanel extends JPanel {
 	}
 
 	private void refreshAvailableConverters() throws NotConfigurableException {
-		final DLExecutionContext<?> executionContext =
-				DLExecutionContextRegistry.getInstance()
-						.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
-						.orElseThrow(() -> new NotConfigurableException("Execution back end '"
-								+ m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
+		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
+				.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
+				.orElseThrow(() -> new NotConfigurableException(
+						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
-		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
-				DLTensorToDataCellConverterRegistry.getInstance().getPreferredFactoriesForSourceType(
+		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = DLTensorToDataCellConverterRegistry
+				.getInstance().getPreferredFactoriesForSourceType(
 						executionContext.getTensorFactory().getReadableBufferType(m_outputDataSpec), m_outputDataSpec);
-		converterFactories.sort(Comparator.comparing(DLTensorToDataCellConverterFactory::getName));
-		final String[] names = new String[converterFactories.size()];
-		final String[] ids = new String[converterFactories.size()];
-		for (int i = 0; i < converterFactories.size(); i++) {
-			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactories.get(i);
+		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
+		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
+		final Set<DLTensorToDataCellConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
+		final Set<DLTensorToDataCellConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
+		for (final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter : converterFactories) {
+			if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
+				if (converter instanceof DLTensorToListCellConverterFactory) {
+					builtInCollection.add(converter);
+				} else {
+					builtInElement.add(converter);
+				}
+			} else {
+				if (converter instanceof DLTensorToListCellConverterFactory) {
+					extensionCollection.add(converter);
+				} else {
+					extensionElement.add(converter);
+				}
+			}
+		}
+		final Comparator<DLTensorToDataCellConverterFactory<?, ?>> nameComparator = Comparator
+				.comparing(DLTensorToDataCellConverterFactory::getName);
+		final List<DLTensorToDataCellConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
+				Stream.concat(builtInElement.stream().sorted(nameComparator),
+						extensionElement.stream().sorted(nameComparator)),
+				Stream.concat(builtInCollection.stream().sorted(nameComparator),
+						extensionCollection.stream().sorted(nameComparator)))
+				.collect(Collectors.toList());
+		final String[] names = new String[converterFactoriesSorted.size()];
+		final String[] ids = new String[converterFactoriesSorted.size()];
+		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
+			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactoriesSorted.get(i);
 			names[i] = "To " + converter.getName();
 			ids[i] = converter.getIdentifier();
 		}

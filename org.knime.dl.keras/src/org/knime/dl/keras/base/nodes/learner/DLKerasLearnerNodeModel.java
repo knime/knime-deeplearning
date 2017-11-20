@@ -52,13 +52,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -83,6 +87,7 @@ import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkLearner;
 import org.knime.dl.core.training.DLTrainingContext;
@@ -343,17 +348,41 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
 			if (converter == null) {
-				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerInputConfig
+				final Collection<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerInputConfig
 						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
-								tensorSpec)
-						.stream() //
-						.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
-						.collect(Collectors.toList());
+								tensorSpec);
 				if (availableConverters.isEmpty()) {
 					throw new InvalidSettingsException(
 							"No converters available for input '" + tensorSpec.getName() + "'.");
 				}
-				converter = availableConverters.get(0);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
+				for (final DLDataValueToTensorConverterFactory<?, ?> conv : availableConverters) {
+					if (conv.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
+						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
+							builtInCollection.add(conv);
+						} else {
+							builtInElement.add(conv);
+						}
+					} else {
+						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
+							extensionCollection.add(conv);
+						} else {
+							extensionElement.add(conv);
+						}
+					}
+				}
+				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+						.comparing(DLDataValueToTensorConverterFactory::getName);
+				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConvertersSorted = Stream.concat(
+						Stream.concat(builtInElement.stream().sorted(nameComparator),
+								extensionElement.stream().sorted(nameComparator)),
+						Stream.concat(builtInCollection.stream().sorted(nameComparator),
+								extensionCollection.stream().sorted(nameComparator)))
+						.collect(Collectors.toList());
+				converter = availableConvertersSorted.get(0);
 				inputCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);
@@ -383,17 +412,41 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
 			if (converter == null) {
-				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerTargetConfig
+				final Collection<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerTargetConfig
 						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
-								tensorSpec)
-						.stream() //
-						.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
-						.collect(Collectors.toList());
+								tensorSpec);
 				if (availableConverters.isEmpty()) {
 					throw new InvalidSettingsException(
 							"No converters available for target '" + tensorSpec.getName() + "'.");
 				}
-				converter = availableConverters.get(0);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
+				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
+				for (final DLDataValueToTensorConverterFactory<?, ?> conv : availableConverters) {
+					if (conv.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
+						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
+							builtInCollection.add(conv);
+						} else {
+							builtInElement.add(conv);
+						}
+					} else {
+						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
+							extensionCollection.add(conv);
+						} else {
+							extensionElement.add(conv);
+						}
+					}
+				}
+				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+						.comparing(DLDataValueToTensorConverterFactory::getName);
+				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConvertersSorted = Stream.concat(
+						Stream.concat(builtInElement.stream().sorted(nameComparator),
+								extensionElement.stream().sorted(nameComparator)),
+						Stream.concat(builtInCollection.stream().sorted(nameComparator),
+								extensionCollection.stream().sorted(nameComparator)))
+						.collect(Collectors.toList());
+				converter = availableConvertersSorted.get(0);
 				targetCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);

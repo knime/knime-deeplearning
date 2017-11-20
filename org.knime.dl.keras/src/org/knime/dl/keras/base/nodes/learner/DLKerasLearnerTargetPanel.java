@@ -54,9 +54,12 @@ import java.awt.Insets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -75,6 +78,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLLossFunction;
 import org.knime.dl.core.training.DLTrainingContext;
@@ -231,8 +235,32 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			throw new NotConfigurableException(
 					"No converters available for target '" + m_outputDataSpec.getName() + "'.");
 		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
-				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
+		for (final DLDataValueToTensorConverterFactory<?, ?> converter : converterFactories) {
+			if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
+				if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
+					builtInCollection.add(converter);
+				} else {
+					builtInElement.add(converter);
+				}
+			} else {
+				if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
+					extensionCollection.add(converter);
+				} else {
+					extensionElement.add(converter);
+				}
+			}
+		}
+		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+				.comparing(DLDataValueToTensorConverterFactory::getName);
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
+				Stream.concat(builtInElement.stream().sorted(nameComparator),
+						extensionElement.stream().sorted(nameComparator)),
+				Stream.concat(builtInCollection.stream().sorted(nameComparator),
+						extensionCollection.stream().sorted(nameComparator)))
 				.collect(Collectors.toList());
 		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}

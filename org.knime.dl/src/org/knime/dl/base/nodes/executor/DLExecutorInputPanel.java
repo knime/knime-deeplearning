@@ -57,7 +57,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -77,6 +79,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.execution.DLExecutionContext;
@@ -232,23 +235,44 @@ final class DLExecutorInputPanel extends JPanel {
 						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final HashSet<DataType> inputTypes = new HashSet<>();
-		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
+
 		final DLDataValueToTensorConverterRegistry converters = DLDataValueToTensorConverterRegistry.getInstance();
-		// for each distinct column type in the input table, add the preferred
-		// converter to the list of selectable
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
+		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
+		// for each distinct column type in the input table, add the preferred converter to the list of selectable
 		// converters
 		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter = converters
+				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converterOpt = converters
 						.getPreferredConverterFactory(inputColSpec.getType(),
 								executionContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
-				if (converter.isPresent()) {
-					converterFactories.add(converter.get());
+				if (converterOpt.isPresent()) {
+					final DLDataValueToTensorConverterFactory<?, ?> converter = converterOpt.get();
+					if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
+						if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
+							builtInCollection.add(converter);
+						} else {
+							builtInElement.add(converter);
+						}
+					} else {
+						if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
+							extensionCollection.add(converter);
+						} else {
+							extensionElement.add(converter);
+						}
+					}
 				}
 			}
 		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = converterFactories.stream()
-				.sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getName))
+		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+				.comparing(DLDataValueToTensorConverterFactory::getName);
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
+				Stream.concat(builtInElement.stream().sorted(nameComparator),
+						extensionElement.stream().sorted(nameComparator)),
+				Stream.concat(builtInCollection.stream().sorted(nameComparator),
+						extensionCollection.stream().sorted(nameComparator)))
 				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
