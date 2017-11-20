@@ -53,6 +53,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -70,10 +71,13 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 
 	private final Class<T> m_entryType;
 
-	private final CopyOnWriteArrayList<BiConsumer<ConfigEntry<T>, T>> m_valueChangeOrLoadListeners //
+	private final CopyOnWriteArrayList<Consumer<ConfigEntry<T>>> m_loadListeners //
 			= new CopyOnWriteArrayList<>();
 
-	private final CopyOnWriteArrayList<BiConsumer<ConfigEntry<T>, Boolean>> m_enabledChangeOrLoadListeners //
+	private final CopyOnWriteArrayList<BiConsumer<ConfigEntry<T>, T>> m_valueChangeListeners //
+			= new CopyOnWriteArrayList<>();
+
+	private final CopyOnWriteArrayList<Consumer<ConfigEntry<T>>> m_enableChangeListeners //
 			= new CopyOnWriteArrayList<>();
 
 	protected T m_value;
@@ -119,7 +123,7 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 		if (!Objects.deepEquals(m_value, value)) {
 			final T oldValue = m_value;
 			m_value = value;
-			valueChangedOrLoaded(oldValue);
+			onValueChanged(oldValue);
 		}
 	}
 
@@ -132,7 +136,7 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	public void setEnabled(final boolean enabled) {
 		if (enabled != m_enabled) {
 			m_enabled = enabled;
-			enabledChangedOrLoaded(!enabled);
+			onEnabledChanged();
 		}
 	}
 
@@ -140,44 +144,53 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	public final void saveSettingsTo(final NodeSettingsWO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
 		final NodeSettingsWO subSettings = checkNotNull(settings).addNodeSettings(m_key);
-		saveEntry(subSettings);
 		subSettings.addBoolean(CFG_KEY_ENABLED, m_enabled);
+		saveEntry(subSettings);
 	}
 
 	@Override
 	public final void loadSettingsFrom(final NodeSettingsRO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
 		final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
-		final boolean oldEnabled = m_enabled;
 		m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
-		enabledChangedOrLoaded(oldEnabled);
-		final T oldValue = m_value;
 		loadEntry(subSettings);
-		valueChangedOrLoaded(oldValue);
+		onLoaded();
 	}
 
 	@Override
-	public void addValueChangeOrLoadListener(final BiConsumer<ConfigEntry<T>, T> listener) {
-		if (!m_valueChangeOrLoadListeners.contains(listener)) {
-			m_valueChangeOrLoadListeners.add(listener);
+	public void addLoadListener(final Consumer<ConfigEntry<T>> listener) {
+		if (!m_loadListeners.contains(listener)) {
+			m_loadListeners.add(listener);
 		}
 	}
 
 	@Override
-	public void removeValueChangeOrLoadListener(final BiConsumer<ConfigEntry<T>, T> listener) {
-		m_valueChangeOrLoadListeners.remove(listener);
+	public void removeLoadListener(final Consumer<ConfigEntry<T>> listener) {
+		m_loadListeners.remove(listener);
 	}
 
 	@Override
-	public void addEnabledChangeOrLoadListener(final BiConsumer<ConfigEntry<T>, Boolean> listener) {
-		if (!m_enabledChangeOrLoadListeners.contains(listener)) {
-			m_enabledChangeOrLoadListeners.add(listener);
+	public void addValueChangeListener(final BiConsumer<ConfigEntry<T>, T> listener) {
+		if (!m_valueChangeListeners.contains(listener)) {
+			m_valueChangeListeners.add(listener);
 		}
 	}
 
 	@Override
-	public void removeEnabledChangeOrLoadListener(final BiConsumer<ConfigEntry<T>, Boolean> listener) {
-		m_enabledChangeOrLoadListeners.remove(listener);
+	public void removeValueChangeListener(final BiConsumer<ConfigEntry<T>, T> listener) {
+		m_valueChangeListeners.remove(listener);
+	}
+
+	@Override
+	public void addEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
+		if (!m_enableChangeListeners.contains(listener)) {
+			m_enableChangeListeners.add(listener);
+		}
+	}
+
+	@Override
+	public void removeEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
+		m_enableChangeListeners.remove(listener);
 	}
 
 	@Override
@@ -263,15 +276,21 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 		}
 	}
 
-	private final void valueChangedOrLoaded(final T oldValue) {
-		for (final BiConsumer<ConfigEntry<T>, T> listener : m_valueChangeOrLoadListeners) {
+	private final void onLoaded() {
+		for (final Consumer<ConfigEntry<T>> listener : m_loadListeners) {
+			listener.accept(this);
+		}
+	}
+
+	private final void onValueChanged(final T oldValue) {
+		for (final BiConsumer<ConfigEntry<T>, T> listener : m_valueChangeListeners) {
 			listener.accept(this, oldValue);
 		}
 	}
 
-	private final void enabledChangedOrLoaded(final boolean oldEnabled) {
-		for (final BiConsumer<ConfigEntry<T>, Boolean> listener : m_enabledChangeOrLoadListeners) {
-			listener.accept(this, oldEnabled);
+	private final void onEnabledChanged() {
+		for (final Consumer<ConfigEntry<T>> listener : m_enableChangeListeners) {
+			listener.accept(this);
 		}
 	}
 }

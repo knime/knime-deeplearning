@@ -47,6 +47,7 @@
 package org.knime.dl.base.settings;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -75,13 +76,17 @@ public interface ConfigEntry<T> {
 	void loadSettingsFrom(NodeSettingsRO settings)
 			throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException;
 
-	void addValueChangeOrLoadListener(BiConsumer<ConfigEntry<T>, T> listener);
+	void addLoadListener(Consumer<ConfigEntry<T>> listener);
 
-	void removeValueChangeOrLoadListener(BiConsumer<ConfigEntry<T>, T> listener);
+	void removeLoadListener(Consumer<ConfigEntry<T>> listener);
 
-	void addEnabledChangeOrLoadListener(BiConsumer<ConfigEntry<T>, Boolean> listener);
+	void addValueChangeListener(BiConsumer<ConfigEntry<T>, T> listener);
 
-	void removeEnabledChangeOrLoadListener(BiConsumer<ConfigEntry<T>, Boolean> listener);
+	void removeValueChangeListener(BiConsumer<ConfigEntry<T>, T> listener);
+
+	void addEnableChangeListener(Consumer<ConfigEntry<T>> listener);
+
+	void removeEnableChangeListener(Consumer<ConfigEntry<T>> listener);
 
 	@Override
 	int hashCode();
