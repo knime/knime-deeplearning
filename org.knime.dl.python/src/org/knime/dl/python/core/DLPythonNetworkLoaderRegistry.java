@@ -74,7 +74,7 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 
 	private static final String INSTALLATION_TEST_VM_OPT = "knime.dl.installationtesttimeout";
 
-	private static final int INSTALLATION_TEST_DEFAULT_TIMEOUT = 15000; // in ms
+	private static final int INSTALLATION_TEST_DEFAULT_TIMEOUT = 25000; // in ms
 
 	private static DLPythonNetworkLoaderRegistry instance;
 
