@@ -51,6 +51,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidDestinationException;
@@ -69,8 +71,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 	protected abstract DLPythonInstallationTester getInstallationTester();
 
 	@Override
-	public final synchronized void checkAvailability(final boolean forceRefresh) throws DLMissingDependencyException {
-		getInstallationTester().testInstallation(forceRefresh, this);
+	public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout)
+			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
+		getInstallationTester().testInstallation(forceRefresh, timeout, this);
 	}
 
 	@Override
@@ -90,23 +93,69 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
 		protected String m_message;
 
+		protected DLPythonInstallationTestTimeoutException m_timeoutException;
+
 		public DLPythonInstallationTester() {
 		}
 
-		protected synchronized void testInstallation(final boolean forceRefresh,
-				final DLPythonAbstractNetworkLoader<?> loader) throws DLMissingDependencyException {
+		protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
+				final DLPythonAbstractNetworkLoader<?> loader)
+				throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
 			if (forceRefresh || !m_tested) {
+				final AtomicBoolean success = new AtomicBoolean();
+				final AtomicReference<String> message = new AtomicReference<>();
+				final AtomicReference<DLPythonInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
 				try (DLPythonContext context = new DLPythonDefaultContext()) {
-					loader.createCommands(context).testInstallation();
-					m_success = true;
-				} catch (final DLInvalidEnvironmentException e) {
-					m_success = false;
-					m_message = e.getMessage();
+					final Thread t = new Thread(() -> {
+						try {
+							loader.createCommands(context).testInstallation();
+							success.set(true);
+						} catch (final DLInvalidEnvironmentException e) {
+							message.set(e.getMessage());
+						}
+					}, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());
+					t.start();
+					try {
+						t.join(timeout);
+					} catch (final InterruptedException e) {
+						if (!success.get()) {
+							t.interrupt();
+							message.getAndUpdate(msg -> {
+								if (msg == null) {
+									msg = "Installation test for Python back end '"
+											+ loader.getNetworkType().getCanonicalName() + "' was interrupted.";
+									timeoutException.set(new DLPythonInstallationTestTimeoutException(msg, e));
+								}
+								return msg;
+							});
+						}
+						Thread.currentThread().interrupt();
+					}
+					if (!success.get() && timeoutException.get() == null) {
+						t.interrupt();
+						message.getAndUpdate(msg -> {
+							if (msg == null) {
+								msg = "Installation test for Python back end '"
+										+ loader.getNetworkType().getCanonicalName() + "' timed out.";
+								timeoutException.set(new DLPythonInstallationTestTimeoutException(msg));
+							}
+							return msg;
+						});
+					}
 				}
 				m_tested = true;
+				m_success = success.get();
+				m_message = message.get();
+				m_timeoutException = timeoutException.get();
 			}
 			if (!m_success) {
-				throw new DLMissingDependencyException(m_message);
+				if (m_timeoutException != null) {
+					throw m_timeoutException;
+				} else {
+					throw new DLMissingDependencyException(m_message);
+				}
+			} else {
+				m_message = null;
 			}
 		}
 	}
