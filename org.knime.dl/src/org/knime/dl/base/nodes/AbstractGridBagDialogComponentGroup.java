@@ -67,11 +67,7 @@ import javax.swing.JTextField;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXCollapsiblePane.Direction;
 import org.knime.core.data.DataValue;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
@@ -84,7 +80,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ColumnSelectionPanel;
 import org.knime.dl.base.settings.ConfigEntry;
 
@@ -102,8 +97,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 
 	private static final NodeLogger logger = NodeLogger.getLogger(AbstractGridBagDialogComponentGroup.class);
 
-	private final List<DialogComponent> m_components;
-
 	private final JPanel m_wrapperPanel;
 
 	private JPanel m_dynamicPanel;
@@ -120,7 +113,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 * Constructor for class AbstractGridBagDialogComponentGroup.
 	 */
 	protected AbstractGridBagDialogComponentGroup() {
-		m_components = new ArrayList<>();
 		m_wrapperPanel = new JPanel(new GridBagLayout());
 		m_collapsibles = new ArrayList<>();
 		m_collapseWrapper = new JXCollapsiblePane();
@@ -349,9 +341,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
 
-		m_components.addAll(componentGroup.getComponents());
-		m_components.add(booleanComponent);
-
 		addDoubleColumnRow(booleanComponent.getComponentPanel(), componentGroup.getComponentGroupPanel());
 	}
 
@@ -367,9 +356,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(numberSettings, label, 7);
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
 		textFieldComp.setHorizontalAlignment(JTextField.RIGHT);
-
-		m_components.add(numberComponent);
-		m_components.add(booleanComponent);
 
 		addDoubleColumnRow(booleanComponent.getComponentPanel(), textFieldComp);
 	}
@@ -393,10 +379,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 				leftLabel, 7);
 		final DialogComponentNumberEdit rightNumberComponent = new DialogComponentNumberEdit(rightNumberSettings,
 				rightLabel, 7);
-
-		m_components.add(leftNumberComponent);
-		m_components.add(rightNumberComponent);
-		m_components.add(booleanComponent);
 
 		final JTextField leftTextFieldComp = getFirstComponent(leftNumberComponent, JTextField.class);
 		final JLabel leftLabelComp = getFirstComponent(leftNumberComponent, JLabel.class);
@@ -452,10 +434,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 				leftLabel, 7);
 		final DialogComponentString rightStringComponent = new DialogComponentString(rightStringSettings, rightLabel);
 
-		m_components.add(leftNumberComponent);
-		m_components.add(rightStringComponent);
-		m_components.add(booleanComponent);
-
 		final JTextField leftTextFieldComp = getFirstComponent(leftNumberComponent, JTextField.class);
 		final JLabel leftLabelComp = getFirstComponent(leftNumberComponent, JLabel.class);
 		final JPanel leftNumberPanel = new JPanel(new GridBagLayout());
@@ -506,9 +484,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		final DialogComponentStringSelection comboBoxComponent = new DialogComponentStringSelection(comboBoxSettings,
 				label, values);
 
-		m_components.add(comboBoxComponent);
-		m_components.add(booleanComponent);
-
 		final JComboBox<?> comboBoxComp = getFirstComponent(comboBoxComponent, JComboBox.class);
 
 		addDoubleColumnRow(booleanComponent.getComponentPanel(), comboBoxComp);
@@ -526,9 +501,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final String label, final SettingsModelNumber numberSettings) {
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
 		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(numberSettings, label, 7);
-
-		m_components.add(numberComponent);
-		m_components.add(booleanComponent);
 
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
 
@@ -550,9 +522,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
 		final DialogComponentString stringComponent = new DialogComponentString(stringSettings, label);
 
-		m_components.add(stringComponent);
-		m_components.add(booleanComponent);
-
 		final JTextField textFieldComp = getFirstComponent(stringComponent, JTextField.class);
 
 		addDoubleColumnRow(booleanComponent.getComponentPanel(), textFieldComp);
@@ -566,7 +535,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 */
 	protected void addStringEditRowComponent(final SettingsModelString settings, final String label) {
 		final DialogComponentString stringComponent = new DialogComponentString(settings, label);
-		m_components.add(stringComponent);
 
 		final JLabel labelComp = getFirstComponent(stringComponent, JLabel.class);
 		final JTextField textFieldComp = getFirstComponent(stringComponent, JTextField.class);
@@ -586,7 +554,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 */
 	protected void addNumberEditRowComponent(final SettingsModelNumber settings, final String label) {
 		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(settings, label, 7);
-		m_components.add(numberComponent);
 
 		final JLabel labelComp = getFirstComponent(numberComponent, JLabel.class);
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
@@ -605,7 +572,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	protected DialogComponentNumber addNumberSpinnerRowComponent(final SettingsModelNumber settings, final String label,
 			final double stepSize) {
 		final DialogComponentNumber numberComponent = new DialogComponentNumber(settings, label, stepSize, 7);
-		m_components.add(numberComponent);
 
 		final JLabel labelComp = getFirstComponent(numberComponent, JLabel.class);
 		final JSpinner spinnerComp = getFirstComponent(numberComponent, JSpinner.class);
@@ -634,7 +600,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final JLabel labelComp = new JLabel(label);
 			addDoubleColumnRow(booleanComponent.getComponentPanel(), labelComp);
 		}
-		m_components.add(booleanComponent);
 	}
 
 	/**
@@ -648,7 +613,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final Collection<String> values) {
 		final DialogComponentStringSelection comboBoxComponent = new DialogComponentStringSelection(settings, label,
 				values);
-		m_components.add(comboBoxComponent);
 
 		final JLabel labelComp = getFirstComponent(comboBoxComponent, JLabel.class);
 		final JComboBox<?> comboBoxComp = getFirstComponent(comboBoxComponent, JComboBox.class);
@@ -669,7 +633,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final int specIndex, final Class<? extends DataValue>... classFilter) {
 		final DialogComponentColumnNameSelection nameSelectionComponent = new DialogComponentColumnNameSelection(
 				settings, label, specIndex, classFilter);
-		m_components.add(nameSelectionComponent);
 
 		final JLabel labelComp = getFirstComponent(nameSelectionComponent, JLabel.class);
 		final ColumnSelectionPanel selectionComp = getFirstComponent(nameSelectionComponent,
@@ -686,7 +649,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 */
 	protected void addColumnFilterRowComponent(final SettingsModelColumnFilter2 settings, final int specIndex) {
 		final DialogComponentColumnFilter2 columnFilterComp = new DialogComponentColumnFilter2(settings, specIndex);
-		m_components.add(columnFilterComp);
 
 		addSingleColumnRow(columnFilterComp.getComponentPanel(), GridBagConstraints.HORIZONTAL);
 	}
@@ -760,14 +722,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<DialogComponent> getComponents() {
-		return m_components;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public JPanel getComponentGroupPanel() {
 		return m_wrapperPanel;
 	}
@@ -787,26 +741,5 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws NotConfigurableException {
-		for (final DialogComponent comp : m_components) {
-			comp.loadSettingsFrom(settings, specs);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		for (final DialogComponent comp : m_components) {
-			comp.saveSettingsTo(settings);
-		}
 	}
 }

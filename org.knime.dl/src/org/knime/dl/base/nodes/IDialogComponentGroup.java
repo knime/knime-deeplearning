@@ -48,15 +48,12 @@
  */
 package org.knime.dl.base.nodes;
 
-import java.util.List;
-
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
@@ -66,34 +63,19 @@ import org.knime.core.node.port.PortObjectSpec;
  */
 public interface IDialogComponentGroup {
 
-    /**
-     * Returns the list of {@link DialogComponent}s contained in this component group.
-     *
-     * @return the list of components
-     */
-    List<DialogComponent> getComponents();
+	/**
+	 * Returns the panel containing the components.
+	 *
+	 * @return the panel containing the components
+	 */
+	JPanel getComponentGroupPanel();
 
-    /**
-     * Returns the panel containing the components.
-     *
-     * @return the panel containing the components
-     */
-    JPanel getComponentGroupPanel();
+	default void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+		// no op
+	}
 
-    /**
-     * Saves the settings contained in the components to the NodeSettings.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    void saveSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException;
-
-    /**
-     * Loads the settings contained in the components from the NodeSettings.
-     *
-     * @param settings
-     * @param specs
-     * @throws NotConfigurableException
-     */
-    void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException;
+	default void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+			throws NotConfigurableException {
+		// no op
+	}
 }
