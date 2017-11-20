@@ -123,16 +123,21 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	void validateDestination(URL destination) throws DLInvalidDestinationException;
 
 	/**
-	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not.
+	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not or if
+	 * testing their availability timed out or was interrupted.
 	 * <P>
 	 * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
 	 * should cache the results of their first invocation to improve the response time of subsequent calls.
 	 *
 	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
 	 *            will be redone. Otherwise, previous test results will be used if available.
+	 * @param timeout timeout in milliseconds after which the installation test will be interrupted
 	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
+	 * @throws DLPythonInstallationTestTimeoutException if the installation test timed out or was interrupted in terms of
+	 *             threading
 	 */
-	void checkAvailability(boolean forceRefresh) throws DLMissingDependencyException;
+	void checkAvailability(boolean forceRefresh, int timeout)
+			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException;
 
 	/**
 	 * Loads a network from a source into a context.
