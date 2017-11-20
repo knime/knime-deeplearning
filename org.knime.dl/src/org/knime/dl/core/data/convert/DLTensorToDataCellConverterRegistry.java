@@ -117,7 +117,6 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 				convs.add(candidate);
 				if (candidate.getDestCount(sourceSpec) > 1) {
 					convs.add(new DLTensorToListCellConverterFactory<>(candidate));
-					convs.add(new DLTensorToSetCellConverterFactory<>(candidate));
 				}
 			}
 		}
@@ -135,8 +134,8 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	 */
 	public List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> getPreferredFactoriesForSourceType(
 			final Class<? extends DLReadableBuffer> sourceType, final DLTensorSpec sourceSpec) {
-		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> convs =
-				getFactoriesForSourceType(sourceType, sourceSpec);
+		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> convs = getFactoriesForSourceType(
+				sourceType, sourceSpec);
 		// remove redundant converters
 		for (int i = convs.size() - 1; i >= 0; i--) {
 			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> conv = convs.get(i);
@@ -170,16 +169,6 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 			final Optional<DLTensorToDataCellConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
 			if (conv.isPresent()) {
 				return Optional.of(new DLTensorToListCellConverterFactory<>(conv.get()));
-			} else {
-				return Optional.empty();
-			}
-		}
-		if (identifier.startsWith(DLTensorToSetCellConverterFactory.class.getName())) {
-			final String elementConverterId = identifier
-					.substring(DLTensorToSetCellConverterFactory.class.getName().length() + 1, identifier.length() - 1);
-			final Optional<DLTensorToDataCellConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
-			if (conv.isPresent()) {
-				return Optional.of(new DLTensorToSetCellConverterFactory<>(conv.get()));
 			} else {
 				return Optional.empty();
 			}
