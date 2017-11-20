@@ -65,6 +65,7 @@ import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
+import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.config.WorkspacePreparer;
 import org.knime.python2.kernel.FlowVariableOptions;
 import org.knime.python2.port.PickledObject;
@@ -86,7 +87,7 @@ final class DLPythonExecutorNodeDialog extends DataAwareNodeDialogPane {
 	DLPythonExecutorNodeDialog() {
 		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonExecutorNodeConfig.getVariableNames(),
 				FlowVariableOptions.parse(getAvailableFlowVariables()));
-		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel);
+		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
 		addTab("Script", m_sourceCodePanel, false);
 		addTab("Options", m_sourceCodeOptionsPanel, true);
 	}
