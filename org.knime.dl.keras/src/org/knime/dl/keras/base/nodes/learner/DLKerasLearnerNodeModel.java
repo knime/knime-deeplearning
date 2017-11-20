@@ -458,6 +458,8 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 		try (final DLKnimeNetworkLearner learner = new DLKnimeNetworkLearner(trainableNetwork, m_converters);
 				final DLRowIterator iterator = new DLDefaultRowIterator(inTable, columns)) {
 			learner.train(iterator, exec);
+			exec.setMessage("Saving trained Keras deep learning network...");
+			return trainableNetwork.getNetwork().getTrainedNetwork(exec);
 		} catch (final Exception e) {
 			String message;
 			if (e instanceof DLException) {
@@ -470,7 +472,5 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			}
 			throw new RuntimeException(message, e);
 		}
-		exec.setMessage("Saving trained Keras deep learning network...");
-		return trainableNetwork.getNetwork().getTrainedNetwork(exec);
 	}
 }
