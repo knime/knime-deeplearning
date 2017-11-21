@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -100,7 +101,6 @@ import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
 import org.knime.dl.keras.base.nodes.learner.view.DLStaticLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLUpdatableLinePlotViewData;
-import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLViewSpec;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLDefaultJFreeChartLinePlotViewSpec;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotViewSpec;
@@ -171,14 +171,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	private boolean m_initialLoaded;
 
-	// -- View Controls --
-	private DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
+	private final DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
 
-	private boolean m_learningStopped = false;
+	private final DLLinePlotViewData<?>[] m_viewData;
 
-	private DLLinePlotViewData<?>[] m_viewData;
-
-	private DLProgressMonitor m_monitor;
+	private final DLKerasDefaultTrainingMonitor m_monitor;
 
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE },
@@ -194,47 +191,22 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				new String[] { "Training Data", "Validation Data" });
 		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Batches", "Loss",
 				new String[] { "Training Data", "Validation Data" });
-
 		m_viewData = new DLLinePlotViewData[2];
+		m_monitor = new DLKerasDefaultTrainingMonitor();
+	}
 
-		// TODO replace with something useful/static blah
-		m_monitor = new DLProgressMonitor() {
+	@Override
+	public DLProgressMonitor getProgressMonitor() {
+		return m_monitor;
+	}
 
-			@Override
-			public int numEpochs() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
+	@Override
+	public void stopLearning() {
+		m_monitor.setIsRunning(false);
+	}
 
-			@Override
-			public int numBatchesPerEpoch() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-
-			@Override
-			public boolean isRunning() {
-				return false;
-			}
-
-			@Override
-			public DLViewData<?>[] getDataUpdate() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public int currentEpoch() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-
-			@Override
-			public int currentBatchInEpoch() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
-		};
+	protected DLViewSpec[] getViewSpecs() {
+		return m_viewSpecs;
 	}
 
 	@Override
@@ -379,16 +351,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (int i = 0; i < m_viewData.length; i++) {
 			m_viewData[i] = null;
 		}
-
-		// not stopped.
-		m_learningStopped = false;
-
-		// reset views.
+		// reset views
 		notifyViews(null);
-	}
-
-	protected DLViewSpec[] getViewSpecs() {
-		return m_viewSpecs;
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
@@ -586,13 +550,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
 			final BufferedDataTable inTable, final ExecutionContext exec) throws Exception {
 
-		// for now only one line. as soon as we add validation data, we can add
-		// more lines.
-		// TODO hundred at the end of the constructor should be
-		// batchesPerEpoch*epochs.
-		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], 100);
-		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], 100);
-
 		final N inNetwork = (N) ((DLNetworkPortObject) inPortObject).getNetwork();
 		final DLKerasNetworkSpec inNetworkSpec = inNetwork.getSpec();
 		final DataTableSpec inTableSpec = inTable.getDataTableSpec();
@@ -654,61 +611,47 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			columns.put(tensorSpec, indices);
 		}
 
+		// view
+		// for now only one line. as soon as we add validation data, we can add more lines.
+		// FIXME: only valid if we don't crop the last batch
+		final int numBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) batchSize);
+		final int totalNumBatches = epochs * numBatchesPerEpoch;
+		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
+		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
+
 		try (final DLKnimeNetworkLearner learner = new DLKnimeNetworkLearner(trainableNetwork, m_converters);
 				final DLRowIterator iterator = new DLDefaultRowIterator(inTable, columns)) {
-			learner.train(iterator, exec);
-
-			if (m_learningStopped) {
-				// TODO stop and output current model!
-			}
-
-			// TODO
-			// one entry per line in plot. If we agree that we only have
-			// train/validate (and never more) we can save the overhead of array
-			// creation per update.
-
-			// FIXME Some demo how it could work
-			for (int i = 0; i < 100; i++) {
-				final int iter = i;
-				// Accuracy
-				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(i * 0.5f, (float) Math.random());
-				// loss
-				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(i * 0.5f, (float) Math.random());
-				notifyViews(new DLProgressMonitor() {
-
-					@Override
-					public DLViewData<?>[] getDataUpdate() {
-						return m_viewData;
+			m_monitor.setNumEpochs(epochs);
+			m_monitor.setNumBatchesPerEpoch(numBatchesPerEpoch);
+			m_monitor.setIsRunning(true);
+			m_monitor.setCurrentEpoch(0);
+			m_monitor.setCurrentBatchInEpoch(0);
+			m_monitor.setDataUpdate(m_viewData);
+			m_monitor.setExecutionContext(exec);
+			final AtomicInteger currentEpoch = new AtomicInteger();
+			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
+			m_monitor.onBatchEnd(() -> {
+				if (currentBatchInEpoch.get() + 1 == numBatchesPerEpoch) {
+					m_monitor.setCurrentEpoch(currentEpoch.incrementAndGet());
+					if (currentEpoch.get() < epochs) {
+						currentBatchInEpoch.set(0);
+					} else {
+						currentBatchInEpoch.set(numBatchesPerEpoch);
 					}
-
-					@Override
-					public boolean isRunning() {
-						return true;
-					}
-
-					@Override
-					public int numBatchesPerEpoch() {
-						return 10;
-					}
-
-					@Override
-					public int numEpochs() {
-						return 10;
-					}
-
-					@Override
-					public int currentBatchInEpoch() {
-						return iter % 10;
-					}
-
-					@Override
-					public int currentEpoch() {
-						return iter / 10;
-					}
-
-				});
-				Thread.sleep(1000);
-			}
+					m_monitor.setCurrentBatchInEpoch(currentBatchInEpoch.get());
+				} else {
+					m_monitor.setCurrentBatchInEpoch(currentBatchInEpoch.incrementAndGet());
+				}
+				// TODO: one entry per line in plot. If we agree that we only have train/validate (and never more) we
+				// can save the overhead of array creation per update.
+				// update accuracy
+				final float[] metrics = m_monitor.getCurrentMetrics();
+				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics[0], metrics[2]);
+				// update loss
+				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics[1], metrics[3]);
+				notifyViews(m_monitor);
+			});
+			learner.train(iterator, m_monitor);
 
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return trainableNetwork.getNetwork().getTrainedNetwork(exec);
@@ -725,16 +668,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				message = "An error occured during training of the Keras deep learning network. See log for details.";
 			}
 			throw new RuntimeException(message, e);
+		} finally {
+			m_monitor.setIsRunning(false);
 		}
-	}
-
-	@Override
-	public void stopLearning() {
-		m_learningStopped = true;
-	}
-
-	@Override
-	public DLProgressMonitor getProgressMonitor() {
-		return m_monitor;
 	}
 }
