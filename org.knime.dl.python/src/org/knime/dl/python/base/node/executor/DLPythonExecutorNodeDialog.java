@@ -115,51 +115,42 @@ final class DLPythonExecutorNodeDialog extends DataAwareNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
 			throws NotConfigurableException {
-		final DLPythonNetworkPortObject<?> portObject =
-				(DLPythonNetworkPortObject<?>) input[DLPythonExecutorNodeModel.IN_NETWORK_PORT_IDX];
-		if (portObject == null) {
-			throw new NotConfigurableException("Input deep learning network port object is missing.");
-		}
-		final DLPythonNetwork network;
-		try {
-			network = portObject.getNetwork();
-		} catch (final DLInvalidSourceException | IOException e) {
-			throw new NotConfigurableException(e.getMessage());
-		}
-		if (!(network instanceof DLPythonNetwork)) {
-			throw new NotConfigurableException("Input deep learning network is not Python compatible.");
-		}
-		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonExecutorNodeModel.IN_DATA_PORT_IDX];
-		if (inTable == null) {
-			throw new NotConfigurableException("Input data table is missing.");
-		}
-
 		final PortObjectSpec[] specs = new PortObjectSpec[input.length];
 		for (int i = 0; i < specs.length; i++) {
 			specs[i] = input[i] == null ? null : input[i].getSpec();
 		}
 		loadSettingsFrom(settings, specs);
-
-		if (m_workspacePreparer != null) {
-			m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
-		}
-		m_workspacePreparer = kernel -> {
+		final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) input[DLPythonExecutorNodeModel.IN_NETWORK_PORT_IDX];
+		if (portObject != null) {
+			final DLPythonNetwork network;
 			try {
-				NodeContext.pushContext(DLPythonExecutorNodeDialog.this.getNodeContext());
-				DLPythonExecutorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel));
-				m_sourceCodePanel.updateVariables();
-			} catch (final Exception e) {
-				m_sourceCodePanel.errorToConsole(
-						"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
+				network = portObject.getNetwork();
+			} catch (final DLInvalidSourceException | IOException e) {
+				throw new NotConfigurableException(e.getMessage());
 			}
-			// warn user if input table is empty which could lead to
-			// unexpected problems in the Python code
+			if (m_workspacePreparer != null) {
+				m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
+			}
+			m_workspacePreparer = kernel -> {
+				try {
+					NodeContext.pushContext(DLPythonExecutorNodeDialog.this.getNodeContext());
+					DLPythonExecutorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel));
+					m_sourceCodePanel.updateVariables();
+				} catch (final Exception e) {
+					m_sourceCodePanel.errorToConsole(
+							"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
+				}
+			};
+			m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
+		}
+		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonExecutorNodeModel.IN_DATA_PORT_IDX];
+		if (inTable != null) {
+			// warn user if input table is empty which could lead to unexpected problems in the Python code
 			if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
 				m_sourceCodePanel.messageToConsole("Warning: Input table is empty.");
 			}
-		};
-		m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
-		m_sourceCodePanel.updateData(new BufferedDataTable[] { inTable }, new PickledObject[] {});
+			m_sourceCodePanel.updateData(new BufferedDataTable[] { inTable }, new PickledObject[] {});
+		}
 	}
 
 	@Override
