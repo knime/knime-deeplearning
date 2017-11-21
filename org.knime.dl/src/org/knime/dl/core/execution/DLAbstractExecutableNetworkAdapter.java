@@ -123,8 +123,12 @@ public abstract class DLAbstractExecutableNetworkAdapter implements DLExecutable
 	@Override
 	public void close() throws Exception {
 		m_network.close();
-		m_input.values().forEach(DLTensor::close);
-		m_output.values().forEach(DLTensor::close);
+		if (m_input != null) {
+			m_input.values().forEach(DLTensor::close);
+		}
+		if (m_output != null) {
+			m_output.values().forEach(DLTensor::close);
+		}
 	}
 
 	// TODO: type safety
