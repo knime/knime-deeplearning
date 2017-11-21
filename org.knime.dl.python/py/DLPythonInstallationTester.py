@@ -48,6 +48,14 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
+def compare_versions(version1, version2):
+    import re
+    def normalize(v):
+        return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
+    def cmp(x, y):
+        return (x > y) - (x < y)
+    return cmp(normalize(version1), normalize(version2))
+
 class DLPythonInstallationTester(object):
 
     # TODO: this class duplicates code of PythonKernelTester.py.
