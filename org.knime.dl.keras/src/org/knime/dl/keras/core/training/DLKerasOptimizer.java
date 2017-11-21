@@ -211,7 +211,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		static final String CFG_KEY_DECAY = "decay";
 
 		public DLKerasRMSProp() {
-			super(DEFAULT_CFG_KEY, "RMSProp", "keras.optimizers.RMSProp");
+			super(DEFAULT_CFG_KEY, "RMSProp", "keras.optimizers.RMSprop");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.001);
 			setEntryValue(CFG_KEY_RHO, Double.class, 0.9);
 			setEntryValue(CFG_KEY_EPSILON, Double.class, 1e-8);
