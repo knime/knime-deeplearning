@@ -1,5 +1,6 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.HashMap;
@@ -9,8 +10,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
@@ -46,6 +45,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			m_views.put(spec.id(), tab);
 			tabbedPane.addTab(spec.title(), tab);
 		}
+		tabbedPane.setPreferredSize(new Dimension(600, 400));
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
@@ -68,6 +68,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
 		gbc.gridy++;
 		wrapper.add(stopButton, gbc);
+		// TODO remove again after demo
+		
 
 		setComponent(wrapper);
 	}
