@@ -213,6 +213,8 @@ class DLKerasNetwork(DLPythonNetwork):
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
 
+        java_callback = data_supplier.java_callback
+
         # TODO: before training: (re)compile model! (if pre-compiled: only compile if training config changed)
         # HACK: old code
         loss = []
@@ -225,6 +227,11 @@ class DLKerasNetwork(DLPythonNetwork):
         table_size = data_supplier.size
         import math
         steps_per_epoch = math.ceil(table_size / config.batch_size)
+
+        for callback in config.callbacks:
+            if isinstance(callback, DLKerasTrainingReporter):
+                callback.set_java_callback(java_callback)
+                break
 
         history = self._model.fit_generator(data_supplier.get(config.batch_size, table_size, steps_per_epoch,
                                             self._format_input,
@@ -312,16 +319,30 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
 
 class DLKerasTrainingReporter(keras.callbacks.Callback):
+    def __init__(self):
+        self._java_callback = None
+        
+    def set_java_callback(self, callback):
+        self._java_callback = callback
+        
     def on_train_begin(self, logs={}):
-        metrics_names = self.params['metrics']
-        self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
+        # metrics_names = self.params['metrics']
+        # self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
+        pass
 
     def on_batch_end(self, batch, logs={}):
+        acc = None
+        loss = None
         for k in self.params['metrics']:
+            if k == 'acc':
+                    acc = logs[k]
+            if k == 'loss':
+                    loss = logs[k]
             # TODO: val_loss (when validation set is present)
             # self._metrics.at[0, k] = logs[k]
             # TODO: send metrics back to Java
-            pass
+        info = DLOnBatchEndInfo(str(acc) + ';' + str(loss))
+        self._java_callback(info)
 
 
 class DLKerasUserEarlyStopping(keras.callbacks.Callback):
@@ -351,6 +372,10 @@ class DLDataSupplier:
     def size(self):
         return self._size 
 
+    @property
+    def java_callback(self):
+        return self._request_func
+
     def get(self, batch_size, table_size, steps, training_data_formatter, test_data_formatter):
         i = 0
         while True:
@@ -363,6 +388,9 @@ class DLDataSupplier:
             i += 1
             yield (training_data_formatter(x, batch_size), test_data_formatter(y, batch_size))
 
+class DLOnBatchEndInfo(PythonToJavaMessage):
+    def __init__(self, metrics):
+        super().__init__('batch_end', metrics, False)
 
 class DLTrainingDataRequest(PythonToJavaMessage):
     def __init__(self, network, global_dict, batch_index):

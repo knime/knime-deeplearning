@@ -82,16 +82,16 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private void updateView(final DLProgressMonitor monitor) {
 		if (monitor.isRunning()) {
 			if (m_views == null) {
-				initView(monitor.numBatchesPerEpoch() * monitor.numEpochs(), monitor.numBatchesPerEpoch());
+				initView(monitor.getNumBatchesPerEpoch() * monitor.getNumEpochs(), monitor.getNumBatchesPerEpoch());
 			}
 
 			m_epochProgressBar
-					.setProgress(monitor.numBatchesPerEpoch() * monitor.currentEpoch() + monitor.currentBatchInEpoch());
-			m_epochProgressBar.setProgressText(monitor.currentEpoch(), monitor.numEpochs());
+					.setProgress(monitor.getNumBatchesPerEpoch() * monitor.getCurrentEpoch() + monitor.getCurrentBatchInEpoch());
+			m_epochProgressBar.setProgressText(monitor.getCurrentEpoch(), monitor.getNumEpochs());
 			// clac time per epoch and set m_epochProgressBar.setTime(timeInSec)
 			
-			m_batchProgressBar.setProgress(monitor.currentBatchInEpoch());
-			m_batchProgressBar.setProgressText(monitor.currentBatchInEpoch(), monitor.numBatchesPerEpoch());
+			m_batchProgressBar.setProgress(monitor.getCurrentBatchInEpoch());
+			m_batchProgressBar.setProgressText(monitor.getCurrentBatchInEpoch(), monitor.getNumBatchesPerEpoch());
 			// clac time per epoch and set m_batchProgressBar.setTime(timeInSec)
 
 			for (DLViewData<?> data : monitor.getDataUpdate()) {
