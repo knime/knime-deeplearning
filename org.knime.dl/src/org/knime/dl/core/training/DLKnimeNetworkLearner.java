@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.knime.core.data.DataValue;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
@@ -93,9 +92,10 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 		}
 	}
 
-	public void train(final DLRowIterator inputIterator, final ExecutionContext exec) throws Exception {
+	public void train(final DLRowIterator inputIterator, final DLTrainingMonitor monitor) throws Exception {
 		final long expectedBatchSize = m_network.getNetwork().getTrainingConfig().getBatchSize();
 		final AtomicLong requestedBatchesCurrent = new AtomicLong();
+		// FIXME: only valid if we don't crop the last batch
 		final long requestedBatchesTotal = m_network.getNetwork().getTrainingConfig().getEpochs()
 				* (long) Math.ceil(inputIterator.size() / (double) expectedBatchSize);
 		m_network.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
@@ -167,11 +167,12 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 						}
 					}
 				}
-				exec.checkCanceled();
-				exec.setProgress(requestedBatchesCurrent.incrementAndGet() / (double) requestedBatchesTotal,
+				monitor.getExecutionContext().checkCanceled();
+				monitor.getExecutionContext().setProgress(
+						requestedBatchesCurrent.incrementAndGet() / (double) requestedBatchesTotal,
 						"Processing batch number " + batchIndex + "...");
 			}
-		});
+		}, monitor);
 	}
 
 	@Override

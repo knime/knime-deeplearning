@@ -85,8 +85,8 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 	}
 
 	@Override
-	public void train(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer)
-			throws Exception {
+	public void train(final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
+			final DLTrainingMonitor monitor) throws Exception {
 		if (m_input == null) {
 			// pre-allocate network tensors, they will be filled by the given preparer and reset after each batch
 			final long batchSize = m_network.getTrainingConfig().getBatchSize();
@@ -111,7 +111,7 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 				inputPreparer.prepare(m_input, batchIndex);
 				return m_input;
 			}
-		});
+		}, monitor);
 	}
 
 	@Override
@@ -123,9 +123,9 @@ public abstract class DLAbstractTrainableNetworkAdapter<N extends DLTrainableNet
 	}
 
 	// TODO: type safety
-	private <I, O> void trainInternal(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
-			throws Exception {
+	private <I, O> void trainInternal(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier,
+			final DLTrainingMonitor monitor) throws Exception {
 		// HACK: just for poc
-		((DLTrainableNetwork) m_network).train(inputSupplier);
+		((DLTrainableNetwork) m_network).train(inputSupplier, monitor);
 	}
 }

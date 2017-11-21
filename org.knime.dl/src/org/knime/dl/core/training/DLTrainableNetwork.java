@@ -63,5 +63,5 @@ public interface DLTrainableNetwork<I, O> extends DLNetwork, AutoCloseable {
 
 	DLTrainingConfig getTrainingConfig();
 
-	void train(DLNetworkInputProvider<I> inputSupplier) throws Exception;
+	void train(DLNetworkInputProvider<I> inputSupplier, DLTrainingMonitor monitor) throws Exception;
 }

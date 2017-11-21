@@ -55,6 +55,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputProvider;
 import org.knime.dl.core.training.DLAbstractTrainableNetwork;
 import org.knime.dl.core.training.DLTrainingConfig;
+import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -97,8 +98,8 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 	}
 
 	@Override
-	public void train(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
-			throws Exception {
+	public void train(final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier,
+			final DLTrainingMonitor monitor) throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
 			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
@@ -107,7 +108,7 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 					.load(m_network.getSource(), m_commands.getContext());
 			setNetworkTrainingConfig(m_handle, m_commands, m_trainingConfig);
 		}
-		m_commands.trainNetwork(m_handle, inputSupplier);
+		m_commands.trainNetwork(m_handle, inputSupplier, monitor);
 		m_commands.getTrainingResults(m_handle);
 	}
 

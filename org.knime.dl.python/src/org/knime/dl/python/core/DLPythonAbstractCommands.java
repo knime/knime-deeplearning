@@ -63,6 +63,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputProvider;
+import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -87,7 +88,6 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValu
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
-import org.knime.python2.kernel.Commands;
 import org.knime.python2.kernel.DefaultJavaToPythonResponse;
 import org.knime.python2.kernel.Messages;
 import org.knime.python2.kernel.PythonToJavaMessage;
@@ -341,8 +341,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	@Override
 	public void trainNetwork(final DLPythonNetworkHandle network,
-			final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier)
-			throws DLInvalidEnvironmentException, IOException {
+			final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier,
+			final DLTrainingMonitor monitor) throws DLInvalidEnvironmentException, IOException {
 		final Messages messages = getContext().getKernel().getMessages();
 		final AbstractPythonToJavaMessageHandler dataRequestHandler = new AbstractPythonToJavaMessageHandler(
 				"request_training_data") {
