@@ -56,6 +56,8 @@ from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
+from DLPythonInstallationTester import compare_versions
+
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
@@ -233,6 +235,7 @@ class DLKerasNetwork(DLPythonNetwork):
                 callback.set_java_callback(java_callback)
                 break
 
+        kw_max_queue = 'max_queue_size' if compare_versions(keras.__version__, "2.0.5") > 0 else 'max_q_size'
         history = self._model.fit_generator(data_supplier.get(config.batch_size, table_size, steps_per_epoch,
                                             self._format_input,
                                             self._format_target),
@@ -240,7 +243,7 @@ class DLKerasNetwork(DLPythonNetwork):
                                             epochs=config.epochs,
                                             verbose=1,
                                             callbacks=config.callbacks,
-                                            **{'max_q_size': 2})  # TODO: called 'max_queue_size' from Keras 2.0.6 onwards
+                                            **{kw_max_queue : 2})
         return history.history
 
     def save(self, path):
