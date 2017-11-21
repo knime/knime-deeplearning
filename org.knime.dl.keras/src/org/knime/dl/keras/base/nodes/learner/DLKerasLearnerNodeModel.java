@@ -553,6 +553,8 @@ final class DLKerasLearnerNodeModel extends NodeModel {
 			learner.train(iterator, exec);
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return trainableNetwork.getNetwork().getTrainedNetwork(exec);
+		} catch (final CanceledExecutionException e) {
+			throw e;
 		} catch (final Exception e) {
 			String message;
 			if (e instanceof DLException) {

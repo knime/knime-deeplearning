@@ -601,6 +601,8 @@ final class DLExecutorNodeModel extends NodeModel {
 					}
 					batch.clear();
 				}
+			} catch (final CanceledExecutionException e) {
+				throw e;
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {
