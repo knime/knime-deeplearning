@@ -8,7 +8,6 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -60,18 +59,13 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.weighty = 1;
 		m_epochProgressBar = new DLLearningProgressBar(maxProgressEpochs, "Epoch", "Seconds/Epoch");
 		wrapper.add(m_epochProgressBar, gbc);
-		
+
 		gbc.gridy++;
 		m_batchProgressBar = new DLLearningProgressBar(maxProgressBatch, "Batch", "Seconds/Batch");
 		wrapper.add(m_batchProgressBar, gbc);
 
 		JButton stopButton = new JButton("Stop Learning");
-		stopButton.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				getNodeModel().stopLearning();
-			}
-		});
+		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
 		gbc.gridy++;
 		wrapper.add(stopButton, gbc);
 
@@ -85,11 +79,11 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 				initView(monitor.getNumBatchesPerEpoch() * monitor.getNumEpochs(), monitor.getNumBatchesPerEpoch());
 			}
 
-			m_epochProgressBar
-					.setProgress(monitor.getNumBatchesPerEpoch() * monitor.getCurrentEpoch() + monitor.getCurrentBatchInEpoch());
+			m_epochProgressBar.setProgress(
+					monitor.getNumBatchesPerEpoch() * monitor.getCurrentEpoch() + monitor.getCurrentBatchInEpoch());
 			m_epochProgressBar.setProgressText(monitor.getCurrentEpoch(), monitor.getNumEpochs());
 			// clac time per epoch and set m_epochProgressBar.setTime(timeInSec)
-			
+
 			m_batchProgressBar.setProgress(monitor.getCurrentBatchInEpoch());
 			m_batchProgressBar.setProgressText(monitor.getCurrentBatchInEpoch(), monitor.getNumBatchesPerEpoch());
 			// clac time per epoch and set m_batchProgressBar.setTime(timeInSec)
