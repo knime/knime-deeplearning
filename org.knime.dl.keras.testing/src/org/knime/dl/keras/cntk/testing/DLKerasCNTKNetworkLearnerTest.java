@@ -130,7 +130,7 @@ public class DLKerasCNTKNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			});
+			}, null);
 			// test:
 			// TODO!
 		}
@@ -171,7 +171,7 @@ public class DLKerasCNTKNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			});
+			}, null);
 			// test:
 			// TODO!
 		}

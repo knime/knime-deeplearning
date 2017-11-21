@@ -130,7 +130,7 @@ public class DLKerasTheanoNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			});
+			}, null);
 			// test:
 			// TODO!
 		}
@@ -171,7 +171,7 @@ public class DLKerasTheanoNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			});
+			}, null);
 			// test:
 			// TODO!
 		}
