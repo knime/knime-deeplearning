@@ -119,6 +119,18 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		refreshAvailableOptimizers();
+		// FIXME: this is a temporary fix, loading those settings manually should not be necessary
+		try {
+			final NodeSettingsRO generalSettings = settings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_ROOT);
+			m_cfg.getClipNormEntry()
+					.setValue(generalSettings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_NORM)
+							.getDouble(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_NORM));
+			m_cfg.getClipValueEntry()
+					.setValue(generalSettings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_VALUE)
+							.getDouble(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_VALUE));
+		} catch (IllegalArgumentException | InvalidSettingsException e) {
+			throw new NotConfigurableException(e.getMessage(), e);
+		}
 	}
 
 	void refreshAvailableOptimizers() throws NotConfigurableException {
