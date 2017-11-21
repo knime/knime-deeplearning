@@ -4,7 +4,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -13,14 +12,16 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.DefaultCaret;
 
-import org.jfree.data.xy.XYSeries;
 import org.knime.dl.keras.base.nodes.learner.view.DLFloatData;
 import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLView;
-import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
-import org.knime.dl.keras.base.nodes.learner.view.DLViewSpec;
 
 public class DLJFreeChartLinePlotTab extends JPanel {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	private final DLJFreeChartLinePlotView m_linePlotView;
 	private final JTextArea m_historyArea = new JTextArea();

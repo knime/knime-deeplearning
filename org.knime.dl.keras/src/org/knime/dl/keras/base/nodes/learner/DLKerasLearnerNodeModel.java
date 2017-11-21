@@ -611,8 +611,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			columns.put(tensorSpec, indices);
 		}
 
-		// view
-		// for now only one line. as soon as we add validation data, we can add more lines.
 		// FIXME: only valid if we don't crop the last batch
 		final int numBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) batchSize);
 		final int totalNumBatches = epochs * numBatchesPerEpoch;

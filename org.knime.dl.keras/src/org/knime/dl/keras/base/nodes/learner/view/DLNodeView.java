@@ -68,8 +68,6 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
 		gbc.gridy++;
 		wrapper.add(stopButton, gbc);
-		// TODO remove again after demo
-		
 
 		setComponent(wrapper);
 	}
