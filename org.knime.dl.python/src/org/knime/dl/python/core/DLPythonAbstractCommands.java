@@ -370,6 +370,24 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		};
 		messages.registerMessageHandler(dataRequestHandler);
 
+		final String[] metricsNames = new String[] { "accuracy", "loss", "val_accuracy", "val_loss" };
+		monitor.setMetricsNames(metricsNames);
+		final float[] metrics = new float[metricsNames.length];
+		final AbstractPythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler(
+				"batch_end") {
+
+			@Override
+			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				final String[] metricsStr = msg.getValue().split(";");
+				for (int i = 0; i < metricsStr.length; i++) {
+					metrics[i] = Float.parseFloat(metricsStr[i]);
+				}
+				monitor.setCurrentMetrics(metrics);
+				monitor.notifyBatchEnd();
+			}
+		};
+		messages.registerMessageHandler(onBatchEndHandler);
+
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
@@ -380,6 +398,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		getContext().executeInKernel(b.toString());
 
 		messages.unregisterMessageHandler(dataRequestHandler);
+		messages.unregisterMessageHandler(onBatchEndHandler);
 	}
 
 	@Override
