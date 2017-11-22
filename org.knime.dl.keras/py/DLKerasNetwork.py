@@ -386,7 +386,7 @@ class DLDataSupplier:
                 i = 0
             request = DLTrainingDataRequest(self._network, self._global_dict, i)
             # FIXME this shouldn't be required at all.
-            time.sleep(0.05)
+            time.sleep(0.5)
             (x, y) = self._request_func(request)
             i += 1
             yield (training_data_formatter(x, batch_size), test_data_formatter(y, batch_size))
