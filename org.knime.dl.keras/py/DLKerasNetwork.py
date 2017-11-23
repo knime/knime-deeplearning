@@ -194,14 +194,10 @@ class DLKerasNetwork(DLPythonNetwork):
                         for tensor_name in output_layer_tensor_names[layer_name]:
                             temp[tensor_name] = metric
                     metrics = temp
-                import keras.metrics as km
-                for tensor, metric in metrics.items():
-                    for idx, met in enumerate(metric):
-                        metrics[tensor][idx] = km.get(met).__name__ if met != 'accuracy' and met != 'acc' else 'acc'
+
                 training_config = DLKerasTrainingConfig()
                 training_config.optimizer = optimizer
                 training_config.loss = losses
-                training_config.metrics = metrics
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs, training_config)
         return self._spec
 
