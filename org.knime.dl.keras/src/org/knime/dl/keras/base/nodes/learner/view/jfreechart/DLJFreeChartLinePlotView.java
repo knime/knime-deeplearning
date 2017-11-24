@@ -12,8 +12,11 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.knime.dl.keras.base.nodes.learner.view.DLFloatData;
@@ -56,9 +59,22 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 			for(int i = 0; i < m_dataset.getSeriesCount(); i++){
 				plot.getRenderer().setSeriesStroke(i, defaultStroke);
 			}
-			
-			
-			
+
+			plot.getRenderer().setBaseToolTipGenerator(new XYToolTipGenerator() {
+				@Override
+				public String generateToolTip(XYDataset dataset, int arg1, int arg2) {
+					Number x = dataset.getX(arg1, arg2);
+					Number y = dataset.getY(arg1, arg2);
+
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(String.format("<html>%s <br/>", m_spec.getLineLabel(arg1)));
+					stringBuilder.append(String.format("%s: %s <br/>", m_spec.labelY(), y.floatValue()));
+					stringBuilder.append(String.format("%s: %s ", m_spec.labelX(), x.floatValue()));
+					stringBuilder.append("</html>");
+					return stringBuilder.toString();
+				}
+			});
+
 			m_chartPanel = new ChartPanel(lineChart);
 			m_chartPanel.setPreferredSize(new Dimension(800, 500));
 			m_chartPanel.setMinimumSize(new Dimension(800, 500));
@@ -77,7 +93,7 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 			}
 		}
 	}
-	
+
 	private void plotNext(XYSeries line, float value) {
 		final int total = line.getItemCount();
 		line.add(total + 1, value);
