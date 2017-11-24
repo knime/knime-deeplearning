@@ -54,9 +54,9 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 			lineChart.getLegend().setFrame(BlockBorder.NONE);
 			Font labelFont = lineChart.getLegend().getItemFont();
 			lineChart.getLegend().setItemFont(new Font(labelFont.getName(), labelFont.getStyle(), 15));
-			
-			Stroke defaultStroke = new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-			for(int i = 0; i < m_dataset.getSeriesCount(); i++){
+
+			Stroke defaultStroke = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+			for (int i = 0; i < m_dataset.getSeriesCount(); i++) {
 				plot.getRenderer().setSeriesStroke(i, defaultStroke);
 			}
 
