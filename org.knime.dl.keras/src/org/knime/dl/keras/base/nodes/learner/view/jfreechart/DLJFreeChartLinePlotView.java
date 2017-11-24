@@ -44,7 +44,7 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 	@Override
 	public Component getComponent() {
 		if (m_chartPanel == null) {
-			JFreeChart lineChart = ChartFactory.createXYLineChart(m_spec.title(), m_spec.labelY(), m_spec.labelX(),
+			JFreeChart lineChart = ChartFactory.createXYLineChart(m_spec.title(), m_spec.labelX(), m_spec.labelY(),
 					m_dataset = createDataset(m_spec), PlotOrientation.VERTICAL, true, true, false);
 			XYPlot plot = (XYPlot) lineChart.getPlot();
 			plot.setBackgroundPaint(Color.WHITE);
