@@ -74,10 +74,15 @@ public class DLJFreeChartLinePlotView implements DLView<DLLinePlotViewData<DLJFr
 					return stringBuilder.toString();
 				}
 			});
-
+			
 			m_chartPanel = new ChartPanel(lineChart);
 			m_chartPanel.setPreferredSize(new Dimension(800, 500));
 			m_chartPanel.setMinimumSize(new Dimension(800, 500));
+			
+			m_chartPanel.setInitialDelay(0);
+			m_chartPanel.setReshowDelay(0);
+			// we do not want the tooltips to go away automatically, so set to high amount
+			m_chartPanel.setDismissDelay(1000000);
 		}
 		return m_chartPanel;
 
