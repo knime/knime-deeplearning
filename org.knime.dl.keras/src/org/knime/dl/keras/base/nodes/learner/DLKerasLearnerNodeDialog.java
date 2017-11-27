@@ -101,8 +101,6 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private final ArrayList<DLKerasLearnerTargetPanel> m_outputPanels = new ArrayList<>();
 
-	private DLNetworkSpec m_lastIncomingNetworkSpec;
-
 	private DLNetworkSpec m_lastConfiguredNetworkSpec;
 
 	public DLKerasLearnerNodeDialog() {
@@ -138,8 +136,6 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		for (final DLKerasLearnerTargetPanel outputPanel : m_outputPanels) {
 			outputPanel.saveToSettings(outputSettings);
 		}
-
-		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
 	}
 
 	@Override
@@ -170,7 +166,6 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		}
 
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
-		m_lastIncomingNetworkSpec = networkSpec;
 
 		if (networkSpec.getInputSpecs().length == 0) {
 			LOGGER.warn("Input deep learning network has no input specs.");
@@ -179,7 +174,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			LOGGER.warn("Input deep learning network has no output specs.");
 		}
 
-		final boolean networkChanged = !m_lastIncomingNetworkSpec.equals(m_lastConfiguredNetworkSpec);
+		final boolean networkChanged = !networkSpec.equals(m_lastConfiguredNetworkSpec);
 
 		if (networkChanged) {
 			reset();
@@ -187,7 +182,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			createDialogContent(portObjectSpec, tableSpec);
 
 			m_generalPanel.refreshAvailableBackends();
-			m_optiPanel.refreshAvailableOptimizers();
+			// m_optiPanel.refreshAvailableOptimizers();
 
 			for (final DLKerasLearnerInputPanel inputPanel : m_inputPanels) {
 				inputPanel.refreshAvailableConverters();
@@ -233,6 +228,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 				}
 			}
 		}
+
+		m_lastConfiguredNetworkSpec = networkSpec;
 	}
 
 	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec, final DataTableSpec tableSpec)
