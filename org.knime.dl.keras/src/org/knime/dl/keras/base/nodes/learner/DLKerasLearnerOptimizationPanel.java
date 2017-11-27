@@ -146,7 +146,6 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 
 		final DLKerasOptimizer selectedOptimizer = m_cfg.getOptimizerEntry().getValue() != null
 				? m_cfg.getOptimizerEntry().getValue() : availableOptimizers.get(0);
-		updateOptimizerPanel(selectedOptimizer);
 
 		for (int i = availableOptimizers.size() - 1; i >= 0; i--) {
 			if (availableOptimizers.get(i).getClass() == selectedOptimizer.getClass()) {
@@ -155,18 +154,12 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 			}
 		}
 		m_dcOptimizer.replaceListItems(availableOptimizers, selectedOptimizer);
+		updateOptimizerPanel(selectedOptimizer);
 	}
 
 	private void copyClipSettingsToOptimizer() {
-		// in Keras, clip settings are actually properties of the optimizer
-		final ConfigEntry<DLKerasOptimizer> optimizer = m_cfg.getOptimizerEntry();
-		final ConfigEntry<Double> optimizerNorm = optimizer.getValue().getClipNormEntry();
-		final ConfigEntry<Double> norm = m_cfg.getClipNormEntry();
-		optimizerNorm.setValue(norm.getValue());
-		optimizerNorm.setEnabled(norm.getEnabled());
-		final ConfigEntry<Double> optimizerValue = optimizer.getValue().getClipValueEntry();
-		final ConfigEntry<Double> value = m_cfg.getClipValueEntry();
-		optimizerValue.setValue(value.getValue());
-		optimizerValue.setEnabled(value.getEnabled());
+		final DLKerasOptimizer optimizer = m_cfg.getOptimizerEntry().getValue();
+		optimizer.setClipNorm(m_cfg.getClipNormEntry());
+		optimizer.setClipValue(m_cfg.getClipValueEntry());
 	}
 }

@@ -58,7 +58,6 @@ import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.Config;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.ConfigUtil;
-import org.knime.dl.base.settings.DefaultConfigEntry;
 import org.knime.dl.core.training.DLOptimizer;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -72,20 +71,16 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	String getKerasIdentifier();
 
-	ConfigEntry<Double> getClipNormEntry();
-
-	ConfigEntry<Double> getClipValueEntry();
-
 	IDialogComponentGroup getParameterDialogGroup();
 
 	@Override
 	String getBackendRepresentation();
 
+	void setClipNorm(ConfigEntry<Double> clipNormEntry);
+
+	void setClipValue(ConfigEntry<Double> clipValueEntry);
+
 	public abstract static class DLKerasAbstractOptimizer extends AbstractConfig implements DLKerasOptimizer {
-
-		private final String CFG_KEY_CLIP_NORM;
-
-		private final String CFG_KEY_CLIP_VALUE;
 
 		protected final String m_name;
 
@@ -93,16 +88,15 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 		protected IDialogComponentGroup m_dialogComponentGroup;
 
+		private ConfigEntry<Double> m_clipValue;
+
+		private ConfigEntry<Double> m_clipNorm;
+
 		protected DLKerasAbstractOptimizer(final String configKey, String keyPrefix, final String name,
 				final String kerasIdentifier) {
 			super(configKey);
 			m_name = checkNotNullOrEmpty(name);
 			m_kerasIdentifier = checkNotNullOrEmpty(kerasIdentifier);
-			CFG_KEY_CLIP_NORM = keyPrefix + "clip_norm";
-			CFG_KEY_CLIP_VALUE = keyPrefix + "clip_value";
-
-			put(new DefaultConfigEntry<>(CFG_KEY_CLIP_NORM, Double.class, 1.0, false));
-			put(new DefaultConfigEntry<>(CFG_KEY_CLIP_VALUE, Double.class, 1.0, false));
 		}
 
 		protected abstract void populateNamedParameters(final Map<String, String> namedParams);
@@ -120,26 +114,14 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 
 		@Override
-		public ConfigEntry<Double> getClipNormEntry() {
-			return get(CFG_KEY_CLIP_NORM, Double.class);
-		}
-
-		@Override
-		public ConfigEntry<Double> getClipValueEntry() {
-			return get(CFG_KEY_CLIP_VALUE, Double.class);
-		}
-
-		@Override
 		public String getBackendRepresentation() {
 			final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
 			populateNamedParameters(namedParams);
-			final ConfigEntry<Double> clipNorm = getClipNormEntry();
-			if (clipNorm.getEnabled()) {
-				namedParams.put("clipnorm", DLPythonUtils.toPython(clipNorm.getValue()));
+			if (m_clipNorm.getEnabled()) {
+				namedParams.put("clipnorm", DLPythonUtils.toPython(m_clipNorm.getValue()));
 			}
-			final ConfigEntry<Double> clipValue = getClipValueEntry();
-			if (clipValue.getEnabled()) {
-				namedParams.put("clipvalue", DLPythonUtils.toPython(clipValue.getValue()));
+			if (m_clipValue.getEnabled()) {
+				namedParams.put("clipvalue", DLPythonUtils.toPython(m_clipValue.getValue()));
 			}
 			return m_kerasIdentifier + "(" + namedParams.entrySet().stream()
 					.map(np -> np.getKey() + "=" + np.getValue()).collect(Collectors.joining(", ")) + ")";
@@ -151,6 +133,14 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 				m_dialogComponentGroup = getParameterDialogGroupInternal();
 			}
 			return m_dialogComponentGroup;
+		}
+
+		public void setClipNorm(ConfigEntry<Double> clipNormEntry) {
+			m_clipNorm = clipNormEntry;
+		}
+
+		public void setClipValue(ConfigEntry<Double> clipValueEntry) {
+			m_clipValue = clipValueEntry;
 		}
 	}
 

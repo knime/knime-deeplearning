@@ -47,6 +47,7 @@
 
 package org.knime.dl.base.settings;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -234,15 +235,26 @@ public class ConfigUtil {
 
 	private static <T, SM extends SettingsModel> void keepInSync(final ConfigEntry<T> entry, final SM settingsModel,
 			final Function<SM, T> settingsModelValueGetter, final BiConsumer<SM, T> settingsModelValueSetter) {
+		AtomicBoolean isLoading = new AtomicBoolean(false);
 		entry.addLoadListener(e -> {
+			if (isLoading.get()) {
+				return;
+			}
+			isLoading.set(true);
 			settingsModel.setEnabled(e.getEnabled());
 			settingsModelValueSetter.accept(settingsModel, e.getValue());
+			isLoading.set(false);
 		});
 		entry.addEnableChangeListener(e -> settingsModel.setEnabled(e.getEnabled()));
 		entry.addValueChangeListener((e, oldValue) -> settingsModelValueSetter.accept(settingsModel, e.getValue()));
 		settingsModel.addChangeListener(e -> {
+			if (isLoading.get()) {
+				return;
+			}
+			isLoading.set(true);
 			entry.setEnabled(settingsModel.isEnabled());
 			entry.setValue(settingsModelValueGetter.apply(settingsModel));
+			isLoading.set(true);
 		});
 	}
 }
