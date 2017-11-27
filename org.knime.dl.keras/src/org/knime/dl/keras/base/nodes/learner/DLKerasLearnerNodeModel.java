@@ -187,9 +187,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// as soon as we want to be more dynamic e.g. make views configurable we
 		// have to move this somewhere else..
 		m_viewSpecs = new DLJFreeChartLinePlotViewSpec[2];
-		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Batches", "Accuracy",
+		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
 				new String[] { "Training Data", "Validation Data" });
-		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Batches", "Loss",
+		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
 				new String[] { "Training Data", "Validation Data" });
 		m_viewData = new DLLinePlotViewData[2];
 		m_monitor = new DLKerasDefaultTrainingMonitor();
