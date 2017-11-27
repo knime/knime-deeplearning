@@ -83,9 +83,9 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public abstract static class DLKerasAbstractOptimizer extends AbstractConfig implements DLKerasOptimizer {
 
-		static final String CFG_KEY_CLIP_NORM = "clip_norm";
+		private final String CFG_KEY_CLIP_NORM;
 
-		static final String CFG_KEY_CLIP_VALUE = "clip_value";
+		private final String CFG_KEY_CLIP_VALUE;
 
 		protected final String m_name;
 
@@ -93,10 +93,13 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 		protected IDialogComponentGroup m_dialogComponentGroup;
 
-		protected DLKerasAbstractOptimizer(final String configKey, final String name, final String kerasIdentifier) {
+		protected DLKerasAbstractOptimizer(final String configKey, String keyPrefix, final String name,
+				final String kerasIdentifier) {
 			super(configKey);
 			m_name = checkNotNullOrEmpty(name);
 			m_kerasIdentifier = checkNotNullOrEmpty(kerasIdentifier);
+			CFG_KEY_CLIP_NORM = keyPrefix + "clip_norm";
+			CFG_KEY_CLIP_VALUE = keyPrefix + "clip_value";
 
 			put(new DefaultConfigEntry<>(CFG_KEY_CLIP_NORM, Double.class, 1.0, false));
 			put(new DefaultConfigEntry<>(CFG_KEY_CLIP_VALUE, Double.class, 1.0, false));
@@ -151,21 +154,24 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	// TODO: we should add a "since" attribute to these optimizers to enable checking if they're available for the local
+	// TODO: we should add a "since" attribute to these optimizers to enable
+	// checking if they're available for the local
 	// Keras installation
 
 	public static class DLKerasStochasticGradientDescent extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "sgd_";
 
-		static final String CFG_KEY_MOMENTUM = "momentum";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_MOMENTUM = CFG_PREFIX + "sgd_momentum";
 
-		static final String CFG_KEY_NESTEROV = "nesterov";
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "sgd_decay";
+
+		static final String CFG_KEY_NESTEROV = CFG_PREFIX + "sgd_nesterov";
 
 		public DLKerasStochasticGradientDescent() {
-			super(DEFAULT_CFG_KEY, "Stochastic gradient descent", "keras.optimizers.SGD");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Stochastic gradient descent", "keras.optimizers.SGD");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.01);
 			setEntryValue(CFG_KEY_MOMENTUM, Double.class, 0d);
 			setEntryValue(CFG_KEY_DECAY, Double.class, 0d);
@@ -202,16 +208,18 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasRMSProp extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "rmsprob_";
 
-		static final String CFG_KEY_RHO = "rho";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_RHO = CFG_PREFIX + "rho";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "decay";
 
 		public DLKerasRMSProp() {
-			super(DEFAULT_CFG_KEY, "RMSProp", "keras.optimizers.RMSprop");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "RMSProp", "keras.optimizers.RMSprop");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.001);
 			setEntryValue(CFG_KEY_RHO, Double.class, 0.9);
 			setEntryValue(CFG_KEY_EPSILON, Double.class, 1e-8);
@@ -248,14 +256,16 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasAdagrad extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "adagrad_";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "decay";
 
 		public DLKerasAdagrad() {
-			super(DEFAULT_CFG_KEY, "Adagrad", "keras.optimizers.Adagrad");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Adagrad", "keras.optimizers.Adagrad");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.01);
 			setEntryValue(CFG_KEY_EPSILON, Double.class, 1e-8);
 			setEntryValue(CFG_KEY_DECAY, Double.class, 0d);
@@ -288,16 +298,18 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasAdadelta extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "adadelta_";
 
-		static final String CFG_KEY_RHO = "rho";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_RHO = CFG_PREFIX + "rho";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "decay";
 
 		public DLKerasAdadelta() {
-			super(DEFAULT_CFG_KEY, "Adadelta", "keras.optimizers.Adadelta");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Adadelta", "keras.optimizers.Adadelta");
 			setEntryValue(CFG_KEY_LR, Double.class, 1.0);
 			setEntryValue(CFG_KEY_RHO, Double.class, 0.95);
 			setEntryValue(CFG_KEY_EPSILON, Double.class, 1e-8);
@@ -334,18 +346,20 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasAdam extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "adam_";
 
-		static final String CFG_KEY_BETA_1 = "beta_1";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_BETA_2 = "beta_2";
+		static final String CFG_KEY_BETA_1 = CFG_PREFIX + "beta_1";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_BETA_2 = CFG_PREFIX + "beta_2";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "decay";
 
 		public DLKerasAdam() {
-			super(DEFAULT_CFG_KEY, "Adam", "keras.optimizers.Adam");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Adam", "keras.optimizers.Adam");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.001);
 			setEntryValue(CFG_KEY_BETA_1, Double.class, 0.9);
 			setEntryValue(CFG_KEY_BETA_2, Double.class, 0.999);
@@ -386,18 +400,20 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasAdamax extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "adamax_";
 
-		static final String CFG_KEY_BETA_1 = "beta_1";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_BETA_2 = "beta_2";
+		static final String CFG_KEY_BETA_1 = CFG_PREFIX + "beta_1";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_BETA_2 = CFG_PREFIX + "beta_2";
 
-		static final String CFG_KEY_DECAY = "decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_DECAY = CFG_PREFIX + "decay";
 
 		public DLKerasAdamax() {
-			super(DEFAULT_CFG_KEY, "Adamax", "keras.optimizers.Adamax");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Adamax", "keras.optimizers.Adamax");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.002);
 			setEntryValue(CFG_KEY_BETA_1, Double.class, 0.9);
 			setEntryValue(CFG_KEY_BETA_2, Double.class, 0.999);
@@ -438,18 +454,20 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public static class DLKerasNadam extends DLKerasAbstractOptimizer {
 
-		static final String CFG_KEY_LR = "lr";
+		static final String CFG_PREFIX = "nadam_";
 
-		static final String CFG_KEY_BETA_1 = "beta_1";
+		static final String CFG_KEY_LR = CFG_PREFIX + "lr";
 
-		static final String CFG_KEY_BETA_2 = "beta_2";
+		static final String CFG_KEY_BETA_1 = CFG_PREFIX + "beta_1";
 
-		static final String CFG_KEY_EPSILON = "epsilon";
+		static final String CFG_KEY_BETA_2 = CFG_PREFIX + "beta_2";
 
-		static final String CFG_KEY_SCHEDULE_DECAY = "schedule_decay";
+		static final String CFG_KEY_EPSILON = CFG_PREFIX + "epsilon";
+
+		static final String CFG_KEY_SCHEDULE_DECAY = CFG_PREFIX + "schedule_decay";
 
 		public DLKerasNadam() {
-			super(DEFAULT_CFG_KEY, "Nadam", "keras.optimizers.Nadam");
+			super(DEFAULT_CFG_KEY, CFG_PREFIX, "Nadam", "keras.optimizers.Nadam");
 			setEntryValue(CFG_KEY_LR, Double.class, 0.002);
 			setEntryValue(CFG_KEY_BETA_1, Double.class, 0.9);
 			setEntryValue(CFG_KEY_BETA_2, Double.class, 0.999);
