@@ -78,6 +78,8 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 
 	private final DialogComponentObjectSelection<DLKerasOptimizer> m_dcOptimizer;
 
+	private JXCollapsiblePane m_optimizerParamGroupWrapper;
+
 	DLKerasLearnerOptimizationPanel(final DLKerasLearnerGeneralConfig cfg) throws NotConfigurableException {
 		m_cfg = cfg;
 
@@ -88,17 +90,11 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 				getFirstComponent(m_dcOptimizer, JComboBox.class));
 
 		// optimizer parameters
-		final JXCollapsiblePane optimizerParamGroupWrapper = new JXCollapsiblePane(Direction.UP);
-		optimizerParamGroupWrapper.setAnimated(false);
-		addComponent(optimizerParamGroupWrapper);
+		m_optimizerParamGroupWrapper = new JXCollapsiblePane(Direction.UP);
+		m_optimizerParamGroupWrapper.setAnimated(false);
+		addComponent(m_optimizerParamGroupWrapper);
 		optimizer.addValueChangeListener((entry, oldValue) -> {
-			copyClipSettingsToOptimizer();
-			// display the parameter group of the currently selected optimizer
-			optimizerParamGroupWrapper.setCollapsed(true);
-			final IDialogComponentGroup optimizerParamGroup = entry.getValue().getParameterDialogGroup();
-			optimizerParamGroupWrapper.removeAll();
-			optimizerParamGroupWrapper.add(optimizerParamGroup.getComponentGroupPanel());
-			optimizerParamGroupWrapper.setCollapsed(false);
+			updateOptimizerPanel(entry.getValue());
 		});
 
 		// clip norm
@@ -110,6 +106,20 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		addToggleNumberEditRowComponent(clipValue, "Clip value", ConfigUtil.toSettingsModelDouble(clipValue));
 	}
 
+	/**
+	 * @param optimizerParamGroupWrapper
+	 * @param entry
+	 */
+	private void updateOptimizerPanel(final DLKerasOptimizer opti) {
+		copyClipSettingsToOptimizer();
+		// display the parameter group of the currently selected optimizer
+		m_optimizerParamGroupWrapper.setCollapsed(true);
+		final IDialogComponentGroup optimizerParamGroup = opti.getParameterDialogGroup();
+		m_optimizerParamGroupWrapper.removeAll();
+		m_optimizerParamGroupWrapper.add(optimizerParamGroup.getComponentGroupPanel());
+		m_optimizerParamGroupWrapper.setCollapsed(false);
+	}
+
 	@Override
 	public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 		copyClipSettingsToOptimizer();
@@ -119,21 +129,9 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		refreshAvailableOptimizers();
-		// FIXME: this is a temporary fix, loading those settings manually should not be necessary
-		try {
-			final NodeSettingsRO generalSettings = settings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_ROOT);
-			m_cfg.getClipNormEntry()
-					.setValue(generalSettings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_NORM)
-							.getDouble(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_NORM));
-			m_cfg.getClipValueEntry()
-					.setValue(generalSettings.getNodeSettings(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_VALUE)
-							.getDouble(DLKerasLearnerGeneralConfig.CFG_KEY_CLIP_VALUE));
-		} catch (IllegalArgumentException | InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage(), e);
-		}
 	}
 
-	void refreshAvailableOptimizers() throws NotConfigurableException {
+	private void refreshAvailableOptimizers() throws NotConfigurableException {
 		// refresh available optimizers
 		final DLKerasTrainingContext<?> selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
 		if (selectedTrainingContext == null) {
@@ -145,9 +143,11 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		if (availableOptimizers.isEmpty()) {
 			throw new NotConfigurableException("There is no available optimizer that supports the input network.");
 		}
+
 		final DLKerasOptimizer selectedOptimizer = m_cfg.getOptimizerEntry().getValue() != null
-				? m_cfg.getOptimizerEntry().getValue()
-				: availableOptimizers.get(0);
+				? m_cfg.getOptimizerEntry().getValue() : availableOptimizers.get(0);
+		updateOptimizerPanel(selectedOptimizer);
+
 		for (int i = availableOptimizers.size() - 1; i >= 0; i--) {
 			if (availableOptimizers.get(i).getClass() == selectedOptimizer.getClass()) {
 				availableOptimizers.remove(i);
