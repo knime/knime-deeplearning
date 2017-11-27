@@ -195,12 +195,12 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		if (destSizeOpt.isPresent()) {
 			final long converterOutputSize = destSizeOpt.getAsLong();
 			if (converterOutputSize > inputSize) {
-				throw new InvalidSettingsException("Selected input columns provide more input elements ("
+				throw new InvalidSettingsException("Selected target columns provide more elements ("
 						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network target '"
 						+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
 			}
 			if (converterOutputSize < inputSize) {
-				throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
+				throw new InvalidSettingsException("Selected target columns do not provide enough elements ("
 						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network target '"
 						+ m_outputDataSpec.getName() + "'. Try adding some columns to the selection.");
 			}
@@ -208,7 +208,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			// we still can check if there are more input columns than input neurons since every column provides at
 			// least one element
 			if (includedColSpecs.size() > inputSize) {
-				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
+				throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
 						+ ") than neurons available (" + inputSize + ") for network target '"
 						+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
 			}
