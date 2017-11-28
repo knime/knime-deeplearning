@@ -254,7 +254,7 @@ public class ConfigUtil {
 			isLoading.set(true);
 			entry.setEnabled(settingsModel.isEnabled());
 			entry.setValue(settingsModelValueGetter.apply(settingsModel));
-			isLoading.set(true);
+			isLoading.set(false);
 		});
 	}
 }
