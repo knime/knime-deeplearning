@@ -78,7 +78,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 
 	private final DialogComponentObjectSelection<DLKerasOptimizer> m_dcOptimizer;
 
-	private JXCollapsiblePane m_optimizerParamGroupWrapper;
+	private final JXCollapsiblePane m_optimizerParamGroupWrapper;
 
 	DLKerasLearnerOptimizationPanel(final DLKerasLearnerGeneralConfig cfg) throws NotConfigurableException {
 		m_cfg = cfg;
@@ -106,29 +106,25 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		addToggleNumberEditRowComponent(clipValue, "Clip value", ConfigUtil.toSettingsModelDouble(clipValue));
 	}
 
-	/**
-	 * @param optimizerParamGroupWrapper
-	 * @param entry
-	 */
-	private void updateOptimizerPanel(final DLKerasOptimizer opti) {
-		copyClipSettingsToOptimizer();
-		// display the parameter group of the currently selected optimizer
-		m_optimizerParamGroupWrapper.setCollapsed(true);
-		final IDialogComponentGroup optimizerParamGroup = opti.getParameterDialogGroup();
-		m_optimizerParamGroupWrapper.removeAll();
-		m_optimizerParamGroupWrapper.add(optimizerParamGroup.getComponentGroupPanel());
-		m_optimizerParamGroupWrapper.setCollapsed(false);
-	}
-
 	@Override
 	public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		copyClipSettingsToOptimizer();
+		m_cfg.copyClipSettingsToOptimizer();
 	}
 
 	@Override
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		refreshAvailableOptimizers();
+	}
+
+	private void updateOptimizerPanel(final DLKerasOptimizer opti) {
+		m_cfg.copyClipSettingsToOptimizer();
+		// display the parameter group of the currently selected optimizer
+		m_optimizerParamGroupWrapper.setCollapsed(true);
+		final IDialogComponentGroup optimizerParamGroup = opti.getParameterDialogGroup();
+		m_optimizerParamGroupWrapper.removeAll();
+		m_optimizerParamGroupWrapper.add(optimizerParamGroup.getComponentGroupPanel());
+		m_optimizerParamGroupWrapper.setCollapsed(false);
 	}
 
 	private void refreshAvailableOptimizers() throws NotConfigurableException {
@@ -143,10 +139,9 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		if (availableOptimizers.isEmpty()) {
 			throw new NotConfigurableException("There is no available optimizer that supports the input network.");
 		}
-
 		final DLKerasOptimizer selectedOptimizer = m_cfg.getOptimizerEntry().getValue() != null
-				? m_cfg.getOptimizerEntry().getValue() : availableOptimizers.get(0);
-
+				? m_cfg.getOptimizerEntry().getValue()
+				: availableOptimizers.get(0);
 		for (int i = availableOptimizers.size() - 1; i >= 0; i--) {
 			if (availableOptimizers.get(i).getClass() == selectedOptimizer.getClass()) {
 				availableOptimizers.remove(i);
@@ -155,11 +150,5 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		}
 		m_dcOptimizer.replaceListItems(availableOptimizers, selectedOptimizer);
 		updateOptimizerPanel(selectedOptimizer);
-	}
-
-	private void copyClipSettingsToOptimizer() {
-		final DLKerasOptimizer optimizer = m_cfg.getOptimizerEntry().getValue();
-		optimizer.setClipNorm(m_cfg.getClipNormEntry());
-		optimizer.setClipValue(m_cfg.getClipValueEntry());
 	}
 }

@@ -134,11 +134,13 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 			return m_dialogComponentGroup;
 		}
 
-		public void setClipNorm(ConfigEntry<Double> clipNormEntry) {
+		@Override
+		public void setClipNorm(final ConfigEntry<Double> clipNormEntry) {
 			m_clipNorm = clipNormEntry;
 		}
 
-		public void setClipValue(ConfigEntry<Double> clipValueEntry) {
+		@Override
+		public void setClipValue(final ConfigEntry<Double> clipValueEntry) {
 			m_clipValue = clipValueEntry;
 		}
 	}

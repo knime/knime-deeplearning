@@ -294,6 +294,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		try {
+			m_generalCfg.copyClipSettingsToOptimizer();
 			m_generalCfg.saveToSettings(settings);
 
 			final NodeSettingsWO inputSettings = settings.addNodeSettings(CFG_KEY_TRAINING);
@@ -330,6 +331,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_generalCfg.loadFromSettings(settings);
+		m_generalCfg.copyClipSettingsToOptimizer();
 
 		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_TRAINING);
 		for (final DLKerasLearnerInputConfig inputCfg : m_inputCfgs.values()) {

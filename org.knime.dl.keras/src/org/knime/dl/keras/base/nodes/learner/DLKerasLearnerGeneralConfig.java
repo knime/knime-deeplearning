@@ -92,7 +92,8 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 
 	static final String CFG_KEY_REDUCE_LR_ON_PLATEAU = "reduce_lr_on_plateau";
 
-	static Collection<DLKerasTrainingContext<?>> getAvailableTrainingContexts(final Class<? extends DLNetwork> networkType) {
+	static Collection<DLKerasTrainingContext<?>> getAvailableTrainingContexts(
+			final Class<? extends DLNetwork> networkType) {
 		return DLTrainingContextRegistry.getInstance().getTrainingContextsForNetworkType((networkType)) //
 				.stream() //
 				.filter(tc -> tc instanceof DLKerasTrainingContext) //
@@ -204,5 +205,11 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 
 	ConfigEntry<DLKerasReduceLROnPlateau> getReduceLROnPlateauEntry() {
 		return get(CFG_KEY_REDUCE_LR_ON_PLATEAU, DLKerasReduceLROnPlateau.class);
+	}
+
+	void copyClipSettingsToOptimizer() {
+		final DLKerasOptimizer optimizer = getOptimizerEntry().getValue();
+		optimizer.setClipNorm(getClipNormEntry());
+		optimizer.setClipValue(getClipValueEntry());
 	}
 }
