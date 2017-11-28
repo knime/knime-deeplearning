@@ -125,12 +125,13 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 									.orElseThrow(() -> new DLInvalidNetworkInputException(
 											"Tensor specification does not provide a fully defined shape. This is not supported, yet."));
 							throw new DLInvalidNetworkInputException(
-									"Node input size exceeds the expected size of network input/target '"
+									"Node input/target data size exceeds the expected size of network input/target '"
 											+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-											+ ", batch size is " + expectedBatchSize + ". Thus, expected input size is "
+											+ ", batch size is " + expectedBatchSize
+											+ ". Thus, expected input/target data size is "
 											+ sampleSize * expectedBatchSize
-											+ ". Please check the column selection for this input "
-											+ "and validate the node's input data.",
+											+ ". Please check the column selection for this input/target "
+											+ "and validate the node's input/target data.",
 									ex);
 						}
 					}
@@ -157,13 +158,13 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 									+ "which number of rows is a multiple of the expected batch size.");
 						} else if (tensor.getBuffer().size() % (sampleSize * expectedBatchSize) != 0) {
 							throw new DLInvalidNetworkInputException(
-									"Node input size does not match the expected size of network input/target '"
+									"Node input/target data size does not match the expected size of network input/target '"
 											+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-											+ ", batch size is " + expectedBatchSize + ". Thus, expected input size is "
-											+ sampleSize * expectedBatchSize + ". However, node input size is "
-											+ tensor.getBuffer().size()
-											+ ". Please check the column selection for this input "
-											+ "and validate the node's input data.");
+											+ ", batch size is " + expectedBatchSize
+											+ ". Thus, expected input/target size is " + sampleSize * expectedBatchSize
+											+ ". However, node input/target data size is " + tensor.getBuffer().size()
+											+ ". Please check the column selection for this input/target "
+											+ "and validate the node's input/target data.");
 						}
 					}
 				}

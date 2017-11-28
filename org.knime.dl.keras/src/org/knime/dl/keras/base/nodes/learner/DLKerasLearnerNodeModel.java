@@ -454,8 +454,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			if (m_lastConfiguredTableSpec != null) {
 				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
 				if (missingColumns.length != 0) {
-					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of input '"
-							+ tensorSpec.getName() + "' is missing in the input table. Please reconfigure the node.");
+					throw new InvalidSettingsException(
+							"Selected column '" + missingColumns[0] + "' of input '" + tensorSpec.getName()
+									+ "' is missing in the node's input table. Please reconfigure the node.");
 				}
 			}
 			// TODO: check column selection (see dialog)!
@@ -518,8 +519,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			if (m_lastConfiguredTableSpec != null) {
 				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
 				if (missingColumns.length != 0) {
-					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of target '"
-							+ tensorSpec.getName() + "' is missing in the input table. Please reconfigure the node.");
+					throw new InvalidSettingsException(
+							"Selected column '" + missingColumns[0] + "' of target '" + tensorSpec.getName()
+									+ "' is missing in the node's input table. Please reconfigure the node.");
 				}
 			}
 			// TODO: check column selection (see dialog)!
@@ -603,8 +605,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final int[] indices = Arrays.stream(filterConfig.applyTo(inTableSpec).getIncludes()).mapToInt(column -> {
 				final int idx = inTableSpec.findColumnIndex(column);
 				if (idx == -1) {
-					throw new IllegalStateException(
-							"Selected input column '" + column + "' could not be found in the input table.");
+					throw new IllegalStateException("Selected input/target column '" + column
+							+ "' could not be found in the node's input table.");
 				}
 				return idx;
 			}).toArray();
