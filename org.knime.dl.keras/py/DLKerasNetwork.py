@@ -250,7 +250,13 @@ class DLKerasNetwork(DLPythonNetwork):
         return history.history
 
     def save(self, path):
-        self._model.save(path)
+        if not (self._model.layers or []):
+            raise ValueError("Failed to save empty Keras deep learning network. " + 
+                             "Please add at least one layer to the network in order to be able to save it.")
+        try:
+            self._model.save(path)
+        except Exception as e:
+            raise RuntimeError('Failed to save Keras deep learning network.') from e
 
     # "Protected" helper methods:
 
