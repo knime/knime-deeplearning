@@ -658,10 +658,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		} catch (final CanceledExecutionException e) {
 			throw e;
 		} catch (final Exception e) {
-		    Throwable cause = e.getCause();
-            if (cause != null && cause instanceof CanceledExecutionException) {
-                throw (CanceledExecutionException)cause;
-            }
+			final Throwable cause = e.getCause();
+			if (cause != null && cause instanceof CanceledExecutionException) {
+				throw (CanceledExecutionException) cause;
+			}
 			String message;
 			if (e instanceof DLException) {
 				message = e.getMessage();

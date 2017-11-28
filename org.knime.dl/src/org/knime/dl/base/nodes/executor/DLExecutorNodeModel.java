@@ -604,6 +604,10 @@ final class DLExecutorNodeModel extends NodeModel {
 			} catch (final CanceledExecutionException e) {
 				throw e;
 			} catch (final Exception e) {
+				final Throwable cause = e.getCause();
+				if (cause != null && cause instanceof CanceledExecutionException) {
+					throw (CanceledExecutionException) cause;
+				}
 				String message;
 				if (e instanceof DLException) {
 					message = e.getMessage();
@@ -611,7 +615,7 @@ final class DLExecutorNodeModel extends NodeModel {
 					if (!Strings.isNullOrEmpty(e.getMessage())) {
 						LOGGER.error(e.getMessage());
 					}
-					message = "Error occured during execution of network model. See log for details.";
+					message = "An error occured during execution of the deep learning network. See log for details.";
 				}
 				throw new RuntimeException(message, e);
 			} finally {
