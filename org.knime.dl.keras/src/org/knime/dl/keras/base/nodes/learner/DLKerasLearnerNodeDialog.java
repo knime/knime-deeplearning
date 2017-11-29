@@ -85,7 +85,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private final DLDefaultNodeDialogTab m_advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
 
-	private final DLDefaultNodeDialogTab m_trainingTab = new DLDefaultNodeDialogTab("Training Data");
+	private final DLDefaultNodeDialogTab m_inputTab = new DLDefaultNodeDialogTab("Input Data");
 
 	private final DLDefaultNodeDialogTab m_targetTab = new DLDefaultNodeDialogTab("Target Data");
 
@@ -104,10 +104,10 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	private DLNetworkSpec m_lastConfiguredNetworkSpec;
 
 	public DLKerasLearnerNodeDialog() {
+		addTab(m_inputTab.getTitle(), m_inputTab.getTab(), false);
+		addTab(m_targetTab.getTitle(), m_targetTab.getTab(), false);
 		addTab(m_generalTab.getTitle(), m_generalTab.getTab(), false);
 		addTab(m_advancedTab.getTitle(), m_advancedTab.getTab(), false);
-		addTab(m_trainingTab.getTitle(), m_trainingTab.getTab(), false);
-		addTab(m_targetTab.getTitle(), m_targetTab.getTab(), false);
 
 		m_generalCfg = DLKerasLearnerNodeModel.createGeneralModelConfig();
 	}
@@ -254,8 +254,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
 
 		// input settings:
-		m_trainingTab.reset();
-		setWrapperPanel(m_trainingTab.getTabRoot());
+		m_inputTab.reset();
+		setWrapperPanel(m_inputTab.getTabRoot());
 		final JPanel inputsSeparator = new JPanel(new GridBagLayout());
 		final GridBagConstraints inputsSeparatorLabelConstr = new GridBagConstraints();
 		inputsSeparatorLabelConstr.gridwidth = 1;
