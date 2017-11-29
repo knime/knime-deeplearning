@@ -275,6 +275,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			for (int i = 0; i < m_viewSpecs.length; i++) {
 				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) stream.readObject());
 			}
+			m_monitor.setDataUpdate(m_viewData);
+			m_monitor.setHasData(true);
 		} catch (final ClassNotFoundException e) {
 		}
 	}
@@ -353,6 +355,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (int i = 0; i < m_viewData.length; i++) {
 			m_viewData[i] = null;
 		}
+		m_monitor.setHasData(false);
 		// reset views
 		notifyViews(null);
 	}
@@ -629,6 +632,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setCurrentEpoch(0);
 			m_monitor.setCurrentBatchInEpoch(0);
 			m_monitor.setDataUpdate(m_viewData);
+			m_monitor.setHasData(true);
 			m_monitor.setExecutionContext(exec);
 			final AtomicInteger currentEpoch = new AtomicInteger();
 			final AtomicInteger currentBatchInEpoch = new AtomicInteger();

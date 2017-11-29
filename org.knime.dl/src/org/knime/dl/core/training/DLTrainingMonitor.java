@@ -83,4 +83,8 @@ public interface DLTrainingMonitor {
 	void onBatchEnd(Runnable callback);
 
 	void notifyBatchEnd();
+	
+	boolean hasData();
+	
+	void setHasData(boolean hasData);
 }

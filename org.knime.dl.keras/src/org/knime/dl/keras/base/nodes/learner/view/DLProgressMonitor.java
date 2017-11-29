@@ -64,4 +64,8 @@ public interface DLProgressMonitor {
 	int getCurrentBatchInEpoch();
 
 	DLViewData<?>[] getDataUpdate();
+	
+	boolean hasData();
+	
+	void setHasData(boolean hasData);
 }

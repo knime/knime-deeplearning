@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.training.DLKerasTrainingMonitor;
  */
 public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DLProgressMonitor {
 
+	private boolean m_hasData;
+	
 	private int m_numEpochs;
 
 	private int m_numBatchesPerEpoch;
@@ -174,5 +176,15 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 
 	void setExecutionContext(final ExecutionContext exec) {
 		m_exec = exec;
+	}
+
+	@Override
+	public boolean hasData() {
+		return m_hasData;
+	}
+
+	@Override
+	public void setHasData(boolean hasData) {
+		m_hasData = hasData;
 	}
 }
