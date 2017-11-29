@@ -99,7 +99,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private final ArrayList<DLKerasLearnerInputPanel> m_inputPanels = new ArrayList<>();
 
-	private final ArrayList<DLKerasLearnerTargetPanel> m_outputPanels = new ArrayList<>();
+	private final ArrayList<DLKerasLearnerTargetPanel> m_targetPanels = new ArrayList<>();
 
 	private DLNetworkSpec m_lastConfiguredNetworkSpec;
 
@@ -116,7 +116,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	public void reset() {
 		if (m_inputPanels != null) {
 			m_inputPanels.clear();
-			m_outputPanels.clear();
+			m_targetPanels.clear();
 		}
 		super.reset();
 	}
@@ -133,7 +133,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		}
 
 		final NodeSettingsWO outputSettings = settings.addNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
-		for (final DLKerasLearnerTargetPanel outputPanel : m_outputPanels) {
+		for (final DLKerasLearnerTargetPanel outputPanel : m_targetPanels) {
 			outputPanel.saveToSettings(outputSettings);
 		}
 	}
@@ -189,12 +189,13 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 				inputPanel.refreshAllowedInputColumns();
 			}
 
-			for (final DLKerasLearnerTargetPanel outputPanel : m_outputPanels) {
+			for (final DLKerasLearnerTargetPanel outputPanel : m_targetPanels) {
 				outputPanel.refreshAvailableConverters();
 				outputPanel.refreshAllowedInputColumns();
 				outputPanel.refreshAvailableLossFunctions();
 			}
 		}
+		
 		if (m_lastConfiguredNetworkSpec == null || !networkChanged) {
 			try {
 				m_generalCfg.loadFromSettings(settings);
@@ -217,14 +218,14 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			}
 
 			if (settings.containsKey(DLKerasLearnerNodeModel.CFG_KEY_TARGET)) {
-				final NodeSettingsRO outputSettings;
+				final NodeSettingsRO targetSettings;
 				try {
-					outputSettings = settings.getNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
+					targetSettings = settings.getNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
 				} catch (final InvalidSettingsException e) {
 					throw new NotConfigurableException(e.getMessage(), e);
 				}
-				for (final DLKerasLearnerTargetPanel outputPanel : m_outputPanels) {
-					outputPanel.loadFromSettings(outputSettings, specs);
+				for (final DLKerasLearnerTargetPanel targetPanel : m_targetPanels) {
+					targetPanel.loadFromSettings(targetSettings, specs);
 				}
 			}
 		}
@@ -282,27 +283,27 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		// output settings:
 		m_targetTab.reset();
 		setWrapperPanel(m_targetTab.getTabRoot());
-		final JPanel outputsSeparator = new JPanel(new GridBagLayout());
-		final GridBagConstraints outputsSeparatorLabelConstr = new GridBagConstraints();
-		outputsSeparatorLabelConstr.gridwidth = 1;
-		outputsSeparatorLabelConstr.weightx = 0;
-		outputsSeparatorLabelConstr.anchor = GridBagConstraints.WEST;
-		outputsSeparatorLabelConstr.fill = GridBagConstraints.NONE;
-		outputsSeparatorLabelConstr.insets = new Insets(7, 7, 7, 7);
-		final GridBagConstraints outputsSeparatorSeparatorConstr = new GridBagConstraints();
-		outputsSeparatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
-		outputsSeparatorSeparatorConstr.weightx = 1;
-		outputsSeparatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
-		outputsSeparator.add(new JLabel("Training Targets"), outputsSeparatorLabelConstr);
-		outputsSeparator.add(new JSeparator(), outputsSeparatorSeparatorConstr);
-		addPanelToWrapper(outputsSeparator);
+		final JPanel targetsSeparator = new JPanel(new GridBagLayout());
+		final GridBagConstraints targetsSeparatorLabelConstr = new GridBagConstraints();
+		targetsSeparatorLabelConstr.gridwidth = 1;
+		targetsSeparatorLabelConstr.weightx = 0;
+		targetsSeparatorLabelConstr.anchor = GridBagConstraints.WEST;
+		targetsSeparatorLabelConstr.fill = GridBagConstraints.NONE;
+		targetsSeparatorLabelConstr.insets = new Insets(7, 7, 7, 7);
+		final GridBagConstraints targetsSeparatorSeparatorConstr = new GridBagConstraints();
+		targetsSeparatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
+		targetsSeparatorSeparatorConstr.weightx = 1;
+		targetsSeparatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
+		targetsSeparator.add(new JLabel("Training Targets"), targetsSeparatorLabelConstr);
+		targetsSeparator.add(new JSeparator(), targetsSeparatorSeparatorConstr);
+		addPanelToWrapper(targetsSeparator);
 		// outputs
-		for (final DLTensorSpec outputDataSpec : networkSpec.getOutputSpecs()) {
-			if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
-				throw new NotConfigurableException("Target '" + outputDataSpec.getName()
+		for (final DLTensorSpec targetDataSpec : networkSpec.getOutputSpecs()) {
+			if (!DLUtils.Shapes.isFixed(targetDataSpec.getShape())) {
+				throw new NotConfigurableException("Target '" + targetDataSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported.");
 			}
-			addOutputPanel(outputDataSpec, tableSpec, m_generalCfg);
+			addOutputPanel(targetDataSpec, tableSpec, m_generalCfg);
 		}
 
 	}
@@ -317,14 +318,14 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		addPanelToWrapper(inputPanel);
 	}
 
-	private void addOutputPanel(final DLTensorSpec outputDataSpec, final DataTableSpec tableSpec,
+	private void addOutputPanel(final DLTensorSpec targetDataSpec, final DataTableSpec tableSpec,
 			final DLKerasLearnerGeneralConfig generalCfg) throws NotConfigurableException {
 		final DLKerasLearnerTargetConfig targetCfg = DLKerasLearnerNodeModel
-				.createOutputTensorModelConfig(outputDataSpec.getName(), generalCfg);
-		final DLKerasLearnerTargetPanel targetPanel = new DLKerasLearnerTargetPanel(targetCfg, outputDataSpec,
+				.createOutputTensorModelConfig(targetDataSpec.getName(), generalCfg);
+		final DLKerasLearnerTargetPanel targetPanel = new DLKerasLearnerTargetPanel(targetCfg, targetDataSpec,
 				tableSpec);
 		// add target panel to dialog
-		m_outputPanels.add(targetPanel);
+		m_targetPanels.add(targetPanel);
 		addPanelToWrapper(targetPanel);
 	}
 }
