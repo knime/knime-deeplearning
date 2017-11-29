@@ -56,6 +56,9 @@ from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 
+from DLPythonKernelService import DLPythonKernelService
+from DLPythonKernelService import DLPythonNetworkInputBatchGenerator
+
 from DLPythonInstallationTester import compare_versions
 
 from DLPythonNetwork import DLPythonNetwork
@@ -68,6 +71,7 @@ from PythonToJavaMessage import PythonToJavaMessage
 import numpy as np
 import pandas as pd
 import time
+import warnings
 
 
 class DLKerasNetworkReader(DLPythonNetworkReader):
@@ -214,11 +218,10 @@ class DLKerasNetwork(DLPythonNetwork):
         return self._format_output(Y)
 
     def train(self, data_supplier):
+        assert data_supplier is not None
         config = self._spec.training_config
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
-
-        java_callback = data_supplier.java_callback
 
         # TODO: before training: (re)compile model! (if pre-compiled: only compile if training config changed)
         # HACK: old code
@@ -229,29 +232,21 @@ class DLKerasNetwork(DLPythonNetwork):
 
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
-        table_size = data_supplier.size
-        import math
-        steps_per_epoch = math.ceil(table_size / config.batch_size)
-
-        for callback in config.callbacks:
-            if isinstance(callback, DLKerasTrainingReporter):
-                callback.set_java_callback(java_callback)
-                break
+        if not any(isinstance(c, DLKerasTrainingMonitor) for c in config.callbacks):
+            config.callbacks.append(DLKerasTrainingMonitor(self, data_supplier.kernel_service))
 
         kw_max_queue = 'max_queue_size' if compare_versions(keras.__version__, "2.0.5") > 0 else 'max_q_size'
-        history = self._model.fit_generator(data_supplier.get(config.batch_size, table_size, steps_per_epoch,
-                                            self._format_input,
-                                            self._format_target),
-                                            steps_per_epoch,
+        history = self._model.fit_generator(data_supplier.get_generator(),
+                                            data_supplier.steps,
                                             epochs=config.epochs,
                                             verbose=1,
                                             callbacks=config.callbacks,
-                                            **{kw_max_queue : 2})
+                                            **{kw_max_queue: 1})
         return history.history
 
     def save(self, path):
         if not (self._model.layers or []):
-            raise ValueError("Failed to save empty Keras deep learning network. " + 
+            raise ValueError("Failed to save empty Keras deep learning network. " +
                              "Please add at least one layer to the network in order to be able to save it.")
         try:
             self._model.save(path)
@@ -327,94 +322,79 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
         self.optimizer = None
         self.loss = {}
         self.metrics = ['accuracy']
-        self.callbacks = [DLKerasTrainingReporter(), DLKerasUserEarlyStopping()]
+        self.callbacks = []
 
 
-class DLKerasTrainingReporter(keras.callbacks.Callback):
-    def __init__(self):
-        self._java_callback = None
-        
-    def set_java_callback(self, callback):
-        self._java_callback = callback
-        
-    def on_train_begin(self, logs={}):
-        # metrics_names = self.params['metrics']
-        # self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
-        pass
+class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
+    def __init__(self, network, size, batch_size, kernel_service):
+        assert network is not None
+        assert kernel_service is not None
+        input_names = [s.name for s in network.spec.input_specs]
+        target_names = [s.name for s in network.spec.output_specs]
+        super().__init__(input_names, target_names, size, batch_size, kernel_service)
+        self._network = network
+        self._request = DLKerasNetworkInputBatchGenerator.DLKerasTrainingDataRequest(self)
+
+    def _get_batch(self, batch_index):
+        self._request._val = str(batch_index)
+        (x, y) = self.kernel_service.send_to_java(self._request)
+        return (self._network._format_input(x, self._batch_size),
+                self._network._format_target(y, self._batch_size))
+
+    def _process_reponse(self, val):
+        training_data = {}
+        for input_name in self._input_names:
+            training_data[input_name] = self.kernel_service.workspace[input_name]
+        target_data = {}
+        for target_name in self._target_names:
+            target_data[target_name] = self.kernel_service.workspace[target_name]
+        return training_data, target_data
+
+    class DLKerasTrainingDataRequest(PythonToJavaMessage):
+        def __init__(self, outer):
+            super().__init__('request_training_data', None, True)
+            self._outer = outer
+
+        def process_response(self, val):
+            return self._outer._process_reponse(val)
+
+
+class DLKerasTrainingMonitor(keras.callbacks.Callback):
+    def __init__(self, network, kernel_service):
+        self._network = network
+        self._kernel_service = kernel_service
+        self._stop_training = False
+        self._request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
 
     def on_batch_end(self, batch, logs={}):
         acc = None
         loss = None
         for k in self.params['metrics']:
             if k == 'acc':
-                    acc = logs[k]
+                acc = logs[k]
             if k == 'loss':
-                    loss = logs[k]
+                loss = logs[k]
             # TODO: val_loss (when validation set is present)
             # self._metrics.at[0, k] = logs[k]
-            # TODO: send metrics back to Java
-        info = DLOnBatchEndInfo(str(acc) + ';' + str(loss))
-        self._java_callback(info)
+        self._request._val = str(acc) + ';' + str(loss)
+        self._stop_training = self._kernel_service.send_to_java(self._request)
+        if self._stop_training:
+            self._network.model.stop_training = True
 
-
-class DLKerasUserEarlyStopping(keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
-        self._stop = False
+        # metrics_names = self.params['metrics']
+        # self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
+        self._stop_training = False
 
-    def on_batch_end(self, batch, logs={}):
-        if self._stop:
-            self.model.stop_training = True
+    def on_train_end(self, logs={}):
+        if self._stop_training:
+            # flush pending Keras logs before printing our own status message
+            print('', flush=True)
+            print('Training was stopped by the user.')
 
-    # def on_train_end(self, logs=None):
-    #    if self._stop:
-    #        print('Training was stopped.')
+    class DLOnBatchEndMessage(PythonToJavaMessage):
+        def __init__(self):
+            super().__init__('batch_end', None, True)
 
-    def stop(self):
-        self._stop = True
-
-
-class DLDataSupplier:
-    def __init__(self, size, request_func, network, global_dict):
-        self._size = size
-        self._request_func = request_func
-        self._network = network
-        self._global_dict = global_dict
-
-    @property
-    def size(self):
-        return self._size 
-
-    @property
-    def java_callback(self):
-        return self._request_func
-
-    def get(self, batch_size, table_size, steps, training_data_formatter, test_data_formatter):
-        i = 0
-        while True:
-            if i == steps:
-                i = 0
-            request = DLTrainingDataRequest(self._network, self._global_dict, i)
-            # FIXME this shouldn't be required at all.
-            time.sleep(1)
-            (x, y) = self._request_func(request)
-            i += 1
-            yield (training_data_formatter(x, batch_size), test_data_formatter(y, batch_size))
-
-class DLOnBatchEndInfo(PythonToJavaMessage):
-    def __init__(self, metrics):
-        super().__init__('batch_end', metrics, False)
-
-class DLTrainingDataRequest(PythonToJavaMessage):
-    def __init__(self, network, global_dict, batch_index):
-        super().__init__('request_training_data', batch_index, True)
-        self._network = network
-        self._global_dict = global_dict
-
-    def process_response(self, val):
-        training_data = {}
-        for input_spec in self._network.spec.input_specs:
-            training_data[input_spec.name] = self._global_dict[input_spec.name]
-        target_data = {}
-        for output_spec in self._network.spec.output_specs:
-            target_data[output_spec.name] = self._global_dict[output_spec.name]
-        return training_data, target_data
+        def process_response(self, val):
+            return val == 's'
