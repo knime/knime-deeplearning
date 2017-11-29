@@ -382,6 +382,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				for (int i = 0; i < metricsStr.length; i++) {
 					metrics[i] = Float.parseFloat(metricsStr[i]);
 				}
+				messages.answer(new DefaultJavaToPythonResponse(msg, monitor.isRunning() ? "c" : "s"));
 				monitor.setCurrentMetrics(metrics);
 				monitor.notifyBatchEnd();
 			}
@@ -391,9 +392,11 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				.n("from DLKerasNetwork import DLDataSupplier") //
-				.n("data_supplier = DLDataSupplier(").a(inputSupplier.size())
-				.a(", request_from_java, network, globals())") //
+				.n("from DLPythonKernelService import DLPythonKernelService") //
+				.n("kernel_service = DLPythonKernelService(globals(), request_from_java)") //
+				.n("from DLKerasNetwork import DLKerasNetworkInputBatchGenerator") //
+				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.size())
+				.a(", network.spec.training_config.batch_size, kernel_service)") //
 				.n("network.train(data_supplier)");
 		getContext().executeInKernel(b.toString());
 
