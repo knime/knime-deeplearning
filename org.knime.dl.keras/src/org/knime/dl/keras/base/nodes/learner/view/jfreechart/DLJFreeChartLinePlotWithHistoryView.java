@@ -1,5 +1,6 @@
 package org.knime.dl.keras.base.nodes.learner.view.jfreechart;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -20,25 +21,26 @@ import javax.swing.Timer;
 import javax.swing.text.DefaultCaret;
 
 import org.knime.dl.keras.base.nodes.learner.view.DLFloatData;
-import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLView;
 
-public class DLJFreeChartLinePlotTab extends JPanel {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	private final DLJFreeChartLinePlotView m_linePlotView;
+/**
+ * DLView containing of a {@link JFreeChartLinePlotPanel} and a textual history view. 
+ * 
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ */
+public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartLinePlotViewSpec> {
+
+	private final JFreeChartLinePlotPanel m_linePlot;
 	private final List<JTextArea> m_historyAreas = new ArrayList<JTextArea>();
 	private final List<JLabel> m_currentValueLabels = new ArrayList<JLabel>();
 	private final float[] m_currentValues;
 	
+	private final JPanel m_component;
+	
 	private final Timer m_currentValueUpdateTimer = new Timer(1000, (e) -> updateCurrentValueLabels());
 	
-	public DLJFreeChartLinePlotTab(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
-		super(new GridBagLayout());
+	public DLJFreeChartLinePlotWithHistoryView(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
+		m_component = new JPanel(new GridBagLayout()); 
 		
 		m_currentValues = new float[plotViewSpec.numPlots()];
 		
@@ -48,7 +50,7 @@ public class DLJFreeChartLinePlotTab extends JPanel {
         for (int i = 0; i < plotViewSpec.numPlots(); i++) {
         	JTextArea historyArea = new JTextArea();
         	DefaultCaret caret = (DefaultCaret)historyArea.getCaret();
-        	//enable automatic to bottom scrolling
+        	// Enable automatic to bottom scrolling
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         	historyArea.setEditable(false);
         	m_historyAreas.add(historyArea);
@@ -79,7 +81,7 @@ public class DLJFreeChartLinePlotTab extends JPanel {
         	historyTabsPane.addTab(plotViewSpec.getLineLabel(i), historyWrapper);
         }
 		
-		m_linePlotView = new DLJFreeChartLinePlotView(plotViewSpec);
+		m_linePlot = new JFreeChartLinePlotPanel(plotViewSpec);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -87,7 +89,7 @@ public class DLJFreeChartLinePlotTab extends JPanel {
         gbc.weighty = 1;
         gbc.insets = new Insets(0, 0, 0, 10);
         gbc.fill = GridBagConstraints.BOTH;
-        add(m_linePlotView.getComponent(), gbc);
+        m_component.add(m_linePlot.getComponent(), gbc);
         
         historyTabsPane.setPreferredSize(new Dimension(250, 500));
         historyTabsPane.setMinimumSize(new Dimension(250, 500));
@@ -95,29 +97,13 @@ public class DLJFreeChartLinePlotTab extends JPanel {
         gbc.gridx = 1;
         gbc.weightx = 0.4;
         gbc.weighty = 1;
-        add(historyTabsPane, gbc);
+        m_component.add(historyTabsPane, gbc);
 	}
 	
 	private void updateCurrentValueLabels(){
 		for(int i = 0; i < m_currentValues.length; i++){
 			m_currentValueLabels.get(i).setText(m_currentValues[i] + "");
 		}
-	}
-	
-	public void update(DLLinePlotViewData<DLJFreeChartLinePlotViewSpec> data) {		
-		for (int i = 0; i < data.getViewSpec().numPlots(); i++) {			
-			Iterator<DLFloatData> it = data.getData(i);
-			while (it.hasNext()) {
-				float value = it.next().get();
-				m_linePlotView.plotNext(i, value);
-				m_historyAreas.get(i).append(value + "\n");
-				m_currentValues[i] = value;
-			}
-		}
-	}
-	
-	public DLView<?> getDLView(){
-		return m_linePlotView;
 	}
 	
 	public void setCurrentValueTimerUpdateDelay(int miliseconds){
@@ -133,6 +119,24 @@ public class DLJFreeChartLinePlotTab extends JPanel {
 	public void stopCurrentValueUpdate(){
 		if(m_currentValueUpdateTimer.isRunning()){
 			m_currentValueUpdateTimer.stop();
+		}
+	}
+
+	@Override
+	public Component getComponent() {
+		return m_component;
+	}
+
+	@Override
+	public void update(DLJFreeChartLinePlotViewSpec spec, Iterator<DLFloatData>[] iterators) {
+		for (int i = 0; i < iterators.length; i++) {
+			Iterator<DLFloatData> it = iterators[i];
+			while (it.hasNext()) {
+				float value = it.next().get();
+				m_linePlot.plotNext(i, value);
+				m_historyAreas.get(i).append(value + "\n");
+				m_currentValues[i] = value;
+			}
 		}
 	}
 	

@@ -1,11 +1,12 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
 import java.awt.Component;
+import java.util.Iterator;
 
-public interface DLView<D extends DLViewData<?>> {
+public interface DLView<D extends DLLinePlotViewSpec> {
 
 	Component getComponent();
 
-	void update(D data);
+	void update(D spec, Iterator<DLFloatData>[] iterators);
 
 }

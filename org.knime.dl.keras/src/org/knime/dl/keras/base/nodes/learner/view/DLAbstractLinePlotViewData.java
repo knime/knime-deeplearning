@@ -6,21 +6,11 @@ public abstract class DLAbstractLinePlotViewData<S extends DLLinePlotViewSpec> i
 
 	protected S m_spec;
 	protected float[][] m_data;
-
 	private int m_length;
 
-	private Iterator<DLFloatData>[] m_iterators;
-
-	@SuppressWarnings("unchecked")
 	protected DLAbstractLinePlotViewData(final S spec, float[][] data, int length) {
 		m_spec = spec;
 		m_data = data;
-
-		m_iterators = new Iterator[m_data.length];
-		for (int i = 0; i < m_iterators.length; i++) {
-			m_iterators[i] = new DLFloatDataIterator(i);
-		}
-
 		m_length = length;
 	}
 
@@ -39,10 +29,15 @@ public abstract class DLAbstractLinePlotViewData<S extends DLLinePlotViewSpec> i
 	public S getViewSpec() {
 		return m_spec;
 	}
-
+	
+	@SuppressWarnings("unchecked")
 	@Override
-	public Iterator<DLFloatData> getData(int lineIdx) {
-		return m_iterators[lineIdx];
+	public Iterator<DLFloatData>[] iterators() {
+		Iterator<DLFloatData>[] iterators = new Iterator[m_data.length];
+		for (int i = 0; i < iterators.length; i++) {
+			iterators[i] = new DLFloatDataIterator(i);
+		}
+		return iterators;
 	}
 
 	@Override
@@ -59,7 +54,7 @@ public abstract class DLAbstractLinePlotViewData<S extends DLLinePlotViewSpec> i
 			}
 		}
 		return out;
-	};
+	}
 
 	// simple helper
 	class DLFloatDataIterator implements Iterator<DLFloatData> {
