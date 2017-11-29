@@ -54,6 +54,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -629,13 +630,17 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setNumEpochs(epochs);
 			m_monitor.setNumBatchesPerEpoch(numBatchesPerEpoch);
 			m_monitor.setIsRunning(true);
+			m_monitor.setHasData(true);
+			m_monitor.setStartTime(null);
 			m_monitor.setCurrentEpoch(0);
 			m_monitor.setCurrentBatchInEpoch(0);
 			m_monitor.setDataUpdate(m_viewData);
-			m_monitor.setHasData(true);
 			m_monitor.setExecutionContext(exec);
 			final AtomicInteger currentEpoch = new AtomicInteger();
 			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
+			m_monitor.onTrainingStart(() -> {
+				m_monitor.setStartTime(LocalTime.now());
+			});
 			m_monitor.onBatchEnd(() -> {
 				if (currentBatchInEpoch.get() + 1 == numBatchesPerEpoch) {
 					m_monitor.setCurrentEpoch(currentEpoch.incrementAndGet());

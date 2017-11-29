@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
+import java.time.LocalTime;
+
 import org.knime.core.node.ExecutionContext;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
 import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
@@ -57,13 +59,15 @@ import org.knime.dl.keras.core.training.DLKerasTrainingMonitor;
  */
 public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DLProgressMonitor {
 
-	private boolean m_hasData;
-	
 	private int m_numEpochs;
 
 	private int m_numBatchesPerEpoch;
 
 	private boolean m_isRunning;
+
+	private boolean m_hasData;
+
+	private LocalTime m_startTime;
 
 	private int m_currentEpoch;
 
@@ -76,6 +80,8 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	private DLViewData<?>[] m_viewData;
 
 	private ExecutionContext m_exec;
+
+	private Runnable m_onTrainingStartCallback;
 
 	private Runnable m_onBatchEndCallback;
 
@@ -97,6 +103,21 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	@Override
 	public void setIsRunning(final boolean isRunning) {
 		m_isRunning = isRunning;
+	}
+
+	@Override
+	public boolean hasData() {
+		return m_hasData;
+	}
+
+	@Override
+	public void setHasData(final boolean hasData) {
+		m_hasData = hasData;
+	}
+
+	@Override
+	public LocalTime getStartTime() {
+		return m_startTime;
 	}
 
 	@Override
@@ -155,6 +176,18 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	}
 
 	@Override
+	public void onTrainingStart(final Runnable callback) {
+		m_onTrainingStartCallback = callback;
+	}
+
+	@Override
+	public void notifyTrainingStart() {
+		if (m_onTrainingStartCallback != null) {
+			m_onTrainingStartCallback.run();
+		}
+	}
+
+	@Override
 	public void onBatchEnd(final Runnable callback) {
 		m_onBatchEndCallback = callback;
 	}
@@ -174,17 +207,11 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		m_numBatchesPerEpoch = numBatchesPerEpoch;
 	}
 
+	void setStartTime(final LocalTime startTime) {
+		m_startTime = startTime;
+	}
+
 	void setExecutionContext(final ExecutionContext exec) {
 		m_exec = exec;
-	}
-
-	@Override
-	public boolean hasData() {
-		return m_hasData;
-	}
-
-	@Override
-	public void setHasData(boolean hasData) {
-		m_hasData = hasData;
 	}
 }

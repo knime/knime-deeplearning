@@ -398,6 +398,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.size())
 				.a(", network.spec.training_config.batch_size, kernel_service)") //
 				.n("network.train(data_supplier)");
+		monitor.notifyTrainingStart();
 		getContext().executeInKernel(b.toString());
 
 		messages.unregisterMessageHandler(dataRequestHandler);

@@ -62,6 +62,10 @@ public interface DLTrainingMonitor {
 
 	void setIsRunning(boolean isRunning);
 
+	boolean hasData();
+
+	void setHasData(boolean hasData);
+
 	int getCurrentEpoch();
 
 	void setCurrentEpoch(int currentEpoch);
@@ -80,11 +84,11 @@ public interface DLTrainingMonitor {
 
 	ExecutionContext getExecutionContext();
 
+	void onTrainingStart(Runnable callback);
+
+	void notifyTrainingStart();
+
 	void onBatchEnd(Runnable callback);
 
 	void notifyBatchEnd();
-	
-	boolean hasData();
-	
-	void setHasData(boolean hasData);
 }

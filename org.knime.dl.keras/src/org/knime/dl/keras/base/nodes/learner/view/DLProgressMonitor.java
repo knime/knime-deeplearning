@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view;
 
+import java.time.LocalTime;
+
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -59,13 +61,15 @@ public interface DLProgressMonitor {
 	// TODO: potentially later we can extend this...
 	boolean isRunning();
 
+	boolean hasData();
+
+	void setHasData(boolean hasData);
+
+	LocalTime getStartTime();
+
 	int getCurrentEpoch();
 
 	int getCurrentBatchInEpoch();
 
 	DLViewData<?>[] getDataUpdate();
-	
-	boolean hasData();
-	
-	void setHasData(boolean hasData);
 }
