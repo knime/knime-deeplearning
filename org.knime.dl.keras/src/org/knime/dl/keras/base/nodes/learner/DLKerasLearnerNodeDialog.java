@@ -182,7 +182,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			createDialogContent(portObjectSpec, tableSpec);
 
 			m_generalPanel.refreshAvailableBackends();
-			// m_optiPanel.refreshAvailableOptimizers();
+			m_optiPanel.refreshAvailableOptimizers();
 
 			for (final DLKerasLearnerInputPanel inputPanel : m_inputPanels) {
 				inputPanel.refreshAvailableConverters();
