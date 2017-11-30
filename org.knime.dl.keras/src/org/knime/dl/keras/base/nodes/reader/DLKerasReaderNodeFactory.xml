@@ -14,12 +14,11 @@
 			just a network specification without weights (.json or .yaml file).
 		</intro>
 		<option name="Input Location">The path to the input file that contains the Keras
-			network.
+			network. KNIME URLs like "knime://knime.workflow/ ... &lt;filename&gt;" are supported.
 		</option>
 		<option name="Copy deep learning network into KNIME workflow?">
 			If selected, the Keras network will be copied into
-			the KNIME workflow, i.e. it will be available when exporting the
-			KNIME workflow with data. Otherwise, only a reference to the actual network file is used by KNIME.
+			the KNIME workflow, so that it is available for export with the workflow. Otherwise, only a reference to the actual network file is used by KNIME.
 		</option>
 	</fullDescription>
 	<ports>
