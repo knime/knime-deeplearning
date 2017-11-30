@@ -94,6 +94,12 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 
 	public void train(final DLRowIterator inputIterator, final DLTrainingMonitor monitor) throws Exception {
 		final long batchSize = m_network.getNetwork().getTrainingConfig().getBatchSize();
+		if (inputIterator.size() % batchSize != 0) {
+			LOGGER.warn("The number of rows of the input table (" + inputIterator.size()
+					+ ") is not a multiple of the selected batch size (" + batchSize
+					+ "). Thus, the last batch of each epoch will continue at the beginning of the table after reaching its end. "
+					+ "You can avoid that by adjusting the number of rows of the input table or the batch size if desired.");
+		}
 		final AtomicLong requestedBatchesCurrent = new AtomicLong();
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
 		// alternative strategy for handling incomplete batches.
