@@ -114,7 +114,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 	private final DLProgressMonitor m_progressMonitor;
 
-	private int m_lastEpoch = -1;
+	private int m_lastEpoch = 0;
 
 	/**
 	 * Flag indicating if the data iterators have been initialized.
