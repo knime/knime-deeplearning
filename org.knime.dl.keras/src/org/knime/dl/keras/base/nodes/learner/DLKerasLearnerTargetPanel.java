@@ -179,6 +179,10 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns());
 		m_cfg.getConverterEntry().addLoadListener((entry) -> refreshAllowedInputColumns());
+
+		m_dcConverter.getConfigEntry().addLoadPredicate((e) -> {
+			return m_lastTableSpec.containsCompatibleType(e.getValue().getSourceType());
+		});
 	}
 
 	DLKerasLearnerTargetConfig getConfig() {
@@ -202,8 +206,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		final FilterResult filter = m_cfg.getInputColumnsEntry().getValue().applyTo(m_lastTableSpec);
 		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
 				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
-				.getValue();
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
+				m_cfg.getConverterEntry().getValue();
 		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
 		if (destSizeOpt.isPresent()) {
 			final long converterOutputSize = destSizeOpt.getAsLong();
@@ -241,8 +245,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
-		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerTargetConfig
-				.getAvailableConverters(trainingContext, m_lastTableSpec, m_outputDataSpec);
+		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories =
+				DLKerasLearnerTargetConfig.getAvailableConverters(trainingContext, m_lastTableSpec, m_outputDataSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
 					"No converters available for target '" + m_outputDataSpec.getName() + "'.");
@@ -266,8 +270,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				}
 			}
 		}
-		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-				.comparing(DLDataValueToTensorConverterFactory::getName);
+		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
+				Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
 		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
 				Stream.concat(builtInElement.stream().sorted(nameComparator),
 						extensionElement.stream().sorted(nameComparator)),
@@ -283,7 +287,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 			m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
 					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
-			DataColumnSpecFilterConfiguration filterConfig = m_cfg.getInputColumnsEntry().getValue();
+			final DataColumnSpecFilterConfiguration filterConfig = m_cfg.getInputColumnsEntry().getValue();
 			m_dcInputColumns.updateWithNewConfiguration(filterConfig);
 		}
 		// FIXME (knime-core):
@@ -307,8 +311,9 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			throw new NotConfigurableException("No loss functions available for output '" + m_outputDataSpec.getName()
 					+ "' (with training context '" + trainingContext.getName() + "').");
 		}
-		final DLKerasLossFunction selectedLossFunction = m_cfg.getLossFunctionEntry().getValue() != null
-				? m_cfg.getLossFunctionEntry().getValue() : availableLossFunctions.get(0);
+		final DLKerasLossFunction selectedLossFunction =
+				m_cfg.getLossFunctionEntry().getValue() != null ? m_cfg.getLossFunctionEntry().getValue()
+						: availableLossFunctions.get(0);
 		for (int i = availableLossFunctions.size() - 1; i >= 0; i--) {
 			if (availableLossFunctions.get(i).getClass() == selectedLossFunction.getClass()) {
 				availableLossFunctions.remove(i);
