@@ -396,6 +396,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			optimizer = availableOptimizers.get(0);
 			m_generalCfg.getOptimizerEntry().setValue(optimizer);
 		}
+		m_generalCfg.copyClipSettingsToOptimizer();
 	}
 
 	private void configureInputs(final DLNetworkSpec inNetworkSpec, final DataTableSpec inTableSpec)
