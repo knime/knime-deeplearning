@@ -636,14 +636,19 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setIsRunning(true);
 			m_monitor.setHasData(true);
 			m_monitor.setStartTime(null);
+			m_monitor.setEndTime(null);
 			m_monitor.setCurrentEpoch(0);
 			m_monitor.setCurrentBatchInEpoch(0);
 			m_monitor.setDataUpdate(m_viewData);
 			m_monitor.setExecutionContext(exec);
 			final AtomicInteger currentEpoch = new AtomicInteger();
 			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
-			m_monitor.onTrainingStart(() -> {
-				m_monitor.setStartTime(LocalTime.now());
+			m_monitor.onTrainingStart(() -> m_monitor.setStartTime(LocalTime.now()));
+			m_monitor.onTrainingEnd(() -> {
+				m_monitor.setEndTime(LocalTime.now());
+				// there might be a significant time difference between last batch end and training end, so let's update
+				// the view one more time
+				notifyViews(m_monitor);
 			});
 			m_monitor.onBatchEnd(() -> {
 				if (currentBatchInEpoch.get() + 1 == numBatchesPerEpoch) {

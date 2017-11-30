@@ -403,6 +403,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 		messages.unregisterMessageHandler(dataRequestHandler);
 		messages.unregisterMessageHandler(onBatchEndHandler);
+
+		monitor.notifyTrainingEnd();
 	}
 
 	@Override

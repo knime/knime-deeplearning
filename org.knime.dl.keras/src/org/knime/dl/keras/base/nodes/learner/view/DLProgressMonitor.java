@@ -68,6 +68,8 @@ public interface DLProgressMonitor extends Externalizable {
 
 	LocalTime getStartTime();
 
+	LocalTime getEndTime();
+
 	int getCurrentEpoch();
 
 	int getCurrentBatchInEpoch();

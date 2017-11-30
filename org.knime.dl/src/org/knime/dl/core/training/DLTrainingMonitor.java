@@ -88,7 +88,13 @@ public interface DLTrainingMonitor {
 
 	void notifyTrainingStart();
 
+	void onTrainingEnd(Runnable callback);
+
+	void notifyTrainingEnd();
+
 	void onBatchEnd(Runnable callback);
 
 	void notifyBatchEnd();
+
+	// TODO: add callbacks for batch start, epoch start, epoch end?
 }

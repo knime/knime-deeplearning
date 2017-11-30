@@ -72,6 +72,8 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 
 	private LocalTime m_startTime;
 
+	private LocalTime m_endTime;
+
 	private int m_currentEpoch;
 
 	private int m_currentBatchInEpoch;
@@ -85,6 +87,8 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	private ExecutionContext m_exec;
 
 	private Runnable m_onTrainingStartCallback;
+
+	private Runnable m_onTrainingEndCallback;
 
 	private Runnable m_onBatchEndCallback;
 
@@ -121,6 +125,11 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	@Override
 	public LocalTime getStartTime() {
 		return m_startTime;
+	}
+
+	@Override
+	public LocalTime getEndTime() {
+		return m_endTime;
 	}
 
 	@Override
@@ -191,6 +200,18 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	}
 
 	@Override
+	public void onTrainingEnd(final Runnable callback) {
+		m_onTrainingEndCallback = callback;
+	}
+
+	@Override
+	public void notifyTrainingEnd() {
+		if (m_onTrainingEndCallback != null) {
+			m_onTrainingEndCallback.run();
+		}
+	}
+
+	@Override
 	public void onBatchEnd(final Runnable callback) {
 		m_onBatchEndCallback = callback;
 	}
@@ -209,6 +230,7 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		objOut.writeBoolean(m_isRunning);
 		objOut.writeBoolean(m_hasData);
 		objOut.writeObject(m_startTime);
+		objOut.writeObject(m_endTime);
 		objOut.writeInt(m_currentEpoch);
 		objOut.writeInt(m_currentBatchInEpoch);
 		objOut.writeObject(m_metricsNames);
@@ -222,6 +244,7 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		m_isRunning = objIn.readBoolean();
 		m_hasData = objIn.readBoolean();
 		m_startTime = (LocalTime) objIn.readObject();
+		m_endTime = (LocalTime) objIn.readObject();
 		m_currentEpoch = objIn.readInt();
 		m_currentBatchInEpoch = objIn.readInt();
 		m_metricsNames = (String[]) objIn.readObject();
@@ -238,6 +261,10 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 
 	void setStartTime(final LocalTime startTime) {
 		m_startTime = startTime;
+	}
+
+	void setEndTime(final LocalTime endTime) {
+		m_endTime = endTime;
 	}
 
 	void setExecutionContext(final ExecutionContext exec) {
