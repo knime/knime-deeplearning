@@ -95,7 +95,6 @@ public abstract class DLAbstractLinePlotViewData<S extends DLLinePlotViewSpec> i
 
 	@Override
 	public float[][] asArray() {
-		// TODO TEST
 		final float[][] out;
 		// all points have been set. no need to worry.
 		if (m_length == m_data[0].length) {
@@ -103,7 +102,7 @@ public abstract class DLAbstractLinePlotViewData<S extends DLLinePlotViewSpec> i
 		} else {
 			out = new float[m_data.length][m_length];
 			for (int i = 0; i < out.length; i++) {
-				System.arraycopy(m_data[i], 0, out, 0, m_length);
+				System.arraycopy(m_data[i], 0, out[i], 0, m_length);
 			}
 		}
 		return out;
