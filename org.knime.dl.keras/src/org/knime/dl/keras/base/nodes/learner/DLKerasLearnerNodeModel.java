@@ -624,7 +624,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			columns.put(tensorSpec, indices);
 		}
 
-		// FIXME: only valid if we don't crop the last batch
+		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
+		// alternative strategy for handling incomplete batches.
 		final int numBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) batchSize);
 		final int totalNumBatches = epochs * numBatchesPerEpoch;
 		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);

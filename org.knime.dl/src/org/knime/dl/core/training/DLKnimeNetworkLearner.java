@@ -93,11 +93,12 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 	}
 
 	public void train(final DLRowIterator inputIterator, final DLTrainingMonitor monitor) throws Exception {
-		final long expectedBatchSize = m_network.getNetwork().getTrainingConfig().getBatchSize();
+		final long batchSize = m_network.getNetwork().getTrainingConfig().getBatchSize();
 		final AtomicLong requestedBatchesCurrent = new AtomicLong();
-		// FIXME: only valid if we don't crop the last batch
+		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
+		// alternative strategy for handling incomplete batches.
 		final long requestedBatchesTotal = m_network.getNetwork().getTrainingConfig().getEpochs()
-				* (long) Math.ceil(inputIterator.size() / (double) expectedBatchSize);
+				* (long) Math.ceil(inputIterator.size() / (double) batchSize);
 		m_network.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
 			@Override
@@ -109,10 +110,9 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 			public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> inputTensors,
 					final long batchIndex) throws CanceledExecutionException {
 				// fill tensors (= batch) row by row of the input table
-				final long batchOffset = batchIndex * expectedBatchSize;
 				long rowIndex;
-				for (rowIndex = 0; rowIndex < expectedBatchSize; rowIndex++) {
-					final Map<DLTensorSpec, List<DataValue>> row = inputIterator.get(batchOffset + rowIndex);
+				for (rowIndex = 0; rowIndex < batchSize; rowIndex++) {
+					final Map<DLTensorSpec, List<DataValue>> row = inputIterator.next();
 					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : inputTensors
 							.entrySet()) {
 						final DLTensorSpec tensorSpec = entry.getKey();
@@ -127,19 +127,18 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 							throw new DLInvalidNetworkInputException(
 									"Node input/target data size exceeds the expected size of network input/target '"
 											+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-											+ ", batch size is " + expectedBatchSize
-											+ ". Thus, expected input/target data size is "
-											+ sampleSize * expectedBatchSize
+											+ ", batch size is " + batchSize
+											+ ". Thus, expected input/target data size is " + sampleSize * batchSize
 											+ ". Please check the column selection for this input/target "
 											+ "and validate the node's input/target data.",
 									ex);
 						}
 					}
 					if (!inputIterator.hasNext()) {
-						break;
+						inputIterator.reset();
 					}
 				}
-				// check if tensors are entirely filled
+				// check if tensors are correctly filled
 				for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : inputTensors.entrySet()) {
 					final DLTensorSpec tensorSpec = entry.getKey();
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
@@ -147,22 +146,13 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 						final long sampleSize = DLUtils.Shapes.getFixedSize(tensorSpec.getShape())
 								.orElseThrow(() -> new DLInvalidNetworkInputException("Tensor '" + tensorSpec.getName()
 										+ "' does not provide a fully defined shape. This is not supported, yet."));
-						if (rowIndex + 1 < expectedBatchSize) {
-							// pad buffer if its only partially filled
-							tensor.getBuffer().setSize(sampleSize * expectedBatchSize);
-							LOGGER.warn("Zero-pad an input batch of network input/target '" + tensorSpec.getName()
-									+ "' as its size is " + (rowIndex + 1) + " while the expected batch size is "
-									+ expectedBatchSize
-									+ ". This might lead to undesired training behavior depending on the network's semantics. "
-									+ "You can avoid that by using an input table "
-									+ "which number of rows is a multiple of the expected batch size.");
-						} else if (tensor.getBuffer().size() % (sampleSize * expectedBatchSize) != 0) {
+						if (tensor.getBuffer().size() % (sampleSize * batchSize) != 0) {
 							throw new DLInvalidNetworkInputException(
 									"Node input/target data size does not match the expected size of network input/target '"
 											+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-											+ ", batch size is " + expectedBatchSize
-											+ ". Thus, expected input/target size is " + sampleSize * expectedBatchSize
-											+ ". However, node input/target data size is " + tensor.getBuffer().size()
+											+ ", batch size is " + batchSize + ". Thus, expected input/target size is "
+											+ sampleSize * batchSize + ". However, node input/target data size is "
+											+ tensor.getBuffer().size()
 											+ ". Please check the column selection for this input/target "
 											+ "and validate the node's input/target data.");
 						}
