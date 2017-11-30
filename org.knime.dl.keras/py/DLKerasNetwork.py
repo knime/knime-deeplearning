@@ -100,16 +100,16 @@ class DLKerasNetwork(DLPythonNetwork):
     def spec(self):
         if self._spec is None:
             model = self._model
-            model_inputs = set(model.inputs)
-            model_outputs = set(model.outputs)
+            model_inputs = model.inputs
+            model_outputs = model.outputs
 
             # tensors:
             visited_inputs = set()
             visited_outputs = set()
 
-            input_specs = list()
+            input_specs = [None] * len(model_inputs)
             intermediate_output_specs = list()
-            output_specs = list()
+            output_specs = [None] * len(model_outputs)
 
             output_layer_tensor_names = {}
 
@@ -130,7 +130,8 @@ class DLKerasNetwork(DLPythonNetwork):
                             tensor_shape = input_shapes[tensor_idx]
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
                                                                 tensor_id, input_tensor, tensor_shape)
-                            input_specs.append(tensor_spec)
+                            # preserve order of input tensors
+                            input_specs[model_inputs.index(input_tensor)] = tensor_spec
                     # outputs:
                     output_tensors = layer.get_output_at(node_idx)
                     output_shapes = layer.get_output_shape_at(node_idx)
@@ -147,10 +148,14 @@ class DLKerasNetwork(DLPythonNetwork):
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
                                                                 tensor_id, output_tensor, tensor_shape)
                             if output_tensor in model_outputs:
-                                output_specs.append(tensor_spec)
+                                # preserve order of output tensors
+                                output_specs[model_outputs.index(output_tensor)] = tensor_spec
                                 output_layer_tensor_names.setdefault(layer.name, []).append(tensor_spec.name)
                             else:
                                 intermediate_output_specs.append(tensor_spec)
+            assert all(spec is not None for spec in input_specs)
+            assert all(spec is not None for spec in intermediate_output_specs)
+            assert all(spec is not None for spec in output_specs)
 
             # training configuration:
             training_config = None
