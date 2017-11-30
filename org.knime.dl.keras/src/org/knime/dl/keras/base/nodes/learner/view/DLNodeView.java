@@ -183,17 +183,17 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(10, 10, 0, 0);
-		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. Seconds/Epoch");
+		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. seconds/epoch");
 		m_mainContainer.add(m_epochProgressBar, gbc);
 
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 10, 10, 0);
-		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. Seconds/Batch");
+		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. seconds/batch");
 		m_mainContainer.add(m_batchProgressBar, gbc);
 
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 15, 10, 0);
-		m_startTime = new LeftAlignLabelWithValue("Start Time: ");
+		m_startTime = new LeftAlignLabelWithValue("Start time: ");
 		m_startTime.setValue(String.format(TIME_DISPLAY_FORMAT, 0, 0, 0));
 		m_mainContainer.add(m_startTime, gbc);
 
@@ -203,7 +203,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_mainContainer.add(m_elapsedTime, gbc);
 
 		gbc.gridy++;
-		final LeftAlignButton stopButton = new LeftAlignButton("Stop Learning");
+		final LeftAlignButton stopButton = new LeftAlignButton("Stop learning");
 		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
 		gbc.insets = new Insets(10, 15, 10, 0);
 		m_mainContainer.add(stopButton, gbc);
