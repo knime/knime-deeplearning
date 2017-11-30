@@ -51,7 +51,7 @@ package org.knime.dl.keras.base.nodes.learner;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -73,7 +73,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
@@ -171,6 +170,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		});
 		m_cfg.getConverterEntry().addLoadListener((entry) -> {
 			refreshAllowedInputColumns();
+			m_dcConverter.update();
 		});
 
 		m_dcConverter.getConfigEntry().addLoadPredicate((e) -> {
@@ -190,18 +190,14 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape())
 				.orElseThrow(() -> new InvalidSettingsException("Training input '" + m_inputDataSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported.")));
-		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
-		m_cfg.saveToSettings(settings);
 		// validate input: get user-selected columns and converter, ask
 		// converter for its output size given the input
 		// columns (if possible) and compare to number of available input
 		// neurons
-		final FilterResult filter = m_cfg.getInputColumnsEntry().getValue().applyTo(m_lastTableSpec);
-		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
-				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
-				.getValue();
-		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
+		final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
+				m_cfg.getConverterEntry().getValue();
+		final OptionalLong destSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
 		if (destSizeOpt.isPresent()) {
 			final long converterOutputSize = destSizeOpt.getAsLong();
 			if (converterOutputSize > inputSize) {
@@ -224,6 +220,9 @@ final class DLKerasLearnerInputPanel extends JPanel {
 						+ "'. Try removing some columns from the selection.");
 			}
 		}
+
+		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
+		m_cfg.saveToSettings(settings);
 
 	}
 
