@@ -132,7 +132,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	static final int OUT_NETWORK_PORT_IDX = 0;
 
-	static final String CFG_KEY_TRAINING = "training";
+	static final String CFG_KEY_INPUT = "training";
 
 	static final String CFG_KEY_TARGET = "target";
 
@@ -304,7 +304,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_generalCfg.copyClipSettingsToOptimizer();
 			m_generalCfg.saveToSettings(settings);
 
-			final NodeSettingsWO inputSettings = settings.addNodeSettings(CFG_KEY_TRAINING);
+			final NodeSettingsWO inputSettings = settings.addNodeSettings(CFG_KEY_INPUT);
 			for (final DLKerasLearnerInputConfig inputCfg : m_inputCfgs.values()) {
 				inputCfg.saveToSettings(inputSettings);
 			}
@@ -321,7 +321,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_inputCfgs.clear();
-		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_TRAINING);
+		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
 		for (final String layerName : inputSettings) {
 			final DLKerasLearnerInputConfig inputCfg = createInputTensorModelConfig(layerName, m_generalCfg);
 			m_inputCfgs.put(layerName, inputCfg);
@@ -340,7 +340,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_generalCfg.loadFromSettings(settings);
 		m_generalCfg.copyClipSettingsToOptimizer();
 
-		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_TRAINING);
+		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
 		for (final DLKerasLearnerInputConfig inputCfg : m_inputCfgs.values()) {
 			inputCfg.loadFromSettingsInModel(inputSettings);
 		}

@@ -159,6 +159,15 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		add(m_dcLossFunction.getComponentPanel(), constr);
 		constr.gridy++;
 
+		m_cfg.getGeneralConfig().getTrainingContextEntry().addLoadListener((entry) -> {
+			try {
+				refreshAvailableConverters();
+				refreshAvailableLossFunctions();
+			} catch (final NotConfigurableException ex) {
+				throw new IllegalStateException(ex.getMessage(), ex);
+			}
+		});
+
 		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
 			try {
 				refreshAvailableConverters();
@@ -167,7 +176,9 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
+
 		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns());
+		m_cfg.getConverterEntry().addLoadListener((entry) -> refreshAllowedInputColumns());
 	}
 
 	DLKerasLearnerTargetConfig getConfig() {
@@ -184,8 +195,10 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 						+ "' has an (at least partially) unknown shape. This is not supported.")));
 		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
 		m_cfg.saveToSettings(settings);
-		// validate input: get user-selected columns and converter, ask converter for its output size given the input
-		// columns (if possible) and compare to number of available target neurons
+		// validate input: get user-selected columns and converter, ask
+		// converter for its output size given the input
+		// columns (if possible) and compare to number of available target
+		// neurons
 		final FilterResult filter = m_cfg.getInputColumnsEntry().getValue().applyTo(m_lastTableSpec);
 		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
 				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
@@ -205,7 +218,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 						+ m_outputDataSpec.getName() + "'. Try adding some columns to the selection.");
 			}
 		} else {
-			// we still can check if there are more input columns than input neurons since every column provides at
+			// we still can check if there are more input columns than input
+			// neurons since every column provides at
 			// least one element
 			if (includedColSpecs.size() > inputSize) {
 				throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
@@ -217,14 +231,12 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
 		m_lastTableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
-		refreshAvailableConverters();
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
+			refreshAllowedInputColumns();
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
-		refreshAllowedInputColumns();
-		refreshAvailableLossFunctions();
 	}
 
 	void refreshAvailableConverters() throws NotConfigurableException {
@@ -265,17 +277,24 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}
 
-	void refreshAllowedInputColumns() {
-		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
+	private void refreshAllowedInputColumns() {
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-		m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
-				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
-		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsEntry().getValue());
+		if (m_lastTableSpec.containsCompatibleType(allowedColType)) {
+			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
+			m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
+					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
+			DataColumnSpecFilterConfiguration filterConfig = m_cfg.getInputColumnsEntry().getValue();
+			m_dcInputColumns.updateWithNewConfiguration(filterConfig);
+		}
 		// FIXME (knime-core):
-		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always
-		// null because it doesn't get set in #updateWithNewConfiguration (only in the super class).
-		// Also see NameFilterPanel#loadConfiguration where #getRemovedFromIncludeList and #getRemovedFromExcludeList
-		// get added to the panel, which makes sense in general but not really when updating the filter config).
+		// Strange behavior within DataColumnSpecFilterPanel (see
+		// #toFilteredStringArray where m_filter is always
+		// null because it doesn't get set in #updateWithNewConfiguration (only
+		// in the super class).
+		// Also see NameFilterPanel#loadConfiguration where
+		// #getRemovedFromIncludeList and #getRemovedFromExcludeList
+		// get added to the panel, which makes sense in general but not really
+		// when updating the filter config).
 	}
 
 	void refreshAvailableLossFunctions() throws NotConfigurableException {
@@ -289,8 +308,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 					+ "' (with training context '" + trainingContext.getName() + "').");
 		}
 		final DLKerasLossFunction selectedLossFunction = m_cfg.getLossFunctionEntry().getValue() != null
-				? m_cfg.getLossFunctionEntry().getValue()
-				: availableLossFunctions.get(0);
+				? m_cfg.getLossFunctionEntry().getValue() : availableLossFunctions.get(0);
 		for (int i = availableLossFunctions.size() - 1; i >= 0; i--) {
 			if (availableLossFunctions.get(i).getClass() == selectedLossFunction.getClass()) {
 				availableLossFunctions.remove(i);

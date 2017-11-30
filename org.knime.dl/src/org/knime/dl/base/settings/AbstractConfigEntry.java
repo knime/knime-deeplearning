@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -80,6 +81,9 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	private final CopyOnWriteArrayList<Consumer<ConfigEntry<T>>> m_enableChangeListeners //
 			= new CopyOnWriteArrayList<>();
 
+	private final CopyOnWriteArrayList<Function<ConfigEntry<T>, Boolean>> m_loadPredicates //
+			= new CopyOnWriteArrayList<>();
+
 	protected T m_value;
 
 	protected boolean m_enabled = true;
@@ -90,7 +94,8 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	}
 
 	/**
-	 * @param value may be null
+	 * @param value
+	 *            may be null
 	 */
 	protected AbstractConfigEntry(final String entryKey, final Class<T> entryType, final T value) {
 		this(entryKey, entryType);
@@ -119,8 +124,8 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	}
 
 	@Override
-	public void setValue(final T value) {
-		if (!Objects.deepEquals(m_value, value)) {
+	public void setValue(final T value, boolean forceUpdate) {
+		if (!Objects.deepEquals(m_value, value) || forceUpdate) {
 			final T oldValue = m_value;
 			m_value = value;
 			onValueChanged(oldValue);
@@ -147,14 +152,27 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 		subSettings.addBoolean(CFG_KEY_ENABLED, m_enabled);
 		saveEntry(subSettings);
 	}
-
-	@Override
+	
 	public final void loadSettingsFrom(final NodeSettingsRO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
 		final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
 		m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
+		T tmp = m_value;
 		loadEntry(subSettings);
-		onLoaded();
+		if (checkLoadPredicates()) {
+			onLoaded();
+		} else {
+			m_value = tmp;
+		}
+	}
+
+	private boolean checkLoadPredicates() {
+		for (Function<ConfigEntry<T>, Boolean> func : m_loadPredicates) {
+			if (!func.apply(this)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -180,11 +198,24 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	public void removeValueChangeListener(final BiConsumer<ConfigEntry<T>, T> listener) {
 		m_valueChangeListeners.remove(listener);
 	}
+	
+	@Override
+	public void removeLoadPredicate(final Function<ConfigEntry<T>, Boolean> listener) {
+		m_loadPredicates.remove(listener);
+	}
+
 
 	@Override
 	public void addEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
 		if (!m_enableChangeListeners.contains(listener)) {
 			m_enableChangeListeners.add(listener);
+		}
+	}
+	
+	@Override
+	public void addLoadPredicate(Function<ConfigEntry<T>, Boolean> listener) {
+		if (!m_loadPredicates.contains(listener)) {
+			m_loadPredicates.add(listener);
 		}
 	}
 

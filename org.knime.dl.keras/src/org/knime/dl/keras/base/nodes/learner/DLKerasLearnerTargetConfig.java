@@ -208,12 +208,12 @@ final class DLKerasLearnerTargetConfig extends AbstractConfig {
 
 	void loadFromSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
 			throws InvalidSettingsException {
-		// we enforce inclusion by default
-		final DataColumnSpecFilterConfiguration inputColumnConfig = getEntryValue(CFG_KEY_INPUT_COL,
-				DataColumnSpecFilterConfiguration.class);
-		inputColumnConfig.loadDefault(spec, null, true);
 		if (settings.containsKey(m_targetTensorName)) {
 			loadFromSettings(settings);
+			// we enforce inclusion by default
+			final DataColumnSpecFilterConfiguration inputColumnConfig = getEntryValue(CFG_KEY_INPUT_COL,
+					DataColumnSpecFilterConfiguration.class);
+			inputColumnConfig.loadDefault(spec, null, true);
 			final NodeSettingsRO inputColumnSettings = settings.getNodeSettings(getConfigKey())
 					.getNodeSettings(CFG_KEY_INPUT_COL).getNodeSettings(CFG_KEY_INPUT_COL);
 			inputColumnConfig.loadConfigurationInDialog(inputColumnSettings, spec);

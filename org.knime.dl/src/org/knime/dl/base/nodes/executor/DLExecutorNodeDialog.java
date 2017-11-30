@@ -111,6 +111,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private DLNetworkSpec m_lastConfiguredNetworkSpec;
 
+	private DataTableSpec m_lastConfiguredTableSpec;
+
 	/**
 	 * Creates a new dialog.
 	 */
@@ -149,8 +151,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			throw new NotConfigurableException("Input table has no columns.");
 		}
 
-		final DLNetworkPortObjectSpec currNetworkSpec =
-				(DLNetworkPortObjectSpec) specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
+		final DLNetworkPortObjectSpec currNetworkSpec = (DLNetworkPortObjectSpec) specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
 		final DataTableSpec currTableSpec = (DataTableSpec) specs[DLExecutorNodeModel.IN_DATA_PORT_IDX];
 
 		if (currNetworkSpec.getNetworkSpec() == null) {
@@ -171,8 +172,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		}
 
 		final boolean networkChanged = !m_lastIncomingNetworkSpec.equals(m_lastConfiguredNetworkSpec);
+		final boolean tableSpecChanged = !currTableSpec.equals(m_lastConfiguredTableSpec);
 
-		if (networkChanged) {
+		if (networkChanged || tableSpecChanged) {
 			resetDialog();
 			createDialogContent(currNetworkSpec, currTableSpec);
 			m_generalPanel.refreshAvailableBackends();
@@ -183,6 +185,7 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		}
 		if (m_lastConfiguredNetworkSpec == null || !networkChanged) {
 			m_generalPanel.loadFromSettings(settings, specs);
+
 			if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_INPUTS)) {
 				final NodeSettingsRO inputSettings;
 				try {
@@ -217,6 +220,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 				}
 			}
 		}
+
+		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
+		m_lastConfiguredTableSpec = currTableSpec;
 	}
 
 	@Override
@@ -233,8 +239,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			outputPanel.saveToSettings(outputSettings);
 		}
 
-		final SettingsModelStringArray outputOrder =
-				DLExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());
+		final SettingsModelStringArray outputOrder = DLExecutorNodeModel
+				.createOutputOrderSettingsModel(m_outputPanels.size());
 		final String[] outputs = new String[m_outputPanels.size()];
 
 		int i = 0;
@@ -243,8 +249,6 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		}
 		outputOrder.setStringArrayValue(outputs);
 		outputOrder.saveSettingsTo(settings);
-
-		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
 	}
 
 	private void resetDialog() {
@@ -349,8 +353,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			}
 			// output selection
 			final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
-			final DialogComponentStringSelection dcOutput =
-					new DialogComponentStringSelection(smOutput, "Output", availableOutputs);
+			final DialogComponentStringSelection dcOutput = new DialogComponentStringSelection(smOutput, "Output",
+					availableOutputs);
 			outputsAddDlg.add(dcOutput.getComponentPanel(), addOutputDialogConstr);
 			final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
 					outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -381,8 +385,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private void addInputPanel(final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec,
 			final DLExecutorGeneralConfig generalCfg) throws NotConfigurableException {
-		final DLExecutorInputConfig inputCfg =
-				DLExecutorNodeModel.createInputTensorModelConfig(inputDataSpec.getName(), generalCfg);
+		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel.createInputTensorModelConfig(inputDataSpec.getName(),
+				generalCfg);
 		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputDataSpec, tableSpec);
 		// add input panel to dialog
 		m_inputPanels.add(inputPanel);
@@ -394,8 +398,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			throws NotConfigurableException {
 		final String outputName = outputDataSpec.getName();
 		if (!m_outputPanels.containsKey(outputName)) {
-			final DLExecutorOutputConfig outputCfg =
-					DLExecutorNodeModel.createOutputTensorModelConfig(outputName, generalCfg);
+			final DLExecutorOutputConfig outputCfg = DLExecutorNodeModel.createOutputTensorModelConfig(outputName,
+					generalCfg);
 			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputDataSpec);
 			outputPanel.addRemoveListener(e -> removeOutputPanel(outputName, outputPanel, outputCfg));
 			// add output panel to dialog

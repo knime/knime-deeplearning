@@ -142,7 +142,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		constr.gridy++;
 		// column selection
 		final JPanel inputColumnsLabel = new JPanel();
-		inputColumnsLabel.add(new JLabel("Training columns:"));
+		inputColumnsLabel.add(new JLabel("Input columns:"));
 		add(inputColumnsLabel, constr);
 		constr.gridy++;
 		final JPanel inputColumnsFilter = new JPanel();
@@ -151,6 +151,14 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		add(inputColumnsFilter, constr);
 		constr.gridy++;
 
+		m_cfg.getGeneralConfig().getTrainingContextEntry().addLoadListener((entry) -> {
+			try {
+				refreshAvailableConverters();
+			} catch (final NotConfigurableException ex) {
+				throw new IllegalStateException(ex.getMessage(), ex);
+			}
+		});
+
 		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
 			try {
 				refreshAvailableConverters();
@@ -158,7 +166,16 @@ final class DLKerasLearnerInputPanel extends JPanel {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
-		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns());
+		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> {
+			refreshAllowedInputColumns();
+		});
+		m_cfg.getConverterEntry().addLoadListener((entry) -> {
+			refreshAllowedInputColumns();
+		});
+
+		m_dcConverter.getConfigEntry().addLoadPredicate((e) -> {
+			return m_lastTableSpec.containsCompatibleType(e.getValue().getSourceType());
+		});
 	}
 
 	DLKerasLearnerInputConfig getConfig() {
@@ -175,8 +192,10 @@ final class DLKerasLearnerInputPanel extends JPanel {
 						+ "' has an (at least partially) unknown shape. This is not supported.")));
 		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
 		m_cfg.saveToSettings(settings);
-		// validate input: get user-selected columns and converter, ask converter for its output size given the input
-		// columns (if possible) and compare to number of available input neurons
+		// validate input: get user-selected columns and converter, ask
+		// converter for its output size given the input
+		// columns (if possible) and compare to number of available input
+		// neurons
 		final FilterResult filter = m_cfg.getInputColumnsEntry().getValue().applyTo(m_lastTableSpec);
 		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
 				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
@@ -196,7 +215,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 						+ m_inputDataSpec.getName() + "'. Try adding some columns to the selection.");
 			}
 		} else {
-			// we still can check if there are more input columns than input neurons since every column provides at
+			// we still can check if there are more input columns than input
+			// neurons since every column provides at
 			// least one element
 			if (includedColSpecs.size() > inputSize) {
 				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
@@ -204,19 +224,25 @@ final class DLKerasLearnerInputPanel extends JPanel {
 						+ "'. Try removing some columns from the selection.");
 			}
 		}
+
 	}
 
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
 		m_lastTableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
-		refreshAvailableConverters();
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
+			refreshAllowedInputColumns();
 		} catch (final InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage(), e); // TODO: remove & ignore
+			throw new NotConfigurableException(e.getMessage(), e); // TODO:
+																	// remove &
+																	// ignore
 		}
-		refreshAllowedInputColumns();
 	}
 
+	/**
+	 * @return <source>true</source> if converter selection has changed
+	 * @throws NotConfigurableException
+	 */
 	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
 		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerInputConfig
@@ -256,15 +282,22 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	}
 
 	void refreshAllowedInputColumns() {
-		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-		m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
-				DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
-		m_dcInputColumns.updateWithNewConfiguration(m_cfg.getInputColumnsEntry().getValue());
+		if (m_lastTableSpec.containsCompatibleType(allowedColType)) {
+			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
+			DataColumnSpecFilterConfiguration filterConfig = new DataColumnSpecFilterConfiguration(
+					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType));
+			m_cfg.getInputColumnsEntry().setValue(filterConfig, true);
+			m_dcInputColumns.updateWithNewConfiguration(filterConfig);
+		}
 		// FIXME (knime-core):
-		// Strange behavior within DataColumnSpecFilterPanel (see #toFilteredStringArray where m_filter is always
-		// null because it doesn't get set in #updateWithNewConfiguration (only in the super class).
-		// Also see NameFilterPanel#loadConfiguration where #getRemovedFromIncludeList and #getRemovedFromExcludeList
-		// get added to the panel, which makes sense in general but not really when updating the filter config).
+		// Strange behavior within DataColumnSpecFilterPanel (see
+		// #toFilteredStringArray where m_filter is always
+		// null because it doesn't get set in #updateWithNewConfiguration (only
+		// in the super class).
+		// Also see NameFilterPanel#loadConfiguration where
+		// #getRemovedFromIncludeList and #getRemovedFromExcludeList
+		// get added to the panel, which makes sense in general but not really
+		// when updating the filter config).
 	}
 }
