@@ -68,6 +68,8 @@ public class DLLearningProgressBar extends JPanel {
 
 	private static final String PROGRESS_COUNTER_FORMAT = "%d / %d";
 
+	private static final String TIME_COUNTER_FORMAT = "%.1f s";
+
 	private final JProgressBar m_progressBar;
 
 	private final JLabel m_progressCounter;
@@ -92,7 +94,7 @@ public class DLLearningProgressBar extends JPanel {
 		m_progressCounter = new JLabel();
 		m_progressCounter.setText(String.format(PROGRESS_COUNTER_FORMAT, 0, 0));
 		final JPanel progressCounterBox = new JPanel(new GridLayout(0, 1));
-		progressCounterBox.setBorder(BorderFactory.createTitledBorder(progressLabel + ":"));
+		progressCounterBox.setBorder(BorderFactory.createTitledBorder(progressLabel));
 		progressCounterBox.add(m_progressCounter);
 		progressCounterBox.setPreferredSize(new Dimension(100, 40));
 		progressCounterBox.setMinimumSize(new Dimension(100, 40));
@@ -102,9 +104,9 @@ public class DLLearningProgressBar extends JPanel {
 		add(progressCounterBox, gbc);
 
 		m_timeCounter = new JLabel();
-		m_timeCounter.setText("0");
+		m_timeCounter.setText(String.format(TIME_COUNTER_FORMAT, 0.0));
 		final JPanel timeCounterBox = new JPanel(new GridLayout(0, 1));
-		timeCounterBox.setBorder(BorderFactory.createTitledBorder(timeLabel + ":"));
+		timeCounterBox.setBorder(BorderFactory.createTitledBorder(timeLabel));
 		timeCounterBox.add(m_timeCounter);
 		timeCounterBox.setPreferredSize(new Dimension(100, 40));
 		timeCounterBox.setMinimumSize(new Dimension(100, 40));
@@ -120,8 +122,8 @@ public class DLLearningProgressBar extends JPanel {
 		m_progressCounter.setText(String.format(PROGRESS_COUNTER_FORMAT, current, max));
 	}
 
-	public void setTime(final int timeInSec) {
-		m_timeCounter.setText(timeInSec + "");
+	public void setTime(final double timeInSec) {
+		m_timeCounter.setText(String.format(TIME_COUNTER_FORMAT, timeInSec));
 	}
 
 	public void setMaxProgress(final int maxProgress) {

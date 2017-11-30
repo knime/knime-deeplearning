@@ -51,6 +51,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -68,54 +70,56 @@ import org.knime.core.node.NodeView;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotViewSpec;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotWithHistoryView;
 
-
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-//TODO actually this should just delegate to some object which can be anything (even a JavaScript thingy). We don't want to enforce an implementation here.
+// TODO: actually this should just delegate to some object which can be anything (even a JavaScript thingy).
+// We don't want to enforce an implementation here.
 public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
 
-	private final static String TIME_DISPLAY_FORMAT = "%d:%d:%d";
+	private static final String TIME_DISPLAY_FORMAT = "%02d:%02d:%02d";
 
-	/*
-	 * Alternative to setShowNODATALabel() because the NODATA label of the 
-	 * NodeView is also displayed during execution, which is exactly what
-	 * we d not want.
+	/**
+	 * Alternative to setShowNODATALabel() because the NODATA label of the NodeView is also displayed during execution,
+	 * which is exactly what we do not want.
 	 */
-	private final static JLabel NO_DATA_OVERLAY;
+	private static final JLabel NO_DATA_OVERLAY;
+
+	static {
+		NO_DATA_OVERLAY = new JLabel("<html><center>No data to display</center></html>", SwingConstants.CENTER);
+		NO_DATA_OVERLAY.setPreferredSize(new Dimension(1000, 700));
+	}
 
 	private Map<String, DLJFreeChartLinePlotWithHistoryView> m_views;
-	
-	/*
-	 * Data iterators for this view. Its important that each view has its own iterator state
-	 * if we open several views at once.
+
+	/**
+	 * Data iterators for this view. Its important that each view has its own iterator state if we open several views at
+	 * once.
 	 */
 	private Map<String, Iterator<DLFloatData>[]> m_dataIterators;
 
-	private DLViewSpec[] m_specs;
+	private final DLViewSpec[] m_specs;
 
 	private DLLearningProgressBar m_epochProgressBar;
+
 	private DLLearningProgressBar m_batchProgressBar;
+
 	private LeftAlignLabelWithValue m_startTime;
+
 	private LeftAlignLabelWithValue m_elapsedTime;
+
 	private JPanel m_mainContainer;
 
 	private final DLProgressMonitor m_progressMonitor;
 
-	/*
+	/**
 	 * Flag indicating if the data iterators have been initialized.
 	 */
 	private boolean m_areIteratorsInit;
-	
-	static {
-		NO_DATA_OVERLAY = new JLabel("<html><center>No data to display</center></html>",
-				SwingConstants.CENTER);
-		NO_DATA_OVERLAY.setPreferredSize(new Dimension(1000, 700));
-	}
 
-	public DLNodeView(final M model, DLViewSpec... specs) {
+	public DLNodeView(final M model, final DLViewSpec... specs) {
 		super(model);
 		// Use own NODATA label instead of NodeView impl
 		setShowNODATALabel(false);
@@ -129,22 +133,22 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	}
 
 	/**
-	 * Set data iterators of this view using the the specified view data array.
-	 * If the iterators are already initialized this method will do nothing.
-	 * 
+	 * Set data iterators of this view using the the specified view data array. If the iterators are already initialized
+	 * this method will do nothing.
+	 *
 	 * @param dataArray data to get iterators from
 	 * @throws IllegalArgumentException If the dataArray is null or contains null.
 	 */
 	@SuppressWarnings("unchecked")
-	private void initDataIterators(DLViewData<?>[] dataArray) {
+	private void initDataIterators(final DLViewData<?>[] dataArray) {
 		if (!m_areIteratorsInit) {
 			try {
-				for (DLViewData<?> viewData : dataArray) {
+				for (final DLViewData<?> viewData : dataArray) {
 					m_dataIterators.put(viewData.getViewSpec().id(),
 							((DLLinePlotViewData<DLJFreeChartLinePlotViewSpec>) viewData).iterators());
 				}
 				m_areIteratorsInit = true;
-			} catch (NullPointerException npe) {
+			} catch (final NullPointerException npe) {
 				throw new IllegalArgumentException(
 						"Exception while trying to initialize view data iterators. Most likely an implementation error!",
 						npe);
@@ -157,17 +161,17 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_dataIterators = new HashMap<>();
 		m_mainContainer = new JPanel(new GridBagLayout());
 
-		JTabbedPane plotsWithHistory = new JTabbedPane();
-		for (DLViewSpec spec : m_specs) {
+		final JTabbedPane plotsWithHistory = new JTabbedPane();
+		for (final DLViewSpec spec : m_specs) {
 			// assume DLJFreeChartLinePlotViewSpec for now
-			DLJFreeChartLinePlotWithHistoryView tab = new DLJFreeChartLinePlotWithHistoryView(
+			final DLJFreeChartLinePlotWithHistoryView tab = new DLJFreeChartLinePlotWithHistoryView(
 					(DLJFreeChartLinePlotViewSpec) spec);
 			m_views.put(spec.id(), tab);
 
 			plotsWithHistory.addTab(spec.title(), tab.getComponent());
 		}
 
-		GridBagConstraints gbc = new GridBagConstraints();
+		final GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.weightx = 1;
@@ -179,29 +183,29 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(10, 10, 0, 0);
-		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Seconds/Epoch");
+		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. Seconds/Epoch");
 		m_mainContainer.add(m_epochProgressBar, gbc);
 
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 10, 10, 0);
-		m_batchProgressBar = new DLLearningProgressBar("Batch", "Seconds/Batch");
+		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. Seconds/Batch");
 		m_mainContainer.add(m_batchProgressBar, gbc);
 
 		gbc.gridy++;
-		gbc.insets = new Insets(0, 50, 10, 0);
-		m_startTime = new LeftAlignLabelWithValue("Start Time:");
+		gbc.insets = new Insets(0, 15, 10, 0);
+		m_startTime = new LeftAlignLabelWithValue("Start Time: ");
 		m_startTime.setValue(String.format(TIME_DISPLAY_FORMAT, 0, 0, 0));
 		m_mainContainer.add(m_startTime, gbc);
 
 		gbc.gridy++;
-		m_elapsedTime = new LeftAlignLabelWithValue("Elapsed:");
+		m_elapsedTime = new LeftAlignLabelWithValue("Elapsed: ");
 		m_elapsedTime.setValue(String.format(TIME_DISPLAY_FORMAT, 0, 0, 0));
 		m_mainContainer.add(m_elapsedTime, gbc);
 
 		gbc.gridy++;
-		LeftAlignButton stopButton = new LeftAlignButton("Stop Learning");
+		final LeftAlignButton stopButton = new LeftAlignButton("Stop Learning");
 		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
-		gbc.insets = new Insets(10, 10, 10, 0);
+		gbc.insets = new Insets(10, 15, 10, 0);
 		m_mainContainer.add(stopButton, gbc);
 
 		setComponent(m_mainContainer);
@@ -219,18 +223,28 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			m_epochProgressBar.setProgress(
 					monitor.getNumBatchesPerEpoch() * monitor.getCurrentEpoch() + monitor.getCurrentBatchInEpoch());
 			m_epochProgressBar.setProgressText(monitor.getCurrentEpoch(), monitor.getNumEpochs());
-			// TODO calc time per epoch and set
-			// m_epochProgressBar.setTime(timeInSec)
 
 			m_batchProgressBar.setProgress(monitor.getCurrentBatchInEpoch());
 			m_batchProgressBar.setProgressText(monitor.getCurrentBatchInEpoch(), monitor.getNumBatchesPerEpoch());
-			// TODO calc time per epoch and set
-			// m_batchProgressBar.setTime(timeInSec)
 
-			// TODO set m_startTime.setValue(value) and
-			// m_elapsedTime.setValue(value)
+			final LocalTime startTime = monitor.getStartTime();
+			if (startTime != null) {
+				final long elapsedSeconds = Duration.between(startTime, LocalTime.now()).getSeconds();
 
-			for (DLViewSpec spec : m_specs) {
+				final int currentEpoch = monitor.getCurrentEpoch();
+				m_epochProgressBar.setTime(elapsedSeconds / (double) (currentEpoch + 1));
+				final int currentBatch = monitor.getCurrentBatchInEpoch();
+				m_batchProgressBar.setTime(elapsedSeconds / (double) ((currentBatch != 0 ? currentBatch : 1)
+						+ currentEpoch * monitor.getNumBatchesPerEpoch()));
+
+				m_startTime.setValue(String.format(TIME_DISPLAY_FORMAT, startTime.getHour(), startTime.getMinute(),
+						startTime.getSecond()));
+				final long hours = elapsedSeconds / 3600;
+				final int minutes = (int) ((elapsedSeconds % 3600) / 60);
+				final int secs = (int) (elapsedSeconds % 60);
+				m_elapsedTime.setValue(String.format(TIME_DISPLAY_FORMAT, hours, minutes, secs));
+			}
+			for (final DLViewSpec spec : m_specs) {
 				final DLJFreeChartLinePlotWithHistoryView view = m_views.get(spec.id());
 				view.update((DLJFreeChartLinePlotViewSpec) spec, m_dataIterators.get(spec.id()));
 			}
@@ -240,7 +254,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	}
 
 	@Override
-	protected void updateModel(Object arg) {
+	protected void updateModel(final Object arg) {
 		if (arg == null) {
 			reset();
 			return;
@@ -248,7 +262,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			updateView((DLProgressMonitor) arg);
 		} else {
 			throw new IllegalArgumentException("Can't handle objects of type " + arg.getClass()
-					+ " in DLLearnerNodeView. Most likely an implementation error!");
+					+ " in DLLearnerNodeView. Most likely an implementation error.");
 		}
 	}
 
@@ -256,7 +270,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		initView();
 		stopAllTimers();
 		m_areIteratorsInit = false;
-		
+
 		showNoDataOverlay(true);
 	}
 
@@ -276,13 +290,13 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	}
 
 	private void stopAllTimers() {
-		for (Entry<String, DLJFreeChartLinePlotWithHistoryView> e : m_views.entrySet()) {
+		for (final Entry<String, DLJFreeChartLinePlotWithHistoryView> e : m_views.entrySet()) {
 			e.getValue().stopCurrentValueUpdate();
 		}
 	}
 
 	private void startAllTimers() {
-		for (Entry<String, DLJFreeChartLinePlotWithHistoryView> e : m_views.entrySet()) {
+		for (final Entry<String, DLJFreeChartLinePlotWithHistoryView> e : m_views.entrySet()) {
 			e.getValue().startCurrentValueUpdate();
 		}
 	}
@@ -301,7 +315,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private class LeftAlignButton extends JPanel {
 		private static final long serialVersionUID = 1L;
 
-		private JButton m_button;
+		private final JButton m_button;
 
 		public LeftAlignButton(final String buttonText) {
 			super(new GridBagLayout());
@@ -309,7 +323,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			m_button = new JButton(buttonText);
 			m_button.setPreferredSize(new Dimension(150, 50));
 
-			GridBagConstraints gbc = new GridBagConstraints();
+			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
 			gbc.weightx = 0;
 			add(m_button, gbc);
@@ -319,7 +333,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			add(new Box(0), gbc);
 		}
 
-		public void addActionListener(ActionListener al) {
+		public void addActionListener(final ActionListener al) {
 			m_button.addActionListener(al);
 		}
 	}
@@ -330,17 +344,17 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	public class LeftAlignLabelWithValue extends JPanel {
 		private static final long serialVersionUID = 1L;
 
-		private JLabel m_valueToDisplay = new JLabel();
+		private final JLabel m_valueToDisplay = new JLabel();
 
 		public LeftAlignLabelWithValue(final String label) {
 			super(new GridBagLayout());
 
-			GridBagConstraints gbc = new GridBagConstraints();
+			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
 			gbc.weightx = 0;
 
-			JLabel startTimeLabel = new JLabel(label);
-			startTimeLabel.setPreferredSize(new Dimension(80, 20));
+			final JLabel startTimeLabel = new JLabel(label);
+			startTimeLabel.setPreferredSize(new Dimension(85, 20));
 			add(startTimeLabel, gbc);
 
 			gbc.gridx++;
@@ -352,7 +366,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			add(new Box(0), gbc);
 		}
 
-		public void setValue(String value) {
+		public void setValue(final String value) {
 			m_valueToDisplay.setText(value);
 		}
 	}
