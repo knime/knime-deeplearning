@@ -114,6 +114,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 	private final DLProgressMonitor m_progressMonitor;
 
+	private int m_lastEpoch = -1;
+
 	/**
 	 * Flag indicating if the data iterators have been initialized.
 	 */
@@ -229,10 +231,17 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 			final LocalTime startTime = monitor.getStartTime();
 			if (startTime != null) {
-				final long elapsedSeconds = Duration.between(startTime, LocalTime.now()).getSeconds();
+				LocalTime endTime = monitor.getEndTime();
+				if (endTime == null) {
+					endTime = LocalTime.now();
+				}
+				final long elapsedSeconds = Duration.between(startTime, endTime).getSeconds();
 
 				final int currentEpoch = monitor.getCurrentEpoch();
-				m_epochProgressBar.setTime(elapsedSeconds / (double) (currentEpoch + 1));
+				if (currentEpoch != m_lastEpoch || currentEpoch == monitor.getNumEpochs()) {
+					m_epochProgressBar.setTime(elapsedSeconds / (double) (currentEpoch + 1));
+					m_lastEpoch = currentEpoch;
+				}
 				final int currentBatch = monitor.getCurrentBatchInEpoch();
 				m_batchProgressBar.setTime(elapsedSeconds / (double) ((currentBatch != 0 ? currentBatch : 1)
 						+ currentEpoch * monitor.getNumBatchesPerEpoch()));
