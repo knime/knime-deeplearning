@@ -46,13 +46,14 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view;
 
+import java.io.Externalizable;
 import java.time.LocalTime;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public interface DLProgressMonitor {
+public interface DLProgressMonitor extends Externalizable {
 
 	int getNumEpochs();
 

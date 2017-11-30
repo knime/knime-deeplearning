@@ -271,14 +271,16 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
-		try (ObjectInputStream stream = new ObjectInputStream(new FileInputStream(f))) {
-			// if stream.writeObject is too slow we need to do something smarter
+		try (ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(f))) {
+			objIn.readInt(); // reads m_viewSpecs.length, this is redundant at the moment but might become useful
+			// if stream.writeObject is too slow, we need to do something smarter
 			for (int i = 0; i < m_viewSpecs.length; i++) {
-				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) stream.readObject());
+				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) objIn.readObject());
 			}
+			m_monitor.readExternal(objIn);
 			m_monitor.setDataUpdate(m_viewData);
-			m_monitor.setHasData(true);
 		} catch (final ClassNotFoundException e) {
+			throw new IOException("View data could not be restored.");
 		}
 	}
 
@@ -286,11 +288,13 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
-		try (ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(f))) {
-			// if stream.writeObject is too slow we need to do something smarter
+		try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(f))) {
+			objOut.writeInt(m_viewSpecs.length);
+			// if stream.writeObject is too slow, we need to do something smarter
 			for (int i = 0; i < m_viewSpecs.length; i++) {
-				stream.writeObject(m_viewData[i].asArray());
+				objOut.writeObject(m_viewData[i].asArray());
 			}
+			m_monitor.writeExternal(objOut);
 		}
 	}
 

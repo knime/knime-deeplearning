@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.time.LocalTime;
 
 import org.knime.core.node.ExecutionContext;
@@ -197,6 +200,32 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		if (m_onBatchEndCallback != null) {
 			m_onBatchEndCallback.run();
 		}
+	}
+
+	@Override
+	public void writeExternal(final ObjectOutput objOut) throws IOException {
+		objOut.writeInt(m_numEpochs);
+		objOut.writeInt(m_numBatchesPerEpoch);
+		objOut.writeBoolean(m_isRunning);
+		objOut.writeBoolean(m_hasData);
+		objOut.writeObject(m_startTime);
+		objOut.writeInt(m_currentEpoch);
+		objOut.writeInt(m_currentBatchInEpoch);
+		objOut.writeObject(m_metricsNames);
+		objOut.writeObject(m_metrics);
+	}
+
+	@Override
+	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		m_numEpochs = objIn.readInt();
+		m_numBatchesPerEpoch = objIn.readInt();
+		m_isRunning = objIn.readBoolean();
+		m_hasData = objIn.readBoolean();
+		m_startTime = (LocalTime) objIn.readObject();
+		m_currentEpoch = objIn.readInt();
+		m_currentBatchInEpoch = objIn.readInt();
+		m_metricsNames = (String[]) objIn.readObject();
+		m_metrics = (float[]) objIn.readObject();
 	}
 
 	void setNumEpochs(final int numEpochs) {
