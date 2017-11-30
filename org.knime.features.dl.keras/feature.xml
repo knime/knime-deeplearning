@@ -3,14 +3,14 @@
       id="org.knime.features.dl.keras"
       label="KNIME Deep Learning - Keras Integration"
       version="3.5.0.qualifier"
-      provider-name="KNIME GmbH, Konstanz, Germany">
+      provider-name="KNIME AG, Zurich, Switzerland">
 
-   <description>
-      KNIME Deep Learning - Keras Integration
+   <description url="http://tech.knime.org/knime-labs">
+      This feature contains nodes of the Keras integration of KNIME Deep Learning.
    </description>
 
    <copyright>
-      This feature contains work protected by copyright law.
+      Copyright by KNIME AG, Zurich, Switzerland
    </copyright>
 
    <license>
