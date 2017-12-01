@@ -48,16 +48,6 @@
             DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLLongTensorToLongCellConverterFactory">
       </DLTensorToDataCellConverterFactory>
    </extension>
-      <extension
-         point="org.knime.workbench.repository.categories">
-      <category
-            icon="icons/category.png"
-            level-id="deeplearning"
-            locked="false"
-            name="Deep Learning"
-            path="/labs">
-      </category>
-   </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
