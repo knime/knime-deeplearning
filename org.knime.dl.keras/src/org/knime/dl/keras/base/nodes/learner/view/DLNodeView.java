@@ -331,6 +331,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 			m_button = new JButton(buttonText);
 			m_button.setPreferredSize(new Dimension(150, 50));
+			m_button.setSize(new Dimension(150, 50));
+			m_button.setMinimumSize(new Dimension(150, 50));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
