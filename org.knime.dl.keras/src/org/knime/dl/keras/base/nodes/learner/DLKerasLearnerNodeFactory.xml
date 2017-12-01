@@ -32,31 +32,29 @@
 				The optimization algorithm. The following optimizers are available:
 				<ul>
 					<li>
-						<a href="https://arxiv.org/abs/1212.5701">Adadelta</a>
+						<a href="https://keras.io/optimizers/#adadelta">Adadelta</a>
 					</li>
 					<li>
-						<a href="http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf">Adagrad</a>
+						<a href="https://keras.io/optimizers/#adagrad">Adagrad</a>
 					</li>
 					<li>
-						<a href="https://arxiv.org/abs/1412.6980">Adam</a>
+						<a href="https://keras.io/optimizers/#adam">Adam</a>
 					</li>
 					<li>
-						<a href="https://arxiv.org/pdf/1412.6980.pdf">Adamax</a>
+						<a href="https://keras.io/optimizers/#adamax">Adamax</a>
 					</li>
 					<li>
-						<a href="http://cs229.stanford.edu/proj2015/054_report.pdf">Nadam</a>
+						<a href="https://keras.io/optimizers/#nadam">Nadam</a>
 					</li>
 					<li>
 						<a
-							href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent#RMSProp">RMSProp</a>
+							href="https://keras.io/optimizers/#rmsprop">RMSProp</a>
 					</li>
 					<li>
-						<a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">Stochastic gradient descent</a>
+						<a href="https://keras.io/optimizers/#rsgd">Stochastic gradient descent</a>
 					</li>
 				</ul>
-				Please refer to
-				<a href="https://keras.io/optimizers/">the Keras documentation</a>
-				or the algorithms' original sources for further information on
+				Please refer to <a href="https://keras.io/optimizers/">the Keras documentation</a> for further information on
 				parameterization.
 			</option>
 			<option name="Clip norm">
