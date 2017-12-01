@@ -244,7 +244,7 @@ class DLKerasNetwork(DLPythonNetwork):
         history = self._model.fit_generator(data_supplier.get_generator(),
                                             data_supplier.steps,
                                             epochs=config.epochs,
-                                            verbose=0,
+                                            verbose=1,
                                             callbacks=config.callbacks,
                                             **{kw_max_queue: 1})
         return history.history
