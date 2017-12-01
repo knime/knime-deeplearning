@@ -204,6 +204,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	@Override
 	public void stopLearning() {
 		m_monitor.setIsRunning(false);
+		m_monitor.setHasStoppedEarly(true);
 	}
 
 	protected DLViewSpec[] getViewSpecs() {
@@ -636,6 +637,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setNumEpochs(epochs);
 			m_monitor.setNumBatchesPerEpoch(numBatchesPerEpoch);
 			m_monitor.setIsRunning(true);
+			m_monitor.setHasStoppedEarly(false);
 			m_monitor.setHasData(true);
 			m_monitor.setStartTime(null);
 			m_monitor.setEndTime(null);

@@ -50,6 +50,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Duration;
 import java.time.LocalTime;
@@ -109,6 +110,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private LeftAlignLabelWithValue m_startTime;
 
 	private LeftAlignLabelWithValue m_elapsedTime;
+	
+	private LeftAlignButton m_stopButton;
 
 	private JPanel m_mainContainer;
 
@@ -205,10 +208,16 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_mainContainer.add(m_elapsedTime, gbc);
 
 		gbc.gridy++;
-		final LeftAlignButton stopButton = new LeftAlignButton("Stop learning");
-		stopButton.addActionListener((e) -> getNodeModel().stopLearning());
+		m_stopButton = new LeftAlignButton("Stop learning");
+		m_stopButton.getButton().addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getNodeModel().stopLearning();
+				setHasStoppedButtonStatus();
+			}
+		});
 		gbc.insets = new Insets(10, 15, 10, 0);
-		m_mainContainer.add(stopButton, gbc);
+		m_mainContainer.add(m_stopButton, gbc);
 
 		setComponent(m_mainContainer);
 	}
@@ -219,6 +228,10 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			startAllTimers();
 			initDataIterators(monitor.getDataUpdate());
 
+			if(monitor.hasStoppedEarly()) {
+				setHasStoppedButtonStatus();
+			}
+			
 			m_epochProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch() * monitor.getNumEpochs());
 			m_batchProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch());
 
@@ -282,6 +295,11 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 		showNoDataOverlay(true);
 	}
+	
+	private void setHasStoppedButtonStatus() {
+		m_stopButton.getButton().setText("Learning stopped");
+		m_stopButton.getButton().setEnabled(false);
+	}
 
 	@Override
 	protected void onClose() {
@@ -330,9 +348,9 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			super(new GridBagLayout());
 
 			m_button = new JButton(buttonText);
-			m_button.setPreferredSize(new Dimension(150, 50));
-			m_button.setSize(new Dimension(150, 50));
-			m_button.setMinimumSize(new Dimension(150, 50));
+			m_button.setPreferredSize(new Dimension(180, 50));
+			m_button.setSize(new Dimension(180, 50));
+			m_button.setMinimumSize(new Dimension(180, 50));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
@@ -344,8 +362,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			add(new Box(0), gbc);
 		}
 
-		public void addActionListener(final ActionListener al) {
-			m_button.addActionListener(al);
+		public JButton getButton() {
+			return m_button;
 		}
 	}
 

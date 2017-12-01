@@ -66,6 +66,10 @@ public interface DLProgressMonitor extends Externalizable {
 
 	void setHasData(boolean hasData);
 
+	boolean hasStoppedEarly();
+	
+	void setHasStoppedEarly(boolean hasStoppedEarly);
+	
 	LocalTime getStartTime();
 
 	LocalTime getEndTime();

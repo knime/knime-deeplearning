@@ -65,6 +65,10 @@ public interface DLTrainingMonitor {
 	boolean hasData();
 
 	void setHasData(boolean hasData);
+	
+	boolean hasStoppedEarly();
+	
+	void setHasStoppedEarly(boolean hasStoppedEarly);
 
 	int getCurrentEpoch();
 
