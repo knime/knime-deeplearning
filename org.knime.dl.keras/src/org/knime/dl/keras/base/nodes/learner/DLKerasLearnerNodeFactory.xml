@@ -97,11 +97,7 @@
 				<a href="https://keras.io/callbacks/#reducelronplateau">ReduceLROnPlateau Keras callback</a>.
 			</option>
 		</tab>
-		<tab name="Training Inputs">
-			<option name="Training input">
-				For each input, the following options
-				must be set:
-			</option>
+		<tab name="Input Data">
 			<option name="Conversion">
 				The converter that is used to transform the
 				selected input columns into a format that is accepted by the
@@ -114,11 +110,7 @@
 				selected input converter.
 			</option>
 		</tab>
-		<tab name="Training Targets">
-			<option name="Training target">
-				For each target, the following options
-				must be set:
-			</option>
+		<tab name="Training Data">
 			<option name="Conversion">
 				The converter that is used to transform the
 				selected target columns into a format that is accepted by the
