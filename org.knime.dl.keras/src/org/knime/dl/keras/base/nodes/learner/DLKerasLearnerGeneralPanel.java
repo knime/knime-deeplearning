@@ -81,6 +81,10 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DialogComponentObjectSelection<DLKerasTrainingContext<?>> m_dcBackend;
 
+	private DLNetworkSpec m_networkSpec;
+
+	private Class<? extends DLNetwork> m_networkType;
+	
 	DLKerasLearnerGeneralPanel(final DLKerasLearnerGeneralConfig cfg, final DLNetworkSpec networkSpec,
 			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
 		m_cfg = cfg;
@@ -149,5 +153,13 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				? m_cfg.getTrainingContextEntry().getValue()
 				: availableTrainingContexts.get(0);
 		m_dcBackend.replaceListItems(availableTrainingContexts, selectedTrainingContext);
+	}
+	DLKerasTrainingContext<?> getSelectedContext() {
+		return m_dcBackend.getConfigEntry().getValue();
+	}
+	void update(Class<? extends DLNetwork> networkType, final DLNetworkSpec spec) throws NotConfigurableException {
+		m_networkType = networkType;
+		m_networkSpec = spec;
+//		refreshAvailableBackends();
 	}
 }
