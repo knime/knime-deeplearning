@@ -95,11 +95,11 @@ public class DefaultDLNodeDialogPane extends NodeDialogPane {
 	public DefaultDLNodeDialogPane() {
 		super();
 		reset();
+		m_componentGroups = new ArrayList<>();
+		m_additionalComponents = new ArrayList<>();
 	}
 
 	public void reset() {
-		m_componentGroups = new ArrayList<>();
-		m_additionalComponents = new ArrayList<>();
 		m_wrapperPanel = new JPanel(new GridBagLayout());
 		m_wrapperConstraints = new GridBagConstraints();
 		m_wrapperConstraints.gridx = 0;

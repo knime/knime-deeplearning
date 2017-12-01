@@ -187,6 +187,10 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		} else if (networkChanged || tableSpecChanged) {
 			reset();
 			createInputAndTargetPanels(portObjectSpec.getNetworkSpec(), tableSpec);
+
+			if (networkChanged) {
+				m_generalPanel.update(portObjectSpec.getNetworkType(), networkSpec);
+			}
 		}
 
 		try {

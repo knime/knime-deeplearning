@@ -75,16 +75,12 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DLKerasLearnerGeneralConfig m_cfg;
 
-	private final DLNetworkSpec m_networkSpec;
-
-	private final Class<? extends DLNetwork> m_networkType;
-
 	private final DialogComponentObjectSelection<DLKerasTrainingContext<?>> m_dcBackend;
 
 	private DLNetworkSpec m_networkSpec;
 
 	private Class<? extends DLNetwork> m_networkType;
-	
+
 	DLKerasLearnerGeneralPanel(final DLKerasLearnerGeneralConfig cfg, final DLNetworkSpec networkSpec,
 			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
 		m_cfg = cfg;
@@ -113,8 +109,8 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		refreshAvailableBackends();
-
-		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network
+		// Check if the network has pre-defined input batch sizes. Note that
+		// different batch sizes for the same network
 		// are not supported (for networks with multiple inputs).
 		long batchSize = -1;
 		for (final DLTensorSpec inputSpec : m_networkSpec.getInputSpecs()) {
@@ -138,6 +134,7 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		} else {
 			m_cfg.getBatchSizeEntry().setEnabled(true);
 		}
+
 	}
 
 	void refreshAvailableBackends() throws NotConfigurableException {
@@ -146,20 +143,37 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				.getAvailableTrainingContexts(m_networkType).stream()
 				.sorted(Comparator.comparing(DLKerasTrainingContext::getName)) //
 				.collect(Collectors.toList());
+		
+		DLKerasTrainingContext<?> value = m_cfg.getTrainingContextEntry().getValue();
+		final DLKerasTrainingContext<?> selectedTrainingContext;
 		if (availableTrainingContexts.isEmpty()) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
+		} else if (value != null && containsContext(availableTrainingContexts, value)) {
+			selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
+		}else{
+			m_cfg.getTrainingContextEntry().setValue(value);
+			selectedTrainingContext = availableTrainingContexts.get(0);
 		}
-		final DLKerasTrainingContext<?> selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue() != null
-				? m_cfg.getTrainingContextEntry().getValue()
-				: availableTrainingContexts.get(0);
 		m_dcBackend.replaceListItems(availableTrainingContexts, selectedTrainingContext);
 	}
+
+	private boolean containsContext(List<DLKerasTrainingContext<?>> contexts, DLKerasTrainingContext<?> context) {
+		for (DLKerasTrainingContext<?> check : contexts) {
+			if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	DLKerasTrainingContext<?> getSelectedContext() {
 		return m_dcBackend.getConfigEntry().getValue();
 	}
+
 	void update(Class<? extends DLNetwork> networkType, final DLNetworkSpec spec) throws NotConfigurableException {
-		m_networkType = networkType;
+		if (!m_networkType.equals(networkType)) {
+			m_networkType = networkType;
+		}
 		m_networkSpec = spec;
-//		refreshAvailableBackends();
 	}
 }
