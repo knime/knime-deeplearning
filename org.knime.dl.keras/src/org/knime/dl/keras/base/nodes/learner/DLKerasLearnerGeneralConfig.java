@@ -209,7 +209,9 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 
 	void copyClipSettingsToOptimizer() {
 		final DLKerasOptimizer optimizer = getOptimizerEntry().getValue();
-		optimizer.setClipNorm(getClipNormEntry());
-		optimizer.setClipValue(getClipValueEntry());
+		if (optimizer != null) {
+			optimizer.setClipNorm(getClipNormEntry());
+			optimizer.setClipValue(getClipValueEntry());
+		}
 	}
 }
