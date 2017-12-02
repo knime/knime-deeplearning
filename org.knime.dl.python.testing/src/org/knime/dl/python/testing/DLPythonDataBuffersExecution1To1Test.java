@@ -54,8 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -81,8 +79,6 @@ import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.Activator;
-import org.knime.python2.PythonPreferencePage;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -107,7 +103,6 @@ public class DLPythonDataBuffersExecution1To1Test {
 	private static final String BUNDLE_ID = "org.knime.dl.python.testing";
 
 	// TODO: we somehow need to apply the appropriate preferences on the test machines
-	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 
 	private DLPythonAbstractCommands m_commands;
 
@@ -115,10 +110,6 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Before
 	public void setUp() throws Exception {
-		final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
-		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
-		prefs.flush();
-
 		m_commands = new DLPythonAbstractCommands() {
 
 			@Override

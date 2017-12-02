@@ -49,13 +49,12 @@
 package org.knime.dl.keras.tensorflow.testing;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.junit.Before;
 import org.junit.Test;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.util.FileUtil;
@@ -64,6 +63,9 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.keras.base.nodes.learner.DLKerasDefaultTrainingMonitor;
+import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
@@ -74,26 +76,15 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowDefaultTrainingContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.Activator;
-import org.knime.python2.PythonPreferencePage;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+// FIXME make abstract base class
 public class DLKerasTensorFlowNetworkLearnerTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
-
-	// TODO: we somehow need to apply the appropriate preferences on the test machines
-	private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
-
-	@Before
-	public void setup() throws Exception {
-		final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
-		prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
-		prefs.flush();
-	}
 
 	@Test
 	public void test1To1() throws Exception {
@@ -113,8 +104,13 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
+
+		// TODO fixme
+		final List<DLKerasCallback> callbacks = Collections.emptyList();
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
-				null);
+				callbacks);
+		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
+		
 		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
 			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
@@ -130,7 +126,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			}, null);
+			}, monitor);
 			// test:
 			// TODO!
 		}
@@ -154,8 +150,12 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
+
+		// TODO fixme
+		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
+		final List<DLKerasCallback> callbacks = Collections.emptyList();
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
-				null);
+				callbacks);
 		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
 			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
@@ -171,7 +171,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 						populate(entry.getValue());
 					}
 				}
-			}, null);
+			}, monitor);
 			// test:
 			// TODO!
 		}
