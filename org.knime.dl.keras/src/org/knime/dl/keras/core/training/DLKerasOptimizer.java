@@ -116,10 +116,10 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		public String getBackendRepresentation() {
 			final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
 			populateNamedParameters(namedParams);
-			if (m_clipNorm.getEnabled()) {
+			if (m_clipNorm != null && m_clipNorm.getEnabled()) {
 				namedParams.put("clipnorm", DLPythonUtils.toPython(m_clipNorm.getValue()));
 			}
-			if (m_clipValue.getEnabled()) {
+			if (m_clipValue != null && m_clipValue.getEnabled()) {
 				namedParams.put("clipvalue", DLPythonUtils.toPython(m_clipValue.getValue()));
 			}
 			return m_kerasIdentifier + "(" + namedParams.entrySet().stream()
