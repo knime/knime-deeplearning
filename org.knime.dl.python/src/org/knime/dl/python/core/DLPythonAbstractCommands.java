@@ -381,7 +381,13 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
 				final String[] metricsStr = msg.getValue().split(";");
 				for (int i = 0; i < metricsStr.length; i++) {
-					metrics[i] = Float.parseFloat(metricsStr[i]);
+					try {
+						metrics[i] = Float.parseFloat(metricsStr[i]);
+					} catch (final NumberFormatException e) {
+						metrics[i] = 0f;
+						LOGGER.debug(
+								"Received invalid value for metric '" + metricsNames[i] + "': " + metricsStr[i] + ".");
+					}
 				}
 				messages.answer(new DefaultJavaToPythonResponse(msg, monitor.isRunning() ? "c" : "s"));
 				monitor.setCurrentMetrics(metrics);
