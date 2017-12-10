@@ -126,7 +126,12 @@ class DLPythonNetworkInputBatchGenerator(object):
         while True:
             if i == self._steps:
                 i = 0
-            batch = self._get_batch(i)
+            try:
+                batch = self._get_batch(i)
+            except Exception as e:
+                warnings.warn("An exception of type " + str(type(e)) +
+                              " occurred while fetching the next network input batch.\nCause: " + str(e))
+                raise
             i += 1
             yield batch
 
