@@ -162,7 +162,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		}
 		if (!filePath.equals(m_lastFilePath) || !backendId.equals(m_lastLoaderClassName)) {
 			try {
-				m_network = new DLPythonDefaultNetworkReader<>(loader).read(url);
+				// TODO: we could allow the user to configure "loadTrainingConfig" flag
+				m_network = new DLPythonDefaultNetworkReader<>(loader).read(url, true);
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {

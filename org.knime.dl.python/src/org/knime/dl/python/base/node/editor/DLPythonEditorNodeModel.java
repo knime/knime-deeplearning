@@ -95,7 +95,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 				.orElseThrow(() -> new DLMissingExtensionException(
 						"Python back end '" + inputNetwork.getClass().getCanonicalName()
 								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-		final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource(), context);
+		final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource(), context, true);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
