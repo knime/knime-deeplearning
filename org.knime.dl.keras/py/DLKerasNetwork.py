@@ -78,6 +78,10 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
+    def read(self, path, compile=True):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def read_from_json(self, path):
         raise NotImplementedError()
 
