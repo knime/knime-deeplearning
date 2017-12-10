@@ -77,7 +77,7 @@ public class DLKerasTensorFlowNetworkReaderTest {
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		reader.read(source);
+		reader.read(source, true);
 		// TODO: test against known specs
 	}
 }

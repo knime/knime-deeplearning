@@ -93,7 +93,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		final DLKerasTensorFlowNetwork network = reader.read(source);
+		final DLKerasTensorFlowNetwork network = reader.read(source, true);
 		// training:
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -110,7 +110,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
 		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
-		
+
 		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
 			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
@@ -139,7 +139,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		final DLKerasTensorFlowNetwork network = reader.read(source);
+		final DLKerasTensorFlowNetwork network = reader.read(source, true);
 		// training:
 		final int dataSetSize = 10;
 		final int batchSize = 1;

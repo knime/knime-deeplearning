@@ -88,7 +88,7 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 				new DLKerasTensorFlowNetworkLoader());
 		DLKerasTensorFlowNetwork network;
 		try {
-			network = reader.read(source);
+			network = reader.read(source, false);
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e);
 		}

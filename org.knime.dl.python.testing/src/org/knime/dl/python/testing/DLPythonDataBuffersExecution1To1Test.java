@@ -134,7 +134,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 			}
 
 			@Override
-			protected String getLoadNetworkCode(final String path) {
+			protected String getLoadNetworkCode(final String path, final boolean loadTrainingConfig) {
 				return "";
 			}
 		};
