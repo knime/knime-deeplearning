@@ -73,7 +73,7 @@ class DLPythonNetworkReader(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def read(self, path):
+    def read(self, path, **kwargs):
         raise NotImplementedError()
 
 
