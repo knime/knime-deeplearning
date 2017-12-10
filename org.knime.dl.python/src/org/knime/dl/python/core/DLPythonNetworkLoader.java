@@ -133,8 +133,8 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 *            will be redone. Otherwise, previous test results will be used if available.
 	 * @param timeout timeout in milliseconds after which the installation test will be interrupted
 	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
-	 * @throws DLPythonInstallationTestTimeoutException if the installation test timed out or was interrupted in terms of
-	 *             threading
+	 * @throws DLPythonInstallationTestTimeoutException if the installation test timed out or was interrupted in terms
+	 *             of threading
 	 */
 	void checkAvailability(boolean forceRefresh, int timeout)
 			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException;
@@ -144,12 +144,16 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 *
 	 * @param source the source
 	 * @param context the context
+	 * @param loadTrainingConfig true if the training configuration enclosed in <code>source</code> - if any - shall be
+	 *            loaded. This is an optional feature for supporting back ends. For non-supporting back ends, calling
+	 *            this method with different values for <code>loadTrainingConfig</code> should result in same return
+	 *            values and side effects.
 	 * @return the network handle
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to load the network
 	 */
-	DLPythonNetworkHandle load(URL source, DLPythonContext context)
+	DLPythonNetworkHandle load(URL source, DLPythonContext context, boolean loadTrainingConfig)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
 
 	/**

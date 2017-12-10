@@ -65,12 +65,13 @@ public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork> {
 		m_loader = loader;
 	}
 
-	public N read(final URL source) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+	public N read(final URL source, final boolean loadTrainingConfig)
+			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		m_loader.validateSource(source); // fail fast - spares us creating the Python kernel
 		final PythonKernel kernel = DLPythonDefaultContext.createKernel();
 		final DLPythonContext context = new DLPythonDefaultContext(kernel);
 		try {
-			final DLPythonNetworkHandle handle = m_loader.load(source, context);
+			final DLPythonNetworkHandle handle = m_loader.load(source, context, loadTrainingConfig);
 			return m_loader.fetch(handle, source, context);
 		} finally {
 			kernel.close();

@@ -59,6 +59,7 @@ import org.knime.base.filehandling.remote.files.RemoteFile;
 import org.knime.base.filehandling.remote.files.RemoteFileHandlerRegistry;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
@@ -68,6 +69,8 @@ import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -89,7 +92,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 				throw new DLInvalidSourceException(
 						"Cannot find Keras network file at location '" + source.toString() + "'.");
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new DLInvalidSourceException(
 					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
 		}
@@ -98,19 +101,17 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 	@Override
 	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
 		try {
-			// we found a remote file handler. however, we still don't know if
-			// we can write here.
+			// we found a remote file handler. however, we still don't know if we can write here.
 			RemoteFileHandlerRegistry.getRemoteFileHandler(destination.getProtocol())
 					.createRemoteFile(destination.toURI(), null, null);
-
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new DLInvalidDestinationException(
 					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
 		}
 	}
 
 	@Override
-	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel)
+	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel, final boolean loadTrainingConfig)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
 		try {
@@ -126,7 +127,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 			final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
-				networkHandle = commands.loadNetwork(filePath);
+				networkHandle = commands.loadNetwork(filePath, loadTrainingConfig);
 			} else if (fileExtension.equals("json")) {
 				networkHandle = commands.loadNetworkFromJson(filePath);
 			} else if (fileExtension.equals("yaml")) {
@@ -136,27 +137,28 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 						"Keras network reader only supports network files of type h5, json and yaml.");
 			}
 			return networkHandle;
-
 		} catch (final Exception e) {
-			throw new IOException(
-					"An error occurred while communicating with Python (while reading in the Keras network).", e);
+			String message = "An error occurred while communicating with Python (while reading in the Keras network).";
+			if (e instanceof DLException && !Strings.isNullOrEmpty(e.getMessage())) {
+				message += "\nCause: " + e.getMessage();
+			}
+			throw new IOException(message, e);
 		}
-	}
-
-	private File resolveToTmpFile(RemoteFile<?> remote) throws Exception {
-		// Later we may want to have a repo to store already downloaded
-		// networks...
-		final String extension = FilenameUtils.getExtension(remote.getFullName());
-		File tmp = FileUtil.createTempFile(UUID.randomUUID().toString(), "." + extension, true);
-		try (FileOutputStream stream = new FileOutputStream(tmp)) {
-			FileUtil.copy(remote.openInputStream(), stream);
-		}
-		return tmp;
 	}
 
 	@Override
 	public DLPythonNetworkPortObject<? extends DLPythonNetwork> createPortObject(final N network,
 			final FileStore fileStore) throws IOException {
 		return new DLKerasNetworkPortObject(network, fileStore);
+	}
+
+	private File resolveToTmpFile(final RemoteFile<?> remote) throws Exception {
+		// Later we may want to have a repo to store already downloaded networks...
+		final String extension = FilenameUtils.getExtension(remote.getFullName());
+		final File tmp = FileUtil.createTempFile(UUID.randomUUID().toString(), "." + extension, true);
+		try (FileOutputStream stream = new FileOutputStream(tmp)) {
+			FileUtil.copy(remote.openInputStream(), stream);
+		}
+		return tmp;
 	}
 }
