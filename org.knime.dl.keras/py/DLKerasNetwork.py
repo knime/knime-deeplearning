@@ -51,6 +51,10 @@
 import abc
 import keras
 
+from keras.models import load_model
+from keras.models import model_from_json
+from keras.models import model_from_yaml
+
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
@@ -88,6 +92,21 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
     @abc.abstractmethod
     def read_from_yaml(self, path):
         raise NotImplementedError()
+
+    def _read_internal(self, path, compile=True):
+        return load_model(path, compile=compile)
+
+    def _read_from_json_internal(self, path):
+        f = open(path, 'r')
+        model_json_string = f.read()
+        f.close()
+        return model_from_json(model_json_string)
+
+    def _read_from_yaml_internal(self, path):
+        f = open(path, 'r')
+        model_yaml_string = f.read()
+        f.close()
+        return model_from_yaml(model_yaml_string, )
 
 
 class DLKerasNetwork(DLPythonNetwork):

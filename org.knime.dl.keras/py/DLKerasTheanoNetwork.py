@@ -48,10 +48,6 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
-from keras.models import load_model
-from keras.models import model_from_json
-from keras.models import model_from_yaml
-
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
@@ -61,22 +57,16 @@ from DLPythonNetwork import DLPythonTensorSpec
 
 class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
 
-    def read(self, path):
-        model = load_model(path)
+    def read(self, path, compile=True):
+        model = self._read_internal(path, compile)
         return DLKerasTheanoNetwork(model)
 
     def read_from_json(self, path):
-        f = open(path, 'r')
-        model_json_string = f.read()
-        f.close()
-        model = model_from_json(model_json_string)
+        model = self._read_from_json_internal(path)
         return DLKerasTheanoNetwork(model)
 
     def read_from_yaml(self, path):
-        f = open(path, 'r')
-        model_yaml_string = f.read()
-        f.close()
-        model = model_from_yaml(model_yaml_string)
+        model = self._read_from_yaml_internal(path)
         return DLKerasTheanoNetwork(model)
 
 
