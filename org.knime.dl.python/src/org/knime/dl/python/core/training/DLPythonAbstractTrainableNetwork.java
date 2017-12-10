@@ -105,7 +105,7 @@ public abstract class DLPythonAbstractTrainableNetwork<N extends DLPythonNetwork
 			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
 					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
-					.load(m_network.getSource(), m_commands.getContext());
+					.load(m_network.getSource(), m_commands.getContext(), true);
 			setNetworkTrainingConfig(m_handle, m_commands, m_trainingConfig);
 		}
 		m_commands.trainNetwork(m_handle, inputSupplier, monitor);
