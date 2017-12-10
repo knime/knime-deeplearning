@@ -157,7 +157,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	protected abstract String getSetupBackendCode();
 
-	protected abstract String getLoadNetworkCode(String path);
+	protected abstract String getLoadNetworkCode(String path, boolean loadTrainingConfig);
 
 	@Override
 	public final synchronized DLPythonContext getContext() throws DLInvalidEnvironmentException {
@@ -239,8 +239,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public DLPythonNetworkHandle loadNetwork(final String path) throws DLInvalidEnvironmentException, IOException {
-		getContext().executeInKernel(getLoadNetworkCode(path));
+	public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig)
+			throws DLInvalidEnvironmentException, IOException {
+		getContext().executeInKernel(getLoadNetworkCode(path, loadTrainingConfig));
 		// TODO: we should get the model name (= network identifier) from Python
 		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
 	}

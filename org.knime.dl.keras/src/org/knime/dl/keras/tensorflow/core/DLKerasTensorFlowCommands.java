@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.DLKerasTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
+import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -109,10 +110,11 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 	}
 
 	@Override
-	protected String getLoadNetworkCode(final String path) {
+	protected String getLoadNetworkCode(final String path, final boolean loadTrainingConfig) {
 		return "import DLPythonNetwork\n" + //
 				"from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader\n" + //
-				"network = DLKerasTensorFlowNetworkReader().read(r'" + path + "')\n" + //
+				"network = DLKerasTensorFlowNetworkReader().read(r'" + path + "', compile="
+				+ DLPythonUtils.toPython(loadTrainingConfig) + ")\n" + //
 				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
 	}
 

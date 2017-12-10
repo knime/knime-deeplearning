@@ -77,7 +77,8 @@ public interface DLPythonCommands extends AutoCloseable {
 
 	void testInstallation() throws DLInvalidEnvironmentException;
 
-	DLPythonNetworkHandle loadNetwork(String path) throws DLInvalidEnvironmentException, IOException;
+	DLPythonNetworkHandle loadNetwork(String path, boolean loadTrainingConfig)
+			throws DLInvalidEnvironmentException, IOException;
 
 	DLNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network) throws DLInvalidEnvironmentException, IOException;
 
