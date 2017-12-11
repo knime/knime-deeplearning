@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Deep Learning - Keras Integration
 Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
 Bundle-Version: 3.5.0.qualifier
-Bundle-ClassPath: .
+Bundle-ClassPath: knime-dl-keras.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.keras.core,
  org.knime.dl.keras.core.training
