@@ -49,7 +49,7 @@ package org.knime.dl.keras.base.nodes.learner;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
@@ -69,12 +69,12 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	private boolean m_isRunning;
 
 	private boolean m_hasData;
-	
+
 	private boolean m_hasStoppedEarly;
 
-	private LocalTime m_startTime;
+	private LocalDateTime m_startTime;
 
-	private LocalTime m_endTime;
+	private LocalDateTime m_endTime;
 
 	private int m_currentEpoch;
 
@@ -125,12 +125,12 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	}
 
 	@Override
-	public LocalTime getStartTime() {
+	public LocalDateTime getStartDateTime() {
 		return m_startTime;
 	}
 
 	@Override
-	public LocalTime getEndTime() {
+	public LocalDateTime getEndDateTime() {
 		return m_endTime;
 	}
 
@@ -200,14 +200,14 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 			m_onTrainingStartCallback.run();
 		}
 	}
-	
+
 	@Override
 	public boolean hasStoppedEarly() {
 		return m_hasStoppedEarly;
 	}
-	
+
 	@Override
-	public void setHasStoppedEarly(boolean hasStoppedEarly) {
+	public void setHasStoppedEarly(final boolean hasStoppedEarly) {
 		m_hasStoppedEarly = hasStoppedEarly;
 	}
 
@@ -256,8 +256,8 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		m_numBatchesPerEpoch = objIn.readInt();
 		m_isRunning = objIn.readBoolean();
 		m_hasData = objIn.readBoolean();
-		m_startTime = (LocalTime) objIn.readObject();
-		m_endTime = (LocalTime) objIn.readObject();
+		m_startTime = (LocalDateTime) objIn.readObject();
+		m_endTime = (LocalDateTime) objIn.readObject();
 		m_currentEpoch = objIn.readInt();
 		m_currentBatchInEpoch = objIn.readInt();
 		m_metricsNames = (String[]) objIn.readObject();
@@ -273,11 +273,11 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		m_numBatchesPerEpoch = numBatchesPerEpoch;
 	}
 
-	void setStartTime(final LocalTime startTime) {
+	void setStartTime(final LocalDateTime startTime) {
 		m_startTime = startTime;
 	}
 
-	void setEndTime(final LocalTime endTime) {
+	void setEndTime(final LocalDateTime endTime) {
 		m_endTime = endTime;
 	}
 
