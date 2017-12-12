@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -43,73 +43,22 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Apr 17, 2017 (dietzc): created
  */
 package org.knime.dl.core;
 
 import java.io.Serializable;
-import java.util.OptionalLong;
 
 /**
- * The spec of a {@link DLTensor tensor}.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
- * <P>
- * Deep learning spec objects are intended to be used throughout the application and must not reference heavy data
- * objects or external resources. Spec objects are stateless.
- *
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTensorSpec extends Serializable {
+public interface DLTensorId extends Serializable {
 
-	/**
-	 * @return the identifier of the tensor.
-	 */
-	DLTensorId getIdentifier();
+	String getIdentifierString();
 
-	/**
-	 * Returns the name of the tensor.
-	 *
-	 * @return the name of the tensor
-	 */
-	String getName();
-
-	/**
-	 * Returns the batch size of the tensor if specified.
-	 *
-	 * @return the batch size of the tensor
-	 */
-	OptionalLong getBatchSize();
-
-	/**
-	 * Returns the shape of the tensor.
-	 *
-	 * @return the shape of the tensor
-	 */
-	DLTensorShape getShape();
-
-	/**
-	 * Returns the type of the tensor's elements
-	 *
-	 * @return the type of the tensor's elements
-	 */
-	Class<?> getElementType();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
 	int hashCode();
 
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
 	@Override
 	boolean equals(Object obj);
 }
