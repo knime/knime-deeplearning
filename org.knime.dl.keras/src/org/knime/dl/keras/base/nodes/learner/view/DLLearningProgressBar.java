@@ -51,6 +51,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.time.Duration;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -68,7 +69,19 @@ public class DLLearningProgressBar extends JPanel {
 
 	private static final String PROGRESS_COUNTER_FORMAT = "%d / %d";
 
-	private static final String TIME_COUNTER_FORMAT = "%.1f s";
+	private static final String DURATION_DISPLAY_FORMAT = "%02d:%02d:%02d.%01d (hh:mm:ss.ms)";
+
+	private static final String formatTimeCounter(final Duration duration) {
+		if (duration == null) {
+			return "-";
+		}
+		final long elapsedSeconds = duration.getSeconds();
+		final long hours = elapsedSeconds / 3600;
+		final int minutes = (int) ((elapsedSeconds % 3600) / 60);
+		final int secs = (int) (elapsedSeconds % 60);
+		final int millis = duration.getNano() / 100000000; // limit precision for display
+		return String.format(DURATION_DISPLAY_FORMAT, hours, minutes, secs, millis);
+	}
 
 	private final JProgressBar m_progressBar;
 
@@ -96,19 +109,19 @@ public class DLLearningProgressBar extends JPanel {
 		final JPanel progressCounterBox = new JPanel(new GridLayout(0, 1));
 		progressCounterBox.setBorder(BorderFactory.createTitledBorder(progressLabel));
 		progressCounterBox.add(m_progressCounter);
-		progressCounterBox.setPreferredSize(new Dimension(100, 40));
-		progressCounterBox.setMinimumSize(new Dimension(100, 40));
+		progressCounterBox.setPreferredSize(new Dimension(80, 40));
+		progressCounterBox.setMinimumSize(new Dimension(80, 40));
 		gbc.insets = new Insets(5, 5, 5, 5);
 		gbc.weightx = 0.1;
 		gbc.gridx++;
 		add(progressCounterBox, gbc);
 
 		m_timeCounter = new JLabel();
-		m_timeCounter.setText(String.format(TIME_COUNTER_FORMAT, 0.0));
+		m_timeCounter.setText(formatTimeCounter(null));
 		final JPanel timeCounterBox = new JPanel(new GridLayout(0, 1));
 		timeCounterBox.setBorder(BorderFactory.createTitledBorder(timeLabel));
 		timeCounterBox.add(m_timeCounter);
-		timeCounterBox.setPreferredSize(new Dimension(100, 40));
+		timeCounterBox.setPreferredSize(new Dimension(120, 40));
 		timeCounterBox.setMinimumSize(new Dimension(100, 40));
 		gbc.gridx++;
 		add(timeCounterBox, gbc);
@@ -122,8 +135,8 @@ public class DLLearningProgressBar extends JPanel {
 		m_progressCounter.setText(String.format(PROGRESS_COUNTER_FORMAT, current, max));
 	}
 
-	public void setTime(final double timeInSec) {
-		m_timeCounter.setText(String.format(TIME_COUNTER_FORMAT, timeInSec));
+	public void setDuration(final Duration duration) {
+		m_timeCounter.setText(formatTimeCounter(duration));
 	}
 
 	public void setMaxProgress(final int maxProgress) {

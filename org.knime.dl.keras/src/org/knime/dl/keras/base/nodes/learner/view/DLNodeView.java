@@ -50,10 +50,9 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -80,7 +79,10 @@ import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlo
 // We don't want to enforce an implementation here.
 public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
 
-	private static final String TIME_DISPLAY_FORMAT = "%02d:%02d:%02d";
+	private static final DateTimeFormatter START_TIME_DISPLAY_FORMATTER = DateTimeFormatter
+			.ofPattern("E, dd MMM yyyy HH:mm:ss");
+
+	private static final String ELAPSED_TIME_DISPLAY_FORMAT = "%02d:%02d:%02d (hh:mm:ss)";
 
 	/**
 	 * Alternative to setShowNODATALabel() because the NODATA label of the NodeView is also displayed during execution,
@@ -91,6 +93,21 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	static {
 		NO_DATA_OVERLAY = new JLabel("<html><center>No data to display</center></html>", SwingConstants.CENTER);
 		NO_DATA_OVERLAY.setPreferredSize(new Dimension(1000, 700));
+	}
+
+	private static String formatStartTime(final LocalDateTime startTime) {
+		return startTime != null ? startTime.format(START_TIME_DISPLAY_FORMATTER) : "-";
+	}
+
+	private static String formatElapsedTime(final Duration elapsedTime) {
+		if (elapsedTime == null) {
+			return "-";
+		}
+		final long elapsedSeconds = elapsedTime.getSeconds();
+		final long hours = elapsedSeconds / 3600;
+		final int minutes = (int) ((elapsedSeconds % 3600) / 60);
+		final int secs = (int) (elapsedSeconds % 60);
+		return String.format(ELAPSED_TIME_DISPLAY_FORMAT, hours, minutes, secs);
 	}
 
 	private Map<String, DLJFreeChartLinePlotWithHistoryView> m_views;
@@ -110,7 +127,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private LeftAlignLabelWithValue m_startTime;
 
 	private LeftAlignLabelWithValue m_elapsedTime;
-	
+
 	private LeftAlignButton m_stopButton;
 
 	private JPanel m_mainContainer;
@@ -188,33 +205,30 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(10, 10, 0, 0);
-		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. seconds/epoch");
+		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. duration / epoch");
 		m_mainContainer.add(m_epochProgressBar, gbc);
 
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 10, 10, 0);
-		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. seconds/batch");
+		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. duration / batch");
 		m_mainContainer.add(m_batchProgressBar, gbc);
 
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 15, 10, 0);
 		m_startTime = new LeftAlignLabelWithValue("Start time: ");
-		m_startTime.setValue(String.format(TIME_DISPLAY_FORMAT, 0, 0, 0));
+		m_startTime.setValue(formatStartTime(null));
 		m_mainContainer.add(m_startTime, gbc);
 
 		gbc.gridy++;
 		m_elapsedTime = new LeftAlignLabelWithValue("Elapsed: ");
-		m_elapsedTime.setValue(String.format(TIME_DISPLAY_FORMAT, 0, 0, 0));
+		m_elapsedTime.setValue(formatElapsedTime(null));
 		m_mainContainer.add(m_elapsedTime, gbc);
 
 		gbc.gridy++;
 		m_stopButton = new LeftAlignButton("Stop learning");
-		m_stopButton.getButton().addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getNodeModel().stopLearning();
-				setHasStoppedButtonStatus();
-			}
+		m_stopButton.getButton().addActionListener(e -> {
+			getNodeModel().stopLearning();
+			setHasStoppedButtonStatus();
 		});
 		gbc.insets = new Insets(10, 15, 10, 0);
 		m_mainContainer.add(m_stopButton, gbc);
@@ -228,10 +242,10 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			startAllTimers();
 			initDataIterators(monitor.getDataUpdate());
 
-			if(monitor.hasStoppedEarly()) {
+			if (monitor.hasStoppedEarly()) {
 				setHasStoppedButtonStatus();
 			}
-			
+
 			m_epochProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch() * monitor.getNumEpochs());
 			m_batchProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch());
 
@@ -248,23 +262,19 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 				if (endTime == null) {
 					endTime = LocalDateTime.now();
 				}
-				final long elapsedSeconds = Duration.between(startTime, endTime).getSeconds();
+				final Duration elapsedTime = Duration.between(startTime, endTime);
 
 				final int currentEpoch = monitor.getCurrentEpoch();
 				if (currentEpoch != m_lastEpoch || currentEpoch == monitor.getNumEpochs()) {
-					m_epochProgressBar.setTime(elapsedSeconds / (double) (currentEpoch + 1));
+					m_epochProgressBar.setDuration(elapsedTime.dividedBy(currentEpoch + 1));
 					m_lastEpoch = currentEpoch;
 				}
 				final int currentBatch = monitor.getCurrentBatchInEpoch();
-				m_batchProgressBar.setTime(elapsedSeconds / (double) ((currentBatch != 0 ? currentBatch : 1)
-						+ currentEpoch * monitor.getNumBatchesPerEpoch()));
+				m_batchProgressBar.setDuration(elapsedTime.dividedBy(
+						(currentBatch != 0 ? currentBatch : 1) + currentEpoch * monitor.getNumBatchesPerEpoch()));
 
-				m_startTime.setValue(String.format(TIME_DISPLAY_FORMAT, startTime.getHour(), startTime.getMinute(),
-						startTime.getSecond()));
-				final long hours = elapsedSeconds / 3600;
-				final int minutes = (int) ((elapsedSeconds % 3600) / 60);
-				final int secs = (int) (elapsedSeconds % 60);
-				m_elapsedTime.setValue(String.format(TIME_DISPLAY_FORMAT, hours, minutes, secs));
+				m_startTime.setValue(formatStartTime(startTime));
+				m_elapsedTime.setValue(formatElapsedTime(elapsedTime));
 			}
 			for (final DLViewSpec spec : m_specs) {
 				final DLJFreeChartLinePlotWithHistoryView view = m_views.get(spec.id());
@@ -295,7 +305,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 		showNoDataOverlay(true);
 	}
-	
+
 	private void setHasStoppedButtonStatus() {
 		m_stopButton.getButton().setText("Learning stopped");
 		m_stopButton.getButton().setEnabled(false);
