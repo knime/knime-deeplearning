@@ -53,7 +53,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Duration;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -242,11 +242,11 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			m_batchProgressBar.setProgress(monitor.getCurrentBatchInEpoch());
 			m_batchProgressBar.setProgressText(monitor.getCurrentBatchInEpoch(), monitor.getNumBatchesPerEpoch());
 
-			final LocalTime startTime = monitor.getStartTime();
+			final LocalDateTime startTime = monitor.getStartDateTime();
 			if (startTime != null) {
-				LocalTime endTime = monitor.getEndTime();
+				LocalDateTime endTime = monitor.getEndDateTime();
 				if (endTime == null) {
-					endTime = LocalTime.now();
+					endTime = LocalDateTime.now();
 				}
 				final long elapsedSeconds = Duration.between(startTime, endTime).getSeconds();
 

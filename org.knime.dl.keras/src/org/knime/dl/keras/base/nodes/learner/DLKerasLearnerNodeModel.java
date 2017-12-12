@@ -54,7 +54,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -647,9 +647,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setExecutionContext(exec);
 			final AtomicInteger currentEpoch = new AtomicInteger();
 			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
-			m_monitor.onTrainingStart(() -> m_monitor.setStartTime(LocalTime.now()));
+			m_monitor.onTrainingStart(() -> m_monitor.setStartTime(LocalDateTime.now()));
 			m_monitor.onTrainingEnd(() -> {
-				m_monitor.setEndTime(LocalTime.now());
+				m_monitor.setEndTime(LocalDateTime.now());
 				// there might be a significant time difference between last batch end and training end, so let's update
 				// the view one more time
 				notifyViews(m_monitor);

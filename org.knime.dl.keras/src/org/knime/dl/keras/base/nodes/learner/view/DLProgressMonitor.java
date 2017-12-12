@@ -47,7 +47,7 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
 import java.io.Externalizable;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -67,12 +67,12 @@ public interface DLProgressMonitor extends Externalizable {
 	void setHasData(boolean hasData);
 
 	boolean hasStoppedEarly();
-	
-	void setHasStoppedEarly(boolean hasStoppedEarly);
-	
-	LocalTime getStartTime();
 
-	LocalTime getEndTime();
+	void setHasStoppedEarly(boolean hasStoppedEarly);
+
+	LocalDateTime getStartDateTime();
+
+	LocalDateTime getEndDateTime();
 
 	int getCurrentEpoch();
 
