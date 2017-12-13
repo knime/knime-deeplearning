@@ -88,7 +88,8 @@ public interface DLPythonCommands extends AutoCloseable {
 			Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs)
+	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs,
+			final long batchSize)
 			throws DLInvalidEnvironmentException, IOException;
 
 	/**
