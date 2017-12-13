@@ -48,6 +48,8 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.OptionalLong;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.dl.core.DLTensor;
@@ -105,7 +107,7 @@ public interface DLTensorToDataCellConverterFactory<I extends DLReadableBuffer, 
 	 * @param spec the input spec
 	 * @return the number of output elements
 	 */
-	long getDestCount(DLTensorSpec spec);
+	OptionalLong getDestCount(DLTensorSpec spec);
 
 	/**
 	 * Creates a new converter instance.

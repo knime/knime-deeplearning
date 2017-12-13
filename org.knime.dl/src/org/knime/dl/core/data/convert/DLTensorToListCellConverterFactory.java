@@ -49,6 +49,7 @@ package org.knime.dl.core.data.convert;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
+import java.util.OptionalLong;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -66,6 +67,8 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer, OE extends DataCell>
 		implements DLTensorToDataCellConverterFactory<I, ListCell> {
+	
+	private static final OptionalLong DEST_COUNT = OptionalLong.of(1);
 
 	private final DLTensorToDataCellConverterFactory<I, OE> m_elementConverterFactory;
 
@@ -98,8 +101,8 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 	}
 
 	@Override
-	public long getDestCount(final DLTensorSpec spec) {
-		return 1;
+	public OptionalLong getDestCount(final DLTensorSpec spec) {
+		return DEST_COUNT;
 	}
 
 	@Override

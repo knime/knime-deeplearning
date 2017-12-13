@@ -48,6 +48,8 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.OptionalLong;
+
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.dl.core.DLTensorSpec;
@@ -77,8 +79,8 @@ public class DLDoubleTensorToDoubleCellConverterFactory
 	}
 
 	@Override
-	public long getDestCount(final DLTensorSpec spec) {
-		return DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
+	public OptionalLong getDestCount(final DLTensorSpec spec) {
+		return DLUtils.Shapes.getFixedSize(spec.getShape());
 	}
 
 	@Override
