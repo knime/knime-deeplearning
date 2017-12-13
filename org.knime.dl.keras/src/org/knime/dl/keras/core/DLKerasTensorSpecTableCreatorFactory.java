@@ -48,7 +48,11 @@
  */
 package org.knime.dl.keras.core;
 
+import java.util.Arrays;
+import java.util.OptionalLong;
+
 import org.knime.dl.core.DLDefaultFixedTensorShape;
+import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
@@ -98,7 +102,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					&& colTypes[3].equals(Type.STRING);
 		}
 
-		private final DLDefaultTensorSpec[] m_layerDataSpecs;
+		private final DLDefaultTensorSpec[] m_tensorSpecs;
 
 		private int m_nextIdx;
 
@@ -110,7 +114,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 			if (!checkTableSpec(spec)) {
 				throw new IllegalStateException("Python side sent an invalid tensor specs table.");
 			}
-			m_layerDataSpecs = new DLDefaultTensorSpec[tableSize];
+			m_tensorSpecs = new DLDefaultTensorSpec[tableSize];
 			m_nextIdx = 0;
 			m_tableSpec = spec;
 			m_typeMap = typeMap;
@@ -131,42 +135,45 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					layerBatchSize = Long.parseLong(row.getCell(1).getStringValue());
 				}
 			}
-			DLTensorShape layerDataShape = null;
+			DLTensorShape tensorShape = null;
 			if (!row.getCell(2).isMissing()) {
 				if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
 					try {
-						layerDataShape = new DLDefaultFixedTensorShape(row.getCell(2).getLongArrayValue());
+						tensorShape = createShape(row.getCell(2).getLongArrayValue());
 					} catch (final NullPointerException ex) {
 						// shape stays null
 					}
 				} else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
-					final int[] layerDataShapeInt = row.getCell(2).getIntegerArrayValue();
-					final long[] shape = new long[layerDataShapeInt.length];
-					if (!row.getCell(2).isMissing(0)) {
-						for (int i = 0; i < layerDataShapeInt.length; i++) {
-							shape[i] = layerDataShapeInt[i];
-						}
-						layerDataShape = new DLDefaultFixedTensorShape(shape);
-					}
+					final int[] tensorShapeInt = row.getCell(2).getIntegerArrayValue();
+					tensorShape = createShape(Arrays.stream(tensorShapeInt).mapToLong(i -> i).toArray());
 				}
 			}
 			final Class<?> layerDataType = m_typeMap.getPreferredInternalType(row.getCell(3).getStringValue());
 			// TODO: a builder would be nice
 			final DLDefaultTensorSpec spec;
 			if (layerBatchSize > 0) {
-				if (layerDataShape != null) {
-					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, layerDataShape, layerDataType);
+				if (tensorShape != null) {
+					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, tensorShape, layerDataType);
 				} else {
 					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, layerDataType);
 				}
 			} else {
-				if (layerDataShape != null) {
-					spec = new DLDefaultTensorSpec(layerDataName, layerDataShape, layerDataType);
+				if (tensorShape != null) {
+					spec = new DLDefaultTensorSpec(layerDataName, tensorShape, layerDataType);
 				} else {
 					spec = new DLDefaultTensorSpec(layerDataName, layerDataType);
 				}
 			}
-			m_layerDataSpecs[m_nextIdx++] = spec;
+			m_tensorSpecs[m_nextIdx++] = spec;
+		}
+		
+		private DLTensorShape createShape(long[] shape) {
+			if (Arrays.stream(shape).allMatch(d -> d != -1L)) {
+				return new DLDefaultFixedTensorShape(shape);
+			}
+			return new DLDefaultPartialTensorShape(Arrays.stream(shape)
+					.mapToObj(d -> d == -1 ? OptionalLong.empty() : OptionalLong.of(d))
+					.toArray(i -> new OptionalLong[i]));
 		}
 
 		@Override
@@ -176,7 +183,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 		@Override
 		public DLDefaultTensorSpec[] getTable() {
-			return m_layerDataSpecs;
+			return m_tensorSpecs;
 		}
 	}
 }
