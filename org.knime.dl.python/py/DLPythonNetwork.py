@@ -131,7 +131,8 @@ class DLPythonTensorSpec(object):
     def __init__(self, name, batch_size, shape, element_type):
         self._name = name
         self._batch_size = batch_size
-        self._shape = shape
+        # encode unknown dimensions as -1 to avoid serialization problems
+        self._shape = [-1 if d is None else d for d in shape]
         self._element_type = element_type
 
     @property
