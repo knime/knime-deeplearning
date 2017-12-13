@@ -111,7 +111,7 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 		for (long i = 0; i < m_inputPreparer.getNumBatches(); i++) {
 			m_inputPreparer.prepare(m_input, i);
 			m_commands.setNetworkInputs(m_handle, m_input);
-			m_commands.executeNetwork(m_handle, m_requestedOutputs);
+			m_commands.executeNetwork(m_handle, m_requestedOutputs, m_batchSize);
 			for (final DLTensor<?> input : m_input.values()) {
 				input.getBuffer().reset();
 			}
