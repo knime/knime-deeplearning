@@ -49,6 +49,7 @@
 package org.knime.dl.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import java.io.File;
@@ -58,6 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.stream.IntStream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -65,8 +67,10 @@ import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLPartialTensorShape;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLUnknownTensorShape;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
@@ -226,5 +230,55 @@ public final class DLUtils {
 			}
 			return size;
 		}
+		
+		public static long[] calculateExecutionShape(final DLTensorShape tensorShape, final long[] dataShape) {
+			if (isFixed(tensorShape)) {
+				long[] ts = ((DLFixedTensorShape)tensorShape).getShape();
+				checkArgument(getSize(ts) == getSize(dataShape),
+						"The input shape does not match the tensor shape. %s vs. %s", Arrays.toString(dataShape),
+						tensorShape);
+				return ts;
+			} else if (isPartial(tensorShape)) {
+				Optional<long[]> executionShape = executionShapeFromPartialShape((DLPartialTensorShape) tensorShape, dataShape);
+				checkArgument(executionShape.isPresent(), 
+						"The input shape does not match the tensor shape. %s vs. %s", Arrays.toString(dataShape),
+						tensorShape);
+				return executionShape.get();
+			}
+			throw new IllegalArgumentException("Currently only fixed shapes are supported.");
+		}
+		
+		public static Optional<long[]> executionShapeFromPartialShape(DLPartialTensorShape tensorShape,
+				final long[] dataShape) {
+			if (dataShape.length == 1) {
+				if (tensorShape.getNumUnknownDimensions() == 1) {
+					long nInputs = dataShape[0];
+					if (nInputs % tensorShape.getKnownSize() == 0L) {
+						long[] executionShape = IntStream.range(0, tensorShape.getNumDimensions())
+								.mapToObj(tensorShape::getDimension)
+								.mapToLong(o -> o.isPresent() ? o.getAsLong() : nInputs / tensorShape.getKnownSize())
+								.toArray();
+						return Optional.of(executionShape);
+					}
+				}
+			} else if (dataShape.length > 1) {
+				long dataSize = getSize(dataShape);
+				//TODO: Figure out how to best match dimensions
+				if (dataShape.length == tensorShape.getNumDimensions() 
+						&& dataSize % tensorShape.getKnownSize() == 0) {
+					return Optional.of(dataShape);
+				}
+			}
+			return Optional.empty();
+		}
+		
+		public static boolean isPartial(DLTensorShape shape) {
+			return shape instanceof DLPartialTensorShape;
+		}
+		
+		public static boolean isKnown(final DLTensorShape shape) {
+			return !(shape instanceof DLUnknownTensorShape);
+		}
+		
 	}
 }
