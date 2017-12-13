@@ -50,10 +50,13 @@ package org.knime.dl.python.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
@@ -93,6 +96,8 @@ import org.knime.python2.kernel.DefaultJavaToPythonResponse;
 import org.knime.python2.kernel.Messages;
 import org.knime.python2.kernel.PythonToJavaMessage;
 
+import com.google.common.collect.Sets;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -118,6 +123,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public static final String INPUT_TABLE_NAME = "input_table";
 
 	public static final String OUTPUT_TABLE_NAME = "output_table";
+	
+	public static final String OUTPUT_SHAPES_NAME = "output_shapes";
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
@@ -285,15 +292,57 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("for input_spec in network.spec.input_specs:") //
 				.n().t().a("in_data[input_spec.name] = globals()[input_spec.name]") //
 				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
+				.n("output_shapes = {}") //
 				.n("for name, data in out_data.items():") //
-				.n().t().a("globals()[name] = data");
+				.n().t().a("shape = [list(data.iloc[0][0].array.shape)]")
+				.n().t().a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
+				.n().t().a("globals()[name] = data")
+				.n("globals()[").as(OUTPUT_SHAPES_NAME).a("] = pd.DataFrame(output_shapes)");
 		getContext().executeInKernel(b.toString());
 	}
 
 	@Override
 	public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
 			final Set<T> outputs) throws DLInvalidEnvironmentException, IOException {
-		throw new RuntimeException("not yet implemented"); // TODO: NYI
+		Map<T, long[]> shapes = new HashMap<>(outputs.size());
+		Map<String, T> idMap = outputs.stream().collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
+		getContext().getKernel().getData(OUTPUT_SHAPES_NAME,
+				(tableSpec, tableSize) -> new TableCreator<Object>() {
+
+					@Override
+					public void addRow(Row row) {
+						String[] tensorNames = tableSpec.getColumnNames();
+						for (int i = 0; i < tensorNames.length; i++) {
+							Cell shapeCell = row.getCell(i);
+							try {
+								int[] intShape = shapeCell.getIntegerArrayValue();
+								shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
+							} catch (IllegalStateException e) {
+								LOGGER.error("An exception occurred while collecting output shapes from Python: "
+										+ e.getMessage(), e);
+							}
+						}
+					}
+
+					@Override
+					public TableSpec getTableSpec() {
+						return tableSpec;
+					}
+
+					@Override
+					public Object getTable() {
+						return null;
+					}
+					
+				}
+				);
+		// ensure that we have a shape for each output tensor
+		if (shapes.size() != outputs.size()) {
+			throw new IllegalStateException(
+					"Python didn't return a shape for each output. The shape is missing for outputs " + 
+							Sets.difference(outputs, shapes.keySet()));
+		}
+		return shapes;
 	}
 
 	// TODO: implement network handle
