@@ -54,6 +54,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.ExtensibleUtilityFactory;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
 
 /**
@@ -85,10 +86,14 @@ public class DLDoubleValueToDoubleTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<DoubleValue, DLWritableDoubleBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableDoubleBuffer buf = output.getBuffer();
-			for (final DoubleValue val : input) {
-				buf.put(val.getDoubleValue());
+		return new DLAbstractScalarDataValueToTensorConverter<DoubleValue, DLWritableDoubleBuffer>() {
+
+			@Override
+			public void convert(Iterable<? extends DoubleValue> input, DLTensor<DLWritableDoubleBuffer> output) {
+				final DLWritableDoubleBuffer buf = output.getBuffer();
+				for (final DoubleValue val : input) {
+					buf.put(val.getDoubleValue());
+				}
 			}
 		};
 	}

@@ -52,6 +52,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
@@ -83,10 +84,14 @@ public class DLBooleanValueToBitTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<BooleanValue, DLWritableBitBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableBitBuffer buf = output.getBuffer();
-			for (final BooleanValue val : input) {
-				buf.put(val.getBooleanValue());
+		return new DLAbstractScalarDataValueToTensorConverter<BooleanValue, DLWritableBitBuffer>() {
+
+			@Override
+			public void convert(Iterable<? extends BooleanValue> input, DLTensor<DLWritableBitBuffer> output) {
+				final DLWritableBitBuffer buf = output.getBuffer();
+				for (final BooleanValue val : input) {
+					buf.put(val.getBooleanValue());
+				}
 			}
 		};
 	}

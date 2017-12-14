@@ -52,6 +52,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.LongValue;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 
 /**
@@ -83,10 +84,14 @@ public class DLLongValueToLongTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<LongValue, DLWritableLongBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableLongBuffer buf = output.getBuffer();
-			for (final LongValue val : input) {
-				buf.put(val.getLongValue());
+		return new DLAbstractScalarDataValueToTensorConverter<LongValue, DLWritableLongBuffer>() {
+
+			@Override
+			public void convert(Iterable<? extends LongValue> input, DLTensor<DLWritableLongBuffer> output) {
+				final DLWritableLongBuffer buf = output.getBuffer();
+				for (final LongValue val : input) {
+					buf.put(val.getLongValue());
+				}
 			}
 		};
 	}

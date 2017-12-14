@@ -52,6 +52,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.LongValue;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
 
 /**
@@ -83,13 +84,17 @@ public class DLLongValueToDoubleTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<LongValue, DLWritableDoubleBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableDoubleBuffer buf = output.getBuffer();
-			for (final LongValue val : input) {
-				// explicit widening primitive conversion from long to double; loss of precision
-				// NB: our type system treats long and double as incompatible, that's why we need this converter
-				// explicitly (for UX reasons)
-				buf.put((double) val.getLongValue());
+		return new DLAbstractScalarDataValueToTensorConverter<LongValue, DLWritableDoubleBuffer>() {
+
+			@Override
+			public void convert(Iterable<? extends LongValue> input, DLTensor<DLWritableDoubleBuffer> output) {
+				final DLWritableDoubleBuffer buf = output.getBuffer();
+				for (final LongValue val : input) {
+					// explicit widening primitive conversion from long to double; loss of precision
+					// NB: our type system treats long and double as incompatible, that's why we need this converter
+					// explicitly (for UX reasons)
+					buf.put((double) val.getLongValue());
+				}
 			}
 		};
 	}

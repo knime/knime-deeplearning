@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -49,59 +49,16 @@
 package org.knime.dl.core.data.convert;
 
 import java.util.List;
-import java.util.OptionalLong;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.data.DLWritableBitBuffer;
+import org.knime.core.data.DataValue;
+import org.knime.dl.core.data.DLWritableBuffer;
 
-/**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- */
-public class DLBitVectorToBitTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<BitVectorValue, DLWritableBitBuffer> {
+abstract class DLAbstractScalarDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
+implements DLDataValueToTensorConverter<FROM, VIA> {
 
 	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName();
+	public long[] getShape(List<? extends FROM> input) {
+		return new long[] {input.size()};
 	}
 
-	@Override
-	public Class<BitVectorValue> getSourceType() {
-		return BitVectorValue.class;
-	}
-
-	@Override
-	public Class<DLWritableBitBuffer> getBufferType() {
-		return DLWritableBitBuffer.class;
-	}
-
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
-
-	@Override
-	public DLDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
-return new DLAbstractTensorDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
-			
-			@Override
-			protected long[] getShapeInternal(BitVectorValue element) {
-				return new long[] {element.length()};
-			}
-			
-			@Override
-			public void convertInternal(BitVectorValue input, DLTensor<DLWritableBitBuffer> output) {
-				DLWritableBitBuffer buffer = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buffer.put(input.get(i));
-				}
-			}
-
-			
-		};
-	}
 }

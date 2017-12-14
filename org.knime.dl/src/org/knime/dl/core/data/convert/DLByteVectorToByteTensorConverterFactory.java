@@ -54,6 +54,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
 
@@ -86,12 +87,19 @@ public class DLByteVectorToByteTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableByteBuffer buf = output.getBuffer();
-			for (final ByteVectorValue val : input) {
-				for (int i = 0; i < val.length(); i++) {
-					buf.put((byte) val.get(i));
+		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer>() {
+
+			@Override
+			public void convertInternal(ByteVectorValue input, DLTensor<DLWritableShortBuffer> output) {
+				final DLWritableByteBuffer buf = output.getBuffer();
+					for (int i = 0; i < input.length(); i++) {
+						buf.put((byte) input.get(i));
 				}
+			}
+
+			@Override
+			protected long[] getShapeInternal(ByteVectorValue element) {
+				return new long[] {element.length()};
 			}
 		};
 	}

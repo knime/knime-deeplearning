@@ -46,13 +46,16 @@
  */
 package org.knime.dl.core.data.convert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.CollectionDataValue;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
@@ -107,11 +110,17 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 	@Override
 	public DLDataValueToTensorConverter<CollectionDataValue, O> createConverter() {
 		final DLDataValueToTensorConverter<IE, O> elementConverter = m_elementConverterFactory.createConverter();
-		return (input, output) -> {
-			for (final CollectionDataValue val : input) {
-				@SuppressWarnings("unchecked")
-				final Iterable<? extends IE> casted = (Iterable<? extends IE>) val;
-				elementConverter.convert(casted, output);
+		return new DLAbstractTensorDataValueToTensorConverter<CollectionDataValue, O>() {
+
+			@Override
+			public void convertInternal(CollectionDataValue input, DLTensor<O> output) {
+					final Iterable<? extends IE> casted = ((Iterable<? extends IE>) input);
+					elementConverter.convert(casted, output);
+			}
+
+			@Override
+			protected long[] getShapeInternal(CollectionDataValue element) {
+				return elementConverter.getShape(element.stream().map(e -> (IE)e).collect(Collectors.toList()));
 			}
 		};
 	}

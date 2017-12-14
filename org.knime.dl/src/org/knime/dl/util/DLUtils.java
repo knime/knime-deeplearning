@@ -247,7 +247,7 @@ public final class DLUtils {
 						tensorShape);
 				return executionShape.get();
 			}
-			throw new IllegalArgumentException("Currently only fixed shapes are supported.");
+			throw new IllegalArgumentException("Currently only known shapes are supported.");
 		}
 		
 		public static Optional<long[]> executionShapeFromPartialShape(DLPartialTensorShape tensorShape,

@@ -52,6 +52,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.IntValue;
+import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 
 /**
@@ -83,13 +84,17 @@ public class DLIntValueToFloatTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<IntValue, DLWritableFloatBuffer> createConverter() {
-		return (input, output) -> {
-			final DLWritableFloatBuffer buf = output.getBuffer();
-			for (final IntValue val : input) {
-				// implicit widening primitive conversion from int to float; loss of precision
-				// NB: our type system treats int and float as incompatible, that's why we need this converter
-				// explicitly (for UX reasons)
-				buf.put(val.getIntValue());
+		return new DLAbstractScalarDataValueToTensorConverter<IntValue, DLWritableFloatBuffer>() {
+
+			@Override
+			public void convert(Iterable<? extends IntValue> input, DLTensor<DLWritableFloatBuffer> output) {
+				final DLWritableFloatBuffer buf = output.getBuffer();
+				for (final IntValue val : input) {
+					// implicit widening primitive conversion from int to float; loss of precision
+					// NB: our type system treats int and float as incompatible, that's why we need this converter
+					// explicitly (for UX reasons)
+					buf.put(val.getIntValue());
+				}
 			}
 		};
 	}

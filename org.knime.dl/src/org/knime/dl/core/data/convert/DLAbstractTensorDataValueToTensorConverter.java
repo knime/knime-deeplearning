@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -44,64 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 30, 2017 (marcel): created
+ *   Dec 14, 2017 (adrian): created
  */
 package org.knime.dl.core.data.convert;
 
 import java.util.List;
-import java.util.OptionalLong;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.data.DLWritableBitBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * Handles shape inference on an abstract level.
+ * Note that we currently only allow single tensor data values to be selected as input i.e. it is not possible
+ * to select multiple list columns.
+ * 
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ *
  */
-public class DLBitVectorToBitTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<BitVectorValue, DLWritableBitBuffer> {
-
+public abstract class DLAbstractTensorDataValueToTensorConverter <FROM extends DataValue, VIA extends DLWritableBuffer>
+implements DLDataValueToTensorConverter<FROM, VIA> {
+	
+	protected static final String ERROR_MSG = "For lists and vectors only single column selection is allowed.";
+	
 	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) BitVectorValue.UTILITY).getName();
+	public final long[] getShape(List<? extends FROM> input) {
+		CheckUtils.checkArgument(input.size() == 1, ERROR_MSG);
+		return getShapeInternal(input.get(0));
 	}
-
-	@Override
-	public Class<BitVectorValue> getSourceType() {
-		return BitVectorValue.class;
-	}
-
-	@Override
-	public Class<DLWritableBitBuffer> getBufferType() {
-		return DLWritableBitBuffer.class;
-	}
-
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
-
-	@Override
-	public DLDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
-return new DLAbstractTensorDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
-			
-			@Override
-			protected long[] getShapeInternal(BitVectorValue element) {
-				return new long[] {element.length()};
+	
+	public final void convert(Iterable<? extends FROM> input, DLTensor<VIA> output) {
+		boolean isNotSingle = false;
+		for (final FROM val : input) {
+			if (isNotSingle) {
+				throw new IllegalArgumentException(ERROR_MSG);
 			}
-			
-			@Override
-			public void convertInternal(BitVectorValue input, DLTensor<DLWritableBitBuffer> output) {
-				DLWritableBitBuffer buffer = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buffer.put(input.get(i));
-				}
-			}
-
-			
-		};
+			convertInternal(val, output);
+			isNotSingle = true;
+		}
 	}
+	
+	
+	/**
+	 * 
+	 * @param element an element of FROM
+	 * @return the shape of the element
+	 */
+	protected abstract long[] getShapeInternal(FROM element);
+	
+	protected abstract void convertInternal(FROM element, DLTensor<VIA> output);
+	
 }
