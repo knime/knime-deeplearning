@@ -96,7 +96,7 @@ final class DLExecutorInputPanel extends JPanel {
 
 	private final DLExecutorInputConfig m_cfg;
 
-	private final DLTensorSpec m_inputDataSpec;
+	private final DLTensorSpec m_inputTensorSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
@@ -108,12 +108,12 @@ final class DLExecutorInputPanel extends JPanel {
 			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
-		m_inputDataSpec = inputDataSpec;
+		m_inputTensorSpec = inputDataSpec;
 		m_lastTableSpec = tableSpec;
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("Input: " + m_inputDataSpec.getName()));
+		setBorder(BorderFactory.createTitledBorder("Input: " + m_inputTensorSpec.getName()));
 		final GridBagConstraints constr = new GridBagConstraints();
 		constr.gridx = 0;
 		constr.gridy = 0;
@@ -124,23 +124,22 @@ final class DLExecutorInputPanel extends JPanel {
 		final JPanel numNeurons = new JPanel();
 		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(
-				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get())),
-				numNeuronsConstr);
+		OptionalLong nn = DLUtils.Shapes.getFixedSize(m_inputTensorSpec.getShape());
+		String nnStr = nn.isPresent() ? Long.toString(nn.getAsLong()) : DLUtils.Shapes.UNKNOWN_DIM_SIZE_REPR;
+		numNeurons.add(new JLabel("Number of neurons: " + nnStr), numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
 		final JPanel shape = new JPanel();
 		final GridBagConstraints shapeConstr = new GridBagConstraints();
 		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_inputDataSpec.getShape().toString()), shapeConstr);
+		shape.add(new JLabel("Shape: " + m_inputTensorSpec.getShape().toString()), shapeConstr);
 		add(shape, constr);
 		constr.gridy++;
 		// converter selection
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", (e) -> {
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", e ->
 			m_cfg.getConverterModel()
-					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection());
-		});
+					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection())
+		);
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// column selection
@@ -190,7 +189,7 @@ final class DLExecutorInputPanel extends JPanel {
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape()).get());
+		final OptionalLong inputSize = DLUtils.Shapes.getFixedSize(m_inputTensorSpec.getShape());
 		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
 		m_cfg.saveToSettings(settings);
 		// validate input: get user-selected columns and converter, ask converter for its output size given the input
@@ -205,25 +204,28 @@ final class DLExecutorInputPanel extends JPanel {
 								+ m_cfg.getConverterModel().getStringArrayValue()[1]
 								+ ")' could not be found. Are you missing a KNIME extension?"));
 		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
-		if (destSizeOpt.isPresent()) {
-			final long converterOutputSize = destSizeOpt.getAsLong();
-			if (converterOutputSize > inputSize) {
-				throw new InvalidSettingsException("Selected input columns provide more input elements ("
-						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
-						+ m_inputDataSpec.getName() + "'. Try removing some columns from the selection.");
-			}
-			if (converterOutputSize < inputSize) {
-				throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
-						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
-						+ m_inputDataSpec.getName() + "'. Try adding some columns to the selection.");
-			}
-		} else {
-			// we still can check if there are more input columns than input neurons since every column provides at
-			// least one element
-			if (includedColSpecs.size() > inputSize) {
-				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
-						+ ") than neurons available (" + inputSize + ") for network input '" + m_inputDataSpec.getName()
-						+ "'. Try removing some columns from the selection.");
+		// we can only validate the input if we actually know the size of the input tensor
+		if (inputSize.isPresent()) {
+			if (destSizeOpt.isPresent()) {
+				final long converterOutputSize = destSizeOpt.getAsLong();
+				if (converterOutputSize > inputSize.getAsLong()) {
+					throw new InvalidSettingsException("Selected input columns provide more input elements ("
+							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
+							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
+				}
+				if (converterOutputSize < inputSize.getAsLong()) {
+					throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
+							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
+							+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
+				}
+			} else {
+				// we still can check if there are more input columns than input neurons since every column provides at
+				// least one element
+				if (includedColSpecs.size() > inputSize.getAsLong()) {
+					throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
+					+ ") than neurons available (" + inputSize + ") for network input '" + m_inputTensorSpec.getName()
+					+ "'. Try removing some columns from the selection.");
+				}
 			}
 		}
 	}
@@ -247,7 +249,7 @@ final class DLExecutorInputPanel extends JPanel {
 			if (inputTypes.add(inputColSpec.getType())) {
 				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converterOpt = converters
 						.getPreferredConverterFactory(inputColSpec.getType(),
-								executionContext.getTensorFactory().getWritableBufferType(m_inputDataSpec));
+								executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec));
 				if (converterOpt.isPresent()) {
 					final DLDataValueToTensorConverterFactory<?, ?> converter = converterOpt.get();
 					if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
@@ -283,7 +285,7 @@ final class DLExecutorInputPanel extends JPanel {
 		}
 		if (names.length == 0) {
 			throw new NotConfigurableException(
-					"No converters available for input '" + m_inputDataSpec.getName() + "'.");
+					"No converters available for input '" + m_inputTensorSpec.getName() + "'.");
 		}
 		m_dcConverter.replaceListItems(names, ids, null);
 	}

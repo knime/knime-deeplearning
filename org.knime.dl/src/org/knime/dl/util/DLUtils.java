@@ -197,6 +197,8 @@ public final class DLUtils {
 	}
 
 	public static class Shapes {
+		
+		public static final String UNKNOWN_DIM_SIZE_REPR = "?";
 
 		private Shapes() {
 		}

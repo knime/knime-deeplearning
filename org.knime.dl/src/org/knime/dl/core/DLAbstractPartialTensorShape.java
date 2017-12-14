@@ -5,6 +5,7 @@ import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.util.DLUtils;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -12,8 +13,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class DLAbstractPartialTensorShape extends DLAbstractTensorShape implements DLPartialTensorShape {
 
-private static final String UNKNOWN_REPRESENTATION = "?";
-	
 	/**
 	 * 
 	 */
@@ -90,7 +89,7 @@ private static final String UNKNOWN_REPRESENTATION = "?";
 	
 	@Override
 	public String toString() {
-		return Arrays.stream(m_shape).mapToObj(d -> d == -1 ? UNKNOWN_REPRESENTATION : Long.toString(d))
+		return Arrays.stream(m_shape).mapToObj(d -> d == -1 ? DLUtils.Shapes.UNKNOWN_DIM_SIZE_REPR : Long.toString(d))
 				.collect(Collectors.joining(", ", "[", "]"));
 	}
 
