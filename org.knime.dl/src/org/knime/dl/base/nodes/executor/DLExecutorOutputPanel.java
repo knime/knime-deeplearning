@@ -91,7 +91,7 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private final DLExecutorOutputConfig m_cfg;
 
-	private final DLTensorSpec m_outputDataSpec;
+	private final DLTensorSpec m_outputTensorSpec;
 
 	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
 
@@ -101,12 +101,12 @@ final class DLExecutorOutputPanel extends JPanel {
 			throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
-		m_outputDataSpec = outputDataSpec;
+		m_outputTensorSpec = outputDataSpec;
 		m_removeListeners = new CopyOnWriteArrayList<>();
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputDataSpec.getName()));
+		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputTensorSpec.getName()));
 		final GridBagConstraints constr = new GridBagConstraints();
 		constr.gridx = 0;
 		constr.gridy = 0;
@@ -117,7 +117,7 @@ final class DLExecutorOutputPanel extends JPanel {
 		final JPanel shape = new JPanel();
 		final GridBagConstraints shapeConstr = new GridBagConstraints();
 		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_outputDataSpec.getShape().toString()), shapeConstr);
+		shape.add(new JLabel("Shape: " + m_outputTensorSpec.getShape().toString()), shapeConstr);
 		add(shape, constr);
 		// 'remove' button, see bottom for click event handling
 		final JButton outputRemoveBtn = new JButton("remove");
@@ -129,10 +129,10 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(outputRemoveBtn, outputRemoveBtnConstr);
 		constr.gridy++;
 		// converter selection
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", (e) -> {
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", e -> 
 			m_cfg.getConverterModel()
-					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection());
-		});
+					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection())
+		);
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// prefix text input
@@ -190,7 +190,7 @@ final class DLExecutorOutputPanel extends JPanel {
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = DLTensorToDataCellConverterRegistry
 				.getInstance().getPreferredFactoriesForSourceType(
-						executionContext.getTensorFactory().getReadableBufferType(m_outputDataSpec), m_outputDataSpec);
+						executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec), m_outputTensorSpec);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
@@ -227,7 +227,7 @@ final class DLExecutorOutputPanel extends JPanel {
 		}
 		if (names.length == 0) {
 			throw new NotConfigurableException(
-					"No converters available for output '" + m_outputDataSpec.getName() + "'.");
+					"No converters available for output '" + m_outputTensorSpec.getName() + "'.");
 		}
 		m_dcConverter.replaceListItems(names, ids, null);
 	}

@@ -296,9 +296,9 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_rootConstr.gridy++;
 		// inputs
 		for (final DLTensorSpec inputDataSpec : networkSpec.getInputSpecs()) {
-			if (!DLUtils.Shapes.isFixed(inputDataSpec.getShape())) {
+			if (!DLUtils.Shapes.isKnown(inputDataSpec.getShape())) {
 				throw new NotConfigurableException("Input '" + inputDataSpec.getName()
-						+ "' has an (at least partially) unknown shape. This is not supported.");
+						+ "' has an unknown shape. This is not supported.");
 			}
 			addInputPanel(inputDataSpec, tableSpec, m_generalCfg);
 		}
@@ -359,15 +359,15 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			final int selectedOption = JOptionPane.showConfirmDialog(DLExecutorNodeDialog.this.getPanel(),
 					outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 			if (selectedOption == JOptionPane.OK_OPTION) {
-				final DLTensorSpec outputDataSpec = availableOutputsMap.get(smOutput.getStringValue());
-				if (!DLUtils.Shapes.isFixed(outputDataSpec.getShape())) {
-					final String msg = "Output '" + outputDataSpec.getName()
-							+ "' has an (at least partially) unknown shape. This is not supported.";
+				final DLTensorSpec outputTensorSpec = availableOutputsMap.get(smOutput.getStringValue());
+				if (!DLUtils.Shapes.isKnown(outputTensorSpec.getShape())) {
+					final String msg = "Output '" + outputTensorSpec.getName()
+							+ "' has an unknown shape. This is not supported.";
 					LOGGER.error(msg);
 					throw new IllegalStateException(msg);
 				}
 				try {
-					addOutputPanel(outputDataSpec, m_generalCfg);
+					addOutputPanel(outputTensorSpec, m_generalCfg);
 				} catch (final Exception ex) {
 					LOGGER.error(ex.getMessage());
 					throw new IllegalStateException(ex.getMessage(), ex);
@@ -383,24 +383,24 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		m_rootConstr.gridy++;
 	}
 
-	private void addInputPanel(final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec,
+	private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec,
 			final DLExecutorGeneralConfig generalCfg) throws NotConfigurableException {
-		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel.createInputTensorModelConfig(inputDataSpec.getName(),
+		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel.createInputTensorModelConfig(inputTensorSpec.getName(),
 				generalCfg);
-		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputDataSpec, tableSpec);
+		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputTensorSpec, tableSpec);
 		// add input panel to dialog
 		m_inputPanels.add(inputPanel);
 		m_root.add(inputPanel, m_rootConstr);
 		m_rootConstr.gridy++;
 	}
 
-	private void addOutputPanel(final DLTensorSpec outputDataSpec, final DLExecutorGeneralConfig generalCfg)
+	private void addOutputPanel(final DLTensorSpec outputTensorSpec, final DLExecutorGeneralConfig generalCfg)
 			throws NotConfigurableException {
-		final String outputName = outputDataSpec.getName();
+		final String outputName = outputTensorSpec.getName();
 		if (!m_outputPanels.containsKey(outputName)) {
 			final DLExecutorOutputConfig outputCfg = DLExecutorNodeModel.createOutputTensorModelConfig(outputName,
 					generalCfg);
-			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputDataSpec);
+			final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputTensorSpec);
 			outputPanel.addRemoveListener(e -> removeOutputPanel(outputName, outputPanel, outputCfg));
 			// add output panel to dialog
 			m_outputPanels.put(outputName, outputPanel);
