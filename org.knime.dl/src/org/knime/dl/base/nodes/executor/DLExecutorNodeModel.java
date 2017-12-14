@@ -57,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -387,16 +388,16 @@ final class DLExecutorNodeModel extends NodeModel {
 	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
 			throws DLMissingExtensionException, InvalidSettingsException {
 		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
-		for (final DLTensorSpec layerDataSpec : networkSpec.getInputSpecs()) {
+		for (final DLTensorSpec tensorSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
-			if (!DLUtils.Shapes.isFixed(layerDataSpec.getShape())) {
-				throw new InvalidSettingsException("Input '" + layerDataSpec.getName()
-						+ "' has an (at least partially) unknown shape. This is not supported.");
+			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
+				throw new InvalidSettingsException("Input '" + tensorSpec.getName()
+						+ "' has an unknown shape. This is not supported.");
 			}
-			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(layerDataSpec.getName());
+			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
 			if (inputCfg == null) {
 				throw new InvalidSettingsException(
-						"Network input '" + layerDataSpec.getName() + "' is not yet configured.");
+						"Network input '" + tensorSpec.getName() + "' is not yet configured.");
 			}
 			// get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
@@ -406,7 +407,7 @@ final class DLExecutorNodeModel extends NodeModel {
 									+ inputCfg.getConverterModel().getStringArrayValue()[1] + ")' of input '"
 									+ inputCfg.getInputTensorName()
 									+ "' could not be found. Are you missing a KNIME extension?"));
-			m_inputConverters.put(layerDataSpec, converter);
+			m_inputConverters.put(tensorSpec, converter);
 
 			if (m_lastConfiguredTableSpec != null) {
 				// check if selected columns are still in input table:
@@ -417,7 +418,7 @@ final class DLExecutorNodeModel extends NodeModel {
 				final String[] missingColumns = filterConfig.applyTo(inDataSpec).getRemovedFromIncludes();
 				if (missingColumns.length != 0) {
 					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of input '"
-							+ layerDataSpec.getName() + "' is missing. Please reconfigure the node.");
+							+ tensorSpec.getName() + "' is missing. Please reconfigure the node.");
 				}
 			}
 		}
@@ -431,12 +432,13 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
 		for (final String layerDataName : m_smOutputOrder.getStringArrayValue()) {
 			// validate layer spec
-			final DLTensorSpec layerDataSpec = DLUtils.Networks.findSpec(layerDataName, networkSpec)
+			final DLTensorSpec tensorSpec = DLUtils.Networks.findSpec(layerDataName, networkSpec)
 					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
 							+ "' could not be found in the input deep learning network."));
-			DLUtils.Shapes.getFixedShape(layerDataSpec.getShape())
-					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
-							+ "' has an (at least partially) unknown shape. This is not supported."));
+			if (DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
+					throw new InvalidSettingsException("Selected output '" + layerDataName
+							+ "' has an unknown shape. This is not supported.");
+			}
 			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
 			// get selected converter
 			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
@@ -445,7 +447,7 @@ final class DLExecutorNodeModel extends NodeModel {
 							"Converter '" + cfg.getConverterModel().getStringArrayValue()[0] + " ("
 									+ cfg.getConverterModel().getStringArrayValue()[1] + ")' for output '"
 									+ layerDataName + "' could not be found. Are you missing a KNIME extension?"));
-			m_outputConverters.put(layerDataSpec, converter);
+			m_outputConverters.put(tensorSpec, converter);
 		}
 	}
 
@@ -457,9 +459,14 @@ final class DLExecutorNodeModel extends NodeModel {
 				.entrySet()) {
 			final DLTensorSpec layerDataSpec = output.getKey();
 			final DLTensorToDataCellConverterFactory<?, ?> converter = output.getValue();
-			final long count = converter.getDestCount(layerDataSpec);
+			final OptionalLong count = converter.getDestCount(layerDataSpec);
 			final String prefix = m_outputCfgs.get(layerDataSpec.getName()).getPrefixModel().getStringValue();
-			for (int i = 0; i < count; i++) {
+			if (!count.isPresent()) {
+				// We can't output a tableSpec if we don't know the number of produced columns
+				// for any of the output converters
+				return null;
+			}
+			for (int i = 0; i < count.getAsLong(); i++) {
 				outputSpecs.add(nameGenerator.newColumn(prefix + Integer.toString(i), converter.getDestType()));
 			}
 		}
