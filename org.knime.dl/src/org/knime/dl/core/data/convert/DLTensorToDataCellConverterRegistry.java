@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.core.data.DataCell;
@@ -115,7 +116,12 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 		for (final DLTensorToDataCellConverterFactory<?, ?> candidate : m_converters.values()) {
 			if (candidate.getBufferType().isAssignableFrom(sourceType)) {
 				convs.add(candidate);
-				if (candidate.getDestCount(sourceSpec) > 1) {
+				OptionalLong destCount = candidate.getDestCount(sourceSpec);
+				// TODO: Figure out whether this is the best we can do
+				// Currently a missing destCount is a direct indicator that the converter
+				// can have multiple outputs
+				if (!destCount.isPresent() || destCount.getAsLong() > 1) {
+					// if we have multiple outputs, we can also output a list
 					convs.add(new DLTensorToListCellConverterFactory<>(candidate));
 				}
 			}
