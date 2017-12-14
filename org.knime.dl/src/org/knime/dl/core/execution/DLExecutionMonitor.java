@@ -46,11 +46,11 @@
  */
 package org.knime.dl.core.execution;
 
-import org.knime.dl.core.DLMonitor;
+import org.knime.dl.core.DLSessionMonitor;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLExecutionMonitor extends DLMonitor {
+public interface DLExecutionMonitor extends DLSessionMonitor {
 }

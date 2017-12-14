@@ -47,21 +47,20 @@
 package org.knime.dl.core.execution;
 
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.dl.core.DLAbstractKnimeMonitor;
-import org.knime.dl.core.DLMonitor;
+import org.knime.dl.core.DLAbstractKnimeSessionMonitor;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeExecutionMonitor extends DLAbstractKnimeMonitor implements DLExecutionMonitor {
+public class DLKnimeExecutionMonitor extends DLAbstractKnimeSessionMonitor implements DLExecutionMonitor {
 
 	public DLKnimeExecutionMonitor(final ExecutionMonitor knimeMonitor) {
 		super(knimeMonitor);
 	}
 
 	@Override
-	public DLMonitor createSubMonitor(final double fraction) {
+	public DLKnimeExecutionMonitor createSubMonitor(final double fraction) {
 		return new DLKnimeExecutionMonitor(m_knimeMonitor.createSubProgress(fraction));
 	}
 }

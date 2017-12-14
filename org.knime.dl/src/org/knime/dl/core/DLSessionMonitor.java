@@ -53,7 +53,7 @@ import java.util.function.Supplier;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLMonitor {
+public interface DLSessionMonitor {
 
 	OptionalDouble getProgress();
 
@@ -79,5 +79,5 @@ public interface DLMonitor {
 
 	void reset();
 
-	DLMonitor createSubMonitor(double fraction);
+	DLSessionMonitor createSubMonitor(double fraction);
 }

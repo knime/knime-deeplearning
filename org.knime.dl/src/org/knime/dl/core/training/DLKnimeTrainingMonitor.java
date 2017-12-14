@@ -47,14 +47,13 @@
 package org.knime.dl.core.training;
 
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.dl.core.DLAbstractKnimeMonitor;
-import org.knime.dl.core.DLMonitor;
+import org.knime.dl.core.DLAbstractKnimeSessionMonitor;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeTrainingMonitor<S extends DLTrainingStatus> extends DLAbstractKnimeMonitor
+public class DLKnimeTrainingMonitor<S extends DLTrainingStatus> extends DLAbstractKnimeSessionMonitor
 		implements DLTrainingMonitor<S> {
 
 	private final S m_trainingStatus;
