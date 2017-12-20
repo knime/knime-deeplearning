@@ -85,7 +85,8 @@ import org.knime.dl.keras.base.nodes.learner.view.DLView;
 import org.knime.dl.keras.base.nodes.learner.view.rangeslider.RangeSlider;
 
 /**
- * DLView containing of a {@link JFreeChartLinePlotPanel} and a textual history view.
+ * DLView containing of a {@link JFreeChartLinePlotPanel} and a textual history
+ * view.
  *
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
@@ -161,10 +162,10 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		gbc.fill = GridBagConstraints.VERTICAL;
 		m_component.add(historyTabsPane, gbc);
 	}
-	
-	private Component createPlotWithControlsPanel(Component chartPanel){
+
+	private Component createPlotWithControlsPanel(Component chartPanel) {
 		final JPanel wrapper = new JPanel(new GridBagLayout());
-		
+
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -172,78 +173,79 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		gbc.weightx = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		wrapper.add(chartPanel, gbc);
-		
+
 		gbc.gridy = 1;
 		gbc.weighty = 0;
 		wrapper.add(createXRangeControls(), gbc);
-		
+
 		gbc.gridy = 2;
 		wrapper.add(createSmoothingControls(), gbc);
-		
+
 		return wrapper;
 	}
-	
+
 	private Component createSmoothingControls() {
 		final JPanel wrapper = new JPanel(new GridBagLayout());
-		
+
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		gbc.insets = new Insets(10, 10, 10, 10);
-		
+
 		final JCheckBox enableSmoothingBox = new JCheckBox("Strength");
 		wrapper.add(enableSmoothingBox, gbc);
-		
+
 		gbc.gridx = 1;
 		gbc.insets = new Insets(10, 0, 10, 10);
-		final JSpinner smoothingAlphaSpinner = new JSpinner(new SpinnerNumberModel(1 - JFreeChartLinePlotPanel.SMOOTHING_ALPHA_DEFAULT, 0.0, 1.0, 0.005));
+		final JSpinner smoothingAlphaSpinner = new JSpinner(
+				new SpinnerNumberModel(1 - JFreeChartLinePlotPanel.SMOOTHING_ALPHA_DEFAULT, 0.0, 1.0, 0.005));
 		smoothingAlphaSpinner.setPreferredSize(new Dimension(80, 25));
 		smoothingAlphaSpinner.setEnabled(false);
 		wrapper.add(smoothingAlphaSpinner, gbc);
-		
+
 		smoothingAlphaSpinner.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				double currentSpinnerValue = ((double)smoothingAlphaSpinner.getValue());
+				double currentSpinnerValue = ((double) smoothingAlphaSpinner.getValue());
 				m_linePlot.setSmoothingAlpha(1 - currentSpinnerValue);
-				if(!m_isRunning) {
+				if (!m_isRunning) {
 					m_linePlot.triggerSmoothedLinesUpdate();
 				}
 			}
 		});
-		
+
 		enableSmoothingBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				smoothingAlphaSpinner.setEnabled(enableSmoothingBox.isSelected());
 				m_linePlot.setEnableSmoothedLines(enableSmoothingBox.isSelected());
-				if(!m_isRunning) {
+				if (!m_isRunning) {
 					m_linePlot.triggerSmoothedLinesUpdate();
 				}
 			}
 		});
-		
+
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 2;
 		gbc.weightx = 1;
 		wrapper.add(new Box(0), gbc);
-		
+
 		final JPanel border = new JPanel(new GridLayout());
 		border.add(wrapper);
 		border.setBorder(BorderFactory.createTitledBorder("Smoothing:"));
 		return border;
 	}
-	
+
 	private Component createXRangeControls() {
 		final JPanel wrapper = new JPanel(new GridBagLayout());
-		
+
 		final int sliderMin = 0;
 		final int sliderMax = 100;
-		
+
 		final RangeSlider rangeSlider = new RangeSlider();
 		rangeSlider.setValue(sliderMin);
 		rangeSlider.setUpperValue(sliderMax);
-		
+
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -251,68 +253,70 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		gbc.insets = new Insets(0, 10, 0, 0);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		wrapper.add(rangeSlider, gbc);
-		
-		//TODO prohibit listener trigger hack
-		boolean[] hasAxisChanged = new boolean[]{false};
-		boolean[] sliderChanged = new boolean[]{false};
-		
-		rangeSlider.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {           
-                if(hasAxisChanged[0]) return;
-                sliderChanged[0] = true;
-                
-                int maxItemCount = getMaxItemCount();
-            	double lowerBound = (rangeSlider.getValue() / 100.0) * maxItemCount;
-                double upperBound = (rangeSlider.getUpperValue() / 100.0) * maxItemCount;
 
-                if(lowerBound < upperBound){
-                	m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);       
-                	m_linePlot.autoRangeVerticalAxis();
-                }
-                
-                sliderChanged[0] = false;
-            }
+		// TODO prohibit listener trigger hack
+		boolean[] hasAxisChanged = new boolean[] { false };
+		boolean[] sliderChanged = new boolean[] { false };
+
+		rangeSlider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (hasAxisChanged[0])
+					return;
+				sliderChanged[0] = true;
+
+				int maxItemCount = getMaxItemCount();
+				double lowerBound = (rangeSlider.getValue() / 100.0) * maxItemCount;
+				double upperBound = (rangeSlider.getUpperValue() / 100.0) * maxItemCount;
+
+				if (lowerBound < upperBound) {
+					m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);
+					m_linePlot.autoRangeVerticalAxis();
+				}
+
+				sliderChanged[0] = false;
+			}
 		});
-		
-		m_linePlot.getHorizontalAxis().addChangeListener(new AxisChangeListener() {	
+
+		m_linePlot.getHorizontalAxis().addChangeListener(new AxisChangeListener() {
 			@Override
 			public void axisChanged(AxisChangeEvent event) {
-				if(sliderChanged[0]) return;
+				if (sliderChanged[0])
+					return;
 				hasAxisChanged[0] = true;
-				
+
 				int maxItemCount = getMaxItemCount();
 				Range axisRange = m_linePlot.getHorizontalAxis().getRange();
 				int lowerSliderPos = new Double(Math.rint((axisRange.getLowerBound() / maxItemCount) * 100)).intValue();
 				int upperSliderPos = new Double(Math.rint((axisRange.getUpperBound() / maxItemCount) * 100)).intValue();
 				rangeSlider.setValue(lowerSliderPos);
 				rangeSlider.setUpperValue(upperSliderPos);
-				
+
 				hasAxisChanged[0] = false;
 			}
 		});
-		
+
 		final JButton resetSliderButton = new JButton("Reset");
 		resetSliderButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				rangeSlider.setValue(sliderMin);
 				rangeSlider.setUpperValue(sliderMax);
-				
+
 				autoRangeYrestoreBoundsX();
 			}
 		});
-		
+
 		gbc.gridx = 1;
 		gbc.weightx = 0;
 		gbc.insets = new Insets(0, 10, 5, 10);
 		wrapper.add(resetSliderButton, gbc);
-		
+
 		final JPanel border = new JPanel(new GridLayout());
 		border.add(wrapper);
 		border.setBorder(BorderFactory.createTitledBorder("Adjust X Range:"));
 		return border;
 	}
-	
+
 	private void autoRangeYrestoreBoundsX() {
 		m_linePlot.autoRangeVerticalAxis();
 		m_linePlot.restoreHorizontalDomainBounds();
@@ -358,7 +362,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 			}
 		}
 	}
-	
+
 	private int getMaxItemCount() {
 		return m_linePlot.getMaxItemCount();
 	}

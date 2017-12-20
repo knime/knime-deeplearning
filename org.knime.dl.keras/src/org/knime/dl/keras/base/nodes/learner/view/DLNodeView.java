@@ -79,7 +79,8 @@ import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlo
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-// TODO: actually this should just delegate to some object which can be anything (even a JavaScript thingy).
+// TODO: actually this should just delegate to some object which can be anything
+// (even a JavaScript thingy).
 // We don't want to enforce an implementation here.
 public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
 
@@ -89,8 +90,9 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private static final String ELAPSED_TIME_DISPLAY_FORMAT = "%02d:%02d:%02d (hh:mm:ss)";
 
 	/**
-	 * Alternative to setShowNODATALabel() because the NODATA label of the NodeView is also displayed during execution,
-	 * which is exactly what we do not want.
+	 * Alternative to setShowNODATALabel() because the NODATA label of the
+	 * NodeView is also displayed during execution, which is exactly what we do
+	 * not want.
 	 */
 	private static final JLabel NO_DATA_OVERLAY;
 
@@ -118,8 +120,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private Map<String, DLJFreeChartLinePlotWithHistoryView> m_views;
 
 	/**
-	 * Data iterators for this view. Its important that each view has its own iterator state if we open several views at
-	 * once.
+	 * Data iterators for this view. Its important that each view has its own
+	 * iterator state if we open several views at once.
 	 */
 	private Map<String, Iterator<DLFloatData>[]> m_dataIterators;
 
@@ -134,7 +136,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private LeftAlignLabelWithValue m_elapsedTime;
 
 	private LeftAlignButton m_stopButton;
-	
+
 	private JTextArea m_pythonConsoleOutputArea;
 
 	private JPanel m_mainContainer;
@@ -162,11 +164,13 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	}
 
 	/**
-	 * Set data iterators of this view using the the specified view data array. If the iterators are already initialized
-	 * this method will do nothing.
+	 * Set data iterators of this view using the the specified view data array.
+	 * If the iterators are already initialized this method will do nothing.
 	 *
-	 * @param dataArray data to get iterators from
-	 * @throws IllegalArgumentException If the dataArray is null or contains null.
+	 * @param dataArray
+	 *            data to get iterators from
+	 * @throws IllegalArgumentException
+	 *             If the dataArray is null or contains null.
 	 */
 	@SuppressWarnings("unchecked")
 	private void initDataIterators(final DLViewData<?>[] dataArray) {
@@ -201,8 +205,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 			tabs.addTab(spec.title(), tab.getComponent());
 		}
-		
-		//Python output tab
+
+		// Python output tab
 		m_pythonConsoleOutputArea = new JTextArea();
 		final DefaultCaret caret = (DefaultCaret) m_pythonConsoleOutputArea.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -217,7 +221,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.fill = GridBagConstraints.BOTH;
 		m_mainContainer.add(tabs, gbc);
 
-		//Epoch progress bar
+		// Epoch progress bar
 		gbc.gridy++;
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -225,26 +229,26 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. duration / epoch");
 		m_mainContainer.add(m_epochProgressBar, gbc);
 
-		//Batch progress bar
+		// Batch progress bar
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 10, 10, 0);
 		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. duration / batch");
 		m_mainContainer.add(m_batchProgressBar, gbc);
 
-		//Start time
+		// Start time
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 15, 10, 0);
 		m_startTime = new LeftAlignLabelWithValue("Start time: ");
 		m_startTime.setValue(formatStartTime(null));
 		m_mainContainer.add(m_startTime, gbc);
 
-		//Elapsed time
+		// Elapsed time
 		gbc.gridy++;
 		m_elapsedTime = new LeftAlignLabelWithValue("Elapsed: ");
 		m_elapsedTime.setValue(formatElapsedTime(null));
 		m_mainContainer.add(m_elapsedTime, gbc);
 
-		//Stop button
+		// Stop button
 		gbc.gridy++;
 		m_stopButton = new LeftAlignButton("Stop learning");
 		m_stopButton.getButton().addActionListener(e -> {
@@ -263,7 +267,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			startAllTimers();
 			initDataIterators(monitor.getDataUpdate());
 
-			if(monitor.hasStoppedEarly() || monitor.hasLearningFinished()) {
+			if (monitor.hasStoppedEarly() || monitor.hasLearningFinished()) {
 				setHasStoppedButtonStatus();
 			}
 
@@ -400,7 +404,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	}
 
 	/**
-	 * Simple helper to left align a label with a changing value in a {@link GridBagLayout}.
+	 * Simple helper to left align a label with a changing value in a
+	 * {@link GridBagLayout}.
 	 */
 	public class LeftAlignLabelWithValue extends JPanel {
 		private static final long serialVersionUID = 1L;
