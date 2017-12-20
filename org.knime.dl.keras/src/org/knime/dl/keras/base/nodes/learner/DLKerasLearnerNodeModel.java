@@ -638,6 +638,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_monitor.setNumBatchesPerEpoch(numBatchesPerEpoch);
 			m_monitor.setIsRunning(true);
 			m_monitor.setHasStoppedEarly(false);
+			m_monitor.setHasLearningFinished(false);
 			m_monitor.setHasData(true);
 			m_monitor.setStartTime(null);
 			m_monitor.setEndTime(null);
@@ -698,6 +699,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			throw new RuntimeException(message, e);
 		} finally {
 			m_monitor.setIsRunning(false);
+			m_monitor.setHasLearningFinished(true);
+			notifyViews(m_monitor);
 		}
 	}
 }

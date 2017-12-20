@@ -71,6 +71,8 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	private boolean m_hasData;
 
 	private boolean m_hasStoppedEarly;
+	
+	private boolean m_hasLearningFinished;
 
 	private LocalDateTime m_startTime;
 
@@ -210,6 +212,11 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 	public void setHasStoppedEarly(final boolean hasStoppedEarly) {
 		m_hasStoppedEarly = hasStoppedEarly;
 	}
+	
+	@Override
+	public boolean hasLearningFinished() {
+		return m_hasLearningFinished;
+	}
 
 	@Override
 	public void onTrainingEnd(final Runnable callback) {
@@ -248,6 +255,7 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		objOut.writeObject(m_metricsNames);
 		objOut.writeObject(m_metrics);
 		objOut.writeBoolean(m_hasStoppedEarly);
+		objOut.writeBoolean(m_hasLearningFinished);
 	}
 
 	@Override
@@ -263,6 +271,7 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 		m_metricsNames = (String[]) objIn.readObject();
 		m_metrics = (float[]) objIn.readObject();
 		m_hasStoppedEarly = objIn.readBoolean();
+		m_hasLearningFinished = objIn.readBoolean();
 	}
 
 	void setNumEpochs(final int numEpochs) {
@@ -283,5 +292,9 @@ public class DLKerasDefaultTrainingMonitor implements DLKerasTrainingMonitor, DL
 
 	void setExecutionContext(final ExecutionContext exec) {
 		m_exec = exec;
+	}
+
+	void setHasLearningFinished(boolean hasFinished) {
+		m_hasLearningFinished = hasFinished;		
 	}
 }
