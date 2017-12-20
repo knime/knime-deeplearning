@@ -188,9 +188,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// as soon as we want to be more dynamic e.g. make views configurable we
 		// have to move this somewhere else..
 		m_viewSpecs = new DLJFreeChartLinePlotViewSpec[2];
-		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
+		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
 				new String[] { "Training data" });
-		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
+		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
 				new String[] { "Training data" });
 		m_viewData = new DLLinePlotViewData[2];
 		m_monitor = new DLKerasDefaultTrainingMonitor();
@@ -671,9 +671,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				// can save the overhead of array creation per update.
 				// update accuracy
 				final float[] metrics = m_monitor.getCurrentMetrics();
-				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics[0]);
+				// metrics[0] := loss, metrics[1] := training accuracy
+				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics[0]);
 				// update loss
-				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics[1]);
+				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics[1]);
 				notifyViews(m_monitor);
 			});
 			learner.train(iterator, m_monitor);
