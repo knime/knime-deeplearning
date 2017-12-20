@@ -63,11 +63,9 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
-import javax.swing.text.DefaultCaret;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
@@ -137,7 +135,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 	private LeftAlignButton m_stopButton;
 
-	private JTextArea m_pythonConsoleOutputArea;
+	// private JTextArea m_pythonConsoleOutputArea;
 
 	private JPanel m_mainContainer;
 
@@ -206,12 +204,15 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			tabs.addTab(spec.title(), tab.getComponent());
 		}
 
+		// TODO enable asap
 		// Python output tab
-		m_pythonConsoleOutputArea = new JTextArea();
-		final DefaultCaret caret = (DefaultCaret) m_pythonConsoleOutputArea.getCaret();
-		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		m_pythonConsoleOutputArea.setEditable(false);
-		tabs.addTab("Python Output", new JScrollPane(m_pythonConsoleOutputArea));
+		// m_pythonConsoleOutputArea = new JTextArea();
+		// final DefaultCaret caret = (DefaultCaret)
+		// m_pythonConsoleOutputArea.getCaret();
+		// caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		// m_pythonConsoleOutputArea.setEditable(false);
+		// tabs.addTab("Python Output", new
+		// JScrollPane(m_pythonConsoleOutputArea));
 
 		final GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
