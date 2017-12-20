@@ -47,6 +47,7 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -62,8 +63,11 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.text.DefaultCaret;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
@@ -92,7 +96,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 	static {
 		NO_DATA_OVERLAY = new JLabel("<html><center>No data to display</center></html>", SwingConstants.CENTER);
-		NO_DATA_OVERLAY.setPreferredSize(new Dimension(1000, 700));
+		NO_DATA_OVERLAY.setPreferredSize(new Dimension(1200, 1000));
+		NO_DATA_OVERLAY.setMinimumSize(new Dimension(1200, 1000));
 	}
 
 	private static String formatStartTime(final LocalDateTime startTime) {
@@ -129,6 +134,8 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	private LeftAlignLabelWithValue m_elapsedTime;
 
 	private LeftAlignButton m_stopButton;
+	
+	private JTextArea m_pythonConsoleOutputArea;
 
 	private JPanel m_mainContainer;
 
@@ -183,15 +190,24 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_dataIterators = new HashMap<>();
 		m_mainContainer = new JPanel(new GridBagLayout());
 
-		final JTabbedPane plotsWithHistory = new JTabbedPane();
+		// Add lineplot tabs
+		final JTabbedPane tabs = new JTabbedPane();
+		tabs.setFont(new Font(tabs.getFont().getName(), tabs.getFont().getStyle(), 14));
 		for (final DLViewSpec spec : m_specs) {
 			// assume DLJFreeChartLinePlotViewSpec for now
 			final DLJFreeChartLinePlotWithHistoryView tab = new DLJFreeChartLinePlotWithHistoryView(
 					(DLJFreeChartLinePlotViewSpec) spec);
 			m_views.put(spec.id(), tab);
 
-			plotsWithHistory.addTab(spec.title(), tab.getComponent());
+			tabs.addTab(spec.title(), tab.getComponent());
 		}
+		
+		//Python output tab
+		m_pythonConsoleOutputArea = new JTextArea();
+		final DefaultCaret caret = (DefaultCaret) m_pythonConsoleOutputArea.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		m_pythonConsoleOutputArea.setEditable(false);
+		tabs.addTab("Python Output", new JScrollPane(m_pythonConsoleOutputArea));
 
 		final GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
@@ -199,8 +215,9 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		gbc.weightx = 1;
 		gbc.weighty = 1;
 		gbc.fill = GridBagConstraints.BOTH;
-		m_mainContainer.add(plotsWithHistory, gbc);
+		m_mainContainer.add(tabs, gbc);
 
+		//Epoch progress bar
 		gbc.gridy++;
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -208,22 +225,26 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		m_epochProgressBar = new DLLearningProgressBar("Epoch", "Avg. duration / epoch");
 		m_mainContainer.add(m_epochProgressBar, gbc);
 
+		//Batch progress bar
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 10, 10, 0);
 		m_batchProgressBar = new DLLearningProgressBar("Batch", "Avg. duration / batch");
 		m_mainContainer.add(m_batchProgressBar, gbc);
 
+		//Start time
 		gbc.gridy++;
 		gbc.insets = new Insets(0, 15, 10, 0);
 		m_startTime = new LeftAlignLabelWithValue("Start time: ");
 		m_startTime.setValue(formatStartTime(null));
 		m_mainContainer.add(m_startTime, gbc);
 
+		//Elapsed time
 		gbc.gridy++;
 		m_elapsedTime = new LeftAlignLabelWithValue("Elapsed: ");
 		m_elapsedTime.setValue(formatElapsedTime(null));
 		m_mainContainer.add(m_elapsedTime, gbc);
 
+		//Stop button
 		gbc.gridy++;
 		m_stopButton = new LeftAlignButton("Stop learning");
 		m_stopButton.getButton().addActionListener(e -> {
@@ -278,6 +299,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			}
 			for (final DLViewSpec spec : m_specs) {
 				final DLJFreeChartLinePlotWithHistoryView view = m_views.get(spec.id());
+				view.setIsRunning(monitor.isRunning());
 				view.update((DLJFreeChartLinePlotViewSpec) spec, m_dataIterators.get(spec.id()));
 			}
 		} else {
