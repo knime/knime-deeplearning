@@ -192,7 +192,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		gbc.gridy = 0;
 		gbc.insets = new Insets(10, 10, 10, 10);
 
-		final JCheckBox enableSmoothingBox = new JCheckBox("Strength");
+		final JCheckBox enableSmoothingBox = new JCheckBox("Smoothing");
 		wrapper.add(enableSmoothingBox, gbc);
 
 		gbc.gridx = 1;
@@ -232,7 +232,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 
 		final JPanel border = new JPanel(new GridLayout());
 		border.add(wrapper);
-		border.setBorder(BorderFactory.createTitledBorder("Smoothing:"));
+		border.setBorder(BorderFactory.createTitledBorder(""));
 		return border;
 	}
 
@@ -313,7 +313,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 
 		final JPanel border = new JPanel(new GridLayout());
 		border.add(wrapper);
-		border.setBorder(BorderFactory.createTitledBorder("Adjust X Range:"));
+		border.setBorder(BorderFactory.createTitledBorder("Horizontal Zoom:"));
 		return border;
 	}
 
