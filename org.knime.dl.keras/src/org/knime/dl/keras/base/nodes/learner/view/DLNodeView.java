@@ -242,7 +242,7 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 			startAllTimers();
 			initDataIterators(monitor.getDataUpdate());
 
-			if (monitor.hasStoppedEarly()) {
+			if(monitor.hasStoppedEarly() || monitor.hasLearningFinished()) {
 				setHasStoppedButtonStatus();
 			}
 
