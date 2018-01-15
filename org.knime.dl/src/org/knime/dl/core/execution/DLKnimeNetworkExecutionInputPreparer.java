@@ -46,20 +46,16 @@
  */
 package org.knime.dl.core.execution;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.nio.BufferOverflowException;
-import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
-import org.knime.core.node.NodeLogger;
+import org.knime.dl.core.DLAbstractKnimeNetworkInputPreparer;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
@@ -73,57 +69,26 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeNetworkInputPreparer implements DLNetworkInputPreparer {
+public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKnimeNetworkInputPreparer.class);
-
-	private final DLRowIterator m_iterator;
-
-	private final int m_batchSize;
-
-	private final Map<DLTensorId, DLDataValueToTensorConverter<?, ?>> m_converters;
-
-	private final Queue<DataRow> m_baseRows;
-
-	public DLKnimeNetworkInputPreparer(final DLRowIterator iterator, final int batchSize,
+	public DLKnimeNetworkExecutionInputPreparer(final DLRowIterator iterator, final int batchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
-		m_iterator = checkNotNull(iterator);
-		m_batchSize = batchSize;
-		m_converters = new HashMap<>(checkNotNull(converters).size());
-		for (final Entry<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converter : converters.entrySet()) {
-			m_converters.put(converter.getKey(), converter.getValue().createConverter());
-		}
-		m_baseRows = new ArrayDeque<>(m_batchSize);
-
-		iterator.size().ifPresent(sz -> {
-			if (sz % batchSize != 0) {
-				LOGGER.warn("The number of rows of the input table (" + sz
-						+ ") is not a multiple of the selected batch size (" + batchSize
-						+ "). Thus, the last batch of each epoch will continue at the beginning of the table after reaching its end. "
-						+ "You can avoid that by adjusting the number of rows of the input table or the batch size if desired.");
-			}
-		});
+		super(iterator, batchSize, converters);
 	}
 
 	@Override
 	public long getNumBatches() {
-		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
-		// alternative strategy for handling incomplete batches.
-		return (long) Math.ceil(m_iterator.size()
-				.orElseThrow(() -> new UnsupportedOperationException("Input iterator does not know its datas' size."))
-				/ (double) m_batchSize);
-	}
-
-	public Queue<DataRow> getBaseRows() {
-		return m_baseRows;
+		return (long) Math.ceil(m_iterator.size() / (double) m_batchSize);
 	}
 
 	@Override
 	public void prepare(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, final long batchIndex)
 			throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-		for (long i = 0; i < m_batchSize; i++) {
+		long i;
+		for (i = 0; i < m_batchSize; i++) {
 			if (!m_iterator.hasNext()) {
-				m_iterator.reset();
+				// batch will be incomplete, handled below
+				break;
 			}
 			final DataRow row = m_iterator.next();
 			m_baseRows.add(row);
@@ -140,25 +105,25 @@ public class DLKnimeNetworkInputPreparer implements DLNetworkInputPreparer {
 					// must be present
 					final long batchSize = tensor.getSpec().getBatchSize().getAsLong();
 					throw new DLInvalidNetworkInputException(
-							"Node input/target data size exceeds the expected size of network input/target '"
+							"Node input data size exceeds the expected size of network input '"
 									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-									+ ", batch size is " + batchSize + ". Thus, expected input/target data size is "
-									+ sampleSize * batchSize
-									+ ". Please check the column selection for this input/target "
-									+ "and validate the node's input/target data.",
+									+ ", batch size is " + batchSize + ". Thus, expected input data size is "
+									+ sampleSize * batchSize + ". Please check the column selection for this input "
+									+ "and validate the node's input data.",
 							ex);
 				}
 			}
 		}
-
+		// check if tensors were filled correctly
 		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 			final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 			final DLTensorSpec spec = tensor.getSpec();
 			if (tensor.getBuffer().size() != tensor.getBuffer().getCapacity()) {
 				// must be present
 				final long sampleSize = DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
-				if (tensor.getBuffer().size() % (sampleSize * m_batchSize) != 0) {
-					// TODO: learner vs. executor
+				if (i < m_batchSize && tensor.getBuffer().size() % sampleSize == 0) {
+					// batch is incomplete but was correctly filled: ignore - downstream code has to handle this
+				} else if (tensor.getBuffer().size() % (sampleSize * m_batchSize) != 0) {
 					throw new DLInvalidNetworkInputException(
 							"Node input/target data size does not match the expected size of network input/target '"
 									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
@@ -170,10 +135,5 @@ public class DLKnimeNetworkInputPreparer implements DLNetworkInputPreparer {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void close() throws Exception {
-		m_iterator.close();
 	}
 }

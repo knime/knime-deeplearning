@@ -44,41 +44,23 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
-import org.knime.dl.core.DLUncheckedException;
+import java.util.Map;
+
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLInvalidNetworkInputException extends DLUncheckedException {
-
-	private static final long serialVersionUID = 1L;
+public interface DLNetworkInputPreparer extends AutoCloseable {
 
 	/**
-	 * @param message must be neither null nor empty
+	 * @throws UnsupportedOperationException if the preparer has no size information, e.g. when streaming
 	 */
-	public DLInvalidNetworkInputException(final String message) {
-		super(message);
-	}
+	long getNumBatches();
 
-	/**
-	 * @param message must be neither null nor empty
-	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
-	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
-
-	/**
-	 * @param message must be neither null nor empty
-	 * @param cause see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
-	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
-	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
-	 */
-	public DLInvalidNetworkInputException(final String message, final Throwable cause, final boolean enableSuppression,
-			final boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
+	void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+			throws DLCanceledExecutionException, DLInvalidNetworkInputException;
 }

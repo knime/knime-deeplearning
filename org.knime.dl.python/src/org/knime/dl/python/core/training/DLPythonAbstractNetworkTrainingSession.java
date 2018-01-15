@@ -54,7 +54,7 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.training.DLAbstractNetworkTrainingSession;
 import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.core.training.DLTrainingMonitor;

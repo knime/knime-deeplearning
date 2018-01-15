@@ -60,7 +60,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.dl.core.execution.DLInvalidNetworkInputException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

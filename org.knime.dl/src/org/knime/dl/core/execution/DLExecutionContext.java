@@ -51,6 +51,7 @@ package org.knime.dl.core.execution;
 import java.util.Set;
 
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;

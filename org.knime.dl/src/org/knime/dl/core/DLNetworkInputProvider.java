@@ -44,11 +44,12 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
 import java.util.Map;
 
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLWritableBuffer;

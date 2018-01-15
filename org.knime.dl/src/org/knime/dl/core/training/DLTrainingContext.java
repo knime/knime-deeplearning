@@ -50,9 +50,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.execution.DLNetworkInputPreparer;
 
 /**
  * @param <N> the {@link DLNetwork network} type from which to create trainable networks

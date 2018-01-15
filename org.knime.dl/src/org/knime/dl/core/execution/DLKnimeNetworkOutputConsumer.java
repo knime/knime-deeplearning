@@ -58,6 +58,7 @@ import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
+import org.knime.dl.core.DLInvalidNetworkOutputException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;

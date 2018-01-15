@@ -105,7 +105,7 @@ import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.core.execution.DLKnimeExecutionMonitor;
-import org.knime.dl.core.execution.DLKnimeNetworkInputPreparer;
+import org.knime.dl.core.execution.DLKnimeNetworkExecutionInputPreparer;
 import org.knime.dl.core.execution.DLKnimeNetworkOutputConsumer;
 import org.knime.dl.core.execution.DLNetworkExecutionSession;
 import org.knime.dl.util.DLUtils;
@@ -528,7 +528,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			outputConverterForTensorId.put(entry.getKey().getIdentifier(), entry.getValue());
 		}
 
-		try (final DLKnimeNetworkInputPreparer inputPreparer = new DLKnimeNetworkInputPreparer(
+		try (final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
 				new DLRowInputRowIterator(rowInput, columnsForTensorId), batchSize, inputConverterForTensorId);
 				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
 						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);

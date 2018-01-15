@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -44,34 +44,51 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.cntk.core.execution;
+package org.knime.dl.core;
 
-import java.util.Set;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.knime.dl.core.DLTensorId;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLNetworkInputPreparer;
-import org.knime.dl.core.execution.DLNetworkOutputConsumer;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+
+import org.knime.core.data.DataRow;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExecutionContext<DLKerasCNTKNetwork> {
+public abstract class DLAbstractKnimeNetworkInputPreparer implements DLNetworkInputPreparer {
 
-	private static final String EXECUTION_CONTEXT_NAME = "Keras (CNTK)";
+	protected final DLRowIterator m_iterator;
 
-	public DLKerasCNTKDefaultExecutionContext() {
-		super(DLKerasCNTKNetwork.class, EXECUTION_CONTEXT_NAME);
+	protected final int m_batchSize;
+
+	protected final Map<DLTensorId, DLDataValueToTensorConverter<?, ?>> m_converters;
+
+	protected final Queue<DataRow> m_baseRows;
+
+	public DLAbstractKnimeNetworkInputPreparer(final DLRowIterator iterator, final int batchSize,
+			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
+		m_iterator = checkNotNull(iterator);
+		m_batchSize = batchSize;
+		m_converters = new HashMap<>(checkNotNull(converters).size());
+		for (final Entry<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converter : converters.entrySet()) {
+			m_converters.put(converter.getKey(), converter.getValue().createConverter());
+		}
+		m_baseRows = new ArrayDeque<>(m_batchSize);
+	}
+
+	public Queue<DataRow> getBaseRows() {
+		return m_baseRows;
 	}
 
 	@Override
-	public DLKerasCNTKNetworkExecutionSession createExecutionSession(final DLKerasCNTKNetwork network,
-			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
-		return new DLKerasCNTKNetworkExecutionSession(network, executionInputSpecs, requestedOutputs, inputPreparer,
-				outputConsumer, getTensorFactory());
+	public void close() throws Exception {
+		m_iterator.close();
 	}
 }

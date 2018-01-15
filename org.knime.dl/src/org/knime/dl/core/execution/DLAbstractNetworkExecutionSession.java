@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;

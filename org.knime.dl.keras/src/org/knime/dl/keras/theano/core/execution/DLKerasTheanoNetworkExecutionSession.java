@@ -52,7 +52,7 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;

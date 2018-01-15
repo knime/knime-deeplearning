@@ -44,23 +44,41 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
-import java.util.Map;
-
-import org.knime.dl.core.DLCanceledExecutionException;
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorId;
-import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.DLUncheckedException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkInputPreparer extends AutoCloseable {
+public class DLInvalidNetworkOutputException extends DLUncheckedException {
 
-	long getNumBatches();
+	private static final long serialVersionUID = 1L;
 
-	void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
-			throws DLCanceledExecutionException, DLInvalidNetworkInputException;
+	/**
+	 * @param message must be neither null nor empty
+	 */
+	public DLInvalidNetworkOutputException(final String message) {
+		super(message);
+	}
+
+	/**
+	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
+	 */
+	public DLInvalidNetworkOutputException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * @param message must be neither null nor empty
+	 * @param cause see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
+	 */
+	public DLInvalidNetworkOutputException(final String message, final Throwable cause, final boolean enableSuppression,
+			final boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.execution;
+package org.knime.dl.core;
 
 import org.knime.dl.core.DLUncheckedException;
 
@@ -52,14 +52,14 @@ import org.knime.dl.core.DLUncheckedException;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLInvalidNetworkOutputException extends DLUncheckedException {
+public class DLInvalidNetworkInputException extends DLUncheckedException {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLInvalidNetworkOutputException(final String message) {
+	public DLInvalidNetworkInputException(final String message) {
 		super(message);
 	}
 
@@ -67,7 +67,7 @@ public class DLInvalidNetworkOutputException extends DLUncheckedException {
 	 * @param message must be neither null nor empty
 	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
 	 */
-	public DLInvalidNetworkOutputException(final String message, final Throwable cause) {
+	public DLInvalidNetworkInputException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
@@ -77,7 +77,7 @@ public class DLInvalidNetworkOutputException extends DLUncheckedException {
 	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 */
-	public DLInvalidNetworkOutputException(final String message, final Throwable cause, final boolean enableSuppression,
+	public DLInvalidNetworkInputException(final String message, final Throwable cause, final boolean enableSuppression,
 			final boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
