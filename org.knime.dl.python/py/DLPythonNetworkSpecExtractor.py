@@ -75,12 +75,13 @@ class DLPythonNetworkSpecExtractor(object):
         return optimizer_df, loss_df, metrics_df
 
     def __layer_data_specs_to_data_frame(self, layer_specs):
-        specs = pd.DataFrame(index=range(len(layer_specs)), columns=('name', 'batch_size', 'shape', 'type'))
+        specs = pd.DataFrame(index=range(len(layer_specs)), columns=('id', 'name', 'batch_size', 'shape', 'type'))
         for idx, layer_spec in enumerate(layer_specs):
-            specs.iloc[idx, 0] = layer_spec.name
-            specs.iloc[idx, 1] = layer_spec.batch_size
-            specs.iloc[idx, 2] = layer_spec.shape
-            specs.iloc[idx, 3] = layer_spec.element_type
+            specs.iloc[idx, 0] = layer_spec.identifier
+            specs.iloc[idx, 1] = layer_spec.name
+            specs.iloc[idx, 2] = layer_spec.batch_size
+            specs.iloc[idx, 3] = layer_spec.shape
+            specs.iloc[idx, 4] = layer_spec.element_type
         return specs.convert_objects(convert_numeric=True)
 
 

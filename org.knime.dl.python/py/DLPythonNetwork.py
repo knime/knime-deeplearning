@@ -128,12 +128,17 @@ class DLPythonNetworkSpec(object):
 
 class DLPythonTensorSpec(object):
 
-    def __init__(self, name, batch_size, shape, element_type):
+    def __init__(self, id, name, batch_size, shape, element_type):
+        self._id = id
         self._name = name
         self._batch_size = batch_size
         # encode unknown dimensions as -1 to avoid serialization problems
         self._shape = [-1 if d is None else d for d in shape]
         self._element_type = element_type
+
+    @property
+    def identifier(self):
+        return self._id
 
     @property
     def name(self):

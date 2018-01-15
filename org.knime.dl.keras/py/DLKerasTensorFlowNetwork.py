@@ -87,7 +87,7 @@ class DLKerasTensorFlowNetwork(DLKerasNetwork):
     def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
         name = tensor.name
         element_type = tensor.dtype.name  # TensorFlow returns a TF dtype
-        return DLPythonTensorSpec(name, tensor_shape[0], list(tensor_shape[1:]), element_type)
+        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type)
 
 
 class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):

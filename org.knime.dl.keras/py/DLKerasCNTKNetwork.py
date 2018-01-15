@@ -80,7 +80,7 @@ class DLKerasCNTKNetwork(DLKerasNetwork):
         if name is None or name == '':
             name = tensor_id
         element_type = tensor.dtype.__name__  # CNTK returns a numpy type
-        return DLPythonTensorSpec(name, tensor_shape[0], list(tensor_shape[1:]), element_type)
+        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type)
 
 
 class DLKerasCNTKNetworkSpec(DLKerasNetworkSpec):

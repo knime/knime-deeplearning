@@ -80,7 +80,7 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
         if name is None or name == '':
             name = tensor_id
         element_type = tensor.dtype  # Theano returns a string
-        return DLPythonTensorSpec(name, tensor_shape[0], list(tensor_shape[1:]), element_type)
+        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type)
 
 
 class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
