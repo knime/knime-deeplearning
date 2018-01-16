@@ -623,44 +623,4 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 	}
 	
-	private static class PeekingRowInput extends RowInput {
-		
-		private final RowInput m_rowInput;
-		private DataRow m_peekedRow;
-		
-		public PeekingRowInput(final RowInput rowInput) {
-			m_rowInput = rowInput;
-		}
-
-		@Override
-		public DataTableSpec getDataTableSpec() {
-			return m_rowInput.getDataTableSpec();
-		}
-
-		@Override
-		public DataRow poll() throws InterruptedException {
-			DataRow row;
-			if (m_peekedRow != null) {
-				row = m_peekedRow;
-				m_peekedRow = null;
-			} else {
-				row = m_rowInput.poll();
-			}
-			return row;
-		}
-
-		@Override
-		public void close() {
-			m_peekedRow = null;
-			m_rowInput.close();
-		}
-		
-		public DataRow peek() throws InterruptedException {
-			if (m_peekedRow == null) {
-				m_peekedRow = m_rowInput.poll();
-			}
-			return m_peekedRow;
-		}
-		
-	}
 }
