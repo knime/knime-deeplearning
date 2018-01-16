@@ -95,10 +95,12 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLRowInputRowIterator;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
@@ -478,8 +480,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
-		final PeekingRowInput peekingRowInput = new PeekingRowInput(rowInput);
-		final DataTableSpec inDataSpec = peekingRowInput.getDataTableSpec();
+		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
 		if (inDataSpec.getNumColumns() == 0) {
 			throw new IllegalStateException("Input table has no columns.");
 		}
@@ -501,9 +502,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		final LinkedHashMap<DLTensorId, int[]> columnsForTensorId = new LinkedHashMap<>(m_inputConverters.size());
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId = new LinkedHashMap<>(
 				m_inputConverters.size());
-		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(m_inputConverters.size());
-		
-		final DataRow firstRow = peekingRowInput.peek();
 		
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
 				.entrySet()) {
@@ -521,9 +519,6 @@ final class DLExecutorNodeModel extends NodeModel {
 			}).toArray();
 			columnsForTensorId.put(spec.getIdentifier(), indices);
 			inputConverterForTensorId.put(spec.getIdentifier(), entry.getValue());
-
-			// TODO: execution shape inference
-			executionInputSpecs.add(ctx.getTensorFactory().createExecutionTensorSpec(spec, batchSize, entry.getValue().getDataShape(getValuesForIndices(firstRow, indices))));
 		}
 
 		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId = new LinkedHashMap<>(
@@ -533,11 +528,13 @@ final class DLExecutorNodeModel extends NodeModel {
 			outputConverterForTensorId.put(entry.getKey().getIdentifier(), entry.getValue());
 		}
 
-		try (final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
-				new DLRowInputRowIterator(peekingRowInput, columnsForTensorId), batchSize, inputConverterForTensorId);
+		try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
+				final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
+				rowIterator, batchSize, inputConverterForTensorId);
 				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
 						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
-				final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
+				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
+						createExecutionSpecs(rowIterator.peek(), inDataSpec, ctx.getTensorFactory(), batchSize),
 						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
 			final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec);
 			session.run(monitor);
@@ -565,11 +562,16 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 	}
 	
-	private List<? extends DataValue> getValuesForIndices(DataRow row, int[] indices) {
-		return Arrays.stream(indices).mapToObj(i -> row.getCell(i)).collect(Collectors.toList());
+	private LinkedHashSet<DLTensorSpec> createExecutionSpecs(DataRow firstRow, DataTableSpec inDataSpec, DLTensorFactory tensorFactory, long batchSize) throws DLMissingExtensionException {
+		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(m_inputConverters.size());
+		ExecutionSpecCreator specCreator = new ExecutionSpecCreator(tensorFactory, batchSize, inDataSpec, firstRow);
+		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
+				.entrySet()) {
+			executionInputSpecs.add(specCreator.createExecutionTensorSpec(entry.getKey(), entry.getValue()));
+		}
+		return executionInputSpecs;
 	}
 	
-
 	// workaround; when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg)
 			throws DLMissingExtensionException {
@@ -580,6 +582,45 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ inputCfg.getConverterModel().getStringArrayValue()[1]
 								+ ")' could not be found. Are you missing a KNIME extension?"));
 		return conv.getSourceType();
+	}
+	
+	private class ExecutionSpecCreator {
+		private final DLTensorFactory m_tensorFactory;
+		private final long m_batchSize;
+		private final DataTableSpec m_inDataSpec;
+		private final DataRow m_row;
+		
+		public ExecutionSpecCreator(final DLTensorFactory tensorFactory, final long batchSize, final DataTableSpec inTableSpec, final DataRow row) {
+			m_tensorFactory = tensorFactory;
+			m_batchSize = batchSize;
+			m_inDataSpec = inTableSpec;
+			m_row = row;
+		}
+		
+		public DLTensorSpec createExecutionTensorSpec(DLTensorSpec configureSpec, DLDataValueToTensorConverterFactory<?, ?> converterFactory) throws DLMissingExtensionException {
+			// TODO: Shouldn't we use the id rather than the name?
+			long[] dataShape = converterFactory.getDataShape(getValuesForIndices(m_row, getFilterIndices(configureSpec.getName())));
+			long[] executionShape = DLUtils.Shapes.calculateExecutionShape(configureSpec.getShape(), dataShape);
+			return m_tensorFactory.createExecutionTensorSpec(configureSpec, m_batchSize, executionShape);
+		}
+		
+		private List<? extends DataValue> getValuesForIndices(DataRow row, int[] indices) {
+			return Arrays.stream(indices).mapToObj(row::getCell).collect(Collectors.toList());
+		}
+		
+		private int[] getFilterIndices(final String tensorName) throws DLMissingExtensionException {
+			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(tensorName);
+			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsModel();
+			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(getAllowedInputColumnType(inputCfg));
+			return Arrays.stream(filterConfig.applyTo(m_inDataSpec).getIncludes()).mapToInt(c -> {
+				final int idx = m_inDataSpec.findColumnIndex(c);
+				if (idx == -1) {
+					throw new IllegalStateException(
+							"Selected input column '" + c + "' could not be found in the input table.");
+				}
+				return idx;
+			}).toArray();
+		}
 	}
 	
 	private static class PeekingRowInput extends RowInput {
