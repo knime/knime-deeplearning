@@ -160,6 +160,15 @@ public class DLDefaultLongBuffer extends DLAbstractWrappingDataBuffer<long[]>
 	}
 
 	@Override
+	public void zeroPad(final int length) throws IllegalArgumentException, BufferOverflowException {
+		checkArgument(length > 0);
+		checkOverflow(m_nextWrite + length <= m_capacity);
+		for (int i = 0; i < length; i++) {
+			m_storage[m_nextWrite++] = 0l;
+		}
+	}
+
+	@Override
 	protected long[] createStorage() {
 		return new long[m_capacity];
 	}

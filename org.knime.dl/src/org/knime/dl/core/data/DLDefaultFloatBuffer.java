@@ -161,6 +161,15 @@ public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 	}
 
 	@Override
+	public void zeroPad(final int length) throws IllegalArgumentException, BufferOverflowException {
+		checkArgument(length > 0);
+		checkOverflow(m_nextWrite + length <= m_capacity);
+		for (int i = 0; i < length; i++) {
+			m_storage[m_nextWrite++] = 0.0f;
+		}
+	}
+
+	@Override
 	protected float[] createStorage() {
 		return new float[m_capacity];
 	}
