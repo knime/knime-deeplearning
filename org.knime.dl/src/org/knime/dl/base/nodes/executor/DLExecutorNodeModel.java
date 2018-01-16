@@ -55,10 +55,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.OptionalLong;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
@@ -475,7 +478,8 @@ final class DLExecutorNodeModel extends NodeModel {
 			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
-		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
+		final PeekingRowInput peekingRowInput = new PeekingRowInput(rowInput);
+		final DataTableSpec inDataSpec = peekingRowInput.getDataTableSpec();
 		if (inDataSpec.getNumColumns() == 0) {
 			throw new IllegalStateException("Input table has no columns.");
 		}
@@ -498,6 +502,9 @@ final class DLExecutorNodeModel extends NodeModel {
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId = new LinkedHashMap<>(
 				m_inputConverters.size());
 		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(m_inputConverters.size());
+		
+		final DataRow firstRow = peekingRowInput.peek();
+		
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
 				.entrySet()) {
 			final DLTensorSpec spec = entry.getKey();
@@ -516,9 +523,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			inputConverterForTensorId.put(spec.getIdentifier(), entry.getValue());
 
 			// TODO: execution shape inference
-			executionInputSpecs.add(ctx.getTensorFactory().createExecutionTensorSpec(spec, batchSize,
-					DLUtils.Shapes.getFixedShape(spec.getShape())
-							.orElseThrow(() -> new RuntimeException("execution shape inference not yet implemented"))));
+			executionInputSpecs.add(ctx.getTensorFactory().createExecutionTensorSpec(spec, batchSize, entry.getValue().getDataShape(getValuesForIndices(firstRow, indices))));
 		}
 
 		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId = new LinkedHashMap<>(
@@ -529,7 +534,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 
 		try (final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
-				new DLRowInputRowIterator(rowInput, columnsForTensorId), batchSize, inputConverterForTensorId);
+				new DLRowInputRowIterator(peekingRowInput, columnsForTensorId), batchSize, inputConverterForTensorId);
 				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
 						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
 				final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
@@ -559,6 +564,11 @@ final class DLExecutorNodeModel extends NodeModel {
 			throw new RuntimeException(message, e);
 		}
 	}
+	
+	private List<? extends DataValue> getValuesForIndices(DataRow row, int[] indices) {
+		return Arrays.stream(indices).mapToObj(i -> row.getCell(i)).collect(Collectors.toList());
+	}
+	
 
 	// workaround; when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg)
@@ -570,5 +580,46 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ inputCfg.getConverterModel().getStringArrayValue()[1]
 								+ ")' could not be found. Are you missing a KNIME extension?"));
 		return conv.getSourceType();
+	}
+	
+	private static class PeekingRowInput extends RowInput {
+		
+		private final RowInput m_rowInput;
+		private DataRow m_peekedRow;
+		
+		public PeekingRowInput(final RowInput rowInput) {
+			m_rowInput = rowInput;
+		}
+
+		@Override
+		public DataTableSpec getDataTableSpec() {
+			return m_rowInput.getDataTableSpec();
+		}
+
+		@Override
+		public DataRow poll() throws InterruptedException {
+			DataRow row;
+			if (m_peekedRow != null) {
+				row = m_peekedRow;
+				m_peekedRow = null;
+			} else {
+				row = m_rowInput.poll();
+			}
+			return row;
+		}
+
+		@Override
+		public void close() {
+			m_peekedRow = null;
+			m_rowInput.close();
+		}
+		
+		public DataRow peek() throws InterruptedException {
+			if (m_peekedRow == null) {
+				m_peekedRow = m_rowInput.poll();
+			}
+			return m_peekedRow;
+		}
+		
 	}
 }
