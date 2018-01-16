@@ -92,6 +92,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 import org.knime.dl.core.data.convert.DLAbstractTensorDataValueToTensorConverter;
+import org.knime.dl.core.data.convert.DLAbstractTensorDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
@@ -474,7 +475,7 @@ public class DLPythonConverterTest {
 	}
 
 	static class DLFooDataValueToFloatTensorConverterFactory
-			implements DLDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+			extends DLAbstractTensorDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
 
 		@Override
 		public String getName() {
@@ -502,11 +503,6 @@ public class DLPythonConverterTest {
 			return new DLAbstractTensorDataValueToTensorConverter<DLPythonConverterTest.FooDataValue, DLWritableFloatBuffer>() {
 
 				@Override
-				protected long[] getShapeInternal(final FooDataValue element) {
-					return new long[] { element.getFloatArray().length };
-				}
-
-				@Override
 				protected void convertInternal(final FooDataValue element,
 						final DLTensor<DLWritableFloatBuffer> output) {
 					final DLWritableFloatBuffer buf = output.getBuffer();
@@ -514,6 +510,12 @@ public class DLPythonConverterTest {
 				}
 			};
 		}
+
+		@Override
+		protected long[] getDataShapeInternal(FooDataValue input) {
+			return new long[] { input.getFloatArray().length };
+		}
+
 	}
 
 	static class DLDoubleBufferToBarDataCellConverterFactory
