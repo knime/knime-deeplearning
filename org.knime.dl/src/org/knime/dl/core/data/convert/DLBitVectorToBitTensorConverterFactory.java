@@ -61,7 +61,7 @@ import org.knime.dl.core.data.DLWritableBitBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLBitVectorToBitTensorConverterFactory
+public class DLBitVectorToBitTensorConverterFactory extends DLAbstractTensorDataValueToTensorConverterFactory<BitVectorValue, DLWritableBitBuffer>
 		implements DLDataValueToTensorConverterFactory<BitVectorValue, DLWritableBitBuffer> {
 
 	@Override
@@ -89,11 +89,6 @@ public class DLBitVectorToBitTensorConverterFactory
 		return new DLAbstractTensorDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
 
 			@Override
-			protected long[] getShapeInternal(final BitVectorValue element) {
-				return new long[] { element.length() };
-			}
-
-			@Override
 			public void convertInternal(final BitVectorValue input, final DLTensor<DLWritableBitBuffer> output) {
 				final DLWritableBitBuffer buffer = output.getBuffer();
 				for (int i = 0; i < input.length(); i++) {
@@ -101,5 +96,14 @@ public class DLBitVectorToBitTensorConverterFactory
 				}
 			}
 		};
+	}
+
+	@Override
+	protected long[] getDataShapeInternal(BitVectorValue input) {
+		if (input.length() > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException(
+					"The provided bit vector is too large, currently bit vectors may have a maximal length of 2^31-1.");
+		}
+		return new long[(int) input.length()];
 	}
 }

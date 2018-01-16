@@ -60,7 +60,7 @@ import org.knime.dl.core.data.DLWritableLongBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLLongValueToLongTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<LongValue, DLWritableLongBuffer> {
+		extends DLAbstractScalarDataValueToTensorConverterFactory<LongValue, DLWritableLongBuffer> {
 
 	@Override
 	public String getName() {

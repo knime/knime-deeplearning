@@ -64,7 +64,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLCollectionDataValueToTensorConverterFactory<IE extends DataValue, O extends DLWritableBuffer>
-		implements DLDataValueToTensorConverterFactory<CollectionDataValue, O> {
+		extends DLAbstractTensorDataValueToTensorConverterFactory<CollectionDataValue, O> {
 
 	private final DLDataValueToTensorConverterFactory<IE, O> m_elementConverterFactory;
 
@@ -112,11 +112,6 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 		return new DLAbstractTensorDataValueToTensorConverter<CollectionDataValue, O>() {
 
 			@Override
-			protected long[] getShapeInternal(final CollectionDataValue element) {
-				return elementConverter.getShape(element.stream().map(e -> (IE) e).collect(Collectors.toList()));
-			}
-
-			@Override
 			public void convertInternal(final CollectionDataValue input, final DLTensor<O> output) {
 				final Iterable<? extends IE> casted = ((Iterable<? extends IE>) input);
 				elementConverter.convert(casted, output);
@@ -140,5 +135,10 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 		@SuppressWarnings("rawtypes")
 		final DLCollectionDataValueToTensorConverterFactory other = (DLCollectionDataValueToTensorConverterFactory) obj;
 		return other.m_elementConverterFactory.equals(m_elementConverterFactory);
+	}
+
+	@Override
+	protected long[] getDataShapeInternal(CollectionDataValue input) {
+		return m_elementConverterFactory.getDataShape(input.stream().map(e -> (IE) e).collect(Collectors.toList()));
 	}
 }

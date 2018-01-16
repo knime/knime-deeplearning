@@ -59,8 +59,8 @@ import org.knime.dl.core.data.DLWritableBitBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLBooleanValueToBitTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<BooleanValue, DLWritableBitBuffer> {
+public class DLBooleanValueToBitTensorConverterFactory extends 
+DLAbstractScalarDataValueToTensorConverterFactory<BooleanValue, DLWritableBitBuffer> {
 
 	@Override
 	public String getName() {

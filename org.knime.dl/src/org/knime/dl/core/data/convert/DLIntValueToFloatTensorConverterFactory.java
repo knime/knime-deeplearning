@@ -60,7 +60,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLIntValueToFloatTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<IntValue, DLWritableFloatBuffer> {
+		extends DLAbstractScalarDataValueToTensorConverterFactory<IntValue, DLWritableFloatBuffer> {
 
 	@Override
 	public String getName() {

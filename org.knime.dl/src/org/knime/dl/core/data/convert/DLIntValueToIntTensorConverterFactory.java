@@ -62,7 +62,7 @@ import org.knime.dl.core.data.DLWritableIntBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLIntValueToIntTensorConverterFactory
-		implements DLDataValueToTensorConverterFactory<IntValue, DLWritableIntBuffer> {
+		extends DLAbstractScalarDataValueToTensorConverterFactory<IntValue, DLWritableIntBuffer> {
 
 	@Override
 	public String getName() {
