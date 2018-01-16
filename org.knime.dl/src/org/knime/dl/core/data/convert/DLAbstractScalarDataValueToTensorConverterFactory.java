@@ -20,6 +20,6 @@ public abstract class DLAbstractScalarDataValueToTensorConverterFactory <I exten
 		} catch (ClassCastException e) {
 			throw new IllegalArgumentException("The provided values are not compatible with the converter.");
 		}
-		return new long[input.size()];
+		return new long[] {input.size()};
 	}
 }
