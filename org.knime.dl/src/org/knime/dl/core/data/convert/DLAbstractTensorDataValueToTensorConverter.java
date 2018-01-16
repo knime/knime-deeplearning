@@ -70,15 +70,15 @@ public abstract class DLAbstractTensorDataValueToTensorConverter<FROM extends Da
 	 * @param element an element of FROM
 	 * @return the shape of the element
 	 */
-	protected abstract long[] getShapeInternal(FROM element);
+//	protected abstract long[] getShapeInternal(FROM element);
 
 	protected abstract void convertInternal(FROM element, DLTensor<VIA> output);
 
-	@Override
-	public final long[] getShape(final List<? extends FROM> input) {
-		CheckUtils.checkArgument(input.size() == 1, ERROR_MSG);
-		return getShapeInternal(input.get(0));
-	}
+//	@Override
+//	public final long[] getShape(final List<? extends FROM> input) {
+//		CheckUtils.checkArgument(input.size() == 1, ERROR_MSG);
+//		return getShapeInternal(input.get(0));
+//	}
 
 	@Override
 	public final void convert(final Iterable<? extends FROM> input, final DLTensor<VIA> output) {
