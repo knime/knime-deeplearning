@@ -110,6 +110,16 @@ public interface DLDataValueToTensorConverterFactory<I extends DataValue, O exte
 	 * @return the number of output elements if computable
 	 */
 	OptionalLong getDestCount(List<DataColumnSpec> spec);
+	
+	/**
+	 * Calculates the shape of a tensor that can be filled with <b>input</b>. Note that it's currently only possible to
+	 * have multiple scalars in <b>input</b>. Higher dimensional inputs are ambiguous and therefore only a single value
+	 * is allowed.
+	 *
+	 * @param input data values from columns that will be used to fill the input tensor
+	 * @return the shape of a tensor that could be filled with input
+	 */
+	long[] getDataShape(List<? extends DataValue> input);
 
 	/**
 	 * Creates a new converter instance.
