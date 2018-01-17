@@ -48,8 +48,6 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
-
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -58,17 +56,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer> {
+public interface DLDataValueToTensorConverter<I extends DataValue, O extends DLWritableBuffer> {
 
-	/**
-	 * Calculates the shape of a tensor that can be filled with <b>input</b>. Note that it's currently only possible to
-	 * have multiple scalars in <b>input</b>. Higher dimensional inputs are ambiguous and therefore only a single value
-	 * is allowed.
-	 *
-	 * @param input data values from columns that will be used to fill the tensor
-	 * @return the shape of a tensor that could be filled with input
-	 */
-	long[] getShape(List<? extends FROM> input);
-
-	void convert(Iterable<? extends FROM> input, DLTensor<VIA> output);
+	void convert(Iterable<? extends I> input, DLTensor<O> output);
 }

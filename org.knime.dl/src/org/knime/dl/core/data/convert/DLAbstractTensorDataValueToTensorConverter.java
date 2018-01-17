@@ -48,10 +48,7 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
-
 import org.knime.core.data.DataValue;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 
@@ -64,24 +61,16 @@ import org.knime.dl.core.data.DLWritableBuffer;
 public abstract class DLAbstractTensorDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
 		implements DLDataValueToTensorConverter<FROM, VIA> {
 
-	protected static final String ERROR_MSG = "For lists and vectors only single column selection is allowed.";
-
-	/**
-	 * @param element an element of FROM
-	 * @return the shape of the element
-	 */
-//	protected abstract long[] getShapeInternal(FROM element);
+	protected static final String ERROR_MSG = "For non-scalar data values, only single column selection is allowed.";
 
 	protected abstract void convertInternal(FROM element, DLTensor<VIA> output);
 
-//	@Override
-//	public final long[] getShape(final List<? extends FROM> input) {
-//		CheckUtils.checkArgument(input.size() == 1, ERROR_MSG);
-//		return getShapeInternal(input.get(0));
-//	}
-
+	/**
+	 * @throws IllegalArgumentException if <code>input</code> is not a singleton
+	 */
 	@Override
-	public final void convert(final Iterable<? extends FROM> input, final DLTensor<VIA> output) {
+	public final void convert(final Iterable<? extends FROM> input, final DLTensor<VIA> output)
+			throws IllegalArgumentException {
 		boolean isNotSingle = false;
 		for (final FROM val : input) {
 			if (isNotSingle) {

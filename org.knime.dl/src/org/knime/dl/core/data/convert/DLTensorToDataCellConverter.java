@@ -58,12 +58,12 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTensorToDataCellConverter<VIA extends DLReadableBuffer, TO extends DataCell> {
+public interface DLTensorToDataCellConverter<I extends DLReadableBuffer, O extends DataCell> {
 
 	/**
 	 * @param output output array of length
 	 *            {@link DLTensorToDataCellConverterFactory#getDestCount(org.knime.dl.core.DLTensorSpec) dest count}
 	 *            times {@link DLTensorSpec#getBatchSize() batch size}.
 	 */
-	void convert(DLTensor<VIA> input, TO[] output, ExecutionContext exec);
+	void convert(DLTensor<I> input, O[] output, ExecutionContext exec);
 }
