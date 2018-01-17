@@ -80,7 +80,7 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 		if (inputSpecs.length != executionInputSpecs.size()) {
 			return false;
 		}
-		final Set<DLTensorId> inputSpecIds = Arrays.asList(inputSpecs).stream().map(DLTensorSpec::getIdentifier)
+		final Set<DLTensorId> inputSpecIds = Arrays.stream(inputSpecs).map(DLTensorSpec::getIdentifier)
 				.collect(Collectors.toSet());
 		final Set<DLTensorId> executionInputSpecIds = executionInputSpecs.stream().map(DLTensorSpec::getIdentifier)
 				.collect(Collectors.toSet());
