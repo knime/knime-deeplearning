@@ -54,12 +54,20 @@ import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
+public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 		implements DLKerasTrainingStatus, DLProgressMonitor {
 
-	private boolean m_hasData;
-
 	private DLViewData<?>[] m_viewData;
+
+	public DLKerasDefaultTrainingStatus(final int numEpochs, final int numBatchesPerEpoch) {
+		super(numEpochs, numBatchesPerEpoch);
+	}
+
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
+	public DLKerasDefaultTrainingStatus() {
+	}
 
 	@Override
 	public boolean isRunning() {
@@ -73,21 +81,16 @@ public class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 
 	@Override
 	public boolean hasData() {
-		return m_hasData;
+		return m_viewData != null;
 	}
 
 	@Override
-	public void setHasData(final boolean hasData) {
-		m_hasData = hasData;
-	}
-
-	@Override
-	public DLViewData<?>[] getDataUpdate() {
+	public DLViewData<?>[] getViewData() {
 		return m_viewData;
 	}
 
 	@Override
-	public void setDataUpdate(final DLViewData<?>[] viewData) {
+	public void setViewData(final DLViewData<?>[] viewData) {
 		m_viewData = viewData;
 	}
 }

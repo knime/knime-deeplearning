@@ -60,11 +60,11 @@ import org.knime.dl.core.DLEvent;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLAbstractTrainingStatus implements DLTrainingStatus {
+public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
-	private int m_numEpochs;
+	private /* final */ int m_numEpochs;
 
-	private int m_numBatchesPerEpoch;
+	private /* final */ int m_numBatchesPerEpoch;
 
 	private Status m_status = Status.NOT_STARTED;
 
@@ -72,9 +72,9 @@ public class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private LocalDateTime m_endDateTime;
 
-	private int m_currentEpoch;
+	private int m_currentEpoch = -1;
 
-	private int m_currentBatchInEpoch;
+	private int m_currentBatchInEpoch = -1;
 
 	private Map<String, DLMetrics> m_metrics;
 
@@ -84,24 +84,40 @@ public class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
 
+	protected DLAbstractTrainingStatus(final int numEpochs, final int numBatchesPerEpoch) {
+		this();
+		m_numEpochs = numEpochs;
+		m_numBatchesPerEpoch = numBatchesPerEpoch;
+	}
+
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
+	protected DLAbstractTrainingStatus() {
+		m_trainingStarted.addListener((src, v) -> {
+			m_startDateTime = LocalDateTime.now();
+			m_status = Status.RUNNING;
+		});
+		m_trainingEnded.addListener((src, v) -> {
+			m_status = Status.FINISHED;
+			m_endDateTime = LocalDateTime.now();
+		});
+		m_batchEnded.addListener((src, v) -> {
+			if (++m_currentBatchInEpoch % m_numBatchesPerEpoch == 0) {
+				m_currentBatchInEpoch = 0;
+				m_currentEpoch++;
+			}
+		});
+	}
+
 	@Override
 	public int getNumEpochs() {
 		return m_numEpochs;
 	}
 
 	@Override
-	public void setNumEpochs(final int numEpochs) {
-		m_numEpochs = numEpochs;
-	}
-
-	@Override
 	public int getNumBatchesPerEpoch() {
 		return m_numBatchesPerEpoch;
-	}
-
-	@Override
-	public void setNumBatchesPerEpoch(final int numBatchesPerEpoch) {
-		m_numBatchesPerEpoch = numBatchesPerEpoch;
 	}
 
 	@Override
@@ -120,18 +136,8 @@ public class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public void setStartDateTime(final LocalDateTime startDateTime) {
-		m_startDateTime = startDateTime;
-	}
-
-	@Override
 	public LocalDateTime getEndDateTime() {
 		return m_endDateTime;
-	}
-
-	@Override
-	public void setEndDateTime(final LocalDateTime endDateTime) {
-		m_endDateTime = endDateTime;
 	}
 
 	@Override
@@ -140,18 +146,8 @@ public class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public void setCurrentEpoch(final int currentEpoch) {
-		m_currentEpoch = currentEpoch;
-	}
-
-	@Override
 	public int getCurrentBatchInEpoch() {
 		return m_currentBatchInEpoch;
-	}
-
-	@Override
-	public void setCurrentBatchInEpoch(final int currentBatchInEpoch) {
-		m_currentBatchInEpoch = currentBatchInEpoch;
 	}
 
 	@Override

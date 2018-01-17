@@ -67,11 +67,7 @@ public interface DLTrainingStatus extends Externalizable {
 
 	int getNumEpochs();
 
-	void setNumEpochs(int numEpochs);
-
 	int getNumBatchesPerEpoch();
-
-	void setNumBatchesPerEpoch(int numBatchesPerEpoch);
 
 	Status getStatus();
 
@@ -79,19 +75,17 @@ public interface DLTrainingStatus extends Externalizable {
 
 	LocalDateTime getStartDateTime();
 
-	void setStartDateTime(LocalDateTime startDateTime);
-
 	LocalDateTime getEndDateTime();
 
-	void setEndDateTime(LocalDateTime endDateTime);
-
+	/**
+	 * @return <code>-1</code> if execution did not yet start
+	 */
 	int getCurrentEpoch();
 
-	void setCurrentEpoch(int currentEpoch);
-
+	/**
+	 * @return <code>-1</code> if execution did not yet start
+	 */
 	int getCurrentBatchInEpoch();
-
-	void setCurrentBatchInEpoch(int currentBatchInEpoch);
 
 	Map<String, DLMetrics> getMetrics();
 
