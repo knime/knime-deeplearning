@@ -174,7 +174,7 @@ public class DLDefaultDoubleBuffer extends DLAbstractWrappingDataBuffer<double[]
 	}
 
 	@Override
-	public void zeroPad(final int length) throws IllegalArgumentException, BufferOverflowException {
+	public void zeroPad(final long length) throws IllegalArgumentException, BufferOverflowException {
 		checkArgument(length > 0);
 		checkOverflow(m_nextWrite + length <= m_capacity);
 		for (int i = 0; i < length; i++) {

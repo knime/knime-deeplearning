@@ -76,7 +76,7 @@ public interface DLWritableBuffer extends DLBuffer {
 	 * @throws IllegalArgumentException if <code>length</code> is zero or negative
 	 * @throws BufferOverflowException if the buffer's {@link #getCapacity() capacity} is exceeded
 	 */
-	void zeroPad(int length) throws IllegalArgumentException, BufferOverflowException;
+	void zeroPad(long length) throws IllegalArgumentException, BufferOverflowException;
 
 	/**
 	 * Resets the write state of this buffer. Subsequent calls of write methods will start from the beginning of the

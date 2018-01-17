@@ -114,7 +114,7 @@ public abstract class DLPythonAbstractDataBuffer<B extends DLWrappingDataBuffer<
 	}
 
 	@Override
-	public void zeroPad(final int length) throws IllegalArgumentException, BufferOverflowException {
+	public void zeroPad(final long length) throws IllegalArgumentException, BufferOverflowException {
 		m_buffer.zeroPad(length);
 	}
 
