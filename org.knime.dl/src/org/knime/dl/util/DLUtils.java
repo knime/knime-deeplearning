@@ -276,6 +276,11 @@ public final class DLUtils {
 			}
 			return size;
 		}
+		
+		public static String getSizeAsString(final DLTensorShape shape) {
+			OptionalLong nn = DLUtils.Shapes.getFixedSize(shape);
+			return nn.isPresent() ? Long.toString(nn.getAsLong()) : DLUtils.Shapes.UNKNOWN_DIM_SIZE_REPR;
+		}
 
 		public static long[] calculateExecutionShape(final DLTensorShape tensorShape, final long[] dataShape) {
 			if (isFixed(tensorShape)) {
