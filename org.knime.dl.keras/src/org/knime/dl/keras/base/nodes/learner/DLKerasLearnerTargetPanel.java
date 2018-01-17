@@ -127,7 +127,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
 		numNeurons.add(
 				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_outputDataSpec.getShape()).get())),
+						+ DLUtils.Shapes.getSizeAsString(m_outputDataSpec.getShape())),
 				numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
@@ -196,9 +196,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_outputDataSpec.getShape())
-				.orElseThrow(() -> new InvalidSettingsException("Target '" + m_outputDataSpec.getName()
-						+ "' has an (at least partially) unknown shape. This is not supported.")));
+		final OptionalLong inputSize = DLUtils.Shapes.getFixedSize(m_outputDataSpec.getShape());
 
 		// validate input: get user-selected columns and converter, ask
 		// converter for its output size given the input
@@ -208,26 +206,29 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
 				m_cfg.getConverterEntry().getValue();
 		final OptionalLong destSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
-		if (destSizeOpt.isPresent()) {
-			final long converterOutputSize = destSizeOpt.getAsLong();
-			if (converterOutputSize > inputSize) {
-				throw new InvalidSettingsException("Selected target columns provide more elements ("
-						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network target '"
-						+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
-			}
-			if (converterOutputSize < inputSize) {
-				throw new InvalidSettingsException("Selected target columns do not provide enough elements ("
-						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network target '"
-						+ m_outputDataSpec.getName() + "'. Try adding some columns to the selection.");
-			}
-		} else {
-			// we still can check if there are more input columns than input
-			// neurons since every column provides at
-			// least one element
-			if (includedColSpecs.size() > inputSize) {
-				throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
-						+ ") than neurons available (" + inputSize + ") for network target '"
-						+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+		if (inputSize.isPresent()) {
+			final long fixedInputSize = inputSize.getAsLong();
+			if (destSizeOpt.isPresent()) {
+				final long converterOutputSize = destSizeOpt.getAsLong();
+				if (converterOutputSize > fixedInputSize) {
+					throw new InvalidSettingsException("Selected target columns provide more elements ("
+							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network target '"
+							+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+				}
+				if (converterOutputSize < fixedInputSize) {
+					throw new InvalidSettingsException("Selected target columns do not provide enough elements ("
+							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network target '"
+							+ m_outputDataSpec.getName() + "'. Try adding some columns to the selection.");
+				}
+			} else {
+				// we still can check if there are more input columns than input
+				// neurons since every column provides at
+				// least one element
+				if (includedColSpecs.size() > fixedInputSize) {
+					throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
+					+ ") than neurons available (" + inputSize + ") for network target '"
+					+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+				}
 			}
 		}
 
