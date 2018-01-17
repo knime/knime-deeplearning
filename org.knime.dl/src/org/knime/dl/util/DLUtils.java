@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.IntStream;
@@ -196,6 +197,46 @@ public final class DLUtils {
 				throw new IllegalArgumentException(String.valueOf(errorMessage));
 			}
 			return string;
+		}
+
+		/**
+		 * Ensures that a collection passed as a parameter to the calling method is not null or empty.
+		 *
+		 * @param collection a collection
+		 * @return the non-null and non-empty reference that was validated
+		 * @throws NullPointerException if the input is null
+		 * @throws IllegalArgumentException if the input is empty
+		 * @see com.google.common.base.Preconditions#checkNotNull(Object)
+		 */
+		public static <C extends Collection<?>> C checkNotNullOrEmpty(final C collection) {
+			if (collection == null) {
+				throw new NullPointerException();
+			}
+			if (collection.isEmpty()) {
+				throw new IllegalArgumentException();
+			}
+			return collection;
+		}
+
+		/**
+		 * Ensures that a collection passed as a parameter to the calling method is not null or empty.
+		 *
+		 * @param collection a collection
+		 * @param errorMessage the exception message to use if the check fails; will be converted to a string using
+		 *            {@link String#valueOf(Object)}
+		 * @return the non-null and non-empty reference that was validated
+		 * @throws NullPointerException if the input is null
+		 * @throws IllegalArgumentException if the input is empty
+		 * @see com.google.common.base.Preconditions#checkNotNull(Object, Object))
+		 */
+		public static <C extends Collection<?>> C checkNotNullOrEmpty(final C collection, final Object errorMessage) {
+			if (collection == null) {
+				throw new NullPointerException(String.valueOf(errorMessage));
+			}
+			if (collection.isEmpty()) {
+				throw new IllegalArgumentException(String.valueOf(errorMessage));
+			}
+			return collection;
 		}
 	}
 
