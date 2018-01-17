@@ -55,8 +55,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.OptionalLong;
 
 import org.knime.core.data.DataColumnSpec;
@@ -481,8 +483,12 @@ final class DLExecutorNodeModel extends NodeModel {
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
 		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
-		if (inDataSpec.getNumColumns() == 0) {
-			throw new IllegalStateException("Input table has no columns.");
+		if ((rowInput instanceof DataTableRowInput && ((DataTableRowInput) rowInput).getRowCount() == 0)
+				|| inDataSpec.getNumColumns() == 0) {
+			setWarningMessage("Input table is empty. Node created an empty output table.");
+			rowInput.close();
+			rowOutput.close();
+			return;
 		}
 
 		final String[] selectedCtx = m_generalCfg.getExecutionContext();
@@ -502,7 +508,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		final LinkedHashMap<DLTensorId, int[]> columnsForTensorId = new LinkedHashMap<>(m_inputConverters.size());
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId = new LinkedHashMap<>(
 				m_inputConverters.size());
-		
+
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
 				.entrySet()) {
 			final DLTensorSpec spec = entry.getKey();
@@ -563,7 +569,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			throw new RuntimeException(message, e);
 		}
 	}
-	
+
 	// workaround; when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg)
 			throws DLMissingExtensionException {
@@ -575,5 +581,4 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ ")' could not be found. Are you missing a KNIME extension?"));
 		return conv.getSourceType();
 	}
-	
 }
