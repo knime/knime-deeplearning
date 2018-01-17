@@ -75,7 +75,7 @@ public abstract class DLAbstractTensorDataValueToTensorConverterFactory<I extend
 					"For non-scalar data values, only single column selection is supported.");
 		}
 		final DataValue element = input.get(0);
-		if (getSourceType().isInstance(element)) {
+		if (!getSourceType().isInstance(element)) {
 			throw new IllegalArgumentException("The provided values are not compatible with the converter.");
 		}
 		@SuppressWarnings("unchecked") // see instanceof check above
