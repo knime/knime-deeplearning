@@ -422,9 +422,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
-			if (!DLUtils.Shapes.isFixed(tensorSpec.getShape())) {
+			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
 				throw new InvalidSettingsException("Input '" + tensorSpec.getName()
-						+ "' has an (at least partially) unknown shape. This is not supported, yet.");
+						+ "' has an unknown shape. This is not supported, yet.");
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
@@ -487,9 +487,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
-			if (!DLUtils.Shapes.isFixed(tensorSpec.getShape())) {
+			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
 				throw new InvalidSettingsException("Target '" + tensorSpec.getName()
-						+ "' has an (at least partially) unknown shape. This is not supported, yet.");
+						+ "' has an unknown shape. This is not supported, yet.");
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
