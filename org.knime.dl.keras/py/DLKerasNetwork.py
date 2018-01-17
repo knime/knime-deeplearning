@@ -287,7 +287,8 @@ class DLKerasNetwork(DLPythonNetwork):
         X = []
         for input_spec in self.spec.input_specs:
             tensor = in_data[input_spec.identifier].values[0][0].array
-            tensor = tensor.reshape([batch_size] + input_spec.shape)
+            tensorShape = in_data[input_spec.identifier].values[0][1]
+            tensor = tensor.reshape([batch_size] + tensorShape)
             X.append(tensor)
         return X
 
