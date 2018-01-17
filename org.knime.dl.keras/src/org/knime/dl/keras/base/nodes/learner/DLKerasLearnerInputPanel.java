@@ -92,7 +92,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 
 	private final DLKerasLearnerInputConfig m_cfg;
 
-	private final DLTensorSpec m_inputDataSpec;
+	private final DLTensorSpec m_inputTensorSpec;
 
 	private final DialogComponentObjectSelection<DLDataValueToTensorConverterFactory<?, ?>> m_dcConverter;
 
@@ -104,12 +104,12 @@ final class DLKerasLearnerInputPanel extends JPanel {
 			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
-		m_inputDataSpec = inputDataSpec;
+		m_inputTensorSpec = inputDataSpec;
 		m_lastTableSpec = tableSpec;
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("Training input: " + m_inputDataSpec.getName()));
+		setBorder(BorderFactory.createTitledBorder("Training input: " + m_inputTensorSpec.getName()));
 		final GridBagConstraints constr = new GridBagConstraints();
 		constr.gridx = 0;
 		constr.gridy = 0;
@@ -122,7 +122,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
 		numNeurons.add(
 				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape())
+						+ DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputTensorSpec.getShape())
 								.orElseThrow(() -> new NotConfigurableException("Input '" + inputDataSpec.getName()
 										+ "' has an (at least partially) unknown shape. This is not supported.")))),
 				numNeuronsConstr);
@@ -131,7 +131,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		final JPanel shape = new JPanel();
 		final GridBagConstraints shapeConstr = new GridBagConstraints();
 		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_inputDataSpec.getShape().toString()), shapeConstr);
+		shape.add(new JLabel("Shape: " + m_inputTensorSpec.getShape().toString()), shapeConstr);
 		add(shape, constr);
 		constr.gridy++;
 		// converter selection
@@ -187,8 +187,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputDataSpec.getShape())
-				.orElseThrow(() -> new InvalidSettingsException("Training input '" + m_inputDataSpec.getName()
+		final long inputSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(m_inputTensorSpec.getShape())
+				.orElseThrow(() -> new InvalidSettingsException("Training input '" + m_inputTensorSpec.getName()
 						+ "' has an (at least partially) unknown shape. This is not supported.")));
 		// validate input: get user-selected columns and converter, ask
 		// converter for its output size given the input
@@ -203,12 +203,12 @@ final class DLKerasLearnerInputPanel extends JPanel {
 			if (converterOutputSize > inputSize) {
 				throw new InvalidSettingsException("Selected input columns provide more input elements ("
 						+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
-						+ m_inputDataSpec.getName() + "'. Try removing some columns from the selection.");
+						+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 			}
 			if (converterOutputSize < inputSize) {
 				throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
 						+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
-						+ m_inputDataSpec.getName() + "'. Try adding some columns to the selection.");
+						+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
 			}
 		} else {
 			// we still can check if there are more input columns than input
@@ -216,7 +216,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 			// least one element
 			if (includedColSpecs.size() > inputSize) {
 				throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
-						+ ") than neurons available (" + inputSize + ") for network input '" + m_inputDataSpec.getName()
+						+ ") than neurons available (" + inputSize + ") for network input '" + m_inputTensorSpec.getName()
 						+ "'. Try removing some columns from the selection.");
 			}
 		}
@@ -245,10 +245,10 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
 		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerInputConfig
-				.getAvailableConverters(trainingContext, m_lastTableSpec, m_inputDataSpec);
+				.getAvailableConverters(trainingContext, m_lastTableSpec, m_inputTensorSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
-					"No converters available for input '" + m_inputDataSpec.getName() + "'.");
+					"No converters available for input '" + m_inputTensorSpec.getName() + "'.");
 		}
 		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
 		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
