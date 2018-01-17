@@ -95,6 +95,7 @@ import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.ExecutionSpecCreator;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
@@ -609,7 +610,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
 				columnsForTensorId.size());
-		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(columnsForTensorId.size());
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
 			final DLTensorSpec spec = entry.getKey();
 			final DataColumnSpecFilterConfiguration filterConfig;
@@ -632,10 +632,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			columnsForTensorId.put(spec.getIdentifier(), indices);
 			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
 
-			// TODO: execution shape inference
-			executionInputSpecs.add(ctx.getTensorFactory().createExecutionTensorSpec(spec, batchSize,
-					DLUtils.Shapes.getFixedShape(spec.getShape())
-							.orElseThrow(() -> new RuntimeException("execution shape inference not yet implemented"))));
 		}
 
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
@@ -645,10 +641,14 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
 		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
 
-		try (final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
-				new DLDataTableRowIterator(inTable, columnsForTensorId), batchSize, converterForTensorId);
+		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
+				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
+				rowIterator, batchSize, converterForTensorId);
 				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
-						executionInputSpecs, inputPreparer);) {
+						ExecutionSpecCreator.createExecutionSpecs(
+								rowIterator.peek(), ctx.getTensorFactory(), batchSize,
+								columnsForTensorId, m_converters),
+						inputPreparer);) {
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setNumEpochs(epochs);
 			m_status.setNumBatchesPerEpoch(numBatchesPerEpoch);
