@@ -72,8 +72,10 @@ public final class DLMetrics implements Externalizable {
 		m_value = initialValue;
 	}
 
-	private DLMetrics() {
-		// used for deserialization
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
+	public DLMetrics() {
 	}
 
 	public String getName() {
