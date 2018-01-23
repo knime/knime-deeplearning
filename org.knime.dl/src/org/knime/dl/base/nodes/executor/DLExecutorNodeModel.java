@@ -110,7 +110,7 @@ import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 import org.knime.dl.core.execution.DLInvalidNetworkInputException;
-import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
+import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
@@ -526,7 +526,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			inputs.add(new Pair<>(input.getKey(), indices));
 		}
 
-		try (DLKnimeNetworkExecutor executor = new DLKnimeNetworkExecutor(executableNetwork, m_inputConverters,
+		try (DLDefaultNetworkExecutionSession executor = new DLDefaultNetworkExecutionSession(executableNetwork, m_inputConverters,
 				m_outputConverters)) {
 
 			final DLNetworkExecutorOutputConsumer networkOutputConsumer = new DLNetworkExecutorOutputConsumer(
