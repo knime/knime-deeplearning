@@ -49,15 +49,17 @@ package org.knime.dl.core.execution;
 import java.util.Map;
 
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkInputPreparer<I> {
+public interface DLNetworkInputPreparer<I extends DLTensor<? extends DLWritableBuffer>> {
 
-	long size();
+	long getNumBatches();
 
-	void prepare(Map<DLTensorSpec, I> input, long batchIndex) throws CanceledExecutionException;
+	void prepare(Map<DLTensorId, I> input, long batchIndex) throws CanceledExecutionException;
 }

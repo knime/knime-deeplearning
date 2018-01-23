@@ -56,7 +56,7 @@ import org.knime.core.data.DataValue;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLRowIterator extends Iterator<Map<DLTensorSpec, List<DataValue>>>, AutoCloseable {
+public interface DLRowIterator extends Iterator<Map<DLTensorId, List<DataValue>>>, AutoCloseable {
 
 	long size();
 
@@ -65,7 +65,7 @@ public interface DLRowIterator extends Iterator<Map<DLTensorSpec, List<DataValue
 	 * references to the returned values of previous calls of {@link #next()} or {@link #get(long)}.
 	 */
 	@Override
-	Map<DLTensorSpec, List<DataValue>> next();
+	Map<DLTensorId, List<DataValue>> next();
 
 	/**
 	 * The returned map may be reused by subsequent runs of {@link #next()} or {@link #get(long)}. It is not safe to use
