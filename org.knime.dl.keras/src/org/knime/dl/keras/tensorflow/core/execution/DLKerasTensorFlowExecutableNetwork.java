@@ -46,7 +46,17 @@
  */
 package org.knime.dl.keras.tensorflow.core.execution;
 
+import java.util.Set;
+
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
@@ -58,8 +68,12 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 public final class DLKerasTensorFlowExecutableNetwork
 	extends DLKerasAbstractExecutableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
 
-	public DLKerasTensorFlowExecutableNetwork(final DLKerasTensorFlowNetwork network) {
-		super(network);
+	public DLKerasTensorFlowExecutableNetwork(final DLKerasTensorFlowNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
+			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer,
+			final DLTensorFactory tensorFactory) {
+		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 	}
 
 	@Override

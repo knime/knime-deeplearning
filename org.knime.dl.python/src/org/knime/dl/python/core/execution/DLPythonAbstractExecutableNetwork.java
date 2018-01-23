@@ -48,15 +48,23 @@
  */
 package org.knime.dl.python.core.execution;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
+import org.knime.dl.core.execution.DLExecutionMonitor;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.python.core.DLPythonCommands;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -67,35 +75,32 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwork, C extends DLPythonCommands>
-	extends DLAbstractExecutableNetwork<DLTensor<? extends DLWritableBuffer>, DLTensor<? extends DLReadableBuffer>, N> {
+	extends DLAbstractExecutableNetwork<N> {
 
 	private C m_commands;
 
 	private DLPythonNetworkHandle m_handle;
 
-	protected DLPythonAbstractExecutableNetwork(final N network) {
-		super(network);
+	protected DLPythonAbstractExecutableNetwork(final N network, final Set<DLTensorSpec> executionInputSpecs,
+			final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
+			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer,
+			final DLTensorFactory tensorFactory) {
+		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 	}
 
 	protected abstract C createCommands() throws DLInvalidEnvironmentException;
 
-	// TODO: we may need an own type class (cf. org.knime.core.data.DataType) as "DLTensor.class" isn't really
-	// informative here. (Or remove those properties altogether.)
-
 	@Override
-	public Class<?> getInputType() {
-		return DLTensor.class;
+	public void close() throws Exception {
+		super.close();
+		if (m_commands != null) {
+			m_commands.close();
+		}
 	}
 
 	@Override
-	public Class<?> getOutputType() {
-		return DLTensor.class;
-	}
-
-	@Override
-	public void execute(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
-			final Map<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> output, final long batchSize)
-			throws Exception {
+	protected void executeInternal(final DLExecutionMonitor monitor) throws Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
 			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
@@ -103,15 +108,35 @@ public abstract class DLPythonAbstractExecutableNetwork<N extends DLPythonNetwor
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
 					.load(m_network.getSource(), m_commands.getContext(), false);
 		}
-		m_commands.setNetworkInputs(m_handle, input, batchSize);
-		m_commands.executeNetwork(m_handle, output.keySet(), batchSize);
-		m_commands.getNetworkOutputs(m_handle, output);
-	}
-
-	@Override
-	public void close() throws Exception {
-		if (m_commands != null) {
-			m_commands.close();
+		for (long i = 0; i < m_inputPreparer.getNumBatches(); i++) {
+			m_inputPreparer.prepare(m_input, i);
+			m_commands.setNetworkInputs(m_handle, m_input);
+			m_commands.executeNetwork(m_handle, m_requestedOutputs);
+			for (final DLTensor<?> input : m_input.values()) {
+				input.getBuffer().reset();
+			}
+			if (m_output == null) {
+				m_output = new HashMap<>(m_requestedOutputs.size());
+				final DLTensorSpec[] outputSpecs = ArrayUtils.addAll(m_network.getSpec().getOutputSpecs(),
+						m_network.getSpec().getHiddenOutputSpecs());
+				final Map<DLTensorId, long[]> outputShapes = m_commands.getNetworkOutputShapes(m_handle,
+						m_requestedOutputs);
+				for (final DLTensorSpec spec : outputSpecs) {
+					if (m_requestedOutputs.contains(spec.getIdentifier())) {
+						final long[] shape = outputShapes.get(spec.getIdentifier());
+						final long batchSize = shape[0];
+						final long[] shapeWithoutBatchSize = new long[shape.length - 1];
+						System.arraycopy(shape, 1, shapeWithoutBatchSize, 0, shapeWithoutBatchSize.length);
+						final DLTensorSpec executionSpec = m_tensorFactory.createExecutionTensorSpec(spec, batchSize,
+								shapeWithoutBatchSize);
+						m_output.put(spec.getIdentifier(), m_tensorFactory.createReadableTensor(executionSpec));
+					}
+				}
+			}
+			m_commands.getNetworkOutputs(m_handle, m_output);
+			for (final DLTensor<?> output : m_output.values()) {
+				output.getBuffer().reset();
+			}
 		}
 	}
 }
