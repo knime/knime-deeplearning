@@ -71,4 +71,6 @@ public interface DLTensorFactory {
 	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec) throws IllegalArgumentException;
 
 	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec) throws IllegalArgumentException;
+
+	DLTensorSpec createExecutionTensorSpec(DLTensorSpec spec, long batchSize, long[] shape);
 }
