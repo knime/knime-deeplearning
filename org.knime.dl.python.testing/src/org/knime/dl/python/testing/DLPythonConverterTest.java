@@ -96,7 +96,7 @@ import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutableNetwork;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.core.execution.DLKnimeNetworkExecutor;
+import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
@@ -177,7 +177,7 @@ public class DLPythonConverterTest {
 			outputConverters.put(outputSpec, converter);
 		}
 
-		try (final DLKnimeNetworkExecutor knimeExec = new DLKnimeNetworkExecutor(
+		try (final DLDefaultNetworkExecutionSession knimeExec = new DLDefaultNetworkExecutionSession(
 				exec.executable(network, outputConverters.keySet()), inputConverters, outputConverters)) {
 
 			// "execute":
