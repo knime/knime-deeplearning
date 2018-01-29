@@ -46,11 +46,11 @@
  */
 package org.knime.dl.core.execution;
 
+import org.knime.dl.core.DLMonitor;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLExecutionMonitor {
-	// set of callback methods to KNIME, find base functionality which is shared by execution and training monitor
-	// + own exec cancelled execption
+public interface DLExecutionMonitor extends DLMonitor {
 }

@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -44,62 +44,40 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.core;
 
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.core.DLMonitor;
+import java.util.OptionalDouble;
+import java.util.function.Supplier;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTrainingMonitor<S extends DLTrainingStatus> extends DLMonitor {
+public interface DLMonitor {
 
-	int getNumEpochs();
+	OptionalDouble getProgress();
 
-	int getNumBatchesPerEpoch();
+	void setProgress(double progress);
 
-	boolean isRunning();
+	void setProgress(double progress, String message);
 
-	void setIsRunning(boolean isRunning);
+	default void setProgress(final double progress, final Supplier<String> message) {
+		setProgress(progress, message.get());
+	}
 
-	boolean hasData();
+	String getMessage();
 
-	void setHasData(boolean hasData);
-	
-	boolean hasStoppedEarly();
-	
-	void setHasStoppedEarly(boolean hasStoppedEarly);
+	void setMessage(String message);
 
-	int getCurrentEpoch();
+	default void setMessage(final Supplier<String> message) {
+		setMessage(message.get());
+	}
 
-	void setCurrentEpoch(int currentEpoch);
+	void checkCanceled() throws DLCanceledExecutionException;
 
-	int getCurrentBatchInEpoch();
+	void cancel();
 
-	void setCurrentBatchInEpoch(int currentBatchInEpoch);
+	void reset();
 
-	String[] getMetricsNames();
-
-	void setMetricsNames(String[] names);
-
-	float[] getCurrentMetrics();
-
-	void setCurrentMetrics(float[] metrics);
-
-	ExecutionContext getExecutionContext();
-
-	void onTrainingStart(Runnable callback);
-
-	void notifyTrainingStart();
-
-	void onTrainingEnd(Runnable callback);
-
-	void notifyTrainingEnd();
-
-	void onBatchEnd(Runnable callback);
-
-	void notifyBatchEnd();
-
-	// TODO: add callbacks for batch start, epoch start, epoch end?
+	DLMonitor createSubMonitor(double fraction);
 }
