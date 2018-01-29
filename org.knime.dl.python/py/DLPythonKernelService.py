@@ -85,16 +85,16 @@ class DLPythonKernelService(object):
 class DLPythonNetworkInputBatchGenerator(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, input_names, target_names, size, batch_size, kernel_service=None):
+    def __init__(self, input_names, target_names, steps, batch_size, kernel_service=None):
         assert len(input_names) > 0
         assert len(target_names) > 0
-        assert size > 0
+        assert steps > 0
         assert batch_size > 0
         self._input_names = input_names
         self._target_names = target_names
-        self._size = size
+        self._size = steps * batch_size
         self._batch_size = batch_size
-        self._steps = math.ceil(size / batch_size)
+        self._steps = steps
         self._kernel_service = kernel_service
 
     @property

@@ -354,12 +354,12 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
 
 class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
-    def __init__(self, network, size, batch_size, kernel_service):
+    def __init__(self, network, steps, batch_size, kernel_service):
         assert network is not None
         assert kernel_service is not None
-        input_names = [s.name for s in network.spec.input_specs]
-        target_names = [s.name for s in network.spec.output_specs]
-        super().__init__(input_names, target_names, size, batch_size, kernel_service)
+        input_names = [s.identifier for s in network.spec.input_specs]
+        target_names = [s.identifier for s in network.spec.output_specs]
+        super().__init__(input_names, target_names, steps, batch_size, kernel_service)
         self._network = network
         self._request = DLKerasNetworkInputBatchGenerator.DLKerasTrainingDataRequest(self)
 
