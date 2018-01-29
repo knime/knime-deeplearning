@@ -60,7 +60,6 @@ import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
@@ -106,7 +105,6 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 				m_iterator.reset();
 			}
 			final DataRow row = m_iterator.next();
-			m_baseRows.add(row);
 			final Map<DLTensorId, List<DataValue>> inputForTensor = m_iterator.groupByTensor(row);
 			for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 				final DLTensorId identifier = entry.getKey();
@@ -116,14 +114,14 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 					converter.convert(inputForTensor.get(identifier), tensor);
 				} catch (final BufferOverflowException ex) {
 					// must be present
-					final long sampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+					final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
 					// must be present
 					final long batchSize = tensor.getSpec().getBatchSize().getAsLong();
 					throw new DLInvalidNetworkInputException(
 							"Node input/target data size exceeds the expected size of network input/target '"
-									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
+									+ tensor.getSpec().getName() + "'. Neuron count is " + exampleSize
 									+ ", batch size is " + batchSize + ". Thus, expected input/target data size is "
-									+ sampleSize * batchSize
+									+ exampleSize * batchSize
 									+ ". Please check the column selection for this input/target "
 									+ "and validate the node's input/target data.",
 							ex);
@@ -133,20 +131,18 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 		// check if tensors were filled correctly
 		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 			final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-			final DLTensorSpec spec = tensor.getSpec();
-			if (tensor.getBuffer().size() != tensor.getBuffer().getCapacity()) {
-				// must be present
-				final long sampleSize = DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
-				if (tensor.getBuffer().size() % (sampleSize * m_batchSize) != 0) {
-					throw new DLInvalidNetworkInputException(
-							"Node input/target data size does not match the expected size of network input/target '"
-									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-									+ ", batch size is " + m_batchSize + ". Thus, expected input/target size is "
-									+ sampleSize * m_batchSize + ". However, node input/target data size is "
-									+ tensor.getBuffer().size()
-									+ ". Please check the column selection for this input/target "
-									+ "and validate the node's input/target data.");
-				}
+			if (tensor.getBuffer().size() != tensor.getExampleSize() * m_batchSize) {
+				// Must be present. Note that exampleSize == tensor.getExampleSize() does not necessarily hold
+				// as the latter is expressed in terms of buffer elements, not input elements ("neurons").
+				final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+				final long bufferSizeInNeurons = tensor.getBuffer().size() * (exampleSize / tensor.getExampleSize());
+				throw new DLInvalidNetworkInputException(
+						"Node input/target data size does not match the expected size of network input/target '"
+								+ tensor.getSpec().getName() + "'. Neuron count is " + exampleSize + ", batch size is "
+								+ m_batchSize + ". Thus, expected input/target size is " + exampleSize * m_batchSize
+								+ ". However, node input/target data size is " + bufferSizeInNeurons
+								+ ". Please check the column selection for this input/target "
+								+ "and validate the node's input/target data.");
 			}
 		}
 	}
