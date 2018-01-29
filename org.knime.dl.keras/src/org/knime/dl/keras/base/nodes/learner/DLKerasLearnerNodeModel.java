@@ -609,8 +609,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
 				columnsForTensorId.size());
-		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(
-				inNetworkSpec.getInputSpecs().length);
+		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(columnsForTensorId.size());
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
 			final DLTensorSpec spec = entry.getKey();
 			final DataColumnSpecFilterConfiguration filterConfig;
@@ -689,6 +688,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				notifyViews(m_status);
 			});
 			session.run(monitor);
+			m_status.trainingStarted().clearListeners();
+			m_status.trainingEnded().clearListeners();
+			m_status.batchEnded().clearListeners();
 			m_status.setStatus(Status.FINISHED);
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return session.getTrainedNetwork(exec);
