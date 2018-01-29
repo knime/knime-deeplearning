@@ -59,12 +59,7 @@ public interface DLProgressMonitor extends Externalizable {
 
 	int getNumBatchesPerEpoch();
 
-	// TODO: potentially later we can extend this...
 	boolean isRunning();
-
-	boolean hasData();
-
-	void setHasData(boolean hasData);
 
 	boolean hasStoppedEarly();
 
@@ -75,6 +70,10 @@ public interface DLProgressMonitor extends Externalizable {
 	int getCurrentEpoch();
 
 	int getCurrentBatchInEpoch();
+
+	boolean hasData();
+
+	void setHasData(boolean hasData);
 
 	DLViewData<?>[] getDataUpdate();
 
