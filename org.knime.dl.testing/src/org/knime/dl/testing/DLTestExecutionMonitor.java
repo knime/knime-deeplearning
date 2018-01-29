@@ -47,13 +47,22 @@
 package org.knime.dl.testing;
 
 import org.knime.dl.core.DLSessionMonitor;
+import org.knime.dl.core.execution.DLDefaultExecutionStatus;
 import org.knime.dl.core.execution.DLExecutionMonitor;
+import org.knime.dl.core.execution.DLExecutionStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTestExecutionMonitor extends DLTestAbstractSessionMonitor implements DLExecutionMonitor {
+
+	final DLExecutionStatus m_executionStatus = new DLDefaultExecutionStatus();
+
+	@Override
+	public DLExecutionStatus getExecutionStatus() {
+		return m_executionStatus;
+	}
 
 	@Override
 	public DLSessionMonitor createSubMonitor(final double fraction) {
