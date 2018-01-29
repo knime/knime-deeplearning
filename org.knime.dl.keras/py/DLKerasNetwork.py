@@ -404,7 +404,8 @@ class DLKerasTrainingMonitor(keras.callbacks.Callback):
                 loss = logs[k]
             # TODO: val_loss (when validation set is present)
             # self._metrics.at[0, k] = logs[k]
-        self._request._val = str(acc) + ';' + str(loss)
+        # accuracy, loss, validation accuracy, validation loss
+        self._request._val = str(acc) + ';' + str(loss) + ';' + '0' + ';' + '0'
         self._stop_training = self._kernel_service.send_to_java(self._request)
         if self._stop_training:
             self._network.model.stop_training = True
