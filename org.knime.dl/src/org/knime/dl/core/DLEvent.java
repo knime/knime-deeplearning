@@ -59,5 +59,7 @@ public interface DLEvent<D> {
 
 	void removeListener(BiConsumer<Object, ? super D> listener);
 
+	void clearListeners();
+
 	void raise(D eventData);
 }

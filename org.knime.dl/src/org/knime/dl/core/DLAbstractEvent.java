@@ -70,6 +70,11 @@ public abstract class DLAbstractEvent<D> implements DLEvent<D> {
 	}
 
 	@Override
+	public void clearListeners() {
+		m_listeners.clear();
+	}
+
+	@Override
 	public void raise(final D eventData) {
 		notifyListeners(this, eventData);
 	}
