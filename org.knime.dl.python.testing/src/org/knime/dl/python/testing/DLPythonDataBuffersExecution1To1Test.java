@@ -60,10 +60,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
+import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
@@ -88,17 +90,21 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	private static final DLPythonNetworkHandle HANDLE = new DLPythonNetworkHandle("dummy");
 
-	private static final int IN_LAYER_DATA_NUM = 1;
+	private static final int NUM_IN_TENSORS = 1;
 
-	private static final String IN_LAYER_DATA_NAME = "test_in_data";
+	private static final DLTensorId IN_TENSOR_ID = new DLDefaultTensorId("in1");
 
-	private static final DLTensorShape IN_LAYER_DATA_SHAPE = new DLDefaultFixedTensorShape(new long[] { 11, 10 });
+	private static final String IN_TENSOR_NAME = "in1";
 
-	private static final String OUT_LAYER_DATA_NAME = "test_out_data";
+	private static final DLTensorShape IN_TENSOR_SHAPE = new DLDefaultFixedTensorShape(new long[] { 11, 10 });
 
-	private static final DLTensorShape OUT_LAYER_DATA_SHAPE = new DLDefaultFixedTensorShape(new long[] { 11, 10 });
+	private static final DLTensorId OUT_TENSOR_ID = new DLDefaultTensorId("out1");
 
-	private static final String[] OUT_LAYER_DATA_SELECTED = { OUT_LAYER_DATA_NAME };
+	private static final String OUT_TENSOR_NAME = "out1";
+
+	private static final DLTensorShape OUT_TENSOR_SHAPE = new DLDefaultFixedTensorShape(new long[] { 11, 10 });
+
+	private static final String[] REQUESTED_OUT_TENSORS = { OUT_TENSOR_NAME };
 
 	private static final String BUNDLE_ID = "org.knime.dl.python.testing";
 
@@ -148,9 +154,10 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Test
 	public void testDouble() throws Exception {
-		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
-		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, double.class);
+		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
+		for (int i = 0; i < NUM_IN_TENSORS; i++) {
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE,
+					double.class);
 			final DLPythonDoubleBuffer buff = new DLPythonDoubleBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -160,23 +167,23 @@ public class DLPythonDataBuffersExecution1To1Test {
 			layerData.add(new DLDefaultTensor<>(spec, buff));
 		}
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
+		final HashMap<DLTensorId, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
 		for (final DLTensor<? extends DLWritableBuffer> input : layerData) {
 			// TODO: typing (also in the other test* methods)
-			networkInput.put(input.getSpec(), input);
+			networkInput.put(input.getSpec().getIdentifier(), input);
 		}
 
-		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
 		m_commands.getContext().executeInKernel(code);
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
-		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(outputTensorName, OUT_LAYER_DATA_SHAPE,
+		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
+		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
+			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(OUT_TENSOR_ID, outputTensorName, OUT_TENSOR_SHAPE,
 					double.class);
 			// TODO: typing (also in the other test* methods)
-			outputTensorSpecs.put(spec, new DLDefaultTensor<>(spec, new DLPythonDoubleBuffer(
+			outputTensorSpecs.put(spec.getIdentifier(), new DLDefaultTensor<>(spec, new DLPythonDoubleBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))));
 		}
 		m_commands.getNetworkOutputs(HANDLE, outputTensorSpecs);
@@ -196,9 +203,10 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Test
 	public void testFloat() throws Exception {
-		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
-		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, float.class);
+		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
+		for (int i = 0; i < NUM_IN_TENSORS; i++) {
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE,
+					float.class);
 			final DLPythonFloatBuffer buff = new DLPythonFloatBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -208,21 +216,21 @@ public class DLPythonDataBuffersExecution1To1Test {
 			layerData.add(new DLDefaultTensor<>(spec, buff));
 		}
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
+		final HashMap<DLTensorId, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
 		for (final DLTensor<? extends DLWritableBuffer> input : layerData) {
-			networkInput.put(input.getSpec(), input);
+			networkInput.put(input.getSpec().getIdentifier(), input);
 		}
 
-		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
 		m_commands.getContext().executeInKernel(code);
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
-		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(outputTensorName, OUT_LAYER_DATA_SHAPE,
+		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
+		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
+			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(OUT_TENSOR_ID, outputTensorName, OUT_TENSOR_SHAPE,
 					float.class);
-			outputTensorSpecs.put(spec, new DLDefaultTensor<>(spec, new DLPythonFloatBuffer(
+			outputTensorSpecs.put(spec.getIdentifier(), new DLDefaultTensor<>(spec, new DLPythonFloatBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))));
 		}
 		m_commands.getNetworkOutputs(HANDLE, outputTensorSpecs);
@@ -242,9 +250,9 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Test
 	public void testInt() throws IOException, DLInvalidEnvironmentException {
-		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
-		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, int.class);
+		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
+		for (int i = 0; i < NUM_IN_TENSORS; i++) {
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE, int.class);
 			final DLPythonIntBuffer buff = new DLPythonIntBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -254,20 +262,21 @@ public class DLPythonDataBuffersExecution1To1Test {
 			layerData.add(new DLDefaultTensor<>(spec, buff));
 		}
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
+		final HashMap<DLTensorId, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
 		for (final DLTensor<? extends DLWritableBuffer> input : layerData) {
-			networkInput.put(input.getSpec(), input);
+			networkInput.put(input.getSpec().getIdentifier(), input);
 		}
 
-		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
 		m_commands.getContext().executeInKernel(code);
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
-		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(outputTensorName, OUT_LAYER_DATA_SHAPE, int.class);
-			outputTensorSpecs.put(spec, new DLDefaultTensor<>(spec, new DLPythonIntBuffer(
+		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
+		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
+			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(OUT_TENSOR_ID, outputTensorName, OUT_TENSOR_SHAPE,
+					int.class);
+			outputTensorSpecs.put(spec.getIdentifier(), new DLDefaultTensor<>(spec, new DLPythonIntBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))));
 		}
 		m_commands.getNetworkOutputs(HANDLE, outputTensorSpecs);
@@ -287,9 +296,10 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Test
 	public void testLong() throws Exception {
-		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(IN_LAYER_DATA_NUM);
-		for (int i = 0; i < IN_LAYER_DATA_NUM; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_LAYER_DATA_NAME, IN_LAYER_DATA_SHAPE, long.class);
+		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
+		for (int i = 0; i < NUM_IN_TENSORS; i++) {
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE,
+					long.class);
 			final DLPythonLongBuffer buff = new DLPythonLongBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()));
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -299,21 +309,21 @@ public class DLPythonDataBuffersExecution1To1Test {
 			layerData.add(new DLDefaultTensor<>(spec, buff));
 		}
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
+		final HashMap<DLTensorId, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
 		for (final DLTensor<? extends DLWritableBuffer> input : layerData) {
-			networkInput.put(input.getSpec(), input);
+			networkInput.put(input.getSpec().getIdentifier(), input);
 		}
 
-		m_commands.setNetworkInputs(HANDLE, networkInput, 1);
+		m_commands.setNetworkInputs(HANDLE, networkInput);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
 		m_commands.getContext().executeInKernel(code);
 
-		final HashMap<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
-		for (final String outputTensorName : OUT_LAYER_DATA_SELECTED) {
-			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(outputTensorName, OUT_LAYER_DATA_SHAPE,
+		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
+		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
+			final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(OUT_TENSOR_ID, outputTensorName, OUT_TENSOR_SHAPE,
 					long.class);
-			outputTensorSpecs.put(spec, new DLDefaultTensor<>(spec, new DLPythonLongBuffer(
+			outputTensorSpecs.put(spec.getIdentifier(), new DLDefaultTensor<>(spec, new DLPythonLongBuffer(
 					DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get()))));
 		}
 		m_commands.getNetworkOutputs(HANDLE, outputTensorSpecs);

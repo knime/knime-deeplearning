@@ -49,39 +49,46 @@
 package org.knime.dl.keras.tensorflow.testing;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.junit.Test;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
+import org.knime.dl.core.execution.DLInvalidNetworkInputException;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.training.DLTrainingMonitor;
-import org.knime.dl.keras.base.nodes.learner.DLKerasDefaultTrainingMonitor;
 import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
+import org.knime.dl.keras.core.training.DLKerasDefaultTrainingStatus;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
-import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowDefaultTrainingContext;
+import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowNetworkTrainingSession;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.testing.DLTestTrainingMonitor;
 import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-// FIXME make abstract base class
+// TODO: introduce abstract base class for back end tests
 public class DLKerasTensorFlowNetworkLearnerTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
@@ -90,45 +97,54 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 	public void test1To1() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
+		final DLKerasTensorFlowDefaultTrainingContext ctx = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source, true);
+
+		final Set<DLTensorSpec> executionInputSpecs = Collections.singleton(network.getSpec().getInputSpecs()[0]);
+
 		// training:
+
 		final int dataSetSize = 10;
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
 
-		// TODO fixme
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
-		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
+		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
+				new DLKerasDefaultTrainingStatus());
 
-		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.createTrainableNetwork(network, config)) {
-			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
+				executionInputSpecs, new DLNetworkInputPreparer() {
 
-				@Override
-				public long size() {
-					return dataSetSize;
-				}
-
-				@Override
-				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
-						final long batchIndex) throws CanceledExecutionException {
-					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-						populate(entry.getValue());
+					@Override
+					public long getNumBatches() {
+						return dataSetSize;
 					}
-				}
-			}, monitor);
-			// test:
-			// TODO!
+
+					@Override
+					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+							throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+							populate(entry.getValue());
+						}
+					}
+
+					@Override
+					public void close() throws Exception {
+						// no op
+					}
+				})) {
+			session.run(monitor);
+			// TODO: test if training worked
 		}
 	}
 
@@ -136,44 +152,56 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 	public void test2To2() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/multi_in_out.h5").getAbsolutePath());
-		final DLKerasTensorFlowDefaultTrainingContext training = new DLKerasTensorFlowDefaultTrainingContext();
+		final DLKerasTensorFlowDefaultTrainingContext ctx = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source, true);
+
+		final Set<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(
+				Arrays.asList(network.getSpec().getInputSpecs()));
+
 		// training:
+
 		final int dataSetSize = 10;
 		final int batchSize = 1;
 		final int epochs = 2;
-		final DLKerasOptimizer optimizer = training.createOptimizers().iterator().next();
-		final DLKerasLossFunction loss = training.createLossFunctions().iterator().next();
+		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
+		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
 		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
 			losses.put(network.getSpec().getOutputSpecs()[i], loss);
 		}
 
-		// TODO fixme
-		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
-		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.createTrainableNetwork(network, config)) {
-			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
+				new DLKerasDefaultTrainingStatus());
 
-				@Override
-				public long size() {
-					return dataSetSize;
-				}
+		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
+				executionInputSpecs, new DLNetworkInputPreparer() {
 
-				@Override
-				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
-						final long batchIndex) throws CanceledExecutionException {
-					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-						populate(entry.getValue());
+					@Override
+					public long getNumBatches() {
+						return dataSetSize;
 					}
-				}
-			}, monitor);
-			// test:
-			// TODO!
+
+					@Override
+					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+							throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+							populate(entry.getValue());
+						}
+					}
+
+					@Override
+					public void close() throws Exception {
+						// no op
+
+					}
+				})) {
+			session.run(monitor);
+			// TODO: test if training worked
 		}
 	}
 

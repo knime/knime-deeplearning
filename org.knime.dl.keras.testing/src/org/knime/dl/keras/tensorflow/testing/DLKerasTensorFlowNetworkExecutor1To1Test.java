@@ -56,19 +56,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.junit.Test;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLInvalidNetworkInputException;
+import org.knime.dl.core.execution.DLInvalidNetworkOutputException;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowDefaultExecutionContext;
+import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowNetworkExecutionSession;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.testing.DLTestExecutionMonitor;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -93,26 +99,44 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 			throw new RuntimeException(e);
 		}
 		final DLNetworkSpec networkSpec = network.getSpec();
-		final Set<DLTensorSpec> selectedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0]);
-		try (final DLExecutableNetworkAdapter execNetwork = exec.executable(network, selectedOutputs)) {
-			execNetwork.execute(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+		final Set<DLTensorSpec> executionInputSpecs = Collections.singleton(networkSpec.getInputSpecs()[0]);
+		final Set<DLTensorId> requestedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0].getIdentifier());
+		try (final DLKerasTensorFlowNetworkExecutionSession session = exec.createExecutionSession(network,
+				executionInputSpecs, requestedOutputs, new DLNetworkInputPreparer() {
 
-				@Override
-				public long size() {
-					return -1;
-				}
-
-				@Override
-				public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input,
-						final long batchIndex) throws CanceledExecutionException {
-					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-						populate(entry.getValue());
+					@Override
+					public long getNumBatches() {
+						return -1;
 					}
-				}
-			}, out -> {
-				// TODO: test against known results - this is sth. that should
-				// rather be tested via a test workflow
-			}, 1);
+
+					@Override
+					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+							throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+							populate(entry.getValue());
+						}
+					}
+
+					@Override
+					public void close() throws Exception {
+						// no op
+					}
+
+				}, new DLNetworkOutputConsumer() {
+
+					@Override
+					public void accept(Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output)
+							throws DLCanceledExecutionException, DLInvalidNetworkOutputException {
+						// TODO: test against known results - this is sth. that should
+						// rather be tested via a test workflow
+					}
+
+					@Override
+					public void close() throws Exception {
+						// no op
+					}
+				})) {
+			session.run(new DLTestExecutionMonitor());
 		}
 	}
 
