@@ -70,7 +70,7 @@ import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
+public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 
 	private final RowOutput m_output;
 
