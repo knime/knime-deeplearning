@@ -50,17 +50,19 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-@FunctionalInterface
-public interface DLNetworkOutputConsumer<O extends DLTensor<? extends DLReadableBuffer>>
-		extends Consumer<Map<DLTensorSpec, O>> {
+public interface DLNetworkOutputConsumer
+		extends Consumer<Map<DLTensorId, DLTensor<? extends DLReadableBuffer>>>, AutoCloseable {
 
 	@Override
-	void accept(Map<DLTensorSpec, O> output);
+	void accept(Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output);
+
+	@Override
+	void close() throws Exception;
 }

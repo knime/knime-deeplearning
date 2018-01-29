@@ -57,9 +57,10 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkInputPreparer<I extends DLTensor<? extends DLWritableBuffer>> {
+public interface DLNetworkInputPreparer {
 
 	long getNumBatches();
 
-	void prepare(Map<DLTensorId, I> input, long batchIndex) throws CanceledExecutionException;
+	void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+			throws CanceledExecutionException;
 }
