@@ -73,9 +73,7 @@ public interface DLProgressMonitor extends Externalizable {
 
 	boolean hasData();
 
-	void setHasData(boolean hasData);
+	DLViewData<?>[] getViewData();
 
-	DLViewData<?>[] getDataUpdate();
-
-	void setDataUpdate(DLViewData<?>[] viewData);
+	void setViewData(DLViewData<?>[] viewData);
 }
