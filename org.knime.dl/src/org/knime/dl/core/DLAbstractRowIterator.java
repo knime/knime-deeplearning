@@ -57,36 +57,30 @@ import java.util.Map.Entry;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.RowIterator;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.execution.DLInvalidNetworkInputException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDefaultRowIterator implements DLRowIterator {
+public abstract class DLAbstractRowIterator implements DLRowIterator {
 
-	private final BufferedDataTable m_table;
+	protected DataTableSpec m_tableSpec;
 
-	private final Map<? extends DLTensorSpec, int[]> m_columns;
+	protected final Map<DLTensorId, int[]> m_columns;
 
-	private RowIterator m_iterator;
+	protected final Map<DLTensorId, List<DataValue>> m_temp;
 
-	private long m_lastIndex = -1;
+	protected long m_lastIndex = -1;
 
-	private final Map<DLTensorSpec, List<DataValue>> m_temp;
-
-	public DLDefaultRowIterator(final BufferedDataTable table, final Map<? extends DLTensorSpec, int[]> columns) {
-		m_table = checkNotNull(table);
+	protected DLAbstractRowIterator(final DataTableSpec tableSpec, final Map<DLTensorId, int[]> columns) {
+		m_tableSpec = checkNotNull(tableSpec);
 		m_columns = new HashMap<>(checkNotNull(columns));
-		m_iterator = table.iterator();
 		m_temp = new HashMap<>(columns.size());
-		for (final Entry<? extends DLTensorSpec, int[]> entry : columns.entrySet()) {
+		for (final Entry<DLTensorId, int[]> entry : columns.entrySet()) {
 			final int numColumns = entry.getValue().length;
 			final ArrayList<DataValue> list = new ArrayList<>(
 					Collections.nCopies(numColumns, DataType.getMissingCell()));
@@ -95,20 +89,9 @@ public final class DLDefaultRowIterator implements DLRowIterator {
 	}
 
 	@Override
-	public long size() {
-		return m_table.size();
-	}
-
-	@Override
-	public boolean hasNext() {
-		return m_iterator.hasNext();
-	}
-
-	@Override
-	public Map<DLTensorSpec, List<DataValue>> next() {
-		final DataRow row = m_iterator.next();
+	public final Map<DLTensorId, List<DataValue>> groupByTensor(final DataRow row) {
 		m_lastIndex++;
-		for (final Entry<? extends DLTensorSpec, int[]> entry : m_columns.entrySet()) {
+		for (final Entry<DLTensorId, int[]> entry : m_columns.entrySet()) {
 			final int[] columns = entry.getValue();
 			final List<DataValue> list = m_temp.get(entry.getKey());
 			for (int i = 0; i < columns.length; i++) {
@@ -116,45 +99,11 @@ public final class DLDefaultRowIterator implements DLRowIterator {
 				final DataCell cell = row.getCell(column);
 				if (cell.isMissing()) {
 					throw new DLInvalidNetworkInputException("Missing cell in input row '" + row.getKey()
-							+ "', column '" + m_table.getDataTableSpec().getColumnSpec(column).getName() + "'.");
+							+ "', column '" + m_tableSpec.getColumnSpec(column).getName() + "'.");
 				}
 				list.set(i, cell);
 			}
 		}
 		return m_temp;
-	}
-
-	@Override
-	public Map<DLTensorSpec, List<DataValue>> get(final long index) {
-		if (index - 1 == m_lastIndex) {
-			return next();
-		}
-		if (index == 0) {
-			reset();
-			return next();
-		}
-		// TODO: (pseudo) random access
-		NodeLogger.getLogger(DLDefaultRowIterator.class).debug(
-				"Random access is not yet implemented (and should not be necessary at this point of development, either). "
-						+ "This will be a future feature that is needed when caching of input tensors is employed.");
-		throw new UnsupportedOperationException("Random access is not yet implemented.");
-	}
-
-	@Override
-	public void reset() {
-		closeCurrentIterator();
-		m_iterator = m_table.iterator();
-		m_lastIndex = -1;
-	}
-
-	@Override
-	public void close() {
-		closeCurrentIterator();
-	}
-
-	private void closeCurrentIterator() {
-		if (m_iterator instanceof CloseableRowIterator) {
-			((CloseableRowIterator) m_iterator).close();
-		}
 	}
 }

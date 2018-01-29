@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -46,39 +46,83 @@
  */
 package org.knime.dl.core;
 
-import java.util.Iterator;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataValue;
+import org.knime.core.node.streamable.DataTableRowInput;
+import org.knime.core.node.streamable.RowInput;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLRowIterator extends Iterator<DataRow>, AutoCloseable {
+public final class DLRowInputRowIterator extends DLAbstractRowIterator {
 
-	/**
-	 * @returns empty optional if the iterator has no size information, e.g. when streaming
-	 */
-	OptionalLong size();
+	private final RowInput m_input;
 
-	@Override
-	DataRow next();
+	private final OptionalLong m_size;
 
-	/**
-	 * The returned map may be reused by subsequent runs of {@link #groupByTensor(DataRow)}. It is not safe to use
-	 * references to the returned values of previous calls of {@link #groupByTensor(DataRow)}.
-	 */
-	Map<DLTensorId, List<DataValue>> groupByTensor(DataRow row);
+	private DataRow m_lastPeeked;
 
-	/**
-	 * @throws UnsupportedOperationException if the iterator does not support reset, e.g. when streaming
-	 */
-	void reset();
+	public DLRowInputRowIterator(final RowInput input, final Map<DLTensorId, int[]> columns) {
+		super(input.getDataTableSpec(), columns);
+		m_input = checkNotNull(input);
+		if (input instanceof DataTableRowInput) {
+			final long rowCount = ((DataTableRowInput) input).getRowCount();
+			m_size = rowCount != -1 ? OptionalLong.of(rowCount) : OptionalLong.empty();
+		} else {
+			m_size = OptionalLong.empty();
+		}
+	}
 
 	@Override
-	void close();
+	public OptionalLong size() {
+		return m_size;
+	}
+
+	@Override
+	public final boolean hasNext() {
+		if (m_lastPeeked == null) {
+			try {
+				m_lastPeeked = m_input.poll();
+				return m_lastPeeked != null;
+			} catch (final InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public final DataRow next() {
+		DataRow nextDataRow;
+		if (m_lastPeeked != null) {
+			nextDataRow = m_lastPeeked;
+			m_lastPeeked = null;
+		} else {
+			try {
+				nextDataRow = m_input.poll();
+			} catch (final InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new NoSuchElementException(
+						"Interrupted during input polling. Original message: " + e.getMessage());
+			}
+		}
+		return nextDataRow;
+	}
+
+	@Override
+	public void reset() {
+		throw new UnsupportedOperationException("Cannot reset an iterator that runs over a streamable input.");
+	}
+
+	@Override
+	public void close() {
+		m_input.close();
+	}
 }

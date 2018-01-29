@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -46,39 +46,58 @@
  */
 package org.knime.dl.core;
 
-import java.util.Iterator;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
 import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataValue;
+import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.node.BufferedDataTable;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLRowIterator extends Iterator<DataRow>, AutoCloseable {
+public final class DLDataTableRowIterator extends DLAbstractRowIterator {
 
-	/**
-	 * @returns empty optional if the iterator has no size information, e.g. when streaming
-	 */
-	OptionalLong size();
+	private final BufferedDataTable m_input;
 
-	@Override
-	DataRow next();
+	private final OptionalLong m_size;
 
-	/**
-	 * The returned map may be reused by subsequent runs of {@link #groupByTensor(DataRow)}. It is not safe to use
-	 * references to the returned values of previous calls of {@link #groupByTensor(DataRow)}.
-	 */
-	Map<DLTensorId, List<DataValue>> groupByTensor(DataRow row);
+	private CloseableRowIterator m_iterator;
 
-	/**
-	 * @throws UnsupportedOperationException if the iterator does not support reset, e.g. when streaming
-	 */
-	void reset();
+	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
+		super(input.getDataTableSpec(), columns);
+		m_input = checkNotNull(input);
+		m_size = OptionalLong.of(input.size());
+		m_iterator = input.iterator();
+	}
 
 	@Override
-	void close();
+	public OptionalLong size() {
+		return m_size;
+	}
+
+	@Override
+	public final boolean hasNext() {
+		return m_iterator.hasNext();
+	}
+
+	@Override
+	public final DataRow next() {
+		return m_iterator.next();
+	}
+
+	@Override
+	public void reset() {
+		m_iterator.close();
+		m_iterator = m_input.iterator();
+		m_lastIndex = -1;
+	}
+
+	@Override
+	public void close() {
+		m_iterator.close();
+	}
 }
