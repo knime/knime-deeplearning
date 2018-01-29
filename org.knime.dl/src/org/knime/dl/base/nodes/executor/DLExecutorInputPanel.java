@@ -135,10 +135,9 @@ final class DLExecutorInputPanel extends JPanel {
 		add(shape, constr);
 		constr.gridy++;
 		// converter selection
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", e ->
-			m_cfg.getConverterModel()
-					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection())
-		);
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion",
+				e -> m_cfg.getConverterModel().setStringArrayValue(
+						((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection()));
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// column selection
@@ -208,22 +207,24 @@ final class DLExecutorInputPanel extends JPanel {
 			if (destSizeOpt.isPresent()) {
 				final long converterOutputSize = destSizeOpt.getAsLong();
 				if (converterOutputSize > inputSize.getAsLong()) {
-					throw new InvalidSettingsException("Selected input columns provide more input elements ("
-							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
-							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
+					throw new InvalidSettingsException(
+							"Selected input columns provide more input elements (" + converterOutputSize
+									+ ") than neurons available (" + inputSize.getAsLong() + ") for network input '"
+									+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 				if (converterOutputSize < inputSize.getAsLong()) {
-					throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
-							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
-							+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
+					throw new InvalidSettingsException(
+							"Selected input columns do not provide enough input elements (" + converterOutputSize
+									+ ") to populate all neurons (" + inputSize.getAsLong() + ") of network input '"
+									+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
 				}
 			} else {
 				// we still can check if there are more input columns than input neurons since every column provides at
 				// least one element
 				if (includedColSpecs.size() > inputSize.getAsLong()) {
 					throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
-					+ ") than neurons available (" + inputSize + ") for network input '" + m_inputTensorSpec.getName()
-					+ "'. Try removing some columns from the selection.");
+							+ ") than neurons available (" + inputSize.getAsLong() + ") for network input '"
+							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 			}
 		}
