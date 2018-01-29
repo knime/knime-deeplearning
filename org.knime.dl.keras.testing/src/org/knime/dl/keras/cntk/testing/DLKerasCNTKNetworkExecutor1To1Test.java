@@ -67,7 +67,7 @@
 //import org.knime.dl.core.data.DLWritableBuffer;
 //import org.knime.dl.core.data.DLWritableFloatBuffer;
 //import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
-//import org.knime.dl.core.execution.DLNetworkInputPreparer;
+//import org.knime.dl.core.DLNetworkInputPreparer;
 //import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 //import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 //import org.knime.dl.keras.cntk.core.execution.DLKerasCNTKDefaultExecutionContext;
