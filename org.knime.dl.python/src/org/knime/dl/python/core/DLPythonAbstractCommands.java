@@ -297,6 +297,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("for input_spec in network.spec.input_specs:") //
 				.n().t().a("in_data[input_spec.identifier] = globals()[input_spec.identifier]") //
 				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
+				.n("import pandas as pd") //
 				.n("output_shapes = {}") //
 				.n("for name, data in out_data.items():") //
 				.n().t().a("shape = [list(data.iloc[0][0].array.shape)]").n().t()
