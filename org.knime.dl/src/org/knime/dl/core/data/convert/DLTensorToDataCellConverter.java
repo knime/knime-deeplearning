@@ -65,5 +65,5 @@ public interface DLTensorToDataCellConverter<VIA extends DLReadableBuffer, TO ex
 	 *            {@link DLTensorToDataCellConverterFactory#getDestCount(org.knime.dl.core.DLTensorSpec) dest count}
 	 *            times {@link DLTensorSpec#getBatchSize() batch size}.
 	 */
-	void convert(DLTensor<VIA> input, TO[] output, ExecutionContext exec) throws Exception;
+	void convert(DLTensor<VIA> input, TO[] output, ExecutionContext exec);
 }
