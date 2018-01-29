@@ -46,11 +46,11 @@
  */
 package org.knime.dl.keras.core;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.function.Supplier;
 
+import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
+import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
@@ -110,23 +110,30 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 	}
 
 	@Override
-	public DLTensor<? extends DLWritableBuffer> createWritableTensor(final DLTensorSpec spec, final long batchSize)
-			throws IllegalArgumentException {
-		return createTensorInternal(spec, batchSize, DLWritableBuffer.class);
+	public DLTensor<? extends DLWritableBuffer> createWritableTensor(final DLTensorSpec spec) {
+		return createTensorInternal(spec);
 	}
 
 	@Override
-	public DLTensor<? extends DLReadableBuffer> createReadableTensor(final DLTensorSpec spec, final long batchSize)
-			throws IllegalArgumentException {
-		return createTensorInternal(spec, batchSize, DLReadableBuffer.class);
+	public DLTensor<? extends DLReadableBuffer> createReadableTensor(final DLTensorSpec spec) {
+		return createTensorInternal(spec);
 	}
 
-	private <B extends DLBuffer> DLTensor<B> createTensorInternal(final DLTensorSpec spec, final long batchSize,
-			final Class<B> readableOrWritableBufferType) {
-		final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape()).orElseThrow(
-				() -> new IllegalArgumentException("Tensor spec does not provide a shape. Tensor cannot be created."));
-		checkArgument(batchSize <= Integer.MAX_VALUE,
-				"Invalid batch size. Factory only supports capacities up to " + Integer.MAX_VALUE + ".");
+	@Override
+	public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec spec, final long batchSize, final long[] shape) {
+		return new DLDefaultTensorSpec(spec.getIdentifier(), spec.getName(), batchSize,
+				new DLDefaultFixedTensorShape(shape), spec.getElementType());
+	}
+
+	private <B extends DLBuffer> DLTensor<B> createTensorInternal(final DLTensorSpec spec) {
+		final long[] shape = DLUtils.Shapes.getFixedShape(spec.getShape())
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Tensor spec '" + spec.getName() + "' does not provide a shape. Tensor cannot be created."));
+		if (!spec.getBatchSize().isPresent()) {
+			throw new IllegalArgumentException(
+					"Tensor spec '" + spec.getName() + "' does not provide a batch size. Tensor cannot be created.");
+		}
+		final long batchSize = spec.getBatchSize().getAsLong();
 		final Class<?> t = spec.getElementType();
 		final long size = DLUtils.Shapes.getSize(shape) * batchSize;
 		// TODO: handle unsafe casts
@@ -140,7 +147,7 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 		} else if (t.equals(long.class)) {
 			s = () -> (B) new DLPythonLongBuffer(size);
 		} else {
-			throw new IllegalArgumentException("No matching tensor type.");
+			throw new IllegalArgumentException("No matching tensor type for tensor spec '" + spec.getName() + "'.");
 		}
 		return new DLDefaultTensor<>(spec, s.get());
 	}
