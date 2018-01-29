@@ -46,6 +46,7 @@
  */
 package org.knime.dl.core.execution;
 
+import java.lang.reflect.Array;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,6 +95,7 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 			final DLKnimeOutputConsumerHelperStruct helper = new DLKnimeOutputConsumerHelperStruct();
 			helper.m_factory = entry.getValue();
 			helper.m_converter = entry.getValue().createConverter();
+			m_helpers.put(entry.getKey(), helper);
 		}
 	}
 
@@ -125,9 +127,12 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 			for (final DLTensorId identifier : tensors.keySet()) {
 				final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(identifier);
 				final DataCell[] temp = helper.m_temp;
-				for (int i = 0; i < helper.m_numOutputElements; i++, c++) {
-					m_temp[c + i] = temp[i];
+				// casting is fine here as we are already performing exact multiplication in the initialize method
+				final int o = (int) (r * helper.m_numOutputElements);
+				for (int i = 0; i < helper.m_numOutputElements; i++) {
+					m_temp[c + i] = temp[o + i];
 				}
+				c += helper.m_numOutputElements;
 			}
 			try {
 				if (m_append) {
@@ -165,7 +170,8 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 						+ "' is larger than 2^31-1. This is currently not supported.");
 			}
 			try {
-				helper.m_temp = new DataCell[Math.multiplyExact((int) batchSize, (int) helper.m_numOutputElements)];
+				helper.m_temp = (DataCell[]) Array.newInstance(helper.m_factory.getDestType().getCellClass(),
+						Math.multiplyExact((int) batchSize, (int) helper.m_numOutputElements));
 			} catch (final ArithmeticException e) {
 				throw new IllegalArgumentException(
 						"Number of output elements of output '" + entry.getValue().getSpec().getName()
