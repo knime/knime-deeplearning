@@ -53,7 +53,7 @@ import org.knime.dl.core.DLAbstractKnimeSessionMonitor;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeTrainingMonitor<S extends DLTrainingStatus> extends DLAbstractKnimeSessionMonitor
+public final class DLKnimeTrainingMonitor<S extends DLTrainingStatus> extends DLAbstractKnimeSessionMonitor
 		implements DLTrainingMonitor<S> {
 
 	private final S m_trainingStatus;

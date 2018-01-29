@@ -53,7 +53,7 @@ import org.knime.dl.core.DLAbstractKnimeSessionMonitor;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKnimeExecutionMonitor extends DLAbstractKnimeSessionMonitor implements DLExecutionMonitor {
+public final class DLKnimeExecutionMonitor extends DLAbstractKnimeSessionMonitor implements DLExecutionMonitor {
 
 	public DLKnimeExecutionMonitor(final ExecutionMonitor knimeMonitor) {
 		super(knimeMonitor);
