@@ -75,6 +75,12 @@ public final class DLDefaultTensorId implements DLTensorId {
 
 	@Override
 	public boolean equals(final Object obj) {
-		return m_identifierString.equals(obj);
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null || obj.getClass() != getClass()) {
+			return false;
+		}
+		return m_identifierString.equals(((DLDefaultTensorId) obj).m_identifierString);
 	}
 }
