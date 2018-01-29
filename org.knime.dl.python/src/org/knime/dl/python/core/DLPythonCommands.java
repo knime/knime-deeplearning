@@ -88,15 +88,14 @@ public interface DLPythonCommands extends AutoCloseable {
 			Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs,
-			final long batchSize)
+	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs, final long batchSize)
 			throws DLInvalidEnvironmentException, IOException;
 
 	/**
 	 * Retrieves the shapes of the output tensors from python. </br>
-	 * <b>NOTE:</b> The first dimension of the returned shapes is the batch dimension, which is treated separately
-	 * in the rest of the DL framework. Unknown dimensions are encoded as -1.
-	 * 
+	 * <b>NOTE:</b> The first dimension of the returned shapes is the batch dimension, which is treated separately in
+	 * the rest of the DL framework. Unknown dimensions are encoded as -1.
+	 *
 	 * @param network the network handle
 	 * @param outputs the outputs for which we need the shapes
 	 * @return the shapes of the output tensors, the first dimension is the batch dimension
@@ -110,8 +109,7 @@ public interface DLPythonCommands extends AutoCloseable {
 			Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void trainNetwork(DLPythonNetworkHandle network,
-			DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier, DLTrainingMonitor monitor)
+	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider inputSupplier, DLTrainingMonitor<?> monitor)
 			throws DLInvalidEnvironmentException, IOException;
 
 	void getTrainingResults(DLPythonNetworkHandle network);

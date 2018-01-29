@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -67,7 +68,9 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputProvider;
+import org.knime.dl.core.training.DLMetrics;
 import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -123,14 +126,16 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public static final String INPUT_TABLE_NAME = "input_table";
 
 	public static final String OUTPUT_TABLE_NAME = "output_table";
-	
-	public static final String OUTPUT_SHAPES_NAME = "output_shapes";
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
+	public static final String OUTPUT_SHAPES_NAME = "output_shapes";
 
 	private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
 
 	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
+
+	// --
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
 	/**
 	 * Methods that require a properly setup Python environment should not access this field directly. Instead, they
@@ -284,8 +289,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	@Override
 	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs,
-			final long batchSize)
-			throws DLInvalidEnvironmentException, IOException {
+			final long batchSize) throws DLInvalidEnvironmentException, IOException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
@@ -295,53 +299,53 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
 				.n("output_shapes = {}") //
 				.n("for name, data in out_data.items():") //
-				.n().t().a("shape = [list(data.iloc[0][0].array.shape)]")
-				.n().t().a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
-				.n().t().a("globals()[name] = data")
-				.n("globals()[").as(OUTPUT_SHAPES_NAME).a("] = pd.DataFrame(output_shapes)");
+				.n().t().a("shape = [list(data.iloc[0][0].array.shape)]").n().t()
+				.a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
+				.n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
+				.a("] = pd.DataFrame(output_shapes)");
 		getContext().executeInKernel(b.toString());
 	}
 
 	@Override
 	public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
 			final Set<T> outputs) throws DLInvalidEnvironmentException, IOException {
-		Map<T, long[]> shapes = new HashMap<>(outputs.size());
-		Map<String, T> idMap = outputs.stream().collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
-		getContext().getKernel().getData(OUTPUT_SHAPES_NAME,
-				(tableSpec, tableSize) -> new TableCreator<Object>() {
+		final Map<T, long[]> shapes = new HashMap<>(outputs.size());
+		final Map<String, T> idMap = outputs.stream()
+				.collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
+		getContext().getKernel().getData(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
 
-					@Override
-					public void addRow(Row row) {
-						String[] tensorNames = tableSpec.getColumnNames();
-						for (int i = 0; i < tensorNames.length; i++) {
-							Cell shapeCell = row.getCell(i);
-							try {
-								int[] intShape = shapeCell.getIntegerArrayValue();
-								shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
-							} catch (IllegalStateException e) {
-								LOGGER.error("An exception occurred while collecting output shapes from Python: "
-										+ e.getMessage(), e);
-							}
-						}
+			@Override
+			public void addRow(final Row row) {
+				final String[] tensorNames = tableSpec.getColumnNames();
+				for (int i = 0; i < tensorNames.length; i++) {
+					final Cell shapeCell = row.getCell(i);
+					try {
+						final int[] intShape = shapeCell.getIntegerArrayValue();
+						shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
+					} catch (final IllegalStateException e) {
+						LOGGER.error(
+								"An exception occurred while collecting output shapes from Python: " + e.getMessage(),
+								e);
 					}
-
-					@Override
-					public TableSpec getTableSpec() {
-						return tableSpec;
-					}
-
-					@Override
-					public Object getTable() {
-						return null;
-					}
-					
 				}
-				);
+			}
+
+			@Override
+			public TableSpec getTableSpec() {
+				return tableSpec;
+			}
+
+			@Override
+			public Object getTable() {
+				return null;
+			}
+
+		});
 		// ensure that we have a shape for each output tensor
 		if (shapes.size() != outputs.size()) {
 			throw new IllegalStateException(
-					"Python didn't return a shape for each output. The shape is missing for outputs " + 
-							Sets.difference(outputs, shapes.keySet()));
+					"Python didn't return a shape for each output. The shape is missing for outputs "
+							+ Sets.difference(outputs, shapes.keySet()) + ".");
 		}
 		return shapes;
 	}
@@ -399,9 +403,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public void trainNetwork(final DLPythonNetworkHandle network,
-			final DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier,
-			final DLTrainingMonitor monitor) throws DLInvalidEnvironmentException, IOException {
+	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider inputSupplier,
+			final DLTrainingMonitor<?> monitor) throws DLInvalidEnvironmentException, IOException {
 		final Messages messages = getContext().getKernel().getMessages();
 		final AbstractPythonToJavaMessageHandler dataRequestHandler = new AbstractPythonToJavaMessageHandler(
 				"request_training_data") {
@@ -409,12 +412,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
 				final long batchIndex = Long.parseLong(msg.getValue());
-				final Map<? extends DLTensorSpec, DLTensor<? extends DLWritableBuffer>> input = inputSupplier
-						.get(batchIndex);
-				for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> entry : input
-						.entrySet()) {
-					final DLTensorSpec tensorSpec = entry.getKey();
+				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = inputSupplier.get(batchIndex);
+				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+					final DLTensorSpec tensorSpec = tensor.getSpec();
 					final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
 					try {
 						getContext().getKernel().putData(tensorSpec.getName(), tableChunker, 1);
@@ -429,27 +430,31 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		};
 		messages.registerMessageHandler(dataRequestHandler);
 
-		final String[] metricsNames = new String[] { "accuracy", "loss", "val_accuracy", "val_loss" };
-		monitor.setMetricsNames(metricsNames);
-		final float[] metrics = new float[metricsNames.length];
+		final Map<String, DLMetrics> metrics = new LinkedHashMap<>(4);
+		metrics.put("accuracy", new DLMetrics("accuracy", 0f));
+		metrics.put("loss", new DLMetrics("loss", 0f));
+		metrics.put("val_accuracy", new DLMetrics("val_accuracy", 0f));
+		metrics.put("val_loss", new DLMetrics("val_loss", 0f));
+
 		final AbstractPythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler(
 				"batch_end") {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
 				final String[] metricsStr = msg.getValue().split(";");
-				for (int i = 0; i < metricsStr.length; i++) {
+				int i = 0;
+				for (final DLMetrics m : metrics.values()) {
 					try {
-						metrics[i] = Float.parseFloat(metricsStr[i]);
+						m.setValue(Float.parseFloat(metricsStr[i]));
 					} catch (final NumberFormatException e) {
-						metrics[i] = 0f;
-						LOGGER.debug(
-								"Received invalid value for metric '" + metricsNames[i] + "': " + metricsStr[i] + ".");
+						m.setValue(Float.parseFloat(metricsStr[i]));
+						LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
 					}
+					i++;
 				}
-				messages.answer(new DefaultJavaToPythonResponse(msg, monitor.isRunning() ? "c" : "s"));
-				monitor.setCurrentMetrics(metrics);
-				monitor.notifyBatchEnd();
+				messages.answer(new DefaultJavaToPythonResponse(msg,
+						monitor.getTrainingStatus().getStatus() == Status.RUNNING ? "c" : "s"));
+				monitor.getTrainingStatus().batchEnded().raise(null);
 			}
 		};
 		messages.registerMessageHandler(onBatchEndHandler);
@@ -460,16 +465,16 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("from DLPythonKernelService import DLPythonKernelService") //
 				.n("kernel_service = DLPythonKernelService(globals(), request_from_java)") //
 				.n("from DLKerasNetwork import DLKerasNetworkInputBatchGenerator") //
-				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.size())
+				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.getNumBatches()) //
 				.a(", network.spec.training_config.batch_size, kernel_service)") //
 				.n("network.train(data_supplier)");
-		monitor.notifyTrainingStart();
+		monitor.getTrainingStatus().trainingStarted().raise(null);
 		getContext().executeInKernel(b.toString());
 
 		messages.unregisterMessageHandler(dataRequestHandler);
 		messages.unregisterMessageHandler(onBatchEndHandler);
 
-		monitor.notifyTrainingEnd();
+		monitor.getTrainingStatus().trainingEnded().raise(null);
 	}
 
 	@Override
