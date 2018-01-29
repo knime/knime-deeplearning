@@ -83,4 +83,9 @@ public final class DLDefaultTensorId implements DLTensorId {
 		}
 		return m_identifierString.equals(((DLDefaultTensorId) obj).m_identifierString);
 	}
+
+	@Override
+	public String toString() {
+		return m_identifierString;
+	}
 }
