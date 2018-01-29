@@ -46,13 +46,49 @@
  */
 package org.knime.dl.core.execution;
 
-import org.knime.dl.core.DLSessionMonitor;
+import java.util.OptionalInt;
+
+import org.knime.dl.core.DLDefaultEvent;
+import org.knime.dl.core.DLEvent;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLExecutionMonitor extends DLSessionMonitor {
+public class DLDefaultExecutionStatus implements DLExecutionStatus {
 
-	DLExecutionStatus getExecutionStatus();
+	private final OptionalInt m_numBatches;
+
+	private int m_currentBatch = -1;
+
+	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
+
+	public DLDefaultExecutionStatus(final int numBatches) {
+		m_numBatches = OptionalInt.of(numBatches);
+		subscribeToBatchEnded();
+	}
+
+	public DLDefaultExecutionStatus() {
+		m_numBatches = OptionalInt.empty();
+		subscribeToBatchEnded();
+	}
+
+	@Override
+	public OptionalInt getNumBatches() {
+		return m_numBatches;
+	}
+
+	@Override
+	public int getCurrentBatch() {
+		return m_currentBatch;
+	}
+
+	@Override
+	public DLEvent<Void> batchEnded() {
+		return m_batchEnded;
+	}
+
+	private void subscribeToBatchEnded() {
+		m_batchEnded.addListener((src, v) -> m_currentBatch++);
+	}
 }

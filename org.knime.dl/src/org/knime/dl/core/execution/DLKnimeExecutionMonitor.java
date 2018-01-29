@@ -55,12 +55,20 @@ import org.knime.dl.core.DLAbstractKnimeSessionMonitor;
  */
 public final class DLKnimeExecutionMonitor extends DLAbstractKnimeSessionMonitor implements DLExecutionMonitor {
 
-	public DLKnimeExecutionMonitor(final ExecutionMonitor knimeMonitor) {
+	private final DLExecutionStatus m_executionStatus;
+
+	public DLKnimeExecutionMonitor(final ExecutionMonitor knimeMonitor, final DLExecutionStatus trainingStatus) {
 		super(knimeMonitor);
+		m_executionStatus = trainingStatus;
+	}
+
+	@Override
+	public DLExecutionStatus getExecutionStatus() {
+		return m_executionStatus;
 	}
 
 	@Override
 	public DLKnimeExecutionMonitor createSubMonitor(final double fraction) {
-		return new DLKnimeExecutionMonitor(m_knimeMonitor.createSubProgress(fraction));
+		return new DLKnimeExecutionMonitor(m_knimeMonitor.createSubProgress(fraction), m_executionStatus);
 	}
 }

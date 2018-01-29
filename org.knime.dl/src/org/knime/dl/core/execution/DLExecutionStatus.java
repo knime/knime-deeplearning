@@ -46,13 +46,29 @@
  */
 package org.knime.dl.core.execution;
 
-import org.knime.dl.core.DLSessionMonitor;
+import java.util.OptionalInt;
+
+import org.knime.dl.core.DLEvent;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLExecutionMonitor extends DLSessionMonitor {
+public interface DLExecutionStatus {
 
-	DLExecutionStatus getExecutionStatus();
+	// properties:
+
+	/**
+	 * @return empty if the number of batches is not known, e.g. in case of streaming
+	 */
+	OptionalInt getNumBatches();
+
+	/**
+	 * @return <code>-1</code> if execution did not yet start
+	 */
+	int getCurrentBatch();
+
+	// events:
+
+	DLEvent<Void> batchEnded();
 }
