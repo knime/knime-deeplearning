@@ -68,10 +68,6 @@ public interface DLProgressMonitor extends Externalizable {
 
 	boolean hasStoppedEarly();
 
-	void setHasStoppedEarly(boolean hasStoppedEarly);
-	
-	boolean hasLearningFinished();
-
 	LocalDateTime getStartDateTime();
 
 	LocalDateTime getEndDateTime();
