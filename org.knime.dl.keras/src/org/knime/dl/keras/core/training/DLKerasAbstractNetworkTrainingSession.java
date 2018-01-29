@@ -48,31 +48,37 @@ package org.knime.dl.keras.core.training;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
 
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
+import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
-import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetwork;
+import org.knime.dl.python.core.training.DLPythonAbstractNetworkTrainingSession;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, C extends DLKerasAbstractCommands>
-	extends DLPythonAbstractTrainableNetwork<N, DLKerasTrainingConfig, C> implements DLKerasTrainableNetwork {
+public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNetwork, C extends DLKerasAbstractCommands>
+	extends DLPythonAbstractNetworkTrainingSession<DLKerasTrainingStatus, N, DLKerasTrainingConfig, C>
+		implements DLKerasNetworkTrainingSession {
 
-	protected DLKerasAbstractTrainableNetwork(final N network, final DLKerasTrainingConfig trainingConfig) {
-		super(network, trainingConfig);
+	protected DLKerasAbstractNetworkTrainingSession(final N network, final DLKerasTrainingConfig trainingConfig,
+			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer inputPreparer,
+			final DLTensorFactory tensorFactory) {
+		super(network, trainingConfig, executionInputSpecs, inputPreparer, tensorFactory);
 		boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;
 		for (final DLTensorSpec inputSpec : network.getSpec().getInputSpecs()) {
@@ -83,16 +89,16 @@ public abstract class DLKerasAbstractTrainableNetwork<N extends DLKerasNetwork, 
 			}
 		}
 		if (hasFixedBatchSizes && hasVariableBatchSizes) {
-			NodeLogger.getLogger(DLKerasAbstractExecutableNetwork.class)
+			NodeLogger.getLogger(DLKerasAbstractNetworkExecutionSession.class)
 					.warn("Input network has both inputs with pre-defined batch size and variable batch size. "
 							+ "This may not be supported by Keras and could lead to a runtime error.");
 		}
 	}
 
 	@Override
-	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final C commands,
-			final DLKerasTrainingConfig config) throws DLInvalidEnvironmentException, IOException {
-		commands.setNetworkTrainingConfig(handle, config);
+	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config)
+			throws DLInvalidEnvironmentException, IOException {
+		m_commands.setNetworkTrainingConfig(handle, config);
 	}
 
 	@Override

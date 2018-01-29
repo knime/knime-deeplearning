@@ -44,19 +44,15 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.keras.core.execution;
 
-import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.python.core.training.DLPythonAbstractTrainableNetworkAdapter;
+import org.knime.dl.python.core.execution.DLPythonNetworkExecutionSession;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasTrainableNetworkAdapter extends DLPythonAbstractTrainableNetworkAdapter<DLKerasTrainableNetwork> {
+public interface DLKerasNetworkExecutionSession extends DLPythonNetworkExecutionSession {
 
-	public DLKerasTrainableNetworkAdapter(final DLKerasTrainableNetwork network,
-			final DLTensorFactory layerDataFactory) {
-		super(network, layerDataFactory);
-	}
+	// NB: marker interface
 }

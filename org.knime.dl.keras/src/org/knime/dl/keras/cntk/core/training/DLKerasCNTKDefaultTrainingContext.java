@@ -46,9 +46,12 @@
  */
 package org.knime.dl.keras.cntk.core.training;
 
+import java.util.Set;
+
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
-import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
@@ -64,9 +67,10 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 	}
 
 	@Override
-	public DLKerasTrainableNetworkAdapter createTrainableNetwork(final DLKerasCNTKNetwork network,
-			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
-		final DLKerasCNTKTrainableNetwork trainNetwork = new DLKerasCNTKTrainableNetwork(network, trainingConfig);
-		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
+	public DLKerasCNTKNetworkTrainingSession createTrainingSession(final DLKerasCNTKNetwork network,
+			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+			final DLNetworkInputPreparer inputPreparer) {
+		return new DLKerasCNTKNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
+				getTensorFactory());
 	}
 }

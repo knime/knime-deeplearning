@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.tensorflow.core.execution;
+package org.knime.dl.keras.theano.core.execution;
 
 import java.util.Set;
 
@@ -54,18 +54,18 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
+import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowExecutableNetwork
-	extends DLKerasAbstractExecutableNetwork<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
+public final class DLKerasTheanoNetworkExecutionSession
+	extends DLKerasAbstractNetworkExecutionSession<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
 
-	public DLKerasTensorFlowExecutableNetwork(final DLKerasTensorFlowNetwork network,
+	public DLKerasTheanoNetworkExecutionSession(final DLKerasTheanoNetwork network,
 			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
 			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
 			final DLTensorFactory tensorFactory) {
@@ -73,7 +73,7 @@ public final class DLKerasTensorFlowExecutableNetwork
 	}
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTensorFlowCommands();
+	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasTheanoCommands();
 	}
 }

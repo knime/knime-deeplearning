@@ -46,8 +46,11 @@
  */
 package org.knime.dl.keras.theano.core.training;
 
+import java.util.Set;
+
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
-import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 
@@ -64,9 +67,10 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 	}
 
 	@Override
-	public DLKerasTrainableNetworkAdapter createTrainableNetwork(final DLKerasTheanoNetwork network,
-			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
-		final DLKerasTheanoTrainableNetwork trainNetwork = new DLKerasTheanoTrainableNetwork(network, trainingConfig);
-		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());
+	public DLKerasTheanoNetworkTrainingSession createTrainingSession(final DLKerasTheanoNetwork network,
+			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+			final DLNetworkInputPreparer inputPreparer) {
+		return new DLKerasTheanoNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
+				getTensorFactory());
 	}
 }

@@ -98,10 +98,6 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 	}
 
 	@Override
-	public abstract DLKerasTrainableNetworkAdapter createTrainableNetwork(N network, DLKerasTrainingConfig trainingConfig)
-			throws RuntimeException;
-
-	@Override
 	public Class<N> getNetworkType() {
 		return m_networkType;
 	}

@@ -50,22 +50,19 @@ package org.knime.dl.keras.core.execution;
 
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorRegistry;
-import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
- * Executes a {@link DLKerasAbstractExecutableNetwork}.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> implements DLExecutionContext<N> {
+public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> implements DLKerasExecutionContext<N> {
+
+	private final Class<N> m_networkType;
 
 	private final String m_name;
 
 	private final DLTensorFactory m_layerDataFactory;
-
-	private final Class<N> m_networkType;
 
 	protected DLKerasAbstractExecutionContext(final Class<N> networkType, final String name) {
 		m_networkType = networkType;

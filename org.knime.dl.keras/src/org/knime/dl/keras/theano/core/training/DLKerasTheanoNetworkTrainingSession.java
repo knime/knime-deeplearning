@@ -44,34 +44,34 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.tensorflow.core.training;
+package org.knime.dl.keras.theano.core.training;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
-import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
+import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowDefaultTrainingContext
-	extends DLKerasAbstractTrainingContext<DLKerasTensorFlowNetwork> {
+public final class DLKerasTheanoNetworkTrainingSession
+	extends DLKerasAbstractNetworkTrainingSession<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
 
-	private static final String TRAINING_CONTEXT_NAME = "Keras (TensorFlow)";
-
-	public DLKerasTensorFlowDefaultTrainingContext() {
-		super(DLKerasTensorFlowNetwork.class, TRAINING_CONTEXT_NAME);
+	public DLKerasTheanoNetworkTrainingSession(final DLKerasTheanoNetwork network,
+			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+			final DLNetworkInputPreparer inputPreparer, final DLTensorFactory tensorFactory) {
+		super(network, trainingConfig, executionInputSpecs, inputPreparer, tensorFactory);
 	}
 
 	@Override
-	public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLKerasTensorFlowNetwork network,
-			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer inputPreparer) {
-		return new DLKerasTensorFlowNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
-				getTensorFactory());
+	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasTheanoCommands();
 	}
 }

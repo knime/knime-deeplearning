@@ -44,18 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.keras.cntk.core.execution;
 
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
-import org.knime.dl.python.core.training.DLPythonTrainableNetwork;
+import java.util.Set;
+
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
+import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasTrainableNetwork extends DLPythonTrainableNetwork {
+public final class DLKerasCNTKNetworkExecutionSession
+	extends DLKerasAbstractNetworkExecutionSession<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
 
-	// TODO HACK: this should go somewhere else
-	DLKerasNetworkPortObject getTrainedNetwork(ExecutionContext exec) throws Exception;
+	public DLKerasCNTKNetworkExecutionSession(final DLKerasCNTKNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
+			final DLTensorFactory tensorFactory) {
+		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+	}
+
+	@Override
+	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasCNTKCommands();
+	}
 }

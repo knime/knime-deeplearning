@@ -22,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -44,28 +44,25 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.theano.core.training;
+package org.knime.dl.keras.core.execution;
 
-import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.keras.core.training.DLKerasAbstractTrainableNetwork;
-import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
-import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import java.util.Set;
+
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTheanoTrainableNetwork
-	extends DLKerasAbstractTrainableNetwork<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
-
-	public DLKerasTheanoTrainableNetwork(final DLKerasTheanoNetwork network,
-			final DLKerasTrainingConfig trainingConfig) {
-		super(network, trainingConfig);
-	}
+public interface DLKerasExecutionContext<N extends DLKerasNetwork> extends DLExecutionContext<N> {
 
 	@Override
-	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTheanoCommands();
-	}
+	DLKerasNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
+			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
+			DLNetworkOutputConsumer outputConsumer);
 }

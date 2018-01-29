@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.cntk.core.execution;
+package org.knime.dl.keras.tensorflow.core.execution;
 
 import java.util.Set;
 
@@ -54,25 +54,26 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
-import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
+import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasCNTKExecutableNetwork
-	extends DLKerasAbstractExecutableNetwork<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
+public final class DLKerasTensorFlowNetworkExecutionSession
+	extends DLKerasAbstractNetworkExecutionSession<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
 
-	public DLKerasCNTKExecutableNetwork(final DLKerasCNTKNetwork network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
-			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
+	public DLKerasTensorFlowNetworkExecutionSession(final DLKerasTensorFlowNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
+			final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 	}
 
 	@Override
-	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasCNTKCommands();
+	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
+		return new DLKerasTensorFlowCommands();
 	}
 }

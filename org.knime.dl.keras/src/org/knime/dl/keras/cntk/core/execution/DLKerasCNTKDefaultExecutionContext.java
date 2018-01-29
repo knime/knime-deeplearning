@@ -68,10 +68,10 @@ public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExe
 	}
 
 	@Override
-	public DLKerasCNTKExecutableNetwork createExecutableNetwork(final DLKerasCNTKNetwork network,
+	public DLKerasCNTKNetworkExecutionSession createExecutionSession(final DLKerasCNTKNetwork network,
 			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
 			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
-		return new DLKerasCNTKExecutableNetwork(network, executionInputSpecs, requestedOutputs, inputPreparer,
+		return new DLKerasCNTKNetworkExecutionSession(network, executionInputSpecs, requestedOutputs, inputPreparer,
 				outputConsumer, getTensorFactory());
 	}
 }

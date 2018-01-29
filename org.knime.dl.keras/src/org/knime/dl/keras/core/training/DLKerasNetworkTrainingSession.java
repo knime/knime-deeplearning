@@ -44,34 +44,18 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.tensorflow.core.training;
+package org.knime.dl.keras.core.training;
 
-import java.util.Set;
-
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.execution.DLNetworkInputPreparer;
-import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
-import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.core.node.ExecutionContext;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
+import org.knime.dl.python.core.training.DLPythonNetworkTrainingSession;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowDefaultTrainingContext
-	extends DLKerasAbstractTrainingContext<DLKerasTensorFlowNetwork> {
+public interface DLKerasNetworkTrainingSession extends DLPythonNetworkTrainingSession<DLKerasTrainingStatus> {
 
-	private static final String TRAINING_CONTEXT_NAME = "Keras (TensorFlow)";
-
-	public DLKerasTensorFlowDefaultTrainingContext() {
-		super(DLKerasTensorFlowNetwork.class, TRAINING_CONTEXT_NAME);
-	}
-
-	@Override
-	public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLKerasTensorFlowNetwork network,
-			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer inputPreparer) {
-		return new DLKerasTensorFlowNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
-				getTensorFactory());
-	}
+	// TODO: this should go somewhere else as it's "base" related rather than "core"
+	DLKerasNetworkPortObject getTrainedNetwork(ExecutionContext exec) throws Exception;
 }
