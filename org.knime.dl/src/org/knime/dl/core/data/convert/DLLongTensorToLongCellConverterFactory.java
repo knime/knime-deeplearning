@@ -85,10 +85,10 @@ public class DLLongTensorToLongCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableLongBuffer, LongCell> createConverter() {
-		return (exec, input, out) -> {
+		return (input, out, exec) -> {
 			final DLReadableLongBuffer buf = input.getBuffer();
 			for (int i = 0; i < buf.size(); i++) {
-				out.accept(new LongCell(buf.readNextLong()));
+				out[i] = new LongCell(buf.readNextLong());
 			}
 		};
 	}

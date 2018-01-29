@@ -63,7 +63,6 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @param <I> the input {@link DLReadableBuffer buffer type}
  * @param <O> the output {@link DataType data type}
  * @see DLDataValueToTensorConverterFactory
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -95,6 +94,8 @@ public interface DLTensorToDataCellConverterFactory<I extends DLReadableBuffer, 
 
 	/**
 	 * Returns the output {@link DataType data type} that is supported by converters created by this factory.
+	 * <P>
+	 * <code>{@link DataType#getCellClass()} == Class&lt;0&gt;</code> must hold for the returned data type.
 	 *
 	 * @return the output data type
 	 */
@@ -103,6 +104,9 @@ public interface DLTensorToDataCellConverterFactory<I extends DLReadableBuffer, 
 	/**
 	 * Returns the number of elements that will make up the output of converters created by this factory given an input
 	 * spec.
+	 * <P>
+	 * The output of this method is interpreted on a per-row basis, i.e. the {@link DLTensorSpec#getBatchSize() batch
+	 * size} of the input must not be taken into account.
 	 *
 	 * @param spec the input spec
 	 * @return the number of output elements

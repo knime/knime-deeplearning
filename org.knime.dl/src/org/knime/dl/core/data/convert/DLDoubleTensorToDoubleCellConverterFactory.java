@@ -85,10 +85,10 @@ public class DLDoubleTensorToDoubleCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableDoubleBuffer, DoubleCell> createConverter() {
-		return (exec, input, out) -> {
+		return (input, out, exec) -> {
 			final DLReadableDoubleBuffer buf = input.getBuffer();
 			for (int i = 0; i < buf.size(); i++) {
-				out.accept(new DoubleCell(buf.readNextDouble()));
+				out[i] = new DoubleCell(buf.readNextDouble());
 			}
 		};
 	}

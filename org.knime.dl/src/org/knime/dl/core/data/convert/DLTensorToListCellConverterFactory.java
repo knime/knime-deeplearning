@@ -46,9 +46,9 @@
  */
 package org.knime.dl.core.data.convert;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.ArrayList;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
 import java.util.OptionalLong;
 
 import org.knime.core.data.DataCell;
@@ -57,7 +57,6 @@ import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.ListCell;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.util.DLUtils;
 
 /**
  * @param <I> the input {@link DLReadableBuffer buffer type}
@@ -67,7 +66,7 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer, OE extends DataCell>
 		implements DLTensorToDataCellConverterFactory<I, ListCell> {
-	
+
 	private static final OptionalLong DEST_COUNT = OptionalLong.of(1);
 
 	private final DLTensorToDataCellConverterFactory<I, OE> m_elementConverterFactory;
@@ -108,17 +107,37 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 	@Override
 	public DLTensorToDataCellConverter<I, ListCell> createConverter() {
 		final DLTensorToDataCellConverter<I, OE> elementConverter = m_elementConverterFactory.createConverter();
-		return (exec, input, out) -> {
-			final ArrayList<OE> temp = new ArrayList<>();
-			elementConverter.convert(exec, input, temp::add);
-			final long exampleSizeLong = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).orElseThrow(
-					() -> new IllegalArgumentException("Tensor spec does not provide a fully defined shape."));
-			checkArgument(exampleSizeLong <= Integer.MAX_VALUE,
-					"Invalid example size. Converter only supports sizes up to " + Integer.MAX_VALUE + ".");
-			final int exampleSize = (int) exampleSizeLong;
-			final int numLists = temp.size() / exampleSize;
+		return (input, out, exec) -> {
+			final DLTensorSpec spec = input.getSpec();
+			final long batchSize = spec.getBatchSize().getAsLong();
+			// dest count must be computable at runtime
+			final long numOutputsPerElementLong = m_elementConverterFactory.getDestCount(spec).getAsLong();
+			if (numOutputsPerElementLong > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("The number of entries of the current output list, "
+						+ numOutputsPerElementLong + ", is larger than 2^31-1. This is currently not supported.");
+			}
+			final int numOutputsPerElement = (int) numOutputsPerElementLong;
+			final long numOutputsLong = numOutputsPerElement * batchSize;
+			if (numOutputsLong > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("The number of entries of the current output list per batch, "
+						+ numOutputsLong + ", is larger than 2^31-1. This is currently not supported.");
+			}
+			final int numOutputs = (int) numOutputsLong;
+			@SuppressWarnings("unchecked") // guaranteed by DLTensorToDataCellConverterFactory#getDestType()
+			final OE[] temp = (OE[]) Array.newInstance(m_elementConverterFactory.getDestType().getCellClass(),
+					numOutputs);
+			elementConverter.convert(input, temp, exec);
+			// dest count must be computable and batch size must be configured at runtime
+			final long numListsLong = getDestCount(spec).getAsLong() * spec.getBatchSize().getAsLong();
+			if (numListsLong > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("The number of entries of the current output list per batch, "
+						+ numOutputs + ", is larger than 2^31-1. This is currently not supported.");
+			}
+			final int numLists = (int) numListsLong;
+			final List<OE> tempAsList = Arrays.asList(temp);
 			for (int i = 0; i < numLists; i++) {
-				out.accept(CollectionCellFactory.createListCell(temp.subList(i * exampleSize, (i + 1) * exampleSize)));
+				out[i] = CollectionCellFactory
+						.createListCell(tempAsList.subList(i * numOutputsPerElement, (i + 1) * numOutputsPerElement));
 			}
 		};
 	}

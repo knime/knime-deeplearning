@@ -85,10 +85,10 @@ public class DLIntTensorToIntCellConverterFactory
 
 	@Override
 	public DLTensorToDataCellConverter<DLReadableIntBuffer, IntCell> createConverter() {
-		return (exec, input, out) -> {
+		return (input, out, exec) -> {
 			final DLReadableIntBuffer buf = input.getBuffer();
 			for (int i = 0; i < buf.size(); i++) {
-				out.accept(new IntCell(buf.readNextInt()));
+				out[i] = new IntCell(buf.readNextInt());
 			}
 		};
 	}
