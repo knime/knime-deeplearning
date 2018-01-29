@@ -47,9 +47,11 @@
 package org.knime.dl.core.execution;
 
 import java.nio.BufferOverflowException;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
@@ -71,14 +73,21 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
 
+	private final Queue<DataRow> m_baseRows;
+
 	public DLKnimeNetworkExecutionInputPreparer(final DLRowIterator iterator, final int batchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		super(iterator, batchSize, converters);
+		m_baseRows = new ArrayDeque<>(batchSize);
 	}
 
 	@Override
 	public long getNumBatches() {
 		return (long) Math.ceil(m_iterator.size() / (double) m_batchSize);
+	}
+
+	public Queue<DataRow> getBaseRows() {
+		return m_baseRows;
 	}
 
 	@Override

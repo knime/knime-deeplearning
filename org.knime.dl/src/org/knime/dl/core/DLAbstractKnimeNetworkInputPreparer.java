@@ -48,13 +48,10 @@ package org.knime.dl.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 
-import org.knime.core.data.DataRow;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 
@@ -70,8 +67,6 @@ public abstract class DLAbstractKnimeNetworkInputPreparer implements DLNetworkIn
 
 	protected final Map<DLTensorId, DLDataValueToTensorConverter<?, ?>> m_converters;
 
-	protected final Queue<DataRow> m_baseRows;
-
 	public DLAbstractKnimeNetworkInputPreparer(final DLRowIterator iterator, final int batchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		m_iterator = checkNotNull(iterator);
@@ -80,11 +75,6 @@ public abstract class DLAbstractKnimeNetworkInputPreparer implements DLNetworkIn
 		for (final Entry<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converter : converters.entrySet()) {
 			m_converters.put(converter.getKey(), converter.getValue().createConverter());
 		}
-		m_baseRows = new ArrayDeque<>(m_batchSize);
-	}
-
-	public Queue<DataRow> getBaseRows() {
-		return m_baseRows;
 	}
 
 	@Override
