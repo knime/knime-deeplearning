@@ -58,11 +58,11 @@ import org.knime.core.node.ExecutionMonitor;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLAbstractKnimeMonitor implements DLMonitor {
+public abstract class DLAbstractKnimeSessionMonitor implements DLSessionMonitor {
 
 	protected final ExecutionMonitor m_knimeMonitor;
 
-	protected DLAbstractKnimeMonitor(final ExecutionMonitor knimeMonitor) {
+	protected DLAbstractKnimeSessionMonitor(final ExecutionMonitor knimeMonitor) {
 		m_knimeMonitor = checkNotNull(knimeMonitor);
 	}
 
