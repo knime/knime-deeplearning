@@ -89,7 +89,7 @@ public abstract class DLAbstractNetworkExecutionSession<N extends DLNetwork> imp
 	private static boolean areOutputSpecsValid(final DLNetwork network, final Set<DLTensorId> requestedOutputs) {
 		final DLTensorSpec[] outputSpecs = ArrayUtils.addAll(network.getSpec().getOutputSpecs(),
 				network.getSpec().getHiddenOutputSpecs());
-		if (outputSpecs.length >= requestedOutputs.size()) {
+		if (outputSpecs.length < requestedOutputs.size()) {
 			return false;
 		}
 		final Set<DLTensorId> outputSpecIds = Arrays.asList(outputSpecs).stream().map(DLTensorSpec::getIdentifier)
