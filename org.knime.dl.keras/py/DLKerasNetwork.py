@@ -149,7 +149,7 @@ class DLKerasNetwork(DLPythonNetwork):
                         if input_tensor in model_inputs and input_tensor not in visited_inputs:
                             visited_inputs.add(input_tensor)
                             # back end independent 'canonical' name
-                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
+                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx) + '_in'
                             tensor_shape = input_shapes[tensor_idx]
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
                                                                 tensor_id, input_tensor, tensor_shape)
@@ -166,7 +166,7 @@ class DLKerasNetwork(DLPythonNetwork):
                         if output_tensor not in visited_outputs:
                             visited_outputs.add(output_tensor)
                             # back end independent 'canonical' name
-                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
+                            tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx) + '_out'
                             tensor_shape = output_shapes[tensor_idx]
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
                                                                 tensor_id, output_tensor, tensor_shape)
