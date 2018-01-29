@@ -61,7 +61,6 @@ import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
@@ -73,11 +72,15 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
 
+	private final boolean m_isPredefinedBatchSize;
+
 	private final Queue<DataRow> m_baseRows;
 
 	public DLKnimeNetworkExecutionInputPreparer(final DLRowIterator iterator, final int batchSize,
+			final boolean isPredefinedBatchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		super(iterator, batchSize, converters);
+		m_isPredefinedBatchSize = isPredefinedBatchSize;
 		m_baseRows = new ArrayDeque<>(batchSize);
 	}
 
@@ -96,7 +99,7 @@ public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeN
 		long i;
 		for (i = 0; i < m_batchSize; i++) {
 			if (!m_iterator.hasNext()) {
-				// batch will be incomplete, handled below
+				// last batch will be incomplete, handled below
 				break;
 			}
 			final DataRow row = m_iterator.next();
@@ -110,14 +113,14 @@ public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeN
 					converter.convert(inputForTensor.get(identifier), tensor);
 				} catch (final BufferOverflowException ex) {
 					// must be present
-					final long sampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+					final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
 					// must be present
 					final long batchSize = tensor.getSpec().getBatchSize().getAsLong();
 					throw new DLInvalidNetworkInputException(
 							"Node input data size exceeds the expected size of network input '"
-									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
+									+ tensor.getSpec().getName() + "'. Neuron count is " + exampleSize
 									+ ", batch size is " + batchSize + ". Thus, expected input data size is "
-									+ sampleSize * batchSize + ". Please check the column selection for this input "
+									+ exampleSize * batchSize + ". Please check the column selection for this input "
 									+ "and validate the node's input data.",
 							ex);
 				}
@@ -126,23 +129,29 @@ public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeN
 		// check if tensors were filled correctly
 		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 			final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-			final DLTensorSpec spec = tensor.getSpec();
-			if (tensor.getBuffer().size() != tensor.getBuffer().getCapacity()) {
-				// must be present
-				final long sampleSize = DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
-				if (i < m_batchSize && tensor.getBuffer().size() % sampleSize == 0) {
-					// TODO: if batch size was predefined: zero pad, else: ignore (see comment below)
-
-					// batch is incomplete but was correctly filled: ignore - downstream code has to handle this
-				} else if (tensor.getBuffer().size() % (sampleSize * m_batchSize) != 0) {
+			final DLWritableBuffer buffer = tensor.getBuffer();
+			if (buffer.size() != tensor.getExampleSize() * m_batchSize) {
+				if (i < m_batchSize && buffer.size() / tensor.getExampleSize() == i) {
+					// Last batch is incomplete but was correctly filled: if the batch size is pre-defined in the
+					// network, we have to pad the input batch in order to adhere to the network's input specification.
+					// Else, we ignore it - downstream code will have to make sure the incomplete batch is processed
+					// properly.
+					if (m_isPredefinedBatchSize) {
+						final long expectedSize = tensor.getExampleSize() * m_batchSize;
+						buffer.zeroPad(expectedSize - buffer.size());
+					}
+				} else {
+					// Must be present. Note that exampleSize == tensor.getExampleSize() does not necessarily hold
+					// as the latter is expressed in terms of buffer elements, not input elements ("neurons").
+					final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+					final long bufferSizeInNeurons = buffer.size() * (exampleSize / tensor.getExampleSize());
 					throw new DLInvalidNetworkInputException(
-							"Node input/target data size does not match the expected size of network input/target '"
-									+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-									+ ", batch size is " + m_batchSize + ". Thus, expected input/target size is "
-									+ sampleSize * m_batchSize + ". However, node input/target data size is "
-									+ tensor.getBuffer().size()
-									+ ". Please check the column selection for this input/target "
-									+ "and validate the node's input/target data.");
+							"Node input data size does not match the expected size of network input '"
+									+ tensor.getSpec().getName() + "'. Neuron count is " + exampleSize
+									+ ", batch size is " + m_batchSize + ". Thus, expected input size is "
+									+ exampleSize * m_batchSize + ". However, node input data size is "
+									+ bufferSizeInNeurons + ". Please check the column selection for this input "
+									+ "and validate the node's input data.");
 				}
 			}
 		}
