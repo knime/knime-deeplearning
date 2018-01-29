@@ -52,4 +52,5 @@ package org.knime.dl.core;
  */
 public interface DLNetworkSession extends AutoCloseable {
 
+	DLNetwork getNetwork();
 }

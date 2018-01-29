@@ -46,13 +46,18 @@
  */
 package org.knime.dl.core.training;
 
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLNetworkSession;
 
 /**
+ * Base interface for a training session of a deep learning network.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkTrainingSession extends DLNetworkSession {
+public interface DLNetworkTrainingSession<S extends DLTrainingStatus> extends DLNetworkSession {
 
-	void run(DLTrainingMonitor monitor);
+	DLTrainingConfig getTrainingConfig();
+
+	void run(DLTrainingMonitor<? extends S> monitor) throws DLCanceledExecutionException, Exception;
 }

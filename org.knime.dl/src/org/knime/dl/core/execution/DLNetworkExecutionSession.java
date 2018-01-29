@@ -43,16 +43,21 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   May 17, 2017 (marcel): created
  */
 package org.knime.dl.core.execution;
 
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLNetworkSession;
 
 /**
+ * Base interface for a execution session of a deep learning network.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetworkExecutionSession extends DLNetworkSession {
 
-	void run(DLExecutionMonitor monitor);
+	void run(DLExecutionMonitor monitor) throws DLCanceledExecutionException, Exception;
 }
