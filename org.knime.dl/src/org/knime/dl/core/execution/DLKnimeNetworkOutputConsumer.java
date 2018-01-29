@@ -51,6 +51,7 @@ import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataCell;
@@ -135,11 +136,18 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 				}
 				c += helper.m_numOutputElements;
 			}
+			DataRow baseRow;
+			try {
+				baseRow = m_baseRows.get();
+			} catch (final NoSuchElementException e) {
+				// this should only occur in case of incomplete last batches and pre-defined batch size
+				break;
+			}
 			try {
 				if (m_append) {
-					m_output.push(new AppendedColumnRow(m_baseRows.get(), m_temp));
+					m_output.push(new AppendedColumnRow(baseRow, m_temp));
 				} else {
-					m_output.push(new DefaultRow(m_baseRows.get().getKey(), m_temp));
+					m_output.push(new DefaultRow(baseRow.getKey(), m_temp));
 				}
 			} catch (final InterruptedException ex) {
 				Thread.currentThread().interrupt();
