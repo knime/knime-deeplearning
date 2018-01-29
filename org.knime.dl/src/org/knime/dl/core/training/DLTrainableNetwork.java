@@ -47,7 +47,6 @@
 package org.knime.dl.core.training;
 
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.execution.DLNetworkInputProvider;
 
 /**
  * Base interface for deep learning networks that can be trained.
@@ -55,13 +54,9 @@ import org.knime.dl.core.execution.DLNetworkInputProvider;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTrainableNetwork<I, O> extends DLNetwork, AutoCloseable {
-
-	Class<?> getTrainingDataType();
-
-	Class<?> getTargetDataType();
+public interface DLTrainableNetwork<S extends DLTrainingStatus> extends DLNetwork, AutoCloseable {
 
 	DLTrainingConfig getTrainingConfig();
 
-	void train(DLNetworkInputProvider<I> inputSupplier, DLTrainingMonitor monitor) throws Exception;
+	void train(DLTrainingMonitor<S> monitor) throws Exception;
 }
