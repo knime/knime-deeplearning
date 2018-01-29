@@ -51,7 +51,6 @@ package org.knime.dl.core;
 import org.knime.dl.core.data.DLReadableBuffer;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

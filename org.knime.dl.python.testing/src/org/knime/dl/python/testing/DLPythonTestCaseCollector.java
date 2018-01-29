@@ -51,7 +51,6 @@ package org.knime.dl.python.testing;
 import org.knime.testing.core.AbstractTestcaseCollector;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

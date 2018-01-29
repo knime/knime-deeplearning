@@ -105,19 +105,19 @@ class DLExecutorGeneralPanel extends JPanel {
 		// execution context ("back end") selection
 		m_dcBackend = new DialogComponentIdFromPrettyStringSelection(
 				new SettingsModelStringArray("proxy", m_cfg.getExecutionContext()), "Back end", (e) -> {
-					final String[] newExecCtx =
-							((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection();
+					final String[] newExecCtx = ((DialogComponentIdFromPrettyStringSelection) e.getSource())
+							.getSelection();
 					m_cfg.setExecutionContext(newExecCtx[0], newExecCtx[1]);
 				});
 		add(m_dcBackend.getComponentPanel(), constr);
 		constr.gridy++;
 		// batch size input
-		final DialogComponentNumber cdBatchSize =
-				new DialogComponentNumber(m_cfg.getBatchSizeModel(), "Input batch size", 100);
+		final DialogComponentNumber cdBatchSize = new DialogComponentNumber(m_cfg.getBatchSizeModel(),
+				"Input batch size", 100);
 		add(cdBatchSize.getComponentPanel(), constr);
 		constr.gridy++;
-		final DialogComponentBoolean appendColumnComponent =
-				new DialogComponentBoolean(m_cfg.getKeepInputColumnsModel(), "Keep input columns in output table");
+		final DialogComponentBoolean appendColumnComponent = new DialogComponentBoolean(
+				m_cfg.getKeepInputColumnsModel(), "Keep input columns in output table");
 		add(appendColumnComponent.getComponentPanel(), constr);
 	}
 

@@ -120,9 +120,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		final JPanel numNeurons = new JPanel();
 		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(
-				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSizeAsString(m_inputTensorSpec.getShape())),
+		numNeurons.add(new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_inputTensorSpec.getShape())),
 				numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
@@ -191,8 +189,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		// columns (if possible) and compare to number of available input
 		// neurons
 		final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
-				m_cfg.getConverterEntry().getValue();
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
+				.getValue();
 		final OptionalLong destSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
 		if (inputSize.isPresent()) {
 			final long fixedInputSize = inputSize.getAsLong();
@@ -214,8 +212,8 @@ final class DLKerasLearnerInputPanel extends JPanel {
 				// least one element
 				if (includedColSpecs.size() > fixedInputSize) {
 					throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
-					+ ") than neurons available (" + inputSize + ") for network input '" + m_inputTensorSpec.getName()
-					+ "'. Try removing some columns from the selection.");
+							+ ") than neurons available (" + inputSize + ") for network input '"
+							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 			}
 		}
@@ -224,7 +222,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		m_cfg.saveToSettings(settings);
 
 	}
-	
+
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
 		m_lastTableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
 		try {
@@ -283,7 +281,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
 		if (m_lastTableSpec.containsCompatibleType(allowedColType)) {
 			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
-			DataColumnSpecFilterConfiguration filterConfig = new DataColumnSpecFilterConfiguration(
+			final DataColumnSpecFilterConfiguration filterConfig = new DataColumnSpecFilterConfiguration(
 					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType));
 			m_cfg.getInputColumnsEntry().setValue(filterConfig, true);
 			m_dcInputColumns.updateWithNewConfiguration(filterConfig);

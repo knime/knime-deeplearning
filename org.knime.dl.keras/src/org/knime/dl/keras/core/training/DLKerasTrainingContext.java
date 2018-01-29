@@ -49,8 +49,8 @@ package org.knime.dl.keras.core.training;
 import java.util.Collection;
 import java.util.Set;
 
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
 

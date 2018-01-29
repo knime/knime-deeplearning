@@ -65,7 +65,6 @@ import com.google.common.cache.CacheBuilder;
 /**
  * Wrapper for a Guava Cache that listens to memory alerts from {@link MemoryAlertSystem} and cleans the cache if memory
  * gets low.
- *
  */
 public class DLMemoryAlertAwareGuavaCache {
 

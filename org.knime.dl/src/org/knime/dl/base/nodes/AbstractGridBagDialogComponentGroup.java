@@ -63,6 +63,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXCollapsiblePane.Direction;
@@ -355,7 +356,7 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		final DialogComponentBoolean booleanComponent = new DialogComponentBoolean(toggleSettings, label);
 		final DialogComponentNumberEdit numberComponent = new DialogComponentNumberEdit(numberSettings, label, 7);
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
-		textFieldComp.setHorizontalAlignment(JTextField.RIGHT);
+		textFieldComp.setHorizontalAlignment(SwingConstants.RIGHT);
 
 		addDoubleColumnRow(booleanComponent.getComponentPanel(), textFieldComp);
 	}
@@ -557,7 +558,7 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 
 		final JLabel labelComp = getFirstComponent(numberComponent, JLabel.class);
 		final JTextField textFieldComp = getFirstComponent(numberComponent, JTextField.class);
-		textFieldComp.setHorizontalAlignment(JTextField.RIGHT);
+		textFieldComp.setHorizontalAlignment(SwingConstants.RIGHT);
 
 		addDoubleColumnRow(labelComp, textFieldComp);
 	}

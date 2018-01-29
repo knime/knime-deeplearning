@@ -53,7 +53,6 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.python.typeextension.Deserializer;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

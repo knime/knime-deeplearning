@@ -206,7 +206,7 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	ConfigEntry<DLKerasReduceLROnPlateau> getReduceLROnPlateauEntry() {
 		return get(CFG_KEY_REDUCE_LR_ON_PLATEAU, DLKerasReduceLROnPlateau.class);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	ConfigEntry<DLKerasTrainingContext> getTrainingContext() {
 		return get(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class);

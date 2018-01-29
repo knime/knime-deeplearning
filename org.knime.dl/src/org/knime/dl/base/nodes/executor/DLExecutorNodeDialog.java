@@ -297,8 +297,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 		// inputs
 		for (final DLTensorSpec inputDataSpec : networkSpec.getInputSpecs()) {
 			if (!DLUtils.Shapes.isKnown(inputDataSpec.getShape())) {
-				throw new NotConfigurableException("Input '" + inputDataSpec.getName()
-						+ "' has an unknown shape. This is not supported.");
+				throw new NotConfigurableException(
+						"Input '" + inputDataSpec.getName() + "' has an unknown shape. This is not supported.");
 			}
 			addInputPanel(inputDataSpec, tableSpec, m_generalCfg);
 		}
@@ -385,8 +385,8 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 
 	private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec,
 			final DLExecutorGeneralConfig generalCfg) throws NotConfigurableException {
-		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel.createInputTensorModelConfig(inputTensorSpec.getName(),
-				generalCfg);
+		final DLExecutorInputConfig inputCfg = DLExecutorNodeModel
+				.createInputTensorModelConfig(inputTensorSpec.getName(), generalCfg);
 		final DLExecutorInputPanel inputPanel = new DLExecutorInputPanel(inputCfg, inputTensorSpec, tableSpec);
 		// add input panel to dialog
 		m_inputPanels.add(inputPanel);

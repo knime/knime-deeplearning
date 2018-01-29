@@ -49,7 +49,6 @@
 package org.knime.dl.core;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -65,7 +64,6 @@ public abstract class DLAbstractLayerSpec implements DLLayerSpec {
 	private final DLTensorSpec[] m_outputSpecs;
 
 	/**
-	 *
 	 * @param name can be null
 	 */
 	public DLAbstractLayerSpec(final String name, final Class<?> layerType, final DLTensorSpec[] inputSpecs,

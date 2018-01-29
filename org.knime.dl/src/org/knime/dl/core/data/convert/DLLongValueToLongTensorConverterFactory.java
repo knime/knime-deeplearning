@@ -60,7 +60,7 @@ import org.knime.dl.core.data.DLWritableLongBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLLongValueToLongTensorConverterFactory
-		extends DLAbstractScalarDataValueToTensorConverterFactory<LongValue, DLWritableLongBuffer> {
+	extends DLAbstractScalarDataValueToTensorConverterFactory<LongValue, DLWritableLongBuffer> {
 
 	@Override
 	public String getName() {
@@ -87,7 +87,8 @@ public class DLLongValueToLongTensorConverterFactory
 		return new DLAbstractScalarDataValueToTensorConverter<LongValue, DLWritableLongBuffer>() {
 
 			@Override
-			public void convert(Iterable<? extends LongValue> input, DLTensor<DLWritableLongBuffer> output) {
+			public void convert(final Iterable<? extends LongValue> input,
+					final DLTensor<DLWritableLongBuffer> output) {
 				final DLWritableLongBuffer buf = output.getBuffer();
 				for (final LongValue val : input) {
 					buf.put(val.getLongValue());

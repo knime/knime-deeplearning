@@ -60,7 +60,7 @@ import org.knime.dl.core.data.DLWritableDoubleBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLLongValueToDoubleTensorConverterFactory
-		extends DLAbstractScalarDataValueToTensorConverterFactory<LongValue, DLWritableDoubleBuffer> {
+	extends DLAbstractScalarDataValueToTensorConverterFactory<LongValue, DLWritableDoubleBuffer> {
 
 	@Override
 	public String getName() {
@@ -87,7 +87,8 @@ public class DLLongValueToDoubleTensorConverterFactory
 		return new DLAbstractScalarDataValueToTensorConverter<LongValue, DLWritableDoubleBuffer>() {
 
 			@Override
-			public void convert(Iterable<? extends LongValue> input, DLTensor<DLWritableDoubleBuffer> output) {
+			public void convert(final Iterable<? extends LongValue> input,
+					final DLTensor<DLWritableDoubleBuffer> output) {
 				final DLWritableDoubleBuffer buf = output.getBuffer();
 				for (final LongValue val : input) {
 					// explicit widening primitive conversion from long to double; loss of precision

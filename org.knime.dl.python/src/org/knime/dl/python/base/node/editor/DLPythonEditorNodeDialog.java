@@ -112,8 +112,7 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
 			throws NotConfigurableException {
-		final DLPythonNetworkPortObject<?> portObject =
-				(DLPythonNetworkPortObject<?>) input[DLPythonEditorNodeModel.IN_NETWORK_PORT_IDX];
+		final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) input[DLPythonEditorNodeModel.IN_NETWORK_PORT_IDX];
 		if (portObject == null) {
 			throw new NotConfigurableException("Input deep learning network port object is missing.");
 		}

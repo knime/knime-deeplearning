@@ -125,9 +125,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		final JPanel numNeurons = new JPanel();
 		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(
-				new JLabel("Number of neurons: "
-						+ DLUtils.Shapes.getSizeAsString(m_outputDataSpec.getShape())),
+		numNeurons.add(new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_outputDataSpec.getShape())),
 				numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
@@ -203,8 +201,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		// columns (if possible) and compare to number of available target
 		// neurons
 		final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
-				m_cfg.getConverterEntry().getValue();
+		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
+				.getValue();
 		final OptionalLong destSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
 		if (inputSize.isPresent()) {
 			final long fixedInputSize = inputSize.getAsLong();
@@ -226,8 +224,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				// least one element
 				if (includedColSpecs.size() > fixedInputSize) {
 					throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
-					+ ") than neurons available (" + inputSize + ") for network target '"
-					+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+							+ ") than neurons available (" + inputSize + ") for network target '"
+							+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 			}
 		}
@@ -248,8 +246,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 	void refreshAvailableConverters() throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
-		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories =
-				DLKerasLearnerTargetConfig.getAvailableConverters(trainingContext, m_lastTableSpec, m_outputDataSpec);
+		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerTargetConfig
+				.getAvailableConverters(trainingContext, m_lastTableSpec, m_outputDataSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
 					"No converters available for target '" + m_outputDataSpec.getName() + "'.");
@@ -273,8 +271,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				}
 			}
 		}
-		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
-				Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
+		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+				.comparing(DLDataValueToTensorConverterFactory::getName);
 		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
 				Stream.concat(builtInElement.stream().sorted(nameComparator),
 						extensionElement.stream().sorted(nameComparator)),
@@ -314,9 +312,9 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			throw new NotConfigurableException("No loss functions available for output '" + m_outputDataSpec.getName()
 					+ "' (with training context '" + trainingContext.getName() + "').");
 		}
-		final DLKerasLossFunction selectedLossFunction =
-				m_cfg.getLossFunctionEntry().getValue() != null ? m_cfg.getLossFunctionEntry().getValue()
-						: availableLossFunctions.get(0);
+		final DLKerasLossFunction selectedLossFunction = m_cfg.getLossFunctionEntry().getValue() != null
+				? m_cfg.getLossFunctionEntry().getValue()
+				: availableLossFunctions.get(0);
 		for (int i = availableLossFunctions.size() - 1; i >= 0; i--) {
 			if (availableLossFunctions.get(i).getClass() == selectedLossFunction.getClass()) {
 				availableLossFunctions.remove(i);

@@ -127,7 +127,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		m_optimizerParamGroupWrapper.setCollapsed(false);
 	}
 
-	 void refreshAvailableOptimizers() throws NotConfigurableException {
+	void refreshAvailableOptimizers() throws NotConfigurableException {
 		// refresh available optimizers
 		final DLKerasTrainingContext<?> selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
 		if (selectedTrainingContext == null) {

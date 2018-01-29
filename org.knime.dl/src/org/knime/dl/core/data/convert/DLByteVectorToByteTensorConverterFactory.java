@@ -63,7 +63,7 @@ import org.knime.dl.core.data.DLWritableShortBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLByteVectorToByteTensorConverterFactory
-		extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
+	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
 
 	@Override
 	public String getName() {
@@ -100,7 +100,7 @@ public class DLByteVectorToByteTensorConverterFactory
 	}
 
 	@Override
-	protected long[] getDataShapeInternal(ByteVectorValue input) {
+	protected long[] getDataShapeInternal(final ByteVectorValue input) {
 		if (input.length() > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("The provided byte vector is too large, "
 					+ "currently byte vectors may have a maximal length of 2^31-1.");

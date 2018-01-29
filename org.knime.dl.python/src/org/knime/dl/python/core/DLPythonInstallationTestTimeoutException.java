@@ -79,8 +79,8 @@ public class DLPythonInstallationTestTimeoutException extends DLCheckedException
 	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 */
-	public DLPythonInstallationTestTimeoutException(final String message, final Throwable cause, final boolean enableSuppression,
-			final boolean writableStackTrace) {
+	public DLPythonInstallationTestTimeoutException(final String message, final Throwable cause,
+			final boolean enableSuppression, final boolean writableStackTrace) {
 		super(checkNotNullOrEmpty(message), cause, enableSuppression, writableStackTrace);
 	}
 }

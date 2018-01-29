@@ -51,12 +51,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.training.DLTrainingMonitor;
 
 /**

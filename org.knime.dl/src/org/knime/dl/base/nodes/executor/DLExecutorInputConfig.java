@@ -86,8 +86,8 @@ class DLExecutorInputConfig {
 		m_inputTensorName = checkNotNullOrEmpty(inputTensorName);
 		m_generalConfig = checkNotNull(generalCfg);
 		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
-		m_smInputCol =
-				new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class));
+		m_smInputCol = new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL,
+				new DLDataTypeColumnFilter(DataValue.class));
 	}
 
 	/**

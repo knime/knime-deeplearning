@@ -48,8 +48,6 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
-
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.data.DLWritableBuffer;
 
@@ -59,8 +57,8 @@ import org.knime.dl.core.data.DLWritableBuffer;
 public abstract class DLAbstractScalarDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
 		implements DLDataValueToTensorConverter<FROM, VIA> {
 
-//	@Override
-//	public long[] getShape(final List<? extends FROM> input) {
-//		return new long[] { input.size() };
-//	}
+	// @Override
+	// public long[] getShape(final List<? extends FROM> input) {
+	// return new long[] { input.size() };
+	// }
 }

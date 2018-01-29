@@ -62,7 +62,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLDoubleValueToFloatTensorConverterFactory
-		extends DLAbstractScalarDataValueToTensorConverterFactory<DoubleValue, DLWritableFloatBuffer> {
+	extends DLAbstractScalarDataValueToTensorConverterFactory<DoubleValue, DLWritableFloatBuffer> {
 
 	@Override
 	public String getName() {
@@ -89,7 +89,8 @@ public class DLDoubleValueToFloatTensorConverterFactory
 		return new DLAbstractScalarDataValueToTensorConverter<DoubleValue, DLWritableFloatBuffer>() {
 
 			@Override
-			public void convert(Iterable<? extends DoubleValue> input, DLTensor<DLWritableFloatBuffer> output) {
+			public void convert(final Iterable<? extends DoubleValue> input,
+					final DLTensor<DLWritableFloatBuffer> output) {
 				final DLWritableFloatBuffer buf = output.getBuffer();
 				for (final DoubleValue val : input) {
 					// explicitly lossy cast

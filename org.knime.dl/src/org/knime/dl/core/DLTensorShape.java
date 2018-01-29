@@ -59,7 +59,6 @@ import java.io.Serializable;
  * objects or external resources.
  *
  * @see DLTensorSpec#getShape()
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

@@ -64,7 +64,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLCollectionDataValueToTensorConverterFactory<IE extends DataValue, O extends DLWritableBuffer>
-		extends DLAbstractTensorDataValueToTensorConverterFactory<CollectionDataValue, O> {
+	extends DLAbstractTensorDataValueToTensorConverterFactory<CollectionDataValue, O> {
 
 	private final DLDataValueToTensorConverterFactory<IE, O> m_elementConverterFactory;
 
@@ -138,7 +138,7 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 	}
 
 	@Override
-	protected long[] getDataShapeInternal(CollectionDataValue input) {
+	protected long[] getDataShapeInternal(final CollectionDataValue input) {
 		return m_elementConverterFactory.getDataShape(input.stream().map(e -> (IE) e).collect(Collectors.toList()));
 	}
 }

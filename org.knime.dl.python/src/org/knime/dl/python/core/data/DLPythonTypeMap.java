@@ -51,7 +51,6 @@ package org.knime.dl.python.core.data;
 import java.util.List;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

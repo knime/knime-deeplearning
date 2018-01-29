@@ -477,7 +477,7 @@ public class DLPythonConverterTest {
 	}
 
 	static class DLFooDataValueToFloatTensorConverterFactory
-			extends DLAbstractTensorDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+		extends DLAbstractTensorDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
 
 		@Override
 		public String getName() {
@@ -514,7 +514,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		protected long[] getDataShapeInternal(FooDataValue input) {
+		protected long[] getDataShapeInternal(final FooDataValue input) {
 			return new long[] { input.getFloatArray().length };
 		}
 

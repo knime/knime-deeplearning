@@ -129,10 +129,9 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(outputRemoveBtn, outputRemoveBtnConstr);
 		constr.gridy++;
 		// converter selection
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion", e -> 
-			m_cfg.getConverterModel()
-					.setStringArrayValue(((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection())
-		);
+		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion",
+				e -> m_cfg.getConverterModel().setStringArrayValue(
+						((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection()));
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// prefix text input
@@ -190,7 +189,8 @@ final class DLExecutorOutputPanel extends JPanel {
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = DLTensorToDataCellConverterRegistry
 				.getInstance().getPreferredFactoriesForSourceType(
-						executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec), m_outputTensorSpec);
+						executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec),
+						m_outputTensorSpec);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> extensionElement = new HashSet<>(1);

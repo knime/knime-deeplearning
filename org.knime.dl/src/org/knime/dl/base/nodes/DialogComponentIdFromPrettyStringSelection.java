@@ -75,7 +75,6 @@ import org.knime.core.node.port.PortObjectSpec;
  * combo box and and the other one is treated as a hidden id counterpart which is of interest to the node model.
  *
  * @see DialogComponentStringSelection
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

@@ -68,7 +68,7 @@ import org.knime.dl.core.DLNetwork;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends DLNetworkPortObjectSpec>
-		extends FileStorePortObject implements DLNetworkPortObject {
+	extends FileStorePortObject implements DLNetworkPortObject {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
 

@@ -62,7 +62,7 @@ import org.knime.dl.core.data.DLWritableIntBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLIntValueToIntTensorConverterFactory
-		extends DLAbstractScalarDataValueToTensorConverterFactory<IntValue, DLWritableIntBuffer> {
+	extends DLAbstractScalarDataValueToTensorConverterFactory<IntValue, DLWritableIntBuffer> {
 
 	@Override
 	public String getName() {
@@ -89,7 +89,7 @@ public class DLIntValueToIntTensorConverterFactory
 		return new DLAbstractScalarDataValueToTensorConverter<IntValue, DLWritableIntBuffer>() {
 
 			@Override
-			public void convert(Iterable<? extends IntValue> input, DLTensor<DLWritableIntBuffer> output) {
+			public void convert(final Iterable<? extends IntValue> input, final DLTensor<DLWritableIntBuffer> output) {
 				final DLWritableIntBuffer buf = output.getBuffer();
 				for (final IntValue val : input) {
 					buf.put(val.getIntValue());

@@ -235,7 +235,7 @@ public class ConfigUtil {
 
 	private static <T, SM extends SettingsModel> void keepInSync(final ConfigEntry<T> entry, final SM settingsModel,
 			final Function<SM, T> settingsModelValueGetter, final BiConsumer<SM, T> settingsModelValueSetter) {
-		AtomicBoolean isLoading = new AtomicBoolean(false);
+		final AtomicBoolean isLoading = new AtomicBoolean(false);
 		entry.addLoadListener(e -> {
 			if (isLoading.get()) {
 				return;

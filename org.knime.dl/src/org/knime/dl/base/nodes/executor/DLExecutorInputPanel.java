@@ -124,8 +124,8 @@ final class DLExecutorInputPanel extends JPanel {
 		final JPanel numNeurons = new JPanel();
 		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(new JLabel("Number of neurons: " + 
-				DLUtils.Shapes.getSizeAsString(m_inputTensorSpec.getShape())), numNeuronsConstr);
+		numNeurons.add(new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_inputTensorSpec.getShape())),
+				numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
 		final JPanel shape = new JPanel();

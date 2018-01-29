@@ -51,10 +51,10 @@ package org.knime.dl.keras.core.execution;
 import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;

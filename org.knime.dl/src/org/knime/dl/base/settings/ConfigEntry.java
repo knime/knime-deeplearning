@@ -66,7 +66,7 @@ public interface ConfigEntry<T> {
 
 	T getValue();
 
-	default void setValue(T value) throws IllegalArgumentException {
+	default void setValue(final T value) throws IllegalArgumentException {
 		setValue(value, false);
 	}
 

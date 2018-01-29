@@ -139,16 +139,15 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	 */
 	public final Optional<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getPreferredConverterFactory(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
-		final List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> convs =
-				getConverterFactories(sourceType, bufferType);
+		final List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> convs = getConverterFactories(
+				sourceType, bufferType);
 		DLDataValueToTensorConverterFactory<?, ?> sourceMatch = null;
-		final DataType theSourceType =
-				sourceType.isCollectionType() ? sourceType.getCollectionElementType() : sourceType;
+		final DataType theSourceType = sourceType.isCollectionType() ? sourceType.getCollectionElementType()
+				: sourceType;
 		for (final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv : convs) {
 			final Class<? extends DataValue> theConvSourceType;
 			if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
-				final DLCollectionDataValueToTensorConverterFactory<?, ?> casted =
-						(DLCollectionDataValueToTensorConverterFactory<?, ?>) conv;
+				final DLCollectionDataValueToTensorConverterFactory<?, ?> casted = (DLCollectionDataValueToTensorConverterFactory<?, ?>) conv;
 				theConvSourceType = casted.getSourceElementType();
 			} else {
 				theConvSourceType = conv.getSourceType();
@@ -178,9 +177,9 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 			return Optional.empty();
 		}
 		if (identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName())) {
-			final String elementConverterId =
-					identifier.substring(DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1,
-							identifier.length() - 1);
+			final String elementConverterId = identifier.substring(
+					DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1,
+					identifier.length() - 1);
 			final Optional<DLDataValueToTensorConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
 			if (conv.isPresent()) {
 				return Optional.of(new DLCollectionDataValueToTensorConverterFactory<>(conv.get()));

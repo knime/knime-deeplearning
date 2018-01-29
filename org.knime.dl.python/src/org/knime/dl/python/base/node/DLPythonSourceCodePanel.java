@@ -56,7 +56,6 @@ import org.knime.python2.kernel.FlowVariableOptions;
  * We need this class to access protected members of PythonSourceCodePanel.
  *
  * @see PythonSourceCodePanel
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -67,7 +66,6 @@ public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
 	/**
 	 * @param variableNames
 	 * @param options
-	 *
 	 * @see PythonSourceCodePanel#PythonSourceCodePanel(VariableNames, FlowVariableOptions)
 	 */
 	public DLPythonSourceCodePanel(final VariableNames variableNames, final FlowVariableOptions options) {

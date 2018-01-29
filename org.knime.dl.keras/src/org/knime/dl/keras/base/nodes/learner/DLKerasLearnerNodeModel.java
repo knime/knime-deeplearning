@@ -61,7 +61,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -431,8 +430,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException("Input '" + tensorSpec.getName()
-						+ "' has an unknown shape. This is not supported, yet.");
+				throw new InvalidSettingsException(
+						"Input '" + tensorSpec.getName() + "' has an unknown shape. This is not supported, yet.");
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
@@ -496,8 +495,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
 			// validate layer spec
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException("Target '" + tensorSpec.getName()
-						+ "' has an unknown shape. This is not supported, yet.");
+				throw new InvalidSettingsException(
+						"Target '" + tensorSpec.getName() + "' has an unknown shape. This is not supported, yet.");
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
@@ -651,12 +650,12 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
-				rowIterator, batchSize, converterForTensorId);
-				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
-						ExecutionSpecCreator.createExecutionSpecs(
-								rowIterator.peek(), ctx.getTensorFactory(), batchSize,
-								columnsForTensorId, m_converters),
-						inputPreparer);) {
+						rowIterator, batchSize, converterForTensorId);
+				final DLKerasNetworkTrainingSession session = ctx
+						.createTrainingSession(
+								inNetwork, trainingConfig, ExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(),
+										ctx.getTensorFactory(), batchSize, columnsForTensorId, m_converters),
+								inputPreparer);) {
 			m_status = new DLKerasDefaultTrainingStatus(epochs, numBatchesPerEpoch);
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setViewData(m_viewData);

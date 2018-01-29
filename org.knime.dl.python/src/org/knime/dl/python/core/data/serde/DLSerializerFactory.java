@@ -51,7 +51,6 @@ package org.knime.dl.python.core.data.serde;
 import org.knime.dl.core.data.DLBuffer;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

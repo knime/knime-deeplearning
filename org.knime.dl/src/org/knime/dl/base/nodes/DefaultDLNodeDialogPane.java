@@ -81,9 +81,9 @@ import org.knime.core.node.port.PortObjectSpec;
  */
 public class DefaultDLNodeDialogPane extends NodeDialogPane {
 
-	private List<IDialogComponentGroup> m_componentGroups;
+	private final List<IDialogComponentGroup> m_componentGroups;
 
-	private List<DialogComponent> m_additionalComponents;
+	private final List<DialogComponent> m_additionalComponents;
 
 	private JPanel m_wrapperPanel;
 

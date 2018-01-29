@@ -76,8 +76,7 @@ import org.knime.dl.base.settings.ConfigEntry;
  * Modified from {@link DialogComponentStringSelection}.
  *
  * @see DialogComponentStringSelection
- * @param <T>
- *            the item type of the selection component
+ * @param <T> the item type of the selection component
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -96,13 +95,9 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 	/**
 	 * Creates a new instance of this dialog component.
 	 *
-	 * @param config
-	 *            the config which stores the component's selected item
-	 * @param printer
-	 *            the function that turns the component's items into a
-	 *            renderable string representation
-	 * @param label
-	 *            the label of the component
+	 * @param config the config which stores the component's selected item
+	 * @param printer the function that turns the component's items into a renderable string representation
+	 * @param label the label of the component
 	 */
 	public DialogComponentObjectSelection(final ConfigEntry<T> config, final Function<? super T, String> printer,
 			final String label) {
@@ -157,10 +152,8 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 	/**
 	 * Sets the preferred size of the internal component.
 	 *
-	 * @param width
-	 *            The width.
-	 * @param height
-	 *            The height.
+	 * @param width The width.
+	 * @param height The height.
 	 */
 	public void setSizeComponents(final int width, final int height) {
 		m_combobox.setPreferredSize(new Dimension(width, height));
@@ -173,19 +166,14 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 	}
 
 	/**
-	 * Replaces the list of selectable strings in the component. If
-	 * <code>selectedPretty</code> is specified (not null) and it exists in the
-	 * collection, it will be selected. If <code>selectedPretty</code> is null,
-	 * the pretty entry that corresponds to the previous hidden's value will
-	 * stay selected (if it exists in the new list).
+	 * Replaces the list of selectable strings in the component. If <code>selectedPretty</code> is specified (not null)
+	 * and it exists in the collection, it will be selected. If <code>selectedPretty</code> is null, the pretty entry
+	 * that corresponds to the previous hidden's value will stay selected (if it exists in the new list).
 	 *
-	 * @param newItems
-	 *            the items that will be displayed in the dialog component. No
-	 *            null values, no duplicate values. Must be at least of length
-	 *            one.
-	 * @param newSelectedItem
-	 *            the item to select after replacing. Can be null, in which case
-	 *            the previous selection is tried to be preserved.
+	 * @param newItems the items that will be displayed in the dialog component. No null values, no duplicate values.
+	 *            Must be at least of length one.
+	 * @param newSelectedItem the item to select after replacing. Can be null, in which case the previous selection is
+	 *            tried to be preserved.
 	 */
 	public void replaceListItems(final List<T> newItems, final T newSelectedItem) {
 		checkNotNull(newItems);

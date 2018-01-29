@@ -46,8 +46,6 @@
  */
 package org.knime.dl.core;
 
-import org.knime.dl.core.DLUncheckedException;
-
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany

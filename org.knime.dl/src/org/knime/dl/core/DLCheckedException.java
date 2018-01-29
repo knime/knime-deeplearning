@@ -49,7 +49,6 @@ package org.knime.dl.core;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

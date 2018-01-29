@@ -237,7 +237,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_lastConfiguredNetworkSpec = networkSpec;
 	}
 
-	private void createInputAndTargetPanels(DLNetworkSpec networkSpec, DataTableSpec tableSpec)
+	private void createInputAndTargetPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
 			throws NotConfigurableException {
 		// input settings:
 		m_inputTab.reset();
@@ -259,8 +259,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		// inputs
 		for (final DLTensorSpec inputDataSpec : networkSpec.getInputSpecs()) {
 			if (!DLUtils.Shapes.isKnown(inputDataSpec.getShape())) {
-				throw new NotConfigurableException("Input '" + inputDataSpec.getName()
-						+ "' has an unknown shape. This is not supported.");
+				throw new NotConfigurableException(
+						"Input '" + inputDataSpec.getName() + "' has an unknown shape. This is not supported.");
 			}
 			addInputPanel(inputDataSpec, tableSpec, m_generalCfg);
 		}
@@ -285,8 +285,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		// outputs
 		for (final DLTensorSpec targetDataSpec : networkSpec.getOutputSpecs()) {
 			if (!DLUtils.Shapes.isKnown(targetDataSpec.getShape())) {
-				throw new NotConfigurableException("Target '" + targetDataSpec.getName()
-						+ "' has an unknown shape. This is not supported.");
+				throw new NotConfigurableException(
+						"Target '" + targetDataSpec.getName() + "' has an unknown shape. This is not supported.");
 			}
 			addOutputPanel(targetDataSpec, tableSpec, m_generalCfg);
 		}

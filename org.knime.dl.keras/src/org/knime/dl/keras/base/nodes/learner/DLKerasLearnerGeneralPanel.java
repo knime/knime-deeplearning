@@ -143,22 +143,23 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				.getAvailableTrainingContexts(m_networkType).stream()
 				.sorted(Comparator.comparing(DLKerasTrainingContext::getName)) //
 				.collect(Collectors.toList());
-		
-		DLKerasTrainingContext<?> value = m_cfg.getTrainingContextEntry().getValue();
+
+		final DLKerasTrainingContext<?> value = m_cfg.getTrainingContextEntry().getValue();
 		final DLKerasTrainingContext<?> selectedTrainingContext;
 		if (availableTrainingContexts.isEmpty()) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		} else if (value != null && containsContext(availableTrainingContexts, value)) {
 			selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
-		}else{
+		} else {
 			m_cfg.getTrainingContextEntry().setValue(value);
 			selectedTrainingContext = availableTrainingContexts.get(0);
 		}
 		m_dcBackend.replaceListItems(availableTrainingContexts, selectedTrainingContext);
 	}
 
-	private boolean containsContext(List<DLKerasTrainingContext<?>> contexts, DLKerasTrainingContext<?> context) {
-		for (DLKerasTrainingContext<?> check : contexts) {
+	private boolean containsContext(final List<DLKerasTrainingContext<?>> contexts,
+			final DLKerasTrainingContext<?> context) {
+		for (final DLKerasTrainingContext<?> check : contexts) {
 			if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
 				return true;
 			}
@@ -170,7 +171,8 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		return m_dcBackend.getConfigEntry().getValue();
 	}
 
-	void update(Class<? extends DLNetwork> networkType, final DLNetworkSpec spec) throws NotConfigurableException {
+	void update(final Class<? extends DLNetwork> networkType, final DLNetworkSpec spec)
+			throws NotConfigurableException {
 		if (!m_networkType.equals(networkType)) {
 			m_networkType = networkType;
 		}

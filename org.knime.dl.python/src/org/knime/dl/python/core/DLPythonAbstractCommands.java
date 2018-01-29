@@ -132,7 +132,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
 
 	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
-	
+
 	// --
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
@@ -516,22 +516,22 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final Serializer<DLPythonDataBuffer> serializer = (Serializer<DLPythonDataBuffer>) extension
 				.getJavaSerializerFactory().createSerializer();
 		final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-		final long[] shape = DLUtils.Shapes.getFixedShape(tensor.getSpec().getShape()).orElseThrow(
-				() -> new IllegalStateException("Execution spec does not contain fixed shape."));
+		final long[] shape = DLUtils.Shapes.getFixedShape(tensor.getSpec().getShape())
+				.orElseThrow(() -> new IllegalStateException("Execution spec does not contain fixed shape."));
 		final Cell shapeCell = new CellImpl(shape, getNotMissingForLength(shape.length));
 		final String identifier = tensor.getSpec().getIdentifier().getIdentifierString();
-		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES, Type.LONG_LIST }, new String[] { identifier, "shape" },
-				Collections.singletonMap(identifier, extension.getId()));
+		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES, Type.LONG_LIST },
+				new String[] { identifier, "shape" }, Collections.singletonMap(identifier, extension.getId()));
 		final Row row = new RowImpl(identifier, 2);
 		row.setCell(cell, 0);
 		row.setCell(shapeCell, 1);
 		final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
 		return new DLSingletonTableChunker(iterator);
 	}
-	
-	private byte[] getNotMissingForLength(int length) {
-		int entries = length / 8 + 1;
-		byte[] missings = new byte[entries];
+
+	private byte[] getNotMissingForLength(final int length) {
+		final int entries = length / 8 + 1;
+		final byte[] missings = new byte[entries];
 		Arrays.fill(missings, UnsignedBytes.MAX_VALUE);
 		return missings;
 	}

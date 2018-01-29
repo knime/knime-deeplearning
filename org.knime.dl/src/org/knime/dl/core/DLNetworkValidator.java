@@ -49,7 +49,6 @@ package org.knime.dl.core;
 import java.net.URL;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -79,7 +78,6 @@ public interface DLNetworkValidator {
 	 *
 	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
 	 *            will be redone. Otherwise, previous test results will be used if available.
-	 *
 	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
 	 */
 	void checkAvailability(boolean forceRefresh) throws DLMissingDependencyException;

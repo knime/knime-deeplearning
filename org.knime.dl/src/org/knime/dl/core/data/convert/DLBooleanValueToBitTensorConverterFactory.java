@@ -59,8 +59,8 @@ import org.knime.dl.core.data.DLWritableBitBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLBooleanValueToBitTensorConverterFactory extends 
-DLAbstractScalarDataValueToTensorConverterFactory<BooleanValue, DLWritableBitBuffer> {
+public class DLBooleanValueToBitTensorConverterFactory
+	extends DLAbstractScalarDataValueToTensorConverterFactory<BooleanValue, DLWritableBitBuffer> {
 
 	@Override
 	public String getName() {
@@ -87,7 +87,8 @@ DLAbstractScalarDataValueToTensorConverterFactory<BooleanValue, DLWritableBitBuf
 		return new DLAbstractScalarDataValueToTensorConverter<BooleanValue, DLWritableBitBuffer>() {
 
 			@Override
-			public void convert(Iterable<? extends BooleanValue> input, DLTensor<DLWritableBitBuffer> output) {
+			public void convert(final Iterable<? extends BooleanValue> input,
+					final DLTensor<DLWritableBitBuffer> output) {
 				final DLWritableBitBuffer buf = output.getBuffer();
 				for (final BooleanValue val : input) {
 					buf.put(val.getBooleanValue());

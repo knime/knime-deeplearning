@@ -84,9 +84,8 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	/*
-	 * Color list to use for plots, starting with the first one. If the number
-	 * of plots in on chart exceeds the number of colors defined here we will
-	 * start with the first color again. See getNextColor().
+	 * Color list to use for plots, starting with the first one. If the number of plots in on chart exceeds the number
+	 * of colors defined here we will start with the first color again. See getNextColor().
 	 */
 	private static final List<Color> LINE_COLORS = Collections.unmodifiableList(
 			Arrays.asList(Color.RED, Color.BLUE, Color.GREEN, Color.CYAN, Color.MAGENTA, Color.ORANGE));
@@ -106,11 +105,11 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 	private XYSeriesCollection m_dataset;
 
-	private Map<Integer, String> m_lineIndexToLineLabel = new HashMap<>();
+	private final Map<Integer, String> m_lineIndexToLineLabel = new HashMap<>();
 
-	private Map<String, Integer> m_lineLabelToLineIndex = new HashMap<>();
+	private final Map<String, Integer> m_lineLabelToLineIndex = new HashMap<>();
 
-	private Map<String, Color> m_lineReferenceColors = new HashMap<>();
+	private final Map<String, Color> m_lineReferenceColors = new HashMap<>();
 
 	private Map<String, ExponentialSmoothingIterator> m_smoothingIters;
 
@@ -130,7 +129,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
 		super(new GridBagLayout());
 		m_spec = spec;
 
-		GridBagConstraints gbc = new GridBagConstraints();
+		final GridBagConstraints gbc = new GridBagConstraints();
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weighty = 1;
 		gbc.weightx = 1;
@@ -140,23 +139,23 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 	/**
 	 * Add plots to dataset. For each plot a smooth version is added with the
-	 * {@link JFreeChartLinePlotPanel#SMOOTHED_LINE_KEY_SUFFIX} added. Also
-	 * initialized indexToLineLabel and lineLabelToIndex maps.
-	 * 
+	 * {@link JFreeChartLinePlotPanel#SMOOTHED_LINE_KEY_SUFFIX} added. Also initialized indexToLineLabel and
+	 * lineLabelToIndex maps.
+	 *
 	 * @return the dataset containing the plots
 	 */
 	private XYSeriesCollection createDataset() {
 		final XYSeriesCollection lines = new XYSeriesCollection();
 		int lineCounter = 0;
 		for (int i = 0; i < m_spec.numPlots(); i++) {
-			String lineLabel = m_spec.getLineLabel(i);
-			XYSeries line = new XYSeries(lineLabel);
+			final String lineLabel = m_spec.getLineLabel(i);
+			final XYSeries line = new XYSeries(lineLabel);
 			lines.addSeries(line);
 			m_lineIndexToLineLabel.put(lineCounter, lineLabel);
 			m_lineLabelToLineIndex.put(lineLabel, lineCounter);
 			lineCounter++;
 
-			String smoothedLineLabel = lineLabel + SMOOTHED_LINE_KEY_SUFFIX;
+			final String smoothedLineLabel = lineLabel + SMOOTHED_LINE_KEY_SUFFIX;
 			lines.addSeries(new XYSeries(smoothedLineLabel));
 			m_lineIndexToLineLabel.put(lineCounter, smoothedLineLabel);
 			m_lineLabelToLineIndex.put(smoothedLineLabel, lineCounter);
@@ -167,16 +166,16 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 	/**
 	 * Creates new smoothing iterators with the specified smoothing factor.
-	 * 
+	 *
 	 * @param smoothingAlpha
 	 */
-	private void initSmoothingIter(double smoothingAlpha) {
+	private void initSmoothingIter(final double smoothingAlpha) {
 		if (m_smoothingIters == null) {
 			m_smoothingIters = new HashMap<>();
 		}
 
 		for (int i = 0; i < m_spec.numPlots(); i++) {
-			String lineLabel = m_spec.getLineLabel(i);
+			final String lineLabel = m_spec.getLineLabel(i);
 			m_smoothingIters.put(lineLabel + SMOOTHED_LINE_KEY_SUFFIX,
 					new ExponentialSmoothingIterator(m_dataset.getSeries(lineLabel), smoothingAlpha));
 		}
@@ -242,50 +241,40 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	/**
 	 * Plots the specified value to the line with the specified label.
 	 *
-	 * @param plotIndex
-	 *            the label of the line to plot to
-	 * @param value
-	 *            the value to plot
+	 * @param plotIndex the label of the line to plot to
+	 * @param value the value to plot
 	 */
 	public void plotNext(final String lineLabel, final float value) {
 		// All updates of the lines need to happen in the EDT
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				final XYSeries line = (XYSeries) m_dataset.getSeries(lineLabel);
-				final int total = line.getItemCount();
-				line.add(total + 1, value);
-				plotSmoothed(lineLabel);
-			}
+		SwingUtilities.invokeLater(() -> {
+			final XYSeries line = m_dataset.getSeries(lineLabel);
+			final int total = line.getItemCount();
+			line.add(total + 1, value);
+			plotSmoothed(lineLabel);
 		});
 	}
 
 	/**
-	 * Trigger a redraw of the smoothed lines. This will only happen if smoothed
-	 * lines are enabled and the smoothing alpha changed.
+	 * Trigger a redraw of the smoothed lines. This will only happen if smoothed lines are enabled and the smoothing
+	 * alpha changed.
 	 */
 	public void triggerSmoothedLinesUpdate() {
 		// All updates of the lines need to happen in the EDT
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				for (int i = 0; i < m_spec.numPlots(); i++) {
-					plotSmoothed(m_spec.getLineLabel(i));
-				}
+		SwingUtilities.invokeLater(() -> {
+			for (int i = 0; i < m_spec.numPlots(); i++) {
+				plotSmoothed(m_spec.getLineLabel(i));
 			}
 		});
 	}
 
 	/**
-	 * Set smoothing factor for smoothed lines. If called while the plot is
-	 * currently updating, the smoothed line will be drawn automatically.
-	 * Otherwise, call
-	 * {@link JFreeChartLinePlotPanel#triggerSmoothedLinesUpdate()} to force an
+	 * Set smoothing factor for smoothed lines. If called while the plot is currently updating, the smoothed line will
+	 * be drawn automatically. Otherwise, call {@link JFreeChartLinePlotPanel#triggerSmoothedLinesUpdate()} to force an
 	 * update.
-	 * 
+	 *
 	 * @param smoothingAlpha
 	 */
-	public void setSmoothingAlpha(double smoothingAlpha) {
+	public void setSmoothingAlpha(final double smoothingAlpha) {
 		if (smoothingAlpha != m_smoothingAlpha) {
 			m_alphaChanged = true;
 			m_smoothingAlpha = smoothingAlpha;
@@ -293,12 +282,10 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	}
 
 	/**
-	 * Set enable status of smoothed lines. If called while the plot is
-	 * currently updating, the smoothed line will be drawn automatically.
-	 * Otherwise, call
-	 * {@link JFreeChartLinePlotPanel#triggerSmoothedLinesUpdate()} to force an
+	 * Set enable status of smoothed lines. If called while the plot is currently updating, the smoothed line will be
+	 * drawn automatically. Otherwise, call {@link JFreeChartLinePlotPanel#triggerSmoothedLinesUpdate()} to force an
 	 * update.
-	 * 
+	 *
 	 * @param enabled
 	 */
 	public void setEnableSmoothedLines(final boolean enabled) {
@@ -310,56 +297,47 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 	/**
 	 * Update the line style, sets colors, line transparency and hides legend.
-	 * 
-	 * @param smoothedLinesEnabled
-	 *            If true: original line becomes transparent and smoothed line
-	 *            will be fully visible. Also shows legend of smoothed line. If
-	 *            false: other way around.
+	 *
+	 * @param smoothedLinesEnabled If true: original line becomes transparent and smoothed line will be fully visible.
+	 *            Also shows legend of smoothed line. If false: other way around.
 	 */
 	private void updateLineStyle(final boolean smoothedLinesEnabled) {
 		// All updates of the lines need to happen in the EDT
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				for (int i = 0; i < m_spec.numPlots(); i++) {
-					final int lineIndex = m_lineLabelToLineIndex.get(m_spec.getLineLabel(i));
-					final int lineSmoothedIndex = m_lineLabelToLineIndex
-							.get(m_spec.getLineLabel(i) + SMOOTHED_LINE_KEY_SUFFIX);
-					XYItemRenderer r = getRenderer();
+		SwingUtilities.invokeLater(() -> {
+			for (int i = 0; i < m_spec.numPlots(); i++) {
+				final int lineIndex = m_lineLabelToLineIndex.get(m_spec.getLineLabel(i));
+				final int lineSmoothedIndex = m_lineLabelToLineIndex
+						.get(m_spec.getLineLabel(i) + SMOOTHED_LINE_KEY_SUFFIX);
+				final XYItemRenderer r = getRenderer();
 
-					if (smoothedLinesEnabled) {
-						r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 0.2f));
-						r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 1));
-						r.setSeriesVisibleInLegend(lineSmoothedIndex, true, false);
-					} else {
-						r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 1f));
-						r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 0.2f));
-						r.setSeriesVisibleInLegend(lineSmoothedIndex, false, false);
-					}
+				if (smoothedLinesEnabled) {
+					r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 0.2f));
+					r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 1));
+					r.setSeriesVisibleInLegend(lineSmoothedIndex, true, false);
+				} else {
+					r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 1f));
+					r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 0.2f));
+					r.setSeriesVisibleInLegend(lineSmoothedIndex, false, false);
 				}
 			}
 		});
 	}
 
 	/**
-	 * Get the color for the line with specified index and specified
-	 * transparency.
-	 * 
-	 * @param lineIndex
-	 *            the index of the line to get the color from
-	 * @param transparency
-	 *            transparency value in range [0(fully transparent),1(fully
-	 *            visible)]
+	 * Get the color for the line with specified index and specified transparency.
+	 *
+	 * @param lineIndex the index of the line to get the color from
+	 * @param transparency transparency value in range [0(fully transparent),1(fully visible)]
 	 * @return
 	 */
-	private Color getColorWithTransparecy(int lineIndex, float transparency) {
-		String lineLabel = m_lineIndexToLineLabel.get(lineIndex);
-		Color c = m_lineReferenceColors.computeIfAbsent(lineLabel, key -> getNextColor());
-		float[] cComp = c.getColorComponents(null);
+	private Color getColorWithTransparecy(final int lineIndex, final float transparency) {
+		final String lineLabel = m_lineIndexToLineLabel.get(lineIndex);
+		final Color c = m_lineReferenceColors.computeIfAbsent(lineLabel, key -> getNextColor());
+		final float[] cComp = c.getColorComponents(null);
 		return new Color(cComp[0], cComp[1], cComp[2], transparency);
 	}
 
-	private void plotSmoothed(String lineLabel) {
+	private void plotSmoothed(final String lineLabel) {
 		if (!m_smoothedLinesEnabled && !m_smoothedLinesEnabledChanged) {
 			return;
 		}
@@ -378,7 +356,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
 			m_smoothedLinesEnabledChanged = false;
 		}
 
-		final XYSeries line = (XYSeries) m_dataset.getSeries(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
+		final XYSeries line = m_dataset.getSeries(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
 		final ExponentialSmoothingIterator iter = m_smoothingIters.get(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
 		while (iter.hasNext()) {
 			if (m_alphaChanged) {
@@ -390,8 +368,8 @@ public class JFreeChartLinePlotPanel extends JPanel {
 		}
 	}
 
-	private void clearSmoothedLine(String lineLabel) {
-		String key = lineLabel + SMOOTHED_LINE_KEY_SUFFIX;
+	private void clearSmoothedLine(final String lineLabel) {
+		final String key = lineLabel + SMOOTHED_LINE_KEY_SUFFIX;
 		m_dataset.getSeries(key).clear();
 	}
 
@@ -416,16 +394,16 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	}
 
 	/**
-	 * Set range of vertical axis to current max and min visible in plot. This
-	 * is useful if we manually set the horizontal axis range.
+	 * Set range of vertical axis to current max and min visible in plot. This is useful if we manually set the
+	 * horizontal axis range.
 	 */
 	public void autoRangeVerticalAxis() {
 		getVerticalAxis().setRange(getRenderer().findRangeBounds(getDataset()));
 	}
 
 	/**
-	 * Set range of horizontal axis to current max and min visible in plot. This
-	 * is useful if we manually set the vertical axis range.
+	 * Set range of horizontal axis to current max and min visible in plot. This is useful if we manually set the
+	 * vertical axis range.
 	 */
 	public void autoRangeHorizontalAxis() {
 		getHorizontalAxis().setRange(getRenderer().findDomainBounds(getDataset()));
@@ -448,16 +426,15 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	}
 
 	/**
-	 * Return the next color in {@link JFreeChartLinePlotPanel#LINE_COLORS}. If
-	 * the end is reached we will start from the beginning.
+	 * Return the next color in {@link JFreeChartLinePlotPanel#LINE_COLORS}. If the end is reached we will start from
+	 * the beginning.
 	 */
 	private Color getNextColor() {
 		return LINE_COLORS.get(m_colorIdx++ % LINE_COLORS.size());
 	}
 
 	/**
-	 * Iterator backed by a XYSeries which calculates a smoothed version of the
-	 * series on the fly. See:
+	 * Iterator backed by a XYSeries which calculates a smoothed version of the series on the fly. See:
 	 * https://en.wikipedia.org/wiki/Exponential_smoothing
 	 */
 	private class ExponentialSmoothingIterator implements Iterator<Double> {
@@ -466,12 +443,12 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 		private int m_idx = 0;
 
-		private double m_alpha;
+		private final double m_alpha;
 
 		private double m_current;
 		private double m_previous;
 
-		public ExponentialSmoothingIterator(XYSeries data, double alpha) {
+		public ExponentialSmoothingIterator(final XYSeries data, final double alpha) {
 			m_data = data;
 			m_alpha = alpha;
 			if (m_alpha > 1.0 || m_alpha < 0.0) {
