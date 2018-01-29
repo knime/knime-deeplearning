@@ -44,30 +44,15 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.training;
+package org.knime.dl.python.core.execution;
 
-import java.util.Map;
-
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.training.DLAbstractTrainableNetworkAdapter;
+import org.knime.dl.core.execution.DLNetworkExecutionSession;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLPythonAbstractTrainableNetworkAdapter<N extends DLPythonTrainableNetwork>
-	extends DLAbstractTrainableNetworkAdapter<N> {
+public interface DLPythonNetworkExecutionSession extends DLNetworkExecutionSession {
 
-	protected DLPythonAbstractTrainableNetworkAdapter(final N network, final DLTensorFactory layerDataFactory) {
-		super(network, layerDataFactory);
-	}
-
-	@Override
-	protected Map<DLTensorSpec, ?> extractNetworkTensors(
-			final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> adapterInput) {
-		return adapterInput;
-	}
+	// NB: marker interface
 }
