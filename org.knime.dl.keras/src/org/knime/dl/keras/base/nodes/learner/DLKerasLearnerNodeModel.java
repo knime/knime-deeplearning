@@ -648,6 +648,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
 		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
 
+		m_status = new DLKerasDefaultTrainingStatus(epochs, numBatchesPerEpoch);
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 						rowIterator, batchSize, converterForTensorId);
@@ -656,7 +657,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 								inNetwork, trainingConfig, ExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(),
 										ctx.getTensorFactory(), batchSize, columnsForTensorId, m_converters),
 								inputPreparer);) {
-			m_status = new DLKerasDefaultTrainingStatus(epochs, numBatchesPerEpoch);
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setViewData(m_viewData);
 			m_status.trainingEnded().addListener((src, v) -> notifyViews(m_status));
