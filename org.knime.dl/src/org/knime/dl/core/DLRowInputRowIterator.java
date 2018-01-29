@@ -96,6 +96,23 @@ public final class DLRowInputRowIterator extends DLAbstractRowIterator {
 	}
 
 	@Override
+	public DataRow peek() {
+		if (m_lastPeeked == null) {
+			try {
+				m_lastPeeked = m_input.poll();
+				if (m_lastPeeked == null) {
+					throw new NoSuchElementException();
+				}
+			} catch (final InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new NoSuchElementException(
+						"Interrupted during input polling. Original message: " + e.getMessage());
+			}
+		}
+		return m_lastPeeked;
+	}
+
+	@Override
 	public final DataRow next() {
 		DataRow nextDataRow;
 		if (m_lastPeeked != null) {
@@ -104,6 +121,9 @@ public final class DLRowInputRowIterator extends DLAbstractRowIterator {
 		} else {
 			try {
 				nextDataRow = m_input.poll();
+				if (nextDataRow == null) {
+					throw new NoSuchElementException();
+				}
 			} catch (final InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new NoSuchElementException(

@@ -49,6 +49,7 @@ package org.knime.dl.core;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
@@ -65,11 +66,16 @@ public interface DLRowIterator extends Iterator<DataRow>, AutoCloseable {
 	 */
 	long size();
 
+	/**
+	 * @throws NoSuchElementException if the iteration has no more elements
+	 */
+	DataRow peek() throws NoSuchElementException;
+
 	@Override
-	DataRow next();
+	DataRow next() throws NoSuchElementException;
 
 	/**
-	 * The returned map may be reused by subsequent runs of {@link #groupByTensor(DataRow)}. It is not safe to use
+	 * The returned map may be reused by subsequent runs of {@link #groupByTensor(DataRow)}. Thus, it is not safe to use
 	 * references to the returned values of previous calls of {@link #groupByTensor(DataRow)}.
 	 */
 	Map<DLTensorId, List<DataValue>> groupByTensor(DataRow row);

@@ -66,6 +66,8 @@ public final class DLDataTableRowIterator extends DLAbstractRowIterator {
 
 	private CloseableRowIterator m_iterator;
 
+	private DataRow m_lastPeeked;
+
 	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
 		super(input.getDataTableSpec(), columns);
 		m_input = checkNotNull(input);
@@ -80,19 +82,34 @@ public final class DLDataTableRowIterator extends DLAbstractRowIterator {
 
 	@Override
 	public final boolean hasNext() {
-		return m_iterator.hasNext();
+		return m_lastPeeked != null || m_iterator.hasNext();
+	}
+
+	@Override
+	public DataRow peek() {
+		if (m_lastPeeked == null) {
+			m_lastPeeked = m_iterator.next();
+		}
+		return m_lastPeeked;
 	}
 
 	@Override
 	public final DataRow next() {
-		return m_iterator.next();
+		DataRow nextDataRow;
+		if (m_lastPeeked != null) {
+			nextDataRow = m_lastPeeked;
+			m_lastPeeked = null;
+		} else {
+			nextDataRow = m_iterator.next();
+		}
+		return nextDataRow;
 	}
 
 	@Override
 	public void reset() {
 		m_iterator.close();
+		m_lastPeeked = null;
 		m_iterator = m_input.iterator();
-		m_lastIndex = -1;
 	}
 
 	@Override
