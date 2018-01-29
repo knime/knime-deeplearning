@@ -56,8 +56,6 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
- * Creates {@link DLExecutableNetwork executable deep learning networks}.
- *
  * @param <N> the {@link DLNetwork network} type from which to create executable networks
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -89,18 +87,17 @@ public interface DLExecutionContext<N extends DLNetwork> {
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution
-	// mode"/input type (local/BufferedDataTable
+	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
 	// etc.)
 	DLTensorFactory getTensorFactory();
 
 	/**
-	 * Creates a {@link DLExecutableNetwork executable network} given a {@link DLNetwork network}.
+	 * Creates a {@link DLNetworkExecutionSession execution session} for a given {@link DLNetwork network}.
 	 *
 	 * @param network the network
-	 * @throws IllegalArgumentException if failed to create the executable network due to invalid arguments
+	 * @throws IllegalArgumentException if failed to create the execution session due to invalid arguments
 	 */
-	DLExecutableNetwork createExecutableNetwork(N network, Set<DLTensorSpec> executionInputSpecs,
+	DLNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
 			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
 			DLNetworkOutputConsumer outputConsumer);
 }
