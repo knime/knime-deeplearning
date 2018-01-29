@@ -47,11 +47,47 @@
 package org.knime.dl.keras.core.training;
 
 import org.knime.dl.core.training.DLAbstractTrainingStatus;
+import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
+import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus implements DLKerasTrainingStatus {
+public class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
+		implements DLKerasTrainingStatus, DLProgressMonitor {
 
+	private boolean m_hasData;
+
+	private DLViewData<?>[] m_viewData;
+
+	@Override
+	public boolean isRunning() {
+		return getStatus() == Status.RUNNING;
+	}
+
+	@Override
+	public boolean hasStoppedEarly() {
+		return getStatus() == Status.STOPPED_EARLY;
+	}
+
+	@Override
+	public boolean hasData() {
+		return m_hasData;
+	}
+
+	@Override
+	public void setHasData(final boolean hasData) {
+		m_hasData = hasData;
+	}
+
+	@Override
+	public DLViewData<?>[] getDataUpdate() {
+		return m_viewData;
+	}
+
+	@Override
+	public void setDataUpdate(final DLViewData<?>[] viewData) {
+		m_viewData = viewData;
+	}
 }
