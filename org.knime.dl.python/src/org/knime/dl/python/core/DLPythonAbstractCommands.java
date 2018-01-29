@@ -431,11 +431,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		};
 		messages.registerMessageHandler(dataRequestHandler);
 
-		final Map<String, DLMetrics> metrics = new LinkedHashMap<>(4);
+		final LinkedHashMap<String, DLMetrics> metrics = new LinkedHashMap<>(4);
 		metrics.put("accuracy", new DLMetrics("accuracy", 0f));
 		metrics.put("loss", new DLMetrics("loss", 0f));
-		metrics.put("val_accuracy", new DLMetrics("val_accuracy", 0f));
-		metrics.put("val_loss", new DLMetrics("val_loss", 0f));
+		// metrics.put("val_accuracy", new DLMetrics("val_accuracy", 0f));
+		// metrics.put("val_loss", new DLMetrics("val_loss", 0f));
+		monitor.getTrainingStatus().setMetrics(metrics);
 
 		final AbstractPythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler(
 				"batch_end") {
@@ -448,7 +449,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					try {
 						m.setValue(Float.parseFloat(metricsStr[i]));
 					} catch (final NumberFormatException e) {
-						m.setValue(Float.parseFloat(metricsStr[i]));
+						m.setValue(-1f);
 						LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
 					}
 					i++;
