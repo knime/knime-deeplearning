@@ -94,7 +94,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 			}
 		} catch (final Exception e) {
 			throw new DLInvalidSourceException(
-					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
+					"An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
 		}
 	}
 
@@ -106,7 +106,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 					.createRemoteFile(destination.toURI(), null, null);
 		} catch (final Exception e) {
 			throw new DLInvalidDestinationException(
-					"An error occurred while resolving the Keras network file location.\nCause:" + e.getMessage());
+					"An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
 		}
 	}
 
