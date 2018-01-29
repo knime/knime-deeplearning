@@ -88,8 +88,8 @@ public class DLPythonIntBufferSerializerFactory extends SerializerFactory<DLPyth
 									 * Integer.BYTES + numDimensions * Long.BYTES +
 									 */ size * Integer.BYTES;
 			if (numBytes > Integer.MAX_VALUE) {
-				throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
-						+ Integer.MAX_VALUE + "bytes.");
+				throw new IOException(
+						"Transmitting data to Python failed. Buffer size exceeds the limit of 2^31-1 bytes.");
 			}
 			final int[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
 			final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);

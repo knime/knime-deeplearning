@@ -58,7 +58,6 @@ import org.knime.python.typeextension.Serializer;
 import org.knime.python.typeextension.SerializerFactory;
 
 /**
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -89,8 +88,8 @@ public class DLPythonLongBufferSerializerFactory extends SerializerFactory<DLPyt
 									 * Integer.BYTES + numDimensions * Long.BYTES +
 									 */ size * Long.BYTES;
 			if (numBytes > Integer.MAX_VALUE) {
-				throw new IOException("Transmitting data to Python failed. Buffer size exceeds the limit of "
-						+ Integer.MAX_VALUE + "bytes.");
+				throw new IOException(
+						"Transmitting data to Python failed. Buffer size exceeds the limit of 2^31-1 bytes.");
 			}
 			final long[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
 			final ByteBuffer buffer = ByteBuffer.allocate((int) numBytes);
