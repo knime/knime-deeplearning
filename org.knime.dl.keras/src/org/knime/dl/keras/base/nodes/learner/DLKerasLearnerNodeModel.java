@@ -54,7 +54,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -180,11 +178,14 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	private boolean m_initialLoaded;
 
+	/**
+	 * <code>null</code> by default, will be populated during execution of the node or when loading an executed node
+	 */
+	private DLKerasDefaultTrainingStatus m_status;
+
 	private final DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
 
 	private final DLLinePlotViewData<?>[] m_viewData;
-
-	private final DLKerasDefaultTrainingStatus m_status;
 
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE },
@@ -201,17 +202,13 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
 				new String[] { "Training data" });
 		m_viewData = new DLLinePlotViewData[2];
-		m_status = new DLKerasDefaultTrainingStatus();
-	}
-
-	@Override
-	public DLProgressMonitor getProgressMonitor() {
-		return m_status;
 	}
 
 	@Override
 	public void stopLearning() {
-		m_status.setStatus(Status.STOPPED_EARLY);
+		if (m_status != null) {
+			m_status.setStatus(Status.STOPPED_EARLY);
+		}
 	}
 
 	protected DLViewSpec[] getViewSpecs() {
@@ -285,8 +282,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			for (int i = 0; i < m_viewSpecs.length; i++) {
 				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) objIn.readObject());
 			}
+			m_status = new DLKerasDefaultTrainingStatus();
 			m_status.readExternal(objIn);
-			m_status.setDataUpdate(m_viewData);
+			m_status.setViewData(m_viewData);
 		} catch (final ClassNotFoundException e) {
 			throw new IOException("View data could not be restored.");
 		}
@@ -295,6 +293,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	@Override
 	protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
+		if (m_status == null) {
+			throw new IllegalStateException(
+					"Training status may not be null after node execution. This is an implementation error.");
+		}
 		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
 		try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(f))) {
 			objOut.writeInt(m_viewSpecs.length);
@@ -368,9 +370,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (int i = 0; i < m_viewData.length; i++) {
 			m_viewData[i] = null;
 		}
-		m_status.setHasData(false);
+		if (m_status != null) {
+			m_status.setViewData(null);
+		}
 		// reset views
 		notifyViews(null);
+	}
+
+	DLProgressMonitor getProgressMonitor() {
+		return m_status;
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
@@ -649,37 +657,17 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 								rowIterator.peek(), ctx.getTensorFactory(), batchSize,
 								columnsForTensorId, m_converters),
 						inputPreparer);) {
+			m_status = new DLKerasDefaultTrainingStatus(epochs, numBatchesPerEpoch);
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
-			m_status.setNumEpochs(epochs);
-			m_status.setNumBatchesPerEpoch(numBatchesPerEpoch);
-			m_status.setStatus(Status.RUNNING);
-			m_status.setHasData(true);
-			m_status.setStartDateTime(null);
-			m_status.setEndDateTime(null);
-			m_status.setCurrentEpoch(0);
-			m_status.setCurrentBatchInEpoch(0);
-			m_status.setDataUpdate(m_viewData);
-			final AtomicInteger currentEpoch = new AtomicInteger();
-			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
-			m_status.trainingStarted().addListener((src, v) -> m_status.setStartDateTime(LocalDateTime.now()));
-			m_status.trainingEnded().addListener((src, v) -> {
-				m_status.setEndDateTime(LocalDateTime.now());
-				// there might be a significant time difference between last batch end and training end, so let's update
-				// the view one more time
-				notifyViews(m_status);
-			});
+			m_status.setViewData(m_viewData);
+			m_status.trainingEnded().addListener((src, v) -> notifyViews(m_status));
 			m_status.batchEnded().addListener((src, v) -> {
-				if (currentBatchInEpoch.get() + 1 == numBatchesPerEpoch) {
-					m_status.setCurrentEpoch(currentEpoch.incrementAndGet());
-					if (currentEpoch.get() < epochs) {
-						currentBatchInEpoch.set(0);
-					} else {
-						currentBatchInEpoch.set(numBatchesPerEpoch);
-					}
-					m_status.setCurrentBatchInEpoch(currentBatchInEpoch.get());
-				} else {
-					m_status.setCurrentBatchInEpoch(currentBatchInEpoch.incrementAndGet());
-				}
+				// update progress
+				final int currBatch = m_status.getCurrentBatchInEpoch() + 1;
+				final int currEpoch = m_status.getCurrentEpoch() + 1;
+				final double progress = ((currEpoch - 1) * numBatchesPerEpoch + currBatch) / (double) totalNumBatches;
+				monitor.setProgress(progress, "Processing batch " + currBatch + " of " + numBatchesPerEpoch
+						+ " in epoch " + currEpoch + " of " + epochs + "...");
 				// update accuracy
 				final Map<String, DLMetrics> metrics = m_status.getMetrics();
 				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics.get("accuracy").getValue());
@@ -688,10 +676,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				notifyViews(m_status);
 			});
 			session.run(monitor);
-			m_status.trainingStarted().clearListeners();
-			m_status.trainingEnded().clearListeners();
-			m_status.batchEnded().clearListeners();
-			m_status.setStatus(Status.FINISHED);
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return session.getTrainedNetwork(exec);
 		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
