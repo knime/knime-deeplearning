@@ -105,7 +105,10 @@ public abstract class DLAbstractNetworkExecutionSession<N extends DLNetwork> imp
 
 	protected final Set<DLTensorSpec> m_executionInputSpecs;
 
-	protected final long m_batchSize;
+	/**
+	 * Might not hold for the last batch which could be incomplete.
+	 */
+	protected final long m_expectedBatchSize;
 
 	protected final Set<DLTensorId> m_requestedOutputs;
 
@@ -135,7 +138,7 @@ public abstract class DLAbstractNetworkExecutionSession<N extends DLNetwork> imp
 		checkArgument(isTensorFactoryValid(network, tensorFactory), "Tensor factory does not match network type.");
 		m_network = network;
 		m_executionInputSpecs = executionInputSpecs;
-		m_batchSize = m_executionInputSpecs.stream().findAny()
+		m_expectedBatchSize = m_executionInputSpecs.stream().findAny()
 				.orElseThrow(() -> new IllegalArgumentException("The network must have at least one input."))
 				.getBatchSize().orElseThrow(() -> new IllegalArgumentException(
 						"The spec of an input tensor must contain a batch size at execution time."));
