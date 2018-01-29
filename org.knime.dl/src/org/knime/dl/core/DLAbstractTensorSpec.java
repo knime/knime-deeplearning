@@ -188,7 +188,8 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 			return false;
 		}
 		final DLAbstractTensorSpec other = (DLAbstractTensorSpec) obj;
-		return other.m_name.equals(m_name) //
+		return other.m_identifier.equals(m_identifier) //
+				&& other.m_name.equals(m_name) //
 				&& other.m_batchSize.equals(m_batchSize) //
 				&& other.m_shape.equals(m_shape) //
 				&& other.m_elementType.equals(m_elementType) //
@@ -197,8 +198,9 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	@Override
 	public String toString() {
-		return m_name + ": " + (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString()
-				+ ", " + m_elementType.getSimpleName();
+		return m_identifier.toString() + " (" + m_name + "): "
+				+ (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString() + ", "
+				+ m_elementType.getSimpleName();
 	}
 
 	private void writeObject(final ObjectOutputStream stream) throws IOException {
@@ -214,6 +216,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+		b.append(m_identifier);
 		b.append(m_name);
 		b.append(m_batchSize);
 		b.append(m_shape);
