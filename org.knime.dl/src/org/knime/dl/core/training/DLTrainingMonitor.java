@@ -46,7 +46,6 @@
  */
 package org.knime.dl.core.training;
 
-import org.knime.core.node.ExecutionContext;
 import org.knime.dl.core.DLMonitor;
 
 /**
@@ -55,51 +54,5 @@ import org.knime.dl.core.DLMonitor;
  */
 public interface DLTrainingMonitor<S extends DLTrainingStatus> extends DLMonitor {
 
-	int getNumEpochs();
-
-	int getNumBatchesPerEpoch();
-
-	boolean isRunning();
-
-	void setIsRunning(boolean isRunning);
-
-	boolean hasData();
-
-	void setHasData(boolean hasData);
-	
-	boolean hasStoppedEarly();
-	
-	void setHasStoppedEarly(boolean hasStoppedEarly);
-
-	int getCurrentEpoch();
-
-	void setCurrentEpoch(int currentEpoch);
-
-	int getCurrentBatchInEpoch();
-
-	void setCurrentBatchInEpoch(int currentBatchInEpoch);
-
-	String[] getMetricsNames();
-
-	void setMetricsNames(String[] names);
-
-	float[] getCurrentMetrics();
-
-	void setCurrentMetrics(float[] metrics);
-
-	ExecutionContext getExecutionContext();
-
-	void onTrainingStart(Runnable callback);
-
-	void notifyTrainingStart();
-
-	void onTrainingEnd(Runnable callback);
-
-	void notifyTrainingEnd();
-
-	void onBatchEnd(Runnable callback);
-
-	void notifyBatchEnd();
-
-	// TODO: add callbacks for batch start, epoch start, epoch end?
+	S getTrainingStatus();
 }
