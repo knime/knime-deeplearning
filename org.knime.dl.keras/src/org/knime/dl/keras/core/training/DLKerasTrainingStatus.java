@@ -46,16 +46,12 @@
  */
 package org.knime.dl.keras.core.training;
 
-import org.knime.dl.core.training.DLTrainingMonitor;
-import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
+import org.knime.dl.core.training.DLTrainingStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasTrainingMonitor extends DLTrainingMonitor {
+public interface DLKerasTrainingStatus extends DLTrainingStatus {
 
-	DLViewData<?>[] getDataUpdate();
-
-	void setDataUpdate(DLViewData<?>[] viewData);
 }
