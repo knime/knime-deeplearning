@@ -97,7 +97,7 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
-import org.knime.dl.core.execution.DLKnimeNetworkInputPreparer;
+import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
 import org.knime.dl.core.training.DLKnimeTrainingMonitor;
 import org.knime.dl.core.training.DLMetrics;
 import org.knime.dl.core.training.DLTrainingContext;
@@ -646,7 +646,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
 		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
 
-		try (final DLKnimeNetworkInputPreparer inputPreparer = new DLKnimeNetworkInputPreparer(
+		try (final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 				new DLDataTableRowIterator(inTable, columnsForTensorId), batchSize, converterForTensorId);
 				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
 						executionInputSpecs, inputPreparer);) {
