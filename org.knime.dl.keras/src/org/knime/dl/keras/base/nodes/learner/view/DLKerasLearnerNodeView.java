@@ -64,7 +64,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 import org.knime.core.node.NodeModel;
@@ -88,9 +87,8 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 	private static final String ELAPSED_TIME_DISPLAY_FORMAT = "%02d:%02d:%02d (hh:mm:ss)";
 
 	/**
-	 * Alternative to setShowNODATALabel() because the NODATA label of the
-	 * NodeView is also displayed during execution, which is exactly what we do
-	 * not want.
+	 * Alternative to setShowNODATALabel() because the NODATA label of the NodeView is also displayed during execution,
+	 * which is exactly what we do not want.
 	 */
 	private static final JLabel NO_DATA_OVERLAY;
 
@@ -118,8 +116,8 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 	private Map<String, DLJFreeChartLinePlotWithHistoryView> m_views;
 
 	/**
-	 * Data iterators for this view. Its important that each view has its own
-	 * iterator state if we open several views at once.
+	 * Data iterators for this view. Its important that each view has its own iterator state if we open several views at
+	 * once.
 	 */
 	private Map<String, Iterator<DLFloatData>[]> m_dataIterators;
 
@@ -157,13 +155,11 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 	}
 
 	/**
-	 * Set data iterators of this view using the the specified view data array.
-	 * If the iterators are already initialized this method will do nothing.
+	 * Set data iterators of this view using the the specified view data array. If the iterators are already initialized
+	 * this method will do nothing.
 	 *
-	 * @param dataArray
-	 *            data to get iterators from
-	 * @throws IllegalArgumentException
-	 *             If the dataArray is null or contains null.
+	 * @param dataArray data to get iterators from
+	 * @throws IllegalArgumentException If the dataArray is null or contains null.
 	 */
 	@SuppressWarnings("unchecked")
 	private void initDataIterators(final DLViewData<?>[] dataArray) {
@@ -249,7 +245,7 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 		m_stopButton = new LeftAlignButton("Stop learning");
 		m_stopButton.getButton().addActionListener(e -> {
 			getNodeModel().stopLearning();
-			setHasStoppedButtonStatus();
+			setHasStoppedButtonStatus(true);
 		});
 		gbc.insets = new Insets(10, 15, 10, 0);
 		m_mainContainer.add(m_stopButton, gbc);
@@ -261,8 +257,10 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 			startAllTimers();
 			initDataIterators(monitor.getViewData());
 
-			if (monitor.hasStoppedEarly() || monitor.hasLearningFinished()) {
-				setHasStoppedButtonStatus();
+			if (monitor.hasStoppedEarly() || monitor.hasFinished()) {
+				setHasStoppedButtonStatus(true);
+			} else if (!monitor.isRunning()) {
+				setHasStoppedButtonStatus(false);
 			}
 
 			final int numEpochs = monitor.getNumEpochs();
@@ -325,8 +323,11 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 		showNoDataOverlay(true);
 	}
 
-	private void setHasStoppedButtonStatus() {
-		m_stopButton.getButton().setText("Learning stopped");
+	private void setHasStoppedButtonStatus(final boolean stoppedProperly) {
+		if (stoppedProperly) {
+			// only change label when learning stopped properly (finished or early stopping)
+			m_stopButton.getButton().setText("Learning stopped");
+		}
 		m_stopButton.getButton().setEnabled(false);
 	}
 
@@ -397,8 +398,7 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 	}
 
 	/**
-	 * Simple helper to left align a label with a changing value in a
-	 * {@link GridBagLayout}.
+	 * Simple helper to left align a label with a changing value in a {@link GridBagLayout}.
 	 */
 	public class LeftAlignLabelWithValue extends JPanel {
 		private static final long serialVersionUID = 1L;
