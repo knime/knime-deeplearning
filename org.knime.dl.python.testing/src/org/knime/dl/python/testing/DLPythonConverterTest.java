@@ -75,6 +75,9 @@ import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLInvalidNetworkInputException;
+import org.knime.dl.core.DLInvalidNetworkOutputException;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
@@ -102,10 +105,7 @@ import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLAbstractNetworkExecutionSession;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionMonitor;
-import org.knime.dl.core.DLInvalidNetworkInputException;
-import org.knime.dl.core.DLInvalidNetworkOutputException;
 import org.knime.dl.core.execution.DLNetworkExecutionSession;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.python.core.DLPythonNetwork;
@@ -133,12 +133,12 @@ public class DLPythonConverterTest {
 		// network:
 
 		final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
-		inputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("in0"), "in0",
+		inputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("in0"), "in0", 1,
 				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class);
-		final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
 		// intermediate outputs stay empty
+		final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
 		final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
-		outputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("out0"), "out0",
+		outputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("out0"), "out0", 1,
 				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class);
 		final DLBazNetworkSpec networkSpec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
 		final DLBazNetwork network = new DLBazNetwork(networkSpec, null);
@@ -159,7 +159,7 @@ public class DLPythonConverterTest {
 
 		// "configure":
 
-		final DLBazExecutionContext exec = new DLBazExecutionContext();
+		final DLBazExecutionContext ctx = new DLBazExecutionContext();
 
 		// input converters:
 		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>();
@@ -169,7 +169,7 @@ public class DLPythonConverterTest {
 			executionInputSpecs.add(inputSpec);
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLDataValueToTensorConverterRegistry
 					.getInstance().getPreferredConverterFactory(FooDataCell.TYPE,
-							exec.getTensorFactory().getWritableBufferType(inputSpec))
+							ctx.getTensorFactory().getWritableBufferType(inputSpec))
 					.get();
 			inputConverters.put(inputSpec.getIdentifier(), converter);
 		}
@@ -178,7 +178,7 @@ public class DLPythonConverterTest {
 				networkSpec.getOutputSpecs().length + networkSpec.getHiddenOutputSpecs().length);
 		for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
 			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
-					.getFactoriesForSourceType(exec.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
+					.getFactoriesForSourceType(ctx.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
 					.stream().filter(c -> {
 						return c.getDestType().getCellClass() == BarDataCell.class;
 					}).findFirst().get();
@@ -186,7 +186,7 @@ public class DLPythonConverterTest {
 		}
 		for (final DLTensorSpec outputSpec : networkSpec.getHiddenOutputSpecs()) {
 			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
-					.getFactoriesForSourceType(exec.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
+					.getFactoriesForSourceType(ctx.getTensorFactory().getReadableBufferType(outputSpec), outputSpec)
 					.stream().filter(c -> c.getDestType().equals(BarDataCell.class)).findFirst().get();
 			outputConverters.put(outputSpec.getIdentifier(), converter);
 		}
@@ -205,7 +205,7 @@ public class DLPythonConverterTest {
 		// pre-allocate output map
 		final HashMap<DLTensorId, DataCell[]> outputs = new HashMap<>(outputConverters.size());
 
-		try (final DLNetworkExecutionSession session = exec.createExecutionSession(network, executionInputSpecs,
+		try (final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
 				outputConverters.keySet(), new DLNetworkInputPreparer() {
 
 					@Override
@@ -433,7 +433,8 @@ public class DLPythonConverterTest {
 		@Override
 		public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec spec, final long batchSize,
 				final long[] shape) {
-			throw new RuntimeException("not yet implemented");
+			return new DLDefaultTensorSpec(spec.getIdentifier(), spec.getName(), batchSize,
+					new DLDefaultFixedTensorShape(shape), spec.getElementType());
 		}
 
 		@Override
@@ -454,9 +455,10 @@ public class DLPythonConverterTest {
 				throw new IllegalArgumentException("Tensor spec '" + spec.getName()
 						+ "' does not provide a batch size. Tensor cannot be created.");
 			}
+			final long exampleSize = DLUtils.Shapes.getSize(shape);
 			final long batchSize = spec.getBatchSize().getAsLong();
+			final long size = exampleSize * batchSize;
 			final Class<?> t = spec.getElementType();
-			final long size = DLUtils.Shapes.getSize(shape) * batchSize;
 			// TODO: handle unsafe casts
 			final Supplier<B> s;
 			if (t.equals(double.class)) {
@@ -470,7 +472,7 @@ public class DLPythonConverterTest {
 			} else {
 				throw new IllegalArgumentException("No matching tensor type for tensor spec '" + spec.getName() + "'.");
 			}
-			return new DLDefaultTensor<>(spec, s.get());
+			return new DLDefaultTensor<>(spec, s.get(), exampleSize);
 		}
 	}
 

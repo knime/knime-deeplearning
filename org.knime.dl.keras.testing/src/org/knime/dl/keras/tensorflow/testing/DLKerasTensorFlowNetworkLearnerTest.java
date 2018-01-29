@@ -52,7 +52,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,13 +61,13 @@ import java.util.Set;
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInvalidNetworkInputException;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.DLInvalidNetworkInputException;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
@@ -102,12 +102,20 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source, true);
 
-		final Set<DLTensorSpec> executionInputSpecs = Collections.singleton(network.getSpec().getInputSpecs()[0]);
+		final int dataSetSize = 10;
+		final int batchSize = 1;
+
+		final DLTensorSpec inputSpec = network.getSpec().getInputSpecs()[0];
+		final DLTensorSpec targetSpec = network.getSpec().getOutputSpecs()[0];
+
+		final Set<DLTensorSpec> executionInputSpecs = new HashSet<>(Arrays.asList(
+				ctx.getTensorFactory().createExecutionTensorSpec(inputSpec, batchSize,
+						DLUtils.Shapes.getFixedShape(inputSpec.getShape()).get()),
+				ctx.getTensorFactory().createExecutionTensorSpec(targetSpec, batchSize,
+						DLUtils.Shapes.getFixedShape(targetSpec.getShape()).get())));
 
 		// training:
 
-		final int dataSetSize = 10;
-		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
 		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
@@ -127,7 +135,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 
 					@Override
 					public long getNumBatches() {
-						return dataSetSize;
+						return dataSetSize / batchSize;
 					}
 
 					@Override
@@ -157,13 +165,26 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 				new DLKerasTensorFlowNetworkLoader());
 		final DLKerasTensorFlowNetwork network = reader.read(source, true);
 
-		final Set<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(
-				Arrays.asList(network.getSpec().getInputSpecs()));
+		final int dataSetSize = 10;
+		final int batchSize = 1;
+
+		final DLTensorSpec inputSpec0 = network.getSpec().getInputSpecs()[0];
+		final DLTensorSpec inputSpec1 = network.getSpec().getInputSpecs()[1];
+		final DLTensorSpec targetSpec0 = network.getSpec().getOutputSpecs()[0];
+		final DLTensorSpec targetSpec1 = network.getSpec().getOutputSpecs()[1];
+
+		final Set<DLTensorSpec> executionInputSpecs = new HashSet<>(Arrays.asList(
+				ctx.getTensorFactory().createExecutionTensorSpec(inputSpec0, batchSize,
+						DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get()),
+				ctx.getTensorFactory().createExecutionTensorSpec(inputSpec1, batchSize,
+						DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get()),
+				ctx.getTensorFactory().createExecutionTensorSpec(targetSpec0, batchSize,
+						DLUtils.Shapes.getFixedShape(targetSpec0.getShape()).get()),
+				ctx.getTensorFactory().createExecutionTensorSpec(targetSpec1, batchSize,
+						DLUtils.Shapes.getFixedShape(targetSpec1.getShape()).get())));
 
 		// training:
 
-		final int dataSetSize = 10;
-		final int batchSize = 1;
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
 		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
@@ -183,7 +204,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 
 					@Override
 					public long getNumBatches() {
-						return dataSetSize;
+						return dataSetSize / batchSize;
 					}
 
 					@Override
