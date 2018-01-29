@@ -93,10 +93,10 @@ import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.execution.DLAbstractExecutableNetwork;
 import org.knime.dl.core.execution.DLAbstractExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
 import org.knime.dl.core.execution.DLExecutableNetwork;
 import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
@@ -477,9 +477,9 @@ public class DLPythonConverterTest {
 
 		@Override
 		public DLTensorToDataCellConverter<DLReadableDoubleBuffer, BarDataCell> createConverter() {
-			return (exec, input, out) -> {
+			return (input, out, exec) -> {
 				final DLReadableDoubleBuffer buf = input.getBuffer();
-				out.accept(new BarDataCell(buf.toDoubleArray()));
+				out[0] = new BarDataCell(buf.toDoubleArray());
 			};
 		}
 
