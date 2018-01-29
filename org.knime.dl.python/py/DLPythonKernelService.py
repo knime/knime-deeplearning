@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from werkzeug.exceptions import NotImplemented
 
 # ------------------------------------------------------------------------
 #  Copyright by KNIME AG, Zurich, Switzerland
