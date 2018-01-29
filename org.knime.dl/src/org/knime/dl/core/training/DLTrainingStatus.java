@@ -60,7 +60,7 @@ import org.knime.dl.core.DLEvent;
 public interface DLTrainingStatus extends Externalizable {
 
 	public enum Status {
-		NOT_STARTED, RUNNING, STOPPED_EARLY, FINISHED, EXCEPTION
+		NOT_STARTED, RUNNING, STOPPED_EARLY, FINISHED, USER_INTERRUPTED, EXCEPTION
 	}
 
 	// properties:
