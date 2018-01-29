@@ -49,7 +49,6 @@
 package org.knime.dl.core.data;
 
 import java.nio.BufferOverflowException;
-import java.nio.BufferUnderflowException;
 
 /**
  * A writable {@link DLBuffer buffer}.
@@ -72,8 +71,6 @@ public interface DLWritableBuffer extends DLBuffer {
 	 * @see DLBuffer#size()
 	 */
 	long getCapacity();
-
-	void setSize(long size) throws BufferOverflowException, BufferUnderflowException;
 
 	/**
 	 * Resets the write state of this buffer. Subsequent calls of write methods will start from the beginning of the

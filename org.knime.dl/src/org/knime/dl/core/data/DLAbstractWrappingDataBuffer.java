@@ -122,16 +122,6 @@ public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataB
 	}
 
 	@Override
-	public void setSize(final long size) throws IllegalArgumentException {
-		checkOverflow(size <= m_capacity);
-		checkUnderflow(size >= 0);
-		m_nextWrite = (int) size;
-		if (m_nextRead > m_nextWrite) {
-			m_nextRead = m_nextWrite;
-		}
-	}
-
-	@Override
 	public long getCapacity() {
 		return m_capacity;
 	}
