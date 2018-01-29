@@ -80,7 +80,7 @@ import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlo
 // TODO: actually this should just delegate to some object which can be anything
 // (even a JavaScript thingy).
 // We don't want to enforce an implementation here.
-public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
+public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> extends NodeView<M> {
 
 	private static final DateTimeFormatter START_TIME_DISPLAY_FORMATTER = DateTimeFormatter
 			.ofPattern("E, dd MMM yyyy HH:mm:ss");
@@ -139,8 +139,6 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 
 	private JPanel m_mainContainer;
 
-	private final DLProgressMonitor m_progressMonitor;
-
 	private int m_lastEpoch = 0;
 
 	/**
@@ -148,17 +146,14 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 	 */
 	private boolean m_areIteratorsInit;
 
-	public DLNodeView(final M model, final DLViewSpec... specs) {
+	public DLKerasLearnerNodeView(final M model, final DLProgressMonitor monitor, final DLViewSpec... specs) {
 		super(model);
+		m_specs = specs;
+		m_areIteratorsInit = false;
+		initView();
 		// Use own NODATA label instead of NodeView impl
 		setShowNODATALabel(false);
-		showNoDataOverlay(true);
-		m_specs = specs;
-		m_progressMonitor = model.getProgressMonitor();
-		m_areIteratorsInit = false;
-
-		initView();
-		updateView(m_progressMonitor);
+		updateModel(monitor);
 	}
 
 	/**
@@ -258,50 +253,47 @@ public class DLNodeView<M extends NodeModel & DLInteractiveLearnerNodeModel> ext
 		});
 		gbc.insets = new Insets(10, 15, 10, 0);
 		m_mainContainer.add(m_stopButton, gbc);
-
-		setComponent(m_mainContainer);
 	}
 
 	private void updateView(final DLProgressMonitor monitor) {
 		if (monitor.isRunning() || monitor.hasData()) {
 			showNoDataOverlay(false);
 			startAllTimers();
-			initDataIterators(monitor.getDataUpdate());
+			initDataIterators(monitor.getViewData());
 
 			if (monitor.hasStoppedEarly() || monitor.hasLearningFinished()) {
 				setHasStoppedButtonStatus();
 			}
 
-			m_epochProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch() * monitor.getNumEpochs());
-			m_batchProgressBar.setMaxProgress(monitor.getNumBatchesPerEpoch());
+			final int numEpochs = monitor.getNumEpochs();
+			final int numBatches = monitor.getNumBatchesPerEpoch();
+			final int currEpoch = monitor.getCurrentEpoch() + 1;
+			final int currBatch = monitor.getCurrentBatchInEpoch() + 1;
 
-			m_epochProgressBar.setProgress(
-					monitor.getNumBatchesPerEpoch() * monitor.getCurrentEpoch() + monitor.getCurrentBatchInEpoch());
-			m_epochProgressBar.setProgressText(monitor.getCurrentEpoch(), monitor.getNumEpochs());
+			m_epochProgressBar.setMaxProgress(numEpochs * numBatches);
+			m_batchProgressBar.setMaxProgress(numBatches);
 
-			m_batchProgressBar.setProgress(monitor.getCurrentBatchInEpoch());
-			m_batchProgressBar.setProgressText(monitor.getCurrentBatchInEpoch(), monitor.getNumBatchesPerEpoch());
+			m_epochProgressBar.setProgress((currEpoch - 1) * numBatches + currBatch);
+			m_epochProgressBar.setProgressText(currEpoch, numEpochs);
+
+			m_batchProgressBar.setProgress(currBatch);
+			m_batchProgressBar.setProgressText(currBatch, numBatches);
 
 			final LocalDateTime startTime = monitor.getStartDateTime();
-			if (startTime != null) {
-				LocalDateTime endTime = monitor.getEndDateTime();
-				if (endTime == null) {
-					endTime = LocalDateTime.now();
-				}
-				final Duration elapsedTime = Duration.between(startTime, endTime);
+			final LocalDateTime endTime = monitor.getEndDateTime() != null ? monitor.getEndDateTime()
+					: LocalDateTime.now();
+			final Duration elapsedTime = Duration.between(startTime, endTime);
 
-				final int currentEpoch = monitor.getCurrentEpoch();
-				if (currentEpoch != m_lastEpoch || currentEpoch == monitor.getNumEpochs()) {
-					m_epochProgressBar.setDuration(elapsedTime.dividedBy(currentEpoch + 1));
-					m_lastEpoch = currentEpoch;
-				}
-				final int currentBatch = monitor.getCurrentBatchInEpoch();
-				m_batchProgressBar.setDuration(elapsedTime.dividedBy(
-						(currentBatch != 0 ? currentBatch : 1) + currentEpoch * monitor.getNumBatchesPerEpoch()));
-
-				m_startTime.setValue(formatStartTime(startTime));
-				m_elapsedTime.setValue(formatElapsedTime(elapsedTime));
+			if (currEpoch != m_lastEpoch || currEpoch == monitor.getNumEpochs()) {
+				m_epochProgressBar.setDuration(elapsedTime.dividedBy(currEpoch));
+				m_lastEpoch = currEpoch;
 			}
+
+			m_batchProgressBar.setDuration(elapsedTime.dividedBy((currEpoch - 1) * (long) numBatches + currBatch));
+
+			m_startTime.setValue(formatStartTime(startTime));
+			m_elapsedTime.setValue(formatElapsedTime(elapsedTime));
+
 			for (final DLViewSpec spec : m_specs) {
 				final DLJFreeChartLinePlotWithHistoryView view = m_views.get(spec.id());
 				view.setIsRunning(monitor.isRunning());
