@@ -133,9 +133,10 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 			throw new IllegalArgumentException(
 					"Tensor spec '" + spec.getName() + "' does not provide a batch size. Tensor cannot be created.");
 		}
+		final long exampleSize = DLUtils.Shapes.getSize(shape);
 		final long batchSize = spec.getBatchSize().getAsLong();
+		final long size = exampleSize * batchSize;
 		final Class<?> t = spec.getElementType();
-		final long size = DLUtils.Shapes.getSize(shape) * batchSize;
 		// TODO: handle unsafe casts
 		final Supplier<B> s;
 		if (t.equals(double.class)) {
@@ -149,6 +150,6 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 		} else {
 			throw new IllegalArgumentException("No matching tensor type for tensor spec '" + spec.getName() + "'.");
 		}
-		return new DLDefaultTensor<>(spec, s.get());
+		return new DLDefaultTensor<>(spec, s.get(), exampleSize);
 	}
 }

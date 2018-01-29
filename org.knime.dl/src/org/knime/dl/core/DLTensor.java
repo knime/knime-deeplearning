@@ -60,6 +60,13 @@ public interface DLTensor<B extends DLBuffer> extends AutoCloseable {
 
 	DLTensorSpec getSpec();
 
+	/**
+	 * @return the size of a single example in terms of the elements of the tensor's {@link #getBuffer() buffer}, i.e.
+	 *         <code>getBuffer.size()</code> divided by <code> getExampleSize()</code> yields the number of examples in
+	 *         this tensor (which usually equals <code>getSpec().getBatchSize()</code>)
+	 */
+	long getExampleSize();
+
 	B getBuffer();
 
 	/**

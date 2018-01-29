@@ -58,9 +58,12 @@ public abstract class DLAbstractTensor<B extends DLBuffer> implements DLTensor<B
 
 	private final B m_buffer;
 
-	protected DLAbstractTensor(final DLTensorSpec spec, final B buffer) {
+	private final long m_exampleSize;
+
+	protected DLAbstractTensor(final DLTensorSpec spec, final B buffer, final long exampleSize) {
 		m_spec = spec;
 		m_buffer = buffer;
+		m_exampleSize = exampleSize;
 	}
 
 	@Override
@@ -71,6 +74,11 @@ public abstract class DLAbstractTensor<B extends DLBuffer> implements DLTensor<B
 	@Override
 	public B getBuffer() {
 		return m_buffer;
+	}
+
+	@Override
+	public long getExampleSize() {
+		return m_exampleSize;
 	}
 
 	@Override

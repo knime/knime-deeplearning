@@ -54,7 +54,7 @@ import org.knime.dl.core.data.DLBuffer;
  */
 public class DLDefaultTensor<B extends DLBuffer> extends DLAbstractTensor<B> {
 
-	public DLDefaultTensor(final DLTensorSpec spec, final B buffer) {
-		super(spec, buffer);
+	public DLDefaultTensor(final DLTensorSpec spec, final B buffer, final long exampleSize) {
+		super(spec, buffer, exampleSize);
 	}
 }
