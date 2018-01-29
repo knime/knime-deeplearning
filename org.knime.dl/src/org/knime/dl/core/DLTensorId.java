@@ -49,6 +49,7 @@ package org.knime.dl.core;
 import java.io.Serializable;
 
 /**
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

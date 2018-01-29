@@ -46,7 +46,6 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
@@ -113,14 +112,14 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 		return new DLAbstractTensorDataValueToTensorConverter<CollectionDataValue, O>() {
 
 			@Override
-			public void convertInternal(CollectionDataValue input, DLTensor<O> output) {
-					final Iterable<? extends IE> casted = ((Iterable<? extends IE>) input);
-					elementConverter.convert(casted, output);
+			protected long[] getShapeInternal(final CollectionDataValue element) {
+				return elementConverter.getShape(element.stream().map(e -> (IE) e).collect(Collectors.toList()));
 			}
 
 			@Override
-			protected long[] getShapeInternal(CollectionDataValue element) {
-				return elementConverter.getShape(element.stream().map(e -> (IE)e).collect(Collectors.toList()));
+			public void convertInternal(final CollectionDataValue input, final DLTensor<O> output) {
+				final Iterable<? extends IE> casted = ((Iterable<? extends IE>) input);
+				elementConverter.convert(casted, output);
 			}
 		};
 	}

@@ -116,7 +116,7 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 		for (final DLTensorToDataCellConverterFactory<?, ?> candidate : m_converters.values()) {
 			if (candidate.getBufferType().isAssignableFrom(sourceType)) {
 				convs.add(candidate);
-				OptionalLong destCount = candidate.getDestCount(sourceSpec);
+				final OptionalLong destCount = candidate.getDestCount(sourceSpec);
 				// TODO: Figure out whether this is the best we can do
 				// Currently a missing destCount is a direct indicator that the converter
 				// can have multiple outputs

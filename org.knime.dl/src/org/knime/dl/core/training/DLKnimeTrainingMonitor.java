@@ -64,12 +64,12 @@ public class DLKnimeTrainingMonitor<S extends DLTrainingStatus> extends DLAbstra
 	}
 
 	@Override
-	public DLMonitor createSubMonitor(final double fraction) {
-		return new DLKnimeTrainingMonitor<>(m_knimeMonitor.createSubProgress(fraction), m_trainingStatus);
+	public S getTrainingStatus() {
+		return m_trainingStatus;
 	}
 
 	@Override
-	public S getTrainingStatus() {
-		return m_trainingStatus;
+	public DLKnimeTrainingMonitor<S> createSubMonitor(final double fraction) {
+		return new DLKnimeTrainingMonitor<>(m_knimeMonitor.createSubProgress(fraction), m_trainingStatus);
 	}
 }

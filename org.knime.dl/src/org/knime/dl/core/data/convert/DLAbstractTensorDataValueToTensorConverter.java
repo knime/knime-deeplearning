@@ -51,31 +51,37 @@ package org.knime.dl.core.data.convert;
 import java.util.List;
 
 import org.knime.core.data.DataValue;
-import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Handles shape inference on an abstract level.
- * Note that we currently only allow single tensor data values to be selected as input i.e. it is not possible
- * to select multiple list columns.
- * 
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * Handles shape inference on an abstract level. Note that we currently only allow single tensor data values to be
+ * selected as input i.e. it is not possible to select multiple list columns.
  *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLAbstractTensorDataValueToTensorConverter <FROM extends DataValue, VIA extends DLWritableBuffer>
-implements DLDataValueToTensorConverter<FROM, VIA> {
-	
+public abstract class DLAbstractTensorDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
+		implements DLDataValueToTensorConverter<FROM, VIA> {
+
 	protected static final String ERROR_MSG = "For lists and vectors only single column selection is allowed.";
-	
+
+	/**
+	 * @param element an element of FROM
+	 * @return the shape of the element
+	 */
+	protected abstract long[] getShapeInternal(FROM element);
+
+	protected abstract void convertInternal(FROM element, DLTensor<VIA> output);
+
 	@Override
-	public final long[] getShape(List<? extends FROM> input) {
+	public final long[] getShape(final List<? extends FROM> input) {
 		CheckUtils.checkArgument(input.size() == 1, ERROR_MSG);
 		return getShapeInternal(input.get(0));
 	}
-	
-	public final void convert(Iterable<? extends FROM> input, DLTensor<VIA> output) {
+
+	@Override
+	public final void convert(final Iterable<? extends FROM> input, final DLTensor<VIA> output) {
 		boolean isNotSingle = false;
 		for (final FROM val : input) {
 			if (isNotSingle) {
@@ -85,15 +91,4 @@ implements DLDataValueToTensorConverter<FROM, VIA> {
 			isNotSingle = true;
 		}
 	}
-	
-	
-	/**
-	 * 
-	 * @param element an element of FROM
-	 * @return the shape of the element
-	 */
-	protected abstract long[] getShapeInternal(FROM element);
-	
-	protected abstract void convertInternal(FROM element, DLTensor<VIA> output);
-	
 }

@@ -90,16 +90,16 @@ public class DLByteVectorToByteTensorConverterFactory
 		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer>() {
 
 			@Override
-			public void convertInternal(ByteVectorValue input, DLTensor<DLWritableShortBuffer> output) {
-				final DLWritableByteBuffer buf = output.getBuffer();
-					for (int i = 0; i < input.length(); i++) {
-						buf.put((byte) input.get(i));
-				}
+			protected long[] getShapeInternal(final ByteVectorValue element) {
+				return new long[] { element.length() };
 			}
 
 			@Override
-			protected long[] getShapeInternal(ByteVectorValue element) {
-				return new long[] {element.length()};
+			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableShortBuffer> output) {
+				final DLWritableByteBuffer buf = output.getBuffer();
+				for (int i = 0; i < input.length(); i++) {
+					buf.put((byte) input.get(i));
+				}
 			}
 		};
 	}

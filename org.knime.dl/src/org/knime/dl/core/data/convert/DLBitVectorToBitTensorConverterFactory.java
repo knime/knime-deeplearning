@@ -86,22 +86,20 @@ public class DLBitVectorToBitTensorConverterFactory
 
 	@Override
 	public DLDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer> createConverter() {
-return new DLAbstractTensorDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
-			
+		return new DLAbstractTensorDataValueToTensorConverter<BitVectorValue, DLWritableBitBuffer>() {
+
 			@Override
-			protected long[] getShapeInternal(BitVectorValue element) {
-				return new long[] {element.length()};
+			protected long[] getShapeInternal(final BitVectorValue element) {
+				return new long[] { element.length() };
 			}
-			
+
 			@Override
-			public void convertInternal(BitVectorValue input, DLTensor<DLWritableBitBuffer> output) {
-				DLWritableBitBuffer buffer = output.getBuffer();
+			public void convertInternal(final BitVectorValue input, final DLTensor<DLWritableBitBuffer> output) {
+				final DLWritableBitBuffer buffer = output.getBuffer();
 				for (int i = 0; i < input.length(); i++) {
 					buffer.put(input.get(i));
 				}
 			}
-
-			
 		};
 	}
 }

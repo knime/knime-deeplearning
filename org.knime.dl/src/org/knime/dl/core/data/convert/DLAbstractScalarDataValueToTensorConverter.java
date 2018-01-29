@@ -53,12 +53,14 @@ import java.util.List;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.data.DLWritableBuffer;
 
-abstract class DLAbstractScalarDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
-implements DLDataValueToTensorConverter<FROM, VIA> {
+/**
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ */
+public abstract class DLAbstractScalarDataValueToTensorConverter<FROM extends DataValue, VIA extends DLWritableBuffer>
+		implements DLDataValueToTensorConverter<FROM, VIA> {
 
 	@Override
-	public long[] getShape(List<? extends FROM> input) {
-		return new long[] {input.size()};
+	public long[] getShape(final List<? extends FROM> input) {
+		return new long[] { input.size() };
 	}
-
 }

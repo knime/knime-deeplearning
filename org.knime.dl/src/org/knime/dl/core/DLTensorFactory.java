@@ -1,7 +1,8 @@
 /*
  * ------------------------------------------------------------------------
  *
- *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Copyright by
+KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -57,20 +58,32 @@ public interface DLTensorFactory {
 
 	Class<?> getNetworkType();
 
-	// Only return basic interfaces such as "DLWritableDoubleBuffer" etc. Else
-	// matching in
-	// DLDataValueToTensorConverterRegistry#getConverterFactories does not work
-	// anymore.
-	// TODO: improve matching in registry (more sophisticated traversal of
-	// implemented interfaces etc.)?
+	/**
+	 * Only return basic interfaces such as "DLReadableDoubleBuffer" etc.
+	 *
+	 * @throws IllegalArgumentException if no matching buffer type is available
+	 */
 	Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec);
 
-	// Only return basic interfaces such as "DLReadableDoubleBuffer" etc. [...]
+	/**
+	 * Only return basic interfaces such as "DLReadableDoubleBuffer" etc.
+	 *
+	 * @throws IllegalArgumentException if no matching buffer type is available
+	 */
 	Class<? extends DLReadableBuffer> getReadableBufferType(final DLTensorSpec spec);
 
-	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec) throws IllegalArgumentException;
+	/**
+	 * @throws IllegalArgumentException if failed to create a tensor due to invalid arguments
+	 */
+	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec);
 
-	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec) throws IllegalArgumentException;
+	/**
+	 * @throws IllegalArgumentException if failed to create a tensor due to invalid arguments
+	 */
+	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec);
 
+	/**
+	 * @throws IllegalArgumentException if failed to create a tensor spec due to invalid arguments
+	 */
 	DLTensorSpec createExecutionTensorSpec(DLTensorSpec spec, long batchSize, long[] shape);
 }

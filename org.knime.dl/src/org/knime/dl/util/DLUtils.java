@@ -48,8 +48,8 @@
  */
 package org.knime.dl.util;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import java.io.File;
@@ -86,6 +86,9 @@ public final class DLUtils {
 	}
 
 	public static class Files {
+
+		private Files() {
+		}
 
 		public static File getFileFromBundle(final String bundleName, final String relativePath) throws IOException {
 			checkNotNullOrEmpty(bundleName);
@@ -197,7 +200,7 @@ public final class DLUtils {
 	}
 
 	public static class Shapes {
-		
+
 		public static final String UNKNOWN_DIM_SIZE_REPR = "?";
 
 		private Shapes() {
@@ -232,31 +235,31 @@ public final class DLUtils {
 			}
 			return size;
 		}
-		
+
 		public static long[] calculateExecutionShape(final DLTensorShape tensorShape, final long[] dataShape) {
 			if (isFixed(tensorShape)) {
-				long[] ts = ((DLFixedTensorShape)tensorShape).getShape();
+				final long[] ts = ((DLFixedTensorShape) tensorShape).getShape();
 				checkArgument(getSize(ts) == getSize(dataShape),
 						"The input shape does not match the tensor shape. %s vs. %s", Arrays.toString(dataShape),
 						tensorShape);
 				return ts;
 			} else if (isPartial(tensorShape)) {
-				Optional<long[]> executionShape = executionShapeFromPartialShape((DLPartialTensorShape) tensorShape, dataShape);
-				checkArgument(executionShape.isPresent(), 
-						"The input shape does not match the tensor shape. %s vs. %s", Arrays.toString(dataShape),
-						tensorShape);
+				final Optional<long[]> executionShape = executionShapeFromPartialShape(
+						(DLPartialTensorShape) tensorShape, dataShape);
+				checkArgument(executionShape.isPresent(), "The input shape does not match the tensor shape. %s vs. %s",
+						Arrays.toString(dataShape), tensorShape);
 				return executionShape.get();
 			}
 			throw new IllegalArgumentException("Currently only known shapes are supported.");
 		}
-		
-		public static Optional<long[]> executionShapeFromPartialShape(DLPartialTensorShape tensorShape,
+
+		public static Optional<long[]> executionShapeFromPartialShape(final DLPartialTensorShape tensorShape,
 				final long[] dataShape) {
 			if (dataShape.length == 1) {
 				if (tensorShape.getNumUnknownDimensions() == 1) {
-					long nInputs = dataShape[0];
+					final long nInputs = dataShape[0];
 					if (nInputs % tensorShape.getKnownSize() == 0L) {
-						long[] executionShape = IntStream.range(0, tensorShape.getNumDimensions())
+						final long[] executionShape = IntStream.range(0, tensorShape.getNumDimensions())
 								.mapToObj(tensorShape::getDimension)
 								.mapToLong(o -> o.isPresent() ? o.getAsLong() : nInputs / tensorShape.getKnownSize())
 								.toArray();
@@ -264,23 +267,21 @@ public final class DLUtils {
 					}
 				}
 			} else if (dataShape.length > 1) {
-				long dataSize = getSize(dataShape);
-				//TODO: Figure out how to best match dimensions
-				if (dataShape.length == tensorShape.getNumDimensions() 
-						&& dataSize % tensorShape.getKnownSize() == 0) {
+				final long dataSize = getSize(dataShape);
+				// TODO: Figure out how to best match dimensions
+				if (dataShape.length == tensorShape.getNumDimensions() && dataSize % tensorShape.getKnownSize() == 0) {
 					return Optional.of(dataShape);
 				}
 			}
 			return Optional.empty();
 		}
-		
-		public static boolean isPartial(DLTensorShape shape) {
+
+		public static boolean isPartial(final DLTensorShape shape) {
 			return shape instanceof DLPartialTensorShape;
 		}
-		
+
 		public static boolean isKnown(final DLTensorShape shape) {
 			return !(shape instanceof DLUnknownTensorShape);
 		}
-		
 	}
 }
