@@ -158,6 +158,7 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 
 	@Override
 	public void run(final DLTrainingMonitor<? extends S> monitor) throws DLCanceledExecutionException, Exception {
+		monitor.getTrainingStatus().trainingStarted().raise(null);
 		// lazily preallocate input/target tensors
 		if (m_input == null) {
 			m_input = new HashMap<>(m_executionInputSpecs.size());
@@ -165,8 +166,8 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 				m_input.put(spec.getIdentifier(), m_tensorFactory.createWritableTensor(spec));
 			}
 		}
-
 		trainInternal(monitor);
+		monitor.getTrainingStatus().trainingEnded().raise(null);
 	}
 
 	@Override
