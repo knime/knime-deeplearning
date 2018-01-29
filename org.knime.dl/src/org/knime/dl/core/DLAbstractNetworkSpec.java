@@ -150,7 +150,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 		if (obj == null || obj.getClass() != getClass()) {
 			return false;
 		}
-		final DLAbstractNetworkSpec other = (DLAbstractNetworkSpec) obj;
+		final DLAbstractNetworkSpec<?> other = (DLAbstractNetworkSpec<?>) obj;
 		return other.m_inputSpecs.length == m_inputSpecs.length //
 				&& other.m_hiddenOutputSpecs.length == m_hiddenOutputSpecs.length //
 				&& other.m_outputSpecs.length == m_outputSpecs.length //
