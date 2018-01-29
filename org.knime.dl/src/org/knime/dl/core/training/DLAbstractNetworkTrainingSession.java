@@ -54,15 +54,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.DLNetworkInputPreparer;
-import org.knime.dl.core.DLNetworkInputProvider;
 
 import com.google.common.collect.Sets;
 
@@ -74,7 +75,8 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 		implements DLNetworkTrainingSession<S> {
 
 	private static boolean areInputSpecsValid(final DLNetwork network, final Set<DLTensorSpec> executionInputSpecs) {
-		final DLTensorSpec[] inputSpecs = network.getSpec().getInputSpecs();
+		final DLTensorSpec[] inputSpecs = ArrayUtils.addAll(network.getSpec().getInputSpecs(),
+				network.getSpec().getOutputSpecs());
 		if (inputSpecs.length != executionInputSpecs.size()) {
 			return false;
 		}
