@@ -73,8 +73,6 @@ public abstract class DLAbstractRowIterator implements DLRowIterator {
 
 	protected final Map<DLTensorId, List<DataValue>> m_temp;
 
-	protected long m_lastIndex = -1;
-
 	protected DLAbstractRowIterator(final DataTableSpec tableSpec, final Map<DLTensorId, int[]> columns) {
 		m_tableSpec = checkNotNull(tableSpec);
 		m_columns = new HashMap<>(checkNotNull(columns));
@@ -89,7 +87,6 @@ public abstract class DLAbstractRowIterator implements DLRowIterator {
 
 	@Override
 	public final Map<DLTensorId, List<DataValue>> groupByTensor(final DataRow row) {
-		m_lastIndex++;
 		for (final Entry<DLTensorId, int[]> entry : m_columns.entrySet()) {
 			final int[] columns = entry.getValue();
 			final List<DataValue> list = m_temp.get(entry.getKey());
