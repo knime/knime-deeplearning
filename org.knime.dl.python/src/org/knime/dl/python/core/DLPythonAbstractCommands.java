@@ -62,12 +62,11 @@ import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.training.DLMetrics;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
@@ -416,10 +415,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = inputSupplier.get(batchIndex);
 				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-					final DLTensorSpec tensorSpec = tensor.getSpec();
 					final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
 					try {
-						getContext().getKernel().putData(tensorSpec.getName(), tableChunker, 1);
+						getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
 					} catch (final IOException ex) {
 						throw new IOException("Transmitting data to Python failed.", ex);
 					} finally {
