@@ -412,8 +412,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				monitor.checkCanceled();
 				final long batchIndex = Long.parseLong(msg.getValue());
 				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = inputSupplier.get(batchIndex);
+				monitor.checkCanceled();
 				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 					final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
@@ -425,6 +427,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						tensor.getBuffer().reset();
 					}
 				}
+				monitor.checkCanceled();
 				messages.answer(new DefaultJavaToPythonResponse(msg, ""));
 			}
 		};
@@ -442,6 +445,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				monitor.checkCanceled();
 				final String[] metricsStr = msg.getValue().split(";");
 				int i = 0;
 				for (final DLMetrics m : metrics.values()) {
@@ -469,13 +473,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.getNumBatches()) //
 				.a(", network.spec.training_config.batch_size, kernel_service)") //
 				.n("network.train(data_supplier)");
-		monitor.getTrainingStatus().trainingStarted().raise(null);
 		getContext().executeInKernel(b.toString());
 
 		messages.unregisterMessageHandler(dataRequestHandler);
 		messages.unregisterMessageHandler(onBatchEndHandler);
-
-		monitor.getTrainingStatus().trainingEnded().raise(null);
 	}
 
 	@Override
