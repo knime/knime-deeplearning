@@ -286,7 +286,7 @@ class DLKerasNetwork(DLPythonNetwork):
     def _format_input(self, in_data, batch_size):
         X = []
         for input_spec in self.spec.input_specs:
-            tensor = in_data[input_spec.name].values[0][0].array
+            tensor = in_data[input_spec.identifier].values[0][0].array
             tensor = tensor.reshape([batch_size] + input_spec.shape)
             X.append(tensor)
         return X
@@ -299,14 +299,14 @@ class DLKerasNetwork(DLPythonNetwork):
         output = {}
         for idx, output_spec in enumerate(self.spec.output_specs):
             out = self._put_in_matching_buffer(Y[idx])
-            out = pd.DataFrame({output_spec.name: [out]})
-            output[output_spec.name] = out
+            out = pd.DataFrame({output_spec.identifier: [out]})
+            output[output_spec.identifier] = out
         return output
 
     def _format_target(self, in_data, batch_size):
         Y = []
         for output_spec in self.spec.output_specs:
-            tensor = in_data[output_spec.name].values[0][0].array
+            tensor = in_data[output_spec.identifier].values[0][0].array
             tensor = tensor.reshape([batch_size] + output_spec.shape)
             Y.append(tensor)
         return Y
