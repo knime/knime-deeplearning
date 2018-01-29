@@ -599,7 +599,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer,
 				lossFunctions, callbacks);
 
-		final DLKerasTrainableNetworkAdapter trainableNetwork = ctx.trainable(inNetwork, trainingConfig);
+		final DLKerasTrainableNetworkAdapter trainableNetwork = ctx.createTrainableNetwork(inNetwork, trainingConfig);
 
 		final Map<DLTensorSpec, int[]> columns = new HashMap<>(
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
