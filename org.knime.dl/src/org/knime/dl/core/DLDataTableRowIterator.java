@@ -49,7 +49,6 @@ package org.knime.dl.core;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
-import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -63,19 +62,19 @@ public final class DLDataTableRowIterator extends DLAbstractRowIterator {
 
 	private final BufferedDataTable m_input;
 
-	private final OptionalLong m_size;
+	private final long m_size;
 
 	private CloseableRowIterator m_iterator;
 
 	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
 		super(input.getDataTableSpec(), columns);
 		m_input = checkNotNull(input);
-		m_size = OptionalLong.of(input.size());
+		m_size = input.size();
 		m_iterator = input.iterator();
 	}
 
 	@Override
-	public OptionalLong size() {
+	public long size() {
 		return m_size;
 	}
 

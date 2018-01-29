@@ -49,7 +49,6 @@ package org.knime.dl.core;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
@@ -61,9 +60,10 @@ import org.knime.core.data.DataValue;
 public interface DLRowIterator extends Iterator<DataRow>, AutoCloseable {
 
 	/**
-	 * @returns empty optional if the iterator has no size information, e.g. when streaming
+	 * @throws UnsupportedOperationException if the iterator has no size information about its underlying data, e.g.
+	 *             when streaming
 	 */
-	OptionalLong size();
+	long size();
 
 	@Override
 	DataRow next();

@@ -50,7 +50,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.node.streamable.DataTableRowInput;
@@ -64,24 +63,22 @@ public final class DLRowInputRowIterator extends DLAbstractRowIterator {
 
 	private final RowInput m_input;
 
-	private final OptionalLong m_size;
+	private final long m_size;
 
 	private DataRow m_lastPeeked;
 
 	public DLRowInputRowIterator(final RowInput input, final Map<DLTensorId, int[]> columns) {
 		super(input.getDataTableSpec(), columns);
 		m_input = checkNotNull(input);
-		if (input instanceof DataTableRowInput) {
-			final long rowCount = ((DataTableRowInput) input).getRowCount();
-			m_size = rowCount != -1 ? OptionalLong.of(rowCount) : OptionalLong.empty();
-		} else {
-			m_size = OptionalLong.empty();
-		}
+		m_size = input instanceof DataTableRowInput ? ((DataTableRowInput) input).getRowCount() : -1;
 	}
 
 	@Override
-	public OptionalLong size() {
-		return m_size;
+	public long size() {
+		if (m_size != -1) {
+			return m_size;
+		}
+		throw new UnsupportedOperationException("Iterator has no size information about its underlying data.");
 	}
 
 	@Override
