@@ -56,13 +56,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLAbstractNetworkExecutionSession;
 import org.knime.dl.core.execution.DLExecutionMonitor;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonCommands;
@@ -113,10 +114,18 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
 					.load(m_network.getSource(), m_commands.getContext(), false);
 		}
-		for (long i = 0; i < m_inputPreparer.getNumBatches(); i++) {
+		long currentInBatchSize = m_expectedBatchSize;
+		final long numBatches = m_inputPreparer.getNumBatches();
+		final long lastBatchIndex = numBatches - 1;
+		for (long i = 0; i < numBatches; i++) {
 			m_inputPreparer.prepare(m_input, i);
+			if (i == lastBatchIndex) {
+				// last batch might be incomplete
+				final DLTensor<? extends DLWritableBuffer> tensor = m_input.values().stream().findAny().get();
+				currentInBatchSize = tensor.getBuffer().size() / tensor.getExampleSize();
+			}
 			m_commands.setNetworkInputs(m_handle, m_input);
-			m_commands.executeNetwork(m_handle, m_requestedOutputs, m_batchSize);
+			m_commands.executeNetwork(m_handle, m_requestedOutputs, currentInBatchSize);
 			for (final DLTensor<?> input : m_input.values()) {
 				input.getBuffer().reset();
 			}
@@ -128,12 +137,12 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 						m_requestedOutputs);
 				for (final DLTensorSpec spec : outputSpecs) {
 					if (m_requestedOutputs.contains(spec.getIdentifier())) {
-						final long[] shape = outputShapes.get(spec.getIdentifier());
-						final long batchSize = shape[0];
-						final long[] shapeWithoutBatchSize = new long[shape.length - 1];
-						System.arraycopy(shape, 1, shapeWithoutBatchSize, 0, shapeWithoutBatchSize.length);
-						final DLTensorSpec executionSpec = m_tensorFactory.createExecutionTensorSpec(spec, batchSize,
-								shapeWithoutBatchSize);
+						final long[] outShape = outputShapes.get(spec.getIdentifier());
+						final long outBatchSize = outShape[0];
+						final long[] outShapeWithoutBatchSize = new long[outShape.length - 1];
+						System.arraycopy(outShape, 1, outShapeWithoutBatchSize, 0, outShapeWithoutBatchSize.length);
+						final DLTensorSpec executionSpec = m_tensorFactory.createExecutionTensorSpec(spec, outBatchSize,
+								outShapeWithoutBatchSize);
 						m_output.put(spec.getIdentifier(), m_tensorFactory.createReadableTensor(executionSpec));
 					}
 				}
