@@ -47,8 +47,8 @@
 package org.knime.dl.core.execution;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
@@ -57,12 +57,8 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkOutputConsumer
-		extends Consumer<Map<DLTensorId, DLTensor<? extends DLReadableBuffer>>>, AutoCloseable {
+public interface DLNetworkOutputConsumer extends AutoCloseable {
 
-	@Override
-	void accept(Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output);
-
-	@Override
-	void close() throws Exception;
+	void accept(Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output)
+			throws DLCanceledExecutionException, DLInvalidNetworkOutputException;
 }
