@@ -120,8 +120,9 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 				throw new RuntimeException(e);
 			}
 		}
-		// must be present
-		final long batchSize = tensors.values().iterator().next().getSpec().getBatchSize().getAsLong();
+		// batch might be incomplete
+		final DLTensor<? extends DLReadableBuffer> tensor = tensors.values().iterator().next();
+		final long batchSize = tensor.getBuffer().size() / tensor.getExampleSize();
 		for (int r = 0; r < batchSize; r++) {
 			int c = 0;
 			for (final DLTensorId identifier : tensors.keySet()) {
