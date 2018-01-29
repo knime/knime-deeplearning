@@ -58,8 +58,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.OptionalLong;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -109,8 +109,10 @@ import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
+import org.knime.dl.core.execution.DLDefaultExecutionStatus;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
+import org.knime.dl.core.execution.DLExecutionStatus;
 import org.knime.dl.core.execution.DLKnimeExecutionMonitor;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutionInputPreparer;
 import org.knime.dl.core.execution.DLKnimeNetworkOutputConsumer;
@@ -501,6 +503,8 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ "'. Are you missing a KNIME Deep Learning extension?"));
 
 		final int batchSize = m_generalCfg.getBatchSizeModel().getIntValue();
+		final boolean isPredefinedBatchSize = Arrays.stream(networkSpec.getInputSpecs())
+				.anyMatch(s -> s.getBatchSize().isPresent());
 
 		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsModel().getBooleanValue();
 
@@ -536,7 +540,7 @@ final class DLExecutorNodeModel extends NodeModel {
 
 		try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
 				final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
-				rowIterator, batchSize, inputConverterForTensorId);
+						rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
 				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
 						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
 				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
@@ -544,7 +548,25 @@ final class DLExecutorNodeModel extends NodeModel {
 								rowIterator.peek(), ctx.getTensorFactory(), batchSize,
 								columnsForTensorId, m_inputConverters),
 						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
-			final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec);
+			int numBatches = -1;
+			try {
+				numBatches = (int) inputPreparer.getNumBatches();
+			} catch (final UnsupportedOperationException ex) {
+				// ignore - we now know that we don't know the number of batches
+			}
+			final DLExecutionStatus status = numBatches != -1 ? new DLDefaultExecutionStatus(numBatches)
+					: new DLDefaultExecutionStatus();
+			final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
+			monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
+				final int currBatch = status.getCurrentBatch() + 1;
+				if (status.getNumBatches().isPresent()) {
+					final int numBatch = status.getNumBatches().getAsInt();
+					monitor.setProgress(currBatch / (double) numBatch,
+							"Processing batch " + currBatch + " of " + numBatch + "...");
+				} else {
+					monitor.setMessage("Processing batch " + currBatch + "...");
+				}
+			});
 			session.run(monitor);
 		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
 			throw e;
