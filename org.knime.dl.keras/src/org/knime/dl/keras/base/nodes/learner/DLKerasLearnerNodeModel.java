@@ -62,6 +62,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -86,17 +87,21 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.core.DLDefaultRowIterator;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLDataTableRowIterator;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
-import org.knime.dl.core.DLRowIterator;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
-import org.knime.dl.core.training.DLKnimeNetworkLearner;
+import org.knime.dl.core.execution.DLKnimeNetworkInputPreparer;
+import org.knime.dl.core.training.DLKnimeTrainingMonitor;
+import org.knime.dl.core.training.DLMetrics;
 import org.knime.dl.core.training.DLTrainingContext;
+import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.keras.base.nodes.learner.view.DLInteractiveLearnerNodeModel;
 import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
@@ -111,11 +116,13 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
+import org.knime.dl.keras.core.training.DLKerasDefaultTrainingStatus;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
+import org.knime.dl.keras.core.training.DLKerasNetworkTrainingSession;
 import org.knime.dl.keras.core.training.DLKerasOptimizer;
-import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
+import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
@@ -176,7 +183,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	private final DLLinePlotViewData<?>[] m_viewData;
 
-	private final DLKerasDefaultTrainingMonitor m_monitor;
+	private final DLKerasDefaultTrainingStatus m_status;
 
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE },
@@ -188,23 +195,22 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// as soon as we want to be more dynamic e.g. make views configurable we
 		// have to move this somewhere else..
 		m_viewSpecs = new DLJFreeChartLinePlotViewSpec[2];
-		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
+		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
 				new String[] { "Training data" });
-		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
+		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
 				new String[] { "Training data" });
 		m_viewData = new DLLinePlotViewData[2];
-		m_monitor = new DLKerasDefaultTrainingMonitor();
+		m_status = new DLKerasDefaultTrainingStatus();
 	}
 
 	@Override
 	public DLProgressMonitor getProgressMonitor() {
-		return m_monitor;
+		return m_status;
 	}
 
 	@Override
 	public void stopLearning() {
-		m_monitor.setIsRunning(false);
-		m_monitor.setHasStoppedEarly(true);
+		m_status.setStatus(Status.STOPPED_EARLY);
 	}
 
 	protected DLViewSpec[] getViewSpecs() {
@@ -278,8 +284,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			for (int i = 0; i < m_viewSpecs.length; i++) {
 				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) objIn.readObject());
 			}
-			m_monitor.readExternal(objIn);
-			m_monitor.setDataUpdate(m_viewData);
+			m_status.readExternal(objIn);
+			m_status.setDataUpdate(m_viewData);
 		} catch (final ClassNotFoundException e) {
 			throw new IOException("View data could not be restored.");
 		}
@@ -295,7 +301,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			for (int i = 0; i < m_viewSpecs.length; i++) {
 				objOut.writeObject(m_viewData[i].asArray());
 			}
-			m_monitor.writeExternal(objOut);
+			m_status.writeExternal(objOut);
 		}
 	}
 
@@ -361,7 +367,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (int i = 0; i < m_viewData.length; i++) {
 			m_viewData[i] = null;
 		}
-		m_monitor.setHasData(false);
+		m_status.setHasData(false);
 		// reset views
 		notifyViews(null);
 	}
@@ -599,20 +605,22 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer,
 				lossFunctions, callbacks);
 
-		final DLKerasTrainableNetworkAdapter trainableNetwork = ctx.createTrainableNetwork(inNetwork, trainingConfig);
-
-		final Map<DLTensorSpec, int[]> columns = new HashMap<>(
+		final Map<DLTensorId, int[]> columnsForTensorId = new HashMap<>(
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
-		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> input : m_converters.entrySet()) {
-			final DLTensorSpec tensorSpec = input.getKey();
+		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
+				columnsForTensorId.size());
+		final LinkedHashSet<DLTensorSpec> executionInputSpecs = new LinkedHashSet<>(
+				inNetworkSpec.getInputSpecs().length);
+		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
+			final DLTensorSpec spec = entry.getKey();
 			final DataColumnSpecFilterConfiguration filterConfig;
-			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
+			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(spec.getName());
 			if (inputCfg != null) {
 				filterConfig = inputCfg.getInputColumnsEntry().getValue();
 			} else {
-				filterConfig = m_targetCfgs.get(tensorSpec.getName()).getInputColumnsEntry().getValue();
+				filterConfig = m_targetCfgs.get(spec.getName()).getInputColumnsEntry().getValue();
 			}
-			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(input.getValue().getSourceType());
+			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(entry.getValue().getSourceType());
 			// the input columns that will be used to fill the current spec's tensor
 			final int[] indices = Arrays.stream(filterConfig.applyTo(inTableSpec).getIncludes()).mapToInt(column -> {
 				final int idx = inTableSpec.findColumnIndex(column);
@@ -622,7 +630,13 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				}
 				return idx;
 			}).toArray();
-			columns.put(tensorSpec, indices);
+			columnsForTensorId.put(spec.getIdentifier(), indices);
+			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
+
+			// TODO: execution shape inference
+			executionInputSpecs.add(ctx.getTensorFactory().createExecutionTensorSpec(spec, batchSize,
+					DLUtils.Shapes.getFixedShape(spec.getShape())
+							.orElseThrow(() -> new RuntimeException("execution shape inference not yet implemented"))));
 		}
 
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
@@ -632,61 +646,65 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
 		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
 
-		try (final DLKnimeNetworkLearner learner = new DLKnimeNetworkLearner(trainableNetwork, m_converters);
-				final DLRowIterator iterator = new DLDefaultRowIterator(inTable, columns)) {
-			m_monitor.setNumEpochs(epochs);
-			m_monitor.setNumBatchesPerEpoch(numBatchesPerEpoch);
-			m_monitor.setIsRunning(true);
-			m_monitor.setHasStoppedEarly(false);
-			m_monitor.setHasLearningFinished(false);
-			m_monitor.setHasData(true);
-			m_monitor.setStartTime(null);
-			m_monitor.setEndTime(null);
-			m_monitor.setCurrentEpoch(0);
-			m_monitor.setCurrentBatchInEpoch(0);
-			m_monitor.setDataUpdate(m_viewData);
-			m_monitor.setExecutionContext(exec);
+		try (final DLKnimeNetworkInputPreparer inputPreparer = new DLKnimeNetworkInputPreparer(
+				new DLDataTableRowIterator(inTable, columnsForTensorId), batchSize, converterForTensorId);
+				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
+						executionInputSpecs, inputPreparer);) {
+			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
+			m_status.setNumEpochs(epochs);
+			m_status.setNumBatchesPerEpoch(numBatchesPerEpoch);
+			m_status.setStatus(Status.RUNNING);
+			m_status.setHasData(true);
+			m_status.setStartDateTime(null);
+			m_status.setEndDateTime(null);
+			m_status.setCurrentEpoch(0);
+			m_status.setCurrentBatchInEpoch(0);
+			m_status.setDataUpdate(m_viewData);
 			final AtomicInteger currentEpoch = new AtomicInteger();
 			final AtomicInteger currentBatchInEpoch = new AtomicInteger();
-			m_monitor.onTrainingStart(() -> m_monitor.setStartTime(LocalDateTime.now()));
-			m_monitor.onTrainingEnd(() -> {
-				m_monitor.setEndTime(LocalDateTime.now());
+			m_status.trainingStarted().addListener((src, v) -> m_status.setStartDateTime(LocalDateTime.now()));
+			m_status.trainingEnded().addListener((src, v) -> {
+				m_status.setEndDateTime(LocalDateTime.now());
 				// there might be a significant time difference between last batch end and training end, so let's update
 				// the view one more time
-				notifyViews(m_monitor);
+				notifyViews(m_status);
 			});
-			m_monitor.onBatchEnd(() -> {
+			m_status.batchEnded().addListener((src, v) -> {
 				if (currentBatchInEpoch.get() + 1 == numBatchesPerEpoch) {
-					m_monitor.setCurrentEpoch(currentEpoch.incrementAndGet());
+					m_status.setCurrentEpoch(currentEpoch.incrementAndGet());
 					if (currentEpoch.get() < epochs) {
 						currentBatchInEpoch.set(0);
 					} else {
 						currentBatchInEpoch.set(numBatchesPerEpoch);
 					}
-					m_monitor.setCurrentBatchInEpoch(currentBatchInEpoch.get());
+					m_status.setCurrentBatchInEpoch(currentBatchInEpoch.get());
 				} else {
-					m_monitor.setCurrentBatchInEpoch(currentBatchInEpoch.incrementAndGet());
+					m_status.setCurrentBatchInEpoch(currentBatchInEpoch.incrementAndGet());
 				}
-				// TODO: one entry per line in plot. If we agree that we only have train/validate (and never more) we
-				// can save the overhead of array creation per update.
 				// update accuracy
-				final float[] metrics = m_monitor.getCurrentMetrics();
-				// metrics[0] := loss, metrics[1] := training accuracy
-				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics[0]);
+				final Map<String, DLMetrics> metrics = m_status.getMetrics();
+				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics.get("accuracy").getValue());
 				// update loss
-				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics[1]);
-				notifyViews(m_monitor);
+				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics.get("loss").getValue());
+				notifyViews(m_status);
 			});
-			learner.train(iterator, m_monitor);
-
+			session.run(monitor);
+			m_status.setStatus(Status.FINISHED);
 			exec.setMessage("Saving trained Keras deep learning network...");
-			return trainableNetwork.getNetwork().getTrainedNetwork(exec);
-		} catch (final CanceledExecutionException e) {
+			return session.getTrainedNetwork(exec);
+		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+			m_status.setStatus(Status.USER_INTERRUPTED);
 			throw e;
 		} catch (final Exception e) {
 			final Throwable cause = e.getCause();
-			if (cause != null && cause instanceof CanceledExecutionException) {
-				throw (CanceledExecutionException) cause;
+			if (cause != null) {
+				if (cause instanceof CanceledExecutionException) {
+					m_status.setStatus(Status.USER_INTERRUPTED);
+					throw (CanceledExecutionException) cause;
+				} else if (cause instanceof DLCanceledExecutionException) {
+					m_status.setStatus(Status.USER_INTERRUPTED);
+					throw new CanceledExecutionException(e.getMessage());
+				}
 			}
 			String message;
 			if (e instanceof DLException) {
@@ -697,11 +715,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				}
 				message = "An error occured during training of the Keras deep learning network. See log for details.";
 			}
+			m_status.setStatus(Status.EXCEPTION);
 			throw new RuntimeException(message, e);
-		} finally {
-			m_monitor.setIsRunning(false);
-			m_monitor.setHasLearningFinished(true);
-			notifyViews(m_monitor);
 		}
 	}
 }
