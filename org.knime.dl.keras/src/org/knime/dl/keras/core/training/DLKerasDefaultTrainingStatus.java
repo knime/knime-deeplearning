@@ -80,6 +80,11 @@ public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 	}
 
 	@Override
+	public boolean hasFinished() {
+		return getStatus() == Status.FINISHED;
+	}
+
+	@Override
 	public boolean hasData() {
 		return m_viewData != null;
 	}
