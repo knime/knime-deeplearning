@@ -81,4 +81,6 @@ public interface DLProgressMonitor extends Externalizable {
 	int getCurrentBatchInEpoch();
 
 	DLViewData<?>[] getDataUpdate();
+
+	void setDataUpdate(DLViewData<?>[] viewData);
 }
