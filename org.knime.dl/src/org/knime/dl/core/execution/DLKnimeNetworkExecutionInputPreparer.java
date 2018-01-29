@@ -122,6 +122,8 @@ public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeN
 				// must be present
 				final long sampleSize = DLUtils.Shapes.getFixedSize(spec.getShape()).getAsLong();
 				if (i < m_batchSize && tensor.getBuffer().size() % sampleSize == 0) {
+					// TODO: if batch size was predefined: zero pad, else: ignore (see comment below)
+
 					// batch is incomplete but was correctly filled: ignore - downstream code has to handle this
 				} else if (tensor.getBuffer().size() % (sampleSize * m_batchSize) != 0) {
 					throw new DLInvalidNetworkInputException(
