@@ -55,6 +55,7 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Objects;
 import java.util.OptionalLong;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -188,7 +189,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 			return false;
 		}
 		final DLAbstractTensorSpec other = (DLAbstractTensorSpec) obj;
-		return other.m_identifier.equals(m_identifier) //
+		return Objects.equals(other.m_identifier, m_identifier) //
 				&& other.m_name.equals(m_name) //
 				&& other.m_batchSize.equals(m_batchSize) //
 				&& other.m_shape.equals(m_shape) //
