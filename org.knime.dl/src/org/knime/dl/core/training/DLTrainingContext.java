@@ -47,14 +47,14 @@
 package org.knime.dl.core.training;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.core.execution.DLExecutableNetwork;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
 
 /**
- * Creates {@link DLExecutableNetwork executable deep learning networks}.
- *
  * @param <N> the {@link DLNetwork network} type from which to create trainable networks
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -105,10 +105,11 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	Collection<? extends DLLossFunction> createLossFunctions();
 
 	/**
-	 * Creates a {@link DLTrainableNetworkAdapter trainable network} given a {@link DLNetwork network}.
+	 * Creates a {@link DLNetworkTrainingSession training session} for a given {@link DLNetwork network}.
 	 *
 	 * @param network the network
-	 * @throws IllegalArgumentException if failed to create the trainable network due to invalid arguments
+	 * @throws IllegalArgumentException if failed to create the training session due to invalid arguments
 	 */
-	DLTrainableNetworkAdapter createTrainableNetwork(N network, CFG trainingConfig) throws IllegalArgumentException;
+	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
+			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer inputPreparer);
 }
