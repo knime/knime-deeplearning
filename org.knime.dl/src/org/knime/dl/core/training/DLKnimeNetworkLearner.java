@@ -48,24 +48,19 @@
  */
 package org.knime.dl.core.training;
 
-import java.nio.BufferOverflowException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.knime.core.data.DataValue;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.NodeLogger;
-import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.execution.DLInvalidNetworkInputException;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLXY;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -78,24 +73,14 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 
 	private final DLTrainableNetworkAdapter m_network;
 
-	private final Map<DLTensorSpec, DLDataValueToTensorConverter<DataValue, ?>> m_inputConverters;
-
-	@SuppressWarnings("unchecked")
-	public DLKnimeNetworkLearner(final DLTrainableNetworkAdapter network,
-			final Map<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> inputConverters) {
+	public DLKnimeNetworkLearner(final DLTrainableNetworkAdapter network) {
 		m_network = network;
-		m_inputConverters = new HashMap<>(inputConverters.size());
-		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> converter : inputConverters
-				.entrySet()) {
-			m_inputConverters.put(converter.getKey(),
-					(DLDataValueToTensorConverter<DataValue, ?>) converter.getValue().createConverter());
-		}
 	}
 
-	public void train(final DLRowIterator inputIterator, final DLTrainingMonitor monitor) throws Exception {
+	public void train(final DLXY inputIterator, final DLTrainingMonitor monitor) throws Exception {
 		final long batchSize = m_network.getNetwork().getTrainingConfig().getBatchSize();
-		if (inputIterator.size() % batchSize != 0) {
-			LOGGER.warn("The number of rows of the input table (" + inputIterator.size()
+		if (inputIterator.getNumSamples() % batchSize != 0) {
+			LOGGER.warn("The number of rows of the input table (" + inputIterator.getNumSamples()
 					+ ") is not a multiple of the selected batch size (" + batchSize
 					+ "). Thus, the last batch of each epoch will continue at the beginning of the table after reaching its end. "
 					+ "You can avoid that by adjusting the number of rows of the input table or the batch size if desired.");
@@ -104,54 +89,32 @@ public class DLKnimeNetworkLearner implements AutoCloseable {
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
 		// alternative strategy for handling incomplete batches.
 		final long requestedBatchesTotal = m_network.getNetwork().getTrainingConfig().getEpochs()
-				* (long) Math.ceil(inputIterator.size() / (double) batchSize);
+				* (long) Math.ceil(inputIterator.getNumSamples() / (double) batchSize);
 		m_network.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
 			@Override
-			public long size() {
-				return inputIterator.size();
+			public long getNumBatches() {
+				return (long) Math.ceil(inputIterator.getNumSamples() / (double) batchSize);
 			}
 
 			@Override
-			public void prepare(final Map<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> inputTensors,
+			public void prepare(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> inputTensors,
 					final long batchIndex) throws CanceledExecutionException {
 				// fill tensors (= batch) row by row of the input table
 				long rowIndex;
 				for (rowIndex = 0; rowIndex < batchSize; rowIndex++) {
-					final Map<DLTensorSpec, List<DataValue>> row = inputIterator.next();
-					for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : inputTensors
-							.entrySet()) {
-						final DLTensorSpec tensorSpec = entry.getKey();
-						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-						final DLDataValueToTensorConverter<DataValue, ?> converter = m_inputConverters.get(tensorSpec);
-						try {
-							converter.convert(row.get(tensorSpec), (DLTensor) tensor);
-						} catch (final BufferOverflowException ex) {
-							final long sampleSize = DLUtils.Shapes.getFixedSize(tensorSpec.getShape())
-									.orElseThrow(() -> new DLInvalidNetworkInputException(
-											"Tensor specification does not provide a fully defined shape. This is not supported, yet."));
-							throw new DLInvalidNetworkInputException(
-									"Node input/target data size exceeds the expected size of network input/target '"
-											+ tensor.getSpec().getName() + "'. Neuron count is " + sampleSize
-											+ ", batch size is " + batchSize
-											+ ". Thus, expected input/target data size is " + sampleSize * batchSize
-											+ ". Please check the column selection for this input/target "
-											+ "and validate the node's input/target data.",
-									ex);
-						}
-					}
+					inputIterator.xy(inputTensors);
 					if (!inputIterator.hasNext()) {
 						inputIterator.reset();
 					}
 				}
 				// check if tensors are correctly filled
-				for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry : inputTensors.entrySet()) {
-					final DLTensorSpec tensorSpec = entry.getKey();
+				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : inputTensors.entrySet()) {
+					final DLTensorSpec tensorSpec = entry.getValue().getSpec();
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 					if (tensor.getBuffer().size() != tensor.getBuffer().getCapacity()) {
-						final long sampleSize = DLUtils.Shapes.getFixedSize(tensorSpec.getShape())
-								.orElseThrow(() -> new DLInvalidNetworkInputException("Tensor '" + tensorSpec.getName()
-										+ "' does not provide a fully defined shape. This is not supported, yet."));
+						// must be present
+						final long sampleSize = DLUtils.Shapes.getFixedSize(tensorSpec.getShape()).getAsLong();
 						if (tensor.getBuffer().size() % (sampleSize * batchSize) != 0) {
 							throw new DLInvalidNetworkInputException(
 									"Node input/target data size does not match the expected size of network input/target '"
