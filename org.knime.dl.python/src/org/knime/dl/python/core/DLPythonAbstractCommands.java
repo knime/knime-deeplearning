@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -259,15 +260,15 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	// TODO: implement network handle
 	@Override
 	public void setNetworkInputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> inputs,
-			final long batchSize) throws DLInvalidEnvironmentException, IOException {
-		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
+			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
+			throws DLInvalidEnvironmentException, IOException {
+		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
 				.entrySet()) {
-			final DLTensorSpec spec = input.getKey();
+			final DLTensorId tensorIdentifier = input.getKey();
 			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(spec, tensor);
+			final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
 			try {
-				getContext().getKernel().putData(spec.getName(), tableChunker, 1);
+				getContext().getKernel().putData(tensorIdentifier.getIdentifierString(), tableChunker, 1);
 			} catch (final IOException ex) {
 				throw new RuntimeException("Transmitting input data to Python failed.", ex);
 			}
@@ -275,8 +276,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorSpec> requestedOutputs,
-			final long batchSize) throws DLInvalidEnvironmentException, IOException {
+	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs)
+			throws DLInvalidEnvironmentException, IOException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
@@ -289,22 +290,29 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		getContext().executeInKernel(b.toString());
 	}
 
+	@Override
+	public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
+			final Set<T> outputs) throws DLInvalidEnvironmentException, IOException {
+		throw new RuntimeException("not yet implemented"); // TODO: NYI
+	}
+
 	// TODO: implement network handle
 	@Override
 	public void getNetworkOutputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
+			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
 			throws DLInvalidEnvironmentException, IOException {
-		for (final Entry<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
+		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
 				.entrySet()) {
-			final DLTensorSpec spec = output.getKey();
+			final DLTensorId tensorIdentifier = output.getKey();
 			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
-			getContext().getKernel().getData(spec.getName(),
+			getContext().getKernel().getData(tensorIdentifier.getIdentifierString(),
 					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
 						@Override
 						public void addRow(final Row row) {
-							final String deserializerId = tableSpec.getColumnSerializers().get(spec.getName());
+							final String deserializerId = tableSpec.getColumnSerializers()
+									.get(tensorIdentifier.getIdentifierString());
 							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
 									.getExtension(deserializerId).getJavaDeserializerFactory();
 							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
@@ -357,7 +365,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						.entrySet()) {
 					final DLTensorSpec tensorSpec = entry.getKey();
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-					final TableChunker tableChunker = createSingleTensorTableChunker(tensorSpec, tensor);
+					final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
 					try {
 						getContext().getKernel().putData(tensorSpec.getName(), tableChunker, 1);
 					} catch (final IOException ex) {
@@ -437,8 +445,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + network.getIdentifier() + "')";
 	}
 
-	private TableChunker createSingleTensorTableChunker(final DLTensorSpec spec,
-			final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
+	private TableChunker createSingleTensorTableChunker(final DLTensor<? extends DLWritableBuffer> tensor)
+			throws IOException {
 		final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
 				.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
 						&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
@@ -451,9 +459,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final Serializer<DLPythonDataBuffer> serializer = (Serializer<DLPythonDataBuffer>) extension
 				.getJavaSerializerFactory().createSerializer();
 		final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { spec.getName() },
-				Collections.singletonMap(spec.getName(), extension.getId()));
-		final Row row = new RowImpl(spec.getName(), 1);
+		final String identifier = tensor.getSpec().getIdentifier().getIdentifierString();
+		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES }, new String[] { identifier },
+				Collections.singletonMap(identifier, extension.getId()));
+		final Row row = new RowImpl(identifier, 1);
 		row.setCell(cell, 0);
 		final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
 		return new DLSingletonTableChunker(iterator);

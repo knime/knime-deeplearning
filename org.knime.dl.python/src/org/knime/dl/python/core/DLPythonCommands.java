@@ -53,7 +53,7 @@ import java.util.Set;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputProvider;
@@ -85,17 +85,20 @@ public interface DLPythonCommands extends AutoCloseable {
 	void saveNetwork(DLPythonNetworkHandle network, String path) throws DLInvalidEnvironmentException, IOException;
 
 	void setNetworkInputs(DLPythonNetworkHandle network,
-			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLWritableBuffer>> inputs, long batchSize)
+			Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorSpec> requestedOutputs, long batchSize)
+	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs)
+			throws DLInvalidEnvironmentException, IOException;
+
+	<T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(DLPythonNetworkHandle network, Set<T> outputs)
 			throws DLInvalidEnvironmentException, IOException;
 
 	void getNetworkOutputs(DLPythonNetworkHandle network,
-			Map<? extends DLTensorSpec, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
+			Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	public void trainNetwork(DLPythonNetworkHandle network,
+	void trainNetwork(DLPythonNetworkHandle network,
 			DLNetworkInputProvider<DLTensor<? extends DLWritableBuffer>> inputSupplier, DLTrainingMonitor monitor)
 			throws DLInvalidEnvironmentException, IOException;
 
