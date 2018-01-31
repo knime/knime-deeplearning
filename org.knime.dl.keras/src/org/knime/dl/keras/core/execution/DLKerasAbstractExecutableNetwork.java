@@ -51,12 +51,9 @@ package org.knime.dl.keras.core.execution;
 import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
@@ -72,10 +69,8 @@ public abstract class DLKerasAbstractExecutableNetwork<N extends DLKerasNetwork,
 	extends DLPythonAbstractExecutableNetwork<N, C> {
 
 	protected DLKerasAbstractExecutableNetwork(final N network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
-			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer,
-			final DLTensorFactory tensorFactory) {
+			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 		boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;

@@ -64,7 +64,7 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 	}
 
 	@Override
-	public DLKerasTrainableNetworkAdapter trainable(final DLKerasTheanoNetwork network,
+	public DLKerasTrainableNetworkAdapter createTrainableNetwork(final DLKerasTheanoNetwork network,
 			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasTheanoTrainableNetwork trainNetwork = new DLKerasTheanoTrainableNetwork(network, trainingConfig);
 		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());

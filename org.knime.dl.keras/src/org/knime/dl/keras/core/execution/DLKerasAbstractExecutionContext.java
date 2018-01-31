@@ -48,11 +48,8 @@
  */
 package org.knime.dl.keras.core.execution;
 
-import java.util.Set;
-
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorRegistry;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
 
@@ -77,9 +74,6 @@ public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> 
 				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
 						+ "' is not supported. No tensor factory found."));
 	}
-
-	@Override
-	public abstract DLKerasExecutableNetworkAdapter executable(N network, Set<DLTensorSpec> requestedOutputs);
 
 	@Override
 	public Class<N> getNetworkType() {

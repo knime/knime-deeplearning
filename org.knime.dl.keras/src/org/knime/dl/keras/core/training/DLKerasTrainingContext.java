@@ -66,5 +66,5 @@ public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrai
 	Collection<DLKerasLossFunction> createLossFunctions();
 
 	@Override
-	DLKerasTrainableNetworkAdapter trainable(final N network, final DLKerasTrainingConfig trainingConfig);
+	DLKerasTrainableNetworkAdapter createTrainableNetwork(final N network, final DLKerasTrainingConfig trainingConfig);
 }

@@ -48,10 +48,12 @@ package org.knime.dl.keras.tensorflow.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.execution.DLKerasAbstractExecutableNetwork;
+import org.knime.dl.core.execution.DLExecutableNetwork;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
-import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 
 /**
@@ -68,9 +70,10 @@ public final class DLKerasTensorFlowDefaultExecutionContext
 	}
 
 	@Override
-	public DLKerasExecutableNetworkAdapter executable(final DLKerasTensorFlowNetwork network,
-			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
-		final DLKerasAbstractExecutableNetwork<?, ?> execNetwork = new DLKerasTensorFlowExecutableNetwork(network);
-		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
+	public DLExecutableNetwork createExecutableNetwork(final DLKerasTensorFlowNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
+		return new DLKerasTensorFlowExecutableNetwork(network, executionInputSpecs, requestedOutputs, inputPreparer,
+				outputConsumer, getTensorFactory());
 	}
 }

@@ -98,7 +98,7 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 	}
 
 	@Override
-	public abstract DLKerasTrainableNetworkAdapter trainable(N network, DLKerasTrainingConfig trainingConfig)
+	public abstract DLKerasTrainableNetworkAdapter createTrainableNetwork(N network, DLKerasTrainingConfig trainingConfig)
 			throws RuntimeException;
 
 	@Override

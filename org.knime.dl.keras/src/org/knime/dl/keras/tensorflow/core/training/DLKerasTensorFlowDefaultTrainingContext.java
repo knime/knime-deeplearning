@@ -65,7 +65,7 @@ public final class DLKerasTensorFlowDefaultTrainingContext
 	}
 
 	@Override
-	public DLKerasTrainableNetworkAdapter trainable(final DLKerasTensorFlowNetwork network,
+	public DLKerasTrainableNetworkAdapter createTrainableNetwork(final DLKerasTensorFlowNetwork network,
 			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasTensorFlowTrainableNetwork trainNetwork = new DLKerasTensorFlowTrainableNetwork(network,
 				trainingConfig);

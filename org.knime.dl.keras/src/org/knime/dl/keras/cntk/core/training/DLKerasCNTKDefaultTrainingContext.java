@@ -64,7 +64,7 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 	}
 
 	@Override
-	public DLKerasTrainableNetworkAdapter trainable(final DLKerasCNTKNetwork network,
+	public DLKerasTrainableNetworkAdapter createTrainableNetwork(final DLKerasCNTKNetwork network,
 			final DLKerasTrainingConfig trainingConfig) throws RuntimeException {
 		final DLKerasCNTKTrainableNetwork trainNetwork = new DLKerasCNTKTrainableNetwork(network, trainingConfig);
 		return new DLKerasTrainableNetworkAdapter(trainNetwork, getTensorFactory());

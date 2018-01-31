@@ -48,10 +48,12 @@ package org.knime.dl.keras.cntk.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.execution.DLNetworkInputPreparer;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
-import org.knime.dl.keras.core.execution.DLKerasExecutableNetworkAdapter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -66,9 +68,10 @@ public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExe
 	}
 
 	@Override
-	public DLKerasExecutableNetworkAdapter executable(final DLKerasCNTKNetwork network,
-			final Set<DLTensorSpec> requestedOutputs) throws RuntimeException {
-		final DLKerasCNTKExecutableNetwork execNetwork = new DLKerasCNTKExecutableNetwork(network);
-		return new DLKerasExecutableNetworkAdapter(execNetwork, getTensorFactory(), requestedOutputs);
+	public DLKerasCNTKExecutableNetwork createExecutableNetwork(final DLKerasCNTKNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
+		return new DLKerasCNTKExecutableNetwork(network, executionInputSpecs, requestedOutputs, inputPreparer,
+				outputConsumer, getTensorFactory());
 	}
 }

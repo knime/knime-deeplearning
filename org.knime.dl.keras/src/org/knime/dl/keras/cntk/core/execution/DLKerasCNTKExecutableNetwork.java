@@ -49,12 +49,9 @@ package org.knime.dl.keras.cntk.core.execution;
 import java.util.Set;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLReadableBuffer;
-import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.execution.DLNetworkInputPreparer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
@@ -69,10 +66,8 @@ public final class DLKerasCNTKExecutableNetwork
 	extends DLKerasAbstractExecutableNetwork<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
 
 	public DLKerasCNTKExecutableNetwork(final DLKerasCNTKNetwork network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
-			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer,
-			final DLTensorFactory tensorFactory) {
+			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 	}
 
