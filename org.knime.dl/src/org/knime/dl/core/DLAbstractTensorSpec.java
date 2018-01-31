@@ -69,6 +69,8 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	private static final long serialVersionUID = 1L;
 
+	private final DLTensorId m_identifier;
+
 	private final String m_name;
 
 	private transient OptionalLong m_batchSize;
@@ -80,13 +82,15 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	private int m_hashCode = 0;
 
 	/**
-	 * @param name the name of the tensor, not empty
+	 * @param identifier the identifier of the tensor
+	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
 	 */
-	protected DLAbstractTensorSpec(final String name, final long batchSize, final DLTensorShape shape,
-			final Class<?> elementType) {
+	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+			final DLTensorShape shape, final Class<?> elementType) {
+		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
 		m_batchSize = OptionalLong.of(batchSize);
@@ -95,11 +99,14 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	}
 
 	/**
-	 * @param name the name of the tensor, not empty
+	 * @param identifier the identifier of the tensor
+	 * @param name the name of the tensor
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
 	 */
-	protected DLAbstractTensorSpec(final String name, final DLTensorShape shape, final Class<?> elementType) {
+	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
+			final Class<?> elementType) {
+		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		m_batchSize = OptionalLong.empty();
 		m_shape = checkNotNull(shape);
@@ -107,11 +114,14 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	}
 
 	/**
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param elementType the data type of the tensor's elements
 	 */
-	protected DLAbstractTensorSpec(final String name, final long batchSize, final Class<?> elementType) {
+	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+			final Class<?> elementType) {
+		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
 		m_batchSize = OptionalLong.of(batchSize);
@@ -120,10 +130,12 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	}
 
 	/**
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param elementType the data type of the tensor's elements
 	 */
-	protected DLAbstractTensorSpec(final String name, final Class<?> elementType) {
+	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType) {
+		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		m_batchSize = OptionalLong.empty();
 		m_shape = DLUnknownTensorShape.INSTANCE;
@@ -133,6 +145,11 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
 	protected abstract boolean equalsInternal(DLTensorSpec other);
+
+	@Override
+	public DLTensorId getIdentifier() {
+		return m_identifier;
+	}
 
 	@Override
 	public String getName() {

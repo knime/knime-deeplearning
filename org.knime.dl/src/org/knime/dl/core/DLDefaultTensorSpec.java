@@ -56,53 +56,59 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultTensorSpec extends DLAbstractTensorSpec {
+public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Creates a new instance of this tensor spec that has a batch size.
 	 *
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param dataType the data type of the tensor's elements
+	 * @param elementType the data type of the tensor's elements
 	 */
-	public DLDefaultTensorSpec(final String name, final long batchSize, final DLTensorShape shape,
-			final Class<?> dataType) {
-		super(name, batchSize, shape, dataType);
+	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+			final DLTensorShape shape, final Class<?> elementType) {
+		super(identifier, name, batchSize, shape, elementType);
 	}
 
 	/**
 	 * Creates a new instance of this tensor spec that does not have a batch size.
 	 *
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param dataType the data type of the tensor's elements
+	 * @param elementType the data type of the tensor's elements
 	 */
-	public DLDefaultTensorSpec(final String name, final DLTensorShape shape, final Class<?> dataType) {
-		super(name, shape, dataType);
+	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
+			final Class<?> elementType) {
+		super(identifier, name, shape, elementType);
 	}
 
 	/**
 	 * Creates a new instance of tensor spec that does not have a shape.
 	 *
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
-	 * @param dataType the data type of the tensor's elements
+	 * @param elementType the data type of the tensor's elements
 	 */
-	public DLDefaultTensorSpec(final String name, final long batchSize, final Class<?> dataType) {
-		super(name, batchSize, dataType);
+	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+			final Class<?> elementType) {
+		super(identifier, name, batchSize, elementType);
 	}
 
 	/**
 	 * Creates a new instance of tensor spec that does not have a batch size or a shape.
 	 *
+	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
-	 * @param dataType the data type of the tensor's elements
+	 * @param elementType the data type of the tensor's elements
 	 */
-	public DLDefaultTensorSpec(final String name, final Class<?> dataType) {
-		super(name, dataType);
+	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType) {
+		super(identifier, name, elementType);
 	}
 
 	@Override
