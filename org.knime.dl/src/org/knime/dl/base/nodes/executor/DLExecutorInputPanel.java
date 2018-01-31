@@ -291,6 +291,9 @@ final class DLExecutorInputPanel extends JPanel {
 	}
 
 	void refreshAllowedInputColumns() throws NotConfigurableException {
+		// We need to save and reload the current configuration to take user actions into account that were taken since
+		// the dialog was opened. Else those would be overridden by the initial configuration.
+		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
 		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
 		final Class<? extends DataValue> allowedColType = DLDataValueToTensorConverterRegistry.getInstance()
 				.getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])

@@ -285,6 +285,9 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 	private void refreshAllowedInputColumns() {
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
 		if (m_lastTableSpec.containsCompatibleType(allowedColType)) {
+			// We need to save and reload the current configuration to take user actions into account that were taken since
+			// the dialog was opened. Else those would be overridden by the initial configuration.
+			m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
 			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 			m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
 					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
