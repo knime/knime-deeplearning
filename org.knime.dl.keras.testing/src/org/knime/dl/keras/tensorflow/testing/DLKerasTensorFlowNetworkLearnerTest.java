@@ -111,7 +111,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 				callbacks);
 		final DLTrainingMonitor monitor = new DLKerasDefaultTrainingMonitor();
 
-		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
+		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.createTrainableNetwork(network, config)) {
 			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
 				@Override
@@ -156,7 +156,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
-		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.trainable(network, config)) {
+		try (final DLKerasTrainableNetworkAdapter trainNetwork = training.createTrainableNetwork(network, config)) {
 			trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
 				@Override
