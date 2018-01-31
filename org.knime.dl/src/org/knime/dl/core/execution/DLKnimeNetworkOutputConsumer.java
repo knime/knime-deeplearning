@@ -145,7 +145,7 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 			}
 			try {
 				if (m_append) {
-					m_output.push(new AppendedColumnRow(baseRow, m_temp));
+					m_output.push(new AppendedColumnRow(baseRow, m_temp.clone()));
 				} else {
 					m_output.push(new DefaultRow(baseRow.getKey(), m_temp));
 				}
