@@ -68,9 +68,7 @@ public interface DLTensorFactory {
 	// Only return basic interfaces such as "DLReadableDoubleBuffer" etc. [...]
 	Class<? extends DLReadableBuffer> getReadableBufferType(final DLTensorSpec spec);
 
-	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec, long batchSize)
-			throws IllegalArgumentException;
+	DLTensor<? extends DLWritableBuffer> createWritableTensor(DLTensorSpec spec) throws IllegalArgumentException;
 
-	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec, long batchSize)
-			throws IllegalArgumentException;
+	DLTensor<? extends DLReadableBuffer> createReadableTensor(DLTensorSpec spec) throws IllegalArgumentException;
 }
