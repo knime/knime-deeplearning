@@ -108,7 +108,7 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 * Creates a {@link DLTrainableNetworkAdapter trainable network} given a {@link DLNetwork network}.
 	 *
 	 * @param network the network
-	 * @throws RuntimeException if failed to create the trainable network
+	 * @throws IllegalArgumentException if failed to create the trainable network due to invalid arguments
 	 */
-	DLTrainableNetworkAdapter trainable(N network, CFG trainingConfig) throws RuntimeException;
+	DLTrainableNetworkAdapter createTrainableNetwork(N network, CFG trainingConfig) throws IllegalArgumentException;
 }

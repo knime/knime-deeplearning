@@ -52,6 +52,7 @@ import java.util.Set;
 
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLTensorFactory;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
@@ -94,10 +95,12 @@ public interface DLExecutionContext<N extends DLNetwork> {
 	DLTensorFactory getTensorFactory();
 
 	/**
-	 * Creates a {@link DLExecutableNetworkAdapter executable network} given a {@link DLNetwork network}.
+	 * Creates a {@link DLExecutableNetwork executable network} given a {@link DLNetwork network}.
 	 *
 	 * @param network the network
-	 * @throws RuntimeException if failed to create the executable network
+	 * @throws IllegalArgumentException if failed to create the executable network due to invalid arguments
 	 */
-	DLExecutableNetworkAdapter executable(N network, Set<DLTensorSpec> requestedOutputs) throws RuntimeException;
+	DLExecutableNetwork createExecutableNetwork(N network, Set<DLTensorSpec> executionInputSpecs,
+			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
+			DLNetworkOutputConsumer outputConsumer);
 }
