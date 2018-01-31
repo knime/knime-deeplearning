@@ -47,14 +47,56 @@
 package org.knime.dl.core.training;
 
 import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLMetrics extends Externalizable {
+public final class DLMetrics implements Externalizable {
 
-	String getName();
+	public static DLMetrics deserialize(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		final DLMetrics metrics = new DLMetrics();
+		metrics.readExternal(objIn);
+		return metrics;
+	}
 
-	float getValue();
+	private String m_name;
+
+	private float m_value;
+
+	public DLMetrics(final String name, final float initialValue) {
+		m_name = name;
+		m_value = initialValue;
+	}
+
+	private DLMetrics() {
+		// used for deserialization
+	}
+
+	public String getName() {
+		return m_name;
+	}
+
+	public float getValue() {
+		return m_value;
+	}
+
+	public void setValue(final float value) {
+		m_value = value;
+	}
+
+	@Override
+	public void writeExternal(final ObjectOutput objOut) throws IOException {
+		objOut.writeUTF(m_name);
+		objOut.writeFloat(m_value);
+	}
+
+	@Override
+	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		m_name = objIn.readUTF();
+		m_value = objIn.readFloat();
+	}
 }
