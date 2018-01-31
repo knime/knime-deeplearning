@@ -50,8 +50,12 @@ import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.append.AppendedColumnRow;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.dl.core.DLTensor;
@@ -68,22 +72,25 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 
 	private final RowOutput m_output;
 
+	private final Supplier<DataRow> m_baseRows;
+
 	private final boolean m_append;
 
 	private final ExecutionContext m_exec;
 
-	private final Map<DLTensorId, DLKnimYXConversionHelper> m_helpers;
+	private final Map<DLTensorId, DLKnimeOutputConsumerHelperStruct> m_helpers;
 
 	private DataCell[] m_temp;
 
-	public DLKnimeNetworkOutputConsumer(final RowOutput output, final boolean append,
+	public DLKnimeNetworkOutputConsumer(final RowOutput output, final Supplier<DataRow> baseRows, final boolean append,
 			final Map<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> converters, final ExecutionContext exec) {
 		m_output = output;
+		m_baseRows = baseRows;
 		m_append = append;
 		m_exec = exec;
 		m_helpers = new HashMap<>(converters.size());
 		for (final Entry<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> entry : converters.entrySet()) {
-			final DLKnimYXConversionHelper helper = new DLKnimYXConversionHelper();
+			final DLKnimeOutputConsumerHelperStruct helper = new DLKnimeOutputConsumerHelperStruct();
 			helper.m_factory = entry.getValue();
 			helper.m_converter = entry.getValue().createConverter();
 		}
@@ -92,12 +99,13 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 	@Override
 	public void accept(final Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> tensors) {
 		if (m_temp == null) {
+			// initialize output structs the first time we know how the network output looks like
 			initialize(tensors);
 		}
 		for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : tensors.entrySet()) {
 			final DLTensorId identifier = entry.getKey();
 			final DLTensor<? extends DLReadableBuffer> tensor = entry.getValue();
-			final DLKnimYXConversionHelper helper = m_helpers.get(identifier);
+			final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(identifier);
 			try {
 				// converter source type and tensor element type must match
 				final DLTensorToDataCellConverter converter = helper.m_converter;
@@ -114,16 +122,21 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 		for (int r = 0; r < batchSize; r++) {
 			int c = 0;
 			for (final DLTensorId identifier : tensors.keySet()) {
-				final DLKnimYXConversionHelper helper = m_helpers.get(identifier);
+				final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(identifier);
 				final DataCell[] temp = helper.m_temp;
 				for (int i = 0; i < helper.m_numOutputElements; i++, c++) {
 					m_temp[c + i] = temp[i];
 				}
 			}
-			if (m_append) {
-				// TODO: m_output.push(..) with AppendedColumnRow;
-			} else {
-				// TODO: m_output.push(..) with DefaultRow;
+			try {
+				if (m_append) {
+					m_output.push(new AppendedColumnRow(m_baseRows.get(), m_temp));
+				} else {
+					m_output.push(new DefaultRow(m_baseRows.get().getKey(), m_temp));
+				}
+			} catch (final InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				return;
 			}
 		}
 	}
@@ -142,8 +155,9 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 		}
 		long totalNumOutputElements = 0;
 		for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : tensors.entrySet()) {
-			final DLKnimYXConversionHelper helper = m_helpers.get(entry.getKey());
-			helper.m_numOutputElements = helper.m_factory.getDestCount(entry.getValue().getSpec());
+			final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(entry.getKey());
+			// must be present by now
+			helper.m_numOutputElements = helper.m_factory.getDestCount(entry.getValue().getSpec()).getAsLong();
 			if (helper.m_numOutputElements > Integer.MAX_VALUE) {
 				throw new IllegalArgumentException("Number of output elements (" + helper.m_numOutputElements
 						+ ") of output '" + entry.getValue().getSpec().getName()
@@ -166,7 +180,7 @@ public class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsumer {
 		m_temp = new DataCell[(int) totalNumOutputElements];
 	}
 
-	private static final class DLKnimYXConversionHelper {
+	private static final class DLKnimeOutputConsumerHelperStruct {
 
 		private DLTensorToDataCellConverterFactory<?, ?> m_factory;
 
