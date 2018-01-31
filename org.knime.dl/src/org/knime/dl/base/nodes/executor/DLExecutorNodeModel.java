@@ -55,19 +55,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalLong;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.append.AppendedColumnRow;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -98,20 +92,24 @@ import org.knime.core.util.UniqueNameGenerator;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
-import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
+import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
+import org.knime.dl.core.execution.DLExecutableNetwork;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
-import org.knime.dl.core.execution.DLInvalidNetworkInputException;
-import org.knime.dl.core.execution.DLDefaultNetworkExecutionSession;
+import org.knime.dl.core.execution.DLKnimeExecutionMonitor;
+import org.knime.dl.core.execution.DLKnimeNetworkOutputConsumer;
+import org.knime.dl.core.execution.DLXY;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
@@ -391,8 +389,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		for (final DLTensorSpec tensorSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException("Input '" + tensorSpec.getName()
-						+ "' has an unknown shape. This is not supported.");
+				throw new InvalidSettingsException(
+						"Input '" + tensorSpec.getName() + "' has an unknown shape. This is not supported.");
 			}
 			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
 			if (inputCfg == null) {
@@ -436,8 +434,8 @@ final class DLExecutorNodeModel extends NodeModel {
 					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
 							+ "' could not be found in the input deep learning network."));
 			if (DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-					throw new InvalidSettingsException("Selected output '" + layerDataName
-							+ "' has an unknown shape. This is not supported.");
+				throw new InvalidSettingsException(
+						"Selected output '" + layerDataName + "' has an unknown shape. This is not supported.");
 			}
 			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
 			// get selected converter
@@ -480,27 +478,10 @@ final class DLExecutorNodeModel extends NodeModel {
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
 		final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
-
 		if (inDataSpec.getNumColumns() == 0) {
 			throw new IllegalStateException("Input table has no columns.");
 		}
 
-		final boolean inDataHasSize;
-		final long inDataSize;
-		if (rowInput instanceof DataTableRowInput) {
-			inDataHasSize = true;
-			inDataSize = ((DataTableRowInput) rowInput).getRowCount();
-		} else {
-			inDataHasSize = false;
-			inDataSize = -1;
-		}
-
-		final int batchSize;
-		if (inDataHasSize && inDataSize < m_generalCfg.getBatchSizeModel().getIntValue()) {
-			batchSize = (int) inDataSize;
-		} else {
-			batchSize = m_generalCfg.getBatchSizeModel().getIntValue();
-		}
 		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsModel().getBooleanValue();
 
 		final String[] selectedCtx = m_generalCfg.getExecutionContext();
@@ -512,15 +493,12 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ ")' that supports the input network of type '" + network.getClass().getCanonicalName()
 								+ "'. Are you missing a KNIME Deep Learning extension?"));
 
-		final DLExecutableNetworkAdapter executableNetwork = ctx.executable(network, m_outputConverters.keySet());
-
 		// assign input column indices to network inputs
 		final List<Pair<DLTensorSpec, int[]>> inputs = new ArrayList<>(networkSpec.getInputSpecs().length);
 		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> input : m_inputConverters
 				.entrySet()) {
 			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(input.getKey().getName());
 			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsModel();
-			// TODO: workaround
 			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(getAllowedInputColumnType(inputCfg));
 			final int[] indices = Arrays.stream(filterConfig.applyTo(inDataSpec).getIncludes()).mapToInt(c -> {
 				final int idx = inDataSpec.findColumnIndex(c);
@@ -533,108 +511,51 @@ final class DLExecutorNodeModel extends NodeModel {
 			inputs.add(new Pair<>(input.getKey(), indices));
 		}
 
-		try (DLDefaultNetworkExecutionSession executor = new DLDefaultNetworkExecutionSession(executableNetwork, m_inputConverters,
-				m_outputConverters)) {
+		final DLXY inputPreparer = null; // TODO
 
-			final DLNetworkExecutorOutputConsumer networkOutputConsumer = new DLNetworkExecutorOutputConsumer(
-					m_outputConverters.keySet().stream().collect(Collectors.toList()));
+		final Set<DLTensorSpec> executionInputSpecs = null; // TODO
 
-			// TODO: optimize here!
-			boolean moreRows = true;
-			long currRowIdx = 0;
-			DataRow row;
-			final List<DataRow> batch = new ArrayList<>(batchSize);
-			try {
-				while (moreRows) {
-					while ((row = rowInput.poll()) != null) {
-						// collect batch
-						batch.add(row);
-						currRowIdx++;
-						if (currRowIdx % batchSize == 0) {
-							break;
-						}
-					}
-					if (row == null) {
-						moreRows = false;
-						if (batch.size() == 0) {
-							break;
-						}
-						// process the last, incomplete batch
-					}
-					exec.checkCanceled();
-					// gather input
-					// TODO
-					final Map<DLTensorSpec, List<DataValue>[]> temp = new HashMap<>();
-					for (final Pair<DLTensorSpec, int[]> entry : inputs) {
-						temp.put(entry.getFirst(), new ArrayList[batch.size()]);
-						for (int j = 0; j < batch.size(); j++) {
-							final ArrayList<DataValue> cells = new ArrayList<>(entry.getSecond().length);
-							for (final int c : entry.getSecond()) {
-								final DataCell cell = batch.get(j).getCell(c);
-								// TODO: we could also allow some missing value
-								// handling settings in the dialog.
-								if (cell.isMissing()) {
-									throw new DLInvalidNetworkInputException(
-											"Missing cell in input row '" + batch.get(j).getKey() + "', column '"
-													+ inDataSpec.getColumnSpec(c).getName() + "'.");
-								}
-								cells.add(cell);
-							}
-							temp.get(entry.getFirst())[j] = cells;
-						}
-					}
-					// execute
-					executor.execute(temp, networkOutputConsumer, exec, batch.size());
-					exec.checkCanceled();
-					for (final List<DataValue>[] layer : temp.values()) {
-						for (final List<DataValue> list : layer) {
-							list.clear();
-						}
-					}
-					// process output
-					final DataCell[][] cells = networkOutputConsumer.collected();
-					if (keepInputColumns) {
-						for (int j = 0; j < batch.size(); j++) {
-							rowOutput.push(new AppendedColumnRow(batch.get(j), cells[j]));
-						}
-					} else {
-						for (int j = 0; j < batch.size(); j++) {
-							rowOutput.push(new DefaultRow(batch.get(j).getKey(), cells[j]));
-						}
-					}
-					if (inDataHasSize && row != null) {
-						exec.setProgress((double) currRowIdx / inDataSize,
-								"Processing row " + row.getKey().toString() + "...");
-					}
-					batch.clear();
-				}
-			} catch (final CanceledExecutionException e) {
-				throw e;
-			} catch (final Exception e) {
-				final Throwable cause = e.getCause();
-				if (cause != null && cause instanceof CanceledExecutionException) {
+		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> tensorIdOutputConverters = new LinkedHashMap<>(
+				m_outputConverters.size());
+		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> entry : m_outputConverters
+				.entrySet()) {
+			tensorIdOutputConverters.put(entry.getKey().getIdentifier(), entry.getValue());
+		}
+
+		final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
+				keepInputColumns, tensorIdOutputConverters, exec);
+
+		final DLExecutableNetwork executableNetwork = ctx.createExecutableNetwork(network, executionInputSpecs,
+				tensorIdOutputConverters.keySet(), inputPreparer, outputConsumer);
+
+		try (DLDefaultNetworkExecutionSession session = new DLDefaultNetworkExecutionSession(executableNetwork)) {
+			final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec);
+			session.run(monitor);
+		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+			throw e;
+		} catch (final Exception e) {
+			final Throwable cause = e.getCause();
+			if (cause != null) {
+				if (cause instanceof CanceledExecutionException) {
 					throw (CanceledExecutionException) cause;
+				} else if (cause instanceof DLCanceledExecutionException) {
+					throw new CanceledExecutionException(e.getMessage());
 				}
-				String message;
-				if (e instanceof DLException) {
-					message = e.getMessage();
-				} else {
-					if (!Strings.isNullOrEmpty(e.getMessage())) {
-						LOGGER.error(e.getMessage());
-					}
-					message = "An error occured during execution of the deep learning network. See log for details.";
-				}
-				throw new RuntimeException(message, e);
-			} finally {
-				rowInput.close();
-				rowOutput.close();
 			}
+			String message;
+			if (e instanceof DLException) {
+				message = e.getMessage();
+			} else {
+				if (!Strings.isNullOrEmpty(e.getMessage())) {
+					LOGGER.error(e.getMessage());
+				}
+				message = "An error occured during execution of the deep learning network. See log for details.";
+			}
+			throw new RuntimeException(message, e);
 		}
 	}
 
-	// TODO: workaround
-	// when changing code here, also update
-	// DLExecutorInputPanel#getAllowedInputColumnType
+	// workaround, when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg)
 			throws DLMissingExtensionException {
 		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv = DLDataValueToTensorConverterRegistry
@@ -644,42 +565,5 @@ final class DLExecutorNodeModel extends NodeModel {
 								+ inputCfg.getConverterModel().getStringArrayValue()[1]
 								+ ")' could not be found. Are you missing a KNIME extension?"));
 		return conv.getSourceType();
-	}
-
-	private static class DLNetworkExecutorOutputConsumer implements Consumer<Map<DLTensorSpec, DataCell[][]>> {
-
-		// TODO: performance (looping here and in #execute, copying)
-
-		private final List<DataCell[]> m_tmpList = new ArrayList<>();
-
-		private final List<DLTensorSpec> m_orderedOutputs;
-
-		private DLNetworkExecutorOutputConsumer(final List<DLTensorSpec> orderedOutput) {
-			m_orderedOutputs = orderedOutput;
-		}
-
-		@Override
-		public void accept(final Map<DLTensorSpec, DataCell[][]> output) {
-			m_tmpList.clear();
-			final ArrayList<DataCell[][]> a = new ArrayList<>(m_orderedOutputs.size());
-			for (final DLTensorSpec spec : m_orderedOutputs) {
-				a.add(output.get(spec));
-			}
-			for (int i = 0; i < a.get(0).length; i++) { // iterate over batch
-				final ArrayList<DataCell> b = new ArrayList<>();
-				for (int j = 0; j < a.size(); j++) { // iterate over each output
-					final DataCell[] c = a.get(j)[i];
-					for (int h = 0; h < c.length; h++) { // iterate over output
-															// cells
-						b.add(c[h]);
-					}
-				}
-				m_tmpList.add(b.toArray(new DataCell[0]));
-			}
-		}
-
-		public DataCell[][] collected() {
-			return m_tmpList.toArray(new DataCell[m_tmpList.size()][0]);
-		}
 	}
 }
