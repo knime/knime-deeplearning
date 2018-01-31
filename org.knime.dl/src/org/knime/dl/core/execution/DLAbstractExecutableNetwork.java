@@ -108,9 +108,9 @@ public abstract class DLAbstractExecutableNetwork<N extends DLNetwork> implement
 
 	protected final Set<DLTensorId> m_requestedOutputs;
 
-	protected final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> m_inputPreparer;
+	protected final DLNetworkInputPreparer m_inputPreparer;
 
-	protected final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> m_outputConsumer;
+	protected final DLNetworkOutputConsumer m_outputConsumer;
 
 	protected final DLTensorFactory m_tensorFactory;
 
@@ -119,10 +119,8 @@ public abstract class DLAbstractExecutableNetwork<N extends DLNetwork> implement
 	protected Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> m_output;
 
 	protected DLAbstractExecutableNetwork(final N network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer,
-			final DLNetworkOutputConsumer<DLTensor<? extends DLReadableBuffer>> outputConsumer,
-			final DLTensorFactory tensorFactory) {
+			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		checkArgument(areInputSpecsValid(network, executionInputSpecs),
 				"Network input specs and execution input specs differ.");
 		checkArgument(areOutputSpecsValid(network, requestedOutputs),

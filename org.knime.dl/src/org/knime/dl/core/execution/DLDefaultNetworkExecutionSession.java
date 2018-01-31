@@ -48,20 +48,14 @@
  */
 package org.knime.dl.core.execution;
 
-import java.nio.BufferUnderflowException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -72,22 +66,15 @@ public class DLDefaultNetworkExecutionSession implements DLNetworkExecutionSessi
 
 	private final DLExecutableNetwork m_network;
 
-	private final DLXY m_input;
-
-	private final DLYX m_output;
-
-	@SuppressWarnings("unchecked")
-	public DLDefaultNetworkExecutionSession(final DLExecutableNetwork network, final DLXY input, final DLYX output) {
+	public DLDefaultNetworkExecutionSession(final DLExecutableNetwork network) {
 		m_network = network;
-		m_input = input;
-		m_output = output;
 	}
 
 	@Override
 	public void run(final DLExecutionMonitor monitor) {
 		// must be present
 		final long batchSize = m_network.getSpec().getInputSpecs()[0].getBatchSize().getAsLong();
-		m_network.execute(new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
+		final DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>> inputPreparer = new DLNetworkInputPreparer<DLTensor<? extends DLWritableBuffer>>() {
 
 			@Override
 			public long getNumBatches() {
@@ -128,36 +115,7 @@ public class DLDefaultNetworkExecutionSession implements DLNetworkExecutionSessi
 					}
 				}
 			}
-		}, out -> {
-			// TODO: we don't want to allocate a new map each time
-			// output for each layerdataspec as a batch of rows (cells)
-			final HashMap<DLTensorSpec, DataCell[][]> convertedOutput = new HashMap<>(out.size());
-			for (final Entry<DLTensorSpec, DLTensor<? extends DLReadableBuffer>> o : out.entrySet()) {
-				// TODO move out of loop
-				// array of rows. for each DL tensor we create a row.
-				final DLTensorToDataCellConverter<?, DataCell> converter = m_outputConverters.get(o.getKey());
-				final ArrayList<DataCell> toCollect = new ArrayList<>();
-				try {
-					converter.convert(exec, (DLTensor) o.getValue(), toCollect::add);
-				} catch (final BufferUnderflowException ex) {
-					throw new DLInvalidNetworkOutputException("Unexpected network output. Size of network output '"
-							+ o.getKey().getName() + "' did not match its specification.");
-				} catch (final Exception e) {
-					// TODO
-					throw new RuntimeException(e);
-				}
-				final DataCell[][] output = new DataCell[batchSize][toCollect.size() / expectedBatchSize];
-				final Iterator<DataCell> collectedIterator = toCollect.iterator();
-				for (int i = 0; i < batchSize; i++) {
-					// TODO: if is last batch: crop if input was not a complete batch
-					for (int j = 0; j < toCollect.size() / expectedBatchSize; j++) {
-						output[i][j] = collectedIterator.next();
-					}
-				}
-				convertedOutput.put(o.getKey(), output);
-			}
-			outputConsumer.accept(convertedOutput);
-		}, expectedBatchSize);
+		};
 	}
 
 	@Override
