@@ -187,47 +187,48 @@ final class DLExecutorInputPanel extends JPanel {
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final OptionalLong inputSize = DLUtils.Shapes.getFixedSize(m_inputTensorSpec.getShape());
-		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
-		m_cfg.saveToSettings(settings);
-		// validate input: get user-selected columns and converter, ask converter for its output size given the input
-		// columns (if possible) and compare to number of available input neurons
-		final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
-		final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
-				.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
-		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = DLDataValueToTensorConverterRegistry
-				.getInstance().getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
-				.orElseThrow(() -> new InvalidSettingsException(
-						"Converter '" + m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
-								+ m_cfg.getConverterModel().getStringArrayValue()[1]
-								+ ")' could not be found. Are you missing a KNIME extension?"));
-		final OptionalLong destSizeOpt = converter.getDestCount(includedColSpecs);
+		final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(m_inputTensorSpec.getShape());
 		// we can only validate the input if we actually know the size of the input tensor
-		if (inputSize.isPresent()) {
-			if (destSizeOpt.isPresent()) {
-				final long converterOutputSize = destSizeOpt.getAsLong();
-				if (converterOutputSize > inputSize.getAsLong()) {
-					throw new InvalidSettingsException(
-							"Selected input columns provide more input elements (" + converterOutputSize
-									+ ") than neurons available (" + inputSize.getAsLong() + ") for network input '"
-									+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
+		if (inputSizeOpt.isPresent()) {
+			final long inputSize = inputSizeOpt.getAsLong();
+			// validate input: get user-selected columns and converter, ask converter for its output size given the
+			// input
+			// columns (if possible) and compare to number of available input neurons
+			final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
+			final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
+					.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
+			final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = DLDataValueToTensorConverterRegistry
+					.getInstance().getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
+					.orElseThrow(() -> new InvalidSettingsException(
+							"Converter '" + m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
+									+ m_cfg.getConverterModel().getStringArrayValue()[1]
+									+ ")' could not be found. Are you missing a KNIME extension?"));
+			final OptionalLong converterOutputSizeOpt = converter.getDestCount(includedColSpecs);
+			if (converterOutputSizeOpt.isPresent()) {
+				final long converterOutputSize = converterOutputSizeOpt.getAsLong();
+				if (converterOutputSize > inputSize) {
+					throw new InvalidSettingsException("Selected input columns provide more input elements ("
+							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network input '"
+							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
-				if (converterOutputSize < inputSize.getAsLong()) {
-					throw new InvalidSettingsException(
-							"Selected input columns do not provide enough input elements (" + converterOutputSize
-									+ ") to populate all neurons (" + inputSize.getAsLong() + ") of network input '"
-									+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
+				if (converterOutputSize < inputSize) {
+					throw new InvalidSettingsException("Selected input columns do not provide enough input elements ("
+							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network input '"
+							+ m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
 				}
 			} else {
 				// we still can check if there are more input columns than input neurons since every column provides at
 				// least one element
-				if (includedColSpecs.size() > inputSize.getAsLong()) {
+				if (includedColSpecs.size() > inputSize) {
 					throw new InvalidSettingsException("More input columns selected (" + includedColSpecs.size()
-							+ ") than neurons available (" + inputSize.getAsLong() + ") for network input '"
+							+ ") than neurons available (" + inputSize + ") for network input '"
 							+ m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 			}
 		}
+
+		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsModel());
+		m_cfg.saveToSettings(settings);
 	}
 
 	void refreshAvailableConverters() throws NotConfigurableException {
