@@ -53,7 +53,9 @@ import java.util.OptionalLong;
 
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
+import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
@@ -67,6 +69,16 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory {
+
+	private static final int ID_IDX = 0;
+
+	private static final int NAME_IDX = 1;
+
+	private static final int BATCH_SIZE_IDX = 2;
+
+	private static final int SHAPE_IDX = 3;
+
+	private static final int TYPE_IDX = 4;
 
 	private final DLPythonTypeMap m_typeMap;
 
@@ -84,22 +96,24 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 		private static boolean checkTableSpec(final TableSpec spec) {
 			final String[] colNames = spec.getColumnNames();
 			final Type[] colTypes = spec.getColumnTypes();
-			return spec.getNumberColumns() == 4 //
-					&& colNames[0].equals("name") //
-					&& colNames[1].equals("batch_size") //
-					&& colNames[2].equals("shape") //
-					&& colNames[3].equals("type") //
-					&& colTypes[0].equals(Type.STRING) //
-					&& (colTypes[1].equals(Type.LONG) //
-							|| colTypes[1].equals(Type.INTEGER) //
-							|| colTypes[1].equals(Type.DOUBLE) //
-							|| colTypes[1].equals(Type.STRING) /*
-																 * TODO: we should only allow long/integer and force
-																 * Python to comply
-																 */) //
-					&& (colTypes[2].equals(Type.LONG_LIST) //
-							|| colTypes[2].equals(Type.INTEGER_LIST)) //
-					&& colTypes[3].equals(Type.STRING);
+			return spec.getNumberColumns() == 5 //
+					&& colNames[ID_IDX].equals("id") //
+					&& colNames[NAME_IDX].equals("name") //
+					&& colNames[BATCH_SIZE_IDX].equals("batch_size") //
+					&& colNames[SHAPE_IDX].equals("shape") //
+					&& colNames[TYPE_IDX].equals("type") //
+					&& colTypes[ID_IDX].equals(Type.STRING) //
+					&& colTypes[NAME_IDX].equals(Type.STRING) //
+					&& (colTypes[BATCH_SIZE_IDX].equals(Type.LONG) //
+							|| colTypes[BATCH_SIZE_IDX].equals(Type.INTEGER) //
+							|| colTypes[BATCH_SIZE_IDX].equals(Type.DOUBLE) //
+							|| colTypes[BATCH_SIZE_IDX].equals(Type.STRING) /*
+																			 * TODO: we should only allow long/integer
+																			 * and force Python to comply
+																			 */) //
+					&& (colTypes[SHAPE_IDX].equals(Type.LONG_LIST) //
+							|| colTypes[SHAPE_IDX].equals(Type.INTEGER_LIST)) //
+					&& colTypes[TYPE_IDX].equals(Type.STRING);
 		}
 
 		private final DLDefaultTensorSpec[] m_tensorSpecs;
@@ -122,58 +136,49 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 		@Override
 		public synchronized void addRow(final Row row) {
-			final String layerDataName = row.getCell(0).getStringValue();
-			long layerBatchSize = -1;
-			if (!row.getCell(1).isMissing()) {
-				if (row.getCell(1).getColumnType().equals(Type.LONG)) {
-					layerBatchSize = row.getCell(1).getLongValue();
-				} else if (row.getCell(1).getColumnType().equals(Type.INTEGER)) {
-					layerBatchSize = row.getCell(1).getIntegerValue();
-				} else if (row.getCell(1).getColumnType().equals(Type.DOUBLE)) {
-					layerBatchSize = (long) (row.getCell(1).getDoubleValue() + 0.5);
-				} else if (row.getCell(1).getColumnType().equals(Type.STRING)) {
-					layerBatchSize = Long.parseLong(row.getCell(1).getStringValue());
+			final DLTensorId tensorId = new DLDefaultTensorId(row.getCell(ID_IDX).getStringValue());
+			final String tensorName = row.getCell(NAME_IDX).getStringValue();
+			long batchSize = -1;
+			if (!row.getCell(BATCH_SIZE_IDX).isMissing()) {
+				if (row.getCell(BATCH_SIZE_IDX).getColumnType().equals(Type.LONG)) {
+					batchSize = row.getCell(BATCH_SIZE_IDX).getLongValue();
+				} else if (row.getCell(BATCH_SIZE_IDX).getColumnType().equals(Type.INTEGER)) {
+					batchSize = row.getCell(BATCH_SIZE_IDX).getIntegerValue();
+				} else if (row.getCell(BATCH_SIZE_IDX).getColumnType().equals(Type.DOUBLE)) {
+					batchSize = (long) (row.getCell(BATCH_SIZE_IDX).getDoubleValue() + 0.5);
+				} else if (row.getCell(BATCH_SIZE_IDX).getColumnType().equals(Type.STRING)) {
+					batchSize = Long.parseLong(row.getCell(BATCH_SIZE_IDX).getStringValue());
 				}
 			}
 			DLTensorShape tensorShape = null;
-			if (!row.getCell(2).isMissing()) {
-				if (row.getCell(2).getColumnType().equals(Type.LONG_LIST)) {
+			if (!row.getCell(SHAPE_IDX).isMissing()) {
+				if (row.getCell(SHAPE_IDX).getColumnType().equals(Type.LONG_LIST)) {
 					try {
-						tensorShape = createShape(row.getCell(2).getLongArrayValue());
+						tensorShape = createShape(row.getCell(SHAPE_IDX).getLongArrayValue());
 					} catch (final NullPointerException ex) {
 						// shape stays null
 					}
-				} else if (row.getCell(2).getColumnType().equals(Type.INTEGER_LIST)) {
-					final int[] tensorShapeInt = row.getCell(2).getIntegerArrayValue();
+				} else if (row.getCell(SHAPE_IDX).getColumnType().equals(Type.INTEGER_LIST)) {
+					final int[] tensorShapeInt = row.getCell(SHAPE_IDX).getIntegerArrayValue();
 					tensorShape = createShape(Arrays.stream(tensorShapeInt).mapToLong(i -> i).toArray());
 				}
 			}
-			final Class<?> layerDataType = m_typeMap.getPreferredInternalType(row.getCell(3).getStringValue());
-			// TODO: a builder would be nice
+			final Class<?> tensorType = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
 			final DLDefaultTensorSpec spec;
-			if (layerBatchSize > 0) {
+			if (batchSize > 0) {
 				if (tensorShape != null) {
-					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, tensorShape, layerDataType);
+					spec = new DLDefaultTensorSpec(tensorId, tensorName, batchSize, tensorShape, tensorType);
 				} else {
-					spec = new DLDefaultTensorSpec(layerDataName, layerBatchSize, layerDataType);
+					spec = new DLDefaultTensorSpec(tensorId, tensorName, batchSize, tensorType);
 				}
 			} else {
 				if (tensorShape != null) {
-					spec = new DLDefaultTensorSpec(layerDataName, tensorShape, layerDataType);
+					spec = new DLDefaultTensorSpec(tensorId, tensorName, tensorShape, tensorType);
 				} else {
-					spec = new DLDefaultTensorSpec(layerDataName, layerDataType);
+					spec = new DLDefaultTensorSpec(tensorId, tensorName, tensorType);
 				}
 			}
 			m_tensorSpecs[m_nextIdx++] = spec;
-		}
-		
-		private DLTensorShape createShape(long[] shape) {
-			if (Arrays.stream(shape).allMatch(d -> d != -1L)) {
-				return new DLDefaultFixedTensorShape(shape);
-			}
-			return new DLDefaultPartialTensorShape(Arrays.stream(shape)
-					.mapToObj(d -> d == -1 ? OptionalLong.empty() : OptionalLong.of(d))
-					.toArray(i -> new OptionalLong[i]));
 		}
 
 		@Override
@@ -184,6 +189,15 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 		@Override
 		public DLDefaultTensorSpec[] getTable() {
 			return m_tensorSpecs;
+		}
+
+		private DLTensorShape createShape(final long[] shape) {
+			if (Arrays.stream(shape).allMatch(d -> d != -1L)) {
+				return new DLDefaultFixedTensorShape(shape);
+			}
+			return new DLDefaultPartialTensorShape(
+					Arrays.stream(shape).mapToObj(d -> d == -1 ? OptionalLong.empty() : OptionalLong.of(d))
+							.toArray(i -> new OptionalLong[i]));
 		}
 	}
 }
