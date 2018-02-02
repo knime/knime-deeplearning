@@ -46,6 +46,8 @@
  */
 package org.knime.dl.core.training;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -84,8 +86,14 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
 
+	/**
+	 * @param numEpochs must be greater than zero
+	 * @param numBatchesPerEpoch must be greater than zero
+	 */
 	protected DLAbstractTrainingStatus(final int numEpochs, final int numBatchesPerEpoch) {
 		this();
+		checkArgument(numEpochs > 0);
+		checkArgument(numBatchesPerEpoch > 0);
 		m_numEpochs = numEpochs;
 		m_numBatchesPerEpoch = numBatchesPerEpoch;
 	}

@@ -128,7 +128,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
-				new DLKerasDefaultTrainingStatus());
+				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
 		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
 				executionInputSpecs, new DLNetworkInputPreparer() {
@@ -197,7 +197,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
 				callbacks);
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
-				new DLKerasDefaultTrainingStatus());
+				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
 		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
 				executionInputSpecs, new DLNetworkInputPreparer() {
