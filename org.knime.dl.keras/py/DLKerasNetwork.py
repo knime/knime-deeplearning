@@ -284,13 +284,7 @@ class DLKerasNetwork(DLPythonNetwork):
     # "Protected" helper methods:
 
     def _format_input(self, in_data, batch_size):
-        X = []
-        for input_spec in self.spec.input_specs:
-            tensor = in_data[input_spec.identifier].values[0][0].array
-            tensorShape = in_data[input_spec.identifier].values[0][1]
-            tensor = tensor.reshape([batch_size] + tensorShape)
-            X.append(tensor)
-        return X
+        return self._format_tensor(in_data, self.spec.input_specs, batch_size)
 
     def _format_output(self, Y):
         # some networks have multiple outputs, some do not
@@ -305,12 +299,17 @@ class DLKerasNetwork(DLPythonNetwork):
         return output
 
     def _format_target(self, in_data, batch_size):
-        Y = []
-        for output_spec in self.spec.output_specs:
-            tensor = in_data[output_spec.identifier].values[0][0].array
-            tensor = tensor.reshape([batch_size] + output_spec.shape)
-            Y.append(tensor)
-        return Y
+        return self._format_tensor(in_data, self.spec.output_specs, batch_size)
+
+
+    def _format_tensor(self, in_data, specs, batch_size):
+        tensors = []
+        for spec in specs:
+            tensor = in_data[spec.identifier].values[0][0].array
+            tensor_shape = in_data[spec.identifier].values[0][1]
+            tensor = tensor.reshape([batch_size] + tensor_shape)
+            tensors.append(tensor)
+        return tensors
 
     def _put_in_matching_buffer(self, y):
         t = y.dtype
