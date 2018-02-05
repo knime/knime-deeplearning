@@ -51,7 +51,7 @@ package org.knime.dl.base.nodes.executor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +74,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
@@ -192,18 +191,15 @@ final class DLExecutorInputPanel extends JPanel {
 		if (inputSizeOpt.isPresent()) {
 			final long inputSize = inputSizeOpt.getAsLong();
 			// validate input: get user-selected columns and converter, ask converter for its output size given the
-			// input
-			// columns (if possible) and compare to number of available input neurons
-			final FilterResult filter = m_cfg.getInputColumnsModel().applyTo(m_lastTableSpec);
-			final List<DataColumnSpec> includedColSpecs = Arrays.stream(filter.getIncludes())
-					.collect(Collectors.mapping(col -> m_lastTableSpec.getColumnSpec(col), Collectors.toList()));
+			// input columns (if possible) and compare to number of available input neurons
+			final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
 			final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = DLDataValueToTensorConverterRegistry
 					.getInstance().getConverterFactory(m_cfg.getConverterModel().getStringArrayValue()[1])
 					.orElseThrow(() -> new InvalidSettingsException(
 							"Converter '" + m_cfg.getConverterModel().getStringArrayValue()[0] + " ("
 									+ m_cfg.getConverterModel().getStringArrayValue()[1]
 									+ ")' could not be found. Are you missing a KNIME extension?"));
-			final OptionalLong converterOutputSizeOpt = converter.getDestCount(includedColSpecs);
+			final OptionalLong converterOutputSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
 			if (converterOutputSizeOpt.isPresent()) {
 				final long converterOutputSize = converterOutputSizeOpt.getAsLong();
 				if (converterOutputSize > inputSize) {
