@@ -58,6 +58,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.IntStream;
@@ -66,6 +67,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLDimension;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLPartialTensorShape;
@@ -80,6 +82,7 @@ import org.osgi.framework.FrameworkUtil;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLUtils {
 
@@ -328,6 +331,50 @@ public final class DLUtils {
 
 		public static boolean isKnown(final DLTensorShape shape) {
 			return !(shape instanceof DLUnknownTensorShape);
+		}
+	}
+	
+	public static class Dimensions {
+		
+		private Dimensions() {
+			// utility class
+		}
+		
+		/**
+		 * Establishes a mapping from <b>from</b> to <b>to</b> such that to[x] == from[mapping[x]].
+		 * 
+		 * Only <b>to</b> is explicitly checked for duplicates but if <b>from</b> contains duplicates
+		 * and has the same length as <b>to</b> it necessarily won't contain at least one dimension in
+		 * <b>to</b>.
+		 * 
+		 * @param from dimension order
+		 * @param to dimension order
+		 * @return mapping between the two dimension orders
+		 * @throws IllegalArgumentException if <b>from</b> and <b>to</b> have varying lengths, 
+		 * don't contain matching dimensions or <b>to</b> contains duplicates
+		 */
+		public static int[] getMapping(DLDimension[] from, DLDimension[] to) {
+			checkArgument(from.length == to.length, "The dimension arrays have varying length: %s vs. %s.",
+					from.length, to.length);
+			int[] mapping = new int[from.length];
+			EnumSet<DLDimension> seenDimensions = EnumSet.noneOf(DLDimension.class);
+			for (int i = 0; i < mapping.length; i++) {
+				DLDimension dimension = to[i];
+				checkArgument(!seenDimensions.contains(dimension), "to contains dimension '%s' multiple times.", dimension);
+				seenDimensions.add(dimension);
+				mapping[i] = findIndex(dimension, from);
+			}
+			return mapping;
+		}
+		
+		private static int findIndex(DLDimension dimension, DLDimension[] dimensionArray) {
+			for (int i = 0; i < dimensionArray.length; i++) {
+				if (dimension == dimensionArray[i]) {
+					return i;
+				}
+			}
+			throw new IllegalArgumentException("The dimension '" + dimension + "' is not contained in "
+					+ Arrays.deepToString(dimensionArray) + ".");
 		}
 	}
 }
