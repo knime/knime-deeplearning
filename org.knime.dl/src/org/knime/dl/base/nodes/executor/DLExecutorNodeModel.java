@@ -430,7 +430,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
 		for (final String layerDataName : m_smOutputOrder.getStringArrayValue()) {
 			// validate layer spec
-			final DLTensorSpec tensorSpec = DLUtils.Networks.findSpec(layerDataName, networkSpec)
+			final DLTensorSpec tensorSpec = DLUtils.Networks
+					.findSpec(layerDataName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
 					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
 							+ "' could not be found in the input deep learning network."));
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
