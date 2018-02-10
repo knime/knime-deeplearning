@@ -137,7 +137,9 @@ class DLKerasNetwork(DLPythonNetwork):
             output_layer_tensor_names = {}
 
             for layer in model.layers:
-                for node_idx in range(0, len(layer.inbound_nodes)):
+                # "inbound_nodes" became private API with Keras 2.1.3
+                inbound_nodes = layer.inbound_nodes if hasattr(layer, 'inbound_nodes') else layer._inbound_nodes
+                for node_idx in range(0, len(inbound_nodes)):
                     # inputs:
                     input_tensors = layer.get_input_at(node_idx)
                     input_shapes = layer.get_input_shape_at(node_idx)
