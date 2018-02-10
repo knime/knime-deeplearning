@@ -51,7 +51,7 @@
 							href="https://keras.io/optimizers/#rmsprop">RMSProp</a>
 					</li>
 					<li>
-						<a href="https://keras.io/optimizers/#rsgd">Stochastic gradient descent</a>
+						<a href="https://keras.io/optimizers/#sgd">Stochastic gradient descent</a>
 					</li>
 				</ul>
 				Please refer to <a href="https://keras.io/optimizers/">the Keras documentation</a> for further information on
