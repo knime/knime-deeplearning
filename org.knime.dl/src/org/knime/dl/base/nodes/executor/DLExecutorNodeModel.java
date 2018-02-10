@@ -91,13 +91,13 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLRowInputRowIterator;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.ExecutionSpecCreator;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
@@ -538,8 +538,8 @@ final class DLExecutorNodeModel extends NodeModel {
 				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
 						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
 				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
-						ExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(), batchSize,
-								columnsForTensorId, m_inputConverters),
+						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+								batchSize, columnsForTensorId, m_inputConverters),
 						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
 			int numBatches = -1;
 			try {

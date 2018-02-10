@@ -87,12 +87,12 @@ import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDataTableRowIterator;
 import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.ExecutionSpecCreator;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
@@ -652,11 +652,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 						rowIterator, batchSize, converterForTensorId);
-				final DLKerasNetworkTrainingSession session = ctx
-						.createTrainingSession(
-								inNetwork, trainingConfig, ExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(),
-										ctx.getTensorFactory(), batchSize, columnsForTensorId, m_converters),
-								inputPreparer);) {
+				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
+						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+								batchSize, columnsForTensorId, m_converters),
+						inputPreparer);) {
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setViewData(m_viewData);
 			m_status.trainingEnded().addListener((src, v) -> notifyViews(m_status));
