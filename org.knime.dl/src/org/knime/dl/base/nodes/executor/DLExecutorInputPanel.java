@@ -179,6 +179,7 @@ final class DLExecutorInputPanel extends JPanel {
 		refreshAvailableConverters();
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
+			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsModel(), m_lastTableSpec);
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
