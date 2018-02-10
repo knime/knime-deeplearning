@@ -79,6 +79,12 @@ public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObj
 	}
 
 	@Override
+	@SuppressWarnings("unchecked") // ensured by the constructor of this class
+	public Class<? extends DLKerasNetwork> getNetworkType() {
+		return (Class<? extends DLKerasNetwork>) super.getNetworkType();
+	}
+
+	@Override
 	protected void hashCodeInternal(final HashCodeBuilder b) {
 		// no op - everything's handled in abstract base class
 	}

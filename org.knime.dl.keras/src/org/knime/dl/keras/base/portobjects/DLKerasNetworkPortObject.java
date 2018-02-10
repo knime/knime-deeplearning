@@ -51,6 +51,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Objects;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -64,8 +65,13 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 
 /**
@@ -113,12 +119,37 @@ public final class DLKerasNetworkPortObject
 	 * Empty framework constructor. Must not be called by client code.
 	 */
 	public DLKerasNetworkPortObject() {
-		super();
 	}
 
 	@Override
 	public String getSummary() {
 		return "Keras Deep Learning Network";
+	}
+
+	@Override
+	protected void postConstruct() throws IOException {
+		// Ensure backward compatibility in case we deserialized an outdated network spec that contains tensor specs
+		// without a tensor id. See DLTensorSpec#getIdentifier().
+		final DLKerasNetworkSpec spec = m_spec.getNetworkSpec();
+		final boolean specIsOutdated = Stream
+				.of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs()).flatMap(Stream::of)
+				.anyMatch(s -> s.getIdentifier() == null);
+		if (specIsOutdated) {
+			// Reread network and rebuild spec.
+			final URL networkSource = m_networkReference == null ? getFileStore(0).getFile().toURI().toURL()
+					: m_networkReference;
+			final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
+					.getNetworkLoader(m_spec.getNetworkType())
+					.orElseThrow(() -> new IllegalStateException(
+							"Keras back end '" + m_spec.getNetworkType().getCanonicalName()
+									+ "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
+			try {
+				final DLKerasNetwork network = new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
+				m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), m_spec.getNetworkType());
+			} catch (DLInvalidSourceException | DLInvalidEnvironmentException e) {
+				throw new IOException(e.getMessage(), e);
+			}
+		}
 	}
 
 	@Override
@@ -154,9 +185,9 @@ public final class DLKerasNetworkPortObject
 				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
 			out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
 			final ObjectOutputStream objOut = new ObjectOutputStream(out);
-			final boolean storedInFileStore = portObject.m_networkReference != null;
-			objOut.writeBoolean(storedInFileStore);
-			if (storedInFileStore) {
+			final boolean referencedNetwork = portObject.m_networkReference != null;
+			objOut.writeBoolean(referencedNetwork);
+			if (referencedNetwork) {
 				objOut.writeObject(portObject.m_networkReference);
 			}
 			objOut.flush();

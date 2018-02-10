@@ -70,6 +70,11 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @since 3.6 - This field will be <code>null</code> when deserializing older versions of this spec. In this case,
+	 *        the spec object is in a corrupt state and has to be discarded and the underlying network has to be reread
+	 *        by the client code that triggered the deserialization. See {@link DLTensorSpec#getIdentifier()}.
+	 */
 	private final DLTensorId m_identifier;
 
 	private final String m_name;
@@ -199,7 +204,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
 	@Override
 	public String toString() {
-		return m_identifier.toString() + " (" + m_name + "): "
+		return Objects.toString(m_identifier) + " (" + m_name + "): "
 				+ (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString() + ", "
 				+ m_elementType.getSimpleName();
 	}
