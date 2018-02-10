@@ -428,24 +428,24 @@ final class DLExecutorNodeModel extends NodeModel {
 			throw new InvalidSettingsException("No network output was selected.");
 		}
 		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
-		for (final String layerDataName : m_smOutputOrder.getStringArrayValue()) {
+		for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
 			// validate layer spec
 			final DLTensorSpec tensorSpec = DLUtils.Networks
-					.findSpec(layerDataName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
-					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + layerDataName
+					.findSpec(tensorName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
+					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + tensorName
 							+ "' could not be found in the input deep learning network."));
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
 				throw new InvalidSettingsException(
-						"Selected output '" + layerDataName + "' has an unknown shape. This is not supported.");
+						"Selected output '" + tensorName + "' has an unknown shape. This is not supported.");
 			}
-			final DLExecutorOutputConfig cfg = m_outputCfgs.get(layerDataName);
+			final DLExecutorOutputConfig cfg = m_outputCfgs.get(tensorName);
 			// get selected converter
 			final DLTensorToDataCellConverterFactory<?, ?> converter = DLTensorToDataCellConverterRegistry.getInstance()
 					.getConverterFactory(cfg.getConverterModel().getStringArrayValue()[1])
 					.orElseThrow(() -> new DLMissingExtensionException(
 							"Converter '" + cfg.getConverterModel().getStringArrayValue()[0] + " ("
-									+ cfg.getConverterModel().getStringArrayValue()[1] + ")' for output '"
-									+ layerDataName + "' could not be found. Are you missing a KNIME extension?"));
+									+ cfg.getConverterModel().getStringArrayValue()[1] + ")' for output '" + tensorName
+									+ "' could not be found. Are you missing a KNIME extension?"));
 			m_outputConverters.put(tensorSpec, converter);
 		}
 	}
@@ -456,10 +456,10 @@ final class DLExecutorNodeModel extends NodeModel {
 		final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(keepInputColumns ? inDataSpec : null);
 		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> output : m_outputConverters
 				.entrySet()) {
-			final DLTensorSpec layerDataSpec = output.getKey();
+			final DLTensorSpec tensorSpec = output.getKey();
 			final DLTensorToDataCellConverterFactory<?, ?> converter = output.getValue();
-			final OptionalLong count = converter.getDestCount(layerDataSpec);
-			final String prefix = m_outputCfgs.get(layerDataSpec.getName()).getPrefixModel().getStringValue();
+			final OptionalLong count = converter.getDestCount(tensorSpec);
+			final String prefix = m_outputCfgs.get(tensorSpec.getName()).getPrefixModel().getStringValue();
 			if (!count.isPresent()) {
 				// We can't output a tableSpec if we don't know the number of produced columns for any of the output
 				// converters.
