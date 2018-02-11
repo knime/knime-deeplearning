@@ -159,7 +159,6 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		m_cfg.getGeneralConfig().getTrainingContextEntry().addLoadListener((entry) -> {
 			try {
 				refreshAvailableConverters();
-				refreshAvailableLossFunctions();
 			} catch (final NotConfigurableException ex) {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
@@ -239,6 +238,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
 			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
 			refreshAllowedInputColumns();
+			refreshAvailableLossFunctions();
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
