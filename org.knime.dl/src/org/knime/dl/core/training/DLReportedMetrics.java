@@ -46,17 +46,59 @@
  */
 package org.knime.dl.core.training;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLMetrics {
+public final class DLReportedMetrics implements Externalizable {
 
-	default String getIdentifier() {
-		return getClass().getCanonicalName();
+	public static DLReportedMetrics deserialize(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		final DLReportedMetrics metrics = new DLReportedMetrics();
+		metrics.readExternal(objIn);
+		return metrics;
 	}
 
-	String getName();
+	private String m_name;
 
-	Object getBackendRepresentation();
+	private float m_value;
+
+	public DLReportedMetrics(final String name, final float initialValue) {
+		m_name = name;
+		m_value = initialValue;
+	}
+
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
+	public DLReportedMetrics() {
+	}
+
+	public String getName() {
+		return m_name;
+	}
+
+	public float getValue() {
+		return m_value;
+	}
+
+	public void setValue(final float value) {
+		m_value = value;
+	}
+
+	@Override
+	public void writeExternal(final ObjectOutput objOut) throws IOException {
+		objOut.writeUTF(m_name);
+		objOut.writeFloat(m_value);
+	}
+
+	@Override
+	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		m_name = objIn.readUTF();
+		m_value = objIn.readFloat();
+	}
 }
