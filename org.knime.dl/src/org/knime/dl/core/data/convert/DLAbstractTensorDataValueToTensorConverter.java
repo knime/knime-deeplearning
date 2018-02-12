@@ -53,8 +53,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Handles shape inference on an abstract level. Note that we currently only allow single tensor data values to be
- * selected as input i.e. it is not possible to select multiple list columns.
+ * Ensures that only a single column is used for tensor data values (e.g. vectors or images).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
