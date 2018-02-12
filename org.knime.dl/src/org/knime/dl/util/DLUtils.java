@@ -334,6 +334,9 @@ public final class DLUtils {
 		}
 	}
 	
+	/**
+	 * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+	 */
 	public static class Dimensions {
 		
 		private Dimensions() {

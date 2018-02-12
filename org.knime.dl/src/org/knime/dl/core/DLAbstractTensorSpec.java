@@ -82,6 +82,8 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	private transient OptionalLong m_batchSize;
 
 	private final DLTensorShape m_shape;
+	
+	private final DLDimensionOrder m_dimensionOrder;
 
 	private final Class<?> m_elementType;
 
@@ -102,6 +104,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = checkNotNull(shape);
 		m_elementType = checkNotNull(elementType);
+		m_dimensionOrder = DLDefaultDimensionOrders.Unknown;
 	}
 
 	/**
@@ -117,6 +120,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 		m_batchSize = OptionalLong.empty();
 		m_shape = checkNotNull(shape);
 		m_elementType = checkNotNull(elementType);
+		m_dimensionOrder = DLDefaultDimensionOrders.Unknown;
 	}
 
 	/**
@@ -133,6 +137,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 		m_batchSize = OptionalLong.of(batchSize);
 		m_shape = DLUnknownTensorShape.INSTANCE;
 		m_elementType = checkNotNull(elementType);
+		m_dimensionOrder = DLDefaultDimensionOrders.Unknown;
 	}
 
 	/**
@@ -146,6 +151,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 		m_batchSize = OptionalLong.empty();
 		m_shape = DLUnknownTensorShape.INSTANCE;
 		m_elementType = checkNotNull(elementType);
+		m_dimensionOrder = DLDefaultDimensionOrders.Unknown;
 	}
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
@@ -170,6 +176,11 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	@Override
 	public DLTensorShape getShape() {
 		return m_shape;
+	}
+	
+	@Override
+	public DLDimensionOrder getDimensionOrder() {
+		return m_dimensionOrder;
 	}
 
 	@Override

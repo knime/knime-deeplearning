@@ -93,6 +93,13 @@ public interface DLTensorSpec extends Serializable {
 	 * @return the shape of the tensor
 	 */
 	DLTensorShape getShape();
+	
+	/**
+	 * Returns the dimension order this tensor expects e.g. [Height, Width, Channel] for channels last.
+	 * 
+	 * @return the order of dimensions
+	 */
+	DLDimensionOrder getDimensionOrder();
 
 	/**
 	 * Returns the type of the tensor's elements
