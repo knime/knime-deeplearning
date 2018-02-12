@@ -47,17 +47,68 @@
 package org.knime.dl.core;
 
 /**
+ * Provides {@link DLDimensionOrder} implementations for the most used dimension orders.
+ * The naming convention follows the Height-Width-Channel convention used in TensorFlow and other
+ * deep learning frameworks.
+ * 
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public enum DLDimension {
-
-	Time,
-	Depth,
-	Height,
-	Width,
+public enum DLDefaultDimensionOrders implements DLDimensionOrder {
 	/**
-	 * Note that this dimension can be seen as the feature dimension but
-	 * we use the Channel convention because it is used in many deep learning frameworks.
+	 * Represents the case that we don't know the dimension order.
+	 * This representation is an exception and should be handled differently from the others.
 	 */
-	Channel;
+	Unknown(null),
+	/**
+	 * Representation for vectors.
+	 */
+	C(new DLDimension[] {DLDimension.Channel}),
+	/**
+	 * Representation for e.g. time series data where we have one time and one feature axis.
+	 */
+	TC(new DLDimension[] {DLDimension.Time, DLDimension.Channel}),
+	/**
+	 * Representation for 2D images with channel last.
+	 */
+	HWC(new DLDimension[] {DLDimension.Height, DLDimension.Width, DLDimension.Channel}),
+	/**
+	 * Representation for 2D images with channel first.
+	 */
+	CHW(new DLDimension[] {DLDimension.Channel, DLDimension.Height, DLDimension.Width}),
+	/**
+	 * Representation for 3D images with channels last.
+	 */
+	DHWC(new DLDimension[] {DLDimension.Depth, DLDimension.Height, DLDimension.Channel}),
+	/**
+	 * Representation for 3D images with channels first.
+	 */
+	CDHW(new DLDimension[] {DLDimension.Channel, DLDimension.Depth, DLDimension.Height, DLDimension.Width}),
+	/**
+	 * Representation for 2D videos with channels last.
+	 */
+	THWC(new DLDimension[] {DLDimension.Time, DLDimension.Height, DLDimension.Width, DLDimension.Channel}),
+	/**
+	 * Representation for 2D videos with channels first.
+	 */
+	TCHW(new DLDimension[] {DLDimension.Time, DLDimension.Channel, DLDimension.Height, DLDimension.Width}),
+	/**
+	 * Representation for 3D videos with channels last.
+	 */
+	TDHWC(new DLDimension[] {DLDimension.Time, DLDimension.Depth, DLDimension.Height, DLDimension.Width, DLDimension.Channel}),
+	/**
+	 * Representation for 3D videos with channels first.
+	 */
+	TCDHW(new DLDimension[] {DLDimension.Time, DLDimension.Channel, DLDimension.Depth, DLDimension.Height, DLDimension.Width});
+	
+	private DLDefaultDimensionOrders(DLDimension[] dimensions) {
+		m_dimensions = dimensions;
+	}
+	
+	private final DLDimension[] m_dimensions;
+
+	@Override
+	public DLDimension[] getDimensions() {
+		return m_dimensions;
+	}
+
 }

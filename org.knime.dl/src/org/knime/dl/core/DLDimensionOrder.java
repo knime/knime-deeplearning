@@ -49,15 +49,7 @@ package org.knime.dl.core;
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public enum DLDimension {
+public interface DLDimensionOrder {
 
-	Time,
-	Depth,
-	Height,
-	Width,
-	/**
-	 * Note that this dimension can be seen as the feature dimension but
-	 * we use the Channel convention because it is used in many deep learning frameworks.
-	 */
-	Channel;
+	public DLDimension[] getDimensions();
 }
