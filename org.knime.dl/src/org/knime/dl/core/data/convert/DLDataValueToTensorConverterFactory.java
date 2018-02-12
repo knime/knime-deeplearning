@@ -54,6 +54,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
@@ -117,9 +118,10 @@ public interface DLDataValueToTensorConverterFactory<I extends DataValue, O exte
 	 * only a single value is allowed.
 	 *
 	 * @param input data values from columns that will be used to fill the input tensor
+	 * @param tensorSpec the spec of the tensor that should be filled with the data in <b>input</b>
 	 * @return the shape of a tensor that could be filled with input
 	 */
-	long[] getDataShape(List<? extends DataValue> input);
+	long[] getDataShape(List<? extends DataValue> input, DLTensorSpec tensorSpec);
 
 	/**
 	 * Creates a new converter instance.
