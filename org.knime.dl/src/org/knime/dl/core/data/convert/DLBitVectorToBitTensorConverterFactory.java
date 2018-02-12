@@ -55,6 +55,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
@@ -100,7 +101,7 @@ public class DLBitVectorToBitTensorConverterFactory
 	}
 
 	@Override
-	protected long[] getDataShapeInternal(final BitVectorValue input) {
+	protected long[] getDataShapeInternal(final BitVectorValue input, final DLTensorSpec tensorSpec) {
 		if (input.length() > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException(
 					"The provided bit vector is too large, currently bit vectors may have a maximal length of 2^31-1.");

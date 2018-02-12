@@ -55,6 +55,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
 
@@ -100,7 +101,7 @@ public class DLByteVectorToByteTensorConverterFactory
 	}
 
 	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input) {
+	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
 		if (input.length() > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("The provided byte vector is too large, "
 					+ "currently byte vectors may have a maximal length of 2^31-1.");

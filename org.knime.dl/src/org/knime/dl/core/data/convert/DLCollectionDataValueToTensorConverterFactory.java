@@ -55,6 +55,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
@@ -138,7 +139,7 @@ public final class DLCollectionDataValueToTensorConverterFactory<IE extends Data
 	}
 
 	@Override
-	protected long[] getDataShapeInternal(final CollectionDataValue input) {
-		return m_elementConverterFactory.getDataShape(input.stream().map(e -> (IE) e).collect(Collectors.toList()));
+	protected long[] getDataShapeInternal(final CollectionDataValue input, final DLTensorSpec tensorSpec) {
+		return m_elementConverterFactory.getDataShape(input.stream().map(e -> (IE) e).collect(Collectors.toList()), tensorSpec);
 	}
 }

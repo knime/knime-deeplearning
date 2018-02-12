@@ -3,13 +3,14 @@ package org.knime.dl.core.data.convert;
 import java.util.List;
 
 import org.knime.core.data.DataValue;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 public abstract class DLAbstractScalarDataValueToTensorConverterFactory<I extends DataValue, O extends DLWritableBuffer>
 		implements DLDataValueToTensorConverterFactory<I, O> {
 
 	@Override
-	public long[] getDataShape(final List<? extends DataValue> input) {
+	public long[] getDataShape(final List<? extends DataValue> input, final DLTensorSpec tensorSpec) {
 		if (input.isEmpty()) {
 			throw new IllegalArgumentException("Can't infer shape from empty list of data values.");
 		}

@@ -49,6 +49,7 @@ package org.knime.dl.core.data.convert;
 import java.util.List;
 
 import org.knime.core.data.DataValue;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
@@ -61,15 +62,17 @@ public abstract class DLAbstractTensorDataValueToTensorConverterFactory<I extend
 		implements DLDataValueToTensorConverterFactory<I, O> {
 
 	/**
+	 * @param element the single element in the input list
+	 * @param tensorSpec the spec for the tensor that should be filled with <b>element</b>
 	 * @return the shape of the element
 	 */
-	protected abstract long[] getDataShapeInternal(I element);
+	protected abstract long[] getDataShapeInternal(I element, DLTensorSpec tensorSpec);
 
 	/**
 	 * @throws IllegalArgumentException if <code>input</code> is not a singleton
 	 */
 	@Override
-	public final long[] getDataShape(final List<? extends DataValue> input) throws IllegalArgumentException {
+	public final long[] getDataShape(final List<? extends DataValue> input, final DLTensorSpec tensorSpec) throws IllegalArgumentException {
 		if (input.size() > 1) {
 			throw new IllegalArgumentException(
 					"For non-scalar data values, only single column selection is supported.");
@@ -79,7 +82,7 @@ public abstract class DLAbstractTensorDataValueToTensorConverterFactory<I extend
 			throw new IllegalArgumentException("The provided values are not compatible with the converter.");
 		}
 		@SuppressWarnings("unchecked") // see instanceof check above
-		final long[] shape = getDataShapeInternal((I) element);
+		final long[] shape = getDataShapeInternal((I) element, tensorSpec);
 		return shape;
 	}
 }
