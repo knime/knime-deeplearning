@@ -514,7 +514,7 @@ public class DLPythonConverterTest {
 		}
 
 		@Override
-		protected long[] getDataShapeInternal(final FooDataValue input) {
+		protected long[] getDataShapeInternal(final FooDataValue input, final DLTensorSpec tensorSpec) {
 			return new long[] { input.getFloatArray().length };
 		}
 
