@@ -51,5 +51,8 @@ package org.knime.dl.core;
  */
 public interface DLDimensionOrder {
 
-	public DLDimension[] getDimensions();
+	DLDimension[] getDimensions();
+
+	int[] inferMappingFor(DLDimension[] dimensions);
+
 }
