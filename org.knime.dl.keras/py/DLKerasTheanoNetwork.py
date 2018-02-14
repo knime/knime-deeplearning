@@ -75,12 +75,12 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
     def __init__(self, model):
         super().__init__(model)
 
-    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
+    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape, dimension_order):
         name = tensor.name
         if name is None or name == '':
             name = tensor_id
         element_type = tensor.dtype  # Theano returns a string
-        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type)
+        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type, dimension_order)
 
 
 class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):

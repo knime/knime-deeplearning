@@ -107,7 +107,7 @@ class DLKerasNetwork(DLPythonNetwork):
         super().__init__(model)
 
     @abc.abstractmethod
-    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape):
+    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape, dimension_order):
         raise NotImplementedError()
 
     @property
@@ -127,6 +127,8 @@ class DLKerasNetwork(DLPythonNetwork):
 
             output_layer_tensor_names = {}
 
+            dimension_order = self._determine_dimension_order()
+
             for layer in model.layers:
                 # "inbound_nodes" became private API with Keras 2.1.3
                 inbound_nodes = layer.inbound_nodes if hasattr(layer, 'inbound_nodes') else layer._inbound_nodes
@@ -145,7 +147,7 @@ class DLKerasNetwork(DLPythonNetwork):
                             tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx) + '_in'
                             tensor_shape = input_shapes[tensor_idx]
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
-                                                                tensor_id, input_tensor, tensor_shape)
+                                                                tensor_id, input_tensor, tensor_shape, dimension_order)
                             # preserve order of input tensors
                             input_specs[model_inputs.index(input_tensor)] = tensor_spec
                     # outputs:
@@ -232,6 +234,27 @@ class DLKerasNetwork(DLPythonNetwork):
                 training_config.metrics = metrics
             self._spec = DLKerasNetworkSpec(input_specs, intermediate_output_specs, output_specs, training_config)
         return self._spec
+
+    def _determine_dimension_order(self):
+        data_format = self._determine_dimension_format()
+        if data_format is 'channels_first':
+            return 'TCDHW'
+        else:
+            return 'TDHWC'
+
+    def _determine_data_format(self):
+        data_formats = []
+        for layer in self._model.layers:
+            if hasattr(layer, 'data_format'):
+                data_formats.append(layer.data_format)
+        if len(data_formats) == 0:
+            # use data format specified in keras config
+            return keras.backend.image_data_format()
+        elif len(set(data_formats)) > 1:
+            raise ValueError("The network contains conflicting data_formats.")
+        else:
+            # we checked that data_formats is not empty and all data_formats are the same
+            return data_formats[0]
 
     def execute(self, in_data, batch_size):
         X = self._format_input(in_data, batch_size)

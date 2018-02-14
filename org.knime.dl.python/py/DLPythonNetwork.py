@@ -128,13 +128,16 @@ class DLPythonNetworkSpec(object):
 
 class DLPythonTensorSpec(object):
 
-    def __init__(self, id, name, batch_size, shape, element_type):
+    def __init__(self, id, name, batch_size, shape, element_type, dimension_order):
         self._id = id
         self._name = name
         self._batch_size = batch_size
         # encode unknown dimensions as -1 to avoid serialization problems
         self._shape = [-1 if d is None else d for d in shape]
         self._element_type = element_type
+        if dimension_order not in ['TDHWC', 'TCDHW']:
+            raise ValueError('Currently unsupported dimension order ' + dimension_order)
+        self._dimension_order = dimension_order
 
     @property
     def identifier(self):
@@ -155,6 +158,10 @@ class DLPythonTensorSpec(object):
     @property
     def element_type(self):
         return self._element_type
+
+    @property
+    def dimension_order(self):
+        return self._dimension_order
 
 
 class DLPythonTrainingConfig(object):
