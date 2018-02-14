@@ -161,19 +161,21 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 		}
 		
 		/**
-		 * @param batchSize must be larger than 0
+		 * @param batchSize only set if larger than 0
 		 */
 		public void setBatchSize(long batchSize) {
-			CheckUtils.checkArgument(batchSize > 0, "Batch size must be > 0 but was %d.", batchSize);
-			m_batchSize = batchSize;
+			if (batchSize > 0) {
+				m_batchSize = batchSize;
+			}
 		}
 		
 		/**
-		 * @param tensorShape may not be null
+		 * @param tensorShape may be null (but won't be set in that case)
 		 */
 		public void setTensorShape(DLTensorShape tensorShape) {
-			CheckUtils.checkArgumentNotNull(tensorShape);
-			m_tensorShape = tensorShape;
+			if (tensorShape != null) {
+				m_tensorShape = tensorShape;
+			}
 		}
 		
 		/**
