@@ -51,10 +51,12 @@ package org.knime.dl.keras.core;
 import java.util.Arrays;
 import java.util.OptionalLong;
 
+import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
@@ -79,6 +81,8 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 	private static final int SHAPE_IDX = 3;
 
 	private static final int TYPE_IDX = 4;
+	
+	private static final int DIMENSION_ORDER_IDX = 5;
 
 	private final DLPythonTypeMap m_typeMap;
 
@@ -102,6 +106,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					&& colNames[BATCH_SIZE_IDX].equals("batch_size") //
 					&& colNames[SHAPE_IDX].equals("shape") //
 					&& colNames[TYPE_IDX].equals("type") //
+					&& colNames[DIMENSION_ORDER_IDX].equals("dimension_order") //
 					&& colTypes[ID_IDX].equals(Type.STRING) //
 					&& colTypes[NAME_IDX].equals(Type.STRING) //
 					&& (colTypes[BATCH_SIZE_IDX].equals(Type.LONG) //
@@ -109,11 +114,12 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 							|| colTypes[BATCH_SIZE_IDX].equals(Type.DOUBLE) //
 							|| colTypes[BATCH_SIZE_IDX].equals(Type.STRING) /*
 																			 * TODO: we should only allow long/integer
-																			 * and force Python to comply
+																			 * and force Python to comply 
 																			 */) //
 					&& (colTypes[SHAPE_IDX].equals(Type.LONG_LIST) //
 							|| colTypes[SHAPE_IDX].equals(Type.INTEGER_LIST)) //
-					&& colTypes[TYPE_IDX].equals(Type.STRING);
+					&& colTypes[TYPE_IDX].equals(Type.STRING)
+					&& colTypes[DIMENSION_ORDER_IDX].equals(Type.STRING);
 		}
 
 		private final DLDefaultTensorSpec[] m_tensorSpecs;
@@ -138,6 +144,17 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 		public synchronized void addRow(final Row row) {
 			final DLTensorId tensorId = new DLDefaultTensorId(row.getCell(ID_IDX).getStringValue());
 			final String tensorName = row.getCell(NAME_IDX).getStringValue();
+			final Class<?> tensorType = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
+			final DLDimensionOrder dimensionOrder = DLDefaultDimensionOrder.valueOf(
+					row.getCell(DIMENSION_ORDER_IDX).getStringValue());
+			final DLDefaultTensorSpec.Builder specBuilder = new DLDefaultTensorSpec.Builder(
+					tensorId, tensorName, tensorType, dimensionOrder);
+			specBuilder.setBatchSize(getBatchSize(row));
+			specBuilder.setTensorShape(getTensorShape(row));
+			m_tensorSpecs[m_nextIdx++] = specBuilder.build();
+		}
+		
+		private long getBatchSize(final Row row) {
 			long batchSize = -1;
 			if (!row.getCell(BATCH_SIZE_IDX).isMissing()) {
 				if (row.getCell(BATCH_SIZE_IDX).getColumnType().equals(Type.LONG)) {
@@ -150,6 +167,10 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					batchSize = Long.parseLong(row.getCell(BATCH_SIZE_IDX).getStringValue());
 				}
 			}
+			return batchSize;
+		}
+		
+		private DLTensorShape getTensorShape(final Row row) {
 			DLTensorShape tensorShape = null;
 			if (!row.getCell(SHAPE_IDX).isMissing()) {
 				if (row.getCell(SHAPE_IDX).getColumnType().equals(Type.LONG_LIST)) {
@@ -163,24 +184,9 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 					tensorShape = createShape(Arrays.stream(tensorShapeInt).mapToLong(i -> i).toArray());
 				}
 			}
-			final Class<?> tensorType = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
-			final DLDefaultTensorSpec spec;
-			if (batchSize > 0) {
-				if (tensorShape != null) {
-					spec = new DLDefaultTensorSpec(tensorId, tensorName, batchSize, tensorShape, tensorType);
-				} else {
-					spec = new DLDefaultTensorSpec(tensorId, tensorName, batchSize, tensorType);
-				}
-			} else {
-				if (tensorShape != null) {
-					spec = new DLDefaultTensorSpec(tensorId, tensorName, tensorShape, tensorType);
-				} else {
-					spec = new DLDefaultTensorSpec(tensorId, tensorName, tensorType);
-				}
-			}
-			m_tensorSpecs[m_nextIdx++] = spec;
+			return tensorShape;
 		}
-
+		
 		@Override
 		public TableSpec getTableSpec() {
 			return m_tableSpec;
