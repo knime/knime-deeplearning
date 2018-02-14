@@ -164,7 +164,7 @@ class DLKerasNetwork(DLPythonNetwork):
                             tensor_id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx) + '_out'
                             tensor_shape = output_shapes[tensor_idx]
                             tensor_spec = self._get_tensor_spec(layer, node_idx, tensor_idx,
-                                                                tensor_id, output_tensor, tensor_shape)
+                                                                tensor_id, output_tensor, tensor_shape, dimension_order)
                             if output_tensor in model_outputs:
                                 # preserve order of output tensors
                                 output_specs[model_outputs.index(output_tensor)] = tensor_spec
@@ -236,7 +236,7 @@ class DLKerasNetwork(DLPythonNetwork):
         return self._spec
 
     def _determine_dimension_order(self):
-        data_format = self._determine_dimension_format()
+        data_format = self._determine_data_format()
         if data_format is 'channels_first':
             return 'TCDHW'
         else:
