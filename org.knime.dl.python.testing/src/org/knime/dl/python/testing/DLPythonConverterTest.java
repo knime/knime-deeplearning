@@ -71,6 +71,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
 import org.knime.dl.core.DLDefaultTensorId;
@@ -134,12 +135,12 @@ public class DLPythonConverterTest {
 
 		final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
 		inputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("in0"), "in0", 1,
-				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class);
+				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class, DLDefaultDimensionOrder.TDHWC);
 		// intermediate outputs stay empty
 		final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
 		final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
 		outputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("out0"), "out0", 1,
-				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class);
+				new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class, DLDefaultDimensionOrder.TDHWC);
 		final DLBazNetworkSpec networkSpec = new DLBazNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
 		final DLBazNetwork network = new DLBazNetwork(networkSpec, null);
 
@@ -434,7 +435,7 @@ public class DLPythonConverterTest {
 		public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec spec, final long batchSize,
 				final long[] shape) {
 			return new DLDefaultTensorSpec(spec.getIdentifier(), spec.getName(), batchSize,
-					new DLDefaultFixedTensorShape(shape), spec.getElementType());
+					new DLDefaultFixedTensorShape(shape), spec.getElementType(), DLDefaultDimensionOrder.TDHWC);
 		}
 
 		@Override
