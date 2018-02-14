@@ -84,7 +84,15 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private final DLEvent<Void> m_trainingEnded = new DLDefaultEvent<>();
 
+	private final DLEvent<Void> m_epochStarted = new DLDefaultEvent<>();
+
+	private final DLEvent<Void> m_epochEnded = new DLDefaultEvent<>();
+
+	private final DLEvent<Void> m_batchStarted = new DLDefaultEvent<>();
+
 	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
+
+	private final DLEvent<Void> m_validationStarted = new DLDefaultEvent<>();
 
 	/**
 	 * @param numEpochs must be greater than zero
@@ -105,17 +113,18 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		m_trainingStarted.addListener((src, v) -> {
 			m_startDateTime = LocalDateTime.now();
 			m_status = Status.RUNNING;
+			m_currentEpoch = -1;
+			m_currentBatchInEpoch = -1;
 		});
 		m_trainingEnded.addListener((src, v) -> {
 			m_status = Status.FINISHED;
 			m_endDateTime = LocalDateTime.now();
 		});
-		m_batchEnded.addListener((src, v) -> {
-			if (++m_currentBatchInEpoch % m_numBatchesPerEpoch == 0) {
-				m_currentBatchInEpoch = 0;
-				m_currentEpoch++;
-			}
+		m_epochStarted.addListener((src, v) -> {
+			m_currentBatchInEpoch = -1;
+			m_currentEpoch++;
 		});
+		m_batchStarted.addListener((src, v) -> m_currentBatchInEpoch++);
 	}
 
 	@Override
@@ -181,8 +190,28 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
+	public DLEvent<Void> epochStarted() {
+		return m_epochStarted;
+	}
+
+	@Override
+	public DLEvent<Void> epochEnded() {
+		return m_epochEnded;
+	}
+
+	@Override
+	public DLEvent<Void> batchStarted() {
+		return m_batchStarted;
+	}
+
+	@Override
 	public DLEvent<Void> batchEnded() {
 		return m_batchEnded;
+	}
+
+	@Override
+	public DLEvent<Void> validationStarted() {
+		return m_validationStarted;
 	}
 
 	// --

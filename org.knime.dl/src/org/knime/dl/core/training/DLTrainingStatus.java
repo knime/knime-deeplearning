@@ -78,12 +78,14 @@ public interface DLTrainingStatus extends Externalizable {
 	LocalDateTime getEndDateTime();
 
 	/**
-	 * @return <code>-1</code> if execution did not yet start
+	 * @return <code>-1</code> if the first epoch did not yet start. Note that this especially the case between
+	 *         <code>trainingStarted</code> and <code>epochStarted</code>.
 	 */
 	int getCurrentEpoch();
 
 	/**
-	 * @return <code>-1</code> if execution did not yet start
+	 * @return <code>-1</code> if the first batch of the current epoch did not yet start. Note that this especially the
+	 *         case between <code>epochStarted</code> and <code>batchStarted</code>.
 	 */
 	int getCurrentBatchInEpoch();
 
@@ -97,5 +99,13 @@ public interface DLTrainingStatus extends Externalizable {
 
 	DLEvent<Void> trainingEnded();
 
+	DLEvent<Void> epochStarted();
+
+	DLEvent<Void> epochEnded();
+
+	DLEvent<Void> batchStarted();
+
 	DLEvent<Void> batchEnded();
+
+	DLEvent<Void> validationStarted();
 }
