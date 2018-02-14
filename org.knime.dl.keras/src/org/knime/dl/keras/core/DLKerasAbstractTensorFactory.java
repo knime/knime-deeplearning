@@ -122,7 +122,7 @@ public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
 	@Override
 	public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec spec, final long batchSize, final long[] shape) {
 		return new DLDefaultTensorSpec(spec.getIdentifier(), spec.getName(), batchSize,
-				new DLDefaultFixedTensorShape(shape), spec.getElementType());
+				new DLDefaultFixedTensorShape(shape), spec.getElementType(), spec.getDimensionOrder());
 	}
 
 	private <B extends DLBuffer> DLTensor<B> createTensorInternal(final DLTensorSpec spec) {
