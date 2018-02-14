@@ -95,9 +95,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final DLTensorShape shape, final Class<?> elementType) {
+			final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
 		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
@@ -112,9 +113,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	 * @param name the name of the tensor
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
-			final Class<?> elementType) {
+			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
 		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		m_batchSize = OptionalLong.empty();
@@ -128,9 +130,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final Class<?> elementType) {
+			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
 		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
@@ -144,8 +147,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
-	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType) {
+	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
+			final DLDimensionOrder dimensionOrder) {
 		m_identifier = checkNotNull(identifier);
 		m_name = checkNotNullOrEmpty(name);
 		m_batchSize = OptionalLong.empty();
