@@ -49,6 +49,7 @@
 package org.knime.dl.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Default implementation of a {@link DLTensorSpec tensor spec}.
@@ -68,10 +69,11 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final DLTensorShape shape, final Class<?> elementType) {
-		super(identifier, name, batchSize, shape, elementType);
+			final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+		super(identifier, name, batchSize, shape, elementType, dimensionOrder);
 	}
 
 	/**
@@ -81,10 +83,11 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 	 * @param name the name of the tensor
 	 * @param shape the shape of the tensor. Does not include the batch size.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
-			final Class<?> elementType) {
-		super(identifier, name, shape, elementType);
+			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+		super(identifier, name, shape, elementType, dimensionOrder);
 	}
 
 	/**
@@ -94,10 +97,11 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 	 * @param name the name of the tensor
 	 * @param batchSize the batch size of the tensor. Must be greater than zero.
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
 	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final Class<?> elementType) {
-		super(identifier, name, batchSize, elementType);
+			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+		super(identifier, name, batchSize, elementType, dimensionOrder);
 	}
 
 	/**
@@ -106,9 +110,11 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 	 * @param identifier the identifier of the tensor
 	 * @param name the name of the tensor
 	 * @param elementType the data type of the tensor's elements
+	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
 	 */
-	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType) {
-		super(identifier, name, elementType);
+	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
+			final DLDimensionOrder dimensionOrder) {
+		super(identifier, name, elementType, dimensionOrder);
 	}
 
 	@Override
@@ -120,5 +126,74 @@ public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 	protected boolean equalsInternal(final DLTensorSpec other) {
 		// no op - everything's handled in abstract base class
 		return true;
+	}
+	
+	/**
+	 * Builder object for {@link DLDefaultTensorSpec}. It is encouraged to use this object to avoid errors.
+	 * 
+	 * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+	 */
+	public static class Builder {
+		// required
+		private final DLTensorId m_identifier;
+		private final String m_name;
+		private final Class<?> m_elementType;
+		private final DLDimensionOrder m_dimensionOrder;
+		// optional
+		private long m_batchSize = -1;
+		private DLTensorShape m_tensorShape = null;
+		
+		/**
+		 * Creates a builder with the mandatory fields of a tensorSpec.</br>
+		 * Additional information such as batch size and shape can be added via
+		 * the respective setter objects.
+		 * 
+		 * @param identifier the identifier of the tensor
+		 * @param name the name of the tensor
+		 * @param elementType the data type of the tensor's elements
+		 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
+		 */
+		public Builder(DLTensorId identifier, String name, Class<?> elementType, DLDimensionOrder dimensionOrder) {
+			m_identifier = identifier;
+			m_name = name;
+			m_elementType = elementType;
+			m_dimensionOrder = dimensionOrder;
+		}
+		
+		/**
+		 * @param batchSize must be larger than 0
+		 */
+		public void setBatchSize(long batchSize) {
+			CheckUtils.checkArgument(batchSize > 0, "Batch size must be > 0 but was %d.", batchSize);
+			m_batchSize = batchSize;
+		}
+		
+		/**
+		 * @param tensorShape may not be null
+		 */
+		public void setTensorShape(DLTensorShape tensorShape) {
+			CheckUtils.checkArgumentNotNull(tensorShape);
+			m_tensorShape = tensorShape;
+		}
+		
+		/**
+		 * @return a tensorSpec with the properties set in this builder
+		 */
+		public DLDefaultTensorSpec build() {
+			if (m_tensorShape != null) {
+				if (m_batchSize > 0) {
+					return new DLDefaultTensorSpec(m_identifier, m_name, m_batchSize, m_tensorShape, m_elementType, m_dimensionOrder);
+				} else {
+					return new DLDefaultTensorSpec(m_identifier, m_name, m_tensorShape, m_elementType, m_dimensionOrder);
+				}
+			} else {
+				if (m_batchSize > 0) {
+					return new DLDefaultTensorSpec(m_identifier, m_name, m_batchSize, m_elementType, m_dimensionOrder);
+				} else {
+					return new DLDefaultTensorSpec(m_identifier, m_name, m_elementType, m_dimensionOrder);
+				}
+			}
+		}
+		
 	}
 }
