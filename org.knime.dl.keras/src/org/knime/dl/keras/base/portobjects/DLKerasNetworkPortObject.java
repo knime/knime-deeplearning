@@ -129,12 +129,9 @@ public final class DLKerasNetworkPortObject
 	@Override
 	protected void postConstruct() throws IOException {
 		// Ensure backward compatibility in case we deserialized an outdated network spec that contains tensor specs
-		// without a tensor id. See DLTensorSpec#getIdentifier().
+		// without a tensor id or a dimension order. See DLTensorSpec#getIdentifier().
 		final DLKerasNetworkSpec spec = m_spec.getNetworkSpec();
-		final boolean specIsOutdated = Stream
-				.of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs()).flatMap(Stream::of)
-				.anyMatch(s -> s.getIdentifier() == null);
-		if (specIsOutdated) {
+		if (specIsOutdated(spec)) {
 			// Reread network and rebuild spec.
 			final URL networkSource = m_networkReference == null ? getFileStore(0).getFile().toURI().toURL()
 					: m_networkReference;
@@ -151,6 +148,13 @@ public final class DLKerasNetworkPortObject
 			}
 		}
 	}
+	
+	private boolean specIsOutdated(DLKerasNetworkSpec spec) {
+		return Stream .of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs())
+				.flatMap(Stream::of)
+				.anyMatch(s -> s.getIdentifier() == null || s.getDimensionOrder() == null);
+	}
+	
 
 	@Override
 	protected DLKerasNetwork getNetworkInternal(final DLKerasNetworkPortObjectSpec spec)
