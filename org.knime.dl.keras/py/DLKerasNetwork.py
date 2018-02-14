@@ -423,6 +423,11 @@ class DLKerasTrainingMonitor(keras.callbacks.Callback):
         self._kernel_service.send_to_java(self._on_epoch_begin_msg)
 
     def on_epoch_end(self, epoch, logs=None):
+        logs = logs or {}
+        # TODO: this only works for single output networks
+        loss = logs.get('val_loss')
+        acc = logs.get('val_acc')
+        self._on_epoch_end_msg._val = str(acc) + ';' + str(loss)
         self._kernel_service.send_to_java(self._on_epoch_end_msg)
 
     def on_batch_begin(self, batch, logs=None):
