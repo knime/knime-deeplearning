@@ -100,7 +100,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 		private static boolean checkTableSpec(final TableSpec spec) {
 			final String[] colNames = spec.getColumnNames();
 			final Type[] colTypes = spec.getColumnTypes();
-			return spec.getNumberColumns() == 5 //
+			return spec.getNumberColumns() == 6 //
 					&& colNames[ID_IDX].equals("id") //
 					&& colNames[NAME_IDX].equals("name") //
 					&& colNames[BATCH_SIZE_IDX].equals("batch_size") //
