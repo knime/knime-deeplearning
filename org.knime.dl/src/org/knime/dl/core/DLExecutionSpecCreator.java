@@ -93,7 +93,7 @@ public class DLExecutionSpecCreator {
 	public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec configureSpec,
 			final DLDataValueToTensorConverterFactory<?, ?> converterFactory) throws DLMissingExtensionException {
 		final long[] dataShape = converterFactory.getDataShape(getValuesForIndices(m_row,
-				m_filterIndicesProvider.getFilterIndicesForTensor(configureSpec.getIdentifier())));
+				m_filterIndicesProvider.getFilterIndicesForTensor(configureSpec.getIdentifier())), configureSpec);
 		final long[] executionShape = DLUtils.Shapes.calculateExecutionShape(configureSpec.getShape(), dataShape);
 		return m_tensorFactory.createExecutionTensorSpec(configureSpec, m_batchSize, executionShape);
 	}
