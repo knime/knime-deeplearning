@@ -484,7 +484,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final LinkedHashMap<String, DLReportedMetrics> epochMetrics = new LinkedHashMap<>(4);
 		epochMetrics.put("val_accuracy", new DLReportedMetrics("val_accuracy", 0f));
 		epochMetrics.put("val_loss", new DLReportedMetrics("val_loss", 0f));
-		status.setBatchMetrics(epochMetrics);
 
 		final PythonToJavaMessageHandler onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
 
@@ -501,7 +500,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					}
 					i++;
 				}
-				status.epochEnded().raise(null);
+				status.epochEnded().raise(epochMetrics);
 			}
 		};
 		messages.registerMessageHandler(onEpochEndHandler);
@@ -519,7 +518,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
 		batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
 		batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
-		status.setBatchMetrics(batchMetrics);
 
 		final PythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
 
@@ -538,7 +536,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					i++;
 				}
 				messages.answer(new DefaultJavaToPythonResponse(msg, status.getStatus() == Status.RUNNING ? "c" : "s"));
-				status.batchEnded().raise(null);
+				status.batchEnded().raise(batchMetrics);
 				// start validation phase if validation is enabled and we finished the last training batch of the epoch
 				if (validationInputProvider != null
 						&& status.getCurrentBatchInEpoch() == status.getNumBatchesPerEpoch() - 1) {

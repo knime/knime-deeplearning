@@ -51,7 +51,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -78,25 +77,21 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private int m_currentBatchInEpoch = -1;
 
-	private Map<String, DLReportedMetrics> m_batchMetrics;
-
-	private Map<String, DLReportedMetrics> m_epochMetrics;
-
-	private Map<String, DLReportedMetrics> m_trainingMetrics; // TODO: pending
-
 	private final DLEvent<Void> m_trainingStarted = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_trainingEnded = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_epochStarted = new DLDefaultEvent<>();
 
-	private final DLEvent<Void> m_epochEnded = new DLDefaultEvent<>();
+	private final DLEvent<Map<String, DLReportedMetrics>> m_epochEnded = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_batchStarted = new DLDefaultEvent<>();
 
-	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
+	private final DLEvent<Map<String, DLReportedMetrics>> m_batchEnded = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_validationStarted = new DLDefaultEvent<>();
+
+	private final DLEvent<Map<String, DLReportedMetrics>> m_validationEnded = new DLDefaultEvent<>();
 
 	/**
 	 * @param numEpochs must be greater than zero
@@ -171,26 +166,6 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		return m_currentBatchInEpoch;
 	}
 
-	@Override
-	public Map<String, DLReportedMetrics> getBatchMetrics() {
-		return m_batchMetrics;
-	}
-
-	@Override
-	public <M extends Map<String, DLReportedMetrics> & Serializable> void setBatchMetrics(final M metrics) {
-		m_batchMetrics = metrics;
-	}
-
-	@Override
-	public Map<String, DLReportedMetrics> getEpochMetrics() {
-		return m_epochMetrics;
-	}
-
-	@Override
-	public <M extends Map<String, DLReportedMetrics> & Serializable> void setEpochMetrics(final M metrics) {
-		m_epochMetrics = metrics;
-	}
-
 	// callbacks:
 
 	@Override
@@ -209,7 +184,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public DLEvent<Void> epochEnded() {
+	public DLEvent<Map<String, DLReportedMetrics>> epochEnded() {
 		return m_epochEnded;
 	}
 
@@ -219,13 +194,18 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public DLEvent<Void> batchEnded() {
+	public DLEvent<Map<String, DLReportedMetrics>> batchEnded() {
 		return m_batchEnded;
 	}
 
 	@Override
 	public DLEvent<Void> validationStarted() {
 		return m_validationStarted;
+	}
+
+	@Override
+	public DLEvent<Map<String, DLReportedMetrics>> valdationEnded() {
+		return m_validationEnded;
 	}
 
 	// --
@@ -239,9 +219,6 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		objOut.writeObject(m_endDateTime);
 		objOut.writeInt(m_currentEpoch);
 		objOut.writeInt(m_currentBatchInEpoch);
-		objOut.writeObject(m_batchMetrics);
-		objOut.writeObject(m_epochMetrics);
-		objOut.writeObject(m_trainingMetrics);
 	}
 
 	@Override
@@ -253,14 +230,5 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		m_endDateTime = (LocalDateTime) objIn.readObject();
 		m_currentEpoch = objIn.readInt();
 		m_currentBatchInEpoch = objIn.readInt();
-		@SuppressWarnings("unchecked") // we know what we wrote
-		final Map<String, DLReportedMetrics> batchMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
-		m_batchMetrics = batchMetrics;
-		@SuppressWarnings("unchecked")
-		final Map<String, DLReportedMetrics> epochMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
-		m_epochMetrics = epochMetrics;
-		@SuppressWarnings("unchecked")
-		final Map<String, DLReportedMetrics> trainingMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
-		m_trainingMetrics = trainingMetrics;
 	}
 }

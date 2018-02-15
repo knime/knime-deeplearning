@@ -47,7 +47,6 @@
 package org.knime.dl.core.training;
 
 import java.io.Externalizable;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -89,14 +88,6 @@ public interface DLTrainingStatus extends Externalizable {
 	 */
 	int getCurrentBatchInEpoch();
 
-	Map<String, DLReportedMetrics> getBatchMetrics();
-
-	<M extends Map<String, DLReportedMetrics> & Serializable> void setBatchMetrics(M metrics);
-
-	Map<String, DLReportedMetrics> getEpochMetrics();
-
-	<M extends Map<String, DLReportedMetrics> & Serializable> void setEpochMetrics(M metrics);
-
 	// events:
 
 	DLEvent<Void> trainingStarted();
@@ -105,11 +96,13 @@ public interface DLTrainingStatus extends Externalizable {
 
 	DLEvent<Void> epochStarted();
 
-	DLEvent<Void> epochEnded();
+	DLEvent<Map<String, DLReportedMetrics>> epochEnded();
 
 	DLEvent<Void> batchStarted();
 
-	DLEvent<Void> batchEnded();
+	DLEvent<Map<String, DLReportedMetrics>> batchEnded();
 
 	DLEvent<Void> validationStarted();
+
+	DLEvent<Map<String, DLReportedMetrics>> valdationEnded();
 }
