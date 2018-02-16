@@ -59,6 +59,9 @@ public final class DLDefaultTensorId implements DLTensorId {
 
 	private final String m_identifierString;
 
+	/**
+	 * @param identifierString the underlying string identifier, must be neither null nor empty
+	 */
 	public DLDefaultTensorId(final String identifierString) {
 		m_identifierString = checkNotNullOrEmpty(identifierString);
 	}

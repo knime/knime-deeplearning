@@ -47,15 +47,15 @@
 package org.knime.dl.core.training;
 
 /**
+ * Base interface for training losses.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLLossFunction extends DLMetrics {
 
 	@Override
-	default String getIdentifier() {
-		return getClass().getCanonicalName();
-	}
+	String getIdentifier();
 
 	@Override
 	String getName();

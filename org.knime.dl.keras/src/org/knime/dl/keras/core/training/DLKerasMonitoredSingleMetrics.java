@@ -51,42 +51,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.knime.dl.core.DLTensorId;
 
 /**
+ * A monitored metrics (excluding the loss, see {@link DLKerasMonitoredSingleLoss}) for a single network output.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMonitoredSingleQuantity implements DLKerasMonitoredQuantity {
+public final class DLKerasMonitoredSingleMetrics extends DLKerasAbstractMonitoredQuantity {
 
-	private final DLKerasMetrics m_quantity;
-
-	private final DLTensorId m_output;
-
-	private final boolean m_isValidation;
-
-	public DLKerasMonitoredSingleQuantity(final DLKerasMetrics quantity, final boolean isValidation) {
-		m_quantity = checkNotNull(quantity);
-		m_output = null;
-		m_isValidation = isValidation;
+	/**
+	 * @param quantity the monitored quantity
+	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
+	 */
+	public DLKerasMonitoredSingleMetrics(final DLKerasMetrics quantity, final boolean isValidation) {
+		super(checkNotNull(quantity), null, isValidation);
 	}
 
-	public DLKerasMonitoredSingleQuantity(final DLKerasMetrics quantity, final DLTensorId output,
+	/**
+	 * @param quantity the monitored quantity
+	 * @param output the output for which the quantity is monitored
+	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
+	 */
+	public DLKerasMonitoredSingleMetrics(final DLKerasMetrics quantity, final DLTensorId output,
 			final boolean isValidation) {
-		m_quantity = checkNotNull(quantity);
-		m_output = checkNotNull(output);
-		m_isValidation = isValidation;
-	}
-
-	@Override
-	public DLKerasMetrics getQuantity() {
-		return m_quantity;
-	}
-
-	@Override
-	public DLTensorId getOutput() {
-		return m_output;
-	}
-
-	@Override
-	public boolean isValidationQuantity() {
-		return m_isValidation;
+		super(checkNotNull(quantity), checkNotNull(output), isValidation);
 	}
 }

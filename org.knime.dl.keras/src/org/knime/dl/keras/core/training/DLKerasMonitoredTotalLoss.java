@@ -46,32 +46,18 @@
  */
 package org.knime.dl.keras.core.training;
 
-import org.knime.dl.core.DLTensorId;
-
 /**
+ * The monitored loss for the entire network.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMonitoredTotalLoss implements DLKerasMonitoredQuantity {
+public final class DLKerasMonitoredTotalLoss extends DLKerasAbstractMonitoredQuantity {
 
-	private final boolean m_isValidation;
-
+	/**
+	 * @param isValidation true if the monitored loss is the validation loss (as opposed to the training loss)
+	 */
 	public DLKerasMonitoredTotalLoss(final boolean isValidation) {
-		m_isValidation = isValidation;
-	}
-
-	@Override
-	public DLKerasMetrics getQuantity() {
-		return null;
-	}
-
-	@Override
-	public DLTensorId getOutput() {
-		return null;
-	}
-
-	@Override
-	public boolean isValidationQuantity() {
-		return m_isValidation;
+		super(null, null, isValidation);
 	}
 }

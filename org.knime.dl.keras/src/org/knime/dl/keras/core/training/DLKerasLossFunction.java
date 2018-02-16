@@ -55,6 +55,11 @@ import org.knime.dl.core.training.DLLossFunction;
 public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetrics {
 
 	@Override
+	default String getIdentifier() {
+		return DLKerasMetrics.super.getIdentifier();
+	}
+
+	@Override
 	String getKerasIdentifier();
 
 	@Override
@@ -62,17 +67,22 @@ public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetrics {
 		return getKerasIdentifier();
 	}
 
+	/**
+	 * Abstract base class for implementations of {@link DLKerasLossFunction}.
+	 */
 	public abstract static class DLKerasAbstractLossFunction extends DLKerasAbstractMetrics
 			implements DLKerasLossFunction {
 
+		/**
+		 * @param name the friendly name of the metrics, not null, not empty, suitable to be displayed to the user
+		 * @param kerasIdentifier the identifier for this metrics on Python side
+		 */
 		protected DLKerasAbstractLossFunction(final String name, final String kerasIdentifier) {
 			super(name, kerasIdentifier);
 		}
 	}
 
-	// TODO: we should add a "since" attribute to these losses to enable checking if they're available for the local
-	// Keras installation. This implies changes in the installation testers on Python side as they have to extract the
-	// libs' versions.
+	// Convenience classes for the different loss functions of the Keras back end:
 
 	public static final class DLKerasMeanSquaredError extends DLKerasAbstractLossFunction {
 

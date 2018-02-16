@@ -51,32 +51,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.knime.dl.core.DLTensorId;
 
 /**
+ * The monitored loss for a single network output.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMonitoredSingleLoss implements DLKerasMonitoredQuantity {
+public final class DLKerasMonitoredSingleLoss extends DLKerasAbstractMonitoredQuantity {
 
-	private final DLTensorId m_output;
-
-	private final boolean m_isValidation;
-
+	/**
+	 * @param output the output for which the loss is monitored
+	 * @param isValidation true if the monitored loss is a validation loss (as opposed to a training loss)
+	 */
 	public DLKerasMonitoredSingleLoss(final DLTensorId output, final boolean isValidation) {
-		m_output = checkNotNull(output);
-		m_isValidation = isValidation;
-	}
-
-	@Override
-	public DLKerasMetrics getQuantity() {
-		return null;
-	}
-
-	@Override
-	public DLTensorId getOutput() {
-		return m_output;
-	}
-
-	@Override
-	public boolean isValidationQuantity() {
-		return m_isValidation;
+		super(null, checkNotNull(output), isValidation);
 	}
 }

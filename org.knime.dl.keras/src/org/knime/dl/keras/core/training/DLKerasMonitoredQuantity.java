@@ -55,6 +55,11 @@ import org.knime.dl.core.DLTensorId;
 public interface DLKerasMonitoredQuantity {
 
 	/**
+	 * @return the string literal for this quantity on Python side, must not be in quotes
+	 */
+	String getKerasIdentifier();
+
+	/**
 	 * @return the monitored quantity. May be null, in which case the monitored quantity is the loss.
 	 */
 	DLKerasMetrics getQuantity();
@@ -65,5 +70,20 @@ public interface DLKerasMonitoredQuantity {
 	 */
 	DLTensorId getOutput();
 
+	/**
+	 * @return true if the monitored quantity is a validation quantity (as opposed to a training quantity), otherwise
+	 *         false
+	 */
 	boolean isValidationQuantity();
+
+	@Override
+	int hashCode();
+
+	/**
+	 * Monitored quantities are just a simple combination of metrics, network output and validation flag. Their type
+	 * hierarchy should be irrelevant. Therefore, implementing classes should omit a strict type check like
+	 * <code>obj.getClass() == getClass()</code> when testing for equality and instead just check for this interface.
+	 */
+	@Override
+	boolean equals(Object obj);
 }

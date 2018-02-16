@@ -55,11 +55,27 @@ import java.io.Serializable;
  */
 public interface DLTensorId extends Serializable {
 
+	/**
+	 * @return the underlying string identifier
+	 */
 	String getIdentifierString();
 
+	/**
+	 * Delegates to <code>getIdentifierString().hashCode()</code>.
+	 */
 	@Override
 	int hashCode();
 
+	/**
+	 * Delegates to <code>getIdentifierString().equals(Object)</code> after doing the usual reference, null and type
+	 * equality checks.
+	 */
 	@Override
 	boolean equals(Object obj);
+
+	/**
+	 * Delegates to {@link #getIdentifierString()}.
+	 */
+	@Override
+	String toString();
 }

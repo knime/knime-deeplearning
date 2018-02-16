@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.training;
 
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.training.DLMetrics;
 
 /**
@@ -56,19 +57,51 @@ import org.knime.dl.core.training.DLMetrics;
  */
 public interface DLKerasMetrics extends DLMetrics {
 
+	/**
+	 * @return the identifier for this metrics on Python side
+	 */
 	String getKerasIdentifier();
+
+	/**
+	 * Keras metrics are nothing more than a name and a back end string identifier. It does not make sense to give them
+	 * an additional, artificial identity on Java side. Therefore, this method delegates to
+	 * {@link #getKerasIdentifier()}.
+	 */
+	@Override
+	default String getIdentifier() {
+		return getKerasIdentifier();
+	}
 
 	@Override
 	default String getBackendRepresentation() {
 		return getKerasIdentifier();
 	}
 
+	/**
+	 * Keras metrics are nothing more than a name and a back end string identifier. Therefore, implementing classes
+	 * should omit a strict type check like <code>obj.getClass() == getClass()</code> when testing for equality and
+	 * instead just check for this interface.
+	 */
+	@Override
+	boolean equals(Object obj);
+
+	/**
+	 * Abstract base class for implementations of {@link DLKerasMetrics}.
+	 */
 	public abstract static class DLKerasAbstractMetrics implements DLKerasMetrics {
+
+		// TODO: we should add a "since" attribute to this class (or even interface) to enable checking if deriving
+		// classes are available for the local Keras installation. This implies changes in the installation testers on
+		// Python side as they have to extract the libs' versions.
 
 		private final String m_name;
 
 		private final String m_kerasIdentifier;
 
+		/**
+		 * @param name the friendly name of the metrics, not null, not empty, suitable to be displayed to the user
+		 * @param kerasIdentifier the identifier for this metrics on Python side
+		 */
 		protected DLKerasAbstractMetrics(final String name, final String kerasIdentifier) {
 			m_name = checkNotNullOrEmpty(name);
 			m_kerasIdentifier = checkNotNullOrEmpty(kerasIdentifier);
@@ -82,6 +115,36 @@ public interface DLKerasMetrics extends DLMetrics {
 		@Override
 		public String getKerasIdentifier() {
 			return m_kerasIdentifier;
+		}
+
+		@Override
+		public int hashCode() {
+			final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+			b.append(m_name);
+			b.append(m_kerasIdentifier);
+			return b.toHashCode();
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			/* no strict type check, see documentation of DLKerasMetrics#equals(Object) */
+			if (obj == null || !(obj instanceof DLKerasMetrics)) {
+				return false;
+			}
+			final DLKerasMetrics other = (DLKerasMetrics) obj;
+			return other.getName().equals(m_name) //
+					&& other.getKerasIdentifier().equals(m_kerasIdentifier) //
+					// We care about identity on the back end side, so this check is also needed. Check for
+					// getIdentifier() is not.
+					&& other.getBackendRepresentation().equals(m_kerasIdentifier);
+		}
+
+		@Override
+		public String toString() {
+			return m_name + ", " + m_kerasIdentifier;
 		}
 	}
 

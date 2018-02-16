@@ -72,7 +72,7 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	Class<N> getNetworkType();
 
 	/**
-	 * @return the identifier of this training context, not null not empty, must be unique across all training contexts
+	 * @return the identifier of this training context, not null, not empty, must be unique across all training contexts
 	 */
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
