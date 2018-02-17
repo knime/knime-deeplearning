@@ -125,6 +125,8 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 		};
 		m_combobox.setRenderer(renderer);
 
+		// On load
+		config.addLoadListener(e -> setEnabledComponents(m_config.getEnabled()));
 		final AtomicBoolean isSelectionChanged = new AtomicBoolean(false);
 		// Config changes
 		config.addValueChangeListener((e, oldValue) -> {
