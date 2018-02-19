@@ -139,4 +139,14 @@ public class DLPythonFloatBuffer extends DLPythonAbstractDataBuffer<DLDefaultFlo
 	public void putAll(final short[] values) throws BufferOverflowException {
 		m_buffer.putAll(values);
 	}
+
+	@Override
+	public void readToDoubleArray(double[] dest, int destPos, int length) {
+		m_buffer.readToDoubleArray(dest, destPos, length);
+	}
+
+	@Override
+	public void readToFloatArray(float[] dest, int destPos, int length) {
+		m_buffer.readToFloatArray(dest, destPos, length);
+	}
 }

@@ -149,4 +149,9 @@ public class DLPythonDoubleBuffer extends DLPythonAbstractDataBuffer<DLDefaultDo
 	public void putAll(final short[] values) throws BufferOverflowException {
 		m_buffer.putAll(values);
 	}
+
+	@Override
+	public void readToDoubleArray(double[] dest, int destPos, int length) {
+		m_buffer.readToDoubleArray(dest, destPos, length);
+	}
 }

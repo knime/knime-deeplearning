@@ -139,4 +139,9 @@ public class DLPythonLongBuffer extends DLPythonAbstractDataBuffer<DLDefaultLong
 	public void putAll(final short[] values) throws BufferOverflowException {
 		m_buffer.putAll(values);
 	}
+
+	@Override
+	public void readToLongArray(long[] dest, int destPos, int length) {
+		m_buffer.readToLongArray(dest, destPos, length);
+	}
 }
