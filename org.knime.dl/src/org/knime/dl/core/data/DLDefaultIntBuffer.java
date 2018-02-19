@@ -58,6 +58,7 @@ import java.nio.BufferUnderflowException;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 		implements DLWritableIntBuffer, DLReadableIntBuffer {
@@ -187,5 +188,36 @@ public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 	@Override
 	protected int[] createStorage() {
 		return new int[m_capacity];
+	}
+
+	@Override
+	public void readToDoubleArray(double[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		for (int i = 0; i < length; i++) {
+			dest[destPos + i] = m_storage[m_nextRead + i];
+		}
+		m_nextRead += length;
+	}
+
+	@Override
+	public void readToLongArray(long[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		for (int i = 0; i < length; i++) {
+			dest[destPos + i] = m_storage[m_nextRead + i];
+		}
+		m_nextRead += length;
+	}
+
+	@Override
+	public void readToIntArray(int[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);
+		m_nextRead += length;
 	}
 }

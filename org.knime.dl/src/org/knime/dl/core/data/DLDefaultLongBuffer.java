@@ -58,6 +58,7 @@ import java.nio.BufferUnderflowException;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class DLDefaultLongBuffer extends DLAbstractWrappingDataBuffer<long[]>
 		implements DLWritableLongBuffer, DLReadableLongBuffer {
@@ -171,5 +172,14 @@ public class DLDefaultLongBuffer extends DLAbstractWrappingDataBuffer<long[]>
 	@Override
 	protected long[] createStorage() {
 		return new long[m_capacity];
+	}
+
+	@Override
+	public void readToLongArray(long[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);
+		m_nextRead += length;
 	}
 }

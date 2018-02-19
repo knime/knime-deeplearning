@@ -58,6 +58,7 @@ import java.nio.BufferUnderflowException;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 		implements DLWritableFloatBuffer, DLReadableFloatBuffer {
@@ -172,5 +173,25 @@ public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 	@Override
 	protected float[] createStorage() {
 		return new float[m_capacity];
+	}
+
+	@Override
+	public void readToDoubleArray(double[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		for (int i = 0; i < length; i++) {
+			dest[destPos + i] = m_storage[m_nextRead + i];
+		}
+		m_nextRead += length;
+	}
+
+	@Override
+	public void readToFloatArray(float[] dest, int destPos, int length) {
+		checkArgument(destPos > 0);
+		checkArgument(length > 0);
+		checkUnderflow(m_nextRead + length <= m_nextWrite);
+		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);
+		m_nextRead += length;
 	}
 }
