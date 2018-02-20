@@ -53,9 +53,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -72,21 +72,23 @@ import javax.swing.Timer;
 import javax.swing.text.DefaultCaret;
 
 import org.jfree.data.Range;
-import org.knime.dl.keras.base.nodes.learner.view.DLFloatData;
-import org.knime.dl.keras.base.nodes.learner.view.DLView;
+import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotView;
+import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData.DLLinePlotViewDataEntry;
 import org.knime.dl.keras.base.nodes.learner.view.rangeslider.RangeSlider;
+
+import gnu.trove.TObjectFloatHashMap;
 
 /**
  * DLView containing of a {@link JFreeChartLinePlotPanel} and a textual history view.
  *
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartLinePlotViewSpec> {
+public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFreeChartLinePlotViewSpec> {
 
 	private final JFreeChartLinePlotPanel m_linePlot;
-	private final List<JTextArea> m_historyAreas = new ArrayList<>();
-	private final List<JLabel> m_currentValueLabels = new ArrayList<>();
-	private final float[] m_currentValues;
+	private final Map<String, JTextArea> m_historyAreas = new HashMap<>();
+	private final Map<String, JLabel> m_currentValueLabels = new HashMap<>();
+	private final TObjectFloatHashMap<String> m_currentValues;
 	private boolean m_isRunning = false;
 
 	private final JPanel m_component;
@@ -96,7 +98,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 	public DLJFreeChartLinePlotWithHistoryView(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
 		m_component = new JPanel(new GridBagLayout());
 
-		m_currentValues = new float[plotViewSpec.numPlots()];
+		m_currentValues = new TObjectFloatHashMap<>(plotViewSpec.numPlots());
 
 		final JTabbedPane historyTabsPane = new JTabbedPane();
 		GridBagConstraints gbc;
@@ -107,7 +109,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 			// Enable automatic to bottom scrolling
 			caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 			historyArea.setEditable(false);
-			m_historyAreas.add(historyArea);
+			m_historyAreas.put(plotViewSpec.getLineLabel(i), historyArea);
 
 			final JScrollPane historyScroller = new JScrollPane(historyArea);
 			final JPanel historyWrapper = new JPanel(new GridBagLayout());
@@ -125,7 +127,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 			final JPanel valueWrapperWithBorder = new JPanel(new GridLayout(0, 1));
 			valueWrapperWithBorder.setBorder(BorderFactory.createTitledBorder("Current Value:"));
 			valueWrapperWithBorder.add(currentValue);
-			m_currentValueLabels.add(currentValue);
+			m_currentValueLabels.put(plotViewSpec.getLineLabel(i), currentValue);
 
 			gbc.gridy++;
 			gbc.weighty = 0;
@@ -244,8 +246,9 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		final boolean[] sliderChanged = new boolean[] { false };
 
 		rangeSlider.addChangeListener(e -> {
-			if (hasAxisChanged[0])
+			if (hasAxisChanged[0]) {
 				return;
+			}
 			sliderChanged[0] = true;
 
 			final int maxItemCount = getMaxItemCount();
@@ -261,8 +264,9 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 		});
 
 		m_linePlot.getHorizontalAxis().addChangeListener(event -> {
-			if (sliderChanged[0])
+			if (sliderChanged[0]) {
 				return;
+			}
 			hasAxisChanged[0] = true;
 
 			final int maxItemCount = getMaxItemCount();
@@ -302,9 +306,10 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 	}
 
 	private void updateCurrentValueLabels() {
-		for (int i = 0; i < m_currentValues.length; i++) {
-			m_currentValueLabels.get(i).setText(m_currentValues[i] + "");
-		}
+		m_currentValues.forEachEntry((k, v) -> {
+			m_currentValueLabels.get(k).setText(Float.toString(v));
+			return true;
+		});
 	}
 
 	public void setCurrentValueTimerUpdateDelay(final int miliseconds) {
@@ -329,16 +334,12 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLView<DLJFreeChartL
 	}
 
 	@Override
-	public void update(final DLJFreeChartLinePlotViewSpec spec, final Iterator<DLFloatData>[] iterators) {
-		for (int i = 0; i < iterators.length; i++) {
-			final Iterator<DLFloatData> it = iterators[i];
-			while (it.hasNext()) {
-				final float value = it.next().get();
-				final String lineLabel = spec.getLineLabel(i);
-				m_linePlot.plotNext(lineLabel, value);
-				m_historyAreas.get(i).append(value + "\n");
-				m_currentValues[i] = value;
-			}
+	public void update(final String lineLabel, final Iterator<DLLinePlotViewDataEntry> iterator) {
+		while (iterator.hasNext()) {
+			final DLLinePlotViewDataEntry dataEntry = iterator.next();
+			m_linePlot.plotNext(lineLabel, dataEntry.getX() + 1, dataEntry.getY()); // x-values are 0-based
+			m_historyAreas.get(lineLabel).append(dataEntry.getY() + "\n");
+			m_currentValues.put(lineLabel, dataEntry.getY());
 		}
 	}
 
