@@ -72,7 +72,7 @@ public class DLKerasLearnerNodeFactory extends NodeFactory<DLKerasLearnerNodeMod
 	@Override
 	public NodeView<DLKerasLearnerNodeModel> createNodeView(final int viewIndex,
 			final DLKerasLearnerNodeModel nodeModel) {
-		return new DLKerasLearnerNodeView<>(nodeModel, nodeModel.getProgressMonitor(), nodeModel.getViewSpecs());
+		return new DLKerasLearnerNodeView<>(nodeModel);
 	}
 
 	@Override
