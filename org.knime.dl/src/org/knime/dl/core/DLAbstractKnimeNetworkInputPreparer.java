@@ -48,10 +48,14 @@ package org.knime.dl.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.nio.BufferOverflowException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.knime.core.data.DataValue;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 
@@ -67,6 +71,13 @@ public abstract class DLAbstractKnimeNetworkInputPreparer implements DLNetworkIn
 
 	protected final Map<DLTensorId, DLDataValueToTensorConverter<?, ?>> m_converters;
 
+	/**
+	 * @param iterator provides the input data rows that are used by this instance to prepare (fill) the network tensors
+	 *            fed to {@link #prepare(Map, long)}.
+	 * @param batchSize the batch size of the tensors that will be prepared by this instance
+	 * @param converters the converters that are used to write the data rows into the tensors. The given tensor ids
+	 *            determine the set of tensors supported by {@link #prepare(Map, long)}.
+	 */
 	public DLAbstractKnimeNetworkInputPreparer(final DLRowIterator iterator, final int batchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		m_iterator = checkNotNull(iterator);
@@ -80,5 +91,59 @@ public abstract class DLAbstractKnimeNetworkInputPreparer implements DLNetworkIn
 	@Override
 	public void close() throws Exception {
 		m_iterator.close();
+	}
+
+	/**
+	 * @param dataValues the data values which to write in the tensors
+	 * @param tensors the tensors in which to write the data values
+	 * @throws DLBufferOverflowExceptionForTensor if writing in a tensor exceeds its buffer's capacity. The affected
+	 *             tensor can be retrieved via {@link DLBufferOverflowExceptionForTensor#getTensor()}.
+	 */
+	protected final void writeDataValuesInTensors(final Map<DLTensorId, List<DataValue>> dataValues,
+			final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> tensors)
+			throws DLBufferOverflowExceptionForTensor {
+		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : tensors.entrySet()) {
+			final DLTensorId identifier = entry.getKey();
+			final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+			final DLDataValueToTensorConverter converter = m_converters.get(identifier);
+			try {
+				converter.convert(dataValues.get(identifier), tensor);
+			} catch (final BufferOverflowException ex) {
+				throw new DLBufferOverflowExceptionForTensor(ex, tensor);
+			}
+		}
+	}
+
+	/**
+	 * Thrown by {@link DLAbstractKnimeNetworkInputPreparer#writeDataValuesInTensors(Map, Map)} if a
+	 * <code>BufferOverflowException</code> occurs while filling a tensor.
+	 */
+	protected static class DLBufferOverflowExceptionForTensor extends Exception {
+
+		private static final long serialVersionUID = 1L;
+
+		private final DLTensor<?> m_tensor;
+
+		private DLBufferOverflowExceptionForTensor(final BufferOverflowException cause, final DLTensor<?> tensor) {
+			super(cause);
+			m_tensor = tensor;
+		}
+
+		/**
+		 * Returns the underlying <code>BufferOverflowException</code>.
+		 *
+		 * @return the underlying <code>BufferOverflowException</code>
+		 */
+		@Override
+		public synchronized BufferOverflowException getCause() {
+			return (BufferOverflowException) super.getCause();
+		}
+
+		/**
+		 * @return the affected tensor
+		 */
+		public DLTensor<?> getTensor() {
+			return m_tensor;
+		}
 	}
 }

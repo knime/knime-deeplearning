@@ -65,9 +65,9 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
+public final class DLKnimeNetworkValidationInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKnimeNetworkTrainingInputPreparer.class);
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKnimeNetworkValidationInputPreparer.class);
 
 	/**
 	 * @param iterator provides the input data rows that are used by this instance to prepare (fill) the network tensors
@@ -77,16 +77,16 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 	 * @param converters the converters that are used to write the data rows into the tensors. The given tensor ids
 	 *            determine the set of tensors supported by {@link #prepare(Map, long)}.
 	 */
-	public DLKnimeNetworkTrainingInputPreparer(final DLRowIterator iterator, final int batchSize,
+	public DLKnimeNetworkValidationInputPreparer(final DLRowIterator iterator, final int batchSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		super(iterator, batchSize, converters);
 		final long size = iterator.size();
 		if (size % batchSize != 0) {
-			LOGGER.warn("The number of rows of the input training data table (" + size
-					+ ") is not a multiple of the selected training batch size (" + batchSize
-					+ "). Thus, the last batch of each epoch will continue at the beginning of the training data "
-					+ "table after reaching its end. You can avoid that by adjusting the number of rows of the "
-					+ "table or the batch size if desired.");
+			LOGGER.warn("The number of rows of the input validation data table (" + size
+					+ ") is not a multiple of the selected validation batch size (" + batchSize
+					+ "). Thus, the last batch of each validation phase will continue at the beginning of the "
+					+ "validation data table after reaching its end. You can avoid that by adjusting the number of "
+					+ "rows of the table or the batch size if desired.");
 		}
 	}
 
@@ -100,10 +100,12 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 	@Override
 	public void prepare(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, final long batchIndex)
 			throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+		boolean reset = false;
 		for (long i = 0; i < m_batchSize; i++) {
 			if (!m_iterator.hasNext()) {
 				// continue at the beginning of the table to fill up incomplete batch
 				m_iterator.reset();
+				reset = true;
 			}
 			final DataRow row = m_iterator.next();
 			try {
@@ -115,13 +117,18 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 				// must be present
 				final long batchSize = tensor.getSpec().getBatchSize().getAsLong();
 				throw new DLInvalidNetworkInputException(
-						"Node training data size for input/target '" + tensor.getSpec().getName()
+						"Node validation data size for input/target '" + tensor.getSpec().getName()
 								+ "' exceeds the expected size. Neuron count of this input/target is " + exampleSize
-								+ ", batch size is " + batchSize + ". Thus, expected training data size is "
+								+ ", batch size is " + batchSize + ". Thus, expected validation data size is "
 								+ exampleSize * batchSize + ". Please check the column selection for this input/target "
-								+ "and validate the node's training data.",
+								+ "and validate the node's validation data.",
 						ex);
 			}
+		}
+		if (reset) {
+			// Validation outcomes must be comparable. Each validation phase should be executed with the same set of
+			// batches.
+			m_iterator.reset();
 		}
 		// check if tensors were filled correctly
 		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
@@ -131,12 +138,12 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 				// as the latter is expressed in terms of buffer elements, not input elements ("neurons").
 				final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
 				final long bufferSizeInNeurons = tensor.getBuffer().size() * (exampleSize / tensor.getExampleSize());
-				throw new DLInvalidNetworkInputException("Node training data size for network input/target '"
+				throw new DLInvalidNetworkInputException("Node validation data size for network input/target '"
 						+ tensor.getSpec().getName() + "' does not match the expected size. Neuron count is "
-						+ exampleSize + ", batch size is " + m_batchSize + ". Thus, expected training data size is "
-						+ exampleSize * m_batchSize + ". However, node training data size is " + bufferSizeInNeurons
+						+ exampleSize + ", batch size is " + m_batchSize + ". Thus, expected validation data size is "
+						+ exampleSize * m_batchSize + ". However, node validation data size is " + bufferSizeInNeurons
 						+ ". Please check the column selection for this input/target "
-						+ "and validate the node's training data.");
+						+ "and validate the node's validation data.");
 			}
 		}
 	}

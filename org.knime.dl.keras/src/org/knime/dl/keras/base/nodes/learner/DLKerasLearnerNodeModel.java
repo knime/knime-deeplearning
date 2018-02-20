@@ -96,6 +96,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
+import org.knime.dl.core.training.DLKnimeNetworkValidationInputPreparer;
 import org.knime.dl.core.training.DLKnimeTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
@@ -711,8 +712,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 						rowIterator, trainingBatchSize, converterForTensorId);
-				final DLKnimeNetworkTrainingInputPreparer validationPreparer = doValidation
-						? new DLKnimeNetworkTrainingInputPreparer(
+				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
+						? new DLKnimeNetworkValidationInputPreparer(
 								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), validationBatchSize,
 								converterForTensorId)
 						: null;
