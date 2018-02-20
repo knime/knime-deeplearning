@@ -81,6 +81,7 @@ public class DLDefaultDimensionOrderTest {
 		assertArrayEquals(new int[] {0, 2, 3, 4, 1}, dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
 		assertArrayEquals(new int[] {0, 1, 2}, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
 		assertArrayEquals(new int[] {1, 2, 0}, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
+		assertArrayEquals(new int[] {0, 2, 3, 1}, dimOrder.inferMappingFor(createDimensionArrayFromString("TCHW")));
 	}
 	
 	@Test
