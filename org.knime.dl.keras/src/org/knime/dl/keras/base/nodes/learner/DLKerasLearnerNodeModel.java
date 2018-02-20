@@ -135,6 +135,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	static final int IN_DATA_PORT_IDX = 1;
 
+	static final int IN_VALIDATION_DATA_PORT_IDX = 2;
+
 	static final int OUT_NETWORK_PORT_IDX = 0;
 
 	static final String CFG_KEY_INPUT = "training";
@@ -187,7 +189,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	private final DLLinePlotViewData<?>[] m_viewData;
 
 	DLKerasLearnerNodeModel() {
-		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE },
+		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
 				new PortType[] { DLKerasNetworkPortObject.TYPE });
 		m_generalCfg = createGeneralModelConfig();
 		m_inputCfgs = new HashMap<>();
@@ -231,7 +233,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		final DLKerasNetworkPortObjectSpec inPortObjectSpec = ((DLKerasNetworkPortObjectSpec) inSpecs[IN_NETWORK_PORT_IDX]);
 		final DLKerasNetworkSpec inNetworkSpec = inPortObjectSpec.getNetworkSpec();
 		final Class<? extends DLNetwork> inNetworkType = inPortObjectSpec.getNetworkType();
-		final DataTableSpec inTableSpec = ((DataTableSpec) inSpecs[IN_DATA_PORT_IDX]);
+		final DataTableSpec inTableSpec = (DataTableSpec) inSpecs[IN_DATA_PORT_IDX];
+		final DataTableSpec inValidationTableSpec = (DataTableSpec) inSpecs[IN_VALIDATION_DATA_PORT_IDX];
 
 		if (inNetworkSpec == null) {
 			throw new InvalidSettingsException("Input port object's deep learning network specs are missing.");
@@ -252,7 +255,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 		try {
 			configureGeneral(inNetworkType);
-			configureInputs(inNetworkSpec, inTableSpec);
+			configureInputs(inNetworkSpec, inTableSpec, inValidationTableSpec);
 		} catch (final Exception e) {
 			throw new InvalidSettingsException(e.getMessage(), e);
 		}
@@ -265,8 +268,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
 		final PortObject inPortObject = inObjects[IN_NETWORK_PORT_IDX];
 		final BufferedDataTable inTable = (BufferedDataTable) inObjects[IN_DATA_PORT_IDX];
+		final BufferedDataTable inValidationTable = (BufferedDataTable) inObjects[IN_VALIDATION_DATA_PORT_IDX];
 
-		final PortObject outPortObject = executeInternal(inPortObject, inTable, exec);
+		final PortObject outPortObject = executeInternal(inPortObject, inTable, inValidationTable, exec);
 
 		return new PortObject[] { outPortObject };
 	}
@@ -414,11 +418,21 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_generalCfg.copyClipSettingsToOptimizer();
 	}
 
-	private void configureInputs(final DLNetworkSpec inNetworkSpec, final DataTableSpec inTableSpec)
-			throws InvalidSettingsException {
+	private void configureInputs(final DLNetworkSpec inNetworkSpec, final DataTableSpec inTableSpec,
+			final DataTableSpec inValidationTableSpec) throws InvalidSettingsException {
 		if (inTableSpec.getNumColumns() == 0) {
-			setWarningMessage("Input table has no columns. Output network will equal input network.");
+			setWarningMessage("Training data table has no columns. Output network will equal input network.");
 		}
+		// TODO: We could relax the check and only enforce that columns selected in the input/target panels are present
+		// in the validation spec. However, in practice, input and validation table tend to have equal structures
+		// anyway. Just note that we then need two different maps (tensor id -> column indices) for training and
+		// validation data.
+		if (inValidationTableSpec != null && !inValidationTableSpec.equalStructure(inTableSpec)) {
+			throw new InvalidSettingsException("Validation data table structure differs from training data table "
+					+ "structure. Please make sure that both tables have exactly the same column names and types in "
+					+ "the same order.");
+		}
+
 		final DLTensorSpec[] inputSpecs = inNetworkSpec.getInputSpecs();
 		final DLTensorSpec[] targetSpecs = inNetworkSpec.getOutputSpecs();
 		m_converters = new LinkedHashMap<>(inputSpecs.length + targetSpecs.length);
@@ -482,7 +496,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				if (missingColumns.length != 0) {
 					throw new InvalidSettingsException(
 							"Selected column '" + missingColumns[0] + "' of input '" + tensorSpec.getName()
-									+ "' is missing in the node's input table. Please reconfigure the node.");
+									+ "' is missing in the training data table. Please reconfigure the node.");
 				}
 			}
 			// TODO: check column selection (see dialog)!
@@ -547,7 +561,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				if (missingColumns.length != 0) {
 					throw new InvalidSettingsException(
 							"Selected column '" + missingColumns[0] + "' of target '" + tensorSpec.getName()
-									+ "' is missing in the node's input table. Please reconfigure the node.");
+									+ "' is missing in the training data table. Please reconfigure the node.");
 				}
 			}
 			// TODO: check column selection (see dialog)!
@@ -576,15 +590,27 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	@SuppressWarnings("unchecked")
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
-			final BufferedDataTable inTable, final ExecutionContext exec) throws Exception {
-
+			final BufferedDataTable inTable, final BufferedDataTable inValidationTable, final ExecutionContext exec)
+			throws Exception {
 		final N inNetwork = (N) ((DLNetworkPortObject) inPortObject).getNetwork();
 		final DLKerasNetworkSpec inNetworkSpec = inNetwork.getSpec();
 		final DataTableSpec inTableSpec = inTable.getDataTableSpec();
 
 		if (inTableSpec.getNumColumns() == 0 || inTable.size() == 0) {
-			setWarningMessage("Input table is empty. Output network equals input network.");
+			setWarningMessage("Training data table is empty. Output network equals input network.");
 			return inPortObject;
+		}
+
+		final boolean doValidation;
+		if (inValidationTable != null) {
+			if (inValidationTable.size() == 0) {
+				setWarningMessage("Validation data table is empty. No validation will be performed.");
+				doValidation = false;
+			} else {
+				doValidation = true;
+			}
+		} else {
+			doValidation = false;
 		}
 
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getTrainingContextEntry()
@@ -593,6 +619,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// training configuration
 		final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
 		final int epochs = m_generalCfg.getEpochsEntry().getValue();
+		final int validationBatchSize = m_generalCfg.getValidationBatchSizeEntry().getValue();
 		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
 		final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = new HashMap<>();
 		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
@@ -610,8 +637,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		if (m_generalCfg.getReduceLROnPlateauEntry().getEnabled()) {
 			callbacks.add(m_generalCfg.getReduceLROnPlateauEntry().getValue());
 		}
-		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer,
-				lossFunctions, callbacks);
+		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(epochs, batchSize,
+				validationBatchSize, optimizer, lossFunctions, callbacks);
 
 		final Map<DLTensorId, int[]> columnsForTensorId = new HashMap<>(
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
@@ -632,7 +659,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				final int idx = inTableSpec.findColumnIndex(column);
 				if (idx == -1) {
 					throw new IllegalStateException("Selected input/target column '" + column
-							+ "' could not be found in the node's input table.");
+							+ "' could not be found in the training data table.");
 				}
 				return idx;
 			}).toArray();
@@ -652,10 +679,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 						rowIterator, batchSize, converterForTensorId);
-				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
-						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
-								batchSize, columnsForTensorId, m_converters),
-						inputPreparer);) {
+				final DLKnimeNetworkTrainingInputPreparer validationPreparer = doValidation
+						? new DLKnimeNetworkTrainingInputPreparer(
+								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), validationBatchSize,
+								converterForTensorId)
+						: null;
+				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(
+						inNetwork, trainingConfig, DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(),
+								ctx.getTensorFactory(), batchSize, columnsForTensorId, m_converters),
+						inputPreparer, validationPreparer);) {
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setViewData(m_viewData);
 			m_status.trainingEnded().addListener((src, v) -> notifyViews(m_status));

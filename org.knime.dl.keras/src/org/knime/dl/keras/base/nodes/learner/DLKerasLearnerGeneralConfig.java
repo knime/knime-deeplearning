@@ -80,6 +80,11 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 
 	static final String CFG_KEY_BATCH_SIZE = "batch_size";
 
+	/**
+	 * @since 3.6
+	 */
+	static final String CFG_KEY_VALIDATION_BATCH_SIZE = "validation_batch_size";
+
 	static final String CFG_KEY_OPTIMIZER = "optimizer";
 
 	static final String CFG_KEY_CLIP_NORM = "clip_norm";
@@ -128,6 +133,16 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 		});
 		put(new DefaultConfigEntry<>(CFG_KEY_EPOCHS, Integer.class, 1));
 		put(new DefaultConfigEntry<>(CFG_KEY_BATCH_SIZE, Integer.class, 100));
+		put(new DefaultConfigEntry<Integer>(CFG_KEY_VALIDATION_BATCH_SIZE, Integer.class,
+				getBatchSizeEntry().getValue()) {
+
+			@Override
+			protected boolean handleMissingConfigEntry(final NodeSettingsRO settings) {
+				// backward compatibility: default to training data batch size if entry is not present in the settings
+				m_value = getBatchSizeEntry().getValue();
+				return true;
+			}
+		});
 
 		put(new AbstractConfigEntry<DLKerasOptimizer>(CFG_KEY_OPTIMIZER, DLKerasOptimizer.class) {
 
@@ -183,6 +198,13 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 		return get(CFG_KEY_BATCH_SIZE, Integer.class);
 	}
 
+	/**
+	 * @since 3.6
+	 */
+	ConfigEntry<Integer> getValidationBatchSizeEntry() {
+		return get(CFG_KEY_VALIDATION_BATCH_SIZE, Integer.class);
+	}
+
 	ConfigEntry<DLKerasOptimizer> getOptimizerEntry() {
 		return get(CFG_KEY_OPTIMIZER, DLKerasOptimizer.class);
 	}
@@ -219,5 +241,4 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 			optimizer.setClipValue(getClipValueEntry());
 		}
 	}
-
 }

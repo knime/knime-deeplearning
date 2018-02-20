@@ -154,7 +154,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			throw new NotConfigurableException("Input port object is not a valid deep learning network port object.");
 		}
 		if (((DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX]).getNumColumns() == 0) {
-			throw new NotConfigurableException("Input table has no columns.");
+			throw new NotConfigurableException("Input table is missing or has no columns.");
 		}
 
 		final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];

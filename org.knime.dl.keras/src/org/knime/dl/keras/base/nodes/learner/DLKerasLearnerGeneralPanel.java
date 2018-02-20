@@ -98,6 +98,10 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		addNumberSpinnerRowComponent(
 				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getBatchSizeEntry(), 1, Integer.MAX_VALUE), "Batch size",
 				1);
+
+		addNumberSpinnerRowComponent(
+				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getValidationBatchSizeEntry(), 1, Integer.MAX_VALUE),
+				"Validation batch size", 1);
 	}
 
 	@Override
@@ -131,10 +135,13 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		if (batchSize != -1) {
 			m_cfg.getBatchSizeEntry().setValue((int) batchSize);
 			m_cfg.getBatchSizeEntry().setEnabled(false);
+			m_cfg.getValidationBatchSizeEntry().setValue((int) batchSize);
+			m_cfg.getValidationBatchSizeEntry().setEnabled(false);
 		} else {
 			m_cfg.getBatchSizeEntry().setEnabled(true);
+			m_cfg.getValidationBatchSizeEntry()
+					.setEnabled(specs[DLKerasLearnerNodeModel.IN_VALIDATION_DATA_PORT_IDX] != null);
 		}
-
 	}
 
 	void refreshAvailableBackends() throws NotConfigurableException {

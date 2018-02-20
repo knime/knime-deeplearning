@@ -9,7 +9,7 @@
 
 	<fullDescription>
 		<intro>
-			This node performs supervised training on a Keras deep learning
+			This node performs supervised learning on a Keras deep learning
 			network.
 		</intro>
 		<tab name="General Settings">
@@ -131,8 +131,11 @@
 	<ports>
 		<inPort index="0" name="Deep Learning Network">The input Keras deep learning network.
 		</inPort>
-		<inPort index="1" name="Data Table">The input table that contains training
+		<inPort index="1" name="Training Data Table">The training data table that contains training
 			and target columns.</inPort>
+		<inPort index="2" name="Validation Data Table">The validation data table (optional).
+			Must have the same column names and types in the same order as the training data table.
+		</inPort>
 		<outPort index="0" name="Deep Learning Network">The trained output Keras deep learning
 			network.
 		</outPort>
@@ -142,7 +145,7 @@
 		<view index="0" name="Learning Monitor">
 			Shows information about the current learning run. Has an option for early
 			stopping of training. If training
-			is stopped before the last epoch the model will be saved in the current
+			is stopped before it is finished, the model will be saved in the current
 			status.
 		</view>
 	</views>  
