@@ -427,25 +427,39 @@ class DLKerasTrainingMonitor(keras.callbacks.Callback):
         self._kernel_service.send_to_java(self._on_epoch_begin_msg)
 
     def on_epoch_end(self, epoch, logs=None):
-        logs = logs or {}
-        # TODO: this only works for single output networks
-        loss = logs.get('val_loss')
-        acc = logs.get('val_acc')
-        self._on_epoch_end_msg._val = str(acc) + ';' + str(loss)
-        self._kernel_service.send_to_java(self._on_epoch_end_msg)
+        if logs:
+            loss = logs.get('val_loss')
+            acc = logs.get('val_acc')
+            if acc is None:
+                # Multi-output networks only have an accuracy metric per output. Average over them and use the result as
+                # accuracy for the entire network. TODO: Note that this is a temporary workaround. Per-output metric
+                # reporting is pending.
+                accs = [v for k, v in logs.items() if k.startswith('val_') and k.endswith('_acc')]
+                len_accs = len(accs)
+                if len_accs > 0:
+                    acc = sum(accs) / len_accs
+                
+            self._on_epoch_end_msg._val = str(acc) + ';' + str(loss)
+            self._kernel_service.send_to_java(self._on_epoch_end_msg)
 
     def on_batch_begin(self, batch, logs=None):
         self._kernel_service.send_to_java(self._on_batch_begin_msg)
 
     def on_batch_end(self, batch, logs=None):
-        logs = logs or {}
-        # TODO: this only works for single output networks
-        loss = logs.get('loss')
-        acc = logs.get('acc')
-        self._on_batch_end_request._val = str(acc) + ';' + str(loss)
-        self._stop_training = self._kernel_service.send_to_java(self._on_batch_end_request)
-        if self._stop_training:
-            self._network.model.stop_training = True
+        if logs:
+            loss = logs.get('loss')
+            acc = logs.get('acc')
+            if acc is None:
+                # Multi-output networks only have an accuracy metric per output. Average over them and use the result as
+                # accuracy for the entire network. TODO: Note that this is a temporary workaround. Per-output metric
+                # reporting is pending.
+                accs = [v for k, v in logs.items() if k.endswith('_acc')]
+                acc = sum(accs) / len(accs)
+            
+            self._on_batch_end_request._val = str(acc) + ';' + str(loss)
+            self._stop_training = self._kernel_service.send_to_java(self._on_batch_end_request)
+            if self._stop_training:
+                self._network.model.stop_training = True
 
     class DLOnBatchEndMessage(PythonToJavaMessage):
         def __init__(self):
