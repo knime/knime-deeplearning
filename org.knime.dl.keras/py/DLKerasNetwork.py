@@ -355,11 +355,9 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 
 class DLKerasTrainingConfig(DLPythonTrainingConfig):
     def __init__(self):
-        self.batch_size = 32
-        self.epochs = 1
         self.optimizer = None
         self.loss = {}
-        self.metrics = ['accuracy']
+        self.metrics = ['acc']
         self.callbacks = []
 
 
@@ -412,8 +410,8 @@ class DLKerasTrainingMonitor(keras.callbacks.Callback):
                 acc = logs[k]
             if k == 'loss':
                 loss = logs[k]
-            # TODO: val_loss (when validation set is present)
-            # self._metrics.at[0, k] = logs[k]
+                # TODO: val_loss (when validation set is present)
+                # self._metrics.at[0, k] = logs[k]
         # accuracy, loss, validation accuracy, validation loss
         self._request._val = str(acc) + ';' + str(loss) + ';' + '0' + ';' + '0'
         self._stop_training = self._kernel_service.send_to_java(self._request)

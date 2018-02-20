@@ -161,4 +161,6 @@ class DLPythonTrainingConfig(object):
     __metaclass__ = abc.ABCMeta
     
     def __init__(self):
-        pass
+        self.epochs = 1
+        self.batch_size = 32
+        self.validation_batch_size = self.batch_size
