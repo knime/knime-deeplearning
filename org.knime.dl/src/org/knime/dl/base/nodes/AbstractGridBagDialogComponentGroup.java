@@ -54,8 +54,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -604,6 +606,33 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 	}
 
 	/**
+	 * Adds a row containing an object selection drop-down list.
+	 *
+	 * @param configEntry the backing config entry
+	 * @param printer a function that turns the object selection's items into a renderable string representation
+	 * @param label the label of the drop-down list
+	 * @param values the values to be displayed in the drop-down list, may be null or empty
+	 * @return the created drop-down list
+	 */
+	protected <T> DialogComponentObjectSelection<T> addObjectSelectionRow(final ConfigEntry<T> configEntry,
+			final Function<? super T, String> printer, final String label, final List<T> values) {
+		final DialogComponentObjectSelection<T> objectSelection = new DialogComponentObjectSelection<>(configEntry,
+				printer, label);
+		if (values != null && !values.isEmpty()) {
+			objectSelection.replaceListItems(values, configEntry.getValue());
+		} else if (configEntry.getValue() != null) {
+			final T value = configEntry.getValue();
+			objectSelection.replaceListItems(Arrays.asList(value), value);
+		}
+		final JLabel labelComp = getFirstComponent(objectSelection, JLabel.class);
+		final JComboBox<?> dropDownComp = getFirstComponent(objectSelection, JComboBox.class);
+
+		addDoubleColumnRow(labelComp, dropDownComp);
+
+		return objectSelection;
+	}
+
+	/**
 	 * Adds a row containing a combobox.
 	 *
 	 * @param settings the settings of the combobox
@@ -614,7 +643,6 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 			final Collection<String> values) {
 		final DialogComponentStringSelection comboBoxComponent = new DialogComponentStringSelection(settings, label,
 				values);
-
 		final JLabel labelComp = getFirstComponent(comboBoxComponent, JLabel.class);
 		final JComboBox<?> comboBoxComp = getFirstComponent(comboBoxComponent, JComboBox.class);
 
