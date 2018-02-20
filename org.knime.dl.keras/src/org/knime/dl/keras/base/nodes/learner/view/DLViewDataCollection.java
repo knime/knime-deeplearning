@@ -47,39 +47,13 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
 import java.io.Externalizable;
-import java.time.LocalDateTime;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public interface DLProgressMonitor extends Externalizable {
+public interface DLViewDataCollection extends Externalizable {
 
-	int getNumEpochs();
-
-	int getNumBatchesPerEpoch();
-
-	boolean isRunning();
-
-	boolean hasStoppedEarly();
-
-	boolean hasFinished();
-
-	LocalDateTime getStartDateTime();
-
-	LocalDateTime getEndDateTime();
-
-	int getCurrentEpoch();
-
-	int getCurrentBatchInEpoch();
-
-	boolean hasData();
-
-	DLViewSpec[] getViewSpecs();
-
-	void setViewSpecs(DLViewSpec[] viewSpecs);
-
-	DLViewDataCollection[] getViewData();
-
-	void setViewData(DLViewDataCollection[] viewData);
+	DLViewSpec getSpec();
 }

@@ -47,11 +47,9 @@
 package org.knime.dl.keras.base.nodes.learner.view;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLViewData<S extends DLViewSpec> {
-
-	S getViewSpec();
+public interface DLViewData {
+	// NB: marker interface
 }
