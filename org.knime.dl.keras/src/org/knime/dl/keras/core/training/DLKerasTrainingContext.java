@@ -66,9 +66,9 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrainingContext<N, DLKerasTrainingConfig> {
 
 	/**
-	 * @return the available {@link DLKerasMetrics Keras metrics} in this training context
+	 * @return the available {@link DLKerasMetric Keras metrics} in this training context
 	 */
-	Collection<DLKerasMetrics> createMetrics();
+	Collection<DLKerasMetric> createMetrics();
 
 	/**
 	 * @return the available {@link DLKerasCallback Keras callbacks} supported by this training context

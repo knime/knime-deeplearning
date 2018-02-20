@@ -52,7 +52,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.base.settings.AbstractConfigEntry;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLTensorId;
-import org.knime.dl.keras.core.training.DLKerasMetrics.DLKerasAccuracy;
+import org.knime.dl.keras.core.training.DLKerasMetric.DLKerasAccuracy;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -123,7 +123,7 @@ public class DLKerasMonitoredQuantityConfigEntry extends AbstractConfigEntry<DLK
 		final String quantityIdentifier = settings.getString(CFG_KEY_QUANTITY);
 		if (!quantityIdentifier.equals("null")) {
 			// quantity
-			DLKerasMetrics quantity = null;
+			DLKerasMetric quantity = null;
 			if (!quantityIdentifier.equals("loss")) {
 
 				// FIXME: we need the training context...

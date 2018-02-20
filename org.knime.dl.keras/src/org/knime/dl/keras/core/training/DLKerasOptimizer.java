@@ -68,7 +68,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	// TODO: remove additional Java identity from optimizers (e.g. let getIdentifier() delegate to getKerasIdentifier()
-	// etc., see DLKerasMetrics/DLKerasLossFunction). We currently keep this identity because optimizers include their
+	// etc., see DLKerasMetric/DLKerasLossFunction). We currently keep this identity because optimizers include their
 	// dialog panel a.t.m. which indeed is specific to each optimizer. We should get rid of the panels here and replace
 	// them by some registration mechanism/simple mapping in the Keras learner node dialog.
 

@@ -44,35 +44,61 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.core.training;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.knime.dl.core.DLTensorId;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
- * A monitored metrics (excluding the loss, see {@link DLKerasMonitoredSingleLoss}) for a single network output.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMonitoredSingleMetrics extends DLKerasAbstractMonitoredQuantity {
+public final class DLReportedMetric implements Externalizable {
 
-	/**
-	 * @param quantity the monitored quantity
-	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
-	 */
-	public DLKerasMonitoredSingleMetrics(final DLKerasMetrics quantity, final boolean isValidation) {
-		super(checkNotNull(quantity), null, isValidation);
+	public static DLReportedMetric deserialize(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		final DLReportedMetric metric = new DLReportedMetric();
+		metric.readExternal(objIn);
+		return metric;
+	}
+
+	private String m_name;
+
+	private float m_value;
+
+	public DLReportedMetric(final String name, final float initialValue) {
+		m_name = name;
+		m_value = initialValue;
 	}
 
 	/**
-	 * @param quantity the monitored quantity
-	 * @param output the output for which the quantity is monitored
-	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
+	 * Empty framework constructor. Must not be called by client code.
 	 */
-	public DLKerasMonitoredSingleMetrics(final DLKerasMetrics quantity, final DLTensorId output,
-			final boolean isValidation) {
-		super(checkNotNull(quantity), checkNotNull(output), isValidation);
+	public DLReportedMetric() {
+	}
+
+	public String getName() {
+		return m_name;
+	}
+
+	public float getValue() {
+		return m_value;
+	}
+
+	public void setValue(final float value) {
+		m_value = value;
+	}
+
+	@Override
+	public void writeExternal(final ObjectOutput objOut) throws IOException {
+		objOut.writeUTF(m_name);
+		objOut.writeFloat(m_value);
+	}
+
+	@Override
+	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		m_name = objIn.readUTF();
+		m_value = objIn.readFloat();
 	}
 }

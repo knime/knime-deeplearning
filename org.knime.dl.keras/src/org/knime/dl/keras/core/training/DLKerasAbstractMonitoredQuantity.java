@@ -64,7 +64,7 @@ import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau
  */
 public abstract class DLKerasAbstractMonitoredQuantity implements DLKerasMonitoredQuantity {
 
-	private final DLKerasMetrics m_quantity;
+	private final DLKerasMetric m_quantity;
 
 	private final DLTensorId m_output;
 
@@ -77,7 +77,7 @@ public abstract class DLKerasAbstractMonitoredQuantity implements DLKerasMonitor
 	 *            monitored for the entire network.
 	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
 	 */
-	protected DLKerasAbstractMonitoredQuantity(final DLKerasMetrics quantity, final DLTensorId output,
+	protected DLKerasAbstractMonitoredQuantity(final DLKerasMetric quantity, final DLTensorId output,
 			final boolean isValidation) {
 		m_quantity = quantity;
 		m_output = output;
@@ -95,7 +95,7 @@ public abstract class DLKerasAbstractMonitoredQuantity implements DLKerasMonitor
 	}
 
 	@Override
-	public final DLKerasMetrics getQuantity() {
+	public final DLKerasMetric getQuantity() {
 		return m_quantity;
 	}
 

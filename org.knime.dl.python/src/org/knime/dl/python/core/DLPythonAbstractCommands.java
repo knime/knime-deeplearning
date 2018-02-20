@@ -67,7 +67,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.training.DLReportedMetrics;
+import org.knime.dl.core.training.DLReportedMetric;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingStatus;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
@@ -492,9 +492,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			};
 			messages.registerMessageHandler(onEpochBeginHandler);
 
-			final LinkedHashMap<String, DLReportedMetrics> epochMetrics = new LinkedHashMap<>(4);
-			epochMetrics.put("val_accuracy", new DLReportedMetrics("val_accuracy", 0f));
-			epochMetrics.put("val_loss", new DLReportedMetrics("val_loss", 0f));
+			final LinkedHashMap<String, DLReportedMetric> epochMetrics = new LinkedHashMap<>(4);
+			epochMetrics.put("val_accuracy", new DLReportedMetric("val_accuracy", 0f));
+			epochMetrics.put("val_loss", new DLReportedMetric("val_loss", 0f));
 
 			onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
 
@@ -502,7 +502,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				protected void handle(final PythonToJavaMessage msg) throws Exception {
 					final String[] metricsStr = msg.getValue().split(";");
 					int i = 0;
-					for (final DLReportedMetrics m : epochMetrics.values()) {
+					for (final DLReportedMetric m : epochMetrics.values()) {
 						try {
 							m.setValue(Float.parseFloat(metricsStr[i]));
 						} catch (final NumberFormatException e) {
@@ -528,9 +528,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			};
 			messages.registerMessageHandler(onBatchBeginHandler);
 
-			final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
-			batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
-			batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
+			final LinkedHashMap<String, DLReportedMetric> batchMetrics = new LinkedHashMap<>(4);
+			batchMetrics.put("accuracy", new DLReportedMetric("accuracy", 0f));
+			batchMetrics.put("loss", new DLReportedMetric("loss", 0f));
 
 			onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
 
@@ -539,7 +539,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					monitor.checkCanceled();
 					final String[] metricsStr = msg.getValue().split(";");
 					int i = 0;
-					for (final DLReportedMetrics m : batchMetrics.values()) {
+					for (final DLReportedMetric m : batchMetrics.values()) {
 						try {
 							m.setValue(Float.parseFloat(metricsStr[i]));
 						} catch (final NumberFormatException e) {

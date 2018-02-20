@@ -46,59 +46,54 @@
  */
 package org.knime.dl.core.training;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 /**
+ * Root interface for training metrics.
+ * <P>
+ * Implementations of this interface must override {@link #equals(Object)}, {@link #hashCode()} and {@link #toString()}
+ * in a value-based way.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLReportedMetrics implements Externalizable {
-
-	public static DLReportedMetrics deserialize(final ObjectInput objIn) throws IOException, ClassNotFoundException {
-		final DLReportedMetrics metrics = new DLReportedMetrics();
-		metrics.readExternal(objIn);
-		return metrics;
-	}
-
-	private String m_name;
-
-	private float m_value;
-
-	public DLReportedMetrics(final String name, final float initialValue) {
-		m_name = name;
-		m_value = initialValue;
-	}
+public interface DLMetric {
 
 	/**
-	 * Empty framework constructor. Must not be called by client code.
+	 * @return the identifier of the metric, not null, not empty, must be unique across all metrics of its back end
 	 */
-	public DLReportedMetrics() {
-	}
+	String getIdentifier();
 
-	public String getName() {
-		return m_name;
-	}
+	/**
+	 * @return the friendly name of the metric, not null, not empty, suitable to be displayed to the user
+	 */
+	String getName();
 
-	public float getValue() {
-		return m_value;
-	}
+	/**
+	 * @return the metric's representation within its back end, implementing classes and extending interfaces should
+	 *         narrow the return type
+	 */
+	Object getBackendRepresentation();
 
-	public void setValue(final float value) {
-		m_value = value;
-	}
-
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
-	public void writeExternal(final ObjectOutput objOut) throws IOException {
-		objOut.writeUTF(m_name);
-		objOut.writeFloat(m_value);
-	}
+	int hashCode();
 
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
 	@Override
-	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
-		m_name = objIn.readUTF();
-		m_value = objIn.readFloat();
-	}
+	boolean equals(Object obj);
+
+	/**
+	 * Value-based.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	String toString();
 }

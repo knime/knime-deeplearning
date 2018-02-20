@@ -62,7 +62,7 @@ public interface DLKerasMonitoredQuantity {
 	/**
 	 * @return the monitored quantity. May be null, in which case the monitored quantity is the loss.
 	 */
-	DLKerasMetrics getQuantity();
+	DLKerasMetric getQuantity();
 
 	/**
 	 * @return the output for which the quantity is monitored. May be null, in which case the quantity is monitored for
@@ -80,7 +80,7 @@ public interface DLKerasMonitoredQuantity {
 	int hashCode();
 
 	/**
-	 * Monitored quantities are just a simple combination of metrics, network output and validation flag. Their type
+	 * Monitored quantities are just a simple combination of metric, network output and validation flag. Their type
 	 * hierarchy should be irrelevant. Therefore, implementing classes should omit a strict type check like
 	 * <code>obj.getClass() == getClass()</code> when testing for equality and instead just check for this interface.
 	 */

@@ -83,15 +83,15 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private final DLEvent<Void> m_epochStarted = new DLDefaultEvent<>();
 
-	private final DLEvent<Map<String, DLReportedMetrics>> m_epochEnded = new DLDefaultEvent<>();
+	private final DLEvent<Map<String, DLReportedMetric>> m_epochEnded = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_batchStarted = new DLDefaultEvent<>();
 
-	private final DLEvent<Map<String, DLReportedMetrics>> m_batchEnded = new DLDefaultEvent<>();
+	private final DLEvent<Map<String, DLReportedMetric>> m_batchEnded = new DLDefaultEvent<>();
 
 	private final DLEvent<Void> m_validationStarted = new DLDefaultEvent<>();
 
-	private final DLEvent<Map<String, DLReportedMetrics>> m_validationEnded = new DLDefaultEvent<>();
+	private final DLEvent<Map<String, DLReportedMetric>> m_validationEnded = new DLDefaultEvent<>();
 
 	/**
 	 * @param numEpochs must be greater than zero
@@ -184,7 +184,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public DLEvent<Map<String, DLReportedMetrics>> epochEnded() {
+	public DLEvent<Map<String, DLReportedMetric>> epochEnded() {
 		return m_epochEnded;
 	}
 
@@ -194,7 +194,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public DLEvent<Map<String, DLReportedMetrics>> batchEnded() {
+	public DLEvent<Map<String, DLReportedMetric>> batchEnded() {
 		return m_batchEnded;
 	}
 
@@ -204,7 +204,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public DLEvent<Map<String, DLReportedMetrics>> valdationEnded() {
+	public DLEvent<Map<String, DLReportedMetric>> valdationEnded() {
 		return m_validationEnded;
 	}
 

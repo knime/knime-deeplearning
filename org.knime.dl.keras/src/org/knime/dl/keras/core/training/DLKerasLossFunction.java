@@ -52,11 +52,11 @@ import org.knime.dl.core.training.DLLossFunction;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetrics {
+public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetric {
 
 	@Override
 	default String getIdentifier() {
-		return DLKerasMetrics.super.getIdentifier();
+		return DLKerasMetric.super.getIdentifier();
 	}
 
 	@Override
@@ -70,12 +70,12 @@ public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetrics {
 	/**
 	 * Abstract base class for implementations of {@link DLKerasLossFunction}.
 	 */
-	public abstract static class DLKerasAbstractLossFunction extends DLKerasAbstractMetrics
+	public abstract static class DLKerasAbstractLossFunction extends DLKerasAbstractMetric
 			implements DLKerasLossFunction {
 
 		/**
-		 * @param name the friendly name of the metrics, not null, not empty, suitable to be displayed to the user
-		 * @param kerasIdentifier the identifier for this metrics on Python side
+		 * @param name the friendly name of the metric, not null, not empty, suitable to be displayed to the user
+		 * @param kerasIdentifier the identifier for this metric on Python side
 		 */
 		protected DLKerasAbstractLossFunction(final String name, final String kerasIdentifier) {
 			super(name, kerasIdentifier);

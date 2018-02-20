@@ -44,56 +44,35 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.training;
+package org.knime.dl.keras.core.training;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.knime.dl.core.DLTensorId;
 
 /**
- * Root interface for training metrics.
- * <P>
- * Implementations of this interface must override {@link #equals(Object)}, {@link #hashCode()} and {@link #toString()}
- * in a value-based way.
+ * A monitored metric (excluding the loss, see {@link DLKerasMonitoredSingleLoss}) for a single network output.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLMetrics {
+public final class DLKerasMonitoredSingleMetric extends DLKerasAbstractMonitoredQuantity {
 
 	/**
-	 * @return the identifier of the metrics, not null, not empty, must be unique across all metrics of its back end
+	 * @param quantity the monitored quantity
+	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
 	 */
-	String getIdentifier();
+	public DLKerasMonitoredSingleMetric(final DLKerasMetric quantity, final boolean isValidation) {
+		super(checkNotNull(quantity), null, isValidation);
+	}
 
 	/**
-	 * @return the friendly name of the metrics, not null, not empty, suitable to be displayed to the user
+	 * @param quantity the monitored quantity
+	 * @param output the output for which the quantity is monitored
+	 * @param isValidation true if the monitored quantity is a validation quantity (as opposed to a training quantity)
 	 */
-	String getName();
-
-	/**
-	 * @return the metrics' representation within its back end, implementing classes and extending interfaces should
-	 *         narrow the return type
-	 */
-	Object getBackendRepresentation();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
-	@Override
-	int hashCode();
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
-	@Override
-	boolean equals(Object obj);
-
-	/**
-	 * Value-based.
-	 * <P>
-	 * Inherited documentation: {@inheritDoc}
-	 */
-	@Override
-	String toString();
+	public DLKerasMonitoredSingleMetric(final DLKerasMetric quantity, final DLTensorId output,
+			final boolean isValidation) {
+		super(checkNotNull(quantity), checkNotNull(output), isValidation);
+	}
 }

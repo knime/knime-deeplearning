@@ -49,16 +49,16 @@ package org.knime.dl.keras.core.training;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.dl.core.training.DLMetrics;
+import org.knime.dl.core.training.DLMetric;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasMetrics extends DLMetrics {
+public interface DLKerasMetric extends DLMetric {
 
 	/**
-	 * @return the identifier for this metrics on Python side
+	 * @return the identifier for this metric on Python side
 	 */
 	String getKerasIdentifier();
 
@@ -86,9 +86,9 @@ public interface DLKerasMetrics extends DLMetrics {
 	boolean equals(Object obj);
 
 	/**
-	 * Abstract base class for implementations of {@link DLKerasMetrics}.
+	 * Abstract base class for implementations of {@link DLKerasMetric}.
 	 */
-	public abstract static class DLKerasAbstractMetrics implements DLKerasMetrics {
+	public abstract static class DLKerasAbstractMetric implements DLKerasMetric {
 
 		// TODO: we should add a "since" attribute to this class (or even interface) to enable checking if deriving
 		// classes are available for the local Keras installation. This implies changes in the installation testers on
@@ -99,10 +99,10 @@ public interface DLKerasMetrics extends DLMetrics {
 		private final String m_kerasIdentifier;
 
 		/**
-		 * @param name the friendly name of the metrics, not null, not empty, suitable to be displayed to the user
-		 * @param kerasIdentifier the identifier for this metrics on Python side
+		 * @param name the friendly name of the metric, not null, not empty, suitable to be displayed to the user
+		 * @param kerasIdentifier the identifier for this metric on Python side
 		 */
-		protected DLKerasAbstractMetrics(final String name, final String kerasIdentifier) {
+		protected DLKerasAbstractMetric(final String name, final String kerasIdentifier) {
 			m_name = checkNotNullOrEmpty(name);
 			m_kerasIdentifier = checkNotNullOrEmpty(kerasIdentifier);
 		}
@@ -130,11 +130,11 @@ public interface DLKerasMetrics extends DLMetrics {
 			if (obj == this) {
 				return true;
 			}
-			/* no strict type check, see documentation of DLKerasMetrics#equals(Object) */
-			if (obj == null || !(obj instanceof DLKerasMetrics)) {
+			/* no strict type check, see documentation of DLKerasMetric#equals(Object) */
+			if (obj == null || !(obj instanceof DLKerasMetric)) {
 				return false;
 			}
-			final DLKerasMetrics other = (DLKerasMetrics) obj;
+			final DLKerasMetric other = (DLKerasMetric) obj;
 			return other.getName().equals(m_name) //
 					&& other.getKerasIdentifier().equals(m_kerasIdentifier) //
 					// We care about identity on the back end side, so this check is also needed. Check for
@@ -148,7 +148,7 @@ public interface DLKerasMetrics extends DLMetrics {
 		}
 	}
 
-	public static final class DLKerasAccuracy extends DLKerasAbstractMetrics {
+	public static final class DLKerasAccuracy extends DLKerasAbstractMetric {
 
 		public DLKerasAccuracy() {
 			super("Accuracy", "acc");

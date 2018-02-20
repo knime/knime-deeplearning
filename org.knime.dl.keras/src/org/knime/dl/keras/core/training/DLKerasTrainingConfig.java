@@ -68,7 +68,7 @@ public interface DLKerasTrainingConfig extends DLTrainingConfig {
 	 */
 	Map<DLTensorSpec, DLKerasLossFunction> getLosses();
 
-	// TODO: getMetrics and DLMetrics
+	// TODO: getMetrics and DLMetric
 
 	/**
 	 * @return a collection of callbacks that are called during training and allow monitoring or controlling the

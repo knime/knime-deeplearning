@@ -99,15 +99,15 @@ public interface DLTrainingStatus extends Externalizable {
 
 	DLEvent<Void> epochStarted();
 
-	DLEvent<Map<String, DLReportedMetrics>> epochEnded();
+	DLEvent<Map<String, DLReportedMetric>> epochEnded();
 
 	DLEvent<Void> batchStarted();
 
-	DLEvent<Map<String, DLReportedMetrics>> batchEnded();
+	DLEvent<Map<String, DLReportedMetric>> batchEnded();
 
 	DLEvent<Void> validationStarted();
 
-	DLEvent<Map<String, DLReportedMetrics>> valdationEnded();
+	DLEvent<Map<String, DLReportedMetric>> valdationEnded();
 
 	// --
 
