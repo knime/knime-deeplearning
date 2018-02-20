@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.training;
 
+import org.knime.dl.core.DLEvent;
 import org.knime.dl.core.training.DLTrainingStatus;
 
 /**
@@ -54,4 +55,9 @@ import org.knime.dl.core.training.DLTrainingStatus;
  */
 public interface DLKerasTrainingStatus extends DLTrainingStatus {
 
+	// events:
+
+	DLEvent<Integer> stoppedEarly();
+
+	DLEvent<Long> terminatedOnNaNLoss();
 }

@@ -47,6 +47,9 @@
 package org.knime.dl.core.training;
 
 import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -105,4 +108,20 @@ public interface DLTrainingStatus extends Externalizable {
 	DLEvent<Void> validationStarted();
 
 	DLEvent<Map<String, DLReportedMetrics>> valdationEnded();
+
+	// --
+
+	/**
+	 * Event-listeners are not persisted.
+	 * <P>
+	 * Inherited documentation: {@inheritDoc}
+	 */
+	@Override
+	void writeExternal(ObjectOutput out) throws IOException;
+
+	/**
+	 * Event-listeners were not persisted and are therefore not restored.
+	 */
+	@Override
+	void readExternal(ObjectInput in) throws IOException, ClassNotFoundException;
 }

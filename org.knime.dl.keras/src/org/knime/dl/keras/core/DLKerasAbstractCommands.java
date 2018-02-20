@@ -49,12 +49,19 @@ package org.knime.dl.keras.core;
 import java.io.IOException;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkInputProvider;
+import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
+import org.knime.python2.kernel.Messages;
+import org.knime.python2.kernel.PythonToJavaMessage;
+import org.knime.python2.kernel.PythonToJavaMessageHandler;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -106,5 +113,48 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
 				.n("network.spec.training_config = config");
 		getContext().executeInKernel(b.toString());
+	}
+
+	@Override
+	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
+			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
+			throws DLInvalidEnvironmentException, IOException {
+		final Messages messages = getContext().getKernel().getMessages();
+
+		PythonToJavaMessageHandler terminateOnNaNHandler = null;
+		PythonToJavaMessageHandler earlyStoppingHandler = null;
+
+		try {
+			if (monitor.getTrainingStatus() instanceof DLKerasTrainingStatus) {
+				final DLKerasTrainingStatus status = (DLKerasTrainingStatus) monitor.getTrainingStatus();
+				terminateOnNaNHandler = new AbstractPythonToJavaMessageHandler("terminate_on_nan") {
+
+					@Override
+					protected void handle(final PythonToJavaMessage msg) throws Exception {
+						final long batch = Long.parseLong(msg.getValue());
+						status.terminatedOnNaNLoss().raise(batch);
+					}
+				};
+				messages.registerMessageHandler(terminateOnNaNHandler);
+
+				earlyStoppingHandler = new AbstractPythonToJavaMessageHandler("early_stopping") {
+
+					@Override
+					protected void handle(final PythonToJavaMessage msg) throws Exception {
+						final int epoch = Integer.parseInt(msg.getValue());
+						status.stoppedEarly().raise(epoch);
+					}
+				};
+				messages.registerMessageHandler(earlyStoppingHandler);
+			}
+			super.trainNetwork(network, trainingInputProvider, validationInputProvider, monitor);
+		} finally {
+			if (terminateOnNaNHandler != null) {
+				messages.unregisterMessageHandler(terminateOnNaNHandler);
+			}
+			if (earlyStoppingHandler != null) {
+				messages.unregisterMessageHandler(earlyStoppingHandler);
+			}
+		}
 	}
 }

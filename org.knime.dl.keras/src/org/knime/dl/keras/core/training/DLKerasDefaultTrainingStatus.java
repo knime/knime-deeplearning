@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.training;
 
+import org.knime.dl.core.DLDefaultEvent;
+import org.knime.dl.core.DLEvent;
 import org.knime.dl.core.training.DLAbstractTrainingStatus;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
 import org.knime.dl.keras.base.nodes.learner.view.DLViewDataCollection;
@@ -62,14 +64,22 @@ public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 
 	private DLViewDataCollection[] m_viewData;
 
+	private final DLEvent<Integer> m_stoppedEarly = new DLDefaultEvent<>();
+
+	private final DLEvent<Long> m_terminatedOnNaNLoss = new DLDefaultEvent<>();
+
 	public DLKerasDefaultTrainingStatus(final int numEpochs, final int numBatchesPerEpoch) {
 		super(numEpochs, numBatchesPerEpoch);
+		m_stoppedEarly.addListener((src, epoch) -> setStatus(Status.STOPPED_EARLY));
+		m_terminatedOnNaNLoss.addListener((src, batch) -> setStatus(Status.STOPPED_EARLY));
 	}
 
 	/**
 	 * Empty framework constructor. Must not be called by client code.
 	 */
 	public DLKerasDefaultTrainingStatus() {
+		m_stoppedEarly.addListener((src, epoch) -> setStatus(Status.STOPPED_EARLY));
+		m_terminatedOnNaNLoss.addListener((src, batch) -> setStatus(Status.STOPPED_EARLY));
 	}
 
 	@Override
@@ -110,5 +120,15 @@ public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 	@Override
 	public void setViewData(final DLViewDataCollection[] viewData) {
 		m_viewData = viewData;
+	}
+
+	@Override
+	public DLEvent<Integer> stoppedEarly() {
+		return m_stoppedEarly;
+	}
+
+	@Override
+	public DLEvent<Long> terminatedOnNaNLoss() {
+		return m_terminatedOnNaNLoss;
 	}
 }

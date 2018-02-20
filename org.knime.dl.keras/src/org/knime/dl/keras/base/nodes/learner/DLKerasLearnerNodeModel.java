@@ -780,6 +780,18 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			});
 			m_status.validationStarted().addListener((src, v) -> monitor.setMessage(
 					"Validating model in epoch " + (m_status.getCurrentEpoch() + 1) + " of " + numEpochs + "..."));
+			if (m_generalCfg.getEarlyStoppingEntry().getEnabled()) {
+				m_status.stoppedEarly()
+						.addListener((src,
+								epoch) -> setWarningMessage("Training stopped in epoch "
+										+ (m_status.getCurrentEpoch() + 1)
+										+ " as the monitored quantity has stopped improving (early stopping)."));
+			}
+			if (m_generalCfg.getTerminateOnNaNEntry().getEnabled()) {
+				m_status.terminatedOnNaNLoss().addListener(
+						(src, batch) -> setWarningMessage("Training terminated in batch " + (batch + 1) + " of epoch "
+								+ (m_status.getCurrentEpoch() + 1) + " due to a NaN (not a number) loss."));
+			}
 			session.run(monitor);
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return session.getTrainedNetwork(exec);
