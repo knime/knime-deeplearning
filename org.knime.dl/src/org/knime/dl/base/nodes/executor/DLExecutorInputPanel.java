@@ -234,53 +234,13 @@ final class DLExecutorInputPanel extends JPanel {
 				.orElseThrow(() -> new NotConfigurableException(
 						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
-		final HashSet<DataType> inputTypes = new HashSet<>();
-
-		final DLDataValueToTensorConverterRegistry converters = DLDataValueToTensorConverterRegistry.getInstance();
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
-		// for each distinct column type in the input table, add the preferred converter to the list of selectable
-		// converters
-		for (final DataColumnSpec inputColSpec : m_lastTableSpec) {
-			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converterOpt = converters
-						.getPreferredConverterFactory(inputColSpec.getType(),
-								executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec));
-				if (converterOpt.isPresent()) {
-					final DLDataValueToTensorConverterFactory<?, ?> converter = converterOpt.get();
-					if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
-						if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
-							builtInCollection.add(converter);
-						} else {
-							builtInElement.add(converter);
-						}
-					} else {
-						if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
-							extensionCollection.add(converter);
-						} else {
-							extensionElement.add(converter);
-						}
-					}
-				}
-			}
-		}
-		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-				.comparing(DLDataValueToTensorConverterFactory::getName);
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
-				Stream.concat(builtInElement.stream().sorted(nameComparator),
-						extensionElement.stream().sorted(nameComparator)),
-				Stream.concat(builtInCollection.stream().sorted(nameComparator),
-						extensionCollection.stream().sorted(nameComparator)))
-				.collect(Collectors.toList());
-		final String[] names = new String[converterFactoriesSorted.size()];
-		final String[] ids = new String[converterFactoriesSorted.size()];
-		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
-			final DLDataValueToTensorConverterFactory<?, ?> converter = converterFactoriesSorted.get(i);
-			names[i] = "From " + converter.getName();
-			ids[i] = converter.getIdentifier();
-		}
+		
+		final ConverterRefresher converterRefresher = new ConverterRefresher(m_lastTableSpec, 
+				executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec), 
+				Comparator.comparing(DLDataValueToTensorConverterFactory::getName));
+		
+		final String[] names = converterRefresher.getConverterNames();
+		final String[] ids = converterRefresher.getConverterIdentifiers();
 		if (names.length == 0) {
 			throw new NotConfigurableException(
 					"No converters available for input '" + m_inputTensorSpec.getName() + "'.");
