@@ -253,13 +253,17 @@ class DLKerasNetwork(DLPythonNetwork):
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
 
-        # TODO: before training: (re)compile model! (if pre-compiled: only compile if training config changed)
-        # HACK: old code
+        # TODO: before training: (re)compile model! (if pre-compiled: only compile if training config changed) Note that
+        # we currently make some assumptions on how a model is compiled - e.g. we expect metrics to contain 'acc'.
+        # HACK: old code, this should be a dictionary (layer_name, loss)!
         loss = []
         for output_spec in self.spec.output_specs:
             loss.append(config.loss[output_spec.name])
         metrics = config.metrics
-
+        
+        if not any(m == 'acc' or m == 'accuracy' for m in metrics):
+            metrics.append('acc')
+        
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
         if not any(isinstance(c, DLKerasTrainingMonitor) for c in config.callbacks):
