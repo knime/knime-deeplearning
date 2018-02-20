@@ -481,10 +481,26 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		};
 		messages.registerMessageHandler(onEpochBeginHandler);
 
+		final LinkedHashMap<String, DLReportedMetrics> epochMetrics = new LinkedHashMap<>(4);
+		epochMetrics.put("val_accuracy", new DLReportedMetrics("val_accuracy", 0f));
+		epochMetrics.put("val_loss", new DLReportedMetrics("val_loss", 0f));
+		status.setBatchMetrics(epochMetrics);
+
 		final PythonToJavaMessageHandler onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				final String[] metricsStr = msg.getValue().split(";");
+				int i = 0;
+				for (final DLReportedMetrics m : epochMetrics.values()) {
+					try {
+						m.setValue(Float.parseFloat(metricsStr[i]));
+					} catch (final NumberFormatException e) {
+						m.setValue(-1f);
+						LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+					}
+					i++;
+				}
 				status.epochEnded().raise(null);
 			}
 		};
