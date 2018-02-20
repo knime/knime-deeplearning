@@ -69,6 +69,7 @@ import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLReportedMetrics;
 import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.core.training.DLTrainingStatus;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
@@ -408,7 +409,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
 			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
 			throws DLInvalidEnvironmentException, IOException {
+		final DLTrainingStatus status = monitor.getTrainingStatus();
 		final Messages messages = getContext().getKernel().getMessages();
+
 		final PythonToJavaMessageHandler trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler(
 				"request_training_data") {
 
@@ -468,12 +471,39 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			validationDataRequestHandler = null;
 		}
 
-		final LinkedHashMap<String, DLReportedMetrics> metrics = new LinkedHashMap<>(4);
-		metrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
-		metrics.put("loss", new DLReportedMetrics("loss", 0f));
-		// metrics.put("val_accuracy", new DLMetrics("val_accuracy", 0f));
-		// metrics.put("val_loss", new DLMetrics("val_loss", 0f));
-		monitor.getTrainingStatus().setMetrics(metrics);
+		final PythonToJavaMessageHandler onEpochBeginHandler = new AbstractPythonToJavaMessageHandler("epoch_begin") {
+
+			@Override
+			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				status.epochStarted().raise(null);
+				messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp. workaround
+			}
+		};
+		messages.registerMessageHandler(onEpochBeginHandler);
+
+		final PythonToJavaMessageHandler onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
+
+			@Override
+			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				status.epochEnded().raise(null);
+			}
+		};
+		messages.registerMessageHandler(onEpochEndHandler);
+
+		final PythonToJavaMessageHandler onBatchBeginHandler = new AbstractPythonToJavaMessageHandler("batch_begin") {
+
+			@Override
+			protected void handle(final PythonToJavaMessage msg) throws Exception {
+				status.batchStarted().raise(null);
+				messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp. workaround
+			}
+		};
+		messages.registerMessageHandler(onBatchBeginHandler);
+
+		final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
+		batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
+		batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
+		status.setMetrics(batchMetrics);
 
 		final PythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
 
@@ -482,7 +512,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				monitor.checkCanceled();
 				final String[] metricsStr = msg.getValue().split(";");
 				int i = 0;
-				for (final DLReportedMetrics m : metrics.values()) {
+				for (final DLReportedMetrics m : batchMetrics.values()) {
 					try {
 						m.setValue(Float.parseFloat(metricsStr[i]));
 					} catch (final NumberFormatException e) {
@@ -491,9 +521,13 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					}
 					i++;
 				}
-				messages.answer(new DefaultJavaToPythonResponse(msg,
-						monitor.getTrainingStatus().getStatus() == Status.RUNNING ? "c" : "s"));
-				monitor.getTrainingStatus().batchEnded().raise(null);
+				messages.answer(new DefaultJavaToPythonResponse(msg, status.getStatus() == Status.RUNNING ? "c" : "s"));
+				status.batchEnded().raise(null);
+				// start validation phase if validation is enabled and we finished the last training batch of the epoch
+				if (validationInputProvider != null
+						&& status.getCurrentBatchInEpoch() == status.getNumBatchesPerEpoch() - 1) {
+					status.validationStarted().raise(null);
+				}
 			}
 		};
 		messages.registerMessageHandler(onBatchEndHandler);
@@ -522,6 +556,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		if (validationDataRequestHandler != null) {
 			messages.unregisterMessageHandler(validationDataRequestHandler);
 		}
+		messages.unregisterMessageHandler(onEpochBeginHandler);
+		messages.unregisterMessageHandler(onEpochEndHandler);
+		messages.unregisterMessageHandler(onBatchBeginHandler);
 		messages.unregisterMessageHandler(onBatchEndHandler);
 	}
 
