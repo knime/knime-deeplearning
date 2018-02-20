@@ -701,7 +701,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			});
 			m_status.batchEnded().addListener((src, v) -> {
 				// update view
-				final Map<String, DLReportedMetrics> metrics = m_status.getMetrics();
+				final Map<String, DLReportedMetrics> metrics = m_status.getBatchMetrics();
 				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics.get("accuracy").getValue());
 				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics.get("loss").getValue());
 				notifyViews(m_status);

@@ -78,7 +78,11 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private int m_currentBatchInEpoch = -1;
 
-	private Map<String, DLReportedMetrics> m_metrics;
+	private Map<String, DLReportedMetrics> m_batchMetrics;
+
+	private Map<String, DLReportedMetrics> m_epochMetrics;
+
+	private Map<String, DLReportedMetrics> m_trainingMetrics; // TODO: pending
 
 	private final DLEvent<Void> m_trainingStarted = new DLDefaultEvent<>();
 
@@ -168,13 +172,23 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public Map<String, DLReportedMetrics> getMetrics() {
-		return m_metrics;
+	public Map<String, DLReportedMetrics> getBatchMetrics() {
+		return m_batchMetrics;
 	}
 
 	@Override
-	public <M extends Map<String, DLReportedMetrics> & Serializable> void setMetrics(final M metrics) {
-		m_metrics = metrics;
+	public <M extends Map<String, DLReportedMetrics> & Serializable> void setBatchMetrics(final M metrics) {
+		m_batchMetrics = metrics;
+	}
+
+	@Override
+	public Map<String, DLReportedMetrics> getEpochMetrics() {
+		return m_epochMetrics;
+	}
+
+	@Override
+	public <M extends Map<String, DLReportedMetrics> & Serializable> void setEpochMetrics(final M metrics) {
+		m_epochMetrics = metrics;
 	}
 
 	// callbacks:
@@ -225,7 +239,9 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		objOut.writeObject(m_endDateTime);
 		objOut.writeInt(m_currentEpoch);
 		objOut.writeInt(m_currentBatchInEpoch);
-		objOut.writeObject(m_metrics);
+		objOut.writeObject(m_batchMetrics);
+		objOut.writeObject(m_epochMetrics);
+		objOut.writeObject(m_trainingMetrics);
 	}
 
 	@Override
@@ -238,7 +254,13 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		m_currentEpoch = objIn.readInt();
 		m_currentBatchInEpoch = objIn.readInt();
 		@SuppressWarnings("unchecked") // we know what we wrote
-		final Map<String, DLReportedMetrics> metrics = (Map<String, DLReportedMetrics>) objIn.readObject();
-		m_metrics = metrics;
+		final Map<String, DLReportedMetrics> batchMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
+		m_batchMetrics = batchMetrics;
+		@SuppressWarnings("unchecked")
+		final Map<String, DLReportedMetrics> epochMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
+		m_epochMetrics = epochMetrics;
+		@SuppressWarnings("unchecked")
+		final Map<String, DLReportedMetrics> trainingMetrics = (Map<String, DLReportedMetrics>) objIn.readObject();
+		m_trainingMetrics = trainingMetrics;
 	}
 }

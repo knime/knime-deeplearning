@@ -503,7 +503,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
 		batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
 		batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
-		status.setMetrics(batchMetrics);
+		status.setBatchMetrics(batchMetrics);
 
 		final PythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
 
