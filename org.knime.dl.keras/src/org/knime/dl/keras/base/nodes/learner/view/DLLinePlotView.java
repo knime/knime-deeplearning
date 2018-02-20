@@ -46,51 +46,19 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view;
 
-import java.io.Externalizable;
+import java.awt.Component;
 import java.util.Iterator;
 
+import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData.DLLinePlotViewDataEntry;
+
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public interface DLLinePlotViewData
-		extends DLViewData, Iterable<DLLinePlotViewData.DLLinePlotViewDataEntry>, Externalizable {
+public interface DLLinePlotView<S extends DLLinePlotViewSpec> {
 
-	/**
-	 * Elements returned by this iterator may be mutable.
-	 */
-	@Override
-	Iterator<DLLinePlotViewDataEntry> iterator();
+	Component getComponent();
 
-	public interface DLLinePlotViewDataEntry {
-
-		int getX();
-
-		float getY();
-	}
-
-	public class DLMutableLinePlotViewDataEntry implements DLLinePlotViewDataEntry {
-
-		private int m_x;
-
-		private float m_y;
-
-		public void setX(final int x) {
-			m_x = x;
-		}
-
-		public void setY(final float y) {
-			m_y = y;
-		}
-
-		@Override
-		public int getX() {
-			return m_x;
-		}
-
-		@Override
-		public float getY() {
-			return m_y;
-		}
-	}
+	void update(String lineLabel, Iterator<DLLinePlotViewDataEntry> iterator);
 }
