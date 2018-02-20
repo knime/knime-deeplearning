@@ -287,7 +287,11 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 				m_lastEpoch = currEpoch;
 			}
 
-			m_batchProgressBar.setDuration(elapsedTime.dividedBy((currEpoch - 1) * (long) numBatches + currBatch));
+			if (currBatch != 0) {
+				// TODO: this calculation is wrong if validation is performed. we need to subtract the time needed for
+				// validation before dividing by the number of batches in such cases.
+				m_batchProgressBar.setDuration(elapsedTime.dividedBy((currEpoch - 1) * (long) numBatches + currBatch));
+			}
 
 			m_startTime.setValue(formatStartTime(startTime));
 			m_elapsedTime.setValue(formatElapsedTime(elapsedTime));
