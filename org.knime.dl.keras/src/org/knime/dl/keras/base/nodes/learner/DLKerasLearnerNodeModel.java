@@ -97,7 +97,7 @@ import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFact
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
 import org.knime.dl.core.training.DLKnimeTrainingMonitor;
-import org.knime.dl.core.training.DLMetrics;
+import org.knime.dl.core.training.DLReportedMetrics;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.keras.base.nodes.learner.view.DLInteractiveLearnerNodeModel;
@@ -667,7 +667,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				monitor.setProgress(progress, "Processing batch " + currBatch + " of " + numBatchesPerEpoch
 						+ " in epoch " + currEpoch + " of " + epochs + "...");
 				// update accuracy
-				final Map<String, DLMetrics> metrics = m_status.getMetrics();
+				final Map<String, DLReportedMetrics> metrics = m_status.getMetrics();
 				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics.get("accuracy").getValue());
 				// update loss
 				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics.get("loss").getValue());

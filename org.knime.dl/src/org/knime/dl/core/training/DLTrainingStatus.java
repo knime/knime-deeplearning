@@ -87,9 +87,9 @@ public interface DLTrainingStatus extends Externalizable {
 	 */
 	int getCurrentBatchInEpoch();
 
-	Map<String, DLMetrics> getMetrics();
+	Map<String, DLReportedMetrics> getMetrics();
 
-	<M extends Map<String, DLMetrics> & Serializable> void setMetrics(M metrics);
+	<M extends Map<String, DLReportedMetrics> & Serializable> void setMetrics(M metrics);
 
 	// events:
 

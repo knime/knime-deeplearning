@@ -67,7 +67,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
-import org.knime.dl.core.training.DLMetrics;
+import org.knime.dl.core.training.DLReportedMetrics;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
@@ -433,9 +433,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		};
 		messages.registerMessageHandler(dataRequestHandler);
 
-		final LinkedHashMap<String, DLMetrics> metrics = new LinkedHashMap<>(4);
-		metrics.put("accuracy", new DLMetrics("accuracy", 0f));
-		metrics.put("loss", new DLMetrics("loss", 0f));
+		final LinkedHashMap<String, DLReportedMetrics> metrics = new LinkedHashMap<>(4);
+		metrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
+		metrics.put("loss", new DLReportedMetrics("loss", 0f));
 		// metrics.put("val_accuracy", new DLMetrics("val_accuracy", 0f));
 		// metrics.put("val_loss", new DLMetrics("val_loss", 0f));
 		monitor.getTrainingStatus().setMetrics(metrics);
@@ -448,7 +448,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				monitor.checkCanceled();
 				final String[] metricsStr = msg.getValue().split(";");
 				int i = 0;
-				for (final DLMetrics m : metrics.values()) {
+				for (final DLReportedMetrics m : metrics.values()) {
 					try {
 						m.setValue(Float.parseFloat(metricsStr[i]));
 					} catch (final NumberFormatException e) {

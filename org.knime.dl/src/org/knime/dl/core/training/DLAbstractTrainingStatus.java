@@ -78,7 +78,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 
 	private int m_currentBatchInEpoch = -1;
 
-	private Map<String, DLMetrics> m_metrics;
+	private Map<String, DLReportedMetrics> m_metrics;
 
 	private final DLEvent<Void> m_trainingStarted = new DLDefaultEvent<>();
 
@@ -159,12 +159,12 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 	}
 
 	@Override
-	public Map<String, DLMetrics> getMetrics() {
+	public Map<String, DLReportedMetrics> getMetrics() {
 		return m_metrics;
 	}
 
 	@Override
-	public <M extends Map<String, DLMetrics> & Serializable> void setMetrics(final M metrics) {
+	public <M extends Map<String, DLReportedMetrics> & Serializable> void setMetrics(final M metrics) {
 		m_metrics = metrics;
 	}
 
@@ -209,7 +209,7 @@ public abstract class DLAbstractTrainingStatus implements DLTrainingStatus {
 		m_currentEpoch = objIn.readInt();
 		m_currentBatchInEpoch = objIn.readInt();
 		@SuppressWarnings("unchecked") // we know what we wrote
-		final Map<String, DLMetrics> metrics = (Map<String, DLMetrics>) objIn.readObject();
+		final Map<String, DLReportedMetrics> metrics = (Map<String, DLReportedMetrics>) objIn.readObject();
 		m_metrics = metrics;
 	}
 }
