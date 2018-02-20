@@ -97,6 +97,7 @@ import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
 import org.knime.python2.kernel.DefaultJavaToPythonResponse;
 import org.knime.python2.kernel.Messages;
 import org.knime.python2.kernel.PythonToJavaMessage;
+import org.knime.python2.kernel.PythonToJavaMessageHandler;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedBytes;
@@ -404,17 +405,19 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider inputSupplier,
-			final DLTrainingMonitor<?> monitor) throws DLInvalidEnvironmentException, IOException {
+	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
+			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
+			throws DLInvalidEnvironmentException, IOException {
 		final Messages messages = getContext().getKernel().getMessages();
-		final AbstractPythonToJavaMessageHandler dataRequestHandler = new AbstractPythonToJavaMessageHandler(
+		final PythonToJavaMessageHandler trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler(
 				"request_training_data") {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
 				monitor.checkCanceled();
 				final long batchIndex = Long.parseLong(msg.getValue());
-				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = inputSupplier.get(batchIndex);
+				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = trainingInputProvider
+						.get(batchIndex);
 				monitor.checkCanceled();
 				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
@@ -422,7 +425,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					try {
 						getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
 					} catch (final IOException ex) {
-						throw new IOException("Transmitting data to Python failed.", ex);
+						throw new IOException("Transmitting training data to Python failed.", ex);
 					} finally {
 						tensor.getBuffer().reset();
 					}
@@ -431,7 +434,39 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				messages.answer(new DefaultJavaToPythonResponse(msg, ""));
 			}
 		};
-		messages.registerMessageHandler(dataRequestHandler);
+		messages.registerMessageHandler(trainingDataRequestHandler);
+
+		final PythonToJavaMessageHandler validationDataRequestHandler;
+		if (validationInputProvider != null) {
+			validationDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_validation_data") {
+
+				@Override
+				protected void handle(final PythonToJavaMessage msg) throws Exception {
+					monitor.checkCanceled();
+					final long batchIndex = Long.parseLong(msg.getValue());
+					final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = validationInputProvider
+							.get(batchIndex);
+					monitor.checkCanceled();
+					for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+						final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
+						try {
+							// TODO: different identifiers for validation input? (pre-fetching on Python side...)
+							getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
+						} catch (final IOException ex) {
+							throw new IOException("Transmitting validation data to Python failed.", ex);
+						} finally {
+							tensor.getBuffer().reset();
+						}
+					}
+					monitor.checkCanceled();
+					messages.answer(new DefaultJavaToPythonResponse(msg, ""));
+				}
+			};
+			messages.registerMessageHandler(validationDataRequestHandler);
+		} else {
+			validationDataRequestHandler = null;
+		}
 
 		final LinkedHashMap<String, DLReportedMetrics> metrics = new LinkedHashMap<>(4);
 		metrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
@@ -440,8 +475,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		// metrics.put("val_loss", new DLMetrics("val_loss", 0f));
 		monitor.getTrainingStatus().setMetrics(metrics);
 
-		final AbstractPythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler(
-				"batch_end") {
+		final PythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
 
 			@Override
 			protected void handle(final PythonToJavaMessage msg) throws Exception {
@@ -470,12 +504,24 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.n("from DLPythonKernelService import DLPythonKernelService") //
 				.n("kernel_service = DLPythonKernelService(globals(), request_from_java)") //
 				.n("from DLKerasNetwork import DLKerasNetworkInputBatchGenerator") //
-				.n("data_supplier = DLKerasNetworkInputBatchGenerator(network, ").a(inputSupplier.getNumBatches()) //
-				.a(", network.spec.training_config.batch_size, kernel_service)") //
-				.n("network.train(data_supplier)");
+				.n("training_data_supplier = DLKerasNetworkInputBatchGenerator(network, ")
+				.a(trainingInputProvider.getNumBatches())
+				.a(", network.spec.training_config.batch_size, kernel_service, ").as("request_training_data").a(")");
+		if (validationInputProvider != null) {
+			b.n("validation_data_supplier = DLKerasNetworkInputBatchGenerator(network, ")
+					.a(validationInputProvider.getNumBatches())
+					.a(", network.spec.training_config.validation_batch_size, kernel_service, ")
+					.as("request_validation_data").a(")");
+		} else {
+			b.n("validation_data_supplier = None");
+		}
+		b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
 		getContext().executeInKernel(b.toString());
 
-		messages.unregisterMessageHandler(dataRequestHandler);
+		messages.unregisterMessageHandler(trainingDataRequestHandler);
+		if (validationDataRequestHandler != null) {
+			messages.unregisterMessageHandler(validationDataRequestHandler);
+		}
 		messages.unregisterMessageHandler(onBatchEndHandler);
 	}
 
@@ -504,6 +550,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	private TableChunker createSingleTensorTableChunker(final DLTensor<? extends DLWritableBuffer> tensor)
 			throws IOException {
+		// TODO: try to cache something here or at call site (serializers, table spec, entire chunker, ...)
 		final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
 				.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
 						&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()

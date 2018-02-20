@@ -92,8 +92,9 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("from DLKerasNetwork import DLKerasTrainingConfig") //
 				.n("config = DLKerasTrainingConfig()") //
-				.n("config.batch_size = ").a(config.getBatchSize()) //
 				.n("config.epochs = ").a(config.getEpochs()) //
+				.n("config.batch_size = ").a(config.getBatchSize()) //
+				.n("config.validation_batch_size = ").a(config.getValidationBatchSize()) //
 				// TODO: how to import dependencies (here: of optimizer and losses) in a generic way?
 				.n("import keras") //
 				.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //

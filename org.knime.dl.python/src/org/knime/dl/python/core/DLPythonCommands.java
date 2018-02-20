@@ -58,6 +58,7 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.core.training.DLTrainingStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -109,7 +110,16 @@ public interface DLPythonCommands extends AutoCloseable {
 			Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
 			throws DLInvalidEnvironmentException, IOException;
 
-	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider inputSupplier, DLTrainingMonitor<?> monitor)
+	/**
+	 * @param the network to train
+	 * @param trainingInputProvider the training data provider
+	 * @param validationInputProvider the validation data provider, may be null in which case no validation will be
+	 *            performed during training
+	 * @param monitor the monitor that tracks the progress of the training run. Can be used to report progress, check
+	 *            for cancellation or update the {@link DLTrainingStatus training status}.
+	 */
+	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider trainingInputProvider,
+			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<?> monitor)
 			throws DLInvalidEnvironmentException, IOException;
 
 	void getTrainingResults(DLPythonNetworkHandle network);
