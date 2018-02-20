@@ -48,7 +48,8 @@ package org.knime.dl.keras.core.training;
 
 import org.knime.dl.core.training.DLAbstractTrainingStatus;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
-import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
+import org.knime.dl.keras.base.nodes.learner.view.DLViewDataCollection;
+import org.knime.dl.keras.base.nodes.learner.view.DLViewSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -57,7 +58,9 @@ import org.knime.dl.keras.base.nodes.learner.view.DLViewData;
 public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 		implements DLKerasTrainingStatus, DLProgressMonitor {
 
-	private DLViewData<?>[] m_viewData;
+	private DLViewSpec[] m_viewSpecs;
+
+	private DLViewDataCollection[] m_viewData;
 
 	public DLKerasDefaultTrainingStatus(final int numEpochs, final int numBatchesPerEpoch) {
 		super(numEpochs, numBatchesPerEpoch);
@@ -90,12 +93,22 @@ public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
 	}
 
 	@Override
-	public DLViewData<?>[] getViewData() {
+	public DLViewSpec[] getViewSpecs() {
+		return m_viewSpecs;
+	}
+
+	@Override
+	public void setViewSpecs(final DLViewSpec[] viewSpecs) {
+		m_viewSpecs = viewSpecs;
+	}
+
+	@Override
+	public DLViewDataCollection[] getViewData() {
 		return m_viewData;
 	}
 
 	@Override
-	public void setViewData(final DLViewData<?>[] viewData) {
+	public void setViewData(final DLViewDataCollection[] viewData) {
 		m_viewData = viewData;
 	}
 }
