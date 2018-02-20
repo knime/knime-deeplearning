@@ -43,48 +43,19 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-'''
+"""
 @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
-'''
+"""
 
 import abc
-import math
 import warnings
 
-try:
-    import threading
-except ImportError:
-    warnings.warn("Failed to import threading module. Using dummy_threading instead.")
-    import dummy_threading as threading
 
-
-class DLPythonKernelService(object):
-    def __init__(self, workspace, java_send_func):
-        assert workspace is not None
-        assert java_send_func is not None
-        self._workspace = workspace
-        self._java_send_func = java_send_func
-        self._java_send_lock = threading.Lock()
-
-    @property
-    def workspace(self):
-        return self._workspace
-
-    def send_to_java(self, msg):
-        if msg.is_data_request():
-            # async requests are not supported by the current messaging implementation of the Python kernel
-            with self._java_send_lock:
-                return self._java_send_func(msg)
-        else:
-            # should always return None, but let's stay defensive here
-            return self._java_send_func(msg)
-
-
-class DLPythonNetworkInputBatchGenerator(object):
+class DLPythonNetworkTrainingInputGenerator(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, input_names, target_names, steps, batch_size, kernel_service=None):
+    def __init__(self, input_names, target_names, steps, batch_size):
         assert len(input_names) > 0
         assert len(target_names) > 0
         assert steps > 0
@@ -94,7 +65,6 @@ class DLPythonNetworkInputBatchGenerator(object):
         self._size = steps * batch_size
         self._batch_size = batch_size
         self._steps = steps
-        self._kernel_service = kernel_service
 
     @property
     def input_names(self):
@@ -115,10 +85,6 @@ class DLPythonNetworkInputBatchGenerator(object):
     @property
     def steps(self):
         return self._steps
-
-    @property
-    def kernel_service(self):
-        return self._kernel_service
 
     def get_generator(self):
         i = 0

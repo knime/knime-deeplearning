@@ -49,33 +49,24 @@
 '''
 
 import abc
-import keras
 
+import keras
+import numpy as np
+import pandas as pd
 from keras.models import load_model
 from keras.models import model_from_json
 from keras.models import model_from_yaml
 
+from DLKerasTrainingCallbacks import DLKerasTrainingMonitor
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
-
-from DLPythonKernelService import DLPythonKernelService
-from DLPythonKernelService import DLPythonNetworkInputBatchGenerator
-
 from DLPythonInstallationTester import compare_versions
-
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
 from DLPythonNetwork import DLPythonNetworkSpec
 from DLPythonNetwork import DLPythonTrainingConfig
-
-from PythonToJavaMessage import PythonToJavaMessage
-
-import numpy as np
-import pandas as pd
-import time
-import warnings
 
 
 class DLKerasNetworkReader(DLPythonNetworkReader):
@@ -260,14 +251,14 @@ class DLKerasNetwork(DLPythonNetwork):
         for output_spec in self.spec.output_specs:
             loss.append(config.loss[output_spec.name])
         metrics = config.metrics
-        
+
         if not any(m == 'acc' or m == 'accuracy' for m in metrics):
             metrics.append('acc')
-        
+
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
         if not any(isinstance(c, DLKerasTrainingMonitor) for c in config.callbacks):
-            config.callbacks.append(DLKerasTrainingMonitor(self, training_data_supplier.kernel_service))
+            config.callbacks.append(DLKerasTrainingMonitor(self))
 
         if validation_data_supplier is not None:
             validation_data_generator = validation_data_supplier.get_generator()
@@ -359,111 +350,8 @@ class DLKerasNetworkSpec(DLPythonNetworkSpec):
 
 class DLKerasTrainingConfig(DLPythonTrainingConfig):
     def __init__(self):
+        super().__init__()
         self.optimizer = None
         self.loss = {}
         self.metrics = ['acc']
         self.callbacks = []
-
-
-class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
-    def __init__(self, network, steps, batch_size, kernel_service, request_command):
-        assert network is not None
-        assert kernel_service is not None
-        input_names = [s.identifier for s in network.spec.input_specs]
-        target_names = [s.identifier for s in network.spec.output_specs]
-        super().__init__(input_names, target_names, steps, batch_size, kernel_service)
-        self._network = network
-        self._request = DLKerasNetworkInputBatchGenerator.DLKerasTrainingDataRequest(self, request_command)
-
-    def _get_batch(self, batch_index):
-        self._request._val = str(batch_index)
-        (x, y) = self.kernel_service.send_to_java(self._request)
-        return (self._network._format_input(x, self._batch_size),
-                self._network._format_target(y, self._batch_size))
-
-    def _process_reponse(self, val):
-        training_data = {}
-        for input_name in self._input_names:
-            training_data[input_name] = self.kernel_service.workspace[input_name]
-        target_data = {}
-        for target_name in self._target_names:
-            target_data[target_name] = self.kernel_service.workspace[target_name]
-        return training_data, target_data
-
-    class DLKerasTrainingDataRequest(PythonToJavaMessage):
-        def __init__(self, outer, request_command):
-            super().__init__(request_command, None, True)
-            self._outer = outer
-
-        def process_response(self, val):
-            return self._outer._process_reponse(val)
-
-
-class DLKerasTrainingMonitor(keras.callbacks.Callback):
-    def __init__(self, network, kernel_service):
-        super().__init__()
-        self._network = network
-        self._kernel_service = kernel_service
-        self._stop_training = False
-        self._on_epoch_begin_msg = PythonToJavaMessage('epoch_begin', None,
-                                                       True)  # FIXME: change back to False, this is a temp. workaround
-        self._on_epoch_end_msg = PythonToJavaMessage('epoch_end', None, False)
-        self._on_batch_begin_msg = PythonToJavaMessage('batch_begin', None,
-                                                       True)  # FIXME: change back to False, this is a temp. workaround
-        self._on_batch_end_request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
-
-    def on_train_begin(self, logs=None):
-        # metrics_names = self.params['metrics']
-        # self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
-        self._stop_training = False
-
-    def on_train_end(self, logs=None):
-        if self._stop_training:
-            # flush pending Keras logs before printing our own status message
-            print('', flush=True)
-            print('Training was stopped by the user.')
-
-    def on_epoch_begin(self, epoch, logs=None):
-        self._kernel_service.send_to_java(self._on_epoch_begin_msg)
-
-    def on_epoch_end(self, epoch, logs=None):
-        if logs:
-            loss = logs.get('val_loss')
-            acc = logs.get('val_acc')
-            if acc is None:
-                # Multi-output networks only have an accuracy metric per output. Average over them and use the result as
-                # accuracy for the entire network. TODO: Note that this is a temporary workaround. Per-output metric
-                # reporting is pending.
-                accs = [v for k, v in logs.items() if k.startswith('val_') and k.endswith('_acc')]
-                len_accs = len(accs)
-                if len_accs > 0:
-                    acc = sum(accs) / len_accs
-                
-            self._on_epoch_end_msg._val = str(acc) + ';' + str(loss)
-            self._kernel_service.send_to_java(self._on_epoch_end_msg)
-
-    def on_batch_begin(self, batch, logs=None):
-        self._kernel_service.send_to_java(self._on_batch_begin_msg)
-
-    def on_batch_end(self, batch, logs=None):
-        if logs:
-            loss = logs.get('loss')
-            acc = logs.get('acc')
-            if acc is None:
-                # Multi-output networks only have an accuracy metric per output. Average over them and use the result as
-                # accuracy for the entire network. TODO: Note that this is a temporary workaround. Per-output metric
-                # reporting is pending.
-                accs = [v for k, v in logs.items() if k.endswith('_acc')]
-                acc = sum(accs) / len(accs)
-            
-            self._on_batch_end_request._val = str(acc) + ';' + str(loss)
-            self._stop_training = self._kernel_service.send_to_java(self._on_batch_end_request)
-            if self._stop_training:
-                self._network.model.stop_training = True
-
-    class DLOnBatchEndMessage(PythonToJavaMessage):
-        def __init__(self):
-            super().__init__('batch_end', None, True)
-
-        def process_response(self, val):
-            return val == 's'
