@@ -486,8 +486,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				@Override
 				protected void handle(final PythonToJavaMessage msg) throws Exception {
 					status.epochStarted().raise(null);
-					messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp.
-																				// workaround
 				}
 			};
 			messages.registerMessageHandler(onEpochBeginHandler);
@@ -522,8 +520,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				@Override
 				protected void handle(final PythonToJavaMessage msg) throws Exception {
 					status.batchStarted().raise(null);
-					messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp.
-																				// workaround
 				}
 			};
 			messages.registerMessageHandler(onBatchBeginHandler);

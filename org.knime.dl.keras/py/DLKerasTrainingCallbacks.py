@@ -98,11 +98,9 @@ class DLKerasTrainingMonitor(Callback):
         super().__init__()
         self._network = network
         self._stop_training = False
-        self._on_epoch_begin_msg = PythonToJavaMessage('epoch_begin', None,
-                                                       True)  # FIXME: change back to False, this is a temp. workaround
+        self._on_epoch_begin_msg = PythonToJavaMessage('epoch_begin', None, False)
         self._on_epoch_end_msg = PythonToJavaMessage('epoch_end', None, False)
-        self._on_batch_begin_msg = PythonToJavaMessage('batch_begin', None,
-                                                       True)  # FIXME: change back to False, this is a temp. workaround
+        self._on_batch_begin_msg = PythonToJavaMessage('batch_begin', None, False)
         self._on_batch_end_request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
 
     def on_train_begin(self, logs=None):

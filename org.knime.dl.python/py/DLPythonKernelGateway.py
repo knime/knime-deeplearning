@@ -81,10 +81,6 @@ class DLPythonKernelGateway(object):
         return self._workspace
 
     def send_to_java(self, msg):
-        if msg.is_data_request():
-            # async requests are not supported by the current messaging implementation of the Python kernel
-            with self._java_send_lock:
-                return self._java_send_func(msg)
-        else:
-            # should always return None, but let's stay defensive here
+        # TODO: this lock will become obsolete with the new Python messaging system
+        with self._java_send_lock:
             return self._java_send_func(msg)
