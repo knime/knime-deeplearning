@@ -149,7 +149,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 	// checking if they're available for the local
 	// Keras installation
 
-	public static class DLKerasStochasticGradientDescent extends DLKerasAbstractOptimizer {
+	public static final class DLKerasStochasticGradientDescent extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "sgd_";
 
@@ -197,7 +197,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasRMSProp extends DLKerasAbstractOptimizer {
+	public static final class DLKerasRMSProp extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "rmsprob_";
 
@@ -245,7 +245,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasAdagrad extends DLKerasAbstractOptimizer {
+	public static final class DLKerasAdagrad extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "adagrad_";
 
@@ -287,7 +287,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasAdadelta extends DLKerasAbstractOptimizer {
+	public static final class DLKerasAdadelta extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "adadelta_";
 
@@ -335,7 +335,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasAdam extends DLKerasAbstractOptimizer {
+	public static final class DLKerasAdam extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "adam_";
 
@@ -389,7 +389,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasAdamax extends DLKerasAbstractOptimizer {
+	public static final class DLKerasAdamax extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "adamax_";
 
@@ -443,7 +443,7 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		}
 	}
 
-	public static class DLKerasNadam extends DLKerasAbstractOptimizer {
+	public static final class DLKerasNadam extends DLKerasAbstractOptimizer {
 
 		static final String CFG_PREFIX = "nadam_";
 
