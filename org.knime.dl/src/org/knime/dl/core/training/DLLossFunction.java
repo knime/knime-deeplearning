@@ -50,13 +50,16 @@ package org.knime.dl.core.training;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLLossFunction {
+public interface DLLossFunction extends DLMetrics {
 
+	@Override
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
 	}
 
+	@Override
 	String getName();
 
+	@Override
 	Object getBackendRepresentation();
 }
