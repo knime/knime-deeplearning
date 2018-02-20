@@ -46,16 +46,15 @@
  */
 package org.knime.dl.keras.core.training;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 import org.knime.dl.core.training.DLLossFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasLossFunction extends DLLossFunction {
+public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetrics {
 
+	@Override
 	String getKerasIdentifier();
 
 	@Override
@@ -63,25 +62,11 @@ public interface DLKerasLossFunction extends DLLossFunction {
 		return getKerasIdentifier();
 	}
 
-	public abstract static class DLKerasAbstractLossFunction implements DLKerasLossFunction {
-
-		private final String m_name;
-
-		private final String m_kerasIdentifier;
+	public abstract static class DLKerasAbstractLossFunction extends DLKerasAbstractMetrics
+			implements DLKerasLossFunction {
 
 		protected DLKerasAbstractLossFunction(final String name, final String kerasIdentifier) {
-			m_name = checkNotNullOrEmpty(name);
-			m_kerasIdentifier = checkNotNullOrEmpty(kerasIdentifier);
-		}
-
-		@Override
-		public String getName() {
-			return m_name;
-		}
-
-		@Override
-		public String getKerasIdentifier() {
-			return m_kerasIdentifier;
+			super(name, kerasIdentifier);
 		}
 	}
 
@@ -89,98 +74,98 @@ public interface DLKerasLossFunction extends DLLossFunction {
 	// Keras installation. This implies changes in the installation testers on Python side as they have to extract the
 	// libs' versions.
 
-	public static class DLKerasMeanSquaredError extends DLKerasAbstractLossFunction {
+	public static final class DLKerasMeanSquaredError extends DLKerasAbstractLossFunction {
 
 		public DLKerasMeanSquaredError() {
 			super("Mean squared error", "keras.losses.mse");
 		}
 	}
 
-	public static class DLKerasMeanAbsoluteError extends DLKerasAbstractLossFunction {
+	public static final class DLKerasMeanAbsoluteError extends DLKerasAbstractLossFunction {
 
 		public DLKerasMeanAbsoluteError() {
 			super("Mean absolute error", "keras.losses.mae");
 		}
 	}
 
-	public static class DLKerasMeanAbsolutePercentageError extends DLKerasAbstractLossFunction {
+	public static final class DLKerasMeanAbsolutePercentageError extends DLKerasAbstractLossFunction {
 
 		public DLKerasMeanAbsolutePercentageError() {
 			super("Mean absolute percentage error", "keras.losses.mape");
 		}
 	}
 
-	public static class DLKerasMeanSquaredLogarithmicError extends DLKerasAbstractLossFunction {
+	public static final class DLKerasMeanSquaredLogarithmicError extends DLKerasAbstractLossFunction {
 
 		public DLKerasMeanSquaredLogarithmicError() {
 			super("Mean squared logarithmic error", "keras.losses.msle");
 		}
 	}
 
-	public static class DLKerasSquaredHinge extends DLKerasAbstractLossFunction {
+	public static final class DLKerasSquaredHinge extends DLKerasAbstractLossFunction {
 
 		public DLKerasSquaredHinge() {
 			super("Squared hinge", "keras.losses.squared_hinge");
 		}
 	}
 
-	public static class DLKerasHinge extends DLKerasAbstractLossFunction {
+	public static final class DLKerasHinge extends DLKerasAbstractLossFunction {
 
 		public DLKerasHinge() {
 			super("Hinge", "keras.losses.hinge");
 		}
 	}
 
-	public static class DLKerasCategoricalHinge extends DLKerasAbstractLossFunction {
+	public static final class DLKerasCategoricalHinge extends DLKerasAbstractLossFunction {
 
 		public DLKerasCategoricalHinge() {
 			super("Categorical hinge", "keras.losses.categorical_hinge");
 		}
 	}
 
-	public static class DLKerasLogCosh extends DLKerasAbstractLossFunction {
+	public static final class DLKerasLogCosh extends DLKerasAbstractLossFunction {
 
 		public DLKerasLogCosh() {
 			super("Logcosh", "keras.losses.logcosh");
 		}
 	}
 
-	public static class DLKerasCategoricalCrossEntropy extends DLKerasAbstractLossFunction {
+	public static final class DLKerasCategoricalCrossEntropy extends DLKerasAbstractLossFunction {
 
 		public DLKerasCategoricalCrossEntropy() {
 			super("Categorical cross entropy", "keras.losses.categorical_crossentropy");
 		}
 	}
 
-	public static class DLKerasSparseCategoricalCrossEntropy extends DLKerasAbstractLossFunction {
+	public static final class DLKerasSparseCategoricalCrossEntropy extends DLKerasAbstractLossFunction {
 
 		public DLKerasSparseCategoricalCrossEntropy() {
 			super("Sparse categorical cross entropy", "keras.losses.sparse_categorical_crossentropy");
 		}
 	}
 
-	public static class DLKerasBinaryCrossEntropy extends DLKerasAbstractLossFunction {
+	public static final class DLKerasBinaryCrossEntropy extends DLKerasAbstractLossFunction {
 
 		public DLKerasBinaryCrossEntropy() {
 			super("Binary cross entropy", "keras.losses.binary_crossentropy");
 		}
 	}
 
-	public static class DLKerasKullbackLeiblerDivergence extends DLKerasAbstractLossFunction {
+	public static final class DLKerasKullbackLeiblerDivergence extends DLKerasAbstractLossFunction {
 
 		public DLKerasKullbackLeiblerDivergence() {
 			super("Kullback-Leibler divergence", "keras.losses.kld");
 		}
 	}
 
-	public static class DLKerasPoisson extends DLKerasAbstractLossFunction {
+	public static final class DLKerasPoisson extends DLKerasAbstractLossFunction {
 
 		public DLKerasPoisson() {
 			super("Poisson", "keras.losses.poisson");
 		}
 	}
 
-	public static class DLKerasCosineProximity extends DLKerasAbstractLossFunction {
+	public static final class DLKerasCosineProximity extends DLKerasAbstractLossFunction {
 
 		public DLKerasCosineProximity() {
 			super("Cosine proximity", "keras.losses.cosine");
