@@ -155,14 +155,22 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	@Override
 	public final void loadSettingsFrom(final NodeSettingsRO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
-		final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
-		m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
-		final T tmp = m_value;
-		loadEntry(subSettings);
+		final T oldValue = m_value;
+		try {
+			final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
+			m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
+			loadEntry(subSettings);
+		} catch (final InvalidSettingsException e) {
+			// Config entry could not be found in settings. Give deriving classes a chance to fall back to a default
+			// value or the like.
+			if (!handleMissingConfigEntry(settings)) {
+				throw e;
+			}
+		}
 		if (checkLoadPredicates()) {
 			onLoaded();
 		} else {
-			m_value = tmp;
+			m_value = oldValue;
 		}
 	}
 
@@ -304,6 +312,19 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 			throw new UnsupportedOperationException("Cannot load config entry '" + m_key
 					+ "' from KNIME settings. Entry type " + m_entryType + " is not supported.");
 		}
+	}
+
+	/**
+	 * This method is called by {@link #loadSettingsFrom(NodeSettingsRO)} in case the config entry is missing in the
+	 * provided node settings or if the config entry is incomplete. It allows deriving classes to handle such cases e.g.
+	 * by falling back to a default value and/or enabled state.
+	 *
+	 * @param settings the provided node settings in which the config entry is missing or incomplete
+	 * @return <code>true</code> if the the case of a missing or incomplete config entry could be handled. Returning
+	 *         <code>false</code> will cause an {@link InvalidSettingsException} to be thrown.
+	 */
+	protected boolean handleMissingConfigEntry(final NodeSettingsRO settings) {
+		return false;
 	}
 
 	private final void onLoaded() {
