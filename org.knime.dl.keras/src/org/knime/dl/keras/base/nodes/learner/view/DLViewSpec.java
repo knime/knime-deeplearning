@@ -46,12 +46,14 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view;
 
+import java.io.Externalizable;
+
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public interface DLViewSpec {
+public interface DLViewSpec extends Externalizable {
 
 	String id();
 

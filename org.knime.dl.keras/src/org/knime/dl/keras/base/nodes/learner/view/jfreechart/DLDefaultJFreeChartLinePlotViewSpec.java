@@ -46,6 +46,10 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view.jfreechart;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -53,15 +57,15 @@ package org.knime.dl.keras.base.nodes.learner.view.jfreechart;
  */
 public class DLDefaultJFreeChartLinePlotViewSpec implements DLJFreeChartLinePlotViewSpec {
 
-	private final String m_id;
+	private /* final */ String m_id;
 
-	private final String m_title;
+	private /* final */ String m_title;
 
-	private final String m_labelY;
+	private /* final */ String m_labelY;
 
-	private final String m_labelX;
+	private /* final */ String m_labelX;
 
-	private final String[] m_lineLabels;
+	private /* final */ String[] m_lineLabels;
 
 	public DLDefaultJFreeChartLinePlotViewSpec(final String id, final String title, final String labelY,
 			final String labelX, final String[] lineLabels) {
@@ -70,6 +74,12 @@ public class DLDefaultJFreeChartLinePlotViewSpec implements DLJFreeChartLinePlot
 		m_labelY = labelY;
 		m_labelX = labelX;
 		m_lineLabels = lineLabels;
+	}
+
+	/**
+	 * Empty deserialization constructor. Must not be called for other purposes.
+	 */
+	public DLDefaultJFreeChartLinePlotViewSpec() {
 	}
 
 	@Override
@@ -102,4 +112,21 @@ public class DLDefaultJFreeChartLinePlotViewSpec implements DLJFreeChartLinePlot
 		return m_lineLabels[i];
 	}
 
+	@Override
+	public void writeExternal(final ObjectOutput objOut) throws IOException {
+		objOut.writeUTF(m_id);
+		objOut.writeUTF(m_title);
+		objOut.writeUTF(m_labelX);
+		objOut.writeUTF(m_labelY);
+		objOut.writeObject(m_lineLabels);
+	}
+
+	@Override
+	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+		m_id = objIn.readUTF();
+		m_title = objIn.readUTF();
+		m_labelX = objIn.readUTF();
+		m_labelY = objIn.readUTF();
+		m_lineLabels = (String[]) objIn.readObject();
+	}
 }
