@@ -247,8 +247,8 @@ class DLKerasNetwork(DLPythonNetwork):
         Y = self._model.predict(X, batch_size=batch_size, verbose=0)  # don't change to predict_proba
         return self._format_output(Y)
 
-    def train(self, data_supplier):
-        assert data_supplier is not None
+    def train(self, training_data_supplier, validation_data_supplier=None):
+        assert training_data_supplier is not None
         config = self._spec.training_config
         if not config:
             raise ValueError("No training configuration available. Set configuration before training the network.")
@@ -263,14 +263,23 @@ class DLKerasNetwork(DLPythonNetwork):
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
         if not any(isinstance(c, DLKerasTrainingMonitor) for c in config.callbacks):
-            config.callbacks.append(DLKerasTrainingMonitor(self, data_supplier.kernel_service))
+            config.callbacks.append(DLKerasTrainingMonitor(self, training_data_supplier.kernel_service))
+
+        if validation_data_supplier is not None:
+            validation_data_generator = validation_data_supplier.get_generator()
+            validation_steps = validation_data_supplier.steps
+        else:
+            validation_data_generator = None
+            validation_steps = None
 
         kw_max_queue = 'max_queue_size' if compare_versions(keras.__version__, "2.0.5") > 0 else 'max_q_size'
-        history = self._model.fit_generator(data_supplier.get_generator(),
-                                            data_supplier.steps,
+        history = self._model.fit_generator(training_data_supplier.get_generator(),
+                                            training_data_supplier.steps,
                                             epochs=config.epochs,
                                             verbose=1,
                                             callbacks=config.callbacks,
+                                            validation_data=validation_data_generator,
+                                            validation_steps=validation_steps,
                                             **{kw_max_queue: 1})
         return history.history
 
@@ -302,7 +311,6 @@ class DLKerasNetwork(DLPythonNetwork):
 
     def _format_target(self, in_data, batch_size):
         return self._format_tensor(in_data, self.spec.output_specs, batch_size)
-
 
     def _format_tensor(self, in_data, specs, batch_size):
         tensors = []
@@ -356,14 +364,14 @@ class DLKerasTrainingConfig(DLPythonTrainingConfig):
 
 
 class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
-    def __init__(self, network, steps, batch_size, kernel_service):
+    def __init__(self, network, steps, batch_size, kernel_service, request_command):
         assert network is not None
         assert kernel_service is not None
         input_names = [s.identifier for s in network.spec.input_specs]
         target_names = [s.identifier for s in network.spec.output_specs]
         super().__init__(input_names, target_names, steps, batch_size, kernel_service)
         self._network = network
-        self._request = DLKerasNetworkInputBatchGenerator.DLKerasTrainingDataRequest(self)
+        self._request = DLKerasNetworkInputBatchGenerator.DLKerasTrainingDataRequest(self, request_command)
 
     def _get_batch(self, batch_index):
         self._request._val = str(batch_index)
@@ -381,8 +389,8 @@ class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
         return training_data, target_data
 
     class DLKerasTrainingDataRequest(PythonToJavaMessage):
-        def __init__(self, outer):
-            super().__init__('request_training_data', None, True)
+        def __init__(self, outer, request_command):
+            super().__init__(request_command, None, True)
             self._outer = outer
 
         def process_response(self, val):
