@@ -53,5 +53,7 @@ package org.knime.dl.keras.base.nodes.learner.view;
  */
 public interface DLInteractiveLearnerNodeModel {
 
+	DLProgressMonitor getProgressMonitor();
+
 	void stopLearning();
 }
