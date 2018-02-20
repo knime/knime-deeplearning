@@ -50,6 +50,7 @@ package org.knime.dl.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
@@ -57,48 +58,56 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
- * @param <N> the {@link DLNetwork network} type from which to create executable networks
+ * Represents the execution back end for a certain network type. Creates {@link DLNetworkExecutionSession execution
+ * sessions} to execute networks.
+ *
+ * @param <N> the {@link DLNetwork network} type for which to create {@link DLNetworkExecutionSession execution
+ *            sessions}
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLExecutionContext<N extends DLNetwork> {
 
 	/**
-	 * Returns the network type that's associated with this execution context.
-	 *
 	 * @return the network type that's associated with this execution context
 	 */
 	Class<N> getNetworkType();
 
 	/**
-	 * Returns the identifier of this execution context which is neither null nor empty and must be unique across all
-	 * execution contexts.
-	 *
-	 * @return the identifier of this execution context
+	 * @return the identifier of this execution context, not null not empty, must be unique across all training contexts
 	 */
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
 	}
 
 	/**
-	 * Returns the friendly name of this execution context which is neither null nor empty and is suitable for
-	 * presentation to the user.
-	 *
-	 * @return the friendly name of this execution context
+	 * @return the friendly name of this execution context, not null, not empty, suitable to be displayed to the user
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
-	// etc.)
+	/**
+	 * @return the {@link DLTensorFactory tensor factory} that is associated with this execution context. Execution
+	 *         sessions created by this context use this factory to construct their networks' input and output tensors.
+	 */
 	DLTensorFactory getTensorFactory();
 
 	/**
 	 * Creates a {@link DLNetworkExecutionSession execution session} for a given {@link DLNetwork network}.
 	 *
-	 * @param network the network
+	 * @param network the network to execute
+	 * @param executionInputSpecs a set of fully defined tensor specs. The set of tensor specs must exactly match the
+	 *            network's input tensor specs with respect to the identifiers of the contained specs. A tensor spec is
+	 *            fully defined if it features a non-empty batch size and a {@link DLFixedTensorShape fixed tensor
+	 *            shape}.
+	 * @param requestedOutputs a set of tensor ids whose corresponding network outputs shall be fed to the output
+	 *            consumer. This is useful if only parts of the network's outputs are relevant or if interested in the
+	 *            outputs of hidden layers.
+	 * @param inputPreparer the input data preparer
+	 * @param outputConsumer the network output consumer
+	 * @return the created execution session
 	 * @throws IllegalArgumentException if failed to create the execution session due to invalid arguments
 	 */
 	DLNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
 			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
-			DLNetworkOutputConsumer outputConsumer);
+			DLNetworkOutputConsumer outputConsumer) throws IllegalArgumentException;
 }

@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 
 /**
+ * The Keras (Theano) training back end.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -62,6 +64,9 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (Theano)";
 
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
 	public DLKerasTheanoDefaultTrainingContext() {
 		super(DLKerasTheanoNetwork.class, TRAINING_CONTEXT_NAME);
 	}
@@ -69,8 +74,8 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 	@Override
 	public DLKerasTheanoNetworkTrainingSession createTrainingSession(final DLKerasTheanoNetwork network,
 			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer inputPreparer) {
-		return new DLKerasTheanoNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
-				getTensorFactory());
+			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer) {
+		return new DLKerasTheanoNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
+				trainingInputPreparer, validationInputPreparer, getTensorFactory());
 	}
 }

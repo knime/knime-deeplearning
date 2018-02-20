@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
+ * The Keras (CNTK) training back end.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -62,6 +64,9 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 
 	private static final String TRAINING_CONTEXT_NAME = "Keras (CNTK)";
 
+	/**
+	 * Empty framework constructor. Must not be called by client code.
+	 */
 	public DLKerasCNTKDefaultTrainingContext() {
 		super(DLKerasCNTKNetwork.class, TRAINING_CONTEXT_NAME);
 	}
@@ -69,8 +74,8 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 	@Override
 	public DLKerasCNTKNetworkTrainingSession createTrainingSession(final DLKerasCNTKNetwork network,
 			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer inputPreparer) {
-		return new DLKerasCNTKNetworkTrainingSession(network, trainingConfig, executionInputSpecs, inputPreparer,
-				getTensorFactory());
+			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer) {
+		return new DLKerasCNTKNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
+				trainingInputPreparer, validationInputPreparer, getTensorFactory());
 	}
 }

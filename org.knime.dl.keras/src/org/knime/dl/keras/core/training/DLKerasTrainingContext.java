@@ -55,11 +55,19 @@ import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
+ * Represents the training back end for a certain Keras network type. Creates {@link DLKerasNetworkTrainingSession
+ * training sessions} to train networks.
+ *
+ * @param <N> the {@link DLKerasNetwork Keras network} type for which to create {@link DLKerasNetworkTrainingSession
+ *            training sessions}
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrainingContext<N, DLKerasTrainingConfig> {
 
+	/**
+	 * @return the available {@link DLKerasCallback Keras callbacks} supported by this training context
+	 */
 	Collection<DLKerasCallback> createCallbacks();
 
 	@Override
@@ -70,5 +78,6 @@ public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrai
 
 	@Override
 	DLKerasNetworkTrainingSession createTrainingSession(N network, DLKerasTrainingConfig trainingConfig,
-			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer inputPreparer);
+			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
+			DLNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
 }

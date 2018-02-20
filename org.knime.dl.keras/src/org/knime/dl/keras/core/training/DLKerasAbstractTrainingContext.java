@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.core.training;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -78,7 +81,8 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasRMSProp;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradientDescent;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @param <N> the {@link DLKerasNetwork Keras network} type for which to create {@link DLKerasNetworkTrainingSession
+ *            training sessions} * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> implements DLKerasTrainingContext<N> {
@@ -89,9 +93,13 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 
 	private final DLTensorFactory m_layerDataFactory;
 
+	/**
+	 * @param networkType the associated Keras network type
+	 * @param name the friendly name of this training context, not null, not empty, suitable to be displayed to the user
+	 */
 	protected DLKerasAbstractTrainingContext(final Class<N> networkType, final String name) {
-		m_networkType = networkType;
-		m_name = name;
+		m_networkType = checkNotNull(networkType);
+		m_name = checkNotNullOrEmpty(name);
 		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
 				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
 						+ "' is not supported. No layer data factory found."));

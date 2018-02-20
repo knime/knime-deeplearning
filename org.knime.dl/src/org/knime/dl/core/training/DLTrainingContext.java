@@ -49,57 +49,52 @@ package org.knime.dl.core.training;
 import java.util.Collection;
 import java.util.Set;
 
+import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
- * @param <N> the {@link DLNetwork network} type from which to create trainable networks
+ * Represents the training back end for a certain network type. Creates {@link DLNetworkTrainingSession training
+ * sessions} to train networks.
+ *
+ * @param <N> the {@link DLNetwork network} type for which to create {@link DLNetworkTrainingSession training sessions}
+ * @param <CFG> the {@link DLTrainingConfig} that specifies how a network is trained within a training session
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingConfig> {
 
 	/**
-	 * Returns the network type that's associated with this training context.
-	 *
 	 * @return the network type that's associated with this training context
 	 */
 	Class<N> getNetworkType();
 
 	/**
-	 * Returns the identifier of this training context which is neither null nor empty and must be unique across all
-	 * training contexts.
-	 *
-	 * @return the identifier of this training context
+	 * @return the identifier of this training context, not null not empty, must be unique across all training contexts
 	 */
 	default String getIdentifier() {
 		return getClass().getCanonicalName();
 	}
 
 	/**
-	 * Returns the friendly name of this training context which is neither null nor empty and is suitable for
-	 * presentation to the user.
-	 *
-	 * @return the friendly name of this training context
+	 * @return the friendly name of this training context, not null, not empty, suitable to be displayed to the user
 	 */
 	String getName();
 
-	// TODO: remove, register at combination of network type and "execution mode"/input type (local/BufferedDataTable
-	// etc.)
+	/**
+	 * @return the {@link DLTensorFactory tensor factory} that is associated with this training context. Training
+	 *         sessions created by this context use this factory to construct their networks' input and target tensors.
+	 */
 	DLTensorFactory getTensorFactory();
 
 	/**
-	 * Returns the available {@link DLOptimizer optimizers} in this training context.
-	 *
 	 * @return the available optimizers in this training context
 	 */
 	Collection<? extends DLOptimizer> createOptimizers();
 
 	/**
-	 * Returns the available {@link DLLossFunction loss functions} in this training context.
-	 *
 	 * @return the available loss functions in this training context
 	 */
 	Collection<? extends DLLossFunction> createLossFunctions();
@@ -107,9 +102,19 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	/**
 	 * Creates a {@link DLNetworkTrainingSession training session} for a given {@link DLNetwork network}.
 	 *
-	 * @param network the network
+	 * @param network the network to train
+	 * @param trainingConfig the training configuration that specifies how the network will be trained
+	 * @param executionInputSpecs a set of fully defined tensor specs. The set of tensor specs must exactly match the
+	 *            network's input tensor specs with respect to the identifiers of the contained specs. A tensor spec is
+	 *            fully defined if it features a non-empty batch size and a {@link DLFixedTensorShape fixed tensor
+	 *            shape}.
+	 * @param trainingInputPreparer the training data preparer
+	 * @param validationInputPreparer the validation data preparer, may be null in which case no validation will be
+	 *            performed during training
+	 * @return the created training session
 	 * @throws IllegalArgumentException if failed to create the training session due to invalid arguments
 	 */
 	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
-			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer inputPreparer);
+			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
+			DLNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
 }
