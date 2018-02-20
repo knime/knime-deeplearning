@@ -397,37 +397,46 @@ class DLKerasNetworkInputBatchGenerator(DLPythonNetworkInputBatchGenerator):
 
 class DLKerasTrainingMonitor(keras.callbacks.Callback):
     def __init__(self, network, kernel_service):
+        super().__init__()
         self._network = network
         self._kernel_service = kernel_service
         self._stop_training = False
-        self._request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
+        self._on_epoch_begin_msg = PythonToJavaMessage('epoch_begin', None,
+                                                       True)  # FIXME: change back to False, this is a temp. workaround
+        self._on_epoch_end_msg = PythonToJavaMessage('epoch_end', None, False)
+        self._on_batch_begin_msg = PythonToJavaMessage('batch_begin', None,
+                                                       True)  # FIXME: change back to False, this is a temp. workaround
+        self._on_batch_end_request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
 
-    def on_batch_end(self, batch, logs={}):
-        acc = None
-        loss = None
-        for k in self.params['metrics']:
-            if k == 'acc':
-                acc = logs[k]
-            if k == 'loss':
-                loss = logs[k]
-                # TODO: val_loss (when validation set is present)
-                # self._metrics.at[0, k] = logs[k]
-        # accuracy, loss, validation accuracy, validation loss
-        self._request._val = str(acc) + ';' + str(loss) + ';' + '0' + ';' + '0'
-        self._stop_training = self._kernel_service.send_to_java(self._request)
-        if self._stop_training:
-            self._network.model.stop_training = True
-
-    def on_train_begin(self, logs={}):
+    def on_train_begin(self, logs=None):
         # metrics_names = self.params['metrics']
         # self._metrics = pd.DataFrame(index=[0], columns=metrics_names)
         self._stop_training = False
 
-    def on_train_end(self, logs={}):
+    def on_train_end(self, logs=None):
         if self._stop_training:
             # flush pending Keras logs before printing our own status message
             print('', flush=True)
             print('Training was stopped by the user.')
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self._kernel_service.send_to_java(self._on_epoch_begin_msg)
+
+    def on_epoch_end(self, epoch, logs=None):
+        self._kernel_service.send_to_java(self._on_epoch_end_msg)
+
+    def on_batch_begin(self, batch, logs=None):
+        self._kernel_service.send_to_java(self._on_batch_begin_msg)
+
+    def on_batch_end(self, batch, logs=None):
+        logs = logs or {}
+        # TODO: this only works for single output networks
+        loss = logs.get('loss')
+        acc = logs.get('acc')
+        self._on_batch_end_request._val = str(acc) + ';' + str(loss)
+        self._stop_training = self._kernel_service.send_to_java(self._on_batch_end_request)
+        if self._stop_training:
+            self._network.model.stop_training = True
 
     class DLOnBatchEndMessage(PythonToJavaMessage):
         def __init__(self):
