@@ -241,15 +241,16 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	/**
 	 * Plots the specified value to the line with the specified label.
 	 *
-	 * @param plotIndex the label of the line to plot to
-	 * @param value the value to plot
+	 * @param lineLabel the label of the line to plot to
+	 * @param valueX the x-value to plot
+	 * @param valueY the y-value to plot
 	 */
-	public void plotNext(final String lineLabel, final float value) {
+	public void plotNext(final String lineLabel, final int valueX, final float valueY) {
 		// All updates of the lines need to happen in the EDT
 		SwingUtilities.invokeLater(() -> {
 			final XYSeries line = m_dataset.getSeries(lineLabel);
-			final int total = line.getItemCount();
-			line.add(total + 1, value);
+			// TODO: we need to differentiate between line plots and scatter plots somewhere
+			line.add(valueX, valueY);
 			plotSmoothed(lineLabel);
 		});
 	}
