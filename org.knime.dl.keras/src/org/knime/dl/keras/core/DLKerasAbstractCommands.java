@@ -108,6 +108,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n(config.getLosses().entrySet(),
 						e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getName()) + "] = "
 								+ e.getValue().getBackendRepresentation()) //
+				.n("import DLKerasTrainingCallbacks") //
 				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")")
 				.n("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")

@@ -133,7 +133,7 @@ public interface DLKerasCallback extends Config {
 		static final String CFG_KEY = "terminate_on_nan";
 
 		public DLKerasTerminateOnNaN() {
-			super(CFG_KEY, "Terminate on NaN loss", "keras.callbacks.TerminateOnNaN");
+			super(CFG_KEY, "Terminate on NaN loss", "DLKerasTrainingCallbacks.DLKerasTerminateOnNaN");
 		}
 
 		@Override
@@ -161,7 +161,8 @@ public interface DLKerasCallback extends Config {
 		static final String CFG_KEY_MODE = "mode";
 
 		public DLKerasEarlyStopping() {
-			super(CFG_KEY, "Terminate on training stagnation (early stopping)", "keras.callbacks.EarlyStopping");
+			super(CFG_KEY, "Terminate on training stagnation (early stopping)",
+					"DLKerasTrainingCallbacks.DLKerasEarlyStopping");
 			put(new DLKerasMonitoredQuantityConfigEntry(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class,
 					new DLKerasMonitoredTotalLoss(false)) {
 
@@ -241,7 +242,7 @@ public interface DLKerasCallback extends Config {
 		static final String CFG_KEY_MIN_LR = "min_lr";
 
 		public DLKerasReduceLROnPlateau() {
-			super(CFG_KEY, "Reduce learning rate on plateau", "keras.callbacks.ReduceLROnPlateau");
+			super(CFG_KEY, "Reduce learning rate on plateau", "DLKerasTrainingCallbacks.DLKerasReduceLROnPlateau");
 			put(new DLKerasMonitoredQuantityConfigEntry(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class,
 					new DLKerasMonitoredTotalLoss(false)) {
 
