@@ -53,6 +53,7 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.data.DataColumnSpec;
@@ -95,12 +96,10 @@ final class DLKerasLearnerInputConfig extends AbstractConfig {
 		// converters
 		for (final DataColumnSpec inputColSpec : tableSpec) {
 			if (inputTypes.add(inputColSpec.getType())) {
-				final Optional<DLDataValueToTensorConverterFactory<?, ?>> converter = converters
-						.getPreferredConverterFactory(inputColSpec.getType(),
+				final List<DLDataValueToTensorConverterFactory<?, ?>> convs = converters
+						.getConverterFactories(inputColSpec.getType(),
 								trainingContext.getTensorFactory().getWritableBufferType(tensorSpec));
-				if (converter.isPresent()) {
-					converterFactories.add(converter.get());
-				}
+				converterFactories.addAll(convs);
 			}
 		}
 		return converterFactories;
