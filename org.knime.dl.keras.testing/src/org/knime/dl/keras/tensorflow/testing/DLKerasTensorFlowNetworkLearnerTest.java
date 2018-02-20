@@ -125,8 +125,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		}
 
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
-		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
-				callbacks);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(epochs, batchSize, null, optimizer,
+				losses, callbacks);
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
@@ -150,7 +150,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 					public void close() throws Exception {
 						// no op
 					}
-				})) {
+				}, null)) {
 			session.run(monitor);
 			// TODO: test if training worked
 		}
@@ -194,8 +194,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		}
 
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
-		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
-				callbacks);
+		final DLKerasTrainingConfig config = new DLKerasDefaultTrainingConfig(epochs, batchSize, null, optimizer,
+				losses, callbacks);
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
@@ -220,7 +220,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 						// no op
 
 					}
-				})) {
+				}, null)) {
 			session.run(monitor);
 			// TODO: test if training worked
 		}
