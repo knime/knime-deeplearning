@@ -665,7 +665,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			}).toArray();
 			columnsForTensorId.put(spec.getIdentifier(), indices);
 			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
-
 		}
 
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
@@ -691,20 +690,24 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			m_status.setViewData(m_viewData);
 			m_status.trainingEnded().addListener((src, v) -> notifyViews(m_status));
-			m_status.batchEnded().addListener((src, v) -> {
+			m_status.epochStarted().addListener((src, v) -> notifyViews(m_status));
+			m_status.batchStarted().addListener((src, v) -> {
 				// update progress
 				final int currBatch = m_status.getCurrentBatchInEpoch() + 1;
 				final int currEpoch = m_status.getCurrentEpoch() + 1;
 				final double progress = ((currEpoch - 1) * numBatchesPerEpoch + currBatch) / (double) totalNumBatches;
 				monitor.setProgress(progress, "Processing batch " + currBatch + " of " + numBatchesPerEpoch
 						+ " in epoch " + currEpoch + " of " + epochs + "...");
-				// update accuracy
+			});
+			m_status.batchEnded().addListener((src, v) -> {
+				// update view
 				final Map<String, DLReportedMetrics> metrics = m_status.getMetrics();
 				((DLUpdatableLinePlotViewData<?>) m_viewData[0]).add(metrics.get("accuracy").getValue());
-				// update loss
 				((DLUpdatableLinePlotViewData<?>) m_viewData[1]).add(metrics.get("loss").getValue());
 				notifyViews(m_status);
 			});
+			m_status.validationStarted().addListener((src, v) -> monitor.setMessage(
+					"Validating model in epoch " + (m_status.getCurrentEpoch() + 1) + " of " + epochs + "..."));
 			session.run(monitor);
 			exec.setMessage("Saving trained Keras deep learning network...");
 			return session.getTrainedNetwork(exec);
