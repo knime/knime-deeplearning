@@ -137,8 +137,9 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 				getBatchSizeEntry().getValue()) {
 
 			@Override
-			protected boolean handleMissingConfigEntry(final NodeSettingsRO settings) {
-				// backward compatibility: default to training data batch size if entry is not present in the settings
+			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+				// backward compatibility (3.6): default to training data batch size if entry is not present in the
+				// settings
 				m_value = getBatchSizeEntry().getValue();
 				return true;
 			}

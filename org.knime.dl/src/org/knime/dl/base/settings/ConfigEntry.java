@@ -78,8 +78,7 @@ public interface ConfigEntry<T> {
 
 	void saveSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException, UnsupportedOperationException;
 
-	void loadSettingsFrom(NodeSettingsRO settings)
-			throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException;
+	void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException;
 
 	void addLoadPredicate(Function<ConfigEntry<T>, Boolean> listener);
 

@@ -160,11 +160,11 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 			final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
 			m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
 			loadEntry(subSettings);
-		} catch (final InvalidSettingsException e) {
+		} catch (final Exception e) {
 			// Config entry could not be found in settings. Give deriving classes a chance to fall back to a default
 			// value or the like.
-			if (!handleMissingConfigEntry(settings)) {
-				throw e;
+			if (!handleFailureToLoadConfigEntry(settings, e)) {
+				throw new InvalidSettingsException(e.getMessage(), e);
 			}
 		}
 		if (checkLoadPredicates()) {
@@ -315,15 +315,24 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	}
 
 	/**
-	 * This method is called by {@link #loadSettingsFrom(NodeSettingsRO)} in case the config entry is missing in the
-	 * provided node settings or if the config entry is incomplete. It allows deriving classes to handle such cases e.g.
-	 * by falling back to a default value and/or enabled state.
+	 * This method is called by {@link #loadSettingsFrom(NodeSettingsRO)} if loading the config entry failed. It allows
+	 * deriving classes to handle such cases e.g. by falling back to a default value and/or enabled state.
 	 *
-	 * @param settings the provided node settings in which the config entry is missing or incomplete
-	 * @return <code>true</code> if the the case of a missing or incomplete config entry could be handled. Returning
-	 *         <code>false</code> will cause an {@link InvalidSettingsException} to be thrown.
+	 * @param settings the provided node settings from which loading the config entry failed
+	 * @param cause the exception that made loading the config entry fail. Usually, it is one of the following:
+	 *            <ul>
+	 *            <li><code>InvalidSettingsException</code>: if the entry's key cannot be found in the given
+	 *            settings</li>
+	 *            <li><code>ClassCastException</code>: if the type of the entry's saved value and the entry's actual
+	 *            type are incompatible</li>
+	 *            <li><code>IllegalStateException</code>: if loading the config entry requires a pre-allocated default
+	 *            value to populate which is missing</li>
+	 *            <li><code>UnsupportedOperationException</code>: if the entry type is not supported</li>
+	 *            </ul>
+	 * @return <code>true</code> if the failure could be handled. Returning <code>false</code> will cause an
+	 *         {@link InvalidSettingsException} to be thrown.
 	 */
-	protected boolean handleMissingConfigEntry(final NodeSettingsRO settings) {
+	protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
 		return false;
 	}
 
