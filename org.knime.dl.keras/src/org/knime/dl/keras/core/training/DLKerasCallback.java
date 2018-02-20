@@ -46,14 +46,22 @@
  */
 package org.knime.dl.keras.core.training;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
+import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.base.nodes.IDialogComponentGroup;
 import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.Config;
+import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -154,7 +162,17 @@ public interface DLKerasCallback extends Config {
 
 		public DLKerasEarlyStopping() {
 			super(CFG_KEY, "Terminate on training stagnation (early stopping)", "keras.callbacks.EarlyStopping");
-			setEntryValue(CFG_KEY_MONITOR, String.class, "loss");
+			put(new DLKerasMonitoredQuantityConfigEntry(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class,
+					new DLKerasMonitoredTotalLoss(false)) {
+
+				@Override
+				protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+					// backward compatibility (3.6): we used to save a string ("loss") here. As this was the only
+					// possible value to date, it is sufficient to just keep the equivalent default value (see
+					// constructor).
+					return true;
+				}
+			});
 			setEntryValue(CFG_KEY_MIN_DELTA, Double.class, 0.0);
 			setEntryValue(CFG_KEY_PATIENCE, Integer.class, 0);
 			setEntryValue(CFG_KEY_MODE, String.class, "auto");
@@ -162,7 +180,8 @@ public interface DLKerasCallback extends Config {
 
 		@Override
 		protected void populateNamedParameters(final Map<String, String> namedParams) {
-			namedParams.put("monitor", DLPythonUtils.toPython(getEntryValue(CFG_KEY_MONITOR, String.class)));
+			namedParams.put("monitor", DLPythonUtils
+					.toPython(getEntryValue(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class).getKerasIdentifier()));
 			namedParams.put("min_delta", DLPythonUtils.toPython(getEntryValue(CFG_KEY_MIN_DELTA, Double.class)));
 			namedParams.put("patience", DLPythonUtils.toPython(getEntryValue(CFG_KEY_PATIENCE, Integer.class)));
 			namedParams.put("mode", DLPythonUtils.toPython(getEntryValue(CFG_KEY_MODE, String.class)));
@@ -175,11 +194,30 @@ public interface DLKerasCallback extends Config {
 
 		private static class DLKerasEarlyStoppingDialog extends AbstractGridBagDialogComponentGroup {
 
+			private final DialogComponentObjectSelection<DLKerasMonitoredQuantity> m_objectSelection;
+
 			private DLKerasEarlyStoppingDialog(final DLKerasEarlyStopping model) {
+				final ConfigEntry<DLKerasMonitoredQuantity> entry = model.get(CFG_KEY_MONITOR,
+						DLKerasMonitoredQuantity.class);
+				final Function<DLKerasMonitoredQuantity, String> printer = (final DLKerasMonitoredQuantity q) -> {
+					return (q.isValidationQuantity() ? "Validation " : "Training ")
+							+ (q.getQuantity() != null ? q.getQuantity().getName().toLowerCase() : "loss") + " ("
+							+ (q.getOutput() != null ? q.getOutput().getIdentifierString() : "total") + ")";
+				};
+				m_objectSelection = addObjectSelectionRow(entry, printer, "Monitored quantity", null);
 				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
 						model.get(CFG_KEY_MIN_DELTA, Double.class), 0, Double.MAX_VALUE), "Min. delta");
 				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
 						model.get(CFG_KEY_PATIENCE, Integer.class), 0, Integer.MAX_VALUE), "Patience", 1);
+			}
+
+			@Override
+			public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+					throws NotConfigurableException {
+				final List<DLKerasMonitoredQuantity> quantities = specs[2] != null
+						? Arrays.asList(new DLKerasMonitoredTotalLoss(true), new DLKerasMonitoredTotalLoss(false))
+						: Arrays.asList(new DLKerasMonitoredTotalLoss(false));
+				m_objectSelection.replaceListItems(quantities, null);
 			}
 		}
 	}
@@ -204,7 +242,17 @@ public interface DLKerasCallback extends Config {
 
 		public DLKerasReduceLROnPlateau() {
 			super(CFG_KEY, "Reduce learning rate on plateau", "keras.callbacks.ReduceLROnPlateau");
-			setEntryValue(CFG_KEY_MONITOR, String.class, "loss");
+			put(new DLKerasMonitoredQuantityConfigEntry(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class,
+					new DLKerasMonitoredTotalLoss(false)) {
+
+				@Override
+				protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+					// backward compatibility (3.6): we used to save a string ("loss") here. As this was the only
+					// possible value to date, it is sufficient to just keep the equivalent default value (see
+					// constructor).
+					return true;
+				}
+			});
 			setEntryValue(CFG_KEY_FACTOR, Double.class, 0.1);
 			setEntryValue(CFG_KEY_PATIENCE, Integer.class, 10);
 			setEntryValue(CFG_KEY_MODE, String.class, "auto");
@@ -215,7 +263,8 @@ public interface DLKerasCallback extends Config {
 
 		@Override
 		protected void populateNamedParameters(final Map<String, String> namedParams) {
-			namedParams.put("monitor", DLPythonUtils.toPython(getEntryValue(CFG_KEY_MONITOR, String.class)));
+			namedParams.put("monitor", DLPythonUtils
+					.toPython(getEntryValue(CFG_KEY_MONITOR, DLKerasMonitoredQuantity.class).getKerasIdentifier()));
 			namedParams.put("factor", DLPythonUtils.toPython(getEntryValue(CFG_KEY_FACTOR, Double.class)));
 			namedParams.put("patience", DLPythonUtils.toPython(getEntryValue(CFG_KEY_PATIENCE, Integer.class)));
 			namedParams.put("mode", DLPythonUtils.toPython(getEntryValue(CFG_KEY_MODE, String.class)));
@@ -231,7 +280,17 @@ public interface DLKerasCallback extends Config {
 
 		private static class DLKerasReduceLROnPlateauDialog extends AbstractGridBagDialogComponentGroup {
 
+			private final DialogComponentObjectSelection<DLKerasMonitoredQuantity> m_objectSelection;
+
 			private DLKerasReduceLROnPlateauDialog(final DLKerasReduceLROnPlateau model) {
+				final ConfigEntry<DLKerasMonitoredQuantity> entry = model.get(CFG_KEY_MONITOR,
+						DLKerasMonitoredQuantity.class);
+				final Function<DLKerasMonitoredQuantity, String> printer = (final DLKerasMonitoredQuantity q) -> {
+					return (q.isValidationQuantity() ? "Validation " : "Training ")
+							+ (q.getQuantity() != null ? q.getQuantity().getName().toLowerCase() : "loss") + " ("
+							+ (q.getOutput() != null ? q.getOutput().getIdentifierString() : "total") + ")";
+				};
+				m_objectSelection = addObjectSelectionRow(entry, printer, "Monitored quantity", null);
 				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
 						model.get(CFG_KEY_FACTOR, Double.class), 0, Math.nextDown(1.0)), "Factor");
 				addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
@@ -242,6 +301,15 @@ public interface DLKerasCallback extends Config {
 						model.get(CFG_KEY_COOLDOWN, Integer.class), 0, Integer.MAX_VALUE), "Cooldown", 1);
 				addNumberEditRowComponent(ConfigUtil.toSettingsModelDoubleBounded(
 						model.get(CFG_KEY_MIN_LR, Double.class), 0, Double.MAX_VALUE), "Min. learning rate");
+			}
+
+			@Override
+			public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+					throws NotConfigurableException {
+				final List<DLKerasMonitoredQuantity> quantities = specs[2] != null
+						? Arrays.asList(new DLKerasMonitoredTotalLoss(true), new DLKerasMonitoredTotalLoss(false))
+						: Arrays.asList(new DLKerasMonitoredTotalLoss(false));
+				m_objectSelection.replaceListItems(quantities, null);
 			}
 		}
 	}
