@@ -179,7 +179,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		if (!m_contextSetup) {
 			// setup Python process environment
 			try {
-				final String error = m_context.getKernel().execute(getSetupEnvironmentCode())[1];
+				final String setupGatewayCode = DLPythonUtils.createSourceCodeBuilder() //
+						.a("import DLPythonKernelGateway") //
+						.n("DLPythonKernelGateway._instance = ")
+						/**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals(), request_from_java)").n()
+						.toString();
+				final String error = m_context.getKernel().execute(setupGatewayCode + getSetupEnvironmentCode())[1];
 				if (!error.isEmpty()) {
 					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back end environment could not be set up.\nCause: " + error);
@@ -409,55 +414,34 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
 			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
 			throws DLInvalidEnvironmentException, IOException {
-		final DLTrainingStatus status = monitor.getTrainingStatus();
 		final Messages messages = getContext().getKernel().getMessages();
 
-		final PythonToJavaMessageHandler trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler(
-				"request_training_data") {
+		PythonToJavaMessageHandler trainingDataRequestHandler = null;
+		PythonToJavaMessageHandler validationDataRequestHandler = null;
+		PythonToJavaMessageHandler onEpochBeginHandler = null;
+		PythonToJavaMessageHandler onEpochEndHandler = null;
+		PythonToJavaMessageHandler onBatchBeginHandler = null;
+		PythonToJavaMessageHandler onBatchEndHandler = null;
 
-			@Override
-			protected void handle(final PythonToJavaMessage msg) throws Exception {
-				monitor.checkCanceled();
-				final long batchIndex = Long.parseLong(msg.getValue());
-				final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = trainingInputProvider
-						.get(batchIndex);
-				monitor.checkCanceled();
-				for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-					final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
-					try {
-						getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
-					} catch (final IOException ex) {
-						throw new IOException("Transmitting training data to Python failed.", ex);
-					} finally {
-						tensor.getBuffer().reset();
-					}
-				}
-				monitor.checkCanceled();
-				messages.answer(new DefaultJavaToPythonResponse(msg, ""));
-			}
-		};
-		messages.registerMessageHandler(trainingDataRequestHandler);
+		try {
+			final DLTrainingStatus status = monitor.getTrainingStatus();
 
-		final PythonToJavaMessageHandler validationDataRequestHandler;
-		if (validationInputProvider != null) {
-			validationDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_validation_data") {
+			trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_training_data") {
 
 				@Override
 				protected void handle(final PythonToJavaMessage msg) throws Exception {
 					monitor.checkCanceled();
 					final long batchIndex = Long.parseLong(msg.getValue());
-					final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = validationInputProvider
+					final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = trainingInputProvider
 							.get(batchIndex);
 					monitor.checkCanceled();
 					for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 						final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
 						try {
-							// TODO: different identifiers for validation input? (pre-fetching on Python side...)
 							getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
 						} catch (final IOException ex) {
-							throw new IOException("Transmitting validation data to Python failed.", ex);
+							throw new IOException("Transmitting training data to Python failed.", ex);
 						} finally {
 							tensor.getBuffer().reset();
 						}
@@ -466,114 +450,155 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					messages.answer(new DefaultJavaToPythonResponse(msg, ""));
 				}
 			};
-			messages.registerMessageHandler(validationDataRequestHandler);
-		} else {
-			validationDataRequestHandler = null;
-		}
+			messages.registerMessageHandler(trainingDataRequestHandler);
 
-		final PythonToJavaMessageHandler onEpochBeginHandler = new AbstractPythonToJavaMessageHandler("epoch_begin") {
+			if (validationInputProvider != null) {
+				validationDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_validation_data") {
 
-			@Override
-			protected void handle(final PythonToJavaMessage msg) throws Exception {
-				status.epochStarted().raise(null);
-				messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp. workaround
-			}
-		};
-		messages.registerMessageHandler(onEpochBeginHandler);
-
-		final LinkedHashMap<String, DLReportedMetrics> epochMetrics = new LinkedHashMap<>(4);
-		epochMetrics.put("val_accuracy", new DLReportedMetrics("val_accuracy", 0f));
-		epochMetrics.put("val_loss", new DLReportedMetrics("val_loss", 0f));
-
-		final PythonToJavaMessageHandler onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
-
-			@Override
-			protected void handle(final PythonToJavaMessage msg) throws Exception {
-				final String[] metricsStr = msg.getValue().split(";");
-				int i = 0;
-				for (final DLReportedMetrics m : epochMetrics.values()) {
-					try {
-						m.setValue(Float.parseFloat(metricsStr[i]));
-					} catch (final NumberFormatException e) {
-						m.setValue(-1f);
-						LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+					@Override
+					protected void handle(final PythonToJavaMessage msg) throws Exception {
+						monitor.checkCanceled();
+						final long batchIndex = Long.parseLong(msg.getValue());
+						final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = validationInputProvider
+								.get(batchIndex);
+						monitor.checkCanceled();
+						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+							final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+							final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
+							try {
+								// TODO: different identifiers for validation input? (pre-fetching on Python side...)
+								getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
+							} catch (final IOException ex) {
+								throw new IOException("Transmitting validation data to Python failed.", ex);
+							} finally {
+								tensor.getBuffer().reset();
+							}
+						}
+						monitor.checkCanceled();
+						messages.answer(new DefaultJavaToPythonResponse(msg, ""));
 					}
-					i++;
+				};
+				messages.registerMessageHandler(validationDataRequestHandler);
+			}
+
+			onEpochBeginHandler = new AbstractPythonToJavaMessageHandler("epoch_begin") {
+
+				@Override
+				protected void handle(final PythonToJavaMessage msg) throws Exception {
+					status.epochStarted().raise(null);
+					messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp.
+																				// workaround
 				}
-				status.epochEnded().raise(epochMetrics);
-			}
-		};
-		messages.registerMessageHandler(onEpochEndHandler);
+			};
+			messages.registerMessageHandler(onEpochBeginHandler);
 
-		final PythonToJavaMessageHandler onBatchBeginHandler = new AbstractPythonToJavaMessageHandler("batch_begin") {
+			final LinkedHashMap<String, DLReportedMetrics> epochMetrics = new LinkedHashMap<>(4);
+			epochMetrics.put("val_accuracy", new DLReportedMetrics("val_accuracy", 0f));
+			epochMetrics.put("val_loss", new DLReportedMetrics("val_loss", 0f));
 
-			@Override
-			protected void handle(final PythonToJavaMessage msg) throws Exception {
-				status.batchStarted().raise(null);
-				messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp. workaround
-			}
-		};
-		messages.registerMessageHandler(onBatchBeginHandler);
+			onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
 
-		final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
-		batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
-		batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
-
-		final PythonToJavaMessageHandler onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
-
-			@Override
-			protected void handle(final PythonToJavaMessage msg) throws Exception {
-				monitor.checkCanceled();
-				final String[] metricsStr = msg.getValue().split(";");
-				int i = 0;
-				for (final DLReportedMetrics m : batchMetrics.values()) {
-					try {
-						m.setValue(Float.parseFloat(metricsStr[i]));
-					} catch (final NumberFormatException e) {
-						m.setValue(-1f);
-						LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+				@Override
+				protected void handle(final PythonToJavaMessage msg) throws Exception {
+					final String[] metricsStr = msg.getValue().split(";");
+					int i = 0;
+					for (final DLReportedMetrics m : epochMetrics.values()) {
+						try {
+							m.setValue(Float.parseFloat(metricsStr[i]));
+						} catch (final NumberFormatException e) {
+							m.setValue(-1f);
+							LOGGER.debug(
+									"Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+						}
+						i++;
 					}
-					i++;
+					status.epochEnded().raise(epochMetrics);
 				}
-				messages.answer(new DefaultJavaToPythonResponse(msg, status.getStatus() == Status.RUNNING ? "c" : "s"));
-				status.batchEnded().raise(batchMetrics);
-				// start validation phase if validation is enabled and we finished the last training batch of the epoch
-				if (validationInputProvider != null
-						&& status.getCurrentBatchInEpoch() == status.getNumBatchesPerEpoch() - 1) {
-					status.validationStarted().raise(null);
+			};
+			messages.registerMessageHandler(onEpochEndHandler);
+
+			onBatchBeginHandler = new AbstractPythonToJavaMessageHandler("batch_begin") {
+
+				@Override
+				protected void handle(final PythonToJavaMessage msg) throws Exception {
+					status.batchStarted().raise(null);
+					messages.answer(new DefaultJavaToPythonResponse(msg, "")); // FIXME: remove, this is a temp.
+																				// workaround
 				}
+			};
+			messages.registerMessageHandler(onBatchBeginHandler);
+
+			final LinkedHashMap<String, DLReportedMetrics> batchMetrics = new LinkedHashMap<>(4);
+			batchMetrics.put("accuracy", new DLReportedMetrics("accuracy", 0f));
+			batchMetrics.put("loss", new DLReportedMetrics("loss", 0f));
+
+			onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
+
+				@Override
+				protected void handle(final PythonToJavaMessage msg) throws Exception {
+					monitor.checkCanceled();
+					final String[] metricsStr = msg.getValue().split(";");
+					int i = 0;
+					for (final DLReportedMetrics m : batchMetrics.values()) {
+						try {
+							m.setValue(Float.parseFloat(metricsStr[i]));
+						} catch (final NumberFormatException e) {
+							m.setValue(-1f);
+							LOGGER.debug(
+									"Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+						}
+						i++;
+					}
+					messages.answer(
+							new DefaultJavaToPythonResponse(msg, status.getStatus() == Status.RUNNING ? "c" : "s"));
+					status.batchEnded().raise(batchMetrics);
+					// start validation phase if validation is enabled and we finished the last training batch of the
+					// epoch
+					if (validationInputProvider != null
+							&& status.getCurrentBatchInEpoch() == status.getNumBatchesPerEpoch() - 1) {
+						status.validationStarted().raise(null);
+					}
+				}
+			};
+			messages.registerMessageHandler(onBatchEndHandler);
+
+			final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+					.a("import DLPythonNetwork") //
+					.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+					.n("from DLKerasNetworkTrainingInputGenerator import DLKerasNetworkTrainingInputGenerator") //
+					.n("training_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
+					/**/ .a(trainingInputProvider.getNumBatches()).a(", network.spec.training_config.batch_size, ")
+					/**/ .as("request_training_data").a(")");
+			if (validationInputProvider != null) {
+				b.n("validation_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
+						.a(validationInputProvider.getNumBatches())
+						.a(", network.spec.training_config.validation_batch_size, ").as("request_validation_data")
+						.a(")");
+			} else {
+				b.n("validation_data_supplier = None");
 			}
-		};
-		messages.registerMessageHandler(onBatchEndHandler);
-
-		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-				.a("import DLPythonNetwork") //
-				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				.n("from DLPythonKernelService import DLPythonKernelService") //
-				.n("kernel_service = DLPythonKernelService(globals(), request_from_java)") //
-				.n("from DLKerasNetwork import DLKerasNetworkInputBatchGenerator") //
-				.n("training_data_supplier = DLKerasNetworkInputBatchGenerator(network, ")
-				.a(trainingInputProvider.getNumBatches())
-				.a(", network.spec.training_config.batch_size, kernel_service, ").as("request_training_data").a(")");
-		if (validationInputProvider != null) {
-			b.n("validation_data_supplier = DLKerasNetworkInputBatchGenerator(network, ")
-					.a(validationInputProvider.getNumBatches())
-					.a(", network.spec.training_config.validation_batch_size, kernel_service, ")
-					.as("request_validation_data").a(")");
-		} else {
-			b.n("validation_data_supplier = None");
+			b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
+			getContext().executeInKernel(b.toString());
+		} finally {
+			if (trainingDataRequestHandler != null) {
+				messages.unregisterMessageHandler(trainingDataRequestHandler);
+			}
+			if (validationDataRequestHandler != null) {
+				messages.unregisterMessageHandler(validationDataRequestHandler);
+			}
+			if (onEpochBeginHandler != null) {
+				messages.unregisterMessageHandler(onEpochBeginHandler);
+			}
+			if (onEpochEndHandler != null) {
+				messages.unregisterMessageHandler(onEpochEndHandler);
+			}
+			if (onBatchBeginHandler != null) {
+				messages.unregisterMessageHandler(onBatchBeginHandler);
+			}
+			if (onBatchEndHandler != null) {
+				messages.unregisterMessageHandler(onBatchEndHandler);
+			}
 		}
-		b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
-		getContext().executeInKernel(b.toString());
-
-		messages.unregisterMessageHandler(trainingDataRequestHandler);
-		if (validationDataRequestHandler != null) {
-			messages.unregisterMessageHandler(validationDataRequestHandler);
-		}
-		messages.unregisterMessageHandler(onEpochBeginHandler);
-		messages.unregisterMessageHandler(onEpochEndHandler);
-		messages.unregisterMessageHandler(onBatchBeginHandler);
-		messages.unregisterMessageHandler(onBatchEndHandler);
 	}
 
 	/**
