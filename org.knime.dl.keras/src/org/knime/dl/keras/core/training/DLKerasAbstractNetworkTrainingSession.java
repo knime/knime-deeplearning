@@ -54,6 +54,7 @@ import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
@@ -68,6 +69,11 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.training.DLPythonAbstractNetworkTrainingSession;
 
 /**
+ * Abstract base class for implementations of {@link DLKerasNetworkTrainingSession}.
+ *
+ * @param <N> the type of the {@link DLKerasNetwork network} to train
+ * @param <C> the type of the {@link DLKerasAbstractCommands} that are used to control the training process on Python
+ *            side
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -75,10 +81,23 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 	extends DLPythonAbstractNetworkTrainingSession<DLKerasTrainingStatus, N, DLKerasTrainingConfig, C>
 		implements DLKerasNetworkTrainingSession {
 
+	/**
+	 * @param network the network to train
+	 * @param trainingConfig the training configuration that specifies how the network will be trained
+	 * @param executionInputSpecs a set of fully defined tensor specs. The set of tensor specs must exactly match the
+	 *            network's input tensor specs with respect to the identifiers of the contained specs. A tensor spec is
+	 *            fully defined if it features a non-empty batch size and a {@link DLFixedTensorShape fixed tensor
+	 *            shape}.
+	 * @param trainingInputPreparer the training data preparer
+	 * @param validationInputPreparer the validation data preparer, may be null in which case no validation will be
+	 *            performed during training
+	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
+	 */
 	protected DLKerasAbstractNetworkTrainingSession(final N network, final DLKerasTrainingConfig trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer inputPreparer,
-			final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, inputPreparer, tensorFactory);
+			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
+			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
+				tensorFactory);
 		boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;
 		for (final DLTensorSpec inputSpec : network.getSpec().getInputSpecs()) {

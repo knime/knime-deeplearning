@@ -47,6 +47,7 @@
 package org.knime.dl.core.training;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,6 +57,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLFixedTensorShape;
+import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLNetworkInputProvider;
@@ -64,17 +67,27 @@ import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.util.DLUtils;
 
 import com.google.common.collect.Sets;
 
 /**
+ * Abstract base class for implementations of {@link DLNetworkTrainingSession}.
+ *
+ * @param <S> the type of the {@link DLTrainingStatus status} that contains information about the training progress
+ *            while the session is running
+ * @param <N> the type of the {@link DLNetwork network} to train
+ * @param <CFG> the type of the {@link DLTrainingConfig training config} that specifies how the network will be trained
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatus, N extends DLNetwork, CFG extends DLTrainingConfig>
 		implements DLNetworkTrainingSession<S> {
 
-	private static boolean areInputSpecsValid(final DLNetwork network, final Set<DLTensorSpec> executionInputSpecs) {
+	// Constructor argument validation:
+
+	private static boolean areInputSpecsCongruent(final DLNetwork network,
+			final Set<DLTensorSpec> executionInputSpecs) {
 		final DLTensorSpec[] inputSpecs = ArrayUtils.addAll(network.getSpec().getInputSpecs(),
 				network.getSpec().getOutputSpecs());
 		if (inputSpecs.length != executionInputSpecs.size()) {
@@ -87,62 +100,149 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 		return Sets.symmetricDifference(inputSpecIds, executionInputSpecIds).isEmpty();
 	}
 
-	private static boolean isTensorFactoryValid(final DLNetwork network, final DLTensorFactory tensorFactory) {
+	private static boolean areExecInputSpecsFullyDefined(final Set<DLTensorSpec> executionInputSpecs) {
+		return executionInputSpecs.stream()
+				.allMatch(s -> s.getBatchSize().isPresent() && DLUtils.Shapes.isFixed(s.getShape()));
+	}
+
+	private static boolean doExecInputsSpecsMatchConfig(final DLTrainingConfig trainingConfig,
+			final Set<DLTensorSpec> executionInputSpecs) {
+		return executionInputSpecs.stream()
+				.allMatch(s -> s.getBatchSize().getAsLong() == trainingConfig.getBatchSize());
+	}
+
+	private static boolean doesTensorFactoryMatchNetworkType(final DLNetwork network,
+			final DLTensorFactory tensorFactory) {
 		return network.getClass() == tensorFactory.getNetworkType();
 	}
 
+	/**
+	 * The network to train.
+	 */
 	protected final N m_network;
 
+	/**
+	 * The training configuration that specifies how the network will be trained.
+	 */
 	protected final CFG m_trainingConfig;
 
+	/**
+	 * The network's fully defined input tensor specs.
+	 */
 	protected final Set<DLTensorSpec> m_executionInputSpecs;
 
-	protected final long m_batchSize;
+	/**
+	 * Provides the training data batches.
+	 */
+	protected final DLNetworkInputProvider m_trainingInputProvider;
 
-	protected final DLNetworkInputProvider m_inputProvider;
+	/**
+	 * Specifies whether validation will be performed during training.
+	 */
+	protected final boolean m_doValidation;
 
+	/**
+	 * Provides the validation date batches. Non-null if {@link #m_doValidation} is true.
+	 */
+	protected final DLNetworkInputProvider m_validationInputProvider;
+
+	/**
+	 * The tensor factory that is used to create the network's input and target tensors.
+	 */
 	protected final DLTensorFactory m_tensorFactory;
 
 	/**
 	 * Initialized during the first call of {@link #run(DLTrainingMonitor)}.
 	 */
-	protected Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> m_input;
+	protected Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> m_trainingInput;
 
+	/**
+	 * Initialized during the first call of {@link #run(DLTrainingMonitor)} if {@link #m_doValidation} is true.
+	 */
+	protected Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> m_validationInput;
+
+	/**
+	 * @param network the network to train
+	 * @param trainingConfig the training configuration that specifies how the network will be trained
+	 * @param executionInputSpecs a set of fully defined tensor specs. The set of tensor specs must exactly match the
+	 *            network's input tensor specs with respect to the identifiers of the contained specs. A tensor spec is
+	 *            fully defined if it features a non-empty batch size and a {@link DLFixedTensorShape fixed tensor
+	 *            shape}.
+	 * @param trainingInputPreparer the training data preparer
+	 * @param validationInputPreparer the validation data preparer, may be null in which case no validation will be
+	 *            performed during training
+	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
+	 */
 	protected DLAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer inputPreparer,
-			final DLTensorFactory tensorFactory) {
-		checkArgument(areInputSpecsValid(network, executionInputSpecs),
+			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
+			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+		checkArgument(areInputSpecsCongruent(checkNotNull(network), checkNotNull(executionInputSpecs)),
 				"Network input specs and execution input specs differ.");
-		checkArgument(isTensorFactoryValid(network, tensorFactory), "Tensor factory does not match network type.");
+		checkArgument(areExecInputSpecsFullyDefined(executionInputSpecs),
+				"Execution input specs are not fully defined.");
+		checkArgument(doExecInputsSpecsMatchConfig(trainingConfig, executionInputSpecs),
+				"Batch size of execution input specs to not match training config.");
+		checkArgument(doesTensorFactoryMatchNetworkType(network, checkNotNull(tensorFactory)),
+				"Tensor factory does not match network type.");
 		m_network = network;
-		m_trainingConfig = trainingConfig;
+		m_trainingConfig = checkNotNull(trainingConfig);
 		m_executionInputSpecs = executionInputSpecs;
-		m_batchSize = m_executionInputSpecs.stream().findAny()
-				.orElseThrow(() -> new IllegalArgumentException("The network must have at least one input."))
-				.getBatchSize().orElseThrow(() -> new IllegalArgumentException(
-						"The spec of an input tensor must contain a batch size at execution-of-training time."));
-		m_inputProvider = new DLNetworkInputProvider() {
+		checkNotNull(trainingInputPreparer);
+		m_trainingInputProvider = new DLNetworkInputProvider() {
 
 			@Override
 			public long getNumBatches() {
-				return inputPreparer.getNumBatches();
+				return trainingInputPreparer.getNumBatches();
 			}
 
 			@Override
 			public Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> get(final long batchIndex)
-					throws DLCanceledExecutionException {
-				inputPreparer.prepare(m_input, batchIndex);
-				return m_input;
+					throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+				trainingInputPreparer.prepare(m_trainingInput, batchIndex);
+				return m_trainingInput;
 			}
 
 			@Override
 			public void close() throws Exception {
-				inputPreparer.close();
+				trainingInputPreparer.close();
 			}
 		};
+		m_doValidation = validationInputPreparer != null;
+		m_validationInputProvider = m_doValidation ? new DLNetworkInputProvider() {
+
+			@Override
+			public long getNumBatches() {
+				return validationInputPreparer.getNumBatches();
+			}
+
+			@Override
+			public Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> get(final long batchIndex)
+					throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+				validationInputPreparer.prepare(m_validationInput, batchIndex);
+				return m_validationInput;
+			}
+
+			@Override
+			public void close() throws Exception {
+				validationInputPreparer.close();
+			}
+		} : null;
 		m_tensorFactory = tensorFactory;
 	}
 
+	/**
+	 * Contains the actual training logic.
+	 * <P>
+	 * This method is called once by {@link DLNetworkTrainingSession#run(DLTrainingMonitor)} after the network
+	 * input/targets were set up.
+	 *
+	 * @param monitor the monitor that tracks the progress of the training run. Can be used to report progress, check
+	 *            for cancellation or update the {@link DLTrainingStatus training status}. Note, that the training
+	 *            status' <code>trainingStarted</code> and <code>trainingEnded</code> events are called by the calling
+	 *            <code>run</code> method and must not be called by this method.
+	 * @throws DLCanceledExecutionException if execution was canceled by the user
+	 * @throws Exception if any other exception occurs during training
+	 */
 	protected abstract void trainInternal(DLTrainingMonitor<? extends S> monitor)
 			throws DLCanceledExecutionException, Exception;
 
@@ -159,11 +259,23 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 	@Override
 	public void run(final DLTrainingMonitor<? extends S> monitor) throws DLCanceledExecutionException, Exception {
 		monitor.getTrainingStatus().trainingStarted().raise(null);
-		// lazily preallocate input/target tensors
-		if (m_input == null) {
-			m_input = new HashMap<>(m_executionInputSpecs.size());
+		// lazily preallocate training input/target tensors
+		if (m_trainingInput == null) {
+			m_trainingInput = new HashMap<>(m_executionInputSpecs.size());
 			for (final DLTensorSpec spec : m_executionInputSpecs) {
-				m_input.put(spec.getIdentifier(), m_tensorFactory.createWritableTensor(spec));
+				m_trainingInput.put(spec.getIdentifier(), m_tensorFactory.createWritableTensor(spec));
+			}
+		}
+		// lazily preallocate validation input/target tensors
+		if (m_doValidation && m_validationInput == null) {
+			m_validationInput = new HashMap<>(m_executionInputSpecs.size());
+			for (final DLTensorSpec spec : m_executionInputSpecs) {
+				// we need to replace the training data batch size by the validation data batch size. Specs are fully
+				// defined, no need to check if optionals are present.
+				final DLTensorSpec validationSpec = m_tensorFactory.createExecutionTensorSpec(spec,
+						m_trainingConfig.getValidationBatchSize(), DLUtils.Shapes.getFixedShape(spec.getShape()).get());
+				m_validationInput.put(validationSpec.getIdentifier(),
+						m_tensorFactory.createWritableTensor(validationSpec));
 			}
 		}
 		trainInternal(monitor);
@@ -172,8 +284,11 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 
 	@Override
 	public void close() throws Exception {
-		if (m_input != null) {
-			m_input.values().forEach(DLTensor::close);
+		if (m_trainingInput != null) {
+			m_trainingInput.values().forEach(DLTensor::close);
+		}
+		if (m_validationInput != null) {
+			m_validationInput.values().forEach(DLTensor::close);
 		}
 	}
 }
