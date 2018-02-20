@@ -22,9 +22,13 @@
 				The number of iterations over the input training
 				data.
 			</option>
-			<option name="Batch size">
-				The number of rows that are used for a single
-				gradient update.
+			<option name="Training batch size">
+				The number of training data rows that are used for a single
+				gradient update during training.
+			</option>
+			<option name="Validation batch size">
+				The number of validation data rows that are processed at a time during validation.
+				This option is only enabled if the node's validation data input port is connected.
 			</option>
 		</tab>
 		<tab name="Optimizer Settings">
@@ -54,7 +58,7 @@
 						<a href="https://keras.io/optimizers/#sgd">Stochastic gradient descent</a>
 					</li>
 				</ul>
-				Please refer to <a href="https://keras.io/optimizers/">the Keras documentation</a> for further information on
+				Please refer to the <a href="https://keras.io/optimizers/">Keras documentation</a> for further information on
 				parameterization.
 			</option>
 			<option name="Clip norm">
@@ -69,15 +73,16 @@
 		</tab>
 		<tab name="Learning Behavior">
 			<option name="Terminate on NaN loss">
-				If checked, training is terminated when a NaN loss is encountered,
-				i.e. when the loss is numerically unstable.
+				If checked, training is terminated if a NaN (not a number) training loss is encountered.
 				Corresponds to the
 				<a href="https://keras.io/callbacks/#terminateonnan">TerminateOnNaN Keras callback</a>.
 			</option>
 			<option name="Terminate on training stagnation (early stopping)">
-				If checked, training is terminated when the loss has stopped improving.
+				If checked, training is terminated if the monitored quantity has stopped improving.
 				<ul>
-					<li>Min. delta: minimum change of the loss which qualifies as an improvement.
+					<li>Monitored quantity: the quantity on which early stopping is evaluated.
+					Validation quantities are available for selection if the node's validation data input port is connected.</li>
+					<li>Min. delta: minimum change of the monitored quantity which qualifies as an improvement.
 					Absolute changes below this value are considered a stagnation.</li>
 					<li>Patience: number of epochs with no improvements after which training will be stopped.</li>
 				</ul>
@@ -85,8 +90,10 @@
 				<a href="https://keras.io/callbacks/#earlystopping">EarlyStopping Keras callback</a>.
 			</option>
 			<option name="Reduce learning rate on training stagnation">
-				If checked, the learning rate is reduced when the loss has stopped improving.
+				If checked, the learning rate is reduced if the monitored quantity has stopped improving.
 				<ul>
+					<li>Monitored quantity: the quantity on which learning rate reduction is evaluated.
+					Validation quantities are available for selection if the node's validation data input port is connected.</li>
 					<li>Factor: factor by which the learning rate will be reduced</li>
 					<li>Patience: number of epochs with no improvements after which the learning rate will be reduced.</li>
 					<li>Epsilon: threshold for measuring the new optimum, to only focus on significant changes.</li>
