@@ -72,6 +72,7 @@ import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasMeanSquaredLo
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasPoisson;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasSparseCategoricalCrossEntropy;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasSquaredHinge;
+import org.knime.dl.keras.core.training.DLKerasMetrics.DLKerasAccuracy;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdadelta;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdagrad;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdam;
@@ -149,6 +150,26 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 				new DLKerasKullbackLeiblerDivergence(), //
 				new DLKerasPoisson(), //
 				new DLKerasCosineProximity());
+	}
+
+	@Override
+	public Collection<DLKerasMetrics> createMetrics() {
+		return Arrays.asList( //
+				new DLKerasAccuracy());
+		// TODO: pending
+		// new DLKerasMeanSquaredError(), //
+		// new DLKerasMeanAbsoluteError(), //
+		// new DLKerasMeanAbsolutePercentageError(), //
+		// new DLKerasMeanSquaredLogarithmicError(), //
+		// new DLKerasSquaredHinge(), //
+		// new DLKerasHinge(), //
+		// new DLKerasLogCosh(), //
+		// new DLKerasCategoricalCrossEntropy(), //
+		// new DLKerasSparseCategoricalCrossEntropy(), //
+		// new DLKerasBinaryCrossEntropy(), //
+		// new DLKerasKullbackLeiblerDivergence(), //
+		// new DLKerasPoisson(), //
+		// new DLKerasCosineProximity());
 	}
 
 	@Override
