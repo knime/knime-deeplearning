@@ -184,9 +184,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	 */
 	private DLKerasDefaultTrainingStatus m_status;
 
-	private final DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
+	/**
+	 * <code>null</code> by default, will be populated during execution of the node or when loading an executed node
+	 */
+	private DLJFreeChartLinePlotViewSpec[] m_viewSpecs;
 
-	private final DLLinePlotViewData<?>[] m_viewData;
+	/**
+	 * <code>null</code> by default, will be populated during execution of the node or when loading an executed node
+	 */
+	private LinkedHashMap<DLJFreeChartLinePlotViewSpec, DLLinePlotViewData<?>[]> m_viewData;
 
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
@@ -194,15 +200,6 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_generalCfg = createGeneralModelConfig();
 		m_inputCfgs = new HashMap<>();
 		m_targetCfgs = new HashMap<>();
-
-		// as soon as we want to be more dynamic e.g. make views configurable we
-		// have to move this somewhere else..
-		m_viewSpecs = new DLJFreeChartLinePlotViewSpec[2];
-		m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
-				new String[] { "Training data" });
-		m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
-				new String[] { "Training data" });
-		m_viewData = new DLLinePlotViewData[2];
 	}
 
 	@Override
@@ -279,15 +276,27 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
-		try (ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(f))) {
-			objIn.readInt(); // reads m_viewSpecs.length, this is redundant at the moment but might become useful
-			// if stream.writeObject is too slow, we need to do something smarter
-			for (int i = 0; i < m_viewSpecs.length; i++) {
-				m_viewData[i] = new DLStaticLinePlotViewData<>(m_viewSpecs[i], (float[][]) objIn.readObject());
-			}
+		try (final ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(f))) {
 			m_status = new DLKerasDefaultTrainingStatus();
 			m_status.readExternal(objIn);
-			m_status.setViewData(m_viewData);
+			final int numViewSpecs = objIn.readInt();
+			if (numViewSpecs > 0) {
+				m_viewSpecs = new DLJFreeChartLinePlotViewSpec[numViewSpecs];
+				m_viewData = new LinkedHashMap<>(numViewSpecs);
+				for (int i = 0; i < numViewSpecs; i++) {
+					final DLDefaultJFreeChartLinePlotViewSpec viewSpec = new DLDefaultJFreeChartLinePlotViewSpec();
+					viewSpec.readExternal(objIn);
+					m_viewSpecs[i] = viewSpec;
+					final DLStaticLinePlotViewData<?>[] viewData = new DLStaticLinePlotViewData[viewSpec.numPlots()];
+					m_viewData.put(viewSpec, viewData);
+					for (int j = 0; j < viewSpec.numPlots(); j++) {
+						viewData[j] = new DLStaticLinePlotViewData<>(viewSpec, (float[][]) objIn.readObject());
+					}
+				}
+				final DLStaticLinePlotViewData<?>[] flatViewData = (DLStaticLinePlotViewData<?>[]) m_viewData.values()
+						.stream().flatMap(Stream::of).toArray();
+				m_status.setViewData(flatViewData);
+			}
 		} catch (final ClassNotFoundException e) {
 			throw new IOException("View data could not be restored.");
 		}
@@ -302,12 +311,22 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		}
 		final File f = new File(nodeInternDir, INTERNAL_FILENAME);
 		try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(f))) {
-			objOut.writeInt(m_viewSpecs.length);
-			// if stream.writeObject is too slow, we need to do something smarter
-			for (int i = 0; i < m_viewSpecs.length; i++) {
-				objOut.writeObject(m_viewData[i].asArray());
-			}
 			m_status.writeExternal(objOut);
+			final int numViewSpecs = m_viewSpecs != null ? m_viewSpecs.length : 0;
+			objOut.writeInt(numViewSpecs);
+			for (int i = 0; i < numViewSpecs; i++) {
+				final DLJFreeChartLinePlotViewSpec viewSpec = m_viewSpecs[i];
+				viewSpec.writeExternal(objOut);
+				final DLLinePlotViewData<?>[] viewData = m_viewData.get(viewSpec);
+				if (viewData.length != viewSpec.numPlots()) {
+					LOGGER.error("Failed to save view data. "
+							+ "Declared number of plots and actual number of plots in node view differ. "
+							+ "This is an implementation error.");
+				}
+				for (int j = 0; j < viewSpec.numPlots(); j++) {
+					objOut.writeObject(viewData[j].asArray());
+				}
+			}
 		}
 	}
 
@@ -370,11 +389,16 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 	@Override
 	protected void reset() {
-		for (int i = 0; i < m_viewData.length; i++) {
-			m_viewData[i] = null;
-		}
 		if (m_status != null) {
 			m_status.setViewData(null);
+		}
+		if (m_viewSpecs != null) {
+			for (int i = 0; i < m_viewSpecs.length; i++) {
+				m_viewSpecs[i] = null;
+			}
+		}
+		if (m_viewData != null) {
+			m_viewData.clear();
 		}
 		// reset views
 		notifyViews(null);
@@ -671,8 +695,36 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// alternative strategy for handling incomplete batches.
 		final int numBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) batchSize);
 		final int totalNumBatches = epochs * numBatchesPerEpoch;
-		m_viewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
-		m_viewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
+
+		m_viewSpecs = new DLDefaultJFreeChartLinePlotViewSpec[2];
+		m_viewData = new LinkedHashMap<>(m_viewSpecs.length);
+		if (doValidation) {
+			m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
+					new String[] { "Training data", "Validation data" });
+			final DLUpdatableLinePlotViewData<?>[] accViewData = new DLUpdatableLinePlotViewData[2];
+			m_viewData.put(m_viewSpecs[0], accViewData);
+			accViewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
+			accViewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
+
+			m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
+					new String[] { "Training data", "Validation data" });
+			final DLUpdatableLinePlotViewData<?>[] lossViewData = new DLUpdatableLinePlotViewData[2];
+			m_viewData.put(m_viewSpecs[1], lossViewData);
+			lossViewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
+			lossViewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
+		} else {
+			m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
+					new String[] { "Training data" });
+			final DLUpdatableLinePlotViewData<?>[] accViewData = new DLUpdatableLinePlotViewData[1];
+			m_viewData.put(m_viewSpecs[0], accViewData);
+			accViewData[0] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[0], totalNumBatches);
+
+			m_viewSpecs[1] = new DLDefaultJFreeChartLinePlotViewSpec("loss", "Loss", "Loss", "Batches",
+					new String[] { "Training data" });
+			final DLUpdatableLinePlotViewData<?>[] lossViewData = new DLUpdatableLinePlotViewData[1];
+			m_viewData.put(m_viewSpecs[1], lossViewData);
+			lossViewData[1] = new DLUpdatableLinePlotViewData<>(m_viewSpecs[1], totalNumBatches);
+		}
 
 		m_status = new DLKerasDefaultTrainingStatus(epochs, numBatchesPerEpoch);
 		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
