@@ -60,28 +60,39 @@ import org.knime.dl.core.DLTensorSpec;
  */
 public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 
-	private final long m_batchSize;
 	private final int m_epochs;
+	private final long m_batchSize;
+	private final long m_validationBatchSize;
 	private final DLKerasOptimizer m_optimizer;
 	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
 	private final Collection<DLKerasCallback> m_callbacks;
 
-	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses) {
-		m_batchSize = batchSize;
+	/**
+	 * @param epochs the number of times to iterate over the training data before training is finished. Note that the
+	 *            actual number of executed epochs can be smaller in case of early stopping.
+	 * @param batchSize the number of training samples to use for a single training step
+	 * @param validationBatchSize may be null in which case the validation batch size defaults the to batch size. This
+	 *            value only matters if performing model evaluation during training.
+	 * @param optimizer the optimizer that is used for model updating
+	 * @param losses a mapping of network outputs to loss functions. There must be a mapping for each of the outputs of
+	 *            the network that will be trained.
+	 * @param callbacks may be null or empty in which case it defaults to an empty list
+	 */
+	public DLKerasDefaultTrainingConfig(final int epochs, final int batchSize, final Integer validationBatchSize,
+			final DLKerasOptimizer optimizer, final Map<DLTensorSpec, DLKerasLossFunction> losses,
+			final Collection<DLKerasCallback> callbacks) {
 		m_epochs = epochs;
+		m_batchSize = batchSize;
+		m_validationBatchSize = validationBatchSize != null ? validationBatchSize : batchSize;
 		m_optimizer = optimizer;
 		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
-		m_callbacks = Collections.emptyList();
+		m_callbacks = callbacks != null ? Collections.unmodifiableCollection(new ArrayList<>(callbacks))
+				: Collections.emptyList();
 	}
 
-	public DLKerasDefaultTrainingConfig(final int batchSize, final int epochs, final DLKerasOptimizer optimizer,
-			final Map<DLTensorSpec, DLKerasLossFunction> losses, final Collection<DLKerasCallback> callbacks) {
-		m_batchSize = batchSize;
-		m_epochs = epochs;
-		m_optimizer = optimizer;
-		m_losses = Collections.unmodifiableMap(new HashMap<>(losses));
-		m_callbacks = Collections.unmodifiableCollection(new ArrayList<>(callbacks));
+	@Override
+	public int getEpochs() {
+		return m_epochs;
 	}
 
 	@Override
@@ -90,8 +101,8 @@ public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 	}
 
 	@Override
-	public int getEpochs() {
-		return m_epochs;
+	public long getValidationBatchSize() {
+		return m_validationBatchSize;
 	}
 
 	@Override

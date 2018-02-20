@@ -52,7 +52,20 @@ package org.knime.dl.core.training;
  */
 public interface DLTrainingConfig {
 
+	/**
+	 * @return the number of times to iterate over the training data before training is finished. Note that the actual
+	 *         number of executed epochs can be smaller in case a back end supports early stopping.
+	 */
+	int getEpochs();
+
+	/**
+	 * @return the number of training data samples to use for a single training step
+	 */
 	long getBatchSize();
 
-	int getEpochs();
+	/**
+	 * @return the number of validation data samples to use for a single evaluation step. This value only matters if
+	 *         performing model evaluation during training.
+	 */
+	long getValidationBatchSize();
 }

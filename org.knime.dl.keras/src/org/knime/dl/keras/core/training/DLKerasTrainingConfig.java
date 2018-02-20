@@ -58,11 +58,21 @@ import org.knime.dl.core.training.DLTrainingConfig;
  */
 public interface DLKerasTrainingConfig extends DLTrainingConfig {
 
+	/**
+	 * @return the optimizer that is used for model updating
+	 */
 	DLKerasOptimizer getOptimizer();
 
+	/**
+	 * @return a mapping of network outputs to loss functions
+	 */
 	Map<DLTensorSpec, DLKerasLossFunction> getLosses();
 
 	// TODO: getMetrics and DLMetrics
 
+	/**
+	 * @return a collection of callbacks that are called during training and allow monitoring or controlling the
+	 *         training process
+	 */
 	Collection<DLKerasCallback> getCallbacks();
 }
