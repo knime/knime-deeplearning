@@ -52,7 +52,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasEarlyStopping;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * Abstract base class for quantities that are monitored during training, e.g. by {@link DLKerasEarlyStopping} and
@@ -88,7 +87,7 @@ public abstract class DLKerasAbstractMonitoredQuantity implements DLKerasMonitor
 	@Override
 	public final String getKerasIdentifier() {
 		if (m_quantity == null && m_output == null) {
-			return DLPythonUtils.toPython(isValidationQuantity() ? "val_loss" : "loss");
+			return isValidationQuantity() ? "val_loss" : "loss";
 		}
 		// TODO: NYI - we need the layer name for this & have to investigate how Keras maps arbitrary metrics to an
 		// identifier string

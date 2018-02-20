@@ -96,8 +96,8 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getEpochsEntry(), 1, Integer.MAX_VALUE), "Epochs", 1);
 
 		addNumberSpinnerRowComponent(
-				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getBatchSizeEntry(), 1, Integer.MAX_VALUE), "Batch size",
-				1);
+				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getBatchSizeEntry(), 1, Integer.MAX_VALUE),
+				"Training batch size", 1);
 
 		addNumberSpinnerRowComponent(
 				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getValidationBatchSizeEntry(), 1, Integer.MAX_VALUE),
