@@ -99,14 +99,10 @@ public class DLKerasLearningBehaviorPanel extends AbstractGridBagDialogComponent
 	@Override
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		// on first load, the individual entries of the toggled "learning behavior" groups have to be set according to
-		// the toggle state (as the toggle is only associated with the groups config, not with the config's entries,
-		// also see change listeners in above constructor)
-		final ConfigEntry<DLKerasTerminateOnNaN> terminateOnNan = m_cfg.getTerminateOnNaNEntry();
-		terminateOnNan.getValue().setAllEnabled(terminateOnNan.getEnabled());
+		// load available monitored quantities into selection list
 		final ConfigEntry<DLKerasEarlyStopping> earlyStopping = m_cfg.getEarlyStoppingEntry();
-		earlyStopping.getValue().setAllEnabled(earlyStopping.getEnabled());
+		earlyStopping.getValue().getParameterDialogGroup().loadSettingsFrom(settings, specs);
 		final ConfigEntry<DLKerasReduceLROnPlateau> reduceLROnPlateu = m_cfg.getReduceLROnPlateauEntry();
-		reduceLROnPlateu.getValue().setAllEnabled(reduceLROnPlateu.getEnabled());
+		reduceLROnPlateu.getValue().getParameterDialogGroup().loadSettingsFrom(settings, specs);
 	}
 }
