@@ -158,6 +158,5 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLTrainin
 			setNetworkTrainingConfig(m_handle, m_trainingConfig);
 		}
 		m_commands.trainNetwork(m_handle, m_trainingInputProvider, m_validationInputProvider, monitor);
-		m_commands.getTrainingResults(m_handle);
 	}
 }

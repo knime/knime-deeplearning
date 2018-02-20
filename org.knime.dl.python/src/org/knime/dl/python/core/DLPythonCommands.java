@@ -121,6 +121,4 @@ public interface DLPythonCommands extends AutoCloseable {
 	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider trainingInputProvider,
 			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<?> monitor)
 			throws DLInvalidEnvironmentException, IOException;
-
-	void getTrainingResults(DLPythonNetworkHandle network);
 }

@@ -578,11 +578,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		messages.unregisterMessageHandler(onBatchEndHandler);
 	}
 
-	@Override
-	public void getTrainingResults(final DLPythonNetworkHandle network) {
-		// TODO
-	}
-
 	/**
 	 * Closes the underlying {@link DLPythonContext Python context}.
 	 */
