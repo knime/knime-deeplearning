@@ -95,7 +95,7 @@ public enum DLDefaultDimensionOrder implements DLDimensionOrder {
 		if (this == Unknown) {
 			throw new UnsupportedOperationException("The dimension order is unknown.");
 		}
-		return m_dimensionOrder;
+		return m_dimensionOrder.clone();
 	}
 	
 	@Override
