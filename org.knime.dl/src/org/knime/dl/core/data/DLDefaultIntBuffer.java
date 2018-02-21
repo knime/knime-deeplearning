@@ -192,7 +192,7 @@ public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 
 	@Override
 	public void readToDoubleArray(double[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		for (int i = 0; i < length; i++) {
@@ -203,7 +203,7 @@ public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 
 	@Override
 	public void readToLongArray(long[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		for (int i = 0; i < length; i++) {
@@ -214,7 +214,7 @@ public class DLDefaultIntBuffer extends DLAbstractWrappingDataBuffer<int[]>
 
 	@Override
 	public void readToIntArray(int[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);

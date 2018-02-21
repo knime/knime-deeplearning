@@ -190,7 +190,7 @@ public class DLDefaultDoubleBuffer extends DLAbstractWrappingDataBuffer<double[]
 
 	@Override
 	public void readToDoubleArray(double[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);

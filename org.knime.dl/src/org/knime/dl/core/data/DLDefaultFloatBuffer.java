@@ -177,7 +177,7 @@ public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 
 	@Override
 	public void readToDoubleArray(double[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		for (int i = 0; i < length; i++) {
@@ -188,7 +188,7 @@ public class DLDefaultFloatBuffer extends DLAbstractWrappingDataBuffer<float[]>
 
 	@Override
 	public void readToFloatArray(float[] dest, int destPos, int length) {
-		checkArgument(destPos > 0);
+		checkArgument(destPos >= 0);
 		checkArgument(length > 0);
 		checkUnderflow(m_nextRead + length <= m_nextWrite);
 		System.arraycopy(m_storage, m_nextRead, dest, destPos, length);
