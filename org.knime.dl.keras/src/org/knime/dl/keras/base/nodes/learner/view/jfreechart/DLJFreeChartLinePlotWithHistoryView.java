@@ -199,17 +199,13 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
 		smoothingAlphaSpinner.addChangeListener(arg0 -> {
 			final double currentSpinnerValue = ((double) smoothingAlphaSpinner.getValue());
 			m_linePlot.setSmoothingAlpha(1 - currentSpinnerValue);
-			if (!m_isRunning) {
-				m_linePlot.triggerSmoothedLinesUpdate();
-			}
+			m_linePlot.triggerSmoothedLinesUpdate();
 		});
 
 		enableSmoothingBox.addItemListener(e -> {
 			smoothingAlphaSpinner.setEnabled(enableSmoothingBox.isSelected());
 			m_linePlot.setEnableSmoothedLines(enableSmoothingBox.isSelected());
-			if (!m_isRunning) {
-				m_linePlot.triggerSmoothedLinesUpdate();
-			}
+			m_linePlot.triggerSmoothedLinesUpdate();
 		});
 
 		gbc.fill = GridBagConstraints.HORIZONTAL;

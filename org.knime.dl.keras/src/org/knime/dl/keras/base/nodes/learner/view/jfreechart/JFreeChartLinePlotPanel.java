@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -71,6 +72,7 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -111,17 +113,15 @@ public class JFreeChartLinePlotPanel extends JPanel {
 
 	private final Map<String, Color> m_lineReferenceColors = new HashMap<>();
 
+	private final Map<String, AtomicBoolean> m_smoothedLineOutdated = new HashMap<>();
+
 	private Map<String, ExponentialSmoothingIterator> m_smoothingIters;
 
 	private XYPlot m_plot;
 
-	private double m_smoothingAlpha = SMOOTHING_ALPHA_DEFAULT;
-
-	private boolean m_alphaChanged = false;
-
 	private boolean m_smoothedLinesEnabled = false;
 
-	private boolean m_smoothedLinesEnabledChanged = false;
+	private double m_smoothingAlpha = SMOOTHING_ALPHA_DEFAULT;
 
 	private int m_colorIdx = 0;
 
@@ -159,6 +159,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
 			lines.addSeries(new XYSeries(smoothedLineLabel));
 			m_lineIndexToLineLabel.put(lineCounter, smoothedLineLabel);
 			m_lineLabelToLineIndex.put(smoothedLineLabel, lineCounter);
+			m_smoothedLineOutdated.put(smoothedLineLabel, new AtomicBoolean());
 			lineCounter++;
 		}
 		return lines;
@@ -169,16 +170,12 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	 *
 	 * @param smoothingAlpha
 	 */
-	private void initSmoothingIter(final double smoothingAlpha) {
+	private void initSmoothingIter(final String lineLabel, final double smoothingAlpha) {
 		if (m_smoothingIters == null) {
 			m_smoothingIters = new HashMap<>();
 		}
-
-		for (int i = 0; i < m_spec.numPlots(); i++) {
-			final String lineLabel = m_spec.getLineLabel(i);
-			m_smoothingIters.put(lineLabel + SMOOTHED_LINE_KEY_SUFFIX,
-					new ExponentialSmoothingIterator(m_dataset.getSeries(lineLabel), smoothingAlpha));
-		}
+		m_smoothingIters.put(lineLabel + SMOOTHED_LINE_KEY_SUFFIX,
+				new ExponentialSmoothingIterator(m_dataset.getSeries(lineLabel), smoothingAlpha));
 	}
 
 	private ChartPanel getChartPanel() {
@@ -186,7 +183,9 @@ public class JFreeChartLinePlotPanel extends JPanel {
 			m_lineChart = ChartFactory.createXYLineChart(m_spec.title(), m_spec.labelX(), m_spec.labelY(),
 					m_dataset = createDataset(), PlotOrientation.VERTICAL, true, true, false);
 
-			initSmoothingIter(m_smoothingAlpha);
+			for (int i = 0; i < m_spec.numPlots(); i++) {
+				initSmoothingIter(m_spec.getLineLabel(i), m_smoothingAlpha);
+			}
 
 			// Remove the chart title
 			m_lineChart.setTitle("");
@@ -233,7 +232,9 @@ public class JFreeChartLinePlotPanel extends JPanel {
 			m_chartPanel.setMaximumDrawHeight(2000);
 
 			// Update the line style to default, no transparency for raw plot
-			updateLineStyle(false);
+			for (int i = 0; i < m_spec.numPlots(); i++) {
+				updateLineStyle(m_spec.getLineLabel(i), false);
+			}
 		}
 		return m_chartPanel;
 	}
@@ -277,8 +278,8 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	 */
 	public void setSmoothingAlpha(final double smoothingAlpha) {
 		if (smoothingAlpha != m_smoothingAlpha) {
-			m_alphaChanged = true;
 			m_smoothingAlpha = smoothingAlpha;
+			m_smoothedLineOutdated.values().forEach(b -> b.set(true));
 		}
 	}
 
@@ -292,7 +293,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	public void setEnableSmoothedLines(final boolean enabled) {
 		if (enabled != m_smoothedLinesEnabled) {
 			m_smoothedLinesEnabled = enabled;
-			m_smoothedLinesEnabledChanged = true;
+			m_smoothedLineOutdated.values().forEach(b -> b.set(true));
 		}
 	}
 
@@ -302,24 +303,21 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	 * @param smoothedLinesEnabled If true: original line becomes transparent and smoothed line will be fully visible.
 	 *            Also shows legend of smoothed line. If false: other way around.
 	 */
-	private void updateLineStyle(final boolean smoothedLinesEnabled) {
+	private void updateLineStyle(final String lineLabel, final boolean smoothedLinesEnabled) {
 		// All updates of the lines need to happen in the EDT
 		SwingUtilities.invokeLater(() -> {
-			for (int i = 0; i < m_spec.numPlots(); i++) {
-				final int lineIndex = m_lineLabelToLineIndex.get(m_spec.getLineLabel(i));
-				final int lineSmoothedIndex = m_lineLabelToLineIndex
-						.get(m_spec.getLineLabel(i) + SMOOTHED_LINE_KEY_SUFFIX);
-				final XYItemRenderer r = getRenderer();
+			final int lineIndex = m_lineLabelToLineIndex.get(lineLabel);
+			final int lineSmoothedIndex = m_lineLabelToLineIndex.get(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
+			final XYItemRenderer r = getRenderer();
 
-				if (smoothedLinesEnabled) {
-					r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 0.2f));
-					r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 1));
-					r.setSeriesVisibleInLegend(lineSmoothedIndex, true, false);
-				} else {
-					r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 1f));
-					r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 0.2f));
-					r.setSeriesVisibleInLegend(lineSmoothedIndex, false, false);
-				}
+			if (smoothedLinesEnabled) {
+				r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 0.2f));
+				r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 1));
+				r.setSeriesVisibleInLegend(lineSmoothedIndex, true, false);
+			} else {
+				r.setSeriesPaint(lineIndex, getColorWithTransparecy(lineIndex, 1f));
+				r.setSeriesPaint(lineSmoothedIndex, getColorWithTransparecy(lineIndex, 0.2f));
+				r.setSeriesVisibleInLegend(lineSmoothedIndex, false, false);
 			}
 		});
 	}
@@ -339,33 +337,30 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	}
 
 	private void plotSmoothed(final String lineLabel) {
-		if (!m_smoothedLinesEnabled && !m_smoothedLinesEnabledChanged) {
-			return;
-		}
-
+		final AtomicBoolean lineOutdated = m_smoothedLineOutdated.get(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
 		if (!m_smoothedLinesEnabled) {
-			clearSmoothedLine(lineLabel);
-			updateLineStyle(false);
+			if (lineOutdated.get()) {
+				clearSmoothedLine(lineLabel);
+				updateLineStyle(lineLabel, false);
+				lineOutdated.set(false);
+			}
 			return;
 		}
 
-		if (m_alphaChanged || m_smoothedLinesEnabledChanged) {
-			initSmoothingIter(m_smoothingAlpha);
+		if (lineOutdated.get()) {
+			initSmoothingIter(lineLabel, m_smoothingAlpha);
 			clearSmoothedLine(lineLabel);
-			updateLineStyle(true);
-			m_alphaChanged = false;
-			m_smoothedLinesEnabledChanged = false;
+			updateLineStyle(lineLabel, true);
+			lineOutdated.set(false);
 		}
 
 		final XYSeries line = m_dataset.getSeries(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
 		final ExponentialSmoothingIterator iter = m_smoothingIters.get(lineLabel + SMOOTHED_LINE_KEY_SUFFIX);
 		while (iter.hasNext()) {
-			if (m_alphaChanged) {
+			if (lineOutdated.get()) {
 				return;
 			}
-			final int total = line.getItemCount();
-			line.add(total + 1, iter.next());
-
+			line.add(iter.next());
 		}
 	}
 
@@ -438,7 +433,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
 	 * Iterator backed by a XYSeries which calculates a smoothed version of the series on the fly. See:
 	 * https://en.wikipedia.org/wiki/Exponential_smoothing
 	 */
-	private class ExponentialSmoothingIterator implements Iterator<Double> {
+	private class ExponentialSmoothingIterator implements Iterator<XYDataItem> {
 
 		private final XYSeries m_data;
 
@@ -463,17 +458,16 @@ public class JFreeChartLinePlotPanel extends JPanel {
 		}
 
 		@Override
-		public Double next() {
+		public XYDataItem next() {
 			m_previous = m_current;
 			if (m_idx == 0) {
 				m_current = (double) m_data.getY(m_idx);
-				m_idx++;
-				return m_current;
 			} else {
 				m_current = (m_alpha * (double) m_data.getY(m_idx)) + ((1 - m_alpha) * m_previous);
-				m_idx++;
-				return m_current;
 			}
+			final XYDataItem item = new XYDataItem(m_data.getX(m_idx), m_current);
+			m_idx++;
+			return item;
 		}
 	}
 }
