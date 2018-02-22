@@ -66,6 +66,46 @@ final class DLTestUtil {
 		return array;
 	}
 	
+	public static int[] intRange(int length) {
+		int[] array = new int[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = i;
+		}
+		return array;
+	}
+	
+	public static byte[] byteRange(int length) {
+		byte[] array = new byte[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = (byte) i;
+		}
+		return array;
+	}
+	
+	public static short[] shortRange(int length) {
+		short[] array = new short[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = (short) i;
+		}
+		return array;
+	}
+	
+	public static long[] longRange(int length) {
+		long[] array = new long[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = i;
+		}
+		return array;
+	}
+	
+	public static float[] floatRange(int length) {
+		float[] array = new float[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = i;
+		}
+		return array;
+	}
+	
 	public static boolean[] alternatingBooleanArray(int length) {
 		boolean[] array = new boolean[length];
 		for (int i = 0; i < length; i++) {

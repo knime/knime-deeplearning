@@ -117,6 +117,22 @@ public class DLDefaultDoubleBufferTest {
 	}
 	
 	@Test
+	public void testPutAllInt() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			int[] expected = intRange(10);
+			buffer.putAll(expected);
+			assertArrayEquals(toDouble(expected), buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = BufferOverflowException.class)
+	public void testPutAllIntOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.putAll(intRange(10));
+		}
+	}
+	
+	@Test
 	public void testPutFloat() throws Exception {
 		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
@@ -133,6 +149,22 @@ public class DLDefaultDoubleBufferTest {
 		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put(1.0f);
 			buffer.put(2.0f);
+		}
+	}
+	
+	@Test
+	public void testPutAllFloat() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			float[] expected = floatRange(10);
+			buffer.putAll(expected);
+			assertArrayEquals(toDouble(expected), buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = BufferOverflowException.class)
+	public void testPutAllFloatOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.putAll(floatRange(10));
 		}
 	}
 	
@@ -157,6 +189,22 @@ public class DLDefaultDoubleBufferTest {
 	}
 	
 	@Test
+	public void testPutAllDouble() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			double[] expected = doubleRange(10);
+			buffer.putAll(expected);
+			assertArrayEquals(expected, buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = BufferOverflowException.class)
+	public void testPutAllDoubleOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.putAll(doubleRange(10));
+		}
+	}
+	
+	@Test
 	public void testPutByte() throws Exception {
 		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
@@ -177,6 +225,22 @@ public class DLDefaultDoubleBufferTest {
 	}
 	
 	@Test
+	public void testPutAllByte() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			byte[] expected = byteRange(10);
+			buffer.putAll(expected);
+			assertArrayEquals(toDouble(expected), buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = BufferOverflowException.class)
+	public void testPutAllByteOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.putAll(byteRange(10));
+		}
+	}
+	
+	@Test
 	public void testPutShort() throws Exception {
 		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
@@ -193,6 +257,22 @@ public class DLDefaultDoubleBufferTest {
 		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put((short)1);
 			buffer.put((short)2);
+		}
+	}
+	
+	@Test
+	public void testPutAllShort() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			short[] expected = shortRange(10);
+			buffer.putAll(expected);
+			assertArrayEquals(toDouble(expected), buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = BufferOverflowException.class)
+	public void testPutAllShortOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.putAll(shortRange(10));
 		}
 	}
 	
@@ -276,8 +356,46 @@ public class DLDefaultDoubleBufferTest {
 		}
 	}
 	
+	@Test
+	public void testZeroPad() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			buffer.putAll(doubleRange(10));
+			buffer.reset();
+			buffer.zeroPad(10);
+			double[] expected = new double[10];
+			assertArrayEquals(expected, buffer.m_storage, EPSILON);
+		}
+	}
 	
+	@Test(expected = IllegalArgumentException.class)
+	public void testZeroPadNonPositiveLength() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			buffer.zeroPad(0);
+		}
+	}
 	
+	@Test(expected = BufferOverflowException.class)
+	public void testZeroPadOverflow() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			buffer.zeroPad(11);
+		}
+	}
 	
-
+	@Test
+	public void testSetStorage() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			double[] expected = doubleRange(10);
+			buffer.setStorage(expected, 10);
+			assertEquals(0, buffer.m_nextRead);
+			assertArrayEquals(expected, buffer.m_storage, EPSILON);
+		}
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetStorageWrongCapacity() throws Exception {
+		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			double[] storage = doubleRange(11);
+			buffer.setStorage(storage, 10);
+		}
+	}
 }
