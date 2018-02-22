@@ -52,7 +52,8 @@ import java.util.Arrays;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DLTestUtil {
-	public static final double EPSILON = 1e-6;
+	public static final double DOUBLE_EPSILON = 1e-6;
+	public static final float FLOAT_EPSILON = 1e-6f;
 	
 	private DLTestUtil() {
 		// utility class
@@ -126,6 +127,34 @@ final class DLTestUtil {
 		return Arrays.stream(array).asDoubleStream().toArray();
 	}
 	
+	public static long[] toLong(int[] array) {
+		return Arrays.stream(array).asLongStream().toArray();
+	}
+	
+	public static long[] toLong(boolean[] array) {
+		long[] result = new long[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i] ? 1L : 0L;
+		}
+		return result;
+	}
+	
+	public static long[] toLong(byte[] array) {
+		long[] result = new long[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
+	public static long[] toLong(short[] array) {
+		long[] result = new long[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
 	public static double[] toDouble(short[] array) {
 		double[] result = new double[array.length];
 		for (int i = 0; i < result.length; i++) {
@@ -150,4 +179,60 @@ final class DLTestUtil {
 		return result;
 	}
 
+	public static float[] toFloat(int[] array) {
+		float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
+	public static float[] toFloat(short[] array) {
+		float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
+	public static float[] toFloat(byte[] array) {
+		float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
+	public static float[] toFloat(boolean[] array) {
+		float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i] ? 1 : 0;
+		}
+		return result;
+	}
+	
+	public static int[] toInt(boolean[] array) {
+		int[] result = new int[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i] ? 1 : 0;
+		}
+		return result;
+	}
+
+	public static int[] toInt(byte[] array) {
+		int[] result = new int[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
+	public static int[] toInt(short[] array) {
+		int[] result = new int[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+	
 }
