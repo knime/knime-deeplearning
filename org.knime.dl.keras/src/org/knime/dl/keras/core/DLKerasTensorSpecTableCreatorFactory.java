@@ -59,6 +59,7 @@ import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
@@ -142,16 +143,37 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 		@Override
 		public synchronized void addRow(final Row row) {
-			final DLTensorId tensorId = new DLDefaultTensorId(row.getCell(ID_IDX).getStringValue());
-			final String tensorName = row.getCell(NAME_IDX).getStringValue();
-			final Class<?> tensorType = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
+			
+			m_tensorSpecs[m_nextIdx++] = parseTensorSpec(row);
+		}
+		
+		private DLDefaultTensorSpec parseTensorSpec(final Row row) {
+			final DLTensorId id = new DLDefaultTensorId(row.getCell(ID_IDX).getStringValue());
+			final String name = row.getCell(NAME_IDX).getStringValue();
+			final Class<?> type = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
 			final DLDimensionOrder dimensionOrder = DLDefaultDimensionOrder.valueOf(
 					row.getCell(DIMENSION_ORDER_IDX).getStringValue());
-			final DLDefaultTensorSpec.Builder specBuilder = new DLDefaultTensorSpec.Builder(
-					tensorId, tensorName, tensorType, dimensionOrder);
-			specBuilder.setBatchSize(getBatchSize(row));
-			specBuilder.setTensorShape(getTensorShape(row));
-			m_tensorSpecs[m_nextIdx++] = specBuilder.build();
+			long batchSize = getBatchSize(row);
+			DLTensorShape shape = getTensorShape(row);
+			return createTensorSpec(id, name, batchSize, shape, type, dimensionOrder);
+		}
+		
+		private static DLDefaultTensorSpec createTensorSpec(DLTensorId id, String name, long batchSize,
+				DLTensorShape shape, Class<?> type, DLDimensionOrder dimensionOrder) {
+			if (batchSize > 0) {
+				if (shape != null) {
+					return new DLDefaultTensorSpec(
+							id, name, batchSize, shape, type, dimensionOrder);
+				} else {
+					return new DLDefaultTensorSpec(id, name, batchSize, type, dimensionOrder);
+				}
+			} else {
+				if (shape != null) {
+					return new DLDefaultTensorSpec(id, name, shape, type, dimensionOrder);
+				} else {
+					return new DLDefaultTensorSpec(id, name, type, dimensionOrder);
+				}
+			}
 		}
 		
 		private long getBatchSize(final Row row) {
