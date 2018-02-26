@@ -51,8 +51,18 @@ package org.knime.dl.core;
  */
 public interface DLDimensionOrder {
 
+	/**
+	 * @return array representing the dimension order
+	 */
 	DLDimension[] getDimensions();
 
+	/**
+	 * Calculates the mapping that permutes <b>dimensions</b> s.t. the mapped dimensions
+	 * are in this dimension order. The returned mapping ensures that mappedDimension[i] = dimensions[mapping[i]].
+	 * 
+	 * @param dimensions dimension order that should be mapped to this dimension order
+	 * @return mapping for <b>dimensions</b> s.t. mappedDimensions[i] = dimensions[mapping[i]]
+	 */
 	int[] inferMappingFor(DLDimension[] dimensions);
 
 }
