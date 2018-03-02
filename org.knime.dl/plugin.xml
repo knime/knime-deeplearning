@@ -51,7 +51,7 @@
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/labs/deeplearning"
             deprecated="false"
             factory-class="org.knime.dl.base.nodes.executor.DLExecutorNodeFactory">
       </node>

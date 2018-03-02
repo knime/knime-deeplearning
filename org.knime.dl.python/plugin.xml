@@ -59,24 +59,34 @@
       </directory>
    </extension>
    <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/python.png"
+            level-id="python"
+            locked="true"
+            name="Python"
+            path="/labs/deeplearning">
+      </category>
+   </extension>
+   <extension
          point="org.knime.workbench.repository.nodes">
           <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/labs/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.creator.DLPythonCreatorNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/labs/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.editor.DLPythonEditorNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/labs/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.executor.DLPythonExecutorNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/labs/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.learner.DLPythonLearnerNodeFactory">
       </node>

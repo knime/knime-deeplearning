@@ -70,7 +70,7 @@
       <extension
          point="org.knime.workbench.repository.categories">
       <category
-            icon="icons/category.png"
+            icon="icons/keras.png"
             level-id="keras"
             locked="true"
             name="Keras"
