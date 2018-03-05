@@ -119,8 +119,8 @@ class ConverterRefresher {
 	
 	private List<DLDataValueToTensorConverterFactory<?, ?>> sortConverters() {
 		return Stream.concat(
-				Stream.concat(m_builtInElement.stream().sorted(m_comparator), m_builtInCollection.stream().sorted()),
-				Stream.concat(m_extensionElement.stream().sorted(m_comparator), m_extensionCollection.stream().sorted()))
+				Stream.concat(m_builtInElement.stream().sorted(m_comparator), m_builtInCollection.stream().sorted(m_comparator)),
+				Stream.concat(m_extensionElement.stream().sorted(m_comparator), m_extensionCollection.stream().sorted(m_comparator)))
 				.collect(Collectors.toList());
 	}
 	
