@@ -57,15 +57,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.util.Pair;
+import org.knime.dl.core.DLException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class AbstractConfig implements Config {
+
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractConfig.class);
 
 	private final String m_key;
 
@@ -221,7 +226,7 @@ public abstract class AbstractConfig implements Config {
 				: "empty config '" + m_key + "'";
 	}
 
-	protected void saveConfig(final NodeSettingsWO settings) throws InvalidSettingsException {
+	protected void saveConfig(final NodeSettingsWO settings) throws DLInvalidSettingsException {
 		ArrayList<Pair<ConfigEntry<?>, Exception>> entriesFailedToSave = null;
 		for (final ConfigEntry<?> entry : values()) {
 			try {
@@ -239,8 +244,8 @@ public abstract class AbstractConfig implements Config {
 		}
 	}
 
-	protected void loadConfig(final NodeSettingsRO settings) throws InvalidSettingsException {
-		ArrayList<Pair<ConfigEntry<?>, Throwable>> entriesFailedToLoad = null;
+	protected void loadConfig(final NodeSettingsRO settings) throws DLInvalidSettingsException {
+		ArrayList<Pair<ConfigEntry<?>, Exception>> entriesFailedToLoad = null;
 		for (final ConfigEntry<?> entry : values()) {
 			try {
 				entry.loadSettingsFrom(settings);
@@ -252,8 +257,24 @@ public abstract class AbstractConfig implements Config {
 			}
 		}
 		if (entriesFailedToLoad != null) {
-			throw new DLInvalidSettingsException("Failed to load entries of config '" + m_key + "'.",
-					entriesFailedToLoad);
+			// Search for printable exception first before issuing a more generic error report.
+			for (int i = 0; i < entriesFailedToLoad.size(); i++) {
+				Throwable e = entriesFailedToLoad.get(i).getSecond();
+				do {
+					if (e instanceof DLException || e instanceof NotConfigurableException) {
+						throw new DLInvalidSettingsException(e.getMessage(), entriesFailedToLoad);
+					}
+				} while (e != e.getCause() && (e = e.getCause()) != null);
+			}
+			// Fall back to generic error report.
+			for (int i = 0; i < entriesFailedToLoad.size(); i++) {
+				final Pair<ConfigEntry<?>, Exception> p = entriesFailedToLoad.get(i);
+				LOGGER.error(
+						"Failed to load config entry '" + p.getFirst().getEntryKey() + "' of config '" + m_key + "'.",
+						p.getSecond());
+			}
+			throw new DLInvalidSettingsException(
+					"Failed to load entries of config '" + m_key + "'. See log for details.", entriesFailedToLoad);
 		}
 	}
 }
