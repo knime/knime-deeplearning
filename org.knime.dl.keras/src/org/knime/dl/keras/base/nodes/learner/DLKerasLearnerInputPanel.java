@@ -69,6 +69,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -86,9 +87,10 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("serial")
 final class DLKerasLearnerInputPanel extends JPanel {
 
-	private static final long serialVersionUID = 1L;
+	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeDialog.class);
 
 	private final DLKerasLearnerInputConfig m_cfg;
 
@@ -101,7 +103,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	private DataTableSpec m_lastTableSpec;
 
 	DLKerasLearnerInputPanel(final DLKerasLearnerInputConfig cfg, final DLTensorSpec inputDataSpec,
-			final DataTableSpec tableSpec) throws NotConfigurableException {
+			final DataTableSpec tableSpec) {
 		super(new GridBagLayout());
 		m_cfg = cfg;
 		m_inputTensorSpec = inputDataSpec;
@@ -146,40 +148,16 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		add(inputColumnsFilter, constr);
 		constr.gridy++;
 
-		m_cfg.getGeneralConfig().getTrainingContextEntry().addLoadListener((entry) -> {
-			try {
-				refreshAvailableConverters();
-			} catch (final NotConfigurableException ex) {
-				throw new IllegalStateException(ex.getMessage(), ex);
-			}
-		});
-
 		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
 			try {
-				refreshAvailableConverters();
+				refreshAvailableConverters(m_lastTableSpec);
 			} catch (final NotConfigurableException ex) {
 				throw new IllegalStateException(ex.getMessage(), ex);
 			}
 		});
-		m_cfg.getConverterEntry().addValueChangeListener((entry, oldValue) -> {
-			refreshAllowedInputColumns();
-		});
-		m_cfg.getConverterEntry().addLoadListener((entry) -> {
-			refreshAllowedInputColumns();
-			m_dcConverter.update();
-		});
 
-		m_dcConverter.getConfigEntry().addLoadPredicate((e) -> {
-			return m_lastTableSpec.containsCompatibleType(e.getValue().getSourceType());
-		});
-	}
-
-	DLKerasLearnerInputConfig getConfig() {
-		return m_cfg;
-	}
-
-	DataColumnSpecFilterPanel getInputColumns() {
-		return m_dcInputColumns;
+		m_cfg.getConverterEntry()
+				.addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns(m_lastTableSpec));
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
@@ -227,22 +205,18 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
 			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
-			refreshAllowedInputColumns();
+			refreshAvailableConverters(m_lastTableSpec);
+			refreshAllowedInputColumns(m_lastTableSpec);
 		} catch (final InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage(), e); // TODO:
-																	// remove &
-																	// ignore
+			// ignore
+			LOGGER.debug(e.getMessage() != null ? e.getMessage() : "Trying to restore from invalid settings.", e);
 		}
 	}
 
-	/**
-	 * @return <source>true</source> if converter selection has changed
-	 * @throws NotConfigurableException
-	 */
-	void refreshAvailableConverters() throws NotConfigurableException {
+	private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
 		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerInputConfig
-				.getAvailableConverters(trainingContext, m_lastTableSpec, m_inputTensorSpec);
+				.getAvailableConverters(trainingContext, dataTableSpec, m_inputTensorSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
 					"No converters available for input '" + m_inputTensorSpec.getName() + "'.");
@@ -277,13 +251,13 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}
 
-	void refreshAllowedInputColumns() {
+	private void refreshAllowedInputColumns(final DataTableSpec dataTableSpec) {
 		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-		if (m_lastTableSpec.containsCompatibleType(allowedColType)) {
+		if (dataTableSpec.containsCompatibleType(allowedColType)) {
 			// We need to save and reload the current configuration to take user actions into account that were taken
 			// since the dialog was opened. Else those would be overridden by the initial configuration.
 			m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
-			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
+			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), dataTableSpec);
 			final DataColumnSpecFilterConfiguration filterConfig = new DataColumnSpecFilterConfiguration(
 					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType));
 			m_cfg.getInputColumnsEntry().setValue(filterConfig, true);

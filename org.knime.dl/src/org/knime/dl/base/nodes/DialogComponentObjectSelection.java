@@ -197,13 +197,6 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 		onSelectionChanged();
 	}
 
-	/**
-	 * Updates the component given the current config
-	 */
-	public void update() {
-		updateComponent();
-	}
-
 	@SuppressWarnings("unchecked") // we know that list items are of type T
 	@Override
 	protected void updateComponent() {

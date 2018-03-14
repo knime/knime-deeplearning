@@ -116,6 +116,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	@Override
 	public void reset() {
+		// null check is necessary because this method is called from super constructor
 		if (m_inputPanels != null) {
 			m_inputPanels.clear();
 			m_targetPanels.clear();
@@ -187,15 +188,10 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		} else if (networkChanged || tableSpecChanged) {
 			reset();
 			createInputAndTargetPanels(portObjectSpec.getNetworkSpec(), tableSpec);
-
-			if (networkChanged) {
-				m_generalPanel.update(portObjectSpec.getNetworkType(), networkSpec);
-			}
 		}
 
 		try {
-			// we can always try to load the general settings, even if the
-			// network has changed.
+			// we can always try to load the general settings, even if the network has changed
 			m_generalCfg.loadFromSettings(settings);
 		} catch (final InvalidSettingsException e1) {
 			throw new NotConfigurableException(e1.getMessage());
@@ -290,7 +286,6 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			}
 			addOutputPanel(targetDataSpec, tableSpec, m_generalCfg);
 		}
-
 	}
 
 	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec) throws NotConfigurableException {

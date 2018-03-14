@@ -60,6 +60,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
+import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
@@ -77,15 +78,9 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DialogComponentObjectSelection<DLKerasTrainingContext<?>> m_dcBackend;
 
-	private DLNetworkSpec m_networkSpec;
-
-	private Class<? extends DLNetwork> m_networkType;
-
 	DLKerasLearnerGeneralPanel(final DLKerasLearnerGeneralConfig cfg, final DLNetworkSpec networkSpec,
-			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
+			final Class<? extends DLNetwork> networkType) {
 		m_cfg = cfg;
-		m_networkSpec = networkSpec;
-		m_networkType = networkType;
 
 		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getTrainingContextEntry(), DLTrainingContext::getName,
 				"Back end");
@@ -112,12 +107,15 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 	@Override
 	public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		refreshAvailableBackends();
-		// Check if the network has pre-defined input batch sizes. Note that
-		// different batch sizes for the same network
+		final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
+		final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
+		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
+
+		refreshAvailableBackends(networkType);
+		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network
 		// are not supported (for networks with multiple inputs).
 		long batchSize = -1;
-		for (final DLTensorSpec inputSpec : m_networkSpec.getInputSpecs()) {
+		for (final DLTensorSpec inputSpec : networkSpec.getInputSpecs()) {
 			if (inputSpec.getBatchSize().isPresent()) {
 				final long bs = inputSpec.getBatchSize().getAsLong();
 				if (batchSize == -1) {
@@ -144,10 +142,11 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		}
 	}
 
-	void refreshAvailableBackends() throws NotConfigurableException {
+	private void refreshAvailableBackends(final Class<? extends DLNetwork> networkType)
+			throws NotConfigurableException {
 		// refresh available back ends
 		final List<DLKerasTrainingContext<?>> availableTrainingContexts = DLKerasLearnerGeneralConfig
-				.getAvailableTrainingContexts(m_networkType).stream()
+				.getAvailableTrainingContexts(networkType).stream()
 				.sorted(Comparator.comparing(DLKerasTrainingContext::getName)) //
 				.collect(Collectors.toList());
 
@@ -172,17 +171,5 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 			}
 		}
 		return false;
-	}
-
-	DLKerasTrainingContext<?> getSelectedContext() {
-		return m_dcBackend.getConfigEntry().getValue();
-	}
-
-	void update(final Class<? extends DLNetwork> networkType, final DLNetworkSpec spec)
-			throws NotConfigurableException {
-		if (!m_networkType.equals(networkType)) {
-			m_networkType = networkType;
-		}
-		m_networkSpec = spec;
 	}
 }
