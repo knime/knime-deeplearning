@@ -54,7 +54,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -79,9 +78,6 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 			= new CopyOnWriteArrayList<>();
 
 	private final CopyOnWriteArrayList<Consumer<ConfigEntry<T>>> m_enableChangeListeners //
-			= new CopyOnWriteArrayList<>();
-
-	private final CopyOnWriteArrayList<Function<ConfigEntry<T>, Boolean>> m_loadPredicates //
 			= new CopyOnWriteArrayList<>();
 
 	protected T m_value;
@@ -155,24 +151,19 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	
 	public final void loadSettingsFrom(final NodeSettingsRO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
-		final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
-		m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
-		T tmp = m_value;
-		loadEntry(subSettings);
-		if (checkLoadPredicates()) {
-			onLoaded();
-		} else {
-			m_value = tmp;
-		}
-	}
-
-	private boolean checkLoadPredicates() {
-		for (Function<ConfigEntry<T>, Boolean> func : m_loadPredicates) {
-			if (!func.apply(this)) {
-				return false;
+		final T oldValue = m_value;
+		try {
+			final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
+			m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
+			loadEntry(subSettings);
+		} catch (final Exception e) {
+			// Config entry could not be found in settings. Give deriving classes a chance to fall back to a default
+			// value or the like.
+			if (!handleFailureToLoadConfigEntry(settings, e)) {
+				throw new InvalidSettingsException(e.getMessage(), e);
 			}
 		}
-		return true;
+		onLoaded();
 	}
 
 	@Override
@@ -200,25 +191,12 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	}
 	
 	@Override
-	public void removeLoadPredicate(final Function<ConfigEntry<T>, Boolean> listener) {
-		m_loadPredicates.remove(listener);
-	}
-
-
-	@Override
 	public void addEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
 		if (!m_enableChangeListeners.contains(listener)) {
 			m_enableChangeListeners.add(listener);
 		}
 	}
 	
-	@Override
-	public void addLoadPredicate(Function<ConfigEntry<T>, Boolean> listener) {
-		if (!m_loadPredicates.contains(listener)) {
-			m_loadPredicates.add(listener);
-		}
-	}
-
 	@Override
 	public void removeEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
 		m_enableChangeListeners.remove(listener);
