@@ -48,7 +48,6 @@ package org.knime.dl.base.settings;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -80,8 +79,6 @@ public interface ConfigEntry<T> {
 
 	void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException;
 
-	void addLoadPredicate(Function<ConfigEntry<T>, Boolean> listener);
-
 	void addLoadListener(Consumer<ConfigEntry<T>> listener);
 
 	void removeLoadListener(Consumer<ConfigEntry<T>> listener);
@@ -94,8 +91,6 @@ public interface ConfigEntry<T> {
 
 	void removeEnableChangeListener(Consumer<ConfigEntry<T>> listener);
 
-	void removeLoadPredicate(Function<ConfigEntry<T>, Boolean> listener);
-
 	@Override
 	int hashCode();
 
@@ -104,5 +99,4 @@ public interface ConfigEntry<T> {
 
 	@Override
 	String toString();
-
 }

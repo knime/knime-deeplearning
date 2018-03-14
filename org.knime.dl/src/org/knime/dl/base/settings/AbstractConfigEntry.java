@@ -54,7 +54,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -79,9 +78,6 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 			= new CopyOnWriteArrayList<>();
 
 	private final CopyOnWriteArrayList<Consumer<ConfigEntry<T>>> m_enableChangeListeners //
-			= new CopyOnWriteArrayList<>();
-
-	private final CopyOnWriteArrayList<Function<ConfigEntry<T>, Boolean>> m_loadPredicates //
 			= new CopyOnWriteArrayList<>();
 
 	protected T m_value;
@@ -167,20 +163,7 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 				throw new InvalidSettingsException(e.getMessage(), e);
 			}
 		}
-		if (checkLoadPredicates()) {
-			onLoaded();
-		} else {
-			m_value = oldValue;
-		}
-	}
-
-	private boolean checkLoadPredicates() {
-		for (final Function<ConfigEntry<T>, Boolean> func : m_loadPredicates) {
-			if (!func.apply(this)) {
-				return false;
-			}
-		}
-		return true;
+		onLoaded();
 	}
 
 	@Override
@@ -208,21 +191,9 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	}
 
 	@Override
-	public void removeLoadPredicate(final Function<ConfigEntry<T>, Boolean> listener) {
-		m_loadPredicates.remove(listener);
-	}
-
-	@Override
 	public void addEnableChangeListener(final Consumer<ConfigEntry<T>> listener) {
 		if (!m_enableChangeListeners.contains(listener)) {
 			m_enableChangeListeners.add(listener);
-		}
-	}
-
-	@Override
-	public void addLoadPredicate(final Function<ConfigEntry<T>, Boolean> listener) {
-		if (!m_loadPredicates.contains(listener)) {
-			m_loadPredicates.add(listener);
 		}
 	}
 
