@@ -46,8 +46,11 @@
  */
 package org.knime.dl.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
 
+import org.knime.core.data.DataRow;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
 
@@ -56,14 +59,76 @@ import org.knime.core.node.BufferedDataTable;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDataTableRowIterator extends DLAbstractDataTableRowIterator {
+abstract class DLAbstractDataTableRowIterator extends DLAbstractRowIterator {
 
-	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
-		super(input, columns);
+	private final BufferedDataTable m_input;
+
+	private final long m_size;
+
+	private CloseableRowIterator m_iterator;
+
+	private DataRow m_lastPeeked;
+
+	public DLAbstractDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
+		super(input.getDataTableSpec(), columns);
+		m_input = checkNotNull(input);
+		m_size = input.size();
+		// will be generated lazily
+		m_iterator = null;
 	}
 
 	@Override
-	protected CloseableRowIterator makeNewIterator() {
-		return getInputTable().iterator();
+	public final long size() {
+		return m_size;
 	}
+
+	@Override
+	public final boolean hasNext() {
+		return m_lastPeeked != null || m_iterator.hasNext();
+	}
+
+	@Override
+	public final DataRow peek() {
+		if (m_lastPeeked == null) {
+			m_lastPeeked = m_iterator.next();
+		}
+		return m_lastPeeked;
+	}
+
+	@Override
+	public final DataRow next() {
+		DataRow nextDataRow;
+		if (m_lastPeeked != null) {
+			nextDataRow = m_lastPeeked;
+			m_lastPeeked = null;
+		} else {
+			nextDataRow = m_iterator.next();
+		}
+		return nextDataRow;
+	}
+
+	@Override
+	public final void reset() {
+		m_iterator.close();
+		m_lastPeeked = null;
+		m_iterator = null;
+	}
+	
+	protected abstract CloseableRowIterator makeNewIterator();
+	
+	private void initializeIteratorIfNull() {
+		if (m_iterator == null) {
+			m_iterator = makeNewIterator();
+		}
+	}
+	
+	protected final BufferedDataTable getInputTable() {
+		return m_input;
+	}
+
+	@Override
+	public final void close() {
+		m_iterator.close();
+	}
+
 }

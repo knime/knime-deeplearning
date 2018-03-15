@@ -47,23 +47,32 @@
 package org.knime.dl.core;
 
 import java.util.Map;
+import java.util.Random;
 
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDataTableRowIterator extends DLAbstractDataTableRowIterator {
+public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowIterator {
+	
+	private final Random m_random;
 
-	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
+	/**
+	 * @param input
+	 * @param columns
+	 * @param random random number generator used to shuffle the input data after each epoch
+	 */
+	public DLShuffleDataTableRowIterator(BufferedDataTable input, Map<DLTensorId, int[]> columns, final Random random) {
 		super(input, columns);
+		m_random = random;
 	}
 
 	@Override
 	protected CloseableRowIterator makeNewIterator() {
-		return getInputTable().iterator();
+		// TODO: Shuffle input table and return iterator of shuffled data
+		return null;
 	}
+
 }
