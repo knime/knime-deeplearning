@@ -103,7 +103,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	private DataTableSpec m_lastTableSpec;
 
 	DLKerasLearnerInputPanel(final DLKerasLearnerInputConfig cfg, final DLTensorSpec inputDataSpec,
-			final DataTableSpec tableSpec) {
+			final DataTableSpec tableSpec) throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
 		m_inputDataSpec = inputDataSpec;
@@ -220,7 +220,7 @@ final class DLKerasLearnerInputPanel extends JPanel {
 	private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
 		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerInputConfig
-				.getAvailableConverters(trainingContext, dataTableSpec, m_inputTensorSpec);
+				.getAvailableConverters(trainingContext, dataTableSpec, m_inputDataSpec);
 		if (converterFactories.isEmpty()) {
 			throw new NotConfigurableException(
 					"No converters available for input '" + m_inputDataSpec.getName() + "'.");

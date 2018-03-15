@@ -206,6 +206,10 @@ public abstract class AbstractConfigEntry<T> implements ConfigEntry<T> {
 	public String toString() {
 		return "config entry: " + m_key + ": " + Objects.toString(m_value);
 	}
+	
+	protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+		return false;
+	}
 
 	protected void saveEntry(final NodeSettingsWO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
