@@ -60,7 +60,7 @@ import java.nio.BufferUnderflowException;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultLongBuffer extends DLAbstractWrappingDataBuffer<long[]>
+public class DLDefaultLongBuffer extends DLAbstractFlatWrappingDataBuffer<long[]>
 		implements DLWritableLongBuffer, DLReadableLongBuffer {
 
 	/**

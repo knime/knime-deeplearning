@@ -52,8 +52,14 @@ import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
 /**
+ * Abstract implementation of buffers that wrap some kind of storage e.g. an array
+ * of a specific type.
+ * 
+ * Extending classes must initialize the storage, preferably in their constructor.
+ * 
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @param <S> Type of storage
  */
 public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataBuffer<S> {
 
@@ -106,7 +112,6 @@ public abstract class DLAbstractWrappingDataBuffer<S> implements DLWrappingDataB
 		checkArgument(capacity <= Integer.MAX_VALUE,
 				"Invalid input capacity. Buffer only supports capacities up to " + Integer.MAX_VALUE + ".");
 		m_capacity = (int) capacity;
-		m_storage = createStorage();
 	}
 
 	/**
