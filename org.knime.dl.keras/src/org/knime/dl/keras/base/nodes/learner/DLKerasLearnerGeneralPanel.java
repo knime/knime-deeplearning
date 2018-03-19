@@ -46,12 +46,16 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
+import java.awt.Component;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -60,7 +64,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
+import org.knime.dl.base.nodes.DialogComponentRandomSeed;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
@@ -97,6 +103,31 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		addNumberSpinnerRowComponent(
 				ConfigUtil.toSettingsModelIntegerBounded(m_cfg.getValidationBatchSizeEntry(), 1, Integer.MAX_VALUE),
 				"Validation batch size", 1);
+		
+		ConfigEntry<Boolean> shuffleEntry = m_cfg.getShuffleTrainingData();
+		addCheckboxRow(ConfigUtil.toSettingsModelBoolean(shuffleEntry),
+				"Shuffle training data before each epoch", true);
+		
+		ConfigEntry<Long> randomSeedConfig = m_cfg.getRandomSeed();
+		DialogComponentRandomSeed randomSeed = 
+				new DialogComponentRandomSeed(ConfigUtil.toSettingsModelLong(randomSeedConfig));
+		addToggleComponentGroup(randomSeedConfig, "Use random seed", randomSeed);
+		JCheckBox toggleCheckBox = getLastCheckBox();
+		// TODO: Once we use the seed also for other purposes, we need to cut the enable/disable
+		// connection between the shuffle checkbox and the seed settings
+		toggleCheckBox.setEnabled(shuffleEntry.getValue());
+		shuffleEntry.addValueChangeListener((e, v) -> {
+			randomSeedConfig.setEnabled(!v);
+			toggleCheckBox.setEnabled(!v);
+		});
+	}
+	
+	private JCheckBox getLastCheckBox() {
+		Component[] components = getComponentGroupPanel().getComponents();
+		JCheckBox[] checkBoxes = Arrays.stream(components).filter(c -> c instanceof JPanel)
+				.map(c -> (JPanel)c).flatMap(p -> Arrays.stream(p.getComponents()))
+				.filter(c -> c instanceof JCheckBox).map(c -> (JCheckBox)c).toArray(i -> new JCheckBox[i]);
+		return checkBoxes[checkBoxes.length - 1];
 	}
 
 	@Override
