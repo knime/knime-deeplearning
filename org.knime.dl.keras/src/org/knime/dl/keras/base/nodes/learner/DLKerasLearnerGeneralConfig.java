@@ -96,6 +96,10 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	static final String CFG_KEY_EARLY_STOPPING = "early_stopping";
 
 	static final String CFG_KEY_REDUCE_LR_ON_PLATEAU = "reduce_lr_on_plateau";
+	
+	static final String CFG_KEY_SHUFFLE_TRAINING_DATA = "shuffle_training_data";
+	
+	static final String CFG_KEY_RANDOM_SEED = "random_seed";
 
 	static Collection<DLKerasTrainingContext<?>> getAvailableTrainingContexts(
 			final Class<? extends DLNetwork> networkType) {
@@ -184,6 +188,12 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 				false));
 		put(new DefaultConfigEntry<>(CFG_KEY_REDUCE_LR_ON_PLATEAU, DLKerasReduceLROnPlateau.class,
 				new DLKerasReduceLROnPlateau(), false));
+		
+		// shuffle options
+		DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<>(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false);
+		put(shuffleTrainingData);
+		DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<>(CFG_KEY_RANDOM_SEED, Long.class, System.currentTimeMillis(), false);
+		put(randomSeed);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -233,6 +243,14 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	@SuppressWarnings("rawtypes")
 	ConfigEntry<DLKerasTrainingContext> getTrainingContext() {
 		return get(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class);
+	}
+	
+	ConfigEntry<Boolean> getShuffleTrainingData() {
+		return get(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class);
+	}
+	
+	ConfigEntry<Long> getRandomSeed() {
+		return get(CFG_KEY_RANDOM_SEED, Long.class);
 	}
 
 	void copyClipSettingsToOptimizer() {
