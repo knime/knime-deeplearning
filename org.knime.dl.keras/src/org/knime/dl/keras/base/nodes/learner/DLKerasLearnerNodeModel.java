@@ -64,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,6 +85,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDataTableRowIterator;
 import org.knime.dl.core.DLException;
@@ -91,6 +93,8 @@ import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLRowIterator;
+import org.knime.dl.core.DLShuffleDataTableRowIterator;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
@@ -595,7 +599,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// TODO: create new network spec with updated training config
 		return inPortObjectSpec;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
 			final BufferedDataTable inTable, final BufferedDataTable inValidationTable, final ExecutionContext exec)
@@ -679,6 +683,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// alternative strategy for handling incomplete batches.
 		final int numTrainingBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) trainingBatchSize);
 		final int totalNumTrainingBatches = numEpochs * numTrainingBatchesPerEpoch;
+		@SuppressWarnings("null") // inValidiationTable is present if doValidation is true
 		final int numBatchesPerValidation = doValidation
 				? (int) Math.ceil(inValidationTable.size() / (double) validationBatchSize)
 				: 0;
@@ -707,9 +712,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_viewData[1] = new DLDefaultLinePlotViewDataCollection<>(m_viewSpecs[1],
 					new DLDenseLinePlotViewData(totalNumTrainingBatches));
 		}
+		
+		Random random = createRandom();
 
 		m_status = new DLKerasDefaultTrainingStatus(numEpochs, numTrainingBatchesPerEpoch);
-		try (final DLDataTableRowIterator rowIterator = new DLDataTableRowIterator(inTable, columnsForTensorId);
+		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
 						rowIterator, trainingBatchSize, converterForTensorId);
 				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
@@ -822,5 +829,18 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_status.setStatus(Status.EXCEPTION);
 			throw new RuntimeException(message, e);
 		}
+	}
+	
+	private Random createRandom() {
+		ConfigEntry<Long> seedCfg = m_generalCfg.getRandomSeed();
+		return seedCfg.getEnabled() ? new Random(seedCfg.getValue()) : new Random();
+	}
+	
+	private DLRowIterator createRowIterator(BufferedDataTable inTable, Map<DLTensorId, int[]> columnsForTensorId, Random random, ExecutionContext exec) {
+		boolean doShuffle = m_generalCfg.getShuffleTrainingData().getValue();
+		if (doShuffle) {
+			return new DLShuffleDataTableRowIterator(inTable, columnsForTensorId, random.nextLong(), exec.createSubExecutionContext(0));
+		}
+		return new DLDataTableRowIterator(inTable, columnsForTensorId);
 	}
 }
