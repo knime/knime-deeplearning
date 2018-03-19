@@ -47,7 +47,7 @@
 package org.knime.dl.core.data;
 
 import static org.junit.Assert.*;
-import static org.knime.dl.core.data.DLTestUtil.*;
+import static org.knime.dl.testing.DLTestUtil.*;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;

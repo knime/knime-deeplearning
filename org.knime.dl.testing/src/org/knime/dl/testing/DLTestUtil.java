@@ -44,195 +44,207 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.data;
+package org.knime.dl.testing;
 
 import java.util.Arrays;
+
+import org.knime.dl.core.DLDefaultDimensionOrder;
+import org.knime.dl.core.DLDefaultFixedTensorShape;
+import org.knime.dl.core.DLDefaultTensorId;
+import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLTensor;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLTestUtil {
+public final class DLTestUtil {
+
 	public static final double DOUBLE_EPSILON = 1e-6;
 	public static final float FLOAT_EPSILON = 1e-6f;
-	
+
 	private DLTestUtil() {
 		// utility class
 	}
-	
-	public static double[] doubleRange(int length) {
-		double[] array = new double[length];
+
+	public static double[] doubleRange(final int length) {
+		final double[] array = new double[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = i;
 		}
 		return array;
 	}
-	
-	public static int[] intRange(int length) {
-		int[] array = new int[length];
+
+	public static int[] intRange(final int length) {
+		final int[] array = new int[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = i;
 		}
 		return array;
 	}
-	
-	public static byte[] byteRange(int length) {
-		byte[] array = new byte[length];
+
+	public static byte[] byteRange(final int length) {
+		final byte[] array = new byte[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = (byte) i;
 		}
 		return array;
 	}
-	
-	public static short[] shortRange(int length) {
-		short[] array = new short[length];
+
+	public static short[] shortRange(final int length) {
+		final short[] array = new short[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = (short) i;
 		}
 		return array;
 	}
-	
-	public static long[] longRange(int length) {
-		long[] array = new long[length];
+
+	public static long[] longRange(final int length) {
+		final long[] array = new long[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = i;
 		}
 		return array;
 	}
-	
-	public static float[] floatRange(int length) {
-		float[] array = new float[length];
+
+	public static float[] floatRange(final int length) {
+		final float[] array = new float[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = i;
 		}
 		return array;
 	}
-	
-	public static boolean[] alternatingBooleanArray(int length) {
-		boolean[] array = new boolean[length];
+
+	public static boolean[] alternatingBooleanArray(final int length) {
+		final boolean[] array = new boolean[length];
 		for (int i = 0; i < length; i++) {
 			array[i] = i % 2 == 0;
 		}
 		return array;
 	}
-	
-	public static double[] toDouble(boolean[] array) {
-		double[] result = new double[array.length];
+
+	public static double[] toDouble(final boolean[] array) {
+		final double[] result = new double[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i] ? 1.0 : 0.0;
 		}
 		return result;
 	}
-	
-	public static double[] toDouble(int[] array) {
+
+	public static double[] toDouble(final int[] array) {
 		return Arrays.stream(array).asDoubleStream().toArray();
 	}
-	
-	public static long[] toLong(int[] array) {
+
+	public static long[] toLong(final int[] array) {
 		return Arrays.stream(array).asLongStream().toArray();
 	}
-	
-	public static long[] toLong(boolean[] array) {
-		long[] result = new long[array.length];
+
+	public static long[] toLong(final boolean[] array) {
+		final long[] result = new long[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i] ? 1L : 0L;
 		}
 		return result;
 	}
-	
-	public static long[] toLong(byte[] array) {
-		long[] result = new long[array.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-	
-	public static long[] toLong(short[] array) {
-		long[] result = new long[array.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-	
-	public static double[] toDouble(short[] array) {
-		double[] result = new double[array.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-	
-	public static double[] toDouble(byte[] array) {
-		double[] result = new double[array.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = array[i];
-		}
-		return result;
-	}
-	
-	public static double[] toDouble(float[] array) {
-		double[] result = new double[array.length];
+
+	public static long[] toLong(final byte[] array) {
+		final long[] result = new long[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
 
-	public static float[] toFloat(int[] array) {
-		float[] result = new float[array.length];
+	public static long[] toLong(final short[] array) {
+		final long[] result = new long[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
-	
-	public static float[] toFloat(short[] array) {
-		float[] result = new float[array.length];
+
+	public static double[] toDouble(final short[] array) {
+		final double[] result = new double[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
-	
-	public static float[] toFloat(byte[] array) {
-		float[] result = new float[array.length];
+
+	public static double[] toDouble(final byte[] array) {
+		final double[] result = new double[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
-	
-	public static float[] toFloat(boolean[] array) {
-		float[] result = new float[array.length];
+
+	public static double[] toDouble(final float[] array) {
+		final double[] result = new double[array.length];
 		for (int i = 0; i < result.length; i++) {
-			result[i] = array[i] ? 1 : 0;
+			result[i] = array[i];
 		}
 		return result;
 	}
-	
-	public static int[] toInt(boolean[] array) {
-		int[] result = new int[array.length];
+
+	public static float[] toFloat(final int[] array) {
+		final float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+
+	public static float[] toFloat(final short[] array) {
+		final float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+
+	public static float[] toFloat(final byte[] array) {
+		final float[] result = new float[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i];
+		}
+		return result;
+	}
+
+	public static float[] toFloat(final boolean[] array) {
+		final float[] result = new float[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i] ? 1 : 0;
 		}
 		return result;
 	}
 
-	public static int[] toInt(byte[] array) {
-		int[] result = new int[array.length];
+	public static int[] toInt(final boolean[] array) {
+		final int[] result = new int[array.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array[i] ? 1 : 0;
+		}
+		return result;
+	}
+
+	public static int[] toInt(final byte[] array) {
+		final int[] result = new int[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
-	
-	public static int[] toInt(short[] array) {
-		int[] result = new int[array.length];
+
+	public static int[] toInt(final short[] array) {
+		final int[] result = new int[array.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = array[i];
 		}
 		return result;
 	}
-	
+
+	public static DLTensor<?> createTensor(final Class<?> elementType, final long batchSize, final long... shape) {
+		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", batchSize,
+				new DLDefaultFixedTensorShape(shape), elementType, DLDefaultDimensionOrder.TCDHW);
+		return new DLTestingTensorFactory().createWritableTensor(spec);
+	}
 }
