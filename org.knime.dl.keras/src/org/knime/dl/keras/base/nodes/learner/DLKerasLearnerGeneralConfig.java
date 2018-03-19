@@ -190,9 +190,24 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 				new DLKerasReduceLROnPlateau(), false));
 		
 		// shuffle options
-		DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<>(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false);
+		DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<Boolean>(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false) {
+			@Override
+			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+				// backward compatibility (3.6): set to false as we previously did not use any shuffling
+				m_value = false;
+				return true;
+				
+			}
+		};
 		put(shuffleTrainingData);
-		DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<>(CFG_KEY_RANDOM_SEED, Long.class, System.currentTimeMillis(), false);
+		DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<Long>(CFG_KEY_RANDOM_SEED, Long.class, System.currentTimeMillis(), false) {
+			@Override
+			protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
+				// backward compatibility (3.6): set to current system time (shuffling is turned off anyway if this method is called)
+				m_value = System.currentTimeMillis();
+				return true;
+			}
+		};
 		put(randomSeed);
 	}
 
