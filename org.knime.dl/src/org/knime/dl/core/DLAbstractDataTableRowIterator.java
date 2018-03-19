@@ -65,15 +65,21 @@ abstract class DLAbstractDataTableRowIterator extends DLAbstractRowIterator {
 
 	private final long m_size;
 
-	private CloseableRowIterator m_iterator;
+	protected CloseableRowIterator m_iterator;
 
 	private DataRow m_lastPeeked;
 
-	public DLAbstractDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
+	/**
+	 * Subclasses must set the initial iterator in their constructor call.
+	 * 
+	 * @param input the data table
+	 * @param columns a map specifying which columns belong to which tensor
+	 */
+	protected DLAbstractDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
 		super(input.getDataTableSpec(), columns);
 		m_input = checkNotNull(input);
 		m_size = input.size();
-		// will be generated lazily
+		// must be set in subclass
 		m_iterator = null;
 	}
 
@@ -111,16 +117,10 @@ abstract class DLAbstractDataTableRowIterator extends DLAbstractRowIterator {
 	public final void reset() {
 		m_iterator.close();
 		m_lastPeeked = null;
-		m_iterator = null;
+		m_iterator = makeNewIterator();
 	}
 	
 	protected abstract CloseableRowIterator makeNewIterator();
-	
-	private void initializeIteratorIfNull() {
-		if (m_iterator == null) {
-			m_iterator = makeNewIterator();
-		}
-	}
 	
 	protected final BufferedDataTable getInputTable() {
 		return m_input;

@@ -60,6 +60,7 @@ public final class DLDataTableRowIterator extends DLAbstractDataTableRowIterator
 
 	public DLDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns) {
 		super(input, columns);
+		m_iterator = makeNewIterator();
 	}
 
 	@Override

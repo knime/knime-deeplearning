@@ -50,7 +50,10 @@ import java.util.Map;
 import java.util.Random;
 
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.sort.Shuffler;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -58,21 +61,30 @@ import org.knime.core.node.BufferedDataTable;
 public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowIterator {
 	
 	private final Random m_random;
+	private final ExecutionContext m_exec;
 
 	/**
-	 * @param input
-	 * @param columns
-	 * @param random random number generator used to shuffle the input data after each epoch
+	 * @param input the data table
+	 * @param columns a map specifying which columns belong to which tensor
+	 * @param seed seed for random number generator
+	 * @param exec execution context necessary for shuffling
 	 */
-	public DLShuffleDataTableRowIterator(BufferedDataTable input, Map<DLTensorId, int[]> columns, final Random random) {
+	public DLShuffleDataTableRowIterator(BufferedDataTable input, Map<DLTensorId, int[]> columns, final long seed, ExecutionContext exec) {
 		super(input, columns);
-		m_random = random;
+		m_random = new Random(seed);
+		m_exec = exec;
+		m_iterator = makeNewIterator();
 	}
 
 	@Override
 	protected CloseableRowIterator makeNewIterator() {
-		// TODO: Shuffle input table and return iterator of shuffled data
-		return null;
+		Shuffler shuffler = new Shuffler(getInputTable(), m_random.nextLong());
+		try {
+			m_exec.setMessage("Shuffling training data");
+			return shuffler.shuffle(m_exec.createSilentSubExecutionContext(0)).iterator();
+		} catch (CanceledExecutionException cee) {
+			throw new IllegalStateException("Execution has been canceled while shuffling training data.", cee);
+		}
 	}
 
 }
