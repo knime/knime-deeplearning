@@ -78,10 +78,10 @@ public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowI
 
 	@Override
 	protected CloseableRowIterator makeNewIterator() {
-		Shuffler shuffler = new Shuffler(getInputTable(), m_random.nextLong());
 		try {
 			m_exec.setMessage("Shuffling training data");
-			return shuffler.shuffle(m_exec.createSilentSubExecutionContext(0)).iterator();
+			return Shuffler.shuffle(getInputTable(), m_exec.createSilentSubExecutionContext(0),
+					m_random.nextLong()).iterator();
 		} catch (CanceledExecutionException cee) {
 			throw new IllegalStateException("Execution has been canceled while shuffling training data.", cee);
 		}
