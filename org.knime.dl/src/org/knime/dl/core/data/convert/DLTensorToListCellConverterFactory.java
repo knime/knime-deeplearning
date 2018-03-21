@@ -109,7 +109,7 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 		final DLTensorToDataCellConverter<I, OE> elementConverter = m_elementConverterFactory.createConverter();
 		return (input, out, exec) -> {
 			final DLTensorSpec spec = input.getSpec();
-			final long batchSize = spec.getBatchSize().getAsLong();
+			final long batchSize = input.getBuffer().size() / input.getExampleSize();
 			// dest count must be computable at runtime
 			final long numOutputsPerElementLong = m_elementConverterFactory.getDestCount(spec).getAsLong();
 			if (numOutputsPerElementLong > Integer.MAX_VALUE) {
@@ -128,7 +128,7 @@ public final class DLTensorToListCellConverterFactory<I extends DLReadableBuffer
 					numOutputs);
 			elementConverter.convert(input, temp, exec);
 			// dest count must be computable and batch size must be configured at runtime
-			final long numListsLong = getDestCount(spec).getAsLong() * spec.getBatchSize().getAsLong();
+			final long numListsLong = getDestCount(spec).getAsLong() * batchSize;
 			if (numListsLong > Integer.MAX_VALUE) {
 				throw new IllegalArgumentException("The number of entries of the current output list per batch, "
 						+ numOutputs + ", is larger than 2^31-1. This is currently not supported.");
