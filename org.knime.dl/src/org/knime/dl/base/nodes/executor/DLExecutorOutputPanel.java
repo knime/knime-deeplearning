@@ -217,6 +217,8 @@ final class DLExecutorOutputPanel extends JPanel {
 						extensionElement.stream().sorted(nameComparator)),
 				Stream.concat(builtInCollection.stream().sorted(nameComparator),
 						extensionCollection.stream().sorted(nameComparator)))
+				// remove all converters for which we can't calculate the table outputSpec
+				.filter(cf -> cf.getDestCount(m_outputTensorSpec).isPresent()) 
 				.collect(Collectors.toList());
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
