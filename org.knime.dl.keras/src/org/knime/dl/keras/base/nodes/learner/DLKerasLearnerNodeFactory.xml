@@ -30,6 +30,19 @@
 				The number of validation data rows that are processed at a time during validation.
 				This option is only enabled if the node's validation data input port is connected.
 			</option>
+			<option name="Shuffle training data before each epoch">
+				Shuffling the training data often improves the learning process because
+				updating the network with the same batches in the same order in each epoch can have an detrimental
+				effect on the convergence speed of the training.
+			</option>
+			<option name="Use random seed">
+				If the checkbox is selected, the random seed displayed in the field on the right is used to perform the shuffling
+				of the training data. Clicking the "New seed" button generates a new random seed.
+				Leaving the checkbox unselected corresponds to creating a new seed for each execution of the node.
+				NOTE: If your network contains weights that are initialized randomly, we currently don't seed this initialization.
+				This means that you will very likely receive slightly different results for multiple model runs even though you are
+				using the random seed for the shuffling of the training data.
+			</option>
 		</tab>
 		<tab name="Optimizer Settings">
 			<option name="Optimizer">
