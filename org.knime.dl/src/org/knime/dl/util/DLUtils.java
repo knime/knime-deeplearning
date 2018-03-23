@@ -71,6 +71,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLPartialTensorShape;
+import org.knime.dl.core.DLShuffleDataTableRowIterator;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLUnknownTensorShape;
@@ -248,6 +249,18 @@ public final class DLUtils {
 		public static final String UNKNOWN_DIM_SIZE_REPR = "?";
 
 		private Shapes() {
+		}
+		
+		public static OptionalLong getDimSize(DLTensorShape shape, int dim) {
+			checkArgument(shape.getNumDimensions() > dim,
+					"The dimension index %s exceeds the size of shape %s", dim, shape);
+			if (isFixed(shape)) {
+				return OptionalLong.of(((DLFixedTensorShape)shape).getShape()[dim]);
+			} else if(isPartial(shape)) {
+				return ((DLPartialTensorShape)shape).getDimension(dim);
+			} else {
+				throw new IllegalArgumentException("Unsupported shape " + shape);
+			}
 		}
 
 		public static boolean isFixed(final DLTensorShape shape) {
