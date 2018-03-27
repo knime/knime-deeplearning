@@ -254,6 +254,7 @@ public final class DLUtils {
 		}
 		
 		public static OptionalLong getDimSize(DLTensorShape shape, int dim) {
+			checkArgument(dim > -1, "The dimension index must be greater or equal zero.");
 			checkArgument(shape.getNumDimensions() > dim,
 					"The dimension index %s exceeds the size of shape %s", dim, shape);
 			if (isFixed(shape)) {
@@ -265,21 +266,6 @@ public final class DLUtils {
 			}
 		}
 		
-		public static OptionalLong getFeatureDimSize(DLTensorSpec spec) {
-			return getDimSize(spec.getShape(), findIndexOf(DLDimension.Channel, spec.getDimensionOrder()));
-		}
-		
-		private static int findIndexOf(DLDimension dim, DLDimensionOrder dimensionOrder) {
-			DLDimension[] dimensions = dimensionOrder.getDimensions();
-			for (int i = 0; i < dimensions.length; i++) {
-				if (dimensions[i] == dim) {
-					return i;
-				}
-			}
-			throw new IllegalArgumentException("The dimension order '" + dimensionOrder +
-					"' doesn't contain dimension '" + dim + "'.");
-		}
-
 		public static boolean isFixed(final DLTensorShape shape) {
 			return shape instanceof DLFixedTensorShape;
 		}
