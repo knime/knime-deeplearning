@@ -55,6 +55,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
@@ -95,29 +96,54 @@ public class DLIntCollectionValueToFloatTensorConverterFactory
 
 			@Override
 			protected void convertInternal(CollectionDataValue element, DLTensor<DLWritableFloatBuffer> output) {
-				// TODO Auto-generated method stub
-				
+				checkType(element.getElementType());
+				DLWritableFloatBuffer buffer = output.getBuffer();
+				int featureDimSize = getFeatureDimSize(output.getSpec());
+				byte[] dummyVector = new byte[featureDimSize];
+				for (DataCell cell : element) {
+					int index = ((IntCell)cell).getIntValue();
+					checkIndexSmallerFeatureDimSize(index, featureDimSize);
+					dummyVector[index] = 1;
+					buffer.putAll(dummyVector);
+					dummyVector[index] = 0;
+				}
 			}
 		};
+	}
+	
+	private int getFeatureDimSize(DLTensorSpec tensorSpec) {
+		long featureDimSize = DLUtils.Shapes.getFeatureDimSize(tensorSpec)
+				.orElseThrow(() -> new DLInvalidNetworkInputException(
+						"The feature dimension must be known to do the conversion."));
+		if (featureDimSize > Integer.MAX_VALUE) {
+			// might change in the future
+			throw new DLInvalidNetworkInputException(
+					"Currently are only feature dimensions of size up to Integer.MAX_VALUE supported.");
+		}
+		return (int) featureDimSize;
+	}
+	
+	private void checkType(DataType type) {
+		CheckUtils.checkArgument(type.equals(DataType.getType(IntCell.class)),
+				"This converter supports only integer collections");
+	}
+	
+	private void checkIndexSmallerFeatureDimSize(int index, long featureDimSize) {
+		CheckUtils.checkArgument(index < featureDimSize,
+				"The index %s exceeds the size of the feature dimension %s.",
+				index, featureDimSize);
 	}
 	
 	
 	@Override
 	protected long[] getDataShapeInternal(CollectionDataValue element, DLTensorSpec tensorSpec) {
-		CheckUtils.checkArgument(element.getElementType() == DataType.getType(IntCell.class),
-				"This converter only supports integer collections");
-		DLTensorShape shape = tensorSpec.getShape();
-		long featureDim = DLUtils.Shapes.getDimSize(shape, shape.getNumDimensions() - 1)
-				.orElseThrow(() -> new IllegalArgumentException(
-						"The feature dimension must be known to do the conversion."));
+		checkType(element.getElementType());
+		long featureDimSize = getFeatureDimSize(tensorSpec);
 		for (DataCell cell : element) {
 			IntCell intCell = (IntCell) cell;
-			CheckUtils.checkArgument(intCell.getIntValue() < featureDim,
-					"The index %s exceeds the size of the feature dimension %s.",
-					intCell.getIntValue(), featureDim);
+			checkIndexSmallerFeatureDimSize(intCell.getIntValue(), featureDimSize);
 		}
-		
-		return new long[] {element.size(), featureDim};
+		return new long[] {element.size(), featureDimSize};
 	}
 
 }

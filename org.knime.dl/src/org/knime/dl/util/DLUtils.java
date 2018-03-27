@@ -68,6 +68,8 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLDimension;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLPartialTensorShape;
@@ -261,6 +263,21 @@ public final class DLUtils {
 			} else {
 				throw new IllegalArgumentException("Unsupported shape " + shape);
 			}
+		}
+		
+		public static OptionalLong getFeatureDimSize(DLTensorSpec spec) {
+			return getDimSize(spec.getShape(), findIndexOf(DLDimension.Channel, spec.getDimensionOrder()));
+		}
+		
+		private static int findIndexOf(DLDimension dim, DLDimensionOrder dimensionOrder) {
+			DLDimension[] dimensions = dimensionOrder.getDimensions();
+			for (int i = 0; i < dimensions.length; i++) {
+				if (dimensions[i] == dim) {
+					return i;
+				}
+			}
+			throw new IllegalArgumentException("The dimension order '" + dimensionOrder +
+					"' doesn't contain dimension '" + dim + "'.");
 		}
 
 		public static boolean isFixed(final DLTensorShape shape) {
