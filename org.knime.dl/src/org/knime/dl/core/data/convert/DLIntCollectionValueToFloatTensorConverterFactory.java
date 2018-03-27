@@ -112,7 +112,9 @@ public class DLIntCollectionValueToFloatTensorConverterFactory
 	}
 	
 	private int getFeatureDimSize(DLTensorSpec tensorSpec) {
-		long featureDimSize = DLUtils.Shapes.getFeatureDimSize(tensorSpec)
+		DLTensorShape shape = tensorSpec.getShape();
+		// in case of 2D time series, the feature dimension is always the last one
+		long featureDimSize = DLUtils.Shapes.getDimSize(shape, shape.getNumDimensions() - 1)
 				.orElseThrow(() -> new DLInvalidNetworkInputException(
 						"The feature dimension must be known to do the conversion."));
 		if (featureDimSize > Integer.MAX_VALUE) {
