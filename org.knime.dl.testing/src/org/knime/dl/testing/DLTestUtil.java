@@ -62,6 +62,8 @@ public final class DLTestUtil {
 	public static final double DOUBLE_EPSILON = 1e-6;
 	public static final float FLOAT_EPSILON = 1e-6f;
 
+	public static final DLTestingTensorFactory TENSOR_FACTORY = new DLTestingTensorFactory();
+
 	private DLTestUtil() {
 		// utility class
 	}
@@ -245,6 +247,6 @@ public final class DLTestUtil {
 	public static DLTensor<?> createTensor(final Class<?> elementType, final long batchSize, final long... shape) {
 		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", batchSize,
 				new DLDefaultFixedTensorShape(shape), elementType, DLDefaultDimensionOrder.TCDHW);
-		return new DLTestingTensorFactory().createWritableTensor(spec);
+		return TENSOR_FACTORY.createWritableTensor(spec);
 	}
 }
