@@ -46,7 +46,7 @@
  */
 package org.knime.dl.core.data;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -60,7 +60,7 @@ public class DLAbstractWrappingBufferTest {
 
 	@Test
 	public void testSimpleGetter() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(10, buffer.getCapacity());
 			assertEquals(0, buffer.size());
 			assertEquals(0, buffer.getNextReadPosition());
@@ -74,35 +74,35 @@ public class DLAbstractWrappingBufferTest {
 			assertEquals(1, buffer.getNextReadPosition());
 		}
 	}
-	
+
 	@Test
 	public void testGetStorageForReading() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			buffer.putAll(new double[10]);
-			double[] storage = buffer.getStorageForReading(0, 10);
+			final double[] storage = buffer.getStorageForReading(0, 10);
 			assertEquals(10, storage.length);
 		}
 	}
-	
+
 	@Test(expected = BufferUnderflowException.class)
 	public void testGetStorageForReadingUnderflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] storage = buffer.getStorageForReading(1, 10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForReading(1, 10);
 		}
 	}
-	
+
 	@Test
 	public void testGetStorageForWriting() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] storage = buffer.getStorageForWriting(0, 10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForWriting(0, 10);
 			assertEquals(10, storage.length);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testGetStorageForWritingOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] storage = buffer.getStorageForWriting(1, 10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForWriting(1, 10);
 		}
 	}
 }

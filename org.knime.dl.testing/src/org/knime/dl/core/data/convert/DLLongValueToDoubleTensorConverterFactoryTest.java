@@ -31,8 +31,8 @@ public class DLLongValueToDoubleTensorConverterFactoryTest {
 		final List<LongValue> input = Arrays.asList(new LongCell(0l), new LongCell(Long.MAX_VALUE),
 				new LongCell(Long.MIN_VALUE), new LongCell(Long.MAX_VALUE + 1), new LongCell(Long.MIN_VALUE - 1));
 
-		final DLTensor<DLWritableDoubleBuffer> output = (DLTensor<DLWritableDoubleBuffer>) createTensor(Double.class,
-				1, input.size());
+		final DLTensor<DLWritableDoubleBuffer> output = (DLTensor<DLWritableDoubleBuffer>) createTensor(Double.class, 1,
+				input.size());
 
 		converter.convert(input, output);
 		final DLReadableDoubleBuffer outputAsReadable = (DLReadableDoubleBuffer) output.getBuffer();

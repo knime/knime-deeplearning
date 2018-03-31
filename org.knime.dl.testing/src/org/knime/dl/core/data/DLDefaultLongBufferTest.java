@@ -46,8 +46,14 @@
  */
 package org.knime.dl.core.data;
 
-import static org.junit.Assert.*;
-import static org.knime.dl.testing.DLTestUtil.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.knime.dl.testing.DLTestUtil.alternatingBooleanArray;
+import static org.knime.dl.testing.DLTestUtil.byteRange;
+import static org.knime.dl.testing.DLTestUtil.intRange;
+import static org.knime.dl.testing.DLTestUtil.longRange;
+import static org.knime.dl.testing.DLTestUtil.shortRange;
+import static org.knime.dl.testing.DLTestUtil.toLong;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -62,7 +68,7 @@ public class DLDefaultLongBufferTest {
 
 	@Test
 	public void testPutBoolean() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
 			buffer.put(true);
 			assertEquals(1, buffer.m_storage[0]);
@@ -71,103 +77,103 @@ public class DLDefaultLongBufferTest {
 			assertEquals(0, buffer.m_storage[1]);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutBooleanOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.put(true);
 			buffer.put(false);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllBoolean() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			boolean[] expected = alternatingBooleanArray(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final boolean[] expected = alternatingBooleanArray(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toLong(expected), buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllBooleanOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.putAll(alternatingBooleanArray(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutByte() throws Exception {
 		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
-			buffer.put((byte)1);
+			buffer.put((byte) 1);
 			assertEquals(1, buffer.m_storage[0]);
 			assertEquals(1, buffer.m_nextWrite);
-			buffer.put((byte)-5);
+			buffer.put((byte) -5);
 			assertEquals(-5, buffer.m_storage[1]);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutByteOverflow() throws Exception {
 		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
-			buffer.put((byte)1);
-			buffer.put((byte)2);
+			buffer.put((byte) 1);
+			buffer.put((byte) 2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllByte() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			byte[] expected = byteRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final byte[] expected = byteRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toLong(expected), buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllByteOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.putAll(byteRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutShort() throws Exception {
 		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			assertEquals(0, buffer.m_nextWrite);
-			buffer.put((short)1);
+			buffer.put((short) 1);
 			assertEquals(1, buffer.m_storage[0]);
-			assertEquals((short)1, buffer.m_nextWrite);
-			buffer.put((short)-5);
+			assertEquals((short) 1, buffer.m_nextWrite);
+			buffer.put((short) -5);
 			assertEquals(-5, buffer.m_storage[1]);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutShortOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
-			buffer.put((short)1);
-			buffer.put((short)2);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+			buffer.put((short) 1);
+			buffer.put((short) 2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllShort() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			short[] expected = shortRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final short[] expected = shortRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toLong(expected), buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllShortOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.putAll(shortRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutInt() throws Exception {
 		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
@@ -179,31 +185,31 @@ public class DLDefaultLongBufferTest {
 			assertEquals(-5, buffer.m_storage[1]);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutIntOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.put(1);
 			buffer.put(2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllInt() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toLong(expected), buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllIntOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.putAll(intRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutLong() throws Exception {
 		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
@@ -215,46 +221,46 @@ public class DLDefaultLongBufferTest {
 			assertEquals(-5L, buffer.m_storage[1]);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutLongOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.put(1L);
 			buffer.put(2L);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllLong() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			long[] expected = longRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final long[] expected = longRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(expected, buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllLongOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(1)) {
 			buffer.putAll(longRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testToLongArray() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toLong(expected), buffer.toLongArray());
 		}
 	}
-	
+
 	@Test
 	public void testReadToLongArray() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
-			long[] filled = new long[expected.length];
+			final long[] filled = new long[expected.length];
 			buffer.readToLongArray(filled, 0, filled.length);
 			assertArrayEquals(toLong(expected), filled);
 			Arrays.fill(filled, -1);
@@ -266,52 +272,52 @@ public class DLDefaultLongBufferTest {
 			assertArrayEquals(toLong(expected), filled);
 		}
 	}
-	
+
 	@Test(expected = BufferUnderflowException.class)
 	public void testReadToLongArrayUnderflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
-			long[] filled = new long[11];
+			final long[] filled = new long[11];
 			buffer.readToLongArray(filled, 0, filled.length);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testReadToLongArrayNonPositiveLength() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
-			long[] filled = new long[10];
+			final long[] filled = new long[10];
 			buffer.readToLongArray(filled, 0, 0);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testReadToLongArrayNegativePos() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
-			long[] filled = new long[10];
+			final long[] filled = new long[10];
 			buffer.readToLongArray(filled, -1, 10);
 		}
 	}
-	
+
 	@Test
 	public void testReadNextLong() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
 			for (int i = 0; i < expected.length; i++) {
 				assertEquals(expected[i], buffer.readNextLong());
 			}
 		}
 	}
-	
+
 	@Test(expected = BufferUnderflowException.class)
 	public void testReadNextLongUnderflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
 			for (int i = 0; i < expected.length; i++) {
 				assertEquals(expected[i], buffer.readNextLong());
@@ -319,46 +325,46 @@ public class DLDefaultLongBufferTest {
 			buffer.readNextLong();
 		}
 	}
-	
+
 	@Test
 	public void testZeroPad() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			buffer.putAll(longRange(10));
 			buffer.reset();
 			buffer.zeroPad(10);
-			long[] expected = new long[10];
+			final long[] expected = new long[10];
 			assertArrayEquals(expected, buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testZeroPadNonPositiveLength() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			buffer.zeroPad(0);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testZeroPadOverflow() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
 			buffer.zeroPad(11);
 		}
 	}
-	
+
 	@Test
 	public void testSetStorage() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			long[] expected = longRange(10);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final long[] expected = longRange(10);
 			buffer.setStorage(expected, 10);
 			assertEquals(0, buffer.m_nextRead);
 			assertArrayEquals(expected, buffer.m_storage);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetStorageWrongCapacity() throws Exception {
-		try(DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
-			long[] storage = longRange(11);
+		try (DLDefaultLongBuffer buffer = new DLDefaultLongBuffer(10)) {
+			final long[] storage = longRange(11);
 			buffer.setStorage(storage, 10);
 		}
 	}

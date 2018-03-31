@@ -46,8 +46,16 @@
  */
 package org.knime.dl.core.data;
 
-import static org.junit.Assert.*;
-import static org.knime.dl.testing.DLTestUtil.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.knime.dl.testing.DLTestUtil.DOUBLE_EPSILON;
+import static org.knime.dl.testing.DLTestUtil.alternatingBooleanArray;
+import static org.knime.dl.testing.DLTestUtil.byteRange;
+import static org.knime.dl.testing.DLTestUtil.doubleRange;
+import static org.knime.dl.testing.DLTestUtil.floatRange;
+import static org.knime.dl.testing.DLTestUtil.intRange;
+import static org.knime.dl.testing.DLTestUtil.shortRange;
+import static org.knime.dl.testing.DLTestUtil.toDouble;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -62,7 +70,7 @@ public class DLDefaultDoubleBufferTest {
 
 	@Test
 	public void testPutBoolean() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
 			buffer.put(true);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
@@ -71,34 +79,34 @@ public class DLDefaultDoubleBufferTest {
 			assertEquals(0.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutBooleanOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put(true);
 			buffer.put(false);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllBoolean() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			boolean[] expected = alternatingBooleanArray(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final boolean[] expected = alternatingBooleanArray(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toDouble(expected), buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllBooleanOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(alternatingBooleanArray(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutInt() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
 			buffer.put(1);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
@@ -107,34 +115,34 @@ public class DLDefaultDoubleBufferTest {
 			assertEquals(-5.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutIntOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put(1);
 			buffer.put(2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllInt() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			int[] expected = intRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final int[] expected = intRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toDouble(expected), buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllIntOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(intRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutFloat() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
 			buffer.put(1.0f);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
@@ -143,34 +151,34 @@ public class DLDefaultDoubleBufferTest {
 			assertEquals(-5.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutFloatOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put(1.0f);
 			buffer.put(2.0f);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllFloat() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			float[] expected = floatRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final float[] expected = floatRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toDouble(expected), buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllFloatOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(floatRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutDouble() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
 			buffer.put(1.0);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
@@ -179,118 +187,118 @@ public class DLDefaultDoubleBufferTest {
 			assertEquals(-5.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutDoubleOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.put(1.0);
 			buffer.put(2.0);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllDouble() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(expected, buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllDoubleOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(doubleRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutByte() throws Exception {
 		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
-			buffer.put((byte)1);
+			buffer.put((byte) 1);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
 			assertEquals(1, buffer.m_nextWrite);
-			buffer.put((byte)-5);
+			buffer.put((byte) -5);
 			assertEquals(-5.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutByteOverflow() throws Exception {
 		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
-			buffer.put((byte)1);
-			buffer.put((byte)2);
+			buffer.put((byte) 1);
+			buffer.put((byte) 2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllByte() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			byte[] expected = byteRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final byte[] expected = byteRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toDouble(expected), buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllByteOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(byteRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testPutShort() throws Exception {
 		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			assertEquals(buffer.m_nextWrite, 0);
-			buffer.put((short)1);
+			buffer.put((short) 1);
 			assertEquals(1.0, buffer.m_storage[0], DOUBLE_EPSILON);
-			assertEquals((short)1, buffer.m_nextWrite);
+			assertEquals((short) 1, buffer.m_nextWrite);
 			buffer.put(-5);
 			assertEquals(-5.0, buffer.m_storage[1], DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutShortOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
-			buffer.put((short)1);
-			buffer.put((short)2);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+			buffer.put((short) 1);
+			buffer.put((short) 2);
 		}
 	}
-	
+
 	@Test
 	public void testPutAllShort() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			short[] expected = shortRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final short[] expected = shortRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(toDouble(expected), buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testPutAllShortOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(1)) {
 			buffer.putAll(shortRange(10));
 		}
 	}
-	
+
 	@Test
 	public void testToDoubleArray() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
 			assertArrayEquals(expected, buffer.toDoubleArray(), DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test
 	public void testReadToDoubleArray() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
-			double[] filled = new double[expected.length];
+			final double[] filled = new double[expected.length];
 			buffer.readToDoubleArray(filled, 0, filled.length);
 			assertArrayEquals(expected, filled, DOUBLE_EPSILON);
 			Arrays.fill(filled, -1);
@@ -302,52 +310,52 @@ public class DLDefaultDoubleBufferTest {
 			assertArrayEquals(expected, filled, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = BufferUnderflowException.class)
 	public void testReadToDoubleArrayUnderflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
-			double[] filled = new double[11];
+			final double[] filled = new double[11];
 			buffer.readToDoubleArray(filled, 0, filled.length);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testReadToDoubleArrayNonPositiveLength() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
-			double[] filled = new double[10];
+			final double[] filled = new double[10];
 			buffer.readToDoubleArray(filled, 0, 0);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testReadToDoubleArrayNegativePos() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
-			double[] filled = new double[10];
+			final double[] filled = new double[10];
 			buffer.readToDoubleArray(filled, -1, 10);
 		}
 	}
-	
+
 	@Test
 	public void testReadNextDouble() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
 			for (int i = 0; i < expected.length; i++) {
 				assertEquals(expected[i], buffer.readNextDouble(), DOUBLE_EPSILON);
 			}
 		}
 	}
-	
+
 	@Test(expected = BufferUnderflowException.class)
 	public void testReadNextDoubleUnderflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.putAll(expected);
 			for (int i = 0; i < expected.length; i++) {
 				assertEquals(expected[i], buffer.readNextDouble(), DOUBLE_EPSILON);
@@ -355,46 +363,46 @@ public class DLDefaultDoubleBufferTest {
 			buffer.readNextDouble();
 		}
 	}
-	
+
 	@Test
 	public void testZeroPad() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			buffer.putAll(doubleRange(10));
 			buffer.reset();
 			buffer.zeroPad(10);
-			double[] expected = new double[10];
+			final double[] expected = new double[10];
 			assertArrayEquals(expected, buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testZeroPadNonPositiveLength() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			buffer.zeroPad(0);
 		}
 	}
-	
+
 	@Test(expected = BufferOverflowException.class)
 	public void testZeroPadOverflow() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
 			buffer.zeroPad(11);
 		}
 	}
-	
+
 	@Test
 	public void testSetStorage() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] expected = doubleRange(10);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] expected = doubleRange(10);
 			buffer.setStorage(expected, 10);
 			assertEquals(0, buffer.m_nextRead);
 			assertArrayEquals(expected, buffer.m_storage, DOUBLE_EPSILON);
 		}
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetStorageWrongCapacity() throws Exception {
-		try(DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
-			double[] storage = doubleRange(11);
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = doubleRange(11);
 			buffer.setStorage(storage, 10);
 		}
 	}

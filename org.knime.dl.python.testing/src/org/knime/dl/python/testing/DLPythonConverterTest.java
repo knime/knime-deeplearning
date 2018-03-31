@@ -117,9 +117,9 @@ public class DLPythonConverterTest {
 	public void testFooToBar() throws Exception {
 		// register converters:
 		DLDataValueToTensorConverterRegistry.getInstance()
-		.registerConverter(new DLFooDataValueToFloatTensorConverterFactory());
+				.registerConverter(new DLFooDataValueToFloatTensorConverterFactory());
 		DLTensorToDataCellConverterRegistry.getInstance()
-		.registerConverter(new DLDoubleBufferToBarDataCellConverterFactory());
+				.registerConverter(new DLDoubleBufferToBarDataCellConverterFactory());
 
 		// network:
 
@@ -199,63 +199,63 @@ public class DLPythonConverterTest {
 		try (final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
 				outputConverters.keySet(), new DLNetworkInputPreparer() {
 
-			@Override
-			public long getNumBatches() {
-				return 1;
-			}
+					@Override
+					public long getNumBatches() {
+						return 1;
+					}
 
-			@Override
-			public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
-					throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-				for (Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-					final DLTensorId identifier = entry.getKey();
-					final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-					final DLDataValueToTensorConverter converter = inputConverters.get(identifier)
-							.createConverter();
-					converter.convert(inputs.get(identifier), tensor);
-				}
-			}
-
-			@Override
-			public void close() throws Exception {
-				// no op
-			}
-		}, new DLNetworkOutputConsumer() {
-
-			@Override
-			public void accept(final Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output)
-					throws DLCanceledExecutionException, DLInvalidNetworkOutputException {
-				for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : output.entrySet()) {
-					DLTensorId identifier = entry.getKey();
-					DLTensor<? extends DLReadableBuffer> tensor = entry.getValue();
-					DLTensorToDataCellConverter converter = outputConverters.get(identifier).createConverter();
-					DataCell[] dataCells = outputs.computeIfAbsent(entry.getKey(), k -> new DataCell[1]);
-					converter.convert(tensor, dataCells, null);
-				}
-
-				// check if conversion succeeded
-				for (final Entry<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
-						.entrySet()) {
-					final Iterable<DataValue> inputsForSpec = inputs.get(networkSpec.getInputSpecs()[0]);
-					final DataCell[] outputsForSpec = outputs.get(outputSpecPair.getKey());
-					int i = 0;
-					for (final DataValue input : inputsForSpec) {
-						final DataCell o = outputsForSpec[i++];
-						final float[] in = ((FooDataCell) input).getFloatArray();
-						Assert.assertTrue(o instanceof BarDataCell);
-						final double[] out = ((BarDataCell) o).getDoubleArray();
-						for (int j = 0; j < out.length; j++) {
-							Assert.assertEquals(out[j], in[j] * 5.0, 0.0);
+					@Override
+					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+							throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+						for (Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+							final DLTensorId identifier = entry.getKey();
+							final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+							final DLDataValueToTensorConverter converter = inputConverters.get(identifier)
+									.createConverter();
+							converter.convert(inputs.get(identifier), tensor);
 						}
 					}
-				}
-			}
 
-			@Override
-			public void close() throws Exception {
-				// no op
-			}
-		})) {
+					@Override
+					public void close() throws Exception {
+						// no op
+					}
+				}, new DLNetworkOutputConsumer() {
+
+					@Override
+					public void accept(final Map<DLTensorId, DLTensor<? extends DLReadableBuffer>> output)
+							throws DLCanceledExecutionException, DLInvalidNetworkOutputException {
+						for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : output.entrySet()) {
+							DLTensorId identifier = entry.getKey();
+							DLTensor<? extends DLReadableBuffer> tensor = entry.getValue();
+							DLTensorToDataCellConverter converter = outputConverters.get(identifier).createConverter();
+							DataCell[] dataCells = outputs.computeIfAbsent(entry.getKey(), k -> new DataCell[1]);
+							converter.convert(tensor, dataCells, null);
+						}
+
+						// check if conversion succeeded
+						for (final Entry<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputSpecPair : outputConverters
+								.entrySet()) {
+							final Iterable<DataValue> inputsForSpec = inputs.get(networkSpec.getInputSpecs()[0]);
+							final DataCell[] outputsForSpec = outputs.get(outputSpecPair.getKey());
+							int i = 0;
+							for (final DataValue input : inputsForSpec) {
+								final DataCell o = outputsForSpec[i++];
+								final float[] in = ((FooDataCell) input).getFloatArray();
+								Assert.assertTrue(o instanceof BarDataCell);
+								final double[] out = ((BarDataCell) o).getDoubleArray();
+								for (int j = 0; j < out.length; j++) {
+									Assert.assertEquals(out[j], in[j] * 5.0, 0.0);
+								}
+							}
+						}
+					}
+
+					@Override
+					public void close() throws Exception {
+						// no op
+					}
+				})) {
 			session.run(new DLTestExecutionMonitor());
 		}
 	}
@@ -334,7 +334,7 @@ public class DLPythonConverterTest {
 		public DLBazNetworkExecutionSession createExecutionSession(final DLBazNetwork network,
 				final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
 				final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer)
-						throws RuntimeException {
+				throws RuntimeException {
 			return new DLBazNetworkExecutionSession(network, executionInputSpecs, requestedOutputs, inputPreparer,
 					outputConsumer, m_tensorFactory);
 		}
@@ -392,7 +392,7 @@ public class DLPythonConverterTest {
 	}
 
 	static class DLFooDataValueToFloatTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
+		extends DLAbstractTensorDataValueToTensorConverterFactory<FooDataValue, DLWritableFloatBuffer> {
 
 		@Override
 		public String getName() {
@@ -436,7 +436,7 @@ public class DLPythonConverterTest {
 	}
 
 	static class DLDoubleBufferToBarDataCellConverterFactory
-	implements DLTensorToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
+			implements DLTensorToDataCellConverterFactory<DLReadableDoubleBuffer, BarDataCell> {
 
 		private static final OptionalLong DEST_COUNT = OptionalLong.of(1);
 

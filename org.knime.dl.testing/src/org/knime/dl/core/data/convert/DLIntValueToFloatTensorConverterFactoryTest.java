@@ -31,8 +31,8 @@ public class DLIntValueToFloatTensorConverterFactoryTest {
 		final List<IntValue> input = Arrays.asList(new IntCell(0), new IntCell(Integer.MAX_VALUE),
 				new IntCell(Integer.MIN_VALUE), new IntCell(Integer.MAX_VALUE + 1), new IntCell(Integer.MIN_VALUE - 1));
 
-		final DLTensor<DLWritableFloatBuffer> output = (DLTensor<DLWritableFloatBuffer>) createTensor(Float.class,
-				1, input.size());
+		final DLTensor<DLWritableFloatBuffer> output = (DLTensor<DLWritableFloatBuffer>) createTensor(Float.class, 1,
+				input.size());
 		converter.convert(input, output);
 		final DLReadableFloatBuffer outputAsReadable = (DLReadableFloatBuffer) output.getBuffer();
 

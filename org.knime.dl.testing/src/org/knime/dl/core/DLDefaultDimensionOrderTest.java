@@ -46,7 +46,7 @@
  */
 package org.knime.dl.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 
 import org.junit.Test;
 
@@ -55,42 +55,51 @@ import org.junit.Test;
  */
 public class DLDefaultDimensionOrderTest {
 
-	private static DLDimension[] createDimensionArrayFromString(String abbreviated) {
-		DLDimension[] dimensions = new DLDimension[abbreviated.length()];
+	private static DLDimension[] createDimensionArrayFromString(final String abbreviated) {
+		final DLDimension[] dimensions = new DLDimension[abbreviated.length()];
 		for (int i = 0; i < dimensions.length; i++) {
 			dimensions[i] = getDimensionForChar(abbreviated.charAt(i));
 		}
 		return dimensions;
 	}
-		
-	private static DLDimension getDimensionForChar(char c) {
+
+	private static DLDimension getDimensionForChar(final char c) {
 		switch (c) {
-		case ('T'): return DLDimension.Time;
-		case ('D'): return DLDimension.Depth;
-		case ('H'): return DLDimension.Height;
-		case ('W'): return DLDimension.Width;
-		case ('C'): return DLDimension.Channel;
+		case ('T'):
+			return DLDimension.Time;
+		case ('D'):
+			return DLDimension.Depth;
+		case ('H'):
+			return DLDimension.Height;
+		case ('W'):
+			return DLDimension.Width;
+		case ('C'):
+			return DLDimension.Channel;
 		}
 		throw new IllegalArgumentException("Unknown dimension abbreviation '" + c);
 	}
-	
+
 	@Test
 	public void testInferMappingTDHWC() throws Exception {
-		DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TDHWC;
-		assertArrayEquals(new int[] {0, 1, 2, 3, 4}, dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
-		assertArrayEquals(new int[] {0, 2, 3, 4, 1}, dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
-		assertArrayEquals(new int[] {0, 1, 2}, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
-		assertArrayEquals(new int[] {1, 2, 0}, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
-		assertArrayEquals(new int[] {0, 2, 3, 1}, dimOrder.inferMappingFor(createDimensionArrayFromString("TCHW")));
+		final DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TDHWC;
+		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
+		assertArrayEquals(new int[] { 0, 2, 3, 4, 1 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
+		assertArrayEquals(new int[] { 0, 1, 2 }, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
+		assertArrayEquals(new int[] { 1, 2, 0 }, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
+		assertArrayEquals(new int[] { 0, 2, 3, 1 }, dimOrder.inferMappingFor(createDimensionArrayFromString("TCHW")));
 	}
-	
+
 	@Test
 	public void testInferMappingTCDHW() throws Exception {
-		DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TCDHW;
-		assertArrayEquals(new int[] {0, 1, 2, 3, 4}, dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
-		assertArrayEquals(new int[] {0, 4, 1, 2, 3}, dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
-		assertArrayEquals(new int[] {2, 0, 1}, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
-		assertArrayEquals(new int[] {0, 1, 2}, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
+		final DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TCDHW;
+		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
+		assertArrayEquals(new int[] { 0, 4, 1, 2, 3 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
+		assertArrayEquals(new int[] { 2, 0, 1 }, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
+		assertArrayEquals(new int[] { 0, 1, 2 }, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
 	}
-	
+
 }

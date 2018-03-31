@@ -253,7 +253,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testInt() throws IOException, DLInvalidEnvironmentException {
 		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
 		for (int i = 0; i < NUM_IN_TENSORS; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE, int.class, DLDefaultDimensionOrder.TDHWC);
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE, int.class,
+					DLDefaultDimensionOrder.TDHWC);
 			final long exampleSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get());
 			final DLPythonIntBuffer buff = new DLPythonIntBuffer(exampleSize);
 			for (int j = 0; j < buff.getCapacity(); j++) {
@@ -300,8 +301,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 	public void testLong() throws Exception {
 		final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
 		for (int i = 0; i < NUM_IN_TENSORS; i++) {
-			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE,
-					long.class, DLDefaultDimensionOrder.TDHWC);
+			final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE, long.class,
+					DLDefaultDimensionOrder.TDHWC);
 			final long exampleSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get());
 			final DLPythonLongBuffer buff = new DLPythonLongBuffer(exampleSize);
 			for (int j = 0; j < buff.getCapacity(); j++) {
