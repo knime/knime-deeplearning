@@ -64,6 +64,8 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.util.Pair;
 import org.knime.dl.core.DLException;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -261,7 +263,8 @@ public abstract class AbstractConfig implements Config {
 			for (int i = 0; i < entriesFailedToLoad.size(); i++) {
 				Throwable e = entriesFailedToLoad.get(i).getSecond();
 				do {
-					if (e instanceof DLException || e instanceof NotConfigurableException) {
+					if (e instanceof DLException || e instanceof NotConfigurableException
+							|| (e instanceof InvalidSettingsException && !Strings.isNullOrEmpty(e.getMessage()))) {
 						throw new DLInvalidSettingsException(e.getMessage(), entriesFailedToLoad);
 					}
 				} while (e != e.getCause() && (e = e.getCause()) != null);
