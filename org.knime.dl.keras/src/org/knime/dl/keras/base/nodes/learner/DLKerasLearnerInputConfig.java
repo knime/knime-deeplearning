@@ -51,14 +51,7 @@ package org.knime.dl.keras.base.nodes.learner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -67,10 +60,8 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.AbstractConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
-import org.knime.dl.core.training.DLTrainingContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -86,24 +77,6 @@ final class DLKerasLearnerInputConfig extends AbstractConfig {
 
 	private final DLKerasLearnerGeneralConfig m_generalConfig;
 
-	static Collection<DLDataValueToTensorConverterFactory<?, ?>> getAvailableConverters(
-			final DLTrainingContext<?, ?> trainingContext, final DataTableSpec tableSpec,
-			final DLTensorSpec tensorSpec) {
-		final HashSet<DataType> inputTypes = new HashSet<>();
-		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = new HashSet<>();
-		final DLDataValueToTensorConverterRegistry converters = DLDataValueToTensorConverterRegistry.getInstance();
-		// for each distinct column type in the input table, add the preferred converter to the list of selectable
-		// converters
-		for (final DataColumnSpec inputColSpec : tableSpec) {
-			if (inputTypes.add(inputColSpec.getType())) {
-				final List<DLDataValueToTensorConverterFactory<?, ?>> convs = converters
-						.getConverterFactories(inputColSpec.getType(),
-								trainingContext.getTensorFactory().getWritableBufferType(tensorSpec));
-				converterFactories.addAll(convs);
-			}
-		}
-		return converterFactories;
-	}
 
 	@SuppressWarnings("rawtypes") // Java limitation
 	DLKerasLearnerInputConfig(final String inputTensorName, final DLKerasLearnerGeneralConfig generalCfg) {

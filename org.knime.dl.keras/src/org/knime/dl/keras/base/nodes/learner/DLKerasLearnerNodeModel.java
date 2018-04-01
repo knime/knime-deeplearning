@@ -56,18 +56,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -83,6 +79,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
@@ -97,7 +94,6 @@ import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLShuffleDataTableRowIterator;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLKnimeNetworkTrainingInputPreparer;
 import org.knime.dl.core.training.DLKnimeNetworkValidationInputPreparer;
@@ -451,6 +447,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		if (inputSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no input specs.");
 		}
+		final DLKerasTrainingContext<?> trainingContext = m_generalCfg.getTrainingContext().getValue();
 		for (final DLTensorSpec tensorSpec : inputSpecs) {
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
@@ -461,42 +458,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
-			if (converter == null) {
-				final Collection<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerInputConfig
-						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
-								tensorSpec);
-				if (availableConverters.isEmpty()) {
-					throw new InvalidSettingsException(
-							"No converters available for input '" + tensorSpec.getName() + "'.");
-				}
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
-				for (final DLDataValueToTensorConverterFactory<?, ?> conv : availableConverters) {
-					if (conv.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
-						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
-							builtInCollection.add(conv);
-						} else {
-							builtInElement.add(conv);
-						}
-					} else {
-						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
-							extensionCollection.add(conv);
-						} else {
-							extensionElement.add(conv);
-						}
-					}
-				}
+			if (converter == null) { // TODO: or if table changed
 				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
 						.comparing(DLDataValueToTensorConverterFactory::getName);
-				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConvertersSorted = Stream.concat(
-						Stream.concat(builtInElement.stream().sorted(nameComparator),
-								extensionElement.stream().sorted(nameComparator)),
-						Stream.concat(builtInCollection.stream().sorted(nameComparator),
-								extensionCollection.stream().sorted(nameComparator)))
-						.collect(Collectors.toList());
-				converter = availableConvertersSorted.get(0);
+				final DLConverterRefresher converterRefresher = new DLConverterRefresher(inTableSpec,
+						trainingContext.getTensorFactory().getWritableBufferType(tensorSpec), tensorSpec, false,
+						nameComparator);
+				final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher
+						.getConverters();
+				converter = converterFactories.get(0);
 				inputCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);
@@ -526,42 +496,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			}
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
-			if (converter == null) {
-				final Collection<DLDataValueToTensorConverterFactory<?, ?>> availableConverters = DLKerasLearnerTargetConfig
-						.getAvailableConverters(m_generalCfg.getTrainingContextEntry().getValue(), inTableSpec,
-								tensorSpec);
-				if (availableConverters.isEmpty()) {
-					throw new InvalidSettingsException(
-							"No converters available for target '" + tensorSpec.getName() + "'.");
-				}
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
-				final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
-				for (final DLDataValueToTensorConverterFactory<?, ?> conv : availableConverters) {
-					if (conv.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
-						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
-							builtInCollection.add(conv);
-						} else {
-							builtInElement.add(conv);
-						}
-					} else {
-						if (conv instanceof DLCollectionDataValueToTensorConverterFactory) {
-							extensionCollection.add(conv);
-						} else {
-							extensionElement.add(conv);
-						}
-					}
-				}
+			if (converter == null) { // TODO: or if table changed
 				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
 						.comparing(DLDataValueToTensorConverterFactory::getName);
-				final List<DLDataValueToTensorConverterFactory<?, ?>> availableConvertersSorted = Stream.concat(
-						Stream.concat(builtInElement.stream().sorted(nameComparator),
-								extensionElement.stream().sorted(nameComparator)),
-						Stream.concat(builtInCollection.stream().sorted(nameComparator),
-								extensionCollection.stream().sorted(nameComparator)))
-						.collect(Collectors.toList());
-				converter = availableConvertersSorted.get(0);
+				final DLConverterRefresher converterRefresher = new DLConverterRefresher(inTableSpec,
+						trainingContext.getTensorFactory().getWritableBufferType(tensorSpec), tensorSpec, true,
+						nameComparator);
+				final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher
+						.getConverters();
+				converter = converterFactories.get(0);
 				targetCfg.getConverterEntry().setValue(converter);
 			}
 			m_converters.put(tensorSpec, converter);
@@ -599,7 +542,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		// TODO: create new network spec with updated training config
 		return inPortObjectSpec;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
 			final BufferedDataTable inTable, final BufferedDataTable inValidationTable, final ExecutionContext exec)
@@ -712,8 +655,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_viewData[1] = new DLDefaultLinePlotViewDataCollection<>(m_viewSpecs[1],
 					new DLDenseLinePlotViewData(totalNumTrainingBatches));
 		}
-		
-		Random random = createRandom();
+
+		final Random random = createRandom();
 
 		m_status = new DLKerasDefaultTrainingStatus(numEpochs, numTrainingBatchesPerEpoch);
 		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
@@ -830,16 +773,18 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			throw new RuntimeException(message, e);
 		}
 	}
-	
+
 	private Random createRandom() {
-		ConfigEntry<Long> seedCfg = m_generalCfg.getRandomSeed();
+		final ConfigEntry<Long> seedCfg = m_generalCfg.getRandomSeed();
 		return seedCfg.getEnabled() ? new Random(seedCfg.getValue()) : new Random();
 	}
-	
-	private DLRowIterator createRowIterator(BufferedDataTable inTable, Map<DLTensorId, int[]> columnsForTensorId, Random random, ExecutionContext exec) {
-		boolean doShuffle = m_generalCfg.getShuffleTrainingData().getValue();
+
+	private DLRowIterator createRowIterator(final BufferedDataTable inTable,
+			final Map<DLTensorId, int[]> columnsForTensorId, final Random random, final ExecutionContext exec) {
+		final boolean doShuffle = m_generalCfg.getShuffleTrainingData().getValue();
 		if (doShuffle) {
-			return new DLShuffleDataTableRowIterator(inTable, columnsForTensorId, random.nextLong(), exec.createSubExecutionContext(0));
+			return new DLShuffleDataTableRowIterator(inTable, columnsForTensorId, random.nextLong(),
+					exec.createSubExecutionContext(0));
 		}
 		return new DLDataTableRowIterator(inTable, columnsForTensorId);
 	}

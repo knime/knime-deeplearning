@@ -52,14 +52,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -76,9 +73,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
+import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLLossFunction;
 import org.knime.dl.core.training.DLTrainingContext;
@@ -227,40 +224,18 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 	private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
 		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
-		final Collection<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = DLKerasLearnerTargetConfig
-				.getAvailableConverters(trainingContext, dataTableSpec, m_outputDataSpec);
-		if (converterFactories.isEmpty()) {
-			throw new NotConfigurableException(
-					"No converters available for target '" + m_outputDataSpec.getName() + "'.");
+		DLConverterRefresher converterRefresher;
+		try {
+			final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
+					.comparing(DLDataValueToTensorConverterFactory::getName);
+			converterRefresher = new DLConverterRefresher(dataTableSpec,
+					trainingContext.getTensorFactory().getWritableBufferType(m_targetTensorSpec), m_targetTensorSpec,
+					true, nameComparator);
+		} catch (final InvalidSettingsException e) {
+			throw new NotConfigurableException(e.getMessage());
 		}
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
-		final Set<DLDataValueToTensorConverterFactory<?, ?>> extensionCollection = new HashSet<>(1);
-		for (final DLDataValueToTensorConverterFactory<?, ?> converter : converterFactories) {
-			if (converter.getClass().getCanonicalName().contains("org.knime.dl.core.data.convert")) {
-				if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
-					builtInCollection.add(converter);
-				} else {
-					builtInElement.add(converter);
-				}
-			} else {
-				if (converter instanceof DLCollectionDataValueToTensorConverterFactory) {
-					extensionCollection.add(converter);
-				} else {
-					extensionElement.add(converter);
-				}
-			}
-		}
-		final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-				.comparing(DLDataValueToTensorConverterFactory::getName);
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
-				Stream.concat(builtInElement.stream().sorted(nameComparator),
-						extensionElement.stream().sorted(nameComparator)),
-				Stream.concat(builtInCollection.stream().sorted(nameComparator),
-						extensionCollection.stream().sorted(nameComparator)))
-				.collect(Collectors.toList());
-		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
+		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
+		m_dcConverter.replaceListItems(converterFactories, null);
 	}
 
 	private void refreshAllowedInputColumns(final DataTableSpec dataTableSpec) {

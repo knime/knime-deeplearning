@@ -96,9 +96,9 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	static final String CFG_KEY_EARLY_STOPPING = "early_stopping";
 
 	static final String CFG_KEY_REDUCE_LR_ON_PLATEAU = "reduce_lr_on_plateau";
-	
+
 	static final String CFG_KEY_SHUFFLE_TRAINING_DATA = "shuffle_training_data";
-	
+
 	static final String CFG_KEY_RANDOM_SEED = "random_seed";
 
 	static Collection<DLKerasTrainingContext<?>> getAvailableTrainingContexts(
@@ -188,22 +188,25 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 				false));
 		put(new DefaultConfigEntry<>(CFG_KEY_REDUCE_LR_ON_PLATEAU, DLKerasReduceLROnPlateau.class,
 				new DLKerasReduceLROnPlateau(), false));
-		
+
 		// shuffle options
-		DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<Boolean>(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false) {
+		final DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<Boolean>(
+				CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false) {
 			@Override
 			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
 				// backward compatibility (3.6): set to false as we previously did not use any shuffling
 				m_value = false;
 				return true;
-				
+
 			}
 		};
 		put(shuffleTrainingData);
-		DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<Long>(CFG_KEY_RANDOM_SEED, Long.class, System.currentTimeMillis(), false) {
+		final DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<Long>(CFG_KEY_RANDOM_SEED, Long.class,
+				System.currentTimeMillis(), false) {
 			@Override
-			protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
-				// backward compatibility (3.6): set to current system time (shuffling is turned off anyway if this method is called)
+			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+				// backward compatibility (3.6): set to current system time (shuffling is turned off anyway if this
+				// method is called)
 				m_value = System.currentTimeMillis();
 				return true;
 			}
@@ -259,11 +262,11 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	ConfigEntry<DLKerasTrainingContext> getTrainingContext() {
 		return get(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class);
 	}
-	
+
 	ConfigEntry<Boolean> getShuffleTrainingData() {
 		return get(CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class);
 	}
-	
+
 	ConfigEntry<Long> getRandomSeed() {
 		return get(CFG_KEY_RANDOM_SEED, Long.class);
 	}

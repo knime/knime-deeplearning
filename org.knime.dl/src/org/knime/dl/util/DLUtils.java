@@ -58,10 +58,12 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -329,6 +331,49 @@ public final class DLUtils {
 
 		public static boolean isKnown(final DLTensorShape shape) {
 			return !(shape instanceof DLUnknownTensorShape);
+		}
+	}
+
+	public static class Strings {
+
+		private Strings() {
+		}
+
+		/**
+		 * Joins the elements of the provided collection into a single string. No delimiter is added before or after the
+		 * elements.
+		 *
+		 * @param collection the collection providing the elements to join together
+		 * @param separator the separator to use, <code>null</code> is treated as empty string
+		 * @param maxNumElems the maximum number of elements to join together. Excessive elements will be omitted and an
+		 *            ellipsis ("...") will be added to the resulting string.
+		 * @return the joined string
+		 */
+		public static <T> String joinAbbreviated(final Collection<T> collection, final String separator,
+				final int maxNumElems) {
+			if (collection.size() <= maxNumElems) {
+				return StringUtils.join(collection, separator);
+			} else {
+				final Iterator<T> iterator = new Iterator<T>() {
+
+					Iterator<T> m_delegate = collection.iterator();
+
+					int m_i = 0;
+
+					@Override
+					public boolean hasNext() {
+						return m_delegate.hasNext() && m_i < maxNumElems;
+					}
+
+					@Override
+					public T next() {
+						final T elem = m_delegate.next();
+						m_i++;
+						return elem;
+					}
+				};
+				return StringUtils.join(iterator, separator) + separator + "...";
+			}
 		}
 	}
 }

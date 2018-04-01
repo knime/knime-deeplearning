@@ -53,13 +53,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -67,7 +62,6 @@ import javax.swing.JPanel;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -75,10 +69,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
+import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.core.execution.DLExecutionContext;
@@ -234,17 +228,18 @@ final class DLExecutorInputPanel extends JPanel {
 				.orElseThrow(() -> new NotConfigurableException(
 						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
 								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
-		
-		final ConverterRefresher converterRefresher = new ConverterRefresher(m_lastTableSpec, 
-				executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec), 
-				Comparator.comparing(DLDataValueToTensorConverterFactory::getName));
-		
+
+		final DLConverterRefresher converterRefresher;
+		try {
+			converterRefresher = new DLConverterRefresher(m_lastTableSpec,
+					executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec), m_inputTensorSpec,
+					false, Comparator.comparing(DLDataValueToTensorConverterFactory::getName));
+		} catch (final InvalidSettingsException e) {
+			throw new NotConfigurableException(e.getMessage());
+		}
+
 		final String[] names = converterRefresher.getConverterNames();
 		final String[] ids = converterRefresher.getConverterIdentifiers();
-		if (names.length == 0) {
-			throw new NotConfigurableException(
-					"No converters available for input '" + m_inputTensorSpec.getName() + "'.");
-		}
 		m_dcConverter.replaceListItems(names, ids, null);
 	}
 
