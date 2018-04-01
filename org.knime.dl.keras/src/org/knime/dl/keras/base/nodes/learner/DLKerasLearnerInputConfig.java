@@ -71,12 +71,13 @@ final class DLKerasLearnerInputConfig extends AbstractConfig {
 
 	private static final String CFG_KEY_CONVERTER = "converter";
 
+	private static final String CFG_VALUE_NULL_CONVERTER = "null";
+
 	static final String CFG_KEY_INPUT_COL = "input_columns";
 
 	private final String m_inputTensorName;
 
 	private final DLKerasLearnerGeneralConfig m_generalConfig;
-
 
 	@SuppressWarnings("rawtypes") // Java limitation
 	DLKerasLearnerInputConfig(final String inputTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
@@ -89,16 +90,24 @@ final class DLKerasLearnerInputConfig extends AbstractConfig {
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
 					throws InvalidSettingsException, UnsupportedOperationException {
-				settings.addString(getEntryKey(), m_value.getIdentifier());
+				final String converterIdentifier = m_value != null //
+						? m_value.getIdentifier()
+						: CFG_VALUE_NULL_CONVERTER;
+				settings.addString(getEntryKey(), converterIdentifier);
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
 					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
 				final String converterIdentifier = settings.getString(getEntryKey());
+				if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
+					throw new InvalidSettingsException(
+							"No training data converter available for network input '" + m_inputTensorName + "'.");
+				}
 				m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
 						.orElseThrow(() -> new InvalidSettingsException("Training data converter '"
-								+ converterIdentifier + "' could not be found. Are you missing a KNIME extension?"));
+								+ converterIdentifier + "' of network input '" + m_inputTensorName
+								+ "' could not be found. Are you missing a KNIME extension?"));
 			}
 		});
 		put(new AbstractConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,

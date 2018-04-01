@@ -72,6 +72,8 @@ final class DLKerasLearnerTargetConfig extends AbstractConfig {
 
 	private static final String CFG_KEY_CONVERTER = "converter";
 
+	private static final String CFG_VALUE_NULL_CONVERTER = "null";
+
 	private static final String CFG_KEY_INPUT_COL = "input_columns";
 
 	private static final String CFG_KEY_LOSS_FUNC = "loss_function";
@@ -91,15 +93,23 @@ final class DLKerasLearnerTargetConfig extends AbstractConfig {
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
 					throws InvalidSettingsException, UnsupportedOperationException {
-				settings.addString(getEntryKey(), m_value.getIdentifier());
+				final String converterIdentifier = m_value != null //
+						? m_value.getIdentifier()
+						: CFG_VALUE_NULL_CONVERTER;
+				settings.addString(getEntryKey(), converterIdentifier);
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
 					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
 				final String converterIdentifier = settings.getString(getEntryKey());
+				if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
+					throw new InvalidSettingsException(
+							"No target data converter available for network target '" + m_targetTensorName + "'.");
+				}
 				m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
 						.orElseThrow(() -> new InvalidSettingsException("Target data converter '" + converterIdentifier
+								+ "' of network target '" + m_targetTensorName
 								+ "' could not be found. Are you missing a KNIME extension?"));
 			}
 		});
