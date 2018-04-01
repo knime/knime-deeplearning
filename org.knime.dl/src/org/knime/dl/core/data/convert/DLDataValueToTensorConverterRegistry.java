@@ -103,6 +103,25 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 
 	/**
 	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
+	 * which convert into a specific destination buffer.
+	 *
+	 * @param bufferType the destination type
+	 * @return all deep learning converter factories that allow conversion into the destination type
+	 */
+	public List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getConverterFactoriesForBufferType(
+			final Class<? extends DLWritableBuffer> bufferType) {
+		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> convs = new HashSet<>();
+		for (final DLDataValueToTensorConverterFactory<?, ?> candidate : m_converters.values()) {
+			if (candidate.getBufferType().isAssignableFrom(bufferType)) {
+				convs.add(candidate);
+			}
+		}
+		return convs.stream().sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getIdentifier))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
 	 * which convert a specific source type into a specific destination buffer.
 	 *
 	 * @param sourceType the source type
