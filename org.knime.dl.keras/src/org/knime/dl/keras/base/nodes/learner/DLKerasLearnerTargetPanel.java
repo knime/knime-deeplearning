@@ -94,7 +94,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 
 	private final DLKerasLearnerTargetConfig m_cfg;
 
-	private final DLTensorSpec m_outputDataSpec;
+	private final DLTensorSpec m_targetTensorSpec;
 
 	private final DialogComponentObjectSelection<DLDataValueToTensorConverterFactory<?, ?>> m_dcConverter;
 
@@ -108,12 +108,12 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			final DataTableSpec tableSpec) {
 		super(new GridBagLayout());
 		m_cfg = cfg;
-		m_outputDataSpec = outputDataSpec;
+		m_targetTensorSpec = outputDataSpec;
 		m_lastTableSpec = tableSpec;
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("Training target: " + m_outputDataSpec.getName()));
+		setBorder(BorderFactory.createTitledBorder("Training target: " + m_targetTensorSpec.getName()));
 		final GridBagConstraints constr = new GridBagConstraints();
 		constr.gridx = 0;
 		constr.gridy = 0;
@@ -124,14 +124,15 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 		final JPanel numNeurons = new JPanel();
 		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
 		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_outputDataSpec.getShape())),
+		numNeurons.add(
+				new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_targetTensorSpec.getShape())),
 				numNeuronsConstr);
 		add(numNeurons, constr);
 		constr.gridy++;
 		final JPanel shape = new JPanel();
 		final GridBagConstraints shapeConstr = new GridBagConstraints();
 		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_outputDataSpec.getShape().toString()), shapeConstr);
+		shape.add(new JLabel("Shape: " + m_targetTensorSpec.getShape().toString()), shapeConstr);
 		add(shape, constr);
 		constr.gridy++;
 		// converter selection
@@ -169,7 +170,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 	}
 
 	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(m_outputDataSpec.getShape());
+		final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(m_targetTensorSpec.getShape());
 		if (inputSizeOpt.isPresent()) {
 			final long inputSize = inputSizeOpt.getAsLong();
 			// validate input: get user-selected columns and converter, ask
@@ -185,12 +186,12 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				if (converterOutputSize > inputSize) {
 					throw new InvalidSettingsException("Selected target columns provide more elements ("
 							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network target '"
-							+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+							+ m_targetTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 				if (converterOutputSize < inputSize) {
 					throw new InvalidSettingsException("Selected target columns do not provide enough elements ("
 							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network target '"
-							+ m_outputDataSpec.getName() + "'. Try adding some columns to the selection.");
+							+ m_targetTensorSpec.getName() + "'. Try adding some columns to the selection.");
 				}
 			} else {
 				// we still can check if there are more input columns than input
@@ -199,7 +200,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				if (includedColSpecs.size() > inputSize) {
 					throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
 							+ ") than neurons available (" + inputSize + ") for network target '"
-							+ m_outputDataSpec.getName() + "'. Try removing some columns from the selection.");
+							+ m_targetTensorSpec.getName() + "'. Try removing some columns from the selection.");
 				}
 			}
 		}
@@ -268,7 +269,7 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 				.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
 				.collect(Collectors.toList());
 		if (availableLossFunctions.isEmpty()) {
-			throw new NotConfigurableException("No loss functions available for output '" + m_outputDataSpec.getName()
+			throw new NotConfigurableException("No loss functions available for output '" + m_targetTensorSpec.getName()
 					+ "' (with training context '" + trainingContext.getName() + "').");
 		}
 		final DLKerasLossFunction selectedLossFunction = m_cfg.getLossFunctionEntry().getValue() != null
