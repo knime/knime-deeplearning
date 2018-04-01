@@ -200,13 +200,13 @@ final class DLKerasLearnerInputPanel extends JPanel {
 		m_lastTableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
 		try {
 			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
-			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
-			refreshAvailableConverters(m_lastTableSpec);
-			refreshAllowedInputColumns(m_lastTableSpec);
 		} catch (final InvalidSettingsException e) {
 			// ignore
 			LOGGER.debug(e.getMessage() != null ? e.getMessage() : "Trying to restore from invalid settings.", e);
 		}
+		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
+		refreshAvailableConverters(m_lastTableSpec);
+		refreshAllowedInputColumns(m_lastTableSpec);
 	}
 
 	private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
