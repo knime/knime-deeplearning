@@ -64,11 +64,14 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
+
+import com.google.common.base.Strings;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -176,6 +179,20 @@ class DLExecutorGeneralPanel extends JPanel {
 			ids[i] = executionContext.getIdentifier();
 		}
 		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
-		m_dcBackend.replaceListItems(names, ids, selectedName);
+		try {
+			m_dcBackend.replaceListItems(names, ids, selectedName);
+		} catch (final Exception e) {
+			// some informative exception messages get lost because we have to wrap them in unchecked exceptions to pipe
+			// them through all those change listeners. try to recover them here.
+			Throwable current = e;
+			do {
+				if (current instanceof DLException || current instanceof NotConfigurableException
+						|| (current instanceof InvalidSettingsException
+								&& !Strings.isNullOrEmpty(current.getMessage()))) {
+					throw new NotConfigurableException(current.getMessage(), e);
+				}
+			} while (current != current.getCause() && (current = current.getCause()) != null);
+			throw e;
+		}
 	}
 }
