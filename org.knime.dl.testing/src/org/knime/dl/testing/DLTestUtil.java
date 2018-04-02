@@ -66,6 +66,7 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLUnknownTensorShape;
+import org.knime.dl.core.data.DLBuffer;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -283,6 +284,11 @@ public final class DLTestUtil {
 		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", batchSize,
 				new DLDefaultFixedTensorShape(shape), elementType, DLDefaultDimensionOrder.TCDHW);
 		return TENSOR_FACTORY.createWritableTensor(spec);
+	}
+
+	public static <B extends DLBuffer> DLTensor<B> createTensorFromBufferType(final Class<B> bufferType,
+			final long batchSize, final long... shape) {
+		return (DLTensor<B>) createTensor(TENSOR_FACTORY.getElementType(bufferType), batchSize, shape);
 	}
 
 	// Random specs:

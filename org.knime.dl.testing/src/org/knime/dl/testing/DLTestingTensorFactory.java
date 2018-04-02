@@ -82,6 +82,20 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 		throw new UnsupportedOperationException();
 	}
 
+	public Class<?> getElementType(final Class<? extends DLBuffer> bufferType) {
+		if (bufferType.equals(DLWritableDoubleBuffer.class) || bufferType.equals(DLReadableDoubleBuffer.class)) {
+			return double.class;
+		} else if (bufferType.equals(DLWritableFloatBuffer.class) || bufferType.equals(DLReadableFloatBuffer.class)) {
+			return float.class;
+		} else if (bufferType.equals(DLWritableIntBuffer.class) || bufferType.equals(DLReadableIntBuffer.class)) {
+			return int.class;
+		} else if (bufferType.equals(DLWritableLongBuffer.class) || bufferType.equals(DLReadableLongBuffer.class)) {
+			return long.class;
+		} else {
+			throw new IllegalArgumentException("No matching element type.");
+		}
+	}
+
 	@Override
 	public Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec) {
 		final Class<?> t = spec.getElementType();
