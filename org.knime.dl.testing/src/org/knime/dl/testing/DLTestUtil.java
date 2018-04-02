@@ -46,16 +46,31 @@
  */
 package org.knime.dl.testing;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
+import java.util.OptionalLong;
+import java.util.Random;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
+import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLUnknownTensorShape;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTestUtil {
 
@@ -64,9 +79,27 @@ public final class DLTestUtil {
 
 	public static final DLTestingTensorFactory TENSOR_FACTORY = new DLTestingTensorFactory();
 
+	private static final Class<?>[] ELEMENT_TYPES = new Class<?>[] { //
+			boolean.class, //
+			byte.class, //
+			short.class, //
+			int.class, //
+			long.class, //
+			float.class, //
+			double.class, //
+			String.class //
+	};
+
+	private static final DLDimensionOrder[] DIMENSION_ORDERS = DLDefaultDimensionOrder.values();
+
+	private static final int MAX_SHAPE_DIMENSIONALITY = 5;
+	private static final int MAX_SHAPE_DIMENSION = 2000;
+
 	private DLTestUtil() {
 		// utility class
 	}
+
+	// Array utils:
 
 	public static double[] doubleRange(final int length) {
 		final double[] array = new double[length];
@@ -244,9 +277,86 @@ public final class DLTestUtil {
 		return result;
 	}
 
+	// Tensor:
+
 	public static DLTensor<?> createTensor(final Class<?> elementType, final long batchSize, final long... shape) {
 		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", batchSize,
 				new DLDefaultFixedTensorShape(shape), elementType, DLDefaultDimensionOrder.TCDHW);
 		return TENSOR_FACTORY.createWritableTensor(spec);
+	}
+
+	// Random specs:
+
+	public static URL randomNetworkSource(final Random random) {
+		try {
+			return FileUtil.toURL(RandomStringUtils.random(10, 0, 0, true, true, null, random) + ".h5");
+		} catch (InvalidPathException | MalformedURLException e) {
+			throw new RuntimeException();
+		}
+	}
+
+	public static DLTensorSpec randomTensorSpec(final Random random) {
+		final DLTensorId id = randomTensorId(random);
+		final String name = randomTensorName(random);
+		final DLTensorShape shape = randomTensorShape(random);
+		final Class<?> elementType = randomElementType(random);
+		final DLDimensionOrder dimensionOrder = randomDimensionOrder(random);
+		if (random.nextBoolean()) {
+			final long batchSize = random.nextInt(Integer.MAX_VALUE);
+			return new DLDefaultTensorSpec(id, name, batchSize, shape, elementType, dimensionOrder);
+		} else {
+			return new DLDefaultTensorSpec(id, name, shape, elementType, dimensionOrder);
+		}
+	}
+
+	public static DLTensorId randomTensorId(final Random random) {
+		return new DLDefaultTensorId(RandomStringUtils.random(10, 0, 0, true, true, null, random));
+	}
+
+	public static String randomTensorName(final Random random) {
+		return RandomStringUtils.random(10, 0, 0, true, true, null, random);
+	}
+
+	public static DLTensorShape randomTensorShape(final Random random) {
+		final int choice = random.nextInt(3);
+		final int numDimensions;
+		switch (choice) {
+		case 0:
+			numDimensions = random.nextInt(MAX_SHAPE_DIMENSIONALITY) + 1;
+			final long[] shape = new long[numDimensions];
+			for (int i = 0; i < numDimensions; i++) {
+				shape[i] = random.nextInt(MAX_SHAPE_DIMENSION) + 1l;
+			}
+			return new DLDefaultFixedTensorShape(shape);
+		case 1:
+			numDimensions = random.nextInt(MAX_SHAPE_DIMENSIONALITY) + 1;
+			final OptionalLong[] partialShape = new OptionalLong[numDimensions];
+			boolean hasUnknownDim = false;
+			for (int i = 0; i < numDimensions; i++) {
+				if (random.nextBoolean()) {
+					partialShape[i] = OptionalLong.of(random.nextInt(MAX_SHAPE_DIMENSION) + 1l);
+				} else {
+					partialShape[i] = OptionalLong.empty();
+					hasUnknownDim = true;
+				}
+			}
+			if (!hasUnknownDim) {
+				partialShape[random.nextInt(numDimensions)] = OptionalLong.empty();
+			}
+			return new DLDefaultPartialTensorShape(partialShape);
+		case 2:
+			return DLUnknownTensorShape.INSTANCE;
+		default:
+			throw new RuntimeException();
+		}
+	}
+
+	public static Class<?> randomElementType(final Random random) {
+		return ELEMENT_TYPES[random.nextInt(ELEMENT_TYPES.length)];
+	}
+
+	public static DLDimensionOrder randomDimensionOrder(final Random random) {
+		// TODO: make more diverse? i.e. return random permutation of all available DLDimensions?
+		return DIMENSION_ORDERS[random.nextInt(DIMENSION_ORDERS.length)];
 	}
 }
