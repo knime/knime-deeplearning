@@ -212,24 +212,26 @@ final class DLExecutorOutputPanel extends JPanel {
 		}
 		final Comparator<DLTensorToDataCellConverterFactory<?, ?>> nameComparator = Comparator
 				.comparing(DLTensorToDataCellConverterFactory::getName);
-		final List<DLTensorToDataCellConverterFactory<?, ?>> converterFactoriesSorted = Stream.concat(
-				Stream.concat(builtInElement.stream().sorted(nameComparator),
+		final List<DLTensorToDataCellConverterFactory<?, ?>> converterFactoriesSorted = Stream
+				.concat(Stream.concat(builtInElement.stream().sorted(nameComparator),
 						extensionElement.stream().sorted(nameComparator)),
-				Stream.concat(builtInCollection.stream().sorted(nameComparator),
-						extensionCollection.stream().sorted(nameComparator)))
+						Stream.concat(builtInCollection.stream().sorted(nameComparator),
+								extensionCollection.stream().sorted(nameComparator)))
 				// remove all converters for which we can't calculate the table outputSpec
-				.filter(cf -> cf.getDestCount(m_outputTensorSpec).isPresent()) 
-				.collect(Collectors.toList());
+				.filter(cf -> cf.getDestCount(m_outputTensorSpec).isPresent()).collect(Collectors.toList());
+		if (converterFactoriesSorted.isEmpty()) {
+			throw new NotConfigurableException("No converter available for the output data type ("
+					+ m_outputTensorSpec.getElementType().getTypeName() + ") of network output '"
+					+ m_outputTensorSpec.getName()
+					+ "'. Please make sure you are not missing a KNIME Deep Learning extension "
+					+ "and/or try to use a network that outputs different data types.");
+		}
 		final String[] names = new String[converterFactoriesSorted.size()];
 		final String[] ids = new String[converterFactoriesSorted.size()];
 		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
 			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactoriesSorted.get(i);
 			names[i] = "To " + converter.getName();
 			ids[i] = converter.getIdentifier();
-		}
-		if (names.length == 0) {
-			throw new NotConfigurableException(
-					"No converters available for output '" + m_outputTensorSpec.getName() + "'.");
 		}
 		m_dcConverter.replaceListItems(names, ids, null);
 	}
