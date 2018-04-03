@@ -114,6 +114,7 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 		for (final DLDataValueToTensorConverterFactory<?, ?> candidate : m_converters.values()) {
 			if (candidate.getBufferType().isAssignableFrom(bufferType)) {
 				convs.add(candidate);
+				convs.add(new DLCollectionDataValueToTensorConverterFactory<>(candidate));
 			}
 		}
 		return convs.stream().sorted(Comparator.comparing(DLDataValueToTensorConverterFactory::getIdentifier))
