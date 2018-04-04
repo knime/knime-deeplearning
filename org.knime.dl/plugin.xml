@@ -35,6 +35,9 @@
       <DLDataValueToTensorConverterFactory
             DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLLongValueToLongTensorConverterFactory">
       </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLIntCollectionValueToFloatTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
    </extension>
    <extension
          point="org.knime.dl.DLTensorToDataCellConverterFactory">
