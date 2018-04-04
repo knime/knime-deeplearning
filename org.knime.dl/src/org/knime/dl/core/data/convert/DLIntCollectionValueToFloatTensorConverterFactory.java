@@ -102,7 +102,7 @@ public class DLIntCollectionValueToFloatTensorConverterFactory
 				byte[] dummyVector = new byte[featureDimSize];
 				for (DataCell cell : element) {
 					int index = ((IntCell)cell).getIntValue();
-					checkIndexSmallerFeatureDimSize(index, featureDimSize);
+					checkIndexValid(index, featureDimSize);
 					dummyVector[index] = 1;
 					buffer.putAll(dummyVector);
 					dummyVector[index] = 0;
@@ -130,12 +130,12 @@ public class DLIntCollectionValueToFloatTensorConverterFactory
 				"This converter supports only integer collections");
 	}
 	
-	private void checkIndexSmallerFeatureDimSize(int index, long featureDimSize) {
+	private void checkIndexValid(int index, long featureDimSize) {
+		CheckUtils.checkArgument(index >= 0, "Negative index encountered.");
 		CheckUtils.checkArgument(index < featureDimSize,
 				"The index %s exceeds the size of the feature dimension %s.",
 				index, featureDimSize);
 	}
-	
 	
 	@Override
 	protected long[] getDataShapeInternal(CollectionDataValue element, DLTensorSpec tensorSpec) {
@@ -143,7 +143,7 @@ public class DLIntCollectionValueToFloatTensorConverterFactory
 		long featureDimSize = getFeatureDimSize(tensorSpec);
 		for (DataCell cell : element) {
 			IntCell intCell = (IntCell) cell;
-			checkIndexSmallerFeatureDimSize(intCell.getIntValue(), featureDimSize);
+			checkIndexValid(intCell.getIntValue(), featureDimSize);
 		}
 		return new long[] {element.size(), featureDimSize};
 	}
