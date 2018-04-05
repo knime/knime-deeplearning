@@ -65,10 +65,10 @@ import org.knime.dl.util.DLUtils;
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLIntCollectionValueToFloatTensorConverterFactory
+public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 	extends DLAbstractTensorDataValueToTensorConverterFactory<CollectionDataValue, DLWritableFloatBuffer> {
 
-	private static final String NAME = "Integer sequence to one-hot tensor";
+	private static final String NAME = "Collection of Number (integer) to One-Hot Tensor";
 	
 	@Override
 	public String getName() {

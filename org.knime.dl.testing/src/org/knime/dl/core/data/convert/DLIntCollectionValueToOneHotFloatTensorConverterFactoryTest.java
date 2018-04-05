@@ -75,7 +75,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
+public class DLIntCollectionValueToOneHotFloatTensorConverterFactoryTest {
 	
 	private static final float EPSILON = 0.00001f;
 	
@@ -114,8 +114,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 
 	@Test
 	public void testGetDataShape() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("?,5");
 		assertArrayEquals(new long[] {3, 5}, factory.getDataShape(value, spec));
@@ -123,8 +123,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void testGetDataShapeFailsOnTooLargeIndex() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("?,2");
 		factory.getDataShape(value, spec);
@@ -132,8 +132,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void testGetDataShapeFailsOnNegativeIndex() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,-1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("3,5");
 		factory.getDataShape(value, spec);
@@ -141,8 +141,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test (expected = DLInvalidNetworkInputException.class)
 	public void testGetDataShapeFailsOnPartialFeatureDim() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("?,?");
 		factory.getDataShape(value, spec);
@@ -150,8 +150,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test (expected = IllegalArgumentException.class)
 	public void testGetDataShapeFailsOnNonIntCollection() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,d,i"));
 		DLTensorSpec spec = createTensorSpec("3,5");
 		factory.getDataShape(value, spec);
@@ -159,8 +159,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test (expected = DLInvalidNetworkInputException.class)
 	public void testGetDataShapeFailsOnTooLargeFeatureDim() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("3," + Long.MAX_VALUE);
 		factory.getDataShape(value, spec);
@@ -168,8 +168,8 @@ public class DLIntCollectionValueToFloatTensorConverterFactoryTest {
 	
 	@Test
 	public void testCreateConverter() throws Exception {
-		DLIntCollectionValueToFloatTensorConverterFactory factory =
-				new DLIntCollectionValueToFloatTensorConverterFactory();
+		DLIntCollectionValueToOneHotFloatTensorConverterFactory factory =
+				new DLIntCollectionValueToOneHotFloatTensorConverterFactory();
 		List<CollectionDataValue> value = Arrays.asList(createCollectionValue("0,1,2", "i,i,i"));
 		DLTensorSpec spec = createTensorSpec("?,5");
 		int exampleSize = 15;
