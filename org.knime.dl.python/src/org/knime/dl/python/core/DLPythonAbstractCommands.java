@@ -329,7 +329,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					final Cell shapeCell = row.getCell(i);
 					try {
 						final int[] intShape = shapeCell.getIntegerArrayValue();
-						shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
+						if (idMap.containsKey(tensorNames[i])) {
+							shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
+						}
 					} catch (final IllegalStateException e) {
 						LOGGER.error(
 								"An exception occurred while collecting output shapes from Python: " + e.getMessage(),
