@@ -6,6 +6,9 @@ Bundle-Version: 3.6.0.qualifier
 Bundle-ClassPath: knime-dl-keras.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.keras.core,
+ org.knime.dl.keras.tensorflow.core,
+ org.knime.dl.keras.theano.core,
+ org.knime.dl.keras.cntk.core,
  org.knime.dl.keras.core.training
 Require-Bundle: org.knime.base;bundle-version="[3.5.0,4.0.0)",
  org.knime.base.filehandling;bundle-version="[3.5.0,4.0.0)",
