@@ -61,6 +61,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValue.UtilityFactory;
 import org.knime.core.data.ExtensibleUtilityFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLCollectionDataValueToTensorConverterFactory;
@@ -93,12 +94,13 @@ public final class DLConverterRefresher {
 	 * @param tableSpec must contain at least one column
 	 * @param isTrainingTargetSpec true if <code>tensorSpec</code> is a training target. Only used to properly phrase
 	 *            error messages if no converters are available ("network input" vs. "network target").
-	 * @throws InvalidSettingsException if no converter is available. The exception's message is suitable to be shown to
-	 *             the user.
+	 * @throws DLNoConverterAvailableException if no converter is available. The exception offers both a short and a
+	 *             long error description message that are both suitable to be shown to the user.
 	 */
 	public DLConverterRefresher(final DataTableSpec tableSpec, final Class<? extends DLWritableBuffer> bufferType,
 			final DLTensorSpec tensorSpec, final boolean isTrainingTargetSpec,
-			final Comparator<DLDataValueToTensorConverterFactory<?, ?>> comparator) throws InvalidSettingsException {
+			final Comparator<DLDataValueToTensorConverterFactory<?, ?>> comparator)
+			throws DLNoConverterAvailableException {
 		m_tableSpec = tableSpec;
 		m_bufferType = bufferType;
 		m_comparator = comparator;
@@ -109,11 +111,13 @@ public final class DLConverterRefresher {
 					.getConverterFactoriesForBufferType(bufferType);
 			if (convertersForBuffer.isEmpty()) {
 				// no converters available at all, user can't do much
-				throw new InvalidSettingsException("No converter available for the expected " + inputOrTargetStr
-						+ " data type (" + tensorSpec.getElementType().getTypeName() + ") of network "
-						+ inputOrTargetStr + " '" + tensorSpec.getName()
-						+ "'. Please make sure you are not missing a KNIME Deep Learning extension "
-						+ "and/or try to use a network that expects different " + inputOrTargetStr + " data types.");
+				final String message = "No converter available for the expected " + inputOrTargetStr + " data type ("
+						+ tensorSpec.getElementType().getTypeName() + ") of network " + inputOrTargetStr + " '"
+						+ tensorSpec.getName() + "'.";
+				final String longMessage = message
+						+ " Please make sure you are not missing a KNIME Deep Learning extension "
+						+ "and/or try to use a network that expects different " + inputOrTargetStr + " data types.";
+				throw new DLNoConverterAvailableException(message, longMessage);
 			} else {
 				// converters available but user did not supply compatible data
 				final String suppliedTypesStr = DLUtils.Strings.joinAbbreviated(m_inputTypes, ", ", 2);
@@ -129,13 +133,17 @@ public final class DLConverterRefresher {
 						}) //
 						.collect(Collectors.toSet()).stream().sorted().collect(Collectors.toList());
 				final String supportedTypesStr = DLUtils.Strings.joinAbbreviated(supportedTypes, ", ", 10);
-				throw new InvalidSettingsException("None of the data types present in the input table ("
-						+ suppliedTypesStr + ") can be converted into the data type ("
+				final String message = "None of the data types present in the input table can be converted into the data type ("
 						+ tensorSpec.getElementType().getTypeName() + ") accepted by network " + inputOrTargetStr + " '"
-						+ tensorSpec.getName() + "'. Please include columns of compatible types (e.g. "
-						+ supportedTypesStr + ") or collections of those types in the input table. "
+						+ tensorSpec.getName() + "'.";
+				final String longMessage = "None of the data types present in the input table (" + suppliedTypesStr
+						+ ") can be converted into the data type (" + tensorSpec.getElementType().getTypeName()
+						+ ") accepted by network " + inputOrTargetStr + " '" + tensorSpec.getName()
+						+ "'. Please include columns of compatible types (e.g. " + supportedTypesStr
+						+ ") or collections of those types in the input table. "
 						+ "Also, please make sure you are not missing a KNIME Deep Learning extension, "
-						+ "especially if you are working with data types from other extensions (e.g. images).");
+						+ "especially if you are working with data types from other extensions (e.g. images).";
+				throw new DLNoConverterAvailableException(message, longMessage);
 			}
 		}
 	}
@@ -231,5 +239,19 @@ public final class DLConverterRefresher {
 
 	private boolean checkIfKnownAndAdd(final DataType type) {
 		return m_inputTypes.add(type);
+	}
+
+	public static final class DLNoConverterAvailableException extends InvalidSettingsException implements DLException {
+
+		private final String m_longMessage;
+
+		public DLNoConverterAvailableException(final String message, final String longMessage) {
+			super(message);
+			m_longMessage = longMessage;
+		}
+
+		public String getLongMessage() {
+			return m_longMessage;
+		}
 	}
 }

@@ -74,6 +74,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DLConverterRefresher;
+import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
@@ -232,8 +233,8 @@ final class DLKerasLearnerTargetPanel extends JPanel {
 			converterRefresher = new DLConverterRefresher(dataTableSpec,
 					trainingContext.getTensorFactory().getWritableBufferType(m_targetTensorSpec), m_targetTensorSpec,
 					true, nameComparator);
-		} catch (final InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage());
+		} catch (final DLNoConverterAvailableException e) {
+			throw new NotConfigurableException(e.getLongMessage());
 		}
 		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
 		m_dcConverter.replaceListItems(converterFactories, null);

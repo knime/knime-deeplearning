@@ -70,6 +70,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 import org.knime.dl.base.nodes.DLConverterRefresher;
+import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLTensorSpec;
@@ -234,8 +235,8 @@ final class DLExecutorInputPanel extends JPanel {
 			converterRefresher = new DLConverterRefresher(m_lastTableSpec,
 					executionContext.getTensorFactory().getWritableBufferType(m_inputTensorSpec), m_inputTensorSpec,
 					false, Comparator.comparing(DLDataValueToTensorConverterFactory::getName));
-		} catch (final InvalidSettingsException e) {
-			throw new NotConfigurableException(e.getMessage());
+		} catch (final DLNoConverterAvailableException e) {
+			throw new NotConfigurableException(e.getLongMessage());
 		}
 
 		final String[] names = converterRefresher.getConverterNames();
