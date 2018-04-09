@@ -81,6 +81,12 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
 	}
 
 	@Override
+	public DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
+			throws DLInvalidEnvironmentException {
+		return new DLKerasTensorFlowCommands(context);
+	}
+
+	@Override
 	public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
 			final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
@@ -88,12 +94,6 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
 		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
 		final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTensorFlowNetwork(spec, source);
-	}
-
-	@Override
-	protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
-			throws DLInvalidEnvironmentException {
-		return new DLKerasTensorFlowCommands(context);
 	}
 
 	@Override

@@ -64,11 +64,10 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
 
 import com.google.common.base.Strings;
 
@@ -79,36 +78,40 @@ import com.google.common.base.Strings;
 public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> extends DLPythonAbstractNetworkLoader<N>
 		implements DLKerasNetworkLoader<N> {
 
-	@Override
-	protected abstract DLKerasAbstractCommands createCommands(DLPythonContext context)
-			throws DLInvalidEnvironmentException;
+    public static void validateKerasNetworkSource(final URL source) throws DLInvalidSourceException {
+        try {
+            final RemoteFile<?> file = RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
+                .createRemoteFile(source.toURI(), null, null);
+            if (!file.exists()) {
+                throw new DLInvalidSourceException(
+                    "Cannot find Keras network file at location '" + source.toString() + "'.");
+            }
+        } catch (final Exception e) {
+            throw new DLInvalidSourceException(
+                "An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
+        }
+    }
 
-	@Override
-	public void validateSource(final URL source) throws DLInvalidSourceException {
-		try {
-			final RemoteFile<?> file = RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
-					.createRemoteFile(source.toURI(), null, null);
-			if (!file.exists()) {
-				throw new DLInvalidSourceException(
-						"Cannot find Keras network file at location '" + source.toString() + "'.");
-			}
-		} catch (final Exception e) {
-			throw new DLInvalidSourceException(
-					"An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
-		}
-	}
+    public static void validateKerasNetworkDestination(final URL destination) throws DLInvalidDestinationException {
+        try {
+            // we found a remote file handler. however, we still don't know if we can write here.
+            RemoteFileHandlerRegistry.getRemoteFileHandler(destination.getProtocol())
+                .createRemoteFile(destination.toURI(), null, null);
+        } catch (final Exception e) {
+            throw new DLInvalidDestinationException(
+                "An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
+        }
+    }
 
-	@Override
-	public void validateDestination(final URL destination) throws DLInvalidDestinationException {
-		try {
-			// we found a remote file handler. however, we still don't know if we can write here.
-			RemoteFileHandlerRegistry.getRemoteFileHandler(destination.getProtocol())
-					.createRemoteFile(destination.toURI(), null, null);
-		} catch (final Exception e) {
-			throw new DLInvalidDestinationException(
-					"An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
-		}
-	}
+    @Override
+    public void validateSource(final URL source) throws DLInvalidSourceException {
+        validateKerasNetworkSource(source);
+    }
+
+    @Override
+    public void validateDestination(final URL destination) throws DLInvalidDestinationException {
+        validateKerasNetworkDestination(destination);
+    }
 
 	@Override
 	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel, final boolean loadTrainingConfig)
@@ -147,8 +150,8 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 	}
 
 	@Override
-	public DLPythonNetworkPortObject<? extends DLPythonNetwork> createPortObject(final N network,
-			final FileStore fileStore) throws IOException {
+	public DLKerasNetworkPortObjectBase createPortObject(final N network, final FileStore fileStore)
+			throws IOException {
 		return new DLKerasNetworkPortObject(network, fileStore);
 	}
 

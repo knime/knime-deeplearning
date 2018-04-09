@@ -71,6 +71,8 @@ public interface DLKerasNetworkLoader<N extends DLKerasNetwork> extends DLPython
 
 	String getName();
 
+	DLKerasAbstractCommands createCommands(DLPythonContext context) throws DLInvalidEnvironmentException;
+
 	@Override
 	default List<String> getLoadModelURLExtensions() {
 		return LOAD_MODEL_URL_EXTENSIONS;

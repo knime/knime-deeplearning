@@ -81,6 +81,11 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 	}
 
 	@Override
+	public DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+		return new DLKerasTheanoCommands(context);
+	}
+
+	@Override
 	public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
 			final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
@@ -88,11 +93,6 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
 		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTheanoNetwork(spec, source);
-	}
-
-	@Override
-	protected DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
-		return new DLKerasTheanoCommands(context);
 	}
 
 	@Override

@@ -81,17 +81,17 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 	}
 
 	@Override
+	public DLKerasCNTKCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+		return new DLKerasCNTKCommands(context);
+	}
+
+	@Override
 	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final URL source, final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		validateSource(source);
 		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context));
 		final DLKerasCNTKNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasCNTKNetwork(spec, source);
-	}
-
-	@Override
-	protected DLKerasCNTKCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
-		return new DLKerasCNTKCommands(context);
 	}
 
 	@Override
