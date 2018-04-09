@@ -44,19 +44,48 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.tensorflow.core;
+package org.knime.dl.keras.core;
 
 import java.net.URL;
 
-import org.knime.dl.keras.core.DLKerasGenericNetwork;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowNetwork extends DLKerasGenericNetwork {
+public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
 
-    public DLKerasTensorFlowNetwork(final DLKerasTensorFlowNetworkSpec spec, final URL source) {
-        super(spec, source);
+    public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs) {
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs);
+    }
+
+    public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+    }
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public DLKerasNetwork create(final URL source) throws DLInvalidSourceException {
+        DLKerasAbstractNetworkLoader.validateKerasNetworkSource(source);
+        return new DLKerasGenericNetwork(this, source);
+    }
+
+    @Override
+    protected void hashCodeInternal(final HashCodeBuilder b) {
+        // no op - everything's handled in abstract base class
+    }
+
+    @Override
+    protected boolean equalsInternal(final DLNetworkSpec other) {
+        // no op - everything's handled in abstract base class
+        return true;
     }
 }

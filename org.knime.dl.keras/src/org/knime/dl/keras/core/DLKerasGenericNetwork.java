@@ -44,19 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.tensorflow.core;
+package org.knime.dl.keras.core;
 
 import java.net.URL;
-
-import org.knime.dl.keras.core.DLKerasGenericNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowNetwork extends DLKerasGenericNetwork {
+public class DLKerasGenericNetwork extends DLKerasAbstractNetwork {
 
-    public DLKerasTensorFlowNetwork(final DLKerasTensorFlowNetworkSpec spec, final URL source) {
+    public DLKerasGenericNetwork(final DLKerasNetworkSpec spec, final URL source) {
         super(spec, source);
     }
 }

@@ -101,7 +101,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	public Collection<DLTrainingContext<?, ?>> getTrainingContextsForNetworkType(
 			final Class<? extends DLNetwork> networkType) {
 		return m_ctxs.stream() //
-				.filter(ctx -> ctx.getNetworkType().isAssignableFrom(networkType)) //
+				.filter(ctx -> networkType.isAssignableFrom(ctx.getNetworkType())) //
 				.collect(Collectors.toList());
 	}
 

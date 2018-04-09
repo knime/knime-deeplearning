@@ -48,15 +48,15 @@ package org.knime.dl.keras.theano.core;
 
 import java.net.URL;
 
-import org.knime.dl.keras.core.DLKerasAbstractNetwork;
+import org.knime.dl.keras.core.DLKerasGenericNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTheanoNetwork extends DLKerasAbstractNetwork {
+public final class DLKerasTheanoNetwork extends DLKerasGenericNetwork {
 
-	public DLKerasTheanoNetwork(final DLKerasTheanoNetworkSpec spec, final URL source) {
-		super(spec, source);
-	}
+    public DLKerasTheanoNetwork(final DLKerasTheanoNetworkSpec spec, final URL source) {
+        super(spec, source);
+    }
 }
