@@ -49,7 +49,7 @@
 package org.knime.dl.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.dl.util.DLUtils;
 
 /**
  * Default implementation of a {@link DLTensorSpec tensor spec}.
@@ -59,72 +59,96 @@ import org.knime.core.node.util.CheckUtils;
  */
 public final class DLDefaultTensorSpec extends DLAbstractTensorSpec {
 
-	private static final long serialVersionUID = 1L;
+    /**
+     * Creates a new instance of this tensor spec. This is a convenience method that maps to an appropriate constructor
+     * of {@link DLDefaultTensorSpec} based on the passed arguments (see below).
+     *
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param batchSize the batch size of the tensor. May be <code>null</code>. Must be greater than zero if non-null.
+     * @param shape the shape of the tensor. Does not include the batch size. May be <code>null</code> or empty in which
+     *            case it is interpreted as {@link DLUnknownTensorShape unknown shape}. May contain <code>null</code>
+     *            elements which are interpreted as {@link DLPartialTensorShape unknown dimensions}.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     * @return the created spec
+     */
+    public static final DLDefaultTensorSpec create(final DLTensorId identifier, final String name, final Long batchSize,
+        final Long[] shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        final DLTensorShape matchingShape = DLUtils.Shapes.shapeFromLongArray(shape);
+        if (batchSize != null) {
+            return new DLDefaultTensorSpec(identifier, name, batchSize, matchingShape, elementType, dimensionOrder);
+        } else {
+            return new DLDefaultTensorSpec(identifier, name, matchingShape, elementType, dimensionOrder);
+        }
+    }
 
-	/**
-	 * Creates a new instance of this tensor spec that has a batch size.
-	 *
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param batchSize the batch size of the tensor. Must be greater than zero.
-	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		super(identifier, name, batchSize, shape, elementType, dimensionOrder);
-	}
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Creates a new instance of this tensor spec that does not have a batch size.
-	 *
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
-			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		super(identifier, name, shape, elementType, dimensionOrder);
-	}
+    /**
+     * Creates a new instance of this tensor spec that has a batch size.
+     *
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param batchSize the batch size of the tensor. Must be greater than zero.
+     * @param shape the shape of the tensor. Does not include the batch size.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+        final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        super(identifier, name, batchSize, shape, elementType, dimensionOrder);
+    }
 
-	/**
-	 * Creates a new instance of tensor spec that does not have a shape.
-	 *
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param batchSize the batch size of the tensor. Must be greater than zero.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		super(identifier, name, batchSize, elementType, dimensionOrder);
-	}
+    /**
+     * Creates a new instance of this tensor spec that does not have a batch size.
+     *
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param shape the shape of the tensor. Does not include the batch size.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
+        final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        super(identifier, name, shape, elementType, dimensionOrder);
+    }
 
-	/**
-	 * Creates a new instance of tensor spec that does not have a batch size or a shape.
-	 *
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
-			final DLDimensionOrder dimensionOrder) {
-		super(identifier, name, elementType, dimensionOrder);
-	}
+    /**
+     * Creates a new instance of tensor spec that does not have a shape.
+     *
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param batchSize the batch size of the tensor. Must be greater than zero.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+        final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        super(identifier, name, batchSize, elementType, dimensionOrder);
+    }
 
-	@Override
-	protected void hashCodeInternal(final HashCodeBuilder b) {
-		// no op - everything's handled in abstract base class
-	}
+    /**
+     * Creates a new instance of tensor spec that does not have a batch size or a shape.
+     *
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
+     */
+    public DLDefaultTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
+        final DLDimensionOrder dimensionOrder) {
+        super(identifier, name, elementType, dimensionOrder);
+    }
 
-	@Override
-	protected boolean equalsInternal(final DLTensorSpec other) {
-		// no op - everything's handled in abstract base class
-		return true;
-	}
+    @Override
+    protected void hashCodeInternal(final HashCodeBuilder b) {
+        // no op - everything's handled in abstract base class
+    }
+
+    @Override
+    protected boolean equalsInternal(final DLTensorSpec other) {
+        // no op - everything's handled in abstract base class
+        return true;
+    }
 }

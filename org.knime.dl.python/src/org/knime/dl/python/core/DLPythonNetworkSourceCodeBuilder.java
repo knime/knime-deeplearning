@@ -43,52 +43,16 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 19, 2017 (marcel): created
  */
-package org.knime.dl.keras.core.execution;
+package org.knime.dl.python.core;
 
-import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.core.DLTensorRegistry;
-import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.python.util.DLPythonAbstractSourceCodeBuilder;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> implements DLKerasExecutionContext<N> {
+public final class DLPythonNetworkSourceCodeBuilder
+	extends DLPythonAbstractSourceCodeBuilder<DLPythonNetworkSourceCodeBuilder> {
 
-	private final Class<N> m_networkType;
-
-	private final String m_name;
-
-	private final DLTensorFactory m_layerDataFactory;
-
-	protected DLKerasAbstractExecutionContext(final Class<N> networkType, final String name) {
-		m_networkType = networkType;
-		m_name = name;
-		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
-				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
-						+ "' is not supported. No tensor factory found."));
-	}
-
-	@Override
-	public Class<N> getNetworkType() {
-		return m_networkType;
-	}
-
-	@Override
-	public String getName() {
-		return m_name;
-	}
-
-	@Override
-	public DLTensorFactory getTensorFactory() {
-		return m_layerDataFactory;
-	}
-
-	@Override
-	public String toString() {
-		return getName() + " (" + getIdentifier() + ")";
-	}
 }

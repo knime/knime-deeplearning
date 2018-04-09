@@ -111,4 +111,10 @@ public interface DLExecutionContext<N extends DLNetwork> {
 	DLNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
 			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
 			DLNetworkOutputConsumer outputConsumer) throws IllegalArgumentException;
+
+	/**
+	 * @return a meaningful string representation of this execution context, e.g. its name and identifier
+	 */
+	@Override
+	String toString();
 }

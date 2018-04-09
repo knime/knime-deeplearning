@@ -59,4 +59,11 @@ public interface DLOptimizer {
 	String getName();
 
 	Object getBackendRepresentation();
+
+	/**
+	 * @return a meaningful string representation of this optimizer, e.g. its name and - if feasible - its back end
+	 *         string representation
+	 */
+	@Override
+	String toString();
 }

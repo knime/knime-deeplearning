@@ -87,11 +87,11 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 
 	public abstract static class DLKerasAbstractOptimizer extends AbstractConfig implements DLKerasOptimizer {
 
-		protected final String m_name;
+		private final String m_name;
 
-		protected final String m_kerasIdentifier;
+		private final String m_kerasIdentifier;
 
-		protected IDialogComponentGroup m_dialogComponentGroup;
+		private IDialogComponentGroup m_dialogComponentGroup;
 
 		private ConfigEntry<Double> m_clipValue;
 
@@ -147,6 +147,11 @@ public interface DLKerasOptimizer extends DLOptimizer, Config {
 		@Override
 		public void setClipValue(final ConfigEntry<Double> clipValueEntry) {
 			m_clipValue = clipValueEntry;
+		}
+
+		@Override
+		public String toString() {
+			return getName() + ": " + getBackendRepresentation();
 		}
 	}
 

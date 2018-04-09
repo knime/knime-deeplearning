@@ -117,4 +117,10 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
 			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
 			DLNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
+
+	/**
+	 * @return a meaningful string representation of this training context, e.g. its name and identifier
+	 */
+	@Override
+	String toString();
 }

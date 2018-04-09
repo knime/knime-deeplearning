@@ -179,4 +179,9 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 				new DLKerasEarlyStopping(), //
 				new DLKerasReduceLROnPlateau());
 	}
+
+	@Override
+	public String toString() {
+		return getName() + " (" + getIdentifier() + ")";
+	}
 }

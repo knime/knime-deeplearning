@@ -68,182 +68,182 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * @since 3.6 - This field will be <code>null</code> when deserializing older versions of this spec. In this case,
-	 *        the spec object is in a corrupt state and has to be discarded and the underlying network has to be reread
-	 *        by the client code that triggered the deserialization. See {@link DLTensorSpec#getIdentifier()}.
-	 */
-	private final DLTensorId m_identifier;
+    /**
+     * @since 3.6 - This field will be <code>null</code> when deserializing older versions of this spec. In this case,
+     *        the spec object is in a corrupt state and has to be discarded and the underlying network has to be reread
+     *        by the client code that triggered the deserialization. See {@link DLTensorSpec#getIdentifier()}.
+     */
+    private final DLTensorId m_identifier;
 
-	private final String m_name;
+    private final String m_name;
 
-	private transient OptionalLong m_batchSize;
+    private transient OptionalLong m_batchSize;
 
-	private final DLTensorShape m_shape;
-	
-	private final DLDimensionOrder m_dimensionOrder;
+    private final DLTensorShape m_shape;
 
-	private final Class<?> m_elementType;
+    private final DLDimensionOrder m_dimensionOrder;
 
-	private int m_hashCode = 0;
+    private final Class<?> m_elementType;
 
-	/**
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param batchSize the batch size of the tensor. Must be greater than zero.
-	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		m_identifier = checkNotNull(identifier);
-		m_name = checkNotNullOrEmpty(name);
-		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
-		m_batchSize = OptionalLong.of(batchSize);
-		m_shape = checkNotNull(shape);
-		m_elementType = checkNotNull(elementType);
-		m_dimensionOrder = dimensionOrder;
-	}
+    private int m_hashCode = 0;
 
-	/**
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param shape the shape of the tensor. Does not include the batch size.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
-			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		m_identifier = checkNotNull(identifier);
-		m_name = checkNotNullOrEmpty(name);
-		m_batchSize = OptionalLong.empty();
-		m_shape = checkNotNull(shape);
-		m_elementType = checkNotNull(elementType);
-		m_dimensionOrder = dimensionOrder;
-	}
+    /**
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param batchSize the batch size of the tensor. Must be greater than zero.
+     * @param shape the shape of the tensor. Does not include the batch size.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+        final DLTensorShape shape, final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        m_identifier = checkNotNull(identifier);
+        m_name = checkNotNullOrEmpty(name);
+        checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
+        m_batchSize = OptionalLong.of(batchSize);
+        m_shape = checkNotNull(shape);
+        m_elementType = checkNotNull(elementType);
+        m_dimensionOrder = dimensionOrder;
+    }
 
-	/**
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param batchSize the batch size of the tensor. Must be greater than zero.
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
-			final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
-		m_identifier = checkNotNull(identifier);
-		m_name = checkNotNullOrEmpty(name);
-		checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
-		m_batchSize = OptionalLong.of(batchSize);
-		m_shape = DLUnknownTensorShape.INSTANCE;
-		m_elementType = checkNotNull(elementType);
-		m_dimensionOrder = dimensionOrder;
-	}
+    /**
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param shape the shape of the tensor. Does not include the batch size.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final DLTensorShape shape,
+        final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        m_identifier = checkNotNull(identifier);
+        m_name = checkNotNullOrEmpty(name);
+        m_batchSize = OptionalLong.empty();
+        m_shape = checkNotNull(shape);
+        m_elementType = checkNotNull(elementType);
+        m_dimensionOrder = dimensionOrder;
+    }
 
-	/**
-	 * @param identifier the identifier of the tensor
-	 * @param name the name of the tensor
-	 * @param elementType the data type of the tensor's elements
-	 * @param dimensionOrder the dimension order this tensor expects e.g. TDHWC
-	 */
-	protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
-			final DLDimensionOrder dimensionOrder) {
-		m_identifier = checkNotNull(identifier);
-		m_name = checkNotNullOrEmpty(name);
-		m_batchSize = OptionalLong.empty();
-		m_shape = DLUnknownTensorShape.INSTANCE;
-		m_elementType = checkNotNull(elementType);
-		m_dimensionOrder = dimensionOrder;
-	}
+    /**
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param batchSize the batch size of the tensor. Must be greater than zero.
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final long batchSize,
+        final Class<?> elementType, final DLDimensionOrder dimensionOrder) {
+        m_identifier = checkNotNull(identifier);
+        m_name = checkNotNullOrEmpty(name);
+        checkArgument(batchSize > 0, "Invalid tensor batch size. Expected value greater than 0, was %s.", batchSize);
+        m_batchSize = OptionalLong.of(batchSize);
+        m_shape = DLUnknownTensorShape.INSTANCE;
+        m_elementType = checkNotNull(elementType);
+        m_dimensionOrder = dimensionOrder;
+    }
 
-	protected abstract void hashCodeInternal(HashCodeBuilder b);
+    /**
+     * @param identifier the identifier of the tensor
+     * @param name the name of the tensor
+     * @param elementType the data type of the tensor's elements
+     * @param dimensionOrder the dimension order this tensor expects, e.g. TDHWC
+     */
+    protected DLAbstractTensorSpec(final DLTensorId identifier, final String name, final Class<?> elementType,
+        final DLDimensionOrder dimensionOrder) {
+        m_identifier = checkNotNull(identifier);
+        m_name = checkNotNullOrEmpty(name);
+        m_batchSize = OptionalLong.empty();
+        m_shape = DLUnknownTensorShape.INSTANCE;
+        m_elementType = checkNotNull(elementType);
+        m_dimensionOrder = dimensionOrder;
+    }
 
-	protected abstract boolean equalsInternal(DLTensorSpec other);
+    protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	@Override
-	public DLTensorId getIdentifier() {
-		return m_identifier;
-	}
+    protected abstract boolean equalsInternal(DLTensorSpec other);
 
-	@Override
-	public String getName() {
-		return m_name;
-	}
+    @Override
+    public DLTensorId getIdentifier() {
+        return m_identifier;
+    }
 
-	@Override
-	public OptionalLong getBatchSize() {
-		return m_batchSize;
-	}
+    @Override
+    public String getName() {
+        return m_name;
+    }
 
-	@Override
-	public DLTensorShape getShape() {
-		return m_shape;
-	}
-	
-	@Override
-	public DLDimensionOrder getDimensionOrder() {
-		return m_dimensionOrder;
-	}
+    @Override
+    public OptionalLong getBatchSize() {
+        return m_batchSize;
+    }
 
-	@Override
-	public Class<?> getElementType() {
-		return m_elementType;
-	}
+    @Override
+    public DLTensorShape getShape() {
+        return m_shape;
+    }
 
-	@Override
-	public int hashCode() {
-		if (m_hashCode == 0) {
-			m_hashCode = hashCodeInternal();
-		}
-		return m_hashCode;
-	}
+    @Override
+    public DLDimensionOrder getDimensionOrder() {
+        return m_dimensionOrder;
+    }
 
-	@Override
-	public boolean equals(final Object obj) {
-		if (obj == this) {
-			return true;
-		}
-		if (obj == null || obj.getClass() != getClass()) {
-			return false;
-		}
-		final DLAbstractTensorSpec other = (DLAbstractTensorSpec) obj;
-		return Objects.equals(other.m_identifier, m_identifier) //
-				&& other.m_name.equals(m_name) //
-				&& other.m_batchSize.equals(m_batchSize) //
-				&& other.m_shape.equals(m_shape) //
-				&& other.m_elementType.equals(m_elementType) //
-				&& equalsInternal(other);
-	}
+    @Override
+    public Class<?> getElementType() {
+        return m_elementType;
+    }
 
-	@Override
-	public String toString() {
-		return Objects.toString(m_identifier) + " (" + m_name + "): "
-				+ (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString() + ", "
-				+ m_elementType.getSimpleName();
-	}
+    @Override
+    public int hashCode() {
+        if (m_hashCode == 0) {
+            m_hashCode = hashCodeInternal();
+        }
+        return m_hashCode;
+    }
 
-	private void writeObject(final ObjectOutputStream stream) throws IOException {
-		stream.defaultWriteObject();
-		stream.writeLong(m_batchSize.orElse(-1));
-	}
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        final DLAbstractTensorSpec other = (DLAbstractTensorSpec)obj;
+        return Objects.equals(other.m_identifier, m_identifier) //
+            && other.m_name.equals(m_name) //
+            && other.m_batchSize.equals(m_batchSize) //
+            && other.m_shape.equals(m_shape) //
+            && other.m_elementType.equals(m_elementType) //
+            && equalsInternal(other);
+    }
 
-	private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		final long batchSize = stream.readLong();
-		m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
-	}
+    @Override
+    public String toString() {
+        return Objects.toString(m_identifier) + " (" + m_name + "): "
+            + (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString() + ", "
+            + m_elementType.getSimpleName();
+    }
 
-	private int hashCodeInternal() {
-		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
-		b.append(m_identifier);
-		b.append(m_name);
-		b.append(m_batchSize);
-		b.append(m_shape);
-		b.append(m_elementType);
-		hashCodeInternal(b);
-		return b.toHashCode();
-	}
+    private void writeObject(final ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        stream.writeLong(m_batchSize.orElse(-1));
+    }
+
+    private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        final long batchSize = stream.readLong();
+        m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
+    }
+
+    private int hashCodeInternal() {
+        final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+        b.append(m_identifier);
+        b.append(m_name);
+        b.append(m_batchSize);
+        b.append(m_shape);
+        b.append(m_elementType);
+        hashCodeInternal(b);
+        return b.toHashCode();
+    }
 }

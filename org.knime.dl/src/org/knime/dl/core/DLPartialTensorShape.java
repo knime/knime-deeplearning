@@ -53,12 +53,14 @@ import java.util.OptionalLong;
  */
 public interface DLPartialTensorShape extends DLTensorShape {
 
+	OptionalLong[] getShape();
+
 	/**
 	 * @param i dimension index
 	 * @return the size of dimension <code>i</code> if known
 	 * @throws IndexOutOfBoundsException if <code>i < 0</code> or <code>i >= numDimensions</code>
 	 */
-	OptionalLong getDimension(final int i);
+	OptionalLong getDimension(int i);
 
 	int getNumUnknownDimensions();
 

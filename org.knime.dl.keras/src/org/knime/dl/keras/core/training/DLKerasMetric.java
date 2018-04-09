@@ -144,7 +144,7 @@ public interface DLKerasMetric extends DLMetric {
 
 		@Override
 		public String toString() {
-			return m_name + ", " + m_kerasIdentifier;
+			return getName() + " (" + getBackendRepresentation() + ")";
 		}
 	}
 

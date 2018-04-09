@@ -8,11 +8,13 @@ package org.knime.dl.python.util;
  */
 public final class DLPythonUtils {
 
-	private static final String TRUE = "True";
-	private static final String FALSE = "False";
+	public static final String TRUE = "True";
+	public static final String FALSE = "False";
 
-	private static final String INFINITY = "inf";
-	private static final String NAN = "NaN";
+	public static final String NONE = "None";
+
+	public static final String INFINITY = "inf";
+	public static final String NAN = "NaN";
 
 	private static final char QUOTE = '"';
 
@@ -81,5 +83,75 @@ public final class DLPythonUtils {
 
 	public static String toPythonRawString(final String s) {
 		return RAW_STRING_PREFIXES[0] + toPython(s);
+	}
+
+	// Arrays:
+
+	public static String toPython(final boolean[] ba) {
+		final String[] str = new String[ba.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(ba[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPython(final double[] da) {
+		final String[] str = new String[da.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(da[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPython(final float[] fa) {
+		final String[] str = new String[fa.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(fa[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPython(final int[] ia) {
+		final String[] str = new String[ia.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(ia[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPython(final long[] la) {
+		final String[] str = new String[la.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(la[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPython(final String[] sa) {
+		final String[] str = new String[sa.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPython(sa[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPythonFormattedStringArray(final String[] sa) {
+		final String[] str = new String[sa.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPythonFormattedString(sa[i]);
+		}
+		return toPythonList(str);
+	}
+
+	public static String toPythonRawStringArray(final String[] sa) {
+		final String[] str = new String[sa.length];
+		for (int i = 0; i < str.length; i++) {
+			str[i] = toPythonRawString(sa[i]);
+		}
+		return toPythonList(str);
+	}
+
+	private static String toPythonList(final String[] elements) {
+		return "[" + String.join(",", elements) + "]";
 	}
 }

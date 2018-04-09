@@ -51,6 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,12 @@ public abstract class DLAbstractPartialTensorShape extends DLAbstractTensorShape
 	public long getKnownSize() {
 		return m_knownSize;
 	}
+
+    @Override
+    public OptionalLong[] getShape() {
+        return Arrays.stream(m_shape).mapToObj(l -> l == -1 ? OptionalLong.empty() : OptionalLong.of(l))
+            .toArray(l -> new OptionalLong[l]);
+    }
 
 	@Override
 	public OptionalLong getDimension(final int i) {

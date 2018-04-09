@@ -4,17 +4,17 @@
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  thisCasted() program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License, Version 3, as
  *  published by the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful, but
+ *  thisCasted() program is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *  along with thisCasted() program; if not, see <http://www.gnu.org/licenses>.
  *
  *  Additional permission under GNU GPL version 3 section 7:
  *
@@ -46,9 +46,6 @@
  */
 package org.knime.dl.python.util;
 
-import java.util.Arrays;
-import java.util.function.Function;
-
 /**
  * Instantiate via {@link DLPythonUtils#createSourceCodeBuilder()} or
  * {@link DLPythonUtils#createSourceCodeBuilder(String)}.
@@ -56,100 +53,8 @@ import java.util.function.Function;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLPythonSourceCodeBuilder {
+public final class DLPythonSourceCodeBuilder extends DLPythonAbstractSourceCodeBuilder<DLPythonSourceCodeBuilder> {
 
-	private static final char NEW_LINE = '\n';
-
-	private static final char TAB = '\t';
-
-	private final StringBuilder sb = new StringBuilder();
-
-	StringBuilder getInnerStringBuilder() {
-		return sb;
-	}
-
-	public DLPythonSourceCodeBuilder a(final String code) {
-		sb.append(code);
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder a(final boolean b) {
-		a(DLPythonUtils.toPython(b));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder a(final double d) {
-		a(DLPythonUtils.toPython(d));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder a(final float f) {
-		a(DLPythonUtils.toPython(f));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder a(final int i) {
-		a(DLPythonUtils.toPython(i));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder a(final long l) {
-		a(DLPythonUtils.toPython(l));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder as(final String s) {
-		sb.append(DLPythonUtils.toPython(s));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder asf(final String s) {
-		sb.append(DLPythonUtils.toPythonFormattedString(s));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder asr(final String s) {
-		sb.append(DLPythonUtils.toPythonRawString(s));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder n() {
-		sb.append(NEW_LINE);
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder n(final String line) {
-		n();
-		sb.append(line);
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder n(final String... lines) {
-		n(Arrays.asList(lines));
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder n(final Iterable<String> lines) {
-		for (final String line : lines) {
-			n(line);
-		}
-		return this;
-	}
-
-	public <T> DLPythonSourceCodeBuilder n(final Iterable<T> lines, final Function<T, String> toString) {
-		for (final T line : lines) {
-			n(toString.apply(line));
-		}
-		return this;
-	}
-
-	public DLPythonSourceCodeBuilder t() {
-		sb.append(TAB);
-		return this;
-	}
-
-	@Override
-	public String toString() {
-		return sb.toString();
+	DLPythonSourceCodeBuilder() {
 	}
 }

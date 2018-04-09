@@ -603,7 +603,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	 * Closes the underlying {@link DLPythonContext Python context}.
 	 */
 	@Override
-	public synchronized void close() throws Exception {
+	public synchronized void close() {
 		m_context.close();
 	}
 
