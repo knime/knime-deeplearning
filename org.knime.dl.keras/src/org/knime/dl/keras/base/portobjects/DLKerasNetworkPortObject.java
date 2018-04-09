@@ -61,8 +61,6 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -72,7 +70,6 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
 
 /**
  * Keras implementation of a deep learning {@link DLNetworkPortObject network port object}.
@@ -80,144 +77,126 @@ import org.knime.dl.python.core.DLPythonNetworkPortObject;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkPortObject
-	extends DLAbstractNetworkPortObject<DLKerasNetwork, DLKerasNetworkPortObjectSpec>
-		implements DLPythonNetworkPortObject<DLKerasNetwork> {
+public final class DLKerasNetworkPortObject extends
+    DLAbstractNetworkPortObject<DLKerasNetwork, DLKerasNetworkPortObjectSpec> implements DLKerasNetworkPortObjectBase {
 
-	/**
-	 * The Keras deep learning network port type.
-	 */
-	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLKerasNetworkPortObject.class);
+    private static final String ZIP_ENTRY_NAME = "DLKerasNetworkPortObject";
 
-	private static final String ZIP_ENTRY_NAME = "DLKerasNetworkPortObject";
+    private final DLKerasMaterializedPortObjectContent m_content;
 
-	private URL m_networkReference;
+    /**
+     * Creates a new Keras deep learning network port object. The given network is stored in the given file store.
+     *
+     * @param network the Keras deep learning network to store
+     * @param fileStore the file store in which to store the network
+     * @throws IOException if failed to store the network
+     */
+    public DLKerasNetworkPortObject(final DLKerasNetwork network, final FileStore fileStore) throws IOException {
+        super(fileStore);
+        m_content = new DLKerasMaterializedPortObjectContent(network, false);
+        m_network = network;
+        m_spec = m_content.getSpec();
+        // Copy network to file store.
+        flushToFileStoreInternal(network, getFileStore(0));
+    }
 
-	/**
-	 * Creates a new Keras deep learning network port object. The given network is stored in the given file store.
-	 *
-	 * @param network the Keras deep learning network to store
-	 * @param fileStore the file store in which to store the network
-	 * @throws IOException if failed to store the network
-	 */
-	public DLKerasNetworkPortObject(final DLKerasNetwork network, final FileStore fileStore) throws IOException {
-		super(network, new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass()), fileStore);
-	}
+    /**
+     * Creates a new Keras deep learning network port object. The port object only stores the given network's source URL
+     * and uses it as a reference for later loading.
+     *
+     * @param network the Keras deep learning network which source URL is stored
+     */
+    public DLKerasNetworkPortObject(final DLKerasNetwork network) {
+        super(network, new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass()));
+        m_content = new DLKerasMaterializedPortObjectContent(network, true);
+        m_network = network;
+        m_spec = m_content.getSpec();
+    }
 
-	/**
-	 * Creates a new Keras deep learning network port object. The port object only stores the given network's source URL
-	 * and uses it as a reference for later loading.
-	 *
-	 * @param network the Keras deep learning network which source URL is stored
-	 */
-	public DLKerasNetworkPortObject(final DLKerasNetwork network) {
-		super(network, new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass()));
-		m_networkReference = network.getSource();
-	}
+    /**
+     * Deserialization constructor.
+     */
+    private DLKerasNetworkPortObject(final DLKerasMaterializedPortObjectContent content) {
+        m_content = content;
+        m_spec = content.getSpec();
+    }
 
-	/**
-	 * Empty framework constructor. Must not be called by client code.
-	 */
-	public DLKerasNetworkPortObject() {
-	}
+    @Override
+    protected void postConstruct() throws IOException {
+        // Ensure backward compatibility in case we deserialized an outdated network spec that contains tensor specs
+        // without a tensor id or a dimension order. See DLTensorSpec#getIdentifier().
+        final DLKerasNetworkSpec spec = m_spec.getNetworkSpec();
+        if (specIsOutdated(spec)) {
+            // Reread network and rebuild spec.
+            final URL networkSource = m_content.getNetworkReference() == null
+                ? getFileStore(0).getFile().toURI().toURL() : m_content.getNetworkReference();
+            final DLPythonNetworkLoader<? extends DLKerasNetwork> loader =
+                DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_spec.getNetworkType()).orElseThrow(
+                    () -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
+                        + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
+            try {
+                final DLKerasNetwork network = new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
+                m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), m_spec.getNetworkType());
+            } catch (DLInvalidSourceException | DLInvalidEnvironmentException e) {
+                throw new IOException(e.getMessage(), e);
+            }
+        }
+    }
 
-	@Override
-	public String getSummary() {
-		return "Keras Deep Learning Network";
-	}
+    private boolean specIsOutdated(final DLKerasNetworkSpec spec) {
+        return Stream.of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs()).flatMap(Stream::of)
+            .anyMatch(s -> s.getIdentifier() == null || s.getDimensionOrder() == null);
+    }
 
-	@Override
-	protected void postConstruct() throws IOException {
-		// Ensure backward compatibility in case we deserialized an outdated network spec that contains tensor specs
-		// without a tensor id or a dimension order. See DLTensorSpec#getIdentifier().
-		final DLKerasNetworkSpec spec = m_spec.getNetworkSpec();
-		if (specIsOutdated(spec)) {
-			// Reread network and rebuild spec.
-			final URL networkSource = m_networkReference == null ? getFileStore(0).getFile().toURI().toURL()
-					: m_networkReference;
-			final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
-					.getNetworkLoader(m_spec.getNetworkType())
-					.orElseThrow(() -> new IllegalStateException(
-							"Keras back end '" + m_spec.getNetworkType().getCanonicalName()
-									+ "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
-			try {
-				final DLKerasNetwork network = new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
-				m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), m_spec.getNetworkType());
-			} catch (DLInvalidSourceException | DLInvalidEnvironmentException e) {
-				throw new IOException(e.getMessage(), e);
-			}
-		}
-	}
-	
-	private boolean specIsOutdated(DLKerasNetworkSpec spec) {
-		return Stream .of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs())
-				.flatMap(Stream::of)
-				.anyMatch(s -> s.getIdentifier() == null || s.getDimensionOrder() == null);
-	}
-	
+    @Override
+    protected DLKerasNetwork getNetworkInternal(final DLKerasNetworkPortObjectSpec spec)
+        throws DLInvalidSourceException, IOException {
+        return m_content.getNetwork(getFileStore(0));
+    }
 
-	@Override
-	protected DLKerasNetwork getNetworkInternal(final DLKerasNetworkPortObjectSpec spec)
-			throws DLInvalidSourceException, IOException {
-		return spec.getNetworkSpec()
-				.create(m_networkReference == null ? getFileStore(0).getFile().toURI().toURL() : m_networkReference);
-	}
+    @Override
+    protected void flushToFileStoreInternal(final DLKerasNetwork network, final FileStore fileStore)
+        throws IOException {
+        DLNetworkPortObject.copyFileToFileStore(network.getSource(), fileStore);
+    }
 
-	@Override
-	protected void flushToFileStoreInternal(final DLKerasNetwork network, final FileStore fileStore)
-			throws IOException {
-		DLNetworkPortObject.copyFileToFileStore(network.getSource(), fileStore);
-	}
+    @Override
+    protected void hashCodeInternal(final HashCodeBuilder b) {
+        b.append(m_content);
+    }
 
-	@Override
-	protected void hashCodeInternal(final HashCodeBuilder b) {
-		b.append(m_networkReference);
-	}
+    @Override
+    protected boolean equalsInternal(final DLNetworkPortObject other) {
+        return Objects.equals(((DLKerasNetworkPortObject)other).m_content, m_content);
+    }
 
-	@Override
-	protected boolean equalsInternal(final DLNetworkPortObject other) {
-		return Objects.equals(((DLKerasNetworkPortObject) other).m_networkReference, m_networkReference);
-	}
+    /**
+     * Serializer of {@link DLKerasNetworkPortObject}.
+     */
+    public static final class Serializer extends PortObjectSerializer<DLKerasNetworkPortObject> {
 
-	/**
-	 * Serializer of {@link DLKerasNetworkPortObject}.
-	 */
-	public static final class Serializer extends PortObjectSerializer<DLKerasNetworkPortObject> {
+        @Override
+        public void savePortObject(final DLKerasNetworkPortObject portObject, final PortObjectZipOutputStream out,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
+            final ObjectOutputStream objOut = new ObjectOutputStream(out);
+            new DLKerasMaterializedPortObjectContent.Serializer().savePortObjectContent(portObject.m_content, objOut,
+                exec);
+            objOut.flush();
+        }
 
-		@Override
-		public void savePortObject(final DLKerasNetworkPortObject portObject, final PortObjectZipOutputStream out,
-				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-			out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
-			final ObjectOutputStream objOut = new ObjectOutputStream(out);
-			final boolean referencedNetwork = portObject.m_networkReference != null;
-			objOut.writeBoolean(referencedNetwork);
-			if (referencedNetwork) {
-				objOut.writeObject(portObject.m_networkReference);
-			}
-			objOut.flush();
-		}
-
-		@Override
-		public DLKerasNetworkPortObject loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
-				final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-			final DLKerasNetworkPortObject portObject = new DLKerasNetworkPortObject();
-			final ZipEntry entry = in.getNextEntry();
-			if (!ZIP_ENTRY_NAME.equals(entry.getName())) {
-				throw new IOException("Failed to load Keras deep learning network port object. Invalid zip entry name '"
-						+ entry.getName() + "', expected '" + ZIP_ENTRY_NAME + "'.");
-			}
-			final ObjectInputStream objIn = new ObjectInputStream(in);
-			if (objIn.readBoolean()) {
-				try {
-					portObject.m_networkReference = (URL) objIn.readObject();
-				} catch (final ClassNotFoundException e) {
-					throw new IOException("Failed to load Keras deep learning network port object.", e);
-				}
-			} else {
-				portObject.m_networkReference = null;
-			}
-			portObject.m_spec = (DLKerasNetworkPortObjectSpec) spec;
-			return portObject;
-		}
-	}
+        @Override
+        public DLKerasNetworkPortObject loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            final ZipEntry entry = in.getNextEntry();
+            if (!ZIP_ENTRY_NAME.equals(entry.getName())) {
+                throw new IOException("Failed to load Keras deep learning network port object. Invalid zip entry name '"
+                    + entry.getName() + "', expected '" + ZIP_ENTRY_NAME + "'.");
+            }
+            final ObjectInputStream objIn = new ObjectInputStream(in);
+            final DLKerasMaterializedPortObjectContent portObjectContent =
+                new DLKerasMaterializedPortObjectContent.Serializer().loadPortObjectContent(objIn, spec, exec);
+            return new DLKerasNetworkPortObject(portObjectContent);
+        }
+    }
 }

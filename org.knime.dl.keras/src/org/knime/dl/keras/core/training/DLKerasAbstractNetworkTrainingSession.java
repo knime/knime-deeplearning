@@ -60,6 +60,7 @@ import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
@@ -121,7 +122,7 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 	}
 
 	@Override
-	public DLKerasNetworkPortObject getTrainedNetwork(final ExecutionContext exec) throws Exception {
+	public DLKerasNetworkPortObjectBase getTrainedNetwork(final ExecutionContext exec) throws Exception {
 		if (m_commands == null) {
 			throw new IllegalStateException("Network was not trained, yet.");
 		}

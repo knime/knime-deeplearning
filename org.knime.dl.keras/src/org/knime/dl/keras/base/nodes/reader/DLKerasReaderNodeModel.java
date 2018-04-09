@@ -75,6 +75,7 @@ import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
@@ -128,7 +129,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	private DLKerasNetwork m_network;
 
 	protected DLKerasReaderNodeModel() {
-		super(null, new PortType[] { DLKerasNetworkPortObject.TYPE });
+		super(null, new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
 	}
 
 	@Override

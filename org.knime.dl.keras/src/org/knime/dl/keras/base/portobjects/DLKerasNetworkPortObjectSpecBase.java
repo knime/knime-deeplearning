@@ -44,18 +44,21 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.keras.base.portobjects;
 
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.dl.python.core.training.DLPythonNetworkTrainingSession;
+import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkTrainingSession extends DLPythonNetworkTrainingSession<DLKerasTrainingStatus> {
+public interface DLKerasNetworkPortObjectSpecBase extends DLNetworkPortObjectSpec {
 
-	// TODO: this should go somewhere else as it's "base" related rather than "core"
-	DLKerasNetworkPortObjectBase getTrainedNetwork(ExecutionContext exec) throws Exception;
+	@Override
+	Class<? extends DLKerasNetwork> getNetworkType();
+
+	@Override
+	DLKerasNetworkSpec getNetworkSpec();
 }

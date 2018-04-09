@@ -46,9 +46,13 @@
  */
 package org.knime.dl.keras.base.portobjects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -57,26 +61,27 @@ import org.knime.core.node.port.PortObjectSpecZipOutputStream;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLKerasLayer;
+import org.knime.dl.keras.core.layers.DLKerasLayerGraphSerializer;
+import org.knime.dl.keras.core.layers.DLKerasNetworkSpecInferrer;
 
 /**
- * The spec of {@link DLKerasNetworkPortObjectBase}.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObjectSpec<DLKerasNetworkSpec>
-    implements DLKerasNetworkPortObjectSpecBase {
+public final class DLKerasUnmaterializedNetworkPortObjectSpec
+    extends DLAbstractNetworkPortObjectSpec<DLKerasNetworkSpec> implements DLKerasNetworkPortObjectSpecBase {
 
-    private static final String ZIP_ENTRY_NAME = "DLKerasNetworkPortObjectSpec";
+    private static final String ZIP_ENTRY_NAME = "DLKerasUnmaterializedNetworkPortObjectSpec";
 
-    /**
-     * Creates a new Keras deep learning network port object spec.
-     *
-     * @param spec the Keras deep learning network spec
-     * @param type the type of the Keras network that is associated with the network spec
-     */
-    public DLKerasNetworkPortObjectSpec(final DLKerasNetworkSpec spec, final Class<? extends DLKerasNetwork> type) {
-        super(spec, type);
+    private final List<DLKerasLayer> m_outputLayers;
+
+    public DLKerasUnmaterializedNetworkPortObjectSpec(final DLKerasLayer outputLayer)
+        throws DLInvalidInputSpecException {
+        super(new DLKerasNetworkSpecInferrer().inferNetworkSpec(Collections.singletonList(checkNotNull(outputLayer))),
+            DLKerasNetwork.class);
+        m_outputLayers = Collections.singletonList(outputLayer);
     }
 
     @Override
@@ -85,32 +90,40 @@ public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObj
         return (Class<? extends DLKerasNetwork>)super.getNetworkType();
     }
 
+    public DLKerasLayer getOutputLayer() {
+        return m_outputLayers.get(0);
+    }
+
     @Override
     protected void hashCodeInternal(final HashCodeBuilder b) {
-        // no op - everything's handled in abstract base class
+        // no op - everything's handled in abstract base class. Output layers do not matter here.
     }
 
     @Override
     protected boolean equalsInternal(final org.knime.dl.base.portobjects.DLNetworkPortObjectSpec other) {
-        // no op - everything's handled in abstract base class
+        // no op - everything's handled in abstract base class. Output layers do not matter here.
         return true;
     }
 
     /**
-     * Serializer of {@link DLKerasNetworkPortObjectSpec}.
+     * Serializer of {@link DLKerasUnmaterializedNetworkPortObjectSpec}.
      */
-    public static final class Serializer extends PortObjectSpecSerializer<DLKerasNetworkPortObjectSpec> {
+    public static final class Serializer extends PortObjectSpecSerializer<DLKerasUnmaterializedNetworkPortObjectSpec> {
         @Override
-        public void savePortObjectSpec(final DLKerasNetworkPortObjectSpec portObjectSpec,
+        public void savePortObjectSpec(final DLKerasUnmaterializedNetworkPortObjectSpec portObjectSpec,
             final PortObjectSpecZipOutputStream out) throws IOException {
             out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
             final ObjectOutputStream objOut = new ObjectOutputStream(out);
-            objOut.writeObject(portObjectSpec.m_spec);
-            objOut.writeObject(portObjectSpec.m_type);
+            try {
+                new DLKerasLayerGraphSerializer().writeGraphTo(portObjectSpec.m_outputLayers, objOut);
+            } catch (final Exception e) {
+                throw new IOException(
+                    "Failed to save Keras deep learning network port object spec. See log for details.", e);
+            }
         }
 
         @Override
-        public DLKerasNetworkPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in)
+        public DLKerasUnmaterializedNetworkPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in)
             throws IOException {
             final ZipEntry entry = in.getNextEntry();
             if (!ZIP_ENTRY_NAME.equals(entry.getName())) {
@@ -119,10 +132,8 @@ public final class DLKerasNetworkPortObjectSpec extends DLAbstractNetworkPortObj
             }
             final ObjectInputStream objIn = new ObjectInputStream(in);
             try {
-                final DLKerasNetworkSpec spec = (DLKerasNetworkSpec)objIn.readObject();
-                @SuppressWarnings("unchecked") // we know what we serialized
-                final Class<? extends DLKerasNetwork> type = (Class<? extends DLKerasNetwork>)objIn.readObject();
-                return new DLKerasNetworkPortObjectSpec(spec, type);
+                final List<DLKerasLayer> outputLayers = new DLKerasLayerGraphSerializer().readGraphFrom(objIn);
+                return new DLKerasUnmaterializedNetworkPortObjectSpec(outputLayers.get(0));
             } catch (final ClassNotFoundException e) {
                 throw new IOException("Failed to load Keras deep learning network port object spec."
                     + " Are you missing a KNIME Deep Learning extension?", e);

@@ -108,8 +108,8 @@ import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
 import org.knime.dl.keras.base.nodes.learner.view.DLSparseLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLDefaultJFreeChartLinePlotViewSpec;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DLJFreeChartLinePlotViewSpec;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.training.DLKerasCallback;
@@ -195,8 +195,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	private DLLinePlotViewDataCollection[] m_viewData;
 
 	DLKerasLearnerNodeModel() {
-		super(new PortType[] { DLKerasNetworkPortObject.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
-				new PortType[] { DLKerasNetworkPortObject.TYPE });
+		super(new PortType[] { DLKerasNetworkPortObjectBase.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
+				new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
 		m_generalCfg = createGeneralModelConfig();
 		m_inputCfgs = new HashMap<>();
 		m_targetCfgs = new HashMap<>();
@@ -222,13 +222,13 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		if (inSpecs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX] == null) {
 			throw new InvalidSettingsException("Input data table is missing.");
 		}
-		if (!DLKerasNetworkPortObject.TYPE
+		if (!DLKerasNetworkPortObjectBase.TYPE
 				.acceptsPortObjectSpec(inSpecs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX])) {
 			throw new InvalidSettingsException(
 					"Input port object is not a valid Keras deep learning network port object.");
 		}
 
-		final DLKerasNetworkPortObjectSpec inPortObjectSpec = ((DLKerasNetworkPortObjectSpec) inSpecs[IN_NETWORK_PORT_IDX]);
+		final DLKerasNetworkPortObjectSpecBase inPortObjectSpec = ((DLKerasNetworkPortObjectSpecBase) inSpecs[IN_NETWORK_PORT_IDX]);
 		final DLKerasNetworkSpec inNetworkSpec = inPortObjectSpec.getNetworkSpec();
 		final Class<? extends DLNetwork> inNetworkType = inPortObjectSpec.getNetworkType();
 		final DataTableSpec inTableSpec = (DataTableSpec) inSpecs[IN_DATA_PORT_IDX];

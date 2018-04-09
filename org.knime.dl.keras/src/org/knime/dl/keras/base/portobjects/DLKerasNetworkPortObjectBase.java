@@ -44,18 +44,29 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.training;
+package org.knime.dl.keras.base.portobjects;
 
-import org.knime.core.node.ExecutionContext;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.dl.python.core.training.DLPythonNetworkTrainingSession;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortTypeRegistry;
+import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.python.core.DLPythonNetworkPortObject;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkTrainingSession extends DLPythonNetworkTrainingSession<DLKerasTrainingStatus> {
+public interface DLKerasNetworkPortObjectBase extends DLPythonNetworkPortObject<DLKerasNetwork> {
 
-	// TODO: this should go somewhere else as it's "base" related rather than "core"
-	DLKerasNetworkPortObjectBase getTrainedNetwork(ExecutionContext exec) throws Exception;
+	/**
+	 * The Keras deep learning network port type.
+	 */
+	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLKerasNetworkPortObjectBase.class);
+
+	@Override
+	default String getSummary() {
+		return "Keras Deep Learning Network";
+	}
+
+	@Override
+	DLKerasNetworkPortObjectSpecBase getSpec();
 }

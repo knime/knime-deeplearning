@@ -68,123 +68,137 @@ import org.knime.dl.core.DLNetwork;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends DLNetworkPortObjectSpec>
-	extends FileStorePortObject implements DLNetworkPortObject {
+    extends FileStorePortObject implements DLNetworkPortObject {
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLNetworkPortObject.class);
 
-	/**
-	 * The stored network. May be <code>null</code> after a port object was freshly loaded and
-	 * {@link #getNetworkInternal(DLNetworkPortObjectSpec)} was not yet called. Is populated by {@link #getNetwork()}.
-	 */
-	protected N m_network;
+    /**
+     * The stored network. Is <code>null</code> if the port object was created via
+     * {@link #DLAbstractNetworkPortObject()} or {@link #DLAbstractNetworkPortObject(FileStore)} and
+     * {@link #getNetworkInternal(DLNetworkPortObjectSpec)} was not yet called (except a deriving class did set it
+     * manually).
+     */
+    protected N m_network;
 
-	/**
-	 * The spec of the port object. Must be populated by the port object's serializer.
-	 */
-	protected S m_spec;
+    /**
+     * The spec of the port object. Must be populated by the port object's serializer.
+     */
+    protected S m_spec;
 
-	/**
-	 * Creates a new instance of this port object. The given network is stored in the given file store.
-	 *
-	 * @param network the network to store
-	 * @param spec the spec of this port object
-	 * @param fileStore the file store in which to store the network
-	 * @throws IOException if failed to store the network
-	 */
-	protected DLAbstractNetworkPortObject(final N network, final S spec, final FileStore fileStore) throws IOException {
-		super(Collections.singletonList(fileStore));
-		m_network = checkNotNull(network);
-		m_spec = checkNotNull(spec);
-		// Copy network to file store.
-		flushToFileStoreInternal(network, getFileStore(0));
-	}
+    /**
+     * Creates a new instance of this port object. The given network is stored in the given file store.
+     *
+     * @param network the network to store
+     * @param spec the spec of this port object
+     * @param fileStore the file store in which to store the network
+     * @throws IOException if failed to store the network
+     */
+    protected DLAbstractNetworkPortObject(final N network, final S spec, final FileStore fileStore) throws IOException {
+        super(Collections.singletonList(fileStore));
+        m_network = checkNotNull(network);
+        m_spec = checkNotNull(spec);
+        // Copy network to file store.
+        flushToFileStoreInternal(network, getFileStore(0));
+    }
 
-	/**
-	 * Creates a new instance of this port object. The port object only stores the given network's source URL and uses
-	 * it as a reference for later loading.
-	 *
-	 * @param network the network which source URL is stored
-	 * @param spec the spec of this port object
-	 */
-	protected DLAbstractNetworkPortObject(final N network, final S spec) {
-		super(Collections.emptyList());
-		m_network = checkNotNull(network);
-		m_spec = checkNotNull(spec);
-	}
+    /**
+     * Creates a new instance of this port object. The port object only stores the given network's source URL and uses
+     * it as a reference for later loading.
+     *
+     * @param network the network which source URL is stored
+     * @param spec the spec of this port object
+     */
+    protected DLAbstractNetworkPortObject(final N network, final S spec) {
+        super(Collections.emptyList());
+        m_network = checkNotNull(network);
+        m_spec = checkNotNull(spec);
+    }
 
-	/**
-	 * Empty framework constructor.
-	 */
-	protected DLAbstractNetworkPortObject() {
-	}
+    /**
+     * Creates a new instance of this port object that provides a file store to store a network. Deriving classes should
+     * make sure to populate {@link #m_spec} immediately after the call to this constructor returns. {@link #m_network}
+     * can be populated later, e.g. via {@link #getNetworkInternal(DLNetworkPortObjectSpec)} and must be flushed to file
+     * store manually via {@link #flushToFileStoreInternal(DLNetwork, FileStore)}.
+     *
+     * @param fileStore the file store in which a network can be saved
+     */
+    protected DLAbstractNetworkPortObject(final FileStore fileStore) {
+        super(Collections.singletonList(fileStore));
+    }
 
-	/**
-	 * Stores the given network in file store.<br>
-	 * Is called from {@link #DLAbstractNetworkPortObject(DLNetwork, DLNetworkPortObjectSpec, FileStore)}.
-	 *
-	 * @param network the network to store in file store
-	 * @param fileStore the file store in which to store the network
-	 * @throws IOException if storing the network to file store failed
-	 */
-	protected abstract void flushToFileStoreInternal(N network, FileStore fileStore) throws IOException;
+    /**
+     * Deserialization constructor.
+     */
+    protected DLAbstractNetworkPortObject() {
+    }
 
-	protected abstract void hashCodeInternal(HashCodeBuilder b);
+    /**
+     * Stores the given network in file store.<br>
+     * Is called from {@link #DLAbstractNetworkPortObject(DLNetwork, DLNetworkPortObjectSpec, FileStore)}.
+     *
+     * @param network the network to store in file store
+     * @param fileStore the file store in which to store the network
+     * @throws IOException if storing the network to file store failed
+     */
+    protected abstract void flushToFileStoreInternal(N network, FileStore fileStore) throws IOException;
 
-	protected abstract boolean equalsInternal(DLNetworkPortObject other);
+    protected abstract void hashCodeInternal(HashCodeBuilder b);
 
-	/**
-	 * Loads and returns the stored network. Use {@link FileStorePortObject#getFileStore(int)} with argument
-	 * <code>0</code> as source for loading the network if it was stored in a file store.<br>
-	 * Is called from {@link #getNetwork()} if {@link #m_network} is null.
-	 *
-	 * @param spec the port object spec
-	 * @return the loaded network
-	 * @throws DLInvalidSourceException if network source has become unavailable or invalid
-	 * @throws IOException if loading the network implied I/O which failed (optional)
-	 */
-	protected abstract N getNetworkInternal(S spec) throws DLInvalidSourceException, IOException;
+    protected abstract boolean equalsInternal(DLNetworkPortObject other);
 
-	@Override
-	public final N getNetwork() throws DLInvalidSourceException, IOException {
-		if (m_network == null) {
-			try {
-				m_network = getNetworkInternal(m_spec);
-			} catch (final DLInvalidSourceException e) {
-				LOGGER.debug(e.getMessage(), e);
-				throw e;
-			} catch (final IOException e) {
-				LOGGER.debug("Failed to load deep learning network in port object.", e);
-				throw e;
-			}
-		}
-		return m_network;
-	}
+    /**
+     * Loads and returns the stored network. Use {@link FileStorePortObject#getFileStore(int)} with argument
+     * <code>0</code> as source for loading the network if it was stored in a file store.<br>
+     * Is called from {@link #getNetwork()} if {@link #m_network} is null.
+     *
+     * @param spec the port object spec
+     * @return the loaded network
+     * @throws DLInvalidSourceException if network source has become unavailable or invalid
+     * @throws IOException if loading the network implied I/O which failed (optional)
+     */
+    protected abstract N getNetworkInternal(S spec) throws DLInvalidSourceException, IOException;
 
-	@Override
-	public S getSpec() {
-		return m_spec;
-	}
+    @Override
+    public final N getNetwork() throws DLInvalidSourceException, IOException {
+        if (m_network == null) {
+            try {
+                m_network = getNetworkInternal(m_spec);
+            } catch (final DLInvalidSourceException e) {
+                LOGGER.debug(e.getMessage(), e);
+                throw e;
+            } catch (final IOException e) {
+                LOGGER.debug("Failed to load deep learning network in port object.", e);
+                throw e;
+            }
+        }
+        return m_network;
+    }
 
-	@Override
-	public int hashCode() {
-		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
-		b.append(m_network);
-		b.append(m_spec);
-		hashCodeInternal(b);
-		return b.toHashCode();
-	}
+    @Override
+    public S getSpec() {
+        return m_spec;
+    }
 
-	@Override
-	public boolean equals(final Object obj) {
-		if (obj == this) {
-			return true;
-		}
-		if (obj == null || obj.getClass() != getClass()) {
-			return false;
-		}
-		final DLAbstractNetworkPortObject<?, ?> other = (DLAbstractNetworkPortObject<?, ?>) obj;
-		return Objects.equals(other.m_network, m_network) //
-				&& Objects.equals(other.m_spec, m_spec) //
-				&& equalsInternal(other);
-	}
+    @Override
+    public int hashCode() {
+        final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+        b.append(m_network);
+        b.append(m_spec);
+        hashCodeInternal(b);
+        return b.toHashCode();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        final DLAbstractNetworkPortObject<?, ?> other = (DLAbstractNetworkPortObject<?, ?>)obj;
+        return Objects.equals(other.m_network, m_network) //
+            && Objects.equals(other.m_spec, m_spec) //
+            && equalsInternal(other);
+    }
 }
