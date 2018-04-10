@@ -53,7 +53,6 @@ import java.net.URL;
 import java.util.Objects;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
@@ -87,10 +86,9 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
     }
 
     @Override
-    public DLKerasNetwork getNetwork(final FileStore fileStore) throws DLInvalidSourceException, IOException {
+    public DLKerasNetwork getNetwork(final URL storage) throws DLInvalidSourceException, IOException {
         if (m_network == null) {
-            m_network = m_spec.getNetworkSpec()
-                .create(m_networkReference == null ? fileStore.getFile().toURI().toURL() : m_networkReference);
+            m_network = m_spec.getNetworkSpec().create(storage);
         }
         return m_network;
     }

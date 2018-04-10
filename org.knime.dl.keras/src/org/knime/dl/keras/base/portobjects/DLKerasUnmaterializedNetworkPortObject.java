@@ -98,7 +98,7 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
                     e);
             }
         }
-        return m_content.getNetwork(getFileStore(0));
+        return m_content.getNetwork(getFileStore(0).getFile().toURI().toURL());
     }
 
     @Override
@@ -120,7 +120,8 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
     }
 
     private void materialize() throws DLInvalidSourceException, IOException {
-        m_content = ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(getFileStore(0));
+        m_content =
+            ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(getFileStore(0).getFile().toURI().toURL());
     }
 
     /**

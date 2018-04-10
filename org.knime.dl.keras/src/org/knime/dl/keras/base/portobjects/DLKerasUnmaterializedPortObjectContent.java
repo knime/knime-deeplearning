@@ -49,11 +49,11 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
@@ -82,11 +82,10 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
     }
 
     @Override
-    public DLKerasNetwork getNetwork(final FileStore fileStore) throws DLInvalidSourceException, IOException {
+    public DLKerasNetwork getNetwork(final URL storage) throws DLInvalidSourceException, IOException {
         if (m_network == null) {
             try {
-                m_network =
-                    new DLKerasNetworkMaterializer().materialize(m_outputLayers, fileStore.getFile().toURI().toURL());
+                m_network = new DLKerasNetworkMaterializer().materialize(m_outputLayers, storage);
             } catch (final Exception e) {
                 throw new IOException(
                     "An error occurred while creating the Keras network from its layer specifications. See log for details.",
@@ -110,9 +109,9 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
         return m_spec;
     }
 
-    public DLKerasMaterializedPortObjectContent materialize(final FileStore fileStore)
+    public DLKerasMaterializedPortObjectContent materialize(final URL storage)
         throws DLInvalidSourceException, IOException {
-        final DLKerasNetwork materialized = getNetwork(fileStore);
+        final DLKerasNetwork materialized = getNetwork(storage);
         return new DLKerasMaterializedPortObjectContent(materialized, false);
     }
 

@@ -151,7 +151,9 @@ public final class DLKerasNetworkPortObject extends
     @Override
     protected DLKerasNetwork getNetworkInternal(final DLKerasNetworkPortObjectSpec spec)
         throws DLInvalidSourceException, IOException {
-        return m_content.getNetwork(getFileStore(0));
+        final URL networkSource = m_content.getNetworkReference() == null ? getFileStore(0).getFile().toURI().toURL()
+            : m_content.getNetworkReference();
+        return m_content.getNetwork(networkSource);
     }
 
     @Override

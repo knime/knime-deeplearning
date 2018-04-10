@@ -47,8 +47,8 @@
 package org.knime.dl.keras.base.portobjects;
 
 import java.io.IOException;
+import java.net.URL;
 
-import org.knime.core.data.filestore.FileStore;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasNetwork;
 
@@ -58,7 +58,7 @@ import org.knime.dl.keras.core.DLKerasNetwork;
  */
 interface DLKerasPortObjectContent {
 
-    DLKerasNetwork getNetwork(FileStore fileStore) throws DLInvalidSourceException, IOException;
+    DLKerasNetwork getNetwork(URL storage) throws DLInvalidSourceException, IOException;
 
     DLKerasNetworkPortObjectSpecBase getSpec();
 }
