@@ -66,6 +66,7 @@ import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 
 import com.google.common.collect.Lists;
@@ -144,12 +145,20 @@ public final class DLKerasNetworkMaterializer {
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
         try (final DLKerasAbstractCommands commands =
             ((DLKerasNetworkLoader<?>)loader).createCommands(new DLPythonDefaultContext())) {
-            commands.getContext().executeInKernel("import keras");
-            commands.getContext().executeInKernel(generatedCode);
-            commands.getContext().executeInKernel("generated_network = keras.models.Model(" //
-                + "inputs=" + DLPythonUtils.toPython(inputNames.toArray(new String[0])) + ", " //
-                + "outputs=" + DLPythonUtils.toPython(outputNames) //
-                + ")");
+
+            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("import keras") //
+                .n(generatedCode) //
+                .n("generated_network = keras.models.Model(") //
+                .a("inputs=[" + String.join(",", inputNames) + "]").a(", ") //
+                .a("outputs=[" + String.join(",", outputNames) + "]") //
+                .a(")") //
+                .n("import DLPythonNetworkType") //
+                .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
+                .n("import DLPythonNetwork") //
+                .n("DLPythonNetwork.add_network('generated_network', network_type.wrap_model(generated_network))");
+
+            commands.getContext().executeInKernel(b.toString());
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
             try {
