@@ -64,7 +64,6 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -150,7 +149,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 	}
 
 	@Override
-	public DLKerasNetworkPortObjectBase createPortObject(final N network, final FileStore fileStore)
+	public DLKerasNetworkPortObject createPortObject(final N network, final FileStore fileStore)
 			throws IOException {
 		return new DLKerasNetworkPortObject(network, fileStore);
 	}
