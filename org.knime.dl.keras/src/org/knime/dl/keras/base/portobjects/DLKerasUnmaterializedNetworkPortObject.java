@@ -49,6 +49,7 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
@@ -61,6 +62,7 @@ import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
@@ -76,8 +78,12 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     public DLKerasUnmaterializedNetworkPortObject(final DLKerasLayer outputLayer, final FileStore fileStore) {
         super(Collections.singletonList(fileStore));
-        m_content = new DLKerasUnmaterializedPortObjectContent(
-            outputLayer != null ? Collections.singletonList(outputLayer) : null);
+        try {
+            m_content = new DLKerasUnmaterializedPortObjectContent(outputLayer);
+        } catch (final DLInvalidInputSpecException e) {
+            // This should not occur because the layer input specs were already validated in the preceding layer node.
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -89,39 +95,16 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     @Override
     public DLKerasNetwork getNetwork() throws DLInvalidSourceException, IOException {
-        if (!isMaterialized()) {
-            try {
-                materialize();
-            } catch (final Exception e) {
-                throw new IOException(
-                    "An error occurred while creating the Keras network from its layer specifications. See log for details.",
-                    e);
-            }
+        final URL networkStorage = getFileStore(0).getFile().toURI().toURL();
+        if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
+            m_content = ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(networkStorage);
         }
-        return m_content.getNetwork(getFileStore(0).getFile().toURI().toURL());
+        return ((DLKerasMaterializedPortObjectContent)m_content).getNetwork(networkStorage);
     }
 
     @Override
     public DLKerasNetworkPortObjectSpecBase getSpec() {
-        if (!isMaterialized()) {
-            try {
-                materialize();
-            } catch (final Exception e) {
-                throw new RuntimeException(
-                    "An error occurred while creating the Keras network from its layer specifications. See log for details.",
-                    e);
-            }
-        }
         return m_content.getSpec();
-    }
-
-    private boolean isMaterialized() {
-        return m_content instanceof DLKerasMaterializedPortObjectContent;
-    }
-
-    private void materialize() throws DLInvalidSourceException, IOException {
-        m_content =
-            ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(getFileStore(0).getFile().toURI().toURL());
     }
 
     /**
@@ -135,8 +118,9 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
             throws IOException, CanceledExecutionException {
             out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
             final ObjectOutputStream objOut = new ObjectOutputStream(out);
-            objOut.writeBoolean(portObject.isMaterialized());
-            if (portObject.isMaterialized()) {
+            final boolean isMaterialized = portObject.m_content instanceof DLKerasMaterializedPortObjectContent;
+            objOut.writeBoolean(isMaterialized);
+            if (isMaterialized) {
                 new DLKerasMaterializedPortObjectContent.Serializer()
                     .savePortObjectContent((DLKerasMaterializedPortObjectContent)portObject.m_content, objOut, exec);
             } else {

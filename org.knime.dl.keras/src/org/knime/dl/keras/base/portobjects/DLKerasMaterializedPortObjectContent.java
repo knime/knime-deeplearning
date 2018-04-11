@@ -69,11 +69,11 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
 
     private URL m_networkReference;
 
-    private DLKerasNetworkPortObjectSpec m_spec;
+    private final DLKerasNetworkPortObjectSpec m_spec;
 
-    public DLKerasMaterializedPortObjectContent(final DLKerasNetwork network, final boolean isReferenceNetwork) {
+    DLKerasMaterializedPortObjectContent(final DLKerasNetwork network, final boolean isReferencedNetwork) {
         m_network = network;
-        if (isReferenceNetwork) {
+        if (isReferencedNetwork) {
             m_networkReference = network.getSource();
         }
         m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass());
@@ -82,10 +82,10 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
     /**
      * Deserialization constructor.
      */
-    private DLKerasMaterializedPortObjectContent() {
+    private DLKerasMaterializedPortObjectContent(final DLKerasNetworkPortObjectSpec spec) {
+        m_spec = spec;
     }
 
-    @Override
     public DLKerasNetwork getNetwork(final URL storage) throws DLInvalidSourceException, IOException {
         if (m_network == null) {
             m_network = m_spec.getNetworkSpec().create(storage);
@@ -132,8 +132,8 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
 
         public DLKerasMaterializedPortObjectContent loadPortObjectContent(final ObjectInputStream objIn,
             final PortObjectSpec spec, final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-            final DLKerasMaterializedPortObjectContent portObjectContent = new DLKerasMaterializedPortObjectContent();
-            portObjectContent.m_spec = (DLKerasNetworkPortObjectSpec)spec;
+            final DLKerasMaterializedPortObjectContent portObjectContent =
+                new DLKerasMaterializedPortObjectContent((DLKerasNetworkPortObjectSpec)spec);
             if (objIn.readBoolean()) {
                 try {
                     portObjectContent.m_networkReference = (URL)objIn.readObject();
