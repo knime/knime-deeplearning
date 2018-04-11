@@ -377,10 +377,10 @@ final class DLExecutorNodeModel extends NodeModel {
 								"No execution back end selected. Please configure the node.");
 					}
 				});
-		if (!backend.getNetworkType().isAssignableFrom(networkType)) {
-			throw new InvalidSettingsException(
-					"Selected back end is not compatible to the input deep learning network. Please reconfigure the node.");
-		}
+        if (!networkType.isAssignableFrom(backend.getNetworkType())) {
+            throw new InvalidSettingsException(
+                "Selected back end is not compatible to the input deep learning network. Please reconfigure the node.");
+        }
 	}
 
 	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)

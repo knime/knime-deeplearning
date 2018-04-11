@@ -406,11 +406,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			backend = availableBackends.get(0);
 			m_generalCfg.getTrainingContextEntry().setValue(backend);
 		}
-		if (!backend.getNetworkType().isAssignableFrom(inNetworkType)) {
-			throw new InvalidSettingsException(
-					"Selected training back end is not compatible to the input deep learning network. "
-							+ "Please reconfigure the node.");
-		}
+        if (!inNetworkType.isAssignableFrom(backend.getNetworkType())) {
+            throw new InvalidSettingsException(
+                "Selected training back end is not compatible to the input deep learning network. "
+                    + "Please reconfigure the node.");
+        }
 		DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
 		if (optimizer == null) {
 			final List<DLKerasOptimizer> availableOptimizers = backend.createOptimizers().stream() //
