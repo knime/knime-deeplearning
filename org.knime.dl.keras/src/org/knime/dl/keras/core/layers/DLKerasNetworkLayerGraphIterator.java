@@ -51,6 +51,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.knime.dl.core.DLUncheckedException;
 
 /**
  * Performs a depth-first search on a Keras layer graph specified by a list of output (i.e. leaf) nodes.
@@ -58,20 +61,26 @@ import java.util.List;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasLayerGraphIterator implements Iterator<DLKerasLayer> {
-
-    private final LinkedHashSet<DLKerasLayer> m_encounteredLayers = new LinkedHashSet<>();
+public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasLayer> {
 
     private final Deque<DLKerasLayer> m_pendingLayers = new ArrayDeque<>();
 
-    public DLKerasLayerGraphIterator(final List<DLKerasLayer> outputLayers) {
+    private final LinkedHashSet<DLKerasLayer> m_encounteredLayers = new LinkedHashSet<>();
+
+    /**
+     * Creates an iterator over the network graph specified by the given output layers and their parents (i.e.
+     * predecessor nodes) to a stream.
+     *
+     * @param outputLayers the output layers that define the graph
+     * @throws NullPointerException if the list of output layers or one of the output layers is <code>null</code>
+     */
+    public DLKerasNetworkLayerGraphIterator(final List<DLKerasLayer> outputLayers) {
         for (int i = 0; i < outputLayers.size(); i++) {
             final DLKerasLayer output = outputLayers.get(i);
             if (output == null) {
-                throw new IllegalStateException("Keras output layer at output index " + i + " is null.");
+                throw new NullPointerException("Keras output layer at output index " + i + " is null.");
             }
-            m_encounteredLayers.add(output);
-            m_pendingLayers.push(output);
+            m_pendingLayers.add(output);
         }
     }
 
@@ -80,16 +89,35 @@ public final class DLKerasLayerGraphIterator implements Iterator<DLKerasLayer> {
         return !m_pendingLayers.isEmpty();
     }
 
+    /**
+     * Calls {@link #visitNext(DLKerasLayerVisitor) visitNext(null)}.
+     *
+     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws NoSuchElementException if the graph has no more elements
+     */
     @Override
     public DLKerasLayer next() {
         return visitNext(null);
     }
 
+    /**
+     * Visits the next layer in the network graph and passes it to the adequate method of the given visitor.
+     *
+     * @param visitor the visitor to which the next layer is passed, may be <code>null</code>
+     * @return the visited layer
+     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws NoSuchElementException if the graph has no more elements
+     */
     public DLKerasLayer visitNext(final DLKerasLayerVisitor visitor) {
         final DLKerasLayer layer = m_pendingLayers.pop();
         if (layer instanceof DLKerasInnerLayer) {
+            boolean isOutputNode = false;
+            if (!m_encounteredLayers.contains(layer)) {
+                m_encounteredLayers.add(layer);
+                isOutputNode = true;
+            }
             final DLKerasLayer[] parents = getParents((DLKerasInnerLayer)layer);
-            for (int i = 0; i < parents.length; i++) {
+            for (int i = parents.length - 1; i >= 0; i--) {
                 final DLKerasLayer parent = parents[i];
                 if (!m_encounteredLayers.contains(parent)) {
                     m_encounteredLayers.add(parent);
@@ -97,20 +125,39 @@ public final class DLKerasLayerGraphIterator implements Iterator<DLKerasLayer> {
                 }
             }
             if (visitor != null) {
-                visitor.visit((DLKerasInnerLayer)layer);
+                try {
+                    // pseudo visitor pattern
+                    if (isOutputNode) {
+                        visitor.visitOutput((DLKerasInnerLayer)layer);
+                    } else {
+                        visitor.visitHidden((DLKerasInnerLayer)layer);
+                    }
+                } catch (final Exception e) {
+                    throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                }
             }
         } else if (layer instanceof DLKerasInputLayer) {
             if (visitor != null) {
-                visitor.visit((DLKerasInputLayer)layer);
+                try {
+                    visitor.visitInput((DLKerasInputLayer)layer);
+                } catch (final Exception e) {
+                    throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                }
             }
         } else {
             throw new IllegalStateException(
-                "Keras layer '" + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation()
+                "Keras layer '" + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation(null)
                     + ") is neither marked as inner layer nor as input layer." + " This is an implementation error.");
         }
         return layer;
     }
 
+    /**
+     * Visits all layers in the network graph (DFS) and passes each of them to the adequate method of the given visitor.
+     *
+     * @param visitor the visitor to which the layers are passed
+     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     */
     public void visitAll(final DLKerasLayerVisitor visitor) {
         while (hasNext()) {
             visitNext(visitor);
@@ -122,16 +169,43 @@ public final class DLKerasLayerGraphIterator implements Iterator<DLKerasLayer> {
         for (int i = 0; i < parents.length; i++) {
             if (parents[i] == null) {
                 throw new IllegalStateException("Parent at input index " + i + " of Keras layer '"
-                    + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation() + ") is null.");
+                    + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation(null) + ") is null.");
             }
         }
         return parents;
     }
 
+    /**
+     * The visitor used to traverse the Keras network graph.
+     */
     public static interface DLKerasLayerVisitor {
 
-        void visit(DLKerasInnerLayer innerLayer);
+        /**
+         * Visitor method for output layers.
+         */
+        void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception;
 
-        void visit(DLKerasInputLayer inputLayer);
+        /**
+         * Visitor method for hidden layers.
+         */
+        void visitHidden(DLKerasInnerLayer hiddenLayer) throws Exception;
+
+        /**
+         * Visitor method for input layers.
+         */
+        void visitInput(DLKerasInputLayer inputLayer) throws Exception;
+    }
+
+    /**
+     * The exception that is thrown if an exception occurs during traversal of the network graph.
+     */
+    public static class DLNetworkLayerGraphTraversalException extends DLUncheckedException {
+
+        private static final long serialVersionUID = 1L;
+
+        public DLNetworkLayerGraphTraversalException(final String message, final Throwable cause) {
+            super(message != null ? message : "An exception occurred while traversing the Keras network layer graph.",
+                cause);
+        }
     }
 }

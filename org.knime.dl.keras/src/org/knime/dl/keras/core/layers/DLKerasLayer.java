@@ -61,9 +61,17 @@ import org.scijava.param2.Parameter;
  */
 public interface DLKerasLayer {
 
-    List<DLTensorSpec> getOutputSpecs() throws DLInvalidInputSpecException;
+    /**
+     * The fully qualified name of the layer on Python side.
+     */
+    String getKerasIdentifier();
 
-    String getBackendRepresentation();
+    /**
+     * @param layerName may be <code>null</code>, in which case the argument will be ignored
+     */
+    String getBackendRepresentation(String layerName);
+
+    List<DLTensorSpec> getOutputSpecs() throws DLInvalidInputSpecException;
 
     void validateParameters() throws InvalidSettingsException;
 

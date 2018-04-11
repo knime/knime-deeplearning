@@ -60,7 +60,8 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
-import org.knime.dl.keras.core.layers.DLKerasLayerGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetworkLayerGraphTraversalException;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -77,57 +78,77 @@ import com.google.common.collect.Lists;
  */
 public final class DLKerasNetworkMaterializer {
 
-    private int m_variableNameSuffix;
+    private int m_layerVariableSuffix;
 
+    /**
+     * Materializes the Keras network graph specified by the given output layers and their parents (i.e. predecessor
+     * nodes).
+     *
+     * @param outputLayers the output layers of the network to materialize
+     * @param saveUrl the location where the materialized network is saved
+     * @return the materialized network
+     * @throws DLNetworkLayerGraphTraversalException if traversing the network graph failed
+     * @throws DLInvalidEnvironmentException if materialization in the back end failed
+     * @throws IOException if failed to materialize and save the network due to I/O related errors
+     */
     public DLKerasNetwork materialize(final List<DLKerasLayer> outputLayers, final URL saveUrl)
         throws DLInvalidEnvironmentException, IOException {
-        m_variableNameSuffix = 0;
+        m_layerVariableSuffix = 0;
 
         // Parse layer graph and generate code:
 
-        final DLKerasLayerGraphIterator iterator = new DLKerasLayerGraphIterator(outputLayers);
+        final DLKerasNetworkLayerGraphIterator iterator = new DLKerasNetworkLayerGraphIterator(outputLayers);
 
-        final List<String> inputNames = new ArrayList<>();
-        final String[] outputNames = new String[outputLayers.size()];
-        final Map<DLKerasLayer, String> layerNames = new HashMap<>();
+        final List<String> inputVariables = new ArrayList<>();
+        final String[] outputVariables = new String[outputLayers.size()];
+        final Map<DLKerasLayer, String> layerVariables = new HashMap<>();
 
         for (int i = 0; i < outputLayers.size(); i++) {
             final DLKerasLayer output = outputLayers.get(i);
-            final String outputName = getNextLayerVariableName();
-            outputNames[i] = outputName;
-            layerNames.put(output, outputName);
+            final String outputVariable = getNextLayerVariable();
+            outputVariables[i] = outputVariable;
+            layerVariables.put(output, outputVariable);
         }
 
+        final DLKerasNetworkLayerNameGenerator layerNameGen = new DLKerasNetworkLayerNameGenerator();
         final ArrayList<String> generatedCodeLines = new ArrayList<>();
 
         iterator.visitAll(new DLKerasLayerVisitor() {
 
             @Override
-            public void visit(final DLKerasInputLayer inputLayer) {
-                final String layerName = layerNames.get(inputLayer);
-                inputNames.add(layerName);
-                generatedCodeLines.add(layerName + " = " + inputLayer.getBackendRepresentation());
+            public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
+                visitHidden(outputLayer);
             }
 
             @Override
-            public void visit(final DLKerasInnerLayer innerLayer) {
+            public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
                 final DLKerasLayer[] parents = innerLayer.getParents();
-                final String[] parentNames = new String[parents.length];
+                final String[] parentVariables = new String[parents.length];
                 for (int i = 0; i < parents.length; i++) {
                     final DLKerasLayer parent = parents[i];
-                    String parentName = layerNames.get(parent);
-                    if (parentName == null) {
-                        parentName = getNextLayerVariableName();
-                        layerNames.put(parent, parentName);
-                    } // else its a fork in the graph
-                    parentNames[i] = parentName;
+                    String parentVariable = layerVariables.get(parent);
+                    if (parentVariable == null) {
+                        parentVariable = getNextLayerVariable();
+                        layerVariables.put(parent, parentVariable);
+                    } // else it's a fork in the graph
+                    parentVariables[i] = parentVariable;
                 }
-                final String layerName = layerNames.get(innerLayer);
-                generatedCodeLines.add(layerName + " = " + innerLayer.getBackendRepresentation() //
-                    + '(' + (parentNames.length == 1 //
-                        ? DLPythonUtils.toPython(parentNames[0]) //
-                        : DLPythonUtils.toPython(parentNames)) //
+                final String layerVariable = layerVariables.get(innerLayer);
+
+                generatedCodeLines.add(layerVariable + " = " //
+                    + innerLayer.getBackendRepresentation(layerNameGen.getNextLayerName(innerLayer)) //
+                    + '(' + (parentVariables.length == 1 //
+                        ? parentVariables[0] //
+                        : "[" + String.join(",", parentVariables) + "]") //
                     + ')');
+            }
+
+            @Override
+            public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
+                final String layerVariable = layerVariables.get(inputLayer);
+                inputVariables.add(layerVariable);
+                generatedCodeLines.add(layerVariable + " = "
+                    + inputLayer.getBackendRepresentation(layerNameGen.getNextLayerName(inputLayer)));
             }
         });
 
@@ -145,13 +166,11 @@ public final class DLKerasNetworkMaterializer {
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
         try (final DLKerasAbstractCommands commands =
             ((DLKerasNetworkLoader<?>)loader).createCommands(new DLPythonDefaultContext())) {
-
             final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .a("import keras") //
-                .n(generatedCode) //
+                .a("import keras").n(generatedCode) //
                 .n("generated_network = keras.models.Model(") //
-                .a("inputs=[" + String.join(",", inputNames) + "]").a(", ") //
-                .a("outputs=[" + String.join(",", outputNames) + "]") //
+                .a("inputs=[" + String.join(",", inputVariables) + "]").a(", ") //
+                .a("outputs=[" + String.join(",", outputVariables) + "]") //
                 .a(")") //
                 .n("import DLPythonNetworkType") //
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
@@ -176,18 +195,7 @@ public final class DLKerasNetworkMaterializer {
         }
     }
 
-    private String getNextLayerVariableName() {
-        return "generated_layer_" + m_variableNameSuffix++;
-    }
-
-    private DLKerasLayer[] getParents(final DLKerasInnerLayer layer) {
-        final DLKerasLayer[] parents = layer.getParents();
-        for (int i = 0; i < parents.length; i++) {
-            if (parents[i] == null) {
-                throw new IllegalStateException("Parent at input index " + i + " of Keras layer '"
-                    + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation() + ") is null.");
-            }
-        }
-        return parents;
+    private String getNextLayerVariable() {
+        return "generated_layer_" + m_layerVariableSuffix++;
     }
 }

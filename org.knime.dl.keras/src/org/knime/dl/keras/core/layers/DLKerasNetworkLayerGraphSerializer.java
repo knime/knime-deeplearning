@@ -60,17 +60,15 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.base.nodes.layers.DLKerasLayerStructInstance;
-import org.knime.dl.keras.core.layers.DLKerasLayerGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasLayerGraphSerializer {
+public final class DLKerasNetworkLayerGraphSerializer {
 
-    // TODO: Where to keep track of required source URLs (when appending layers to already existing networks)?
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLayerGraphSerializer.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasNetworkLayerGraphSerializer.class);
 
     private static final String CFG_KEY_GRAPH = "layer_graph";
 
@@ -82,6 +80,14 @@ public final class DLKerasLayerGraphSerializer {
 
     private static final String CFG_KEY_LAYER_PARENTS = "parents";
 
+    /**
+     * Writes the Keras network graph specified by the given output layers and their parents (i.e. predecessor nodes) to
+     * a stream.
+     *
+     * @param outputLayers the output layers of the network to serialize
+     * @param objOut the stream to which to write the network graph
+     * @throws IOException if failed to write the network graph to stream
+     */
     public void writeGraphTo(final List<DLKerasLayer> outputLayers, final ObjectOutputStream objOut)
         throws IOException {
         final NodeSettings graphSettings = new NodeSettings(CFG_KEY_GRAPH);
@@ -90,15 +96,20 @@ public final class DLKerasLayerGraphSerializer {
         try {
             final int[] outputLayerIndices = new int[outputLayers.size()];
             for (int i = 0; i < outputLayers.size(); i++) {
-                outputLayerIndices[i] = layerIndexCounter.incrementAndGet();
+                outputLayerIndices[i] = layerIndexCounter.getAndIncrement();
                 layerIndices.put(outputLayers.get(i), outputLayerIndices[i]);
             }
             graphSettings.addIntArray(CFG_KEY_OUTPUT_LAYERS, outputLayerIndices);
 
-            new DLKerasLayerGraphIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+            new DLKerasNetworkLayerGraphIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
                 @Override
-                public void visit(final DLKerasInnerLayer innerLayer) {
+                public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
+                    visitHidden(outputLayer);
+                }
+
+                @Override
+                public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
                     final NodeSettingsWO layerSettings = saveLayer(innerLayer);
                     final NodeSettingsWO parentIndices = layerSettings.addNodeSettings(CFG_KEY_LAYER_PARENTS);
                     final DLKerasLayer[] parents = innerLayer.getParents();
@@ -110,7 +121,7 @@ public final class DLKerasLayerGraphSerializer {
                 }
 
                 @Override
-                public void visit(final DLKerasInputLayer inputLayer) {
+                public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                     saveLayer(inputLayer);
                 }
 
@@ -130,17 +141,26 @@ public final class DLKerasLayerGraphSerializer {
                     return layerSettings;
                 }
             });
-        } catch (final RuntimeException e) {
+        } catch (final Exception e) {
             throw new IOException("An exception occurred while saving the Keras layer graph. See log for details.", e);
         }
         graphSettings.writeToFile(objOut);
     }
 
+    /**
+     * Reads a Keras network graph from stream and returns its output layers. The entire graph can be accessed via the
+     * layers' parent (i.e. predecessor node) relationships.
+     *
+     * @param objIn the stream from which to read the network graph
+     * @return the read network graph
+     * @throws IOException if failed to read the network graph from stream
+     * @throws ClassNotFoundException if a network graph related class (e.g. a layer) could not be found
+     */
     public List<DLKerasLayer> readGraphFrom(final ObjectInputStream objIn) throws IOException, ClassNotFoundException {
         try {
             final NodeSettings graphSettings = NodeSettings.readFromFile(objIn);
             final DLKerasLayer[] loadedLayers = new DLKerasLayer[graphSettings.getChildCount()];
-            for (int i = graphSettings.getChildCount() - 1 - 1; i > 0; i--) { // -1 because of saved output indices
+            for (int i = graphSettings.getChildCount() - 1 - 1; i >= 0; i--) { // -1 because of saved output indices
                 final NodeSettings layerSettings = graphSettings.getNodeSettings(Integer.toString(i));
                 // Layers must expose a public nullary constructor.
                 final DLKerasLayer layer =

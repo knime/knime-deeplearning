@@ -46,52 +46,25 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.knime.dl.python.util.DLPythonUtils;
+import gnu.trove.TObjectIntHashMap;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer implements DLKerasLayer {
+public final class DLKerasNetworkLayerNameGenerator {
 
-    private final String m_kerasIdentifier;
+    private final TObjectIntHashMap<Class<?>> m_map = new TObjectIntHashMap<>();
 
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        m_kerasIdentifier = kerasIdentifier;
+    public String getNextLayerName(final DLKerasLayer layer) {
+        String name = layer.getKerasIdentifier();
+        final int nameBegin = name.lastIndexOf('.');
+        name = nameBegin != -1 ? name.substring(nameBegin + 1).toLowerCase() + "_" : "layer_";
+        final int suffix = m_map.adjustOrPutValue(layer.getClass(), 1, 1);
+        return name + suffix;
     }
 
-    @Override
-    public String getKerasIdentifier() {
-        return m_kerasIdentifier;
-    }
-
-    // Convenience method:
-
-    protected abstract void populateParameters(List<String> positionalParams, Map<String, String> namedParams);
-
-    @Override
-    public String getBackendRepresentation(final String layerName) {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
-        }
-        return m_kerasIdentifier + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
-    }
-
-    @Override
-    public String toString() {
-        return getBackendRepresentation(null);
+    public String getOutputTensorName(final String layerName, final int nodeIndex, final int tensorIndex) {
+        return layerName + ":" + nodeIndex + ":" + tensorIndex;
     }
 }

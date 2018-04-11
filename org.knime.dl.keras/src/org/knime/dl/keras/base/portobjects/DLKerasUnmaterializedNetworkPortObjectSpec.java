@@ -63,7 +63,7 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
-import org.knime.dl.keras.core.layers.DLKerasLayerGraphSerializer;
+import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkSpecInferrer;
 
 /**
@@ -115,7 +115,7 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
             out.putNextEntry(new ZipEntry(ZIP_ENTRY_NAME));
             final ObjectOutputStream objOut = new ObjectOutputStream(out);
             try {
-                new DLKerasLayerGraphSerializer().writeGraphTo(portObjectSpec.m_outputLayers, objOut);
+                new DLKerasNetworkLayerGraphSerializer().writeGraphTo(portObjectSpec.m_outputLayers, objOut);
             } catch (final Exception e) {
                 throw new IOException(
                     "Failed to save Keras deep learning network port object spec. See log for details.", e);
@@ -132,7 +132,7 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
             }
             final ObjectInputStream objIn = new ObjectInputStream(in);
             try {
-                final List<DLKerasLayer> outputLayers = new DLKerasLayerGraphSerializer().readGraphFrom(objIn);
+                final List<DLKerasLayer> outputLayers = new DLKerasNetworkLayerGraphSerializer().readGraphFrom(objIn);
                 return new DLKerasUnmaterializedNetworkPortObjectSpec(outputLayers.get(0));
             } catch (final ClassNotFoundException e) {
                 throw new IOException("Failed to load Keras deep learning network port object spec."
