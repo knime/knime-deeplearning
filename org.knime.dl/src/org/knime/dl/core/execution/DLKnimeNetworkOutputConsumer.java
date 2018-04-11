@@ -48,7 +48,7 @@ package org.knime.dl.core.execution;
 
 import java.lang.reflect.Array;
 import java.nio.BufferUnderflowException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
@@ -58,11 +58,13 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.filestore.FileStoreCell;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.dl.core.DLInvalidNetworkOutputException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
@@ -81,17 +83,32 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 
 	private final ExecutionContext m_exec;
 
-	private final Map<DLTensorId, DLKnimeOutputConsumerHelperStruct> m_helpers;
+    /**
+     * The iteration order of this map determines the order in which cells are appended to each output row.
+     */
+    private final LinkedHashMap<DLTensorId, DLKnimeOutputConsumerHelperStruct> m_helpers;
 
-	private DataCell[] m_temp;
+    /**
+     * <code>null</code> before the first call of {@link #accept(Map)}.
+     */
+    private DataCell[] m_temp;
 
-	public DLKnimeNetworkOutputConsumer(final RowOutput output, final Supplier<DataRow> baseRows, final boolean append,
-			final Map<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> converters, final ExecutionContext exec) {
+    /**
+     * @param append if true, the output cells created by this instance will be appended to their respective base rows.
+     *            Otherwise new rows will be created which retain the row keys of their respective base rows.
+     * @param converters the iteration order of this linked map determines the order in which cells are appended to each
+     *            output row. Each key that is present in this map is expected to be present in the argument of
+     *            {@link #accept(Map)}.
+     * @param exec needed for the creation of {@link FileStoreCell file store cells}.
+     */
+    public DLKnimeNetworkOutputConsumer(final RowOutput output, final Supplier<DataRow> baseRows, final boolean append,
+        final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> converters,
+        final ExecutionContext exec) {
 		m_output = output;
 		m_baseRows = baseRows;
 		m_append = append;
 		m_exec = exec;
-		m_helpers = new HashMap<>(converters.size());
+		m_helpers = new LinkedHashMap<>(converters.size());
 		for (final Entry<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> entry : converters.entrySet()) {
 			final DLKnimeOutputConsumerHelperStruct helper = new DLKnimeOutputConsumerHelperStruct();
 			helper.m_factory = entry.getValue();
@@ -106,10 +123,10 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 			// initialize output structs the first time we know how the network output looks like
 			initialize(tensors);
 		}
-		for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : tensors.entrySet()) {
+		for (final Entry<DLTensorId, DLKnimeOutputConsumerHelperStruct> entry : m_helpers.entrySet()) {
 			final DLTensorId identifier = entry.getKey();
-			final DLTensor<? extends DLReadableBuffer> tensor = entry.getValue();
-			final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(identifier);
+			final DLKnimeOutputConsumerHelperStruct helper = entry.getValue();
+			final DLTensor<? extends DLReadableBuffer> tensor = tensors.get(identifier);
 			try {
 				// converter source type and tensor element type must match
 				final DLTensorToDataCellConverter converter = helper.m_converter;
@@ -169,23 +186,22 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 					"Batch size (" + batchSize + ") is larger than 2^31-1. This is currently not supported.");
 		}
 		long totalNumOutputElements = 0;
-		for (final Entry<DLTensorId, DLTensor<? extends DLReadableBuffer>> entry : tensors.entrySet()) {
-			final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(entry.getKey());
+        for (final Entry<DLTensorId, DLKnimeOutputConsumerHelperStruct> entry : m_helpers.entrySet()) {
+            final DLKnimeOutputConsumerHelperStruct helper = entry.getValue();
+            final DLTensorSpec tensorSpec = tensors.get(entry.getKey()).getSpec();
 			// must be present by now
-			helper.m_numOutputElements = helper.m_factory.getDestCount(entry.getValue().getSpec()).getAsLong();
-			if (helper.m_numOutputElements > Integer.MAX_VALUE) {
-				throw new IllegalArgumentException("Number of output elements (" + helper.m_numOutputElements
-						+ ") of output '" + entry.getValue().getSpec().getName()
-						+ "' is larger than 2^31-1. This is currently not supported.");
-			}
+			helper.m_numOutputElements = helper.m_factory.getDestCount(tensorSpec).getAsLong();
+            if (helper.m_numOutputElements > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException(
+                    "Number of output elements (" + helper.m_numOutputElements + ") of output '" + tensorSpec.getName()
+                        + "' is larger than 2^31-1. This is currently not supported.");
+            }
 			try {
 				helper.m_temp = (DataCell[]) Array.newInstance(helper.m_factory.getDestType().getCellClass(),
 						Math.multiplyExact((int) batchSize, (int) helper.m_numOutputElements));
 			} catch (final ArithmeticException e) {
-				throw new IllegalArgumentException(
-						"Number of output elements of output '" + entry.getValue().getSpec().getName()
-								+ "' times batch size is larger than 2^31-1. This is currently not supported.",
-						e);
+                throw new IllegalArgumentException("Number of output elements of output '" + tensorSpec.getName()
+                    + "' times batch size is larger than 2^31-1. This is currently not supported.", e);
 			}
 			totalNumOutputElements += helper.m_numOutputElements;
 		}
