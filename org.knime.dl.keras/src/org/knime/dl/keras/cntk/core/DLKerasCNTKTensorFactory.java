@@ -46,13 +46,13 @@
  */
 package org.knime.dl.keras.cntk.core;
 
-import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
+import org.knime.dl.python.core.DLPythonAbstractTensorFactory;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasCNTKTensorFactory extends DLKerasAbstractTensorFactory {
+public final class DLKerasCNTKTensorFactory extends DLPythonAbstractTensorFactory {
 
 	@Override
 	public Class<DLKerasCNTKNetwork> getNetworkType() {

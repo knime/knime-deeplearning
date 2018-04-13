@@ -46,13 +46,13 @@
  */
 package org.knime.dl.keras.tensorflow.core;
 
-import org.knime.dl.keras.core.DLKerasAbstractTensorFactory;
+import org.knime.dl.python.core.DLPythonAbstractTensorFactory;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTensorFlowTensorFactory extends DLKerasAbstractTensorFactory {
+public final class DLKerasTensorFlowTensorFactory extends DLPythonAbstractTensorFactory {
 
 	@Override
 	public Class<DLKerasTensorFlowNetwork> getNetworkType() {

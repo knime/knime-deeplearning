@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.python.core;
 
 import java.util.function.Supplier;
 
@@ -75,7 +75,7 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractTensorFactory implements DLTensorFactory {
+public abstract class DLPythonAbstractTensorFactory implements DLTensorFactory {
 
 	@Override
 	public Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec) {

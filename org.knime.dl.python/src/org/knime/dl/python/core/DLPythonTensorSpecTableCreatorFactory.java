@@ -46,7 +46,7 @@
  * History
  *   May 30, 2017 (marcel): created
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.python.core;
 
 import java.util.Arrays;
 import java.util.OptionalLong;
@@ -59,7 +59,6 @@ import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
@@ -71,7 +70,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory {
+public class DLPythonTensorSpecTableCreatorFactory implements TableCreatorFactory {
 
 	private static final int ID_IDX = 0;
 
@@ -87,16 +86,16 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 	private final DLPythonTypeMap m_typeMap;
 
-	public DLKerasTensorSpecTableCreatorFactory(final DLPythonTypeMap typeMap) {
+	public DLPythonTensorSpecTableCreatorFactory(final DLPythonTypeMap typeMap) {
 		m_typeMap = typeMap;
 	}
 
 	@Override
 	public TableCreator<DLDefaultTensorSpec[]> createTableCreator(final TableSpec spec, final int tableSize) {
-		return new DLKerasTensorSpecTableCreator(spec, tableSize, m_typeMap);
+		return new DLPythonTensorSpecTableCreator(spec, tableSize, m_typeMap);
 	}
 
-	public static class DLKerasTensorSpecTableCreator implements TableCreator<DLDefaultTensorSpec[]> {
+	public static class DLPythonTensorSpecTableCreator implements TableCreator<DLDefaultTensorSpec[]> {
 
 		private static boolean checkTableSpec(final TableSpec spec) {
 			final String[] colNames = spec.getColumnNames();
@@ -131,7 +130,7 @@ public class DLKerasTensorSpecTableCreatorFactory implements TableCreatorFactory
 
 		private final DLPythonTypeMap m_typeMap;
 
-		public DLKerasTensorSpecTableCreator(final TableSpec spec, final int tableSize, final DLPythonTypeMap typeMap) {
+		public DLPythonTensorSpecTableCreator(final TableSpec spec, final int tableSize, final DLPythonTypeMap typeMap) {
 			if (!checkTableSpec(spec)) {
 				throw new IllegalStateException("Python side sent an invalid tensor specs table.");
 			}
