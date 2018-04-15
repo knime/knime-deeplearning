@@ -199,12 +199,21 @@ final class DLExecutorNodeDialog extends NodeDialogPane {
 			}
 			if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
 				final NodeSettingsRO outputSettings;
+                final String[] orderedOutputs;
 				try {
 					outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
+                    if (outputSettings.getChildCount() > 0) {
+                        final SettingsModelStringArray outputOrder =
+                            DLExecutorNodeModel.createOutputOrderSettingsModel(outputSettings.getChildCount());
+                        outputOrder.loadSettingsFrom(settings);
+                        orderedOutputs = outputOrder.getStringArrayValue();
+                    } else {
+                        orderedOutputs = new String[0];
+                    }
 				} catch (final InvalidSettingsException e) {
 					throw new NotConfigurableException(e.getMessage(), e);
 				}
-				for (final String layerName : outputSettings) {
+				for (final String layerName : orderedOutputs) {
 					if (!m_outputPanels.containsKey(layerName)) {
 						// add output to the dialog (when loading the dialog for
 						// the first time)
