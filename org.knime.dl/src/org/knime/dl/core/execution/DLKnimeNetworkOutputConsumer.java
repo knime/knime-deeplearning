@@ -143,8 +143,8 @@ public final class DLKnimeNetworkOutputConsumer implements DLNetworkOutputConsum
 		final long batchSize = tensor.getBuffer().size() / tensor.getExampleSize();
 		for (int r = 0; r < batchSize; r++) {
 			int c = 0;
-			for (final DLTensorId identifier : tensors.keySet()) {
-				final DLKnimeOutputConsumerHelperStruct helper = m_helpers.get(identifier);
+	        for (final Entry<DLTensorId, DLKnimeOutputConsumerHelperStruct> entry : m_helpers.entrySet()) {
+	            final DLKnimeOutputConsumerHelperStruct helper = entry.getValue();
 				final DataCell[] temp = helper.m_temp;
 				// casting is fine here as we are already performing exact multiplication in the initialize method
 				final int o = (int) (r * helper.m_numOutputElements);
