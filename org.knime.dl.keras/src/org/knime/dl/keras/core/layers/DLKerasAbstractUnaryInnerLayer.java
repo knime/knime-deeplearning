@@ -61,18 +61,13 @@ public abstract class DLKerasAbstractUnaryInnerLayer extends DLKerasAbstractInne
     }
 
     public DLKerasAbstractUnaryInnerLayer(final String kerasIdentifier, final DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
-    }
-
-    @Override
-    public DLKerasLayer getParent() {
-        return getParents()[0];
+        super(kerasIdentifier, new DLKerasLayer[]{parent});
     }
 
     // Convenience methods:
 
     protected abstract void validateInputSpec(Class<?> inputElementType, Long[] inputShape)
-        throws DLInvalidInputSpecException;
+        throws DLInvalidTensorSpecException;
 
     protected abstract Class<?> inferOutputElementType(Class<?> inputElementType);
 
@@ -80,13 +75,13 @@ public abstract class DLKerasAbstractUnaryInnerLayer extends DLKerasAbstractInne
 
     @Override
     protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         validateInputSpec(inputElementTypes.get(0), inputShapes.get(0));
     }
 
     @Override
     protected final List<Class<?>> inferOutputElementTypes(final List<Class<?>> inputElementTypes)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         return Collections.singletonList(inferOutputElementType(inputElementTypes.get(0)));
     }
 

@@ -61,7 +61,7 @@ import org.knime.core.node.port.PortObjectSpecZipOutputStream;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkSpecInferrer;
@@ -78,7 +78,7 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
     private final List<DLKerasLayer> m_outputLayers;
 
     public DLKerasUnmaterializedNetworkPortObjectSpec(final DLKerasLayer outputLayer)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         super(new DLKerasNetworkSpecInferrer().inferNetworkSpec(Collections.singletonList(checkNotNull(outputLayer))),
             DLKerasNetwork.class);
         m_outputLayers = Collections.singletonList(outputLayer);

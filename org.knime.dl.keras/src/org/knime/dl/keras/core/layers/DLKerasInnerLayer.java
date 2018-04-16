@@ -52,11 +52,21 @@ package org.knime.dl.keras.core.layers;
  */
 public interface DLKerasInnerLayer extends DLKerasLayer {
 
-    /**
-     * @return the layer's parents. No copy, changes to the returned array directly manipulate the layer's parent
-     *         relationship.
-     */
-    DLKerasLayer[] getParents();
+    int getNumParents();
 
-    void validateInputSpecs() throws DLInvalidInputSpecException;
+    /**
+     * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to
+     *             {@link #getNumParents()}
+     */
+    DLKerasTensorSpecsOutput getParent(int index);
+
+    /**
+     * @throws NullPointerException if <code>parent</code> is <code>null</code>
+     * @throws IllegalArgumentException if <code>parent</code> is this instance
+     * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to
+     *             {@link #getNumParents()}
+     */
+    void setParent(int index, DLKerasTensorSpecsOutput parent);
+
+    void validateInputSpecs() throws DLInvalidTensorSpecException;
 }

@@ -62,20 +62,20 @@ import org.knime.dl.util.DLUtils;
 public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer implements DLKerasInnerLayer {
 
     protected static void checkInputSpec(final boolean expression, final String message)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         if (!expression) {
-            throw new DLInvalidInputSpecException("Invalid input specs. " + message);
+            throw new DLInvalidTensorSpecException("Invalid input specs. " + message);
         }
     }
 
-    private final DLKerasLayer[] m_parents;
+    private final DLKerasTensorSpecsOutput[] m_parents;
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final int numParents) {
         super(kerasIdentifier);
-        m_parents = new DLKerasLayer[numParents];
+        m_parents = new DLKerasTensorSpecsOutput[numParents];
     }
 
-    public DLKerasAbstractInnerLayer(final String kerasIdentifier, final DLKerasLayer... parents) {
+    public DLKerasAbstractInnerLayer(final String kerasIdentifier, final DLKerasTensorSpecsOutput[] parents) {
         super(kerasIdentifier);
         m_parents = parents;
     }
@@ -83,20 +83,36 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     // Convenience methods:
 
     protected abstract void validateInputSpecs(List<Class<?>> inputElementTypes, List<Long[]> inputShapes)
-        throws DLInvalidInputSpecException;
+        throws DLInvalidTensorSpecException;
 
     protected abstract List<Class<?>> inferOutputElementTypes(List<Class<?>> inputElementTypes)
-        throws DLInvalidInputSpecException;
+        throws DLInvalidTensorSpecException;
 
     protected abstract List<Long[]> inferOutputShapes(List<Long[]> inputShape);
 
     @Override
-    public DLKerasLayer[] getParents() {
-        return m_parents;
+    public int getNumParents() {
+        return m_parents.length;
     }
 
     @Override
-    public final List<DLTensorSpec> getOutputSpecs() throws DLInvalidInputSpecException {
+    public DLKerasTensorSpecsOutput getParent(final int index) {
+        return m_parents[index];
+    }
+
+    @Override
+    public void setParent(final int index, final DLKerasTensorSpecsOutput parent) {
+        if (parent == null) {
+            throw new NullPointerException();
+        }
+        if (parent == this) {
+            throw new IllegalArgumentException();
+        }
+        m_parents[index] = parent;
+    }
+
+    @Override
+    public final List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
         final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
         validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
         final List<Class<?>> outputElementTypes = inferOutputElementTypes(inputSpecs.m_elementTypes);
@@ -110,17 +126,17 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     }
 
     @Override
-    public final void validateInputSpecs() throws DLInvalidInputSpecException {
+    public final void validateInputSpecs() throws DLInvalidTensorSpecException {
         final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
         validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
     }
 
-    private DLInputSpecsHelperStruct collectInputSpecs() throws DLInvalidInputSpecException {
+    private DLInputSpecsHelperStruct collectInputSpecs() throws DLInvalidTensorSpecException {
         Long inputBatchSize = null;
         final List<Long[]> inputShapes = new ArrayList<>(m_parents.length);
         final List<Class<?>> inputElementTypes = new ArrayList<>(m_parents.length);
         DLDimensionOrder inputDimensionOrder = null;
-        for (final DLKerasLayer parent : m_parents) {
+        for (final DLKerasTensorSpecsOutput parent : m_parents) {
             final List<DLTensorSpec> parentOutputSpecs = parent.getOutputSpecs();
             for (final DLTensorSpec parentOutputSpec : parentOutputSpecs) {
                 if (parentOutputSpec.getBatchSize().isPresent()) {

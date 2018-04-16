@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.scijava.param2.Parameter;
@@ -75,7 +75,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
 
     @Override
     protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidInputSpecException {
+        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
         throw new RuntimeException("not yet implemented"); // TODO: NYI
     }
 

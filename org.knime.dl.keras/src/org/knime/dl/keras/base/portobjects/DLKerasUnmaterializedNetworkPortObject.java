@@ -62,7 +62,7 @@ import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
@@ -80,7 +80,7 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
         super(Collections.singletonList(fileStore));
         try {
             m_content = new DLKerasUnmaterializedPortObjectContent(outputLayer);
-        } catch (final DLInvalidInputSpecException e) {
+        } catch (final DLInvalidTensorSpecException e) {
             // This should not occur because the layer input specs were already validated in the preceding layer node.
             throw new IllegalStateException(e);
         }

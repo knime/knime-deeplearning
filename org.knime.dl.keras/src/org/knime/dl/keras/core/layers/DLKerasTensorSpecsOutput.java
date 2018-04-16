@@ -44,57 +44,26 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.core.layers;
 
 import java.util.List;
-import java.util.Map;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
-import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryInnerLayer {
+public interface DLKerasTensorSpecsOutput {
 
-    @Parameter(label = "Drop rate")
-    float m_rate;
-
-    // TODO: optional setting, pending
-    // @Parameter(label = "Random seed")
-    // int m_seed;
-
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
-    }
+    List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException;
 
     @Override
-    public void validateParameters() throws InvalidSettingsException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
+    int hashCode();
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
+    boolean equals(Object obj);
 
     @Override
-    protected Class<?> inferOutputElementType(final Class<?> inputElementType) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        positionalParams.add(DLPythonUtils.toPython(m_rate));
-    }
+    String toString();
 }

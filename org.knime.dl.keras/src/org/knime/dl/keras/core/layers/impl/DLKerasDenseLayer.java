@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.scijava.param2.Parameter;
@@ -82,7 +82,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryInnerLayer {
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         checkInputSpec(inputShape.length >= 1, "Input shape must be at least one-dimensional.");
         checkInputSpec(inputShape[inputShape.length - 1] != null,
             "Last dimension of input shape must be defined two-dimensional.");

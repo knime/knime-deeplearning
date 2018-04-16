@@ -62,23 +62,13 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
 
     public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier, final DLKerasLayer firstParent,
         final DLKerasLayer secondParent) {
-        super(kerasIdentifier, firstParent, secondParent);
-    }
-
-    @Override
-    public DLKerasLayer getFirstParent() {
-        return getParents()[0];
-    }
-
-    @Override
-    public DLKerasLayer getSecondParent() {
-        return getParents()[1];
+        super(kerasIdentifier, new DLKerasLayer[]{firstParent, secondParent});
     }
 
     // Convenience methods:
 
     protected abstract void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
-        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidInputSpecException;
+        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException;
 
     protected abstract Class<?> inferOutputElementType(Class<?> firstInputElementType, Class<?> secondInputElementType);
 
@@ -86,13 +76,13 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
 
     @Override
     protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         validateInputSpec(inputElementTypes.get(0), inputElementTypes.get(1), inputShapes.get(0), inputShapes.get(1));
     }
 
     @Override
     protected final List<Class<?>> inferOutputElementTypes(final List<Class<?>> inputElementTypes)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         return Collections.singletonList(inferOutputElementType(inputElementTypes.get(0), inputElementTypes.get(1)));
     }
 

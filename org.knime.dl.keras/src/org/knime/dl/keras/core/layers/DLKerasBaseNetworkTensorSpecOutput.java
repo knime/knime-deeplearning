@@ -46,18 +46,24 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.core.DLException;
+import java.util.List;
+
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLInvalidInputSpecException extends InvalidSettingsException implements DLException {
+public interface DLKerasBaseNetworkTensorSpecOutput extends DLKerasTensorSpecsOutput {
 
-    private static final long serialVersionUID = 1L;
+    DLKerasNetwork getBaseNetwork();
 
-    public DLInvalidInputSpecException(final String message) {
-        super(message);
-    }
+    int getBaseNetworkOutputIndex();
+
+    /**
+     * @return {@inheritDoc} - always of size one
+     */
+    @Override
+    List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException;
 }

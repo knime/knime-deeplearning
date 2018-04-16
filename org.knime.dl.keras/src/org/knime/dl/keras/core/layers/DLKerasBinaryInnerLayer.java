@@ -52,7 +52,5 @@ package org.knime.dl.keras.core.layers;
  */
 public interface DLKerasBinaryInnerLayer extends DLKerasInnerLayer {
 
-    DLKerasLayer getFirstParent();
-
-    DLKerasLayer getSecondParent();
+    // NB: Marker interface.
 }

@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.scijava.param2.Parameter;
@@ -95,7 +95,7 @@ public final class DLKerasLSTMLayer extends DLKerasAbstractUnaryInnerLayer {
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidInputSpecException {
+        throws DLInvalidTensorSpecException {
         throw new RuntimeException("not yet implemented"); // TODO: NYI
     }
 
