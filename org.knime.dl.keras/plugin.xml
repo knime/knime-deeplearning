@@ -86,7 +86,7 @@
             path="/labs/deeplearning">
       </category>
       <category
-            icon="icons/missing.gif"
+            icon="icons/keras-layers.gif"
             level-id="layers"
             locked="true"
             name="Layers"
