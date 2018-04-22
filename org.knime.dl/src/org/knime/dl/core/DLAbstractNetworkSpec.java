@@ -116,17 +116,17 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 
 	@Override
 	public DLTensorSpec[] getInputSpecs() {
-		return m_inputSpecs;
+		return m_inputSpecs.clone();
 	}
 
 	@Override
 	public DLTensorSpec[] getHiddenOutputSpecs() {
-		return m_hiddenOutputSpecs;
+		return m_hiddenOutputSpecs.clone();
 	}
 
 	@Override
 	public DLTensorSpec[] getOutputSpecs() {
-		return m_outputSpecs;
+		return m_outputSpecs.clone();
 	}
 
 	@Override
