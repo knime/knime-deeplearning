@@ -49,7 +49,6 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URL;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
@@ -61,6 +60,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
@@ -95,11 +95,15 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     @Override
     public DLKerasNetwork getNetwork() throws DLInvalidSourceException, IOException {
-        final URL networkStorage = getFileStore(0).getFile().toURI().toURL();
         if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
-            m_content = ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(networkStorage);
+            final DLNetworkFileStoreLocation saveLocation = new DLNetworkFileStoreLocation(getFileStore(0));
+            m_content = ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(saveLocation);
         }
-        return ((DLKerasMaterializedPortObjectContent)m_content).getNetwork(networkStorage);
+        final DLKerasMaterializedPortObjectContent materialized = (DLKerasMaterializedPortObjectContent)m_content;
+        if (materialized.getNetworkSource() == null) {
+            materialized.setNetworkSource(new DLNetworkFileStoreLocation(getFileStore(0)));
+        }
+        return materialized.getNetwork();
     }
 
     @Override

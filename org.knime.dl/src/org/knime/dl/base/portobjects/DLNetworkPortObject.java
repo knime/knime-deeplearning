@@ -52,6 +52,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
@@ -84,17 +85,17 @@ public interface DLNetworkPortObject extends PortObject {
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkPortObject.class);
 
 	/**
-	 * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
-	 * which equals the extension of the given source URL. This is useful if a certain file extension is expected when
-	 * reading in the stored network at a later point.
-	 *
-	 * @param source the URL of the source file, <i>not</i> the URL of the file store that will be created
-	 * @param exec the execution context that is used to create the file store
-	 * @return the created file store
-	 * @throws IOException if failed to create the file store
-	 */
-	public static FileStore createFileStoreForCopy(final URL source, final ExecutionContext exec) throws IOException {
-		final String ext = FilenameUtils.getExtension(source.getFile());
+     * Creates a new file store handle. The name of the file store is randomly generated except for the file extension
+     * which equals the extension of the given source URI. This is useful if a certain file extension is expected when
+     * reading in the stored network at a later point.
+     *
+     * @param source the URI of the source file, <i>not</i> the URI of the file store that will be created
+     * @param exec the execution context that is used to create the file store
+     * @return the created file store
+     * @throws IOException if failed to create the file store
+     */
+    public static FileStore createFileStoreForCopy(final URI source, final ExecutionContext exec) throws IOException {
+        final String ext = FilenameUtils.getExtension(source.getPath());
 		return createFileStoreForSaving(ext, exec);
 	}
 
@@ -125,10 +126,11 @@ public interface DLNetworkPortObject extends PortObject {
 	 * @param destination the file store
 	 * @throws IOException if copying to file store failed
 	 */
-	public static void copyFileToFileStore(final URL fileSource, final FileStore destination) throws IOException {
+    public static void copyFileToFileStore(final URI fileSource, final FileStore destination) throws IOException {
 		final File file = destination.getFile();
-		if (!file.toURI().toURL().equals(fileSource)) {
-			try (InputStream in = fileSource.openStream(); FileOutputStream out = new FileOutputStream(file)) {
+        final URL fileSourceURL = fileSource.toURL();
+        if (!file.toURI().toURL().equals(fileSourceURL)) {
+            try (InputStream in = fileSourceURL.openStream(); FileOutputStream out = new FileOutputStream(file)) {
 				FileUtil.copy(in, out);
 			}
 		}

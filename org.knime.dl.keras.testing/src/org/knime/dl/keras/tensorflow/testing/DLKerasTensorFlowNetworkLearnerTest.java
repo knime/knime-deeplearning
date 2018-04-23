@@ -63,6 +63,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
@@ -100,7 +101,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTensorFlowDefaultTrainingContext ctx = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		final DLKerasTensorFlowNetwork network = reader.read(source, true);
+        final DLKerasTensorFlowNetwork network =
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -163,7 +165,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLKerasTensorFlowDefaultTrainingContext ctx = new DLKerasTensorFlowDefaultTrainingContext();
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		final DLKerasTensorFlowNetwork network = reader.read(source, true);
+        final DLKerasTensorFlowNetwork network =
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;

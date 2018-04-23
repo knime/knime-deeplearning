@@ -46,10 +46,9 @@
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
-
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkSpec;
 
 /**
@@ -59,7 +58,7 @@ import org.knime.dl.core.DLNetworkSpec;
 public interface DLKerasNetworkSpec extends DLNetworkSpec {
 
 	/**
-	 * Creates a network which {@link DLNetwork#getSpec()} returns this spec.
-	 */
-	DLKerasNetwork create(URL source) throws DLInvalidSourceException;
+     * Creates a network whose {@link DLNetwork#getSpec()} returns this spec.
+     */
+    DLKerasNetwork create(DLNetworkLocation source) throws DLInvalidSourceException;
 }

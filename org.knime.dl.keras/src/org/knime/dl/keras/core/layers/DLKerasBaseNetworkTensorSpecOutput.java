@@ -48,8 +48,9 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.List;
 
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -57,7 +58,9 @@ import org.knime.dl.keras.core.DLKerasNetwork;
  */
 public interface DLKerasBaseNetworkTensorSpecOutput extends DLKerasTensorSpecsOutput {
 
-    DLKerasNetwork getBaseNetwork();
+    DLKerasNetworkSpec getBaseNetworkSpec();
+
+    DLNetworkLocation getBaseNetworkSource();
 
     int getBaseNetworkOutputIndex();
 

@@ -50,6 +50,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -74,7 +75,7 @@ public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends
 
     /**
      * The stored network. Is <code>null</code> if the port object was created via
-     * {@link #DLAbstractNetworkPortObject()} or {@link #DLAbstractNetworkPortObject(FileStore)} and
+     * {@link #DLAbstractNetworkPortObject()} or {@link #DLAbstractNetworkPortObject(List)} and
      * {@link #getNetworkInternal(DLNetworkPortObjectSpec)} was not yet called (except a deriving class did set it
      * manually).
      */
@@ -86,54 +87,50 @@ public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends
     protected S m_spec;
 
     /**
-     * Creates a new instance of this port object. The given network is stored in the given file store.
+     * Creates a new instance of this port object. The given network is stored in (i.e. copied to if not already there)
+     * the given file store if the file store is non-<code>null</code>.
      *
      * @param network the network to store
      * @param spec the spec of this port object
-     * @param fileStore the file store in which to store the network
+     * @param fileStore the file store in which to store the network, may be <code>null</code> in which case the network
+     *            will not be copied to a file store
      * @throws IOException if failed to store the network
      */
     protected DLAbstractNetworkPortObject(final N network, final S spec, final FileStore fileStore) throws IOException {
-        super(Collections.singletonList(fileStore));
+        super(fileStore != null ? Collections.singletonList(fileStore) : Collections.emptyList());
         m_network = checkNotNull(network);
         m_spec = checkNotNull(spec);
-        // Copy network to file store.
-        flushToFileStoreInternal(network, getFileStore(0));
+        if (fileStore != null) {
+            // Copy network to file store.
+            flushToFileStoreInternal(network, getFileStore(0));
+        }
     }
 
     /**
-     * Creates a new instance of this port object. The port object only stores the given network's source URL and uses
-     * it as a reference for later loading.
+     * Creates a new instance of this port object that references a number of file stores (optional). Usually, a single
+     * file store is referenced and used to store a network. In this case, deriving classes must manually flush the
+     * network to file store via {@link #flushToFileStoreInternal(DLNetwork, FileStore)}. Also see
+     * {@link #DLAbstractNetworkPortObject()} for further conditions that also apply when using this constructor.
      *
-     * @param network the network which source URL is stored
-     * @param spec the spec of this port object
-     */
-    protected DLAbstractNetworkPortObject(final N network, final S spec) {
-        super(Collections.emptyList());
-        m_network = checkNotNull(network);
-        m_spec = checkNotNull(spec);
-    }
-
-    /**
-     * Creates a new instance of this port object that provides a file store to store a network. Deriving classes should
-     * make sure to populate {@link #m_spec} immediately after the call to this constructor returns. {@link #m_network}
-     * can be populated later, e.g. via {@link #getNetworkInternal(DLNetworkPortObjectSpec)} and must be flushed to file
-     * store manually via {@link #flushToFileStoreInternal(DLNetwork, FileStore)}.
      *
-     * @param fileStore the file store in which a network can be saved
+     * @param fileStores the file stores which are references by this port object, may be empty
      */
-    protected DLAbstractNetworkPortObject(final FileStore fileStore) {
-        super(Collections.singletonList(fileStore));
+    protected DLAbstractNetworkPortObject(final List<FileStore> fileStores) {
+        super(fileStores);
     }
 
     /**
-     * Deserialization constructor.
+     * Deserialization constructor.<br>
+     * Deriving classes should make sure to populate {@link #m_spec} immediately after the call to this constructor
+     * returns. {@link #m_network} can be populated later, e.g. via
+     * {@link #getNetworkInternal(DLNetworkPortObjectSpec)}.
      */
     protected DLAbstractNetworkPortObject() {
     }
 
     /**
-     * Stores the given network in file store.<br>
+     * Stores the given network in file store. Note that the network's source and the file store may reference the same
+     * file.<br>
      * Is called from {@link #DLAbstractNetworkPortObject(DLNetwork, DLNetworkPortObjectSpec, FileStore)}.
      *
      * @param network the network to store in file store

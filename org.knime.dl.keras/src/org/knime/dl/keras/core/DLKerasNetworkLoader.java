@@ -47,13 +47,13 @@
 package org.knime.dl.keras.core;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -84,6 +84,6 @@ public interface DLKerasNetworkLoader<N extends DLKerasNetwork> extends DLPython
 	}
 
 	@Override
-	N fetch(DLPythonNetworkHandle handle, URL source, DLPythonContext context)
+	N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
 }

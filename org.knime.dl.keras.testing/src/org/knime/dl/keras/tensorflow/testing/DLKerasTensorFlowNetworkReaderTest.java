@@ -48,15 +48,11 @@
  */
 package org.knime.dl.keras.tensorflow.testing;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.InvalidPathException;
 
 import org.junit.Test;
 import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
@@ -71,13 +67,12 @@ public class DLKerasTensorFlowNetworkReaderTest {
 	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 
 	@Test
-	public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
-			DLInvalidEnvironmentException {
+    public void test() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
-		reader.read(source, true);
+        reader.read(new DLNetworkReferenceLocation(source.toURI()), true);
 		// TODO: test against known specs
 	}
 }

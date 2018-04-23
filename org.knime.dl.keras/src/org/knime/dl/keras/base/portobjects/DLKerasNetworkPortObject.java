@@ -46,10 +46,13 @@
  */
 package org.knime.dl.keras.base.portobjects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -65,9 +68,13 @@ import org.knime.dl.base.portobjects.DLAbstractNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkFileStoreLocation;
+import org.knime.dl.core.DLNetworkLocation;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
@@ -82,35 +89,62 @@ public final class DLKerasNetworkPortObject extends
 
     private static final String ZIP_ENTRY_NAME = "DLKerasNetworkPortObject";
 
+    private static List<FileStore> getNetworkFileStore(final DLKerasNetwork network) {
+        final DLNetworkLocation networkSource = network.getSource();
+        if (networkSource instanceof DLNetworkReferenceLocation) {
+            return Collections.emptyList();
+        } else if (networkSource instanceof DLNetworkFileStoreLocation) {
+            return Collections.singletonList(((DLNetworkFileStoreLocation)networkSource).getFileStore());
+        } else {
+            throw new UnsupportedOperationException("Keras network source (" + networkSource + ") is neither of type "
+                + DLNetworkReferenceLocation.class.getCanonicalName() + " nor of type "
+                + DLNetworkFileStoreLocation.class.getCanonicalName() + ". This is an implementation error.");
+        }
+    }
+
     private final DLKerasMaterializedPortObjectContent m_content;
 
     /**
-     * Creates a new Keras deep learning network port object. The given network is stored in the given file store.
+     * Creates a new Keras deep learning network port object. The given network is stored in (i.e. copied to if not
+     * already there) the given file store.
      *
      * @param network the Keras deep learning network to store
      * @param fileStore the file store in which to store the network
      * @throws IOException if failed to store the network
      */
     public DLKerasNetworkPortObject(final DLKerasNetwork network, final FileStore fileStore) throws IOException {
-        super(fileStore);
-        m_content = new DLKerasMaterializedPortObjectContent(network, false);
-        m_network = network;
-        m_spec = m_content.getSpec();
-        // Copy network to file store.
-        flushToFileStoreInternal(network, getFileStore(0));
+        this(network, Collections.singletonList(fileStore));
     }
 
     /**
-     * Creates a new Keras deep learning network port object. The port object only stores the given network's source URL
-     * and uses it as a reference for later loading.
+     * Creates a new Keras deep learning network port object. The given network is stored according to its
+     * {@link DLPythonNetwork#getSource() source} type. Currently, {@link DLNetworkReferenceLocation} and
+     * {@link DLNetworkFileStoreLocation} are the supported network source types:
+     * <ul>
+     * <li>{@link DLNetworkReferenceLocation}: The port object simply stores the reference to the network location.
+     * Changes to the network location are not handled (i.e. the reference may simply become invalid).</li>
+     * <li>{@link DLNetworkFileStoreLocation}: The port object shares the network's underlying file store. Changes to
+     * the network file store are reflected by this port object.</li>
+     * </ul>
      *
-     * @param network the Keras deep learning network which source URL is stored
+     * @param network the Keras deep learning network
+     * @throws IllegalArgumentException if the network's source is not of a supported type supported
+     * @throws IOException if failed to store the network
      */
-    public DLKerasNetworkPortObject(final DLKerasNetwork network) {
-        super(network, new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass()));
-        m_content = new DLKerasMaterializedPortObjectContent(network, true);
+    public DLKerasNetworkPortObject(final DLKerasNetwork network) throws IOException {
+        this(network, getNetworkFileStore(network));
+    }
+
+    private DLKerasNetworkPortObject(final DLKerasNetwork network, final List<FileStore> fileStores)
+        throws IOException {
+        super(fileStores);
+        m_content = new DLKerasMaterializedPortObjectContent(checkNotNull(network));
         m_network = network;
         m_spec = m_content.getSpec();
+        if (getFileStoreCount() > 0) {
+            // Copy network to file store.
+            flushToFileStoreInternal(network, getFileStore(0));
+        }
     }
 
     /**
@@ -123,13 +157,13 @@ public final class DLKerasNetworkPortObject extends
 
     @Override
     protected void postConstruct() throws IOException {
+        // Set network source if pointed to a file store.
+        final DLNetworkLocation networkSource = amendNetworkSource();
         // Ensure backward compatibility in case we deserialized an outdated network spec that contains tensor specs
         // without a tensor id or a dimension order. See DLTensorSpec#getIdentifier().
         final DLKerasNetworkSpec spec = m_spec.getNetworkSpec();
         if (specIsOutdated(spec)) {
             // Reread network and rebuild spec.
-            final URL networkSource = m_content.getNetworkReference() == null
-                ? getFileStore(0).getFile().toURI().toURL() : m_content.getNetworkReference();
             final DLPythonNetworkLoader<? extends DLKerasNetwork> loader =
                 DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_spec.getNetworkType()).orElseThrow(
                     () -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
@@ -151,15 +185,14 @@ public final class DLKerasNetworkPortObject extends
     @Override
     protected DLKerasNetwork getNetworkInternal(final DLKerasNetworkPortObjectSpec spec)
         throws DLInvalidSourceException, IOException {
-        final URL networkSource = m_content.getNetworkReference() == null ? getFileStore(0).getFile().toURI().toURL()
-            : m_content.getNetworkReference();
-        return m_content.getNetwork(networkSource);
+        amendNetworkSource();
+        return m_content.getNetwork();
     }
 
     @Override
     protected void flushToFileStoreInternal(final DLKerasNetwork network, final FileStore fileStore)
         throws IOException {
-        DLNetworkPortObject.copyFileToFileStore(network.getSource(), fileStore);
+        DLNetworkPortObject.copyFileToFileStore(network.getSource().getURI(), fileStore);
     }
 
     @Override
@@ -170,6 +203,17 @@ public final class DLKerasNetworkPortObject extends
     @Override
     protected boolean equalsInternal(final DLNetworkPortObject other) {
         return Objects.equals(((DLKerasNetworkPortObject)other).m_content, m_content);
+    }
+
+    private DLNetworkLocation amendNetworkSource() {
+        DLNetworkLocation networkSource = m_content.getNetworkSource();
+        if (networkSource == null) {
+            // Must be a file store location, otherwise the port object content deserializer would already have set the
+            // network source.
+            networkSource = new DLNetworkFileStoreLocation(getFileStore(0));
+            m_content.setNetworkSource(networkSource);
+        }
+        return networkSource;
     }
 
     /**

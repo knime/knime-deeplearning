@@ -47,6 +47,7 @@
 package org.knime.dl.python.core;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
@@ -55,6 +56,7 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.python.typeextension.PythonModuleExtensions;
 
 /**
@@ -106,21 +108,23 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 */
 	String getSaveModelURLExtension();
 
-	/**
-	 * Checks if the given source is valid.
-	 *
-	 * @param source the source
-	 * @throws DLInvalidSourceException if the source is unavailable or invalid
-	 */
-	void validateSource(URL source) throws DLInvalidSourceException;
+    /**
+     * Checks if the given source is valid and resolves it to URL.
+     *
+     * @param source the source
+     * @throws DLInvalidSourceException if the source is unavailable or invalid
+     * @return the valid and resolved URL
+     */
+    URL validateSource(URI source) throws DLInvalidSourceException;
 
-	/**
-	 * Checks if the given destination is valid.
-	 *
-	 * @param destination the destination
-	 * @throws DLInvalidDestinationException if the destination is invalid
-	 */
-	void validateDestination(URL destination) throws DLInvalidDestinationException;
+    /**
+     * Checks if the given destination is valid and resolves it to URL.
+     *
+     * @param destination the destination
+     * @throws DLInvalidDestinationException if the destination is invalid
+     * @return the valid and resolved URL
+     */
+    URL validateDestination(URI destination) throws DLInvalidDestinationException;
 
 	/**
 	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not or if
@@ -153,7 +157,7 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to load the network
 	 */
-	DLPythonNetworkHandle load(URL source, DLPythonContext context, boolean loadTrainingConfig)
+	DLPythonNetworkHandle load(URI source, DLPythonContext context, boolean loadTrainingConfig)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
 
 	/**
@@ -168,7 +172,7 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to fetch the network
 	 */
-	N fetch(DLPythonNetworkHandle handle, URL source, DLPythonContext context)
+    N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
 
 	/**
@@ -182,17 +186,18 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to save the network
 	 */
-	void save(DLPythonNetworkHandle handle, URL destination, DLPythonContext context)
+	void save(DLPythonNetworkHandle handle, URI destination, DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException;
 
-	/**
-	 * Returns a new Python compatible port object that stores the given network in the given file store.
-	 *
-	 * @param network the Python network to store in the port object
-	 * @param fileStore the file store in which to store the network
-	 * @return the port object that contains the given network
-	 * @throws IOException if failed to store the network in the port object
-	 */
-	DLPythonNetworkPortObject<? extends DLPythonNetwork> createPortObject(N network, FileStore fileStore)
-			throws IOException;
+    /**
+     * Returns a new Python compatible port object that stores the given network in the given file store. Note that the
+     * network's source and the file store may reference the same file.
+     *
+     * @param network the Python network to store in the port object
+     * @param fileStore the file store in which to store the network
+     * @return the port object that contains the given network
+     * @throws IOException if failed to store the network in the port object
+     */
+    DLPythonNetworkPortObject<? extends DLPythonNetwork> createPortObject(N network, FileStore fileStore)
+        throws IOException;
 }

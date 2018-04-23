@@ -46,11 +46,10 @@
  */
 package org.knime.dl.python.core;
 
-import java.net.URL;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.DLAbstractNetwork;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkSpec;
 
 /**
@@ -60,17 +59,17 @@ import org.knime.dl.core.DLNetworkSpec;
 public abstract class DLPythonAbstractNetwork<S extends DLNetworkSpec> extends DLAbstractNetwork<S>
 		implements DLPythonNetwork {
 
-	private final URL m_source;
+    private final DLNetworkLocation m_source;
 
-	protected DLPythonAbstractNetwork(final S spec, final URL source) {
+    protected DLPythonAbstractNetwork(final S spec, final DLNetworkLocation source) {
 		super(spec);
 		m_source = source;
 	}
 
-	@Override
-	public URL getSource() {
-		return m_source;
-	}
+    @Override
+    public DLNetworkLocation getSource() {
+        return m_source;
+    }
 
 	@Override
 	protected void hashCodeInternal(final HashCodeBuilder b) {

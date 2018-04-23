@@ -44,52 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.core;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import java.net.URI;
 
 /**
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasBaseNetworkTensorSpecOutput {
+public interface DLNetworkLocation {
 
-    private final DLKerasNetwork m_baseNetwork;
+    URI getURI();
 
-    private final int m_baseNetworkOutputIndex;
+    /**
+     * Value-based.
+     * <P>
+     * Inherited documentation: {@inheritDoc}
+     */
+    @Override
+    int hashCode();
 
-    private final List<DLTensorSpec> m_outputTensorSpec;
-
-    public DLKerasDefaultBaseNetworkTensorSpecOutput(final DLKerasNetwork baseNetwork,
-        final int baseNetworkOutputIndex) {
-        m_baseNetwork = baseNetwork;
-        m_baseNetworkOutputIndex = baseNetworkOutputIndex;
-        m_outputTensorSpec = Collections.singletonList(baseNetwork.getSpec().getOutputSpecs()[baseNetworkOutputIndex]);
-    }
+    /**
+     * Value-based.
+     * <P>
+     * Inherited documentation: {@inheritDoc}
+     */
+    @Override
+    boolean equals(Object obj);
 
     @Override
-    public DLKerasNetworkSpec getBaseNetworkSpec() {
-        return m_baseNetwork.getSpec();
-    }
-
-    @Override
-    public DLNetworkLocation getBaseNetworkSource() {
-        return m_baseNetwork.getSource();
-    }
-
-    @Override
-    public int getBaseNetworkOutputIndex() {
-        return m_baseNetworkOutputIndex;
-    }
-
-    @Override
-    public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
-        return m_outputTensorSpec;
-    }
+    String toString();
 }

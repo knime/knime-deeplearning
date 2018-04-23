@@ -46,8 +46,7 @@
  */
 package org.knime.dl.keras.cntk.core;
 
-import java.net.URL;
-
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasGenericNetwork;
 
 /**
@@ -56,7 +55,7 @@ import org.knime.dl.keras.core.DLKerasGenericNetwork;
  */
 public final class DLKerasCNTKNetwork extends DLKerasGenericNetwork {
 
-    public DLKerasCNTKNetwork(final DLKerasCNTKNetworkSpec spec, final URL source) {
+    public DLKerasCNTKNetwork(final DLKerasCNTKNetworkSpec spec, final DLNetworkLocation source) {
         super(spec, source);
     }
 }

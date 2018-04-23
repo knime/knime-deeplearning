@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.base.portobjects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -57,6 +59,9 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkFileStoreLocation;
+import org.knime.dl.core.DLNetworkLocation;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
@@ -65,18 +70,24 @@ import org.knime.dl.keras.core.DLKerasNetwork;
  */
 final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectContent {
 
-    private DLKerasNetwork m_network;
-
-    private URL m_networkReference;
-
     private final DLKerasNetworkPortObjectSpec m_spec;
 
-    DLKerasMaterializedPortObjectContent(final DLKerasNetwork network, final boolean isReferencedNetwork) {
-        m_network = network;
-        if (isReferencedNetwork) {
-            m_networkReference = network.getSource();
-        }
+    /**
+     * Is <code>null</code> after deserialization or after a call to {@link #setNetworkSource(DLNetworkLocation)} set a
+     * new network source until {@link #getNetwork()} is called for the first time.
+     */
+    private DLKerasNetwork m_network;
+
+    /**
+     * Is <code>null</code> after deserialization if it pointed to a file store in which case it must be populated by
+     * clients via {@link #setNetworkSource(DLNetworkLocation)}.
+     */
+    private DLNetworkLocation m_networkSource;
+
+    DLKerasMaterializedPortObjectContent(final DLKerasNetwork network) {
         m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), network.getClass());
+        m_network = network;
+        m_networkSource = checkNotNull(network.getSource());
     }
 
     /**
@@ -86,25 +97,32 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
         m_spec = spec;
     }
 
-    public DLKerasNetwork getNetwork(final URL storage) throws DLInvalidSourceException, IOException {
-        if (m_network == null) {
-            m_network = m_spec.getNetworkSpec().create(storage);
-        }
-        return m_network;
-    }
-
-    public URL getNetworkReference() {
-        return m_networkReference;
-    }
-
     @Override
     public DLKerasNetworkPortObjectSpec getSpec() {
         return m_spec;
     }
 
+    DLKerasNetwork getNetwork() throws DLInvalidSourceException {
+        if (m_network == null) {
+            m_network = m_spec.getNetworkSpec().create(m_networkSource);
+        }
+        return m_network;
+    }
+
+    DLNetworkLocation getNetworkSource() {
+        return m_networkSource;
+    }
+
+    void setNetworkSource(final DLNetworkLocation networkSource) {
+        if (!networkSource.equals(m_networkSource)) {
+            m_networkSource = networkSource;
+            m_network = null;
+        }
+    }
+
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(m_networkReference).toHashCode();
+        return new HashCodeBuilder(17, 37).append(m_networkSource).toHashCode();
     }
 
     @Override
@@ -115,7 +133,7 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        return Objects.equals(((DLKerasMaterializedPortObjectContent)obj).m_networkReference, m_networkReference);
+        return Objects.equals(((DLKerasMaterializedPortObjectContent)obj).m_networkSource, m_networkSource);
     }
 
     static final class Serializer {
@@ -123,10 +141,17 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
         public void savePortObjectContent(final DLKerasMaterializedPortObjectContent portObjectContent,
             final ObjectOutputStream objOut, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
-            final boolean referencedNetwork = portObjectContent.m_networkReference != null;
-            objOut.writeBoolean(referencedNetwork);
-            if (referencedNetwork) {
-                objOut.writeObject(portObjectContent.m_networkReference);
+            final DLNetworkLocation networkSource = portObjectContent.m_networkSource;
+            if (networkSource instanceof DLNetworkReferenceLocation) {
+                objOut.writeBoolean(true);
+                objOut.writeObject(networkSource.getURI().toURL());
+            } else if (networkSource instanceof DLNetworkFileStoreLocation) {
+                objOut.writeBoolean(false);
+            } else {
+                throw new UnsupportedOperationException("Keras network source (" + networkSource
+                    + ") is neither of type " + DLNetworkReferenceLocation.class.getCanonicalName()
+                    + " nor of type " + DLNetworkFileStoreLocation.class.getCanonicalName()
+                    + ". This is an implementation error.");
             }
         }
 
@@ -136,7 +161,8 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
                 new DLKerasMaterializedPortObjectContent((DLKerasNetworkPortObjectSpec)spec);
             if (objIn.readBoolean()) {
                 try {
-                    portObjectContent.m_networkReference = (URL)objIn.readObject();
+                    portObjectContent.m_networkSource =
+                        new DLNetworkReferenceLocation(((URL)objIn.readObject()).toURI());
                 } catch (final ClassNotFoundException e) {
                     throw new IOException("Failed to load Keras deep learning network port object."
                         + " Are you missing a KNIME Deep Learning extension?", e);

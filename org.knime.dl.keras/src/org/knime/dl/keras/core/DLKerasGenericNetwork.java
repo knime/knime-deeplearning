@@ -46,7 +46,7 @@
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
+import org.knime.dl.core.DLNetworkLocation;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -54,7 +54,7 @@ import java.net.URL;
  */
 public class DLKerasGenericNetwork extends DLKerasAbstractNetwork {
 
-    public DLKerasGenericNetwork(final DLKerasNetworkSpec spec, final URL source) {
+    public DLKerasGenericNetwork(final DLKerasNetworkSpec spec, final DLNetworkLocation source) {
         super(spec, source);
     }
 }

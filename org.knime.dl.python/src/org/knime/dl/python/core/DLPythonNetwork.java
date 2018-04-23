@@ -46,9 +46,8 @@
  */
 package org.knime.dl.python.core;
 
-import java.net.URL;
-
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkLocation;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -56,5 +55,5 @@ import org.knime.dl.core.DLNetwork;
  */
 public interface DLPythonNetwork extends DLNetwork {
 
-	URL getSource();
+    DLNetworkLocation getSource();
 }

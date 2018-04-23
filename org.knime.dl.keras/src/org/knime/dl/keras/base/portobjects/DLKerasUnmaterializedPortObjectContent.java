@@ -49,12 +49,12 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URL;
 import java.util.Collections;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
@@ -79,12 +79,13 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
         return m_spec;
     }
 
-    public DLKerasMaterializedPortObjectContent materialize(final URL storage) throws IOException {
+    public DLKerasMaterializedPortObjectContent materialize(final DLNetworkLocation saveLocation)
+        throws IOException {
         try {
             final DLKerasNetwork materialized =
-                new DLKerasNetworkMaterializer(Collections.singletonList(m_spec.getOutputLayer()), storage)
+                new DLKerasNetworkMaterializer(Collections.singletonList(m_spec.getOutputLayer()), saveLocation)
                     .materialize();
-            return new DLKerasMaterializedPortObjectContent(materialized, false);
+            return new DLKerasMaterializedPortObjectContent(materialized);
         } catch (final Exception e) {
             throw new IOException(
                 "An error occurred while creating the Keras network from its layer specifications. See log for details.",

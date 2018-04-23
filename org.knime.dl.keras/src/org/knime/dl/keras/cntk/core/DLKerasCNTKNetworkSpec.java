@@ -46,10 +46,9 @@
  */
 package org.knime.dl.keras.cntk.core;
 
-import java.net.URL;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
@@ -86,8 +85,8 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec {
 	}
 
 	@Override
-	public DLKerasNetwork create(final URL source) throws DLInvalidSourceException {
-		new DLKerasCNTKNetworkLoader().validateSource(source);
+    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
+        new DLKerasCNTKNetworkLoader().validateSource(source.getURI());
 		return new DLKerasCNTKNetwork(this, source);
 	}
 }

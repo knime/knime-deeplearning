@@ -50,7 +50,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -77,10 +77,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 	}
 
 	@Override
-	public void save(final DLPythonNetworkHandle handle, final URL destination, final DLPythonContext context)
+	public void save(final DLPythonNetworkHandle handle, final URI destination, final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException {
-		validateDestination(destination);
-		final File destinationFile = FileUtil.getFileFromURL(destination);
+		final File destinationFile = FileUtil.getFileFromURL(validateDestination(destination));
 		final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
 		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
 	}

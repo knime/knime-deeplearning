@@ -61,6 +61,7 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLInvalidNetworkOutputException;
 import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
@@ -94,7 +95,7 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 				new DLKerasTensorFlowNetworkLoader());
 		DLKerasTensorFlowNetwork network;
 		try {
-			network = reader.read(source, false);
+            network = reader.read(new DLNetworkReferenceLocation(source.toURI()), false);
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e);
 		}

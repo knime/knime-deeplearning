@@ -46,15 +46,11 @@
  */
 package org.knime.dl.testing;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.OptionalLong;
 import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
@@ -292,14 +288,6 @@ public final class DLTestUtil {
 	}
 
 	// Random specs:
-
-	public static URL randomNetworkSource(final Random random) {
-		try {
-			return FileUtil.toURL(RandomStringUtils.random(10, 0, 0, true, true, null, random) + ".h5");
-		} catch (InvalidPathException | MalformedURLException e) {
-			throw new RuntimeException();
-		}
-	}
 
 	public static DLTensorSpec randomTensorSpec(final Random random) {
 		final DLTensorId id = randomTensorId(random);

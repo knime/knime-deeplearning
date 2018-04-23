@@ -48,7 +48,7 @@
 package org.knime.dl.python.base.node.editor;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -95,7 +95,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 				.orElseThrow(() -> new DLMissingExtensionException(
 						"Python back end '" + inputNetwork.getClass().getCanonicalName()
 								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-		final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource(), context, true);
+        final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource().getURI(), context, true);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
@@ -179,15 +179,15 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
 			final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
 					exec);
-			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
+            final URI fileStoreURI = fileStore.getFile().toURI();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-			loader.save(handle, fileStoreURL, context);
+            loader.save(handle, fileStoreURI, context);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
-			return new PortObject[] { createOutputPortObject(loader, handle, fileStoreURL, context, fileStore) };
+            return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context)};
 		} finally {
 			context.close();
 		}
@@ -201,13 +201,5 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 	@Override
 	protected DLPythonEditorNodeConfig createConfig() {
 		return new DLPythonEditorNodeConfig();
-	}
-
-	private <N extends DLPythonNetwork> DLPythonNetworkPortObject<? extends DLPythonNetwork> createOutputPortObject(
-			final DLPythonNetworkLoader<N> loader, final DLPythonNetworkHandle handle, final URL source,
-			final DLPythonContext context, final FileStore fileStore)
-			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		final N network = loader.fetch(handle, source, context);
-		return loader.createPortObject(network, fileStore);
 	}
 }

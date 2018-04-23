@@ -44,52 +44,53 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.core;
 
-import java.util.Collections;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import java.net.URI;
+
+import org.knime.core.data.filestore.FileStore;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasBaseNetworkTensorSpecOutput {
+public final class DLNetworkFileStoreLocation implements DLNetworkLocation {
 
-    private final DLKerasNetwork m_baseNetwork;
+    private final FileStore m_networkFileStore;
 
-    private final int m_baseNetworkOutputIndex;
+    public DLNetworkFileStoreLocation(final FileStore networkFileStore) {
+        m_networkFileStore = checkNotNull(networkFileStore);
+    }
 
-    private final List<DLTensorSpec> m_outputTensorSpec;
-
-    public DLKerasDefaultBaseNetworkTensorSpecOutput(final DLKerasNetwork baseNetwork,
-        final int baseNetworkOutputIndex) {
-        m_baseNetwork = baseNetwork;
-        m_baseNetworkOutputIndex = baseNetworkOutputIndex;
-        m_outputTensorSpec = Collections.singletonList(baseNetwork.getSpec().getOutputSpecs()[baseNetworkOutputIndex]);
+    public FileStore getFileStore() {
+        return m_networkFileStore;
     }
 
     @Override
-    public DLKerasNetworkSpec getBaseNetworkSpec() {
-        return m_baseNetwork.getSpec();
+    public URI getURI() {
+        return m_networkFileStore.getFile().toURI();
     }
 
     @Override
-    public DLNetworkLocation getBaseNetworkSource() {
-        return m_baseNetwork.getSource();
+    public int hashCode() {
+        return 17 * 41 + getURI().hashCode();
     }
 
     @Override
-    public int getBaseNetworkOutputIndex() {
-        return m_baseNetworkOutputIndex;
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        return ((DLNetworkFileStoreLocation)obj).getURI().equals(getURI());
     }
 
     @Override
-    public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
-        return m_outputTensorSpec;
+    public String toString() {
+        return "file store: " + getURI();
     }
 }

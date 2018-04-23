@@ -47,7 +47,7 @@
 package org.knime.dl.keras.core.training;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Set;
 
 import org.knime.core.data.filestore.FileStore;
@@ -56,6 +56,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
@@ -130,11 +131,12 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 				.getNetworkLoader(m_network.getClass()).get();
 		final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
 				exec);
-		final URL fileStoreURL = fileStore.getFile().toURI().toURL();
-		loader.save(m_handle, fileStoreURL, m_commands.getContext());
+        final URI fileStoreURI = fileStore.getFile().toURI();
+        loader.save(m_handle, fileStoreURI, m_commands.getContext());
 		if (!fileStore.getFile().exists()) {
 			throw new IllegalStateException("Failed to save trained Keras deep learning network.");
 		}
-		return new DLKerasNetworkPortObject(loader.fetch(m_handle, fileStoreURL, m_commands.getContext()), fileStore);
+        return new DLKerasNetworkPortObject(
+            loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext()));
 	}
 }

@@ -45,16 +45,26 @@
 
 package org.knime.dl.python.base.node;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
 import org.knime.base.node.util.exttool.ExtToolOutputNodeModel;
+import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkFileStoreLocation;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonNetwork;
+import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkLoader;
+import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeConfig;
 import org.knime.python2.kernel.FlowVariableOptions;
 import org.knime.python2.kernel.PythonKernelOptions;
@@ -131,6 +141,13 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 			}
 		}
 	}
+
+    protected <N extends DLPythonNetwork> DLPythonNetworkPortObject<? extends DLPythonNetwork> createOutputPortObject(
+        final DLPythonNetworkLoader<N> loader, final DLPythonNetworkHandle handle, final FileStore fileStore,
+        final DLPythonContext context) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final N network = loader.fetch(handle, new DLNetworkFileStoreLocation(fileStore), context);
+        return loader.createPortObject(network, fileStore);
+    }
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {

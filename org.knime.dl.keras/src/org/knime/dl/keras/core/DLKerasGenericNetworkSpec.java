@@ -46,10 +46,9 @@
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
@@ -73,8 +72,8 @@ public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public DLKerasNetwork create(final URL source) throws DLInvalidSourceException {
-        DLKerasAbstractNetworkLoader.validateKerasNetworkSource(source);
+    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
+        DLKerasAbstractNetworkLoader.validateKerasNetworkSource(source.getURI());
         return new DLKerasGenericNetwork(this, source);
     }
 

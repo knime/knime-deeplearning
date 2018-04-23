@@ -51,6 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
@@ -77,25 +78,29 @@ import com.google.common.base.Strings;
 public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> extends DLPythonAbstractNetworkLoader<N>
 		implements DLKerasNetworkLoader<N> {
 
-    public static void validateKerasNetworkSource(final URL source) throws DLInvalidSourceException {
+    public static URL validateKerasNetworkSource(final URI source) throws DLInvalidSourceException {
         try {
-            final RemoteFile<?> file = RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
-                .createRemoteFile(source.toURI(), null, null);
+            final URL sourceURL = source.toURL();
+            final RemoteFile<?> file = RemoteFileHandlerRegistry.getRemoteFileHandler(sourceURL.getProtocol())
+                .createRemoteFile(sourceURL.toURI(), null, null);
             if (!file.exists()) {
                 throw new DLInvalidSourceException(
-                    "Cannot find Keras network file at location '" + source.toString() + "'.");
+                    "Cannot find Keras network file at location '" + sourceURL.toString() + "'.");
             }
+            return sourceURL;
         } catch (final Exception e) {
             throw new DLInvalidSourceException(
                 "An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
         }
     }
 
-    public static void validateKerasNetworkDestination(final URL destination) throws DLInvalidDestinationException {
+    public static URL validateKerasNetworkDestination(final URI destination) throws DLInvalidDestinationException {
         try {
+            final URL destinationURL = destination.toURL();
             // we found a remote file handler. however, we still don't know if we can write here.
-            RemoteFileHandlerRegistry.getRemoteFileHandler(destination.getProtocol())
-                .createRemoteFile(destination.toURI(), null, null);
+            RemoteFileHandlerRegistry.getRemoteFileHandler(destinationURL.getProtocol()).createRemoteFile(destination,
+                null, null);
+            return destinationURL;
         } catch (final Exception e) {
             throw new DLInvalidDestinationException(
                 "An error occurred while resolving the Keras network file location.\nCause: " + e.getMessage());
@@ -103,24 +108,24 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
     }
 
     @Override
-    public void validateSource(final URL source) throws DLInvalidSourceException {
-        validateKerasNetworkSource(source);
+    public URL validateSource(final URI source) throws DLInvalidSourceException {
+        return validateKerasNetworkSource(source);
     }
 
     @Override
-    public void validateDestination(final URL destination) throws DLInvalidDestinationException {
-        validateKerasNetworkDestination(destination);
+    public URL validateDestination(final URI destination) throws DLInvalidDestinationException {
+        return validateKerasNetworkDestination(destination);
     }
 
 	@Override
-	public DLPythonNetworkHandle load(final URL source, final DLPythonContext kernel, final boolean loadTrainingConfig)
+	public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		validateSource(source);
 		try {
-			File file = FileUtil.getFileFromURL(source);
+            final URL sourceURL = validateSource(source);
+            File file = FileUtil.getFileFromURL(sourceURL);
 			if (file == null) {
-				file = resolveToTmpFile(RemoteFileHandlerRegistry.getRemoteFileHandler(source.getProtocol())
-						.createRemoteFile(source.toURI(), null, null));
+                file = resolveToTmpFile(RemoteFileHandlerRegistry.getRemoteFileHandler(sourceURL.getProtocol())
+                    .createRemoteFile(source, null, null));
 			}
 
 			final String filePath = file.getAbsolutePath();
@@ -148,11 +153,10 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 		}
 	}
 
-	@Override
-	public DLKerasNetworkPortObject createPortObject(final N network, final FileStore fileStore)
-			throws IOException {
-		return new DLKerasNetworkPortObject(network, fileStore);
-	}
+    @Override
+    public DLKerasNetworkPortObject createPortObject(final N network, final FileStore fileStore) throws IOException {
+        return new DLKerasNetworkPortObject(network, fileStore);
+    }
 
 	private File resolveToTmpFile(final RemoteFile<?> remote) throws Exception {
 		// Later we may want to have a repo to store already downloaded networks...

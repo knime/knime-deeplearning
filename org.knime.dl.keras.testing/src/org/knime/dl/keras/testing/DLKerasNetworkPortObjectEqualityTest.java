@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.testing;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.junit.Assert;
@@ -63,7 +64,7 @@ public class DLKerasNetworkPortObjectEqualityTest {
 	// the inequality of networks that only differ in one property).
 
 	@Test
-	public void testEquals() {
+    public void testEquals() throws IOException {
 		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
 		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
 		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));
@@ -78,7 +79,7 @@ public class DLKerasNetworkPortObjectEqualityTest {
 	}
 
 	@Test
-	public void testHashCode() {
+    public void testHashCode() throws IOException {
 		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
 		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
 		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));

@@ -49,10 +49,10 @@ package org.knime.dl.keras.tensorflow.core;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.net.URL;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -87,10 +87,10 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
 	}
 
 	@Override
-	public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
+    public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source,
 			final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		validateSource(source);
+        validateSource(source.getURI());
 		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
 		final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTensorFlowNetwork(spec, source);

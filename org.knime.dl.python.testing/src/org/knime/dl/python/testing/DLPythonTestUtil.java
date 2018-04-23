@@ -44,52 +44,34 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.python.testing;
 
-import java.util.Collections;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.nio.file.InvalidPathException;
+import java.util.Random;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasBaseNetworkTensorSpecOutput {
+public final class DLPythonTestUtil {
 
-    private final DLKerasNetwork m_baseNetwork;
-
-    private final int m_baseNetworkOutputIndex;
-
-    private final List<DLTensorSpec> m_outputTensorSpec;
-
-    public DLKerasDefaultBaseNetworkTensorSpecOutput(final DLKerasNetwork baseNetwork,
-        final int baseNetworkOutputIndex) {
-        m_baseNetwork = baseNetwork;
-        m_baseNetworkOutputIndex = baseNetworkOutputIndex;
-        m_outputTensorSpec = Collections.singletonList(baseNetwork.getSpec().getOutputSpecs()[baseNetworkOutputIndex]);
+    private DLPythonTestUtil() {
+        // utility class
     }
 
-    @Override
-    public DLKerasNetworkSpec getBaseNetworkSpec() {
-        return m_baseNetwork.getSpec();
-    }
-
-    @Override
-    public DLNetworkLocation getBaseNetworkSource() {
-        return m_baseNetwork.getSource();
-    }
-
-    @Override
-    public int getBaseNetworkOutputIndex() {
-        return m_baseNetworkOutputIndex;
-    }
-
-    @Override
-    public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
-        return m_outputTensorSpec;
+    public static DLNetworkLocation randomNetworkSource(final Random random) {
+        try {
+            return new DLNetworkReferenceLocation(
+                FileUtil.toURL(RandomStringUtils.random(10, 0, 0, true, true, null, random) + ".h5").toURI());
+        } catch (InvalidPathException | MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

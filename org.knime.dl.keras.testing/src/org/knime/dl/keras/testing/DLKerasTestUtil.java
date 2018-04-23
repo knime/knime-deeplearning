@@ -46,12 +46,12 @@
  */
 package org.knime.dl.keras.testing;
 
-import static org.knime.dl.testing.DLTestUtil.randomNetworkSource;
+import static org.knime.dl.python.testing.DLPythonTestUtil.randomNetworkSource;
 import static org.knime.dl.testing.DLTestUtil.randomTensorSpec;
 
-import java.net.URL;
 import java.util.Random;
 
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
@@ -72,7 +72,7 @@ public final class DLKerasTestUtil {
 
 	public static DLKerasTensorFlowNetwork randomNetwork(final Random random) {
 		final DLKerasTensorFlowNetworkSpec spec = randomNetworkSpec(random);
-		final URL source = randomNetworkSource(random);
+        final DLNetworkLocation source = randomNetworkSource(random);
 		return new DLKerasTensorFlowNetwork(spec, source);
 	}
 

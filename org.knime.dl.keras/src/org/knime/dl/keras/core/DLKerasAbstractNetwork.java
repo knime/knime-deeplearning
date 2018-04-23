@@ -46,8 +46,7 @@
  */
 package org.knime.dl.keras.core;
 
-import java.net.URL;
-
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.python.core.DLPythonAbstractNetwork;
 
 /**
@@ -57,7 +56,7 @@ import org.knime.dl.python.core.DLPythonAbstractNetwork;
 public abstract class DLKerasAbstractNetwork extends DLPythonAbstractNetwork<DLKerasNetworkSpec>
 		implements DLKerasNetwork {
 
-	protected DLKerasAbstractNetwork(final DLKerasNetworkSpec spec, final URL source) {
+    protected DLKerasAbstractNetwork(final DLKerasNetworkSpec spec, final DLNetworkLocation source) {
 		super(spec, source);
 	}
 }

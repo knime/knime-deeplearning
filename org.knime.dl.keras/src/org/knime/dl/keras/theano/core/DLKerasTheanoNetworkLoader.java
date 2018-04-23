@@ -49,10 +49,10 @@ package org.knime.dl.keras.theano.core;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.net.URL;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -86,10 +86,10 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 	}
 
 	@Override
-	public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final URL source,
+    public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source,
 			final DLPythonContext context)
 			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		validateSource(source);
+        validateSource(source.getURI());
 		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
 		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
 		return new DLKerasTheanoNetwork(spec, source);

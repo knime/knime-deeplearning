@@ -48,7 +48,7 @@
 package org.knime.dl.python.base.node.creator;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -64,12 +64,10 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultContext;
-import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -153,16 +151,16 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
 			final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
 					exec);
-			final URL fileStoreURL = fileStore.getFile().toURI().toURL();
+            final URI fileStoreURI = fileStore.getFile().toURI();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-			loader.save(handle, fileStoreURL, context);
+            loader.save(handle, fileStoreURI, context);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
 			return new DLNetworkPortObject[] {
-					createOutputPortObject(loader, handle, fileStoreURL, context, fileStore) };
+                createOutputPortObject(loader, handle, fileStore, context)};
 		} finally {
 			context.close();
 		}
@@ -176,13 +174,5 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 	@Override
 	protected DLPythonCreatorNodeConfig createConfig() {
 		return new DLPythonCreatorNodeConfig();
-	}
-
-	private <N extends DLPythonNetwork> DLPythonNetworkPortObject<? extends DLPythonNetwork> createOutputPortObject(
-			final DLPythonNetworkLoader<N> loader, final DLPythonNetworkHandle handle, final URL source,
-			final DLPythonContext context, final FileStore fileStore)
-			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		final N network = loader.fetch(handle, source, context);
-		return loader.createPortObject(network, fileStore);
 	}
 }

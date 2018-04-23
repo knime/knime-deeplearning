@@ -51,10 +51,13 @@ package org.knime.dl.keras.base.nodes.reader;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.util.List;
 
+import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -74,6 +77,7 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
@@ -142,12 +146,16 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		if (backendId == null || backendId.isEmpty()) {
 			throw new InvalidSettingsException("No back end selected. Please configure the node.");
 		}
-		final URL url;
+        final URI uri;
 		try {
-			url = FileUtil.toURL(filePath);
+            final URL url = FileUtil.toURL(filePath);
+            uri = url.toURI();
 		} catch (InvalidPathException | MalformedURLException e) {
 			throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
-		}
+        } catch (final URISyntaxException e) {
+            throw new InvalidSettingsException(
+                "File path '" + filePath + "' cannot be resolved to a valid URI. Message: " + e.getMessage(), e);
+        }
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
 			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout());
@@ -157,14 +165,15 @@ final class DLKerasReaderNodeModel extends NodeModel {
 							+ "Please check your local installation.\nDetails: " + e.getMessage());
 		}
 		try {
-			loader.validateSource(url);
-		} catch (final DLInvalidSourceException e) {
+            loader.validateSource(uri);
+        } catch (final DLInvalidSourceException e) {
 			throw new InvalidSettingsException(e.getMessage(), e);
 		}
 		if (!filePath.equals(m_lastFilePath) || !backendId.equals(m_lastLoaderClassName)) {
 			try {
 				// TODO: we could allow the user to configure "loadTrainingConfig" flag
-				m_network = new DLPythonDefaultNetworkReader<>(loader).read(url, true);
+                m_network =
+                    new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true);
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {
@@ -190,18 +199,17 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		}
 		final DLKerasNetworkLoader<?> loader = getBackend(m_lastLoaderClassName);
 		try {
-			loader.validateSource(m_network.getSource());
+            loader.validateSource(m_network.getSource().getURI());
 		} catch (final DLInvalidSourceException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
-		final PortObject out;
-		if (m_smCopyNetwork.getBooleanValue()) {
-			out = new DLKerasNetworkPortObject(m_network,
-					DLNetworkPortObject.createFileStoreForCopy(FileUtil.toURL(m_lastFilePath), exec));
-		} else {
-			out = new DLKerasNetworkPortObject(m_network);
-		}
-		return new PortObject[] { out };
+        if (m_smCopyNetwork.getBooleanValue()) {
+            final FileStore fileStore =
+                DLNetworkPortObject.createFileStoreForCopy(m_network.getSource().getURI(), exec);
+            return new PortObject[]{new DLKerasNetworkPortObject(m_network, fileStore)};
+        } else {
+            return new PortObject[]{new DLKerasNetworkPortObject(m_network)};
+        }
 	}
 
 	@Override
