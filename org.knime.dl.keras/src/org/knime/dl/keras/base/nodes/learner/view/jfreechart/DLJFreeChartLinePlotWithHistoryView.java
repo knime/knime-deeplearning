@@ -85,269 +85,273 @@ import gnu.trove.TObjectFloatHashMap;
  */
 public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFreeChartLinePlotViewSpec> {
 
-	private final JFreeChartLinePlotPanel m_linePlot;
-	private final Map<String, JTextArea> m_historyAreas = new HashMap<>();
-	private final Map<String, JLabel> m_currentValueLabels = new HashMap<>();
-	private final TObjectFloatHashMap<String> m_currentValues;
-	private boolean m_isRunning = false;
+    private final JFreeChartLinePlotPanel m_linePlot;
 
-	private final JPanel m_component;
+    private final Map<String, JTextArea> m_historyAreas = new HashMap<>();
 
-	private final Timer m_currentValueUpdateTimer = new Timer(1000, (e) -> updateCurrentValueLabels());
+    private final Map<String, JLabel> m_currentValueLabels = new HashMap<>();
 
-	public DLJFreeChartLinePlotWithHistoryView(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
-		m_component = new JPanel(new GridBagLayout());
+    private final TObjectFloatHashMap<String> m_currentValues;
 
-		m_currentValues = new TObjectFloatHashMap<>(plotViewSpec.numPlots());
+    private boolean m_isRunning = false;
 
-		final JTabbedPane historyTabsPane = new JTabbedPane();
-		GridBagConstraints gbc;
+    private final JPanel m_component;
 
-		for (int i = 0; i < plotViewSpec.numPlots(); i++) {
-			final JTextArea historyArea = new JTextArea();
-			final DefaultCaret caret = (DefaultCaret) historyArea.getCaret();
-			// Enable automatic to bottom scrolling
-			caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-			historyArea.setEditable(false);
-			m_historyAreas.put(plotViewSpec.getLineLabel(i), historyArea);
+    private final Timer m_currentValueUpdateTimer = new Timer(1000, (e) -> updateCurrentValueLabels());
 
-			final JScrollPane historyScroller = new JScrollPane(historyArea);
-			final JPanel historyWrapper = new JPanel(new GridBagLayout());
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;
-			gbc.gridy = 0;
-			gbc.weightx = 1;
-			gbc.weighty = 1;
-			gbc.fill = GridBagConstraints.BOTH;
-			historyWrapper.add(historyScroller, gbc);
+    public DLJFreeChartLinePlotWithHistoryView(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
+        m_component = new JPanel(new GridBagLayout());
 
-			final JLabel currentValue = new JLabel("-");
-			currentValue.setFont(new Font(currentValue.getFont().getName(), currentValue.getFont().getStyle(), 18));
+        m_currentValues = new TObjectFloatHashMap<>(plotViewSpec.numPlots());
 
-			final JPanel valueWrapperWithBorder = new JPanel(new GridLayout(0, 1));
-			valueWrapperWithBorder.setBorder(BorderFactory.createTitledBorder("Current Value:"));
-			valueWrapperWithBorder.add(currentValue);
-			m_currentValueLabels.put(plotViewSpec.getLineLabel(i), currentValue);
+        final JTabbedPane historyTabsPane = new JTabbedPane();
+        GridBagConstraints gbc;
 
-			gbc.gridy++;
-			gbc.weighty = 0;
-			gbc.insets = new Insets(10, 10, 10, 10);
-			historyWrapper.add(valueWrapperWithBorder, gbc);
+        for (int i = 0; i < plotViewSpec.numPlots(); i++) {
+            final JTextArea historyArea = new JTextArea();
+            final DefaultCaret caret = (DefaultCaret)historyArea.getCaret();
+            // Enable automatic to bottom scrolling
+            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+            historyArea.setEditable(false);
+            m_historyAreas.put(plotViewSpec.getLineLabel(i), historyArea);
 
-			historyTabsPane.addTab(plotViewSpec.getLineLabel(i), historyWrapper);
-		}
+            final JScrollPane historyScroller = new JScrollPane(historyArea);
+            final JPanel historyWrapper = new JPanel(new GridBagLayout());
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weightx = 1;
+            gbc.weighty = 1;
+            gbc.fill = GridBagConstraints.BOTH;
+            historyWrapper.add(historyScroller, gbc);
 
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 1;
-		gbc.weighty = 1;
-		gbc.insets = new Insets(0, 0, 0, 10);
-		gbc.fill = GridBagConstraints.BOTH;
-		m_linePlot = new JFreeChartLinePlotPanel(plotViewSpec);
-		m_component.add(createPlotWithControlsPanel(m_linePlot), gbc);
+            final JLabel currentValue = new JLabel("-");
+            currentValue.setFont(new Font(currentValue.getFont().getName(), currentValue.getFont().getStyle(), 18));
 
-		historyTabsPane.setPreferredSize(new Dimension(180, 500));
-		historyTabsPane.setMinimumSize(new Dimension(180, 500));
-		gbc.gridx = 1;
-		gbc.weightx = 0;
-		gbc.weighty = 1;
-		gbc.fill = GridBagConstraints.VERTICAL;
-		m_component.add(historyTabsPane, gbc);
-	}
+            final JPanel valueWrapperWithBorder = new JPanel(new GridLayout(0, 1));
+            valueWrapperWithBorder.setBorder(BorderFactory.createTitledBorder("Current Value:"));
+            valueWrapperWithBorder.add(currentValue);
+            m_currentValueLabels.put(plotViewSpec.getLineLabel(i), currentValue);
 
-	private Component createPlotWithControlsPanel(final Component chartPanel) {
-		final JPanel wrapper = new JPanel(new GridBagLayout());
+            gbc.gridy++;
+            gbc.weighty = 0;
+            gbc.insets = new Insets(10, 10, 10, 10);
+            historyWrapper.add(valueWrapperWithBorder, gbc);
 
-		final GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weighty = 1;
-		gbc.weightx = 1;
-		gbc.fill = GridBagConstraints.BOTH;
-		wrapper.add(chartPanel, gbc);
+            historyTabsPane.addTab(plotViewSpec.getLineLabel(i), historyWrapper);
+        }
 
-		gbc.gridy = 1;
-		gbc.weighty = 0;
-		wrapper.add(createXRangeControls(), gbc);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.insets = new Insets(0, 0, 0, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+        m_linePlot = new JFreeChartLinePlotPanel(plotViewSpec);
+        m_component.add(createPlotWithControlsPanel(m_linePlot), gbc);
 
-		gbc.gridy = 2;
-		wrapper.add(createSmoothingControls(), gbc);
+        historyTabsPane.setPreferredSize(new Dimension(180, 500));
+        historyTabsPane.setMinimumSize(new Dimension(180, 500));
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        m_component.add(historyTabsPane, gbc);
+    }
 
-		return wrapper;
-	}
+    private Component createPlotWithControlsPanel(final Component chartPanel) {
+        final JPanel wrapper = new JPanel(new GridBagLayout());
 
-	private Component createSmoothingControls() {
-		final JPanel wrapper = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        wrapper.add(chartPanel, gbc);
 
-		final GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.gridy = 1;
+        gbc.weighty = 0;
+        wrapper.add(createXRangeControls(), gbc);
 
-		final JCheckBox enableSmoothingBox = new JCheckBox("Smoothing");
-		wrapper.add(enableSmoothingBox, gbc);
+        gbc.gridy = 2;
+        wrapper.add(createSmoothingControls(), gbc);
 
-		gbc.gridx = 1;
-		gbc.insets = new Insets(10, 0, 10, 10);
-		final JSpinner smoothingAlphaSpinner = new JSpinner(
-				new SpinnerNumberModel(1 - JFreeChartLinePlotPanel.SMOOTHING_ALPHA_DEFAULT, 0.0, 1.0, 0.005));
-		smoothingAlphaSpinner.setPreferredSize(new Dimension(80, 25));
-		smoothingAlphaSpinner.setEnabled(false);
-		wrapper.add(smoothingAlphaSpinner, gbc);
+        return wrapper;
+    }
 
-		smoothingAlphaSpinner.addChangeListener(arg0 -> {
-			final double currentSpinnerValue = ((double) smoothingAlphaSpinner.getValue());
-			m_linePlot.setSmoothingAlpha(1 - currentSpinnerValue);
-			m_linePlot.triggerSmoothedLinesUpdate();
-		});
+    private Component createSmoothingControls() {
+        final JPanel wrapper = new JPanel(new GridBagLayout());
 
-		enableSmoothingBox.addItemListener(e -> {
-			smoothingAlphaSpinner.setEnabled(enableSmoothingBox.isSelected());
-			m_linePlot.setEnableSmoothedLines(enableSmoothingBox.isSelected());
-			m_linePlot.triggerSmoothedLinesUpdate();
-		});
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.gridx = 2;
-		gbc.weightx = 1;
-		wrapper.add(new Box(0), gbc);
+        final JCheckBox enableSmoothingBox = new JCheckBox("Smoothing");
+        wrapper.add(enableSmoothingBox, gbc);
 
-		final JPanel border = new JPanel(new GridLayout());
-		border.add(wrapper);
-		border.setBorder(BorderFactory.createTitledBorder(""));
-		return border;
-	}
+        gbc.gridx = 1;
+        gbc.insets = new Insets(10, 0, 10, 10);
+        final JSpinner smoothingAlphaSpinner =
+            new JSpinner(new SpinnerNumberModel(1 - JFreeChartLinePlotPanel.SMOOTHING_ALPHA_DEFAULT, 0.0, 1.0, 0.005));
+        smoothingAlphaSpinner.setPreferredSize(new Dimension(80, 25));
+        smoothingAlphaSpinner.setEnabled(false);
+        wrapper.add(smoothingAlphaSpinner, gbc);
 
-	private Component createXRangeControls() {
-		final JPanel wrapper = new JPanel(new GridBagLayout());
+        smoothingAlphaSpinner.addChangeListener(arg0 -> {
+            final double currentSpinnerValue = ((double)smoothingAlphaSpinner.getValue());
+            m_linePlot.setSmoothingAlpha(1 - currentSpinnerValue);
+            m_linePlot.triggerSmoothedLinesUpdate();
+        });
 
-		final int sliderMin = 0;
-		final int sliderMax = 100;
+        enableSmoothingBox.addItemListener(e -> {
+            smoothingAlphaSpinner.setEnabled(enableSmoothingBox.isSelected());
+            m_linePlot.setEnableSmoothedLines(enableSmoothingBox.isSelected());
+            m_linePlot.triggerSmoothedLinesUpdate();
+        });
 
-		final RangeSlider rangeSlider = new RangeSlider();
-		rangeSlider.setValue(sliderMin);
-		rangeSlider.setUpperValue(sliderMax);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 2;
+        gbc.weightx = 1;
+        wrapper.add(new Box(0), gbc);
 
-		final GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 1;
-		gbc.insets = new Insets(0, 10, 0, 0);
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		wrapper.add(rangeSlider, gbc);
+        final JPanel border = new JPanel(new GridLayout());
+        border.add(wrapper);
+        border.setBorder(BorderFactory.createTitledBorder(""));
+        return border;
+    }
 
-		// TODO prohibit listener trigger hack
-		final boolean[] hasAxisChanged = new boolean[] { false };
-		final boolean[] sliderChanged = new boolean[] { false };
+    private Component createXRangeControls() {
+        final JPanel wrapper = new JPanel(new GridBagLayout());
 
-		rangeSlider.addChangeListener(e -> {
-			if (hasAxisChanged[0]) {
-				return;
-			}
-			sliderChanged[0] = true;
+        final int sliderMin = 0;
+        final int sliderMax = 100;
 
-			final int maxItemCount = getMaxItemCount();
-			final double lowerBound = (rangeSlider.getValue() / 100.0) * maxItemCount;
-			final double upperBound = (rangeSlider.getUpperValue() / 100.0) * maxItemCount;
+        final RangeSlider rangeSlider = new RangeSlider();
+        rangeSlider.setValue(sliderMin);
+        rangeSlider.setUpperValue(sliderMax);
 
-			if (lowerBound < upperBound) {
-				m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);
-				m_linePlot.autoRangeVerticalAxis();
-			}
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        wrapper.add(rangeSlider, gbc);
 
-			sliderChanged[0] = false;
-		});
+        // TODO prohibit listener trigger hack
+        final boolean[] hasAxisChanged = new boolean[]{false};
+        final boolean[] sliderChanged = new boolean[]{false};
 
-		m_linePlot.getHorizontalAxis().addChangeListener(event -> {
-			if (sliderChanged[0]) {
-				return;
-			}
-			hasAxisChanged[0] = true;
+        rangeSlider.addChangeListener(e -> {
+            if (hasAxisChanged[0]) {
+                return;
+            }
+            sliderChanged[0] = true;
 
-			final int maxItemCount = getMaxItemCount();
-			final Range axisRange = m_linePlot.getHorizontalAxis().getRange();
-			final int lowerSliderPos = new Double(Math.rint((axisRange.getLowerBound() / maxItemCount) * 100))
-					.intValue();
-			final int upperSliderPos = new Double(Math.rint((axisRange.getUpperBound() / maxItemCount) * 100))
-					.intValue();
-			rangeSlider.setValue(lowerSliderPos);
-			rangeSlider.setUpperValue(upperSliderPos);
+            final int maxItemCount = getMaxItemCount();
+            final double lowerBound = (rangeSlider.getValue() / 100.0) * maxItemCount;
+            final double upperBound = (rangeSlider.getUpperValue() / 100.0) * maxItemCount;
 
-			hasAxisChanged[0] = false;
-		});
+            if (lowerBound < upperBound) {
+                m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);
+                m_linePlot.autoRangeVerticalAxis();
+            }
 
-		final JButton resetSliderButton = new JButton("Reset");
-		resetSliderButton.addActionListener(e -> {
-			rangeSlider.setValue(sliderMin);
-			rangeSlider.setUpperValue(sliderMax);
+            sliderChanged[0] = false;
+        });
 
-			autoRangeYrestoreBoundsX();
-		});
+        m_linePlot.getHorizontalAxis().addChangeListener(event -> {
+            if (sliderChanged[0]) {
+                return;
+            }
+            hasAxisChanged[0] = true;
 
-		gbc.gridx = 1;
-		gbc.weightx = 0;
-		gbc.insets = new Insets(0, 10, 5, 10);
-		wrapper.add(resetSliderButton, gbc);
+            final int maxItemCount = getMaxItemCount();
+            final Range axisRange = m_linePlot.getHorizontalAxis().getRange();
+            final int lowerSliderPos =
+                new Double(Math.rint((axisRange.getLowerBound() / maxItemCount) * 100)).intValue();
+            final int upperSliderPos =
+                new Double(Math.rint((axisRange.getUpperBound() / maxItemCount) * 100)).intValue();
+            rangeSlider.setValue(lowerSliderPos);
+            rangeSlider.setUpperValue(upperSliderPos);
 
-		final JPanel border = new JPanel(new GridLayout());
-		border.add(wrapper);
-		border.setBorder(BorderFactory.createTitledBorder("Horizontal Zoom:"));
-		return border;
-	}
+            hasAxisChanged[0] = false;
+        });
 
-	private void autoRangeYrestoreBoundsX() {
-		m_linePlot.autoRangeVerticalAxis();
-		m_linePlot.restoreHorizontalDomainBounds();
-	}
+        final JButton resetSliderButton = new JButton("Reset");
+        resetSliderButton.addActionListener(e -> {
+            rangeSlider.setValue(sliderMin);
+            rangeSlider.setUpperValue(sliderMax);
 
-	private void updateCurrentValueLabels() {
-		m_currentValues.forEachEntry((k, v) -> {
-			m_currentValueLabels.get(k).setText(Float.toString(v));
-			return true;
-		});
-	}
+            autoRangeYrestoreBoundsX();
+        });
 
-	public void setCurrentValueTimerUpdateDelay(final int miliseconds) {
-		m_currentValueUpdateTimer.setDelay(miliseconds);
-	}
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        gbc.insets = new Insets(0, 10, 5, 10);
+        wrapper.add(resetSliderButton, gbc);
 
-	public void startCurrentValueUpdate() {
-		if (!m_currentValueUpdateTimer.isRunning()) {
-			m_currentValueUpdateTimer.start();
-		}
-	}
+        final JPanel border = new JPanel(new GridLayout());
+        border.add(wrapper);
+        border.setBorder(BorderFactory.createTitledBorder("Horizontal Zoom:"));
+        return border;
+    }
 
-	public void stopCurrentValueUpdate() {
-		if (m_currentValueUpdateTimer.isRunning()) {
-			m_currentValueUpdateTimer.stop();
-		}
-	}
+    private void autoRangeYrestoreBoundsX() {
+        m_linePlot.autoRangeVerticalAxis();
+        m_linePlot.restoreHorizontalDomainBounds();
+    }
 
-	@Override
-	public Component getComponent() {
-		return m_component;
-	}
+    private void updateCurrentValueLabels() {
+        m_currentValues.forEachEntry((k, v) -> {
+            m_currentValueLabels.get(k).setText(Float.toString(v));
+            return true;
+        });
+    }
 
-	@Override
-	public void update(final String lineLabel, final Iterator<DLLinePlotViewDataEntry> iterator) {
-		while (iterator.hasNext()) {
-			final DLLinePlotViewDataEntry dataEntry = iterator.next();
-			m_linePlot.plotNext(lineLabel, dataEntry.getX() + 1, dataEntry.getY()); // x-values are 0-based
-			m_historyAreas.get(lineLabel).append(dataEntry.getY() + "\n");
-			m_currentValues.put(lineLabel, dataEntry.getY());
-		}
-	}
+    public void setCurrentValueTimerUpdateDelay(final int miliseconds) {
+        m_currentValueUpdateTimer.setDelay(miliseconds);
+    }
 
-	private int getMaxItemCount() {
-		return m_linePlot.getMaxItemCount();
-	}
+    public void startCurrentValueUpdate() {
+        if (!m_currentValueUpdateTimer.isRunning()) {
+            m_currentValueUpdateTimer.start();
+        }
+    }
 
-	public boolean isRunning() {
-		return m_isRunning;
-	}
+    public void stopCurrentValueUpdate() {
+        if (m_currentValueUpdateTimer.isRunning()) {
+            m_currentValueUpdateTimer.stop();
+        }
+    }
 
-	public void setIsRunning(final boolean isRunning) {
-		m_isRunning = isRunning;
-	}
+    @Override
+    public Component getComponent() {
+        return m_component;
+    }
+
+    @Override
+    public void update(final String lineLabel, final Iterator<DLLinePlotViewDataEntry> iterator) {
+        while (iterator.hasNext()) {
+            final DLLinePlotViewDataEntry dataEntry = iterator.next();
+            m_linePlot.plotNext(lineLabel, dataEntry.getX() + 1, dataEntry.getY()); // x-values are 0-based
+            m_historyAreas.get(lineLabel).append(dataEntry.getY() + "\n");
+            m_currentValues.put(lineLabel, dataEntry.getY());
+        }
+    }
+
+    private int getMaxItemCount() {
+        return m_linePlot.getMaxItemCount();
+    }
+
+    public boolean isRunning() {
+        return m_isRunning;
+    }
+
+    public void setIsRunning(final boolean isRunning) {
+        m_isRunning = isRunning;
+    }
 }
