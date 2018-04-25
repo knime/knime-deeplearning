@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pandas.util.testing import network
 
 # ------------------------------------------------------------------------
 #  Copyright by KNIME AG, Zurich, Switzerland
@@ -53,20 +54,33 @@ import abc
 
 _networks = {}
 
+_network_id_suffix = 0
 
 def get_network(identifier):
     return _networks[identifier]
 
-
-def add_network(identifier, network):
-    if identifier in _networks:
+def add_network(network, identifier=None):
+    if identifier is None:
+        identifier = _get_next_network_id()
+        while identifier in _networks:
+            identifier = _get_next_network_id()
+    elif identifier in _networks:
         raise ValueError("Network '" + identifier + "' already exists.")
     _networks[identifier] = network
-
+    return identifier
 
 def remove_network(identifier):
     if identifier in _networks:
         del _networks[identifier]
+        return True
+    else:
+        return False
+
+def _get_next_network_id():
+    global _network_id_suffix
+    identifier = 'network_' + str(_network_id_suffix)
+    _network_id_suffix += 1
+    return identifier
 
 
 class DLPythonNetworkReader(object):

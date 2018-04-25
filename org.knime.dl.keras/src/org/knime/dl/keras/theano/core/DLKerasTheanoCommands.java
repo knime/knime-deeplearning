@@ -52,11 +52,10 @@ import java.io.IOException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
-import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -108,28 +107,15 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 		return "";
 	}
 
-	@Override
-	protected String getLoadNetworkCode(final String path, final boolean loadTrainingConfig) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
-				"network = DLKerasTheanoNetworkReader().read(r'" + path + "', compile="
-				+ DLPythonUtils.toPython(loadTrainingConfig) + ")\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+    @Override
+    protected DLKerasTheanoNetworkReaderCommands getNetworkReaderCommands() {
+        return new DLKerasTheanoNetworkReaderCommands();
+    }
 
-	@Override
-	protected String getLoadNetworkFromJsonCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
-				"network = DLKerasTheanoNetworkReader().readFromJson(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+    private static class DLKerasTheanoNetworkReaderCommands extends DLKerasAbstractNetworkReaderCommands {
 
-	@Override
-	protected String getLoadNetworkFromYamlCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader\n" + //
-				"network = DLKerasTheanoNetworkReader().readFromYaml(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+        private DLKerasTheanoNetworkReaderCommands() {
+            super("from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader", "DLKerasTheanoNetworkReader()");
+        }
+    }
 }

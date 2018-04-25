@@ -111,7 +111,11 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	// String constants that are used on Python side:
 
-	public static final String DEFAULT_MODEL_NAME = "model";
+    /**
+     * Not the actual network name but the entry in Python's global namespace under which the current (i.e. the last
+     * loaded) model's name can be found.
+     */
+    public static final String CURRENT_NETWORK_NAME = "current_network_name";
 
 	public static final String INPUT_SPECS_NAME = "input_specs";
 
@@ -172,7 +176,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	protected abstract String getSetupBackendCode();
 
-	protected abstract String getLoadNetworkCode(String path, boolean loadTrainingConfig);
+    protected abstract DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands();
 
 	@Override
 	public final synchronized DLPythonContext getContext() throws DLInvalidEnvironmentException {
@@ -258,13 +262,19 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		}
 	}
 
-	@Override
-	public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig)
-			throws DLInvalidEnvironmentException, IOException {
-		getContext().executeInKernel(getLoadNetworkCode(path, loadTrainingConfig));
-		// TODO: we should get the model name (= network identifier) from Python
-		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
-	}
+    @Override
+    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig)
+        throws DLInvalidEnvironmentException, IOException {
+        final DLPythonAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a(reader.importReader()) //
+            .n("reader = ").a(reader.createReader()) //
+            .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
+            .n(getRegisterNetworkCode("network", null));
+        getContext().executeInKernel(b.toString());
+        return (DLPythonNetworkHandle)getContext().getKernel()
+            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+    }
 
 	@Override
 	public void saveNetwork(final DLPythonNetworkHandle network, final String path)
@@ -607,6 +617,20 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		m_context.close();
 	}
 
+    protected String getRegisterNetworkCode(final String networkVariable, final String networkIdentifier) {
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import DLPythonNetwork") //
+            .n("network_id = DLPythonNetwork.add_network(").a(networkVariable);
+        if (networkIdentifier != null) {
+            b.a(", ").as(networkIdentifier);
+        }
+        b.a(")") //
+            .n("import pandas as pd") //
+            .n("global ").a(CURRENT_NETWORK_NAME) //
+            .n(CURRENT_NETWORK_NAME).a(" = ").a("pd.DataFrame.from_dict({").as(CURRENT_NETWORK_NAME).a(":[network_id]})");
+        return b.toString();
+    }
+
 	protected String getExtractNetworkSpecsCode(final DLPythonNetworkHandle network) {
 		return "import DLPythonNetworkSpecExtractor\n" + //
 				"global " + INPUT_SPECS_NAME + "\n" + //
@@ -651,4 +675,27 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		Arrays.fill(missings, UnsignedBytes.MAX_VALUE);
 		return missings;
 	}
+
+    protected abstract static class DLPythonAbstractNetworkReaderCommands {
+
+        private final String m_importStatement;
+
+        private final String m_createReaderStatement;
+
+        protected DLPythonAbstractNetworkReaderCommands(final String importStatement,
+            final String createReaderStatement) {
+            m_importStatement = importStatement;
+            m_createReaderStatement = createReaderStatement;
+        }
+
+        public abstract String read(String path, boolean loadTrainingConfig);
+
+        public String importReader() {
+            return m_importStatement;
+        }
+
+        public String createReader() {
+            return m_createReaderStatement;
+        }
+    }
 }

@@ -52,11 +52,10 @@ import java.io.IOException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
-import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -108,28 +107,15 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
 		return "";
 	}
 
-	@Override
-	protected String getLoadNetworkCode(final String path, final boolean loadTrainingConfig) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
-				"network = DLKerasCNTKNetworkReader().read(r'" + path + "', compile="
-				+ DLPythonUtils.toPython(loadTrainingConfig) + ")\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+    @Override
+    protected DLKerasCNTKNetworkReaderCommands getNetworkReaderCommands() {
+        return new DLKerasCNTKNetworkReaderCommands();
+    }
 
-	@Override
-	protected String getLoadNetworkFromJsonCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
-				"network = DLKerasCNTKNetworkReader().readFromJson(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+    private static class DLKerasCNTKNetworkReaderCommands extends DLKerasAbstractNetworkReaderCommands {
 
-	@Override
-	protected String getLoadNetworkFromYamlCode(final String path) {
-		return "import DLPythonNetwork\n" + //
-				"from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader\n" + //
-				"network = DLKerasCNTKNetworkReader().readFromYaml(r'" + path + "')\n" + //
-				"DLPythonNetwork.add_network('" + DEFAULT_MODEL_NAME + "', network)";
-	}
+        private DLKerasCNTKNetworkReaderCommands() {
+            super("from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader", "DLKerasCNTKNetworkReader()");
+        }
+    }
 }

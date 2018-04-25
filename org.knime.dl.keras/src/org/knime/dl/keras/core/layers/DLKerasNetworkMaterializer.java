@@ -92,8 +92,7 @@ public final class DLKerasNetworkMaterializer {
      * @param outputLayers the output layers of the network to materialize
      * @param saveLocation the location where the materialized network is saved
      */
-    public DLKerasNetworkMaterializer(final List<DLKerasLayer> outputLayers,
-        final DLNetworkLocation saveLocation) {
+    public DLKerasNetworkMaterializer(final List<DLKerasLayer> outputLayers, final DLNetworkLocation saveLocation) {
         m_outputLayers = outputLayers;
         m_saveLocation = saveLocation;
     }
@@ -122,20 +121,21 @@ public final class DLKerasNetworkMaterializer {
 
         try (final DLKerasAbstractCommands commands =
             ((DLKerasNetworkLoader<?>)loader).createCommands(new DLPythonDefaultContext())) {
-            // Load base networks (if any). Make base networks available on Python side for later. We need the network
-            // specs (a) to reserve the layer names that are already present in the base networks and (b) to specify the
-            // inputs and outputs of the new network that come from the base networks.
+            // Load base networks (if any). Make base networks available on Python side for later. Collect base network
+            // specs.We need the network specs (a) to reserve the layer names that are already present in the base
+            // networks and (b) to specify the inputs and outputs of the new network that come from the base networks.
             final LinkedHashMap<DLKerasNetworkSpec, DLKerasBaseNetworkHelperStruct> baseNetworks =
                 parser.m_baseNetworks;
             final List<DLKerasNetworkSpec> baseNetworkSpecs = new ArrayList<>(baseNetworks.size());
             for (final DLKerasBaseNetworkHelperStruct baseNetworkHelper : baseNetworks.values()) {
-                final DLPythonNetworkHandle handle =
-                    loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(), true);
                 baseNetworkSpecs.add(baseNetworkHelper.m_networkSpec);
+                final DLPythonNetworkHandle baseNetworkHandle =
+                    loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(), true);
                 final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
                     .n("import DLPythonNetwork") //
-                    .n("DLPythonNetwork.add_network(").as(baseNetworkHelper.m_variable) //
-                    .a(", DLPythonNetwork.get_network(").as(handle.getIdentifier()).a("))");
+                    .n("DLPythonNetwork.add_network(") //
+                    /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
+                    /**/ .as(baseNetworkHelper.m_variable).a(")");
                 commands.getContext().executeInKernel(b.toString());
             }
 
@@ -172,7 +172,7 @@ public final class DLKerasNetworkMaterializer {
                 .a(")") //
                 .n("import DLPythonNetworkType") //
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
-                .n("DLPythonNetwork.add_network(\"generated_network\", network_type.wrap_model(generated_network))");
+                .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
             commands.getContext().executeInKernel(b.toString());
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");

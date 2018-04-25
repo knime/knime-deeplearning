@@ -139,8 +139,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 			}
 
 			@Override
-			protected String getLoadNetworkCode(final String path, final boolean loadTrainingConfig) {
-				return "";
+            protected DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands() {
+                return null;
 			}
 		};
 		m_rng = new Random(543677);

@@ -44,56 +44,65 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.python.core;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
+import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer implements DLKerasLayer {
+public class DLPythonNetworkHandleTableCreatorFactory implements TableCreatorFactory {
 
-    private final String m_kerasIdentifier;
-
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        m_kerasIdentifier = checkNotNull(kerasIdentifier);
-    }
+    private static final int HANDLE_IDX = 0;
 
     @Override
-    public String getKerasIdentifier() {
-        return m_kerasIdentifier;
+    public TableCreator<?> createTableCreator(final TableSpec spec, final int tableSize) {
+        return new DLPythonNetworkHandleTableCreator(spec, tableSize);
     }
 
-    // Convenience method:
+    public static class DLPythonNetworkHandleTableCreator implements TableCreator<DLPythonNetworkHandle> {
 
-    protected abstract void populateParameters(List<String> positionalParams, Map<String, String> namedParams);
+        private final TableSpec m_tableSpec;
 
-    @Override
-    public String getBackendRepresentation(final String layerName) {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
+        private DLPythonNetworkHandle m_networkHandle;
+
+        private static boolean checkTableSpec(final TableSpec spec, final int tableSize) {
+            return tableSize == 1 //
+                && spec.getNumberColumns() == 1 //
+                && spec.getColumnNames()[HANDLE_IDX].equals(DLPythonAbstractCommands.CURRENT_NETWORK_NAME)
+                && spec.getColumnTypes()[HANDLE_IDX].equals(Type.STRING);
         }
-        return m_kerasIdentifier + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
-    }
 
-    @Override
-    public String toString() {
-        return getBackendRepresentation(null);
+        public DLPythonNetworkHandleTableCreator(final TableSpec spec, final int tableSize) {
+            if (!checkTableSpec(spec, tableSize)) {
+                throw new IllegalStateException("Python side sent an invalid network handle table.");
+            }
+            m_tableSpec = spec;
+        }
+
+        @Override
+        public void addRow(final Row row) {
+            m_networkHandle = new DLPythonNetworkHandle(checkNotNullOrEmpty(row.getCell(HANDLE_IDX).getStringValue(),
+                "Python sent a null or empty network handle."));
+        }
+
+        @Override
+        public TableSpec getTableSpec() {
+            return m_tableSpec;
+        }
+
+        @Override
+        public DLPythonNetworkHandle getTable() {
+            checkState(m_networkHandle != null, "Python did not send a network handle.");
+            return m_networkHandle;
+        }
     }
 }

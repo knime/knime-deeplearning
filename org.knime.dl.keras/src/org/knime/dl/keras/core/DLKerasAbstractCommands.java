@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
+import org.knime.dl.python.core.DLPythonNetworkHandleTableCreatorFactory;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
@@ -76,27 +77,38 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 		super(context);
 	}
 
-	protected abstract String getLoadNetworkFromJsonCode(String path);
-
-	protected abstract String getLoadNetworkFromYamlCode(String path);
+    @Override
+    protected abstract DLKerasAbstractNetworkReaderCommands getNetworkReaderCommands();
 
     @Override
     public abstract DLKerasNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network)
         throws DLInvalidEnvironmentException, IOException;
 
-	public DLPythonNetworkHandle loadNetworkFromJson(final String path)
-			throws DLInvalidEnvironmentException, IOException {
-		getContext().executeInKernel(getLoadNetworkFromJsonCode(path));
-		// TODO: we should get the model name (= handle identifier) from Python
-		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
-	}
+    public DLPythonNetworkHandle loadNetworkFromJson(final String path)
+        throws DLInvalidEnvironmentException, IOException {
+        final DLKerasAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a(reader.importReader()) //
+            .n("reader = ").a(reader.createReader()) //
+            .n("network = ").a("reader.").a(reader.readFromJson(path)) //
+            .n(getRegisterNetworkCode("network", null));
+        getContext().executeInKernel(b.toString());
+        return (DLPythonNetworkHandle)getContext().getKernel()
+            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+    }
 
-	public DLPythonNetworkHandle loadNetworkFromYaml(final String path)
-			throws DLInvalidEnvironmentException, IOException {
-		getContext().executeInKernel(getLoadNetworkFromYamlCode(path));
-		// TODO: we should get the model name (= handle identifier) from Python
-		return new DLPythonNetworkHandle(DEFAULT_MODEL_NAME);
-	}
+    public DLPythonNetworkHandle loadNetworkFromYaml(final String path)
+        throws DLInvalidEnvironmentException, IOException {
+        final DLKerasAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a(reader.importReader()) //
+            .n("reader = ").a(reader.createReader()) //
+            .n("network = ").a("reader.").a(reader.readFromYaml(path)) //
+            .n(getRegisterNetworkCode("network", null));
+        getContext().executeInKernel(b.toString());
+        return (DLPythonNetworkHandle)getContext().getKernel()
+            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+    }
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config)
 			throws DLInvalidEnvironmentException, IOException {
@@ -162,4 +174,31 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 			}
 		}
 	}
+
+    protected abstract static class DLKerasAbstractNetworkReaderCommands extends DLPythonAbstractNetworkReaderCommands {
+
+        protected DLKerasAbstractNetworkReaderCommands(final String importStatement,
+            final String createReaderStatement) {
+            super(importStatement, createReaderStatement);
+        }
+
+        @Override
+        public String read(final String path, final boolean loadTrainingConfig) {
+            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("read(").asr(path).a(", compile=").a(loadTrainingConfig).a(")");
+            return b.toString();
+        }
+
+        public String readFromJson(final String path) {
+            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("readFromJson(").asr(path).a(")");
+            return b.toString();
+        }
+
+        public String readFromYaml(final String path) {
+            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("readFromYaml(").asr(path).a(")");
+            return b.toString();
+        }
+    }
 }

@@ -180,8 +180,8 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //
 					"network_type = DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
-					"DLPythonNetwork.add_network('" + outputNetworkName + "', network_type.wrap_model("
-					+ outputNetworkName + "))\n" + //
+                "DLPythonNetwork.add_network(network_type.wrap_model(" + outputNetworkName + "), '" + outputNetworkName
+                + "')\n" + //
 					"global network_type_identifier\n" + //
 					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
