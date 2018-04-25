@@ -69,4 +69,15 @@ public interface DLKerasBaseNetworkTensorSpecOutput extends DLKerasTensorSpecsOu
      */
     @Override
     List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException;
+
+    @Override
+    int hashCode();
+
+    @Override
+    default boolean equalsIgnoreName(final DLKerasTensorSpecsOutput other) {
+        return equals(other);
+    }
+
+    @Override
+    boolean equals(Object obj);
 }

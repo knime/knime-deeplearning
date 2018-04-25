@@ -58,6 +58,8 @@ public interface DLKerasTensorSpecsOutput {
 
     List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException;
 
+    boolean equalsIgnoreName(DLKerasTensorSpecsOutput other);
+
     @Override
     String toString();
 }

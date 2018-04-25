@@ -81,7 +81,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final DLKerasTensorSpecsOutput[] parents) {
         super(kerasIdentifier);
-        m_parents = parents;
+        m_parents = checkNotNull(parents);
     }
 
     // Convenience methods:
@@ -130,6 +130,29 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     public final void validateInputSpecs() throws DLInvalidTensorSpecException {
         final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
         validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
+    }
+
+    @Override
+    public boolean equalsIgnoreName(final DLKerasTensorSpecsOutput other) {
+        if (other == this) {
+            return true;
+        }
+        if (other == null || other.getClass() != getClass()) {
+            return false;
+        }
+        final DLKerasAbstractInnerLayer otherInnerLayer = (DLKerasAbstractInnerLayer)other;
+        if (otherInnerLayer.m_parents.length != m_parents.length) {
+            return false;
+        }
+        if (!otherInnerLayer.getBackendRepresentation(null).equals(getBackendRepresentation(null))) {
+            return false;
+        }
+        for (int i = 0; i < m_parents.length; i++) {
+            if (!otherInnerLayer.m_parents[i].equalsIgnoreName(m_parents[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private DLInputSpecsHelperStruct collectInputSpecs() throws DLInvalidTensorSpecException {

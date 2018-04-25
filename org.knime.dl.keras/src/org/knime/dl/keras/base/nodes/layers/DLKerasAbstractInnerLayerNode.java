@@ -172,5 +172,40 @@ public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayer
         public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
             return m_outputTensorSpec;
         }
+
+        @Override
+        public int hashCode() {
+            int result = 1;
+            result = 31 * result + m_baseNetworkSpec.hashCode();
+            result = 31 * result + m_baseNetworkOutputIndex;
+            result = 31 * result + ((m_baseNetworkSource == null) ? 0 : m_baseNetworkSource.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            final DLKerasDefaultBaseNetworkSpecTensorSpecOutput other =
+                (DLKerasDefaultBaseNetworkSpecTensorSpecOutput)obj;
+            if (other.m_baseNetworkOutputIndex != m_baseNetworkOutputIndex) {
+                return false;
+            }
+            if (other.m_baseNetworkSource != null) {
+                if (m_baseNetworkSource == null) {
+                    return false;
+                }
+            } else if (!other.m_baseNetworkSource.equals(m_baseNetworkSource)) {
+                return false;
+            }
+            if (!other.m_baseNetworkSpec.equals(m_baseNetworkSpec)) {
+                return false;
+            }
+            return true;
+        }
     }
 }

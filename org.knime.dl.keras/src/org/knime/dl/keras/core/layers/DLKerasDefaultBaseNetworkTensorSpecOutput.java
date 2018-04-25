@@ -92,4 +92,22 @@ public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasB
     public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
         return m_outputTensorSpec;
     }
+
+    @Override
+    public int hashCode() {
+        return 31 * m_baseNetwork.hashCode() * 31 + m_baseNetworkOutputIndex;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        final DLKerasDefaultBaseNetworkTensorSpecOutput other = (DLKerasDefaultBaseNetworkTensorSpecOutput)obj;
+        return other.m_baseNetworkOutputIndex == m_baseNetworkOutputIndex //
+            && other.m_baseNetwork.equals(m_baseNetwork);
+    }
 }

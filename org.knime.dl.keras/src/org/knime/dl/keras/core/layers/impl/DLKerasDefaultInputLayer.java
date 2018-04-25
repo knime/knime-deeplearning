@@ -58,6 +58,7 @@ import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
 import org.knime.dl.keras.core.layers.DLKerasInputLayer;
+import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
@@ -98,6 +99,18 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Override
     public void validateParameters() throws InvalidSettingsException {
         // TODO
+    }
+
+    @Override
+    public boolean equalsIgnoreName(final DLKerasTensorSpecsOutput other) {
+        if (other == this) {
+            return true;
+        }
+        if (other == null || other.getClass() != getClass()) {
+            return false;
+        }
+        final DLKerasDefaultInputLayer otherInputLayer = (DLKerasDefaultInputLayer)other;
+        return otherInputLayer.getBackendRepresentation(null).equals(getBackendRepresentation(null));
     }
 
     @Override
