@@ -57,9 +57,13 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.dl.core.export.DLNetworkExporterRegistry;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 
 /**
@@ -68,6 +72,32 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 final class DLKerasExporterNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasExporterNodeModel.class);
+
+    private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
+
+    private static final String CFG_KEY_EXPORTER_ID = "exporter";
+
+    private static final String CFG_KEY_FILE_PATH = "filepath";
+
+    private static final String CFG_KEY_OVERWRITE = "overwrite";
+
+    private final SettingsModelStringArray m_exporterId = createExporterIdSettingsModel();
+
+    private final SettingsModelString m_filePath = createFilePathSettingsModel();
+
+    private final SettingsModelBoolean m_overwrite = createOverwriteSettingsModel();
+
+    static SettingsModelStringArray createExporterIdSettingsModel() {
+        return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{"", ""});
+    }
+
+    static SettingsModelString createFilePathSettingsModel() {
+        return new SettingsModelString(CFG_KEY_FILE_PATH, "");
+    }
+
+    static SettingsModelBoolean createOverwriteSettingsModel() {
+        return new SettingsModelBoolean(CFG_KEY_OVERWRITE, false);
+    }
 
     protected DLKerasExporterNodeModel() {
         super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, null);
@@ -99,17 +129,23 @@ final class DLKerasExporterNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // TODO implement
+        m_exporterId.saveSettingsTo(settings);
+        m_filePath.saveSettingsTo(settings);
+        m_overwrite.saveSettingsTo(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO implement
+        m_exporterId.validateSettings(settings);
+        m_filePath.validateSettings(settings);
+        m_overwrite.validateSettings(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO implement
+        m_exporterId.loadSettingsFrom(settings);
+        m_filePath.loadSettingsFrom(settings);
+        m_overwrite.loadSettingsFrom(settings);
     }
 
     @Override

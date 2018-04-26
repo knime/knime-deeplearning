@@ -46,13 +46,30 @@
  */
 package org.knime.dl.keras.base.nodes.export;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.Set;
+
+import javax.swing.JPanel;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.FilesHistoryPanel;
+import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
+import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.core.export.DLNetworkExporter;
+import org.knime.dl.core.export.DLNetworkExporterRegistry;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -61,14 +78,70 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasExporterNodeModel.class);
 
+    private static final String HISTORY_ID = "org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeModel";
+
+    private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
+
+    private final SettingsModelStringArray m_smExporterId = DLKerasExporterNodeModel.createExporterIdSettingsModel();
+
+    private final SettingsModelString m_smFilePath = DLKerasExporterNodeModel.createFilePathSettingsModel();
+
+    private final SettingsModelBoolean m_smOverwrite = DLKerasExporterNodeModel.createOverwriteSettingsModel();
+
+    private final DialogComponentIdFromPrettyStringSelection m_dcExporterId;
+
+    private final DialogComponentBoolean m_dcOverwrite;
+
+    private final FilesHistoryPanel m_filePanel;
+
     public DLKerasExporterNodeDialog() {
+        m_dcExporterId =
+            new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> exporterChanged());
+        // TODO some exporters may allow folders
+        m_filePanel = new FilesHistoryPanel(HISTORY_ID, LocationValidation.FileOutput);
+        m_dcOverwrite = new DialogComponentBoolean(m_smOverwrite, "Overwrite the file if it exists.");
+
+        // Add the dialog components
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.VERTICAL;
+
+        panel.add(m_dcExporterId.getComponentPanel(), gbc);
+        gbc.gridy++;
+        panel.add(m_filePanel, gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        panel.add(m_dcOverwrite.getComponentPanel(), gbc);
+
+        addTab("Settings", panel);
+    }
+
+    private void exporterChanged() {
         // TODO implement
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        // TODO implement
+        if (!(specs[0] instanceof DLNetworkPortObjectSpec)) {
+            // TODO what is the common message here?
+            throw new NotConfigurableException("Please configure the previous node.");
+        }
+        final DLNetworkPortObjectSpec spec = (DLNetworkPortObjectSpec)specs[0];
+        final Set<DLNetworkExporter<?>> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
+        if (exporters.isEmpty()) {
+            // TODO Maybe ask if a extension is missing?
+            throw new NotConfigurableException("There is no exporter avaiable for the given network.");
+        }
+        final String[] names = exporters.stream().map(e -> e.getName()).toArray(String[]::new);
+        final String[] ids = exporters.stream().map(e -> e.getIdentifier()).toArray(String[]::new);
+        m_dcExporterId.replaceListItems(names, ids, null);
     }
 
     @Override
