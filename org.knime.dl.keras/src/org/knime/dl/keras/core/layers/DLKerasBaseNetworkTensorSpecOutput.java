@@ -60,9 +60,11 @@ public interface DLKerasBaseNetworkTensorSpecOutput extends DLKerasTensorSpecsOu
 
     DLKerasNetworkSpec getBaseNetworkSpec();
 
+    int getBaseNetworkOutputIndex();
+
     DLNetworkLocation getBaseNetworkSource();
 
-    int getBaseNetworkOutputIndex();
+    void setBaseNetworkSource(DLNetworkLocation baseNetworkSource);
 
     /**
      * @return {@inheritDoc} - always of size one

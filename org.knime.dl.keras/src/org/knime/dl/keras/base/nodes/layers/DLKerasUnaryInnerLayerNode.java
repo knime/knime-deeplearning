@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import java.util.Arrays;
+
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -75,7 +77,7 @@ public final class DLKerasUnaryInnerLayerNode extends DLKerasAbstractInnerLayerN
         throws InvalidSettingsException {
         setLayerParent(0, inSpec);
         validateLayer();
-        return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
+        return new DLKerasUnmaterializedNetworkPortObjectSpec(Arrays.asList(m_layer));
     }
 
     @Override
@@ -84,6 +86,6 @@ public final class DLKerasUnaryInnerLayerNode extends DLKerasAbstractInnerLayerN
         amendBaseNetworkSource(0, in);
         final FileStore fileStore =
             DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
-        return new DLKerasUnmaterializedNetworkPortObject(m_layer, fileStore);
+        return new DLKerasUnmaterializedNetworkPortObject(Arrays.asList(m_layer), fileStore);
     }
 }

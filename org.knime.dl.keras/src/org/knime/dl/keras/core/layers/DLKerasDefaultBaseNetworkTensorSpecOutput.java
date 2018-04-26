@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -60,32 +62,45 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
  */
 public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasBaseNetworkTensorSpecOutput {
 
-    private final DLKerasNetwork m_baseNetwork;
+    private final DLKerasNetworkSpec m_baseNetworkSpec;
 
     private final int m_baseNetworkOutputIndex;
 
     private final List<DLTensorSpec> m_outputTensorSpec;
 
+    private DLNetworkLocation m_baseNetworkSource;
+
+    public DLKerasDefaultBaseNetworkTensorSpecOutput(final DLKerasNetworkSpec baseNetworkSpec,
+        final int baseNetworkOutputIndex) {
+        m_baseNetworkSpec = baseNetworkSpec;
+        m_baseNetworkOutputIndex = baseNetworkOutputIndex;
+        m_outputTensorSpec = Collections.singletonList(baseNetworkSpec.getOutputSpecs()[baseNetworkOutputIndex]);
+    }
+
     public DLKerasDefaultBaseNetworkTensorSpecOutput(final DLKerasNetwork baseNetwork,
         final int baseNetworkOutputIndex) {
-        m_baseNetwork = baseNetwork;
-        m_baseNetworkOutputIndex = baseNetworkOutputIndex;
-        m_outputTensorSpec = Collections.singletonList(baseNetwork.getSpec().getOutputSpecs()[baseNetworkOutputIndex]);
+        this(baseNetwork.getSpec(), baseNetworkOutputIndex);
+        m_baseNetworkSource = baseNetwork.getSource();
     }
 
     @Override
     public DLKerasNetworkSpec getBaseNetworkSpec() {
-        return m_baseNetwork.getSpec();
-    }
-
-    @Override
-    public DLNetworkLocation getBaseNetworkSource() {
-        return m_baseNetwork.getSource();
+        return m_baseNetworkSpec;
     }
 
     @Override
     public int getBaseNetworkOutputIndex() {
         return m_baseNetworkOutputIndex;
+    }
+
+    @Override
+    public DLNetworkLocation getBaseNetworkSource() {
+        return m_baseNetworkSource;
+    }
+
+    @Override
+    public void setBaseNetworkSource(final DLNetworkLocation baseNetworkSource) {
+        m_baseNetworkSource = checkNotNull(baseNetworkSource);
     }
 
     @Override
@@ -95,7 +110,11 @@ public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasB
 
     @Override
     public int hashCode() {
-        return 31 * m_baseNetwork.hashCode() * 31 + m_baseNetworkOutputIndex;
+        int result = 1;
+        result = 31 * result + m_baseNetworkSpec.hashCode();
+        result = 31 * result + m_baseNetworkOutputIndex;
+        result = 31 * result + ((m_baseNetworkSource == null) ? 0 : m_baseNetworkSource.hashCode());
+        return result;
     }
 
     @Override
@@ -107,7 +126,19 @@ public final class DLKerasDefaultBaseNetworkTensorSpecOutput implements DLKerasB
             return false;
         }
         final DLKerasDefaultBaseNetworkTensorSpecOutput other = (DLKerasDefaultBaseNetworkTensorSpecOutput)obj;
-        return other.m_baseNetworkOutputIndex == m_baseNetworkOutputIndex //
-            && other.m_baseNetwork.equals(m_baseNetwork);
+        if (other.m_baseNetworkOutputIndex != m_baseNetworkOutputIndex) {
+            return false;
+        }
+        if (other.m_baseNetworkSource == null) {
+            if (m_baseNetworkSource != null) {
+                return false;
+            }
+        } else if (!other.m_baseNetworkSource.equals(m_baseNetworkSource)) {
+            return false;
+        }
+        if (!other.m_baseNetworkSpec.equals(m_baseNetworkSpec)) {
+            return false;
+        }
+        return true;
     }
 }

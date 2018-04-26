@@ -49,7 +49,8 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 
 import org.knime.core.data.filestore.FileStore;
@@ -64,6 +65,7 @@ import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
+import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -74,12 +76,19 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     private static final String ZIP_ENTRY_NAME = "DLKerasUnmaterializedNetworkPortObject";
 
+    private static List<FileStore> prependOutputFileStore(final FileStore outputFileStore,
+        final List<FileStore> baseNetworkFileStores) {
+        // Own file store must be first in the list. Instance code relies on that.
+        baseNetworkFileStores.add(0, outputFileStore);
+        return baseNetworkFileStores;
+    }
+
     private DLKerasPortObjectContent m_content;
 
-    public DLKerasUnmaterializedNetworkPortObject(final DLKerasLayer outputLayer, final FileStore fileStore) {
-        super(Collections.singletonList(fileStore));
+    public DLKerasUnmaterializedNetworkPortObject(final List<DLKerasLayer> outputLayers, final FileStore fileStore) {
+        super(prependOutputFileStore(fileStore, DLKerasNetworkLayerGraphSerializer.getNetworkFileStores(outputLayers)));
         try {
-            m_content = new DLKerasUnmaterializedPortObjectContent(outputLayer);
+            m_content = new DLKerasUnmaterializedPortObjectContent(outputLayers);
         } catch (final DLInvalidTensorSpecException e) {
             // This should not occur because the layer input specs were already validated in the preceding layer node.
             throw new IllegalStateException(e);
@@ -111,6 +120,39 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
         return m_content.getSpec();
     }
 
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + m_content.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        final DLKerasUnmaterializedNetworkPortObject other = (DLKerasUnmaterializedNetworkPortObject)obj;
+        return super.equals(obj) //
+            && other.m_content.equals(m_content);
+    }
+
+    @Override
+    protected void postConstruct() throws IOException {
+        if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
+            final DLKerasUnmaterializedPortObjectContent unmaterialized =
+                (DLKerasUnmaterializedPortObjectContent)m_content;
+            final List<DLNetworkFileStoreLocation> baseNetworkSources = new ArrayList<>(getFileStoreCount() - 1);
+            for (int i = 1; i < getFileStoreCount(); i++) {
+                baseNetworkSources.add(new DLNetworkFileStoreLocation(getFileStore(i)));
+            }
+            unmaterialized.getSpec().amendBaseNetworkSources(baseNetworkSources);
+        }
+    }
+
     /**
      * Serializer of {@link DLKerasUnmaterializedNetworkPortObject}.
      */
@@ -127,9 +169,6 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
             if (isMaterialized) {
                 new DLKerasMaterializedPortObjectContent.Serializer()
                     .savePortObjectContent((DLKerasMaterializedPortObjectContent)portObject.m_content, objOut, exec);
-            } else {
-                new DLKerasUnmaterializedPortObjectContent.Serializer()
-                    .savePortObjectContent((DLKerasUnmaterializedPortObjectContent)portObject.m_content, objOut, exec);
             }
             objOut.flush();
         }
@@ -148,8 +187,7 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
                 portObjectContent =
                     new DLKerasMaterializedPortObjectContent.Serializer().loadPortObjectContent(objIn, spec, exec);
             } else {
-                portObjectContent =
-                    new DLKerasUnmaterializedPortObjectContent.Serializer().loadPortObjectContent(objIn, spec, exec);
+                portObjectContent = new DLKerasUnmaterializedPortObjectContent.Serializer().loadPortObjectContent(spec);
             }
             return new DLKerasUnmaterializedNetworkPortObject(portObjectContent);
         }

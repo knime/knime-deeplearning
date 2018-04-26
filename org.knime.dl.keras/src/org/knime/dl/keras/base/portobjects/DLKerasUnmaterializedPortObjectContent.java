@@ -47,18 +47,16 @@
 package org.knime.dl.keras.base.portobjects;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionMonitor;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
 
 /**
@@ -69,9 +67,15 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
 
     private final DLKerasUnmaterializedNetworkPortObjectSpec m_spec;
 
-    // also used for deserialization
-    DLKerasUnmaterializedPortObjectContent(final DLKerasLayer outputLayer) throws DLInvalidTensorSpecException {
-        m_spec = new DLKerasUnmaterializedNetworkPortObjectSpec(outputLayer);
+    DLKerasUnmaterializedPortObjectContent(final List<DLKerasLayer> outputLayers) throws DLInvalidTensorSpecException {
+        this(new DLKerasUnmaterializedNetworkPortObjectSpec(outputLayers));
+    }
+
+    /**
+     * Deserialization constructor.
+     */
+    private DLKerasUnmaterializedPortObjectContent(final DLKerasUnmaterializedNetworkPortObjectSpec spec) {
+        m_spec = spec;
     }
 
     @Override
@@ -79,14 +83,29 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
         return m_spec;
     }
 
-    public DLKerasMaterializedPortObjectContent materialize(final DLNetworkLocation saveLocation)
-        throws IOException {
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(m_spec).toHashCode();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        return Objects.equals(((DLKerasUnmaterializedPortObjectContent)obj).m_spec, m_spec);
+    }
+
+    public DLKerasMaterializedPortObjectContent materialize(final DLNetworkLocation saveLocation) throws IOException {
         try {
             final DLKerasNetwork materialized =
-                new DLKerasNetworkMaterializer(Collections.singletonList(m_spec.getOutputLayer()), saveLocation)
-                    .materialize();
+                new DLKerasNetworkMaterializer(m_spec.getOutputLayers(), saveLocation).materialize();
             return new DLKerasMaterializedPortObjectContent(materialized);
         } catch (final Exception e) {
+            NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage(), e);
             throw new IOException(
                 "An error occurred while creating the Keras network from its layer specifications. See log for details.",
                 e);
@@ -95,25 +114,10 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
 
     static final class Serializer {
 
-        public void savePortObjectContent(final DLKerasUnmaterializedPortObjectContent portObjectContent,
-            final ObjectOutputStream objOut, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-            new DLKerasNetworkLayerGraphSerializer()
-                .writeGraphTo(Collections.singletonList(portObjectContent.m_spec.getOutputLayer()), objOut);
-        }
+        // No serialization needed.
 
-        public DLKerasUnmaterializedPortObjectContent loadPortObjectContent(final ObjectInputStream objIn,
-            final PortObjectSpec spec, final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
-            try {
-                final DLKerasLayer outputLayer = new DLKerasNetworkLayerGraphSerializer().readGraphFrom(objIn).get(0);
-                return new DLKerasUnmaterializedPortObjectContent(outputLayer);
-            } catch (final ClassNotFoundException e) {
-                throw new IOException("Failed to load Keras deep learning network port object."
-                    + " Are you missing a KNIME Deep Learning extension.", e);
-            } catch (final Exception e) {
-                throw new IOException("Failed to load Keras deep learning network port object. See log for details.",
-                    e);
-            }
+        public DLKerasUnmaterializedPortObjectContent loadPortObjectContent(final PortObjectSpec spec) {
+            return new DLKerasUnmaterializedPortObjectContent((DLKerasUnmaterializedNetworkPortObjectSpec)spec);
         }
     }
 }

@@ -88,6 +88,8 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 				.getTable();
 		// TODO: Keras does not expose "hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.
+        //
+        // Please also uncomment hidden specs in DLKerasNetworkSpecInferrer#inferNetworkSpec() then.
 		return new DLKerasTensorFlowNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO hiddenOutputSpecs */,
 				outputSpecs);
 	}

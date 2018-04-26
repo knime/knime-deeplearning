@@ -57,6 +57,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
@@ -164,9 +165,11 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
                     portObjectContent.m_networkSource =
                         new DLNetworkReferenceLocation(((URL)objIn.readObject()).toURI());
                 } catch (final ClassNotFoundException e) {
+                    NodeLogger.getLogger(DLKerasMaterializedPortObjectContent.class).error(e.getMessage(), e);
                     throw new IOException("Failed to load Keras deep learning network port object."
                         + " Are you missing a KNIME Deep Learning extension?", e);
                 } catch (final Exception e) {
+                    NodeLogger.getLogger(DLKerasMaterializedPortObjectContent.class).error(e.getMessage(), e);
                     throw new IOException(
                         "Failed to load Keras deep learning network port object. See log for details.", e);
                 }

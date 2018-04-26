@@ -62,7 +62,6 @@ public interface DLKerasInnerLayer extends DLKerasLayer {
     DLKerasTensorSpecsOutput getParent(int index);
 
     /**
-     * @throws IllegalStateException if the parent at the given index is already set
      * @throws NullPointerException if <code>parent</code> is <code>null</code>
      * @throws IllegalArgumentException if <code>parent</code> is this instance
      * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to

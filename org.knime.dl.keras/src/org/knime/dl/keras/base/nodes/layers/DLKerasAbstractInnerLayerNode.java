@@ -46,27 +46,20 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasBaseNetworkTensorSpecOutput;
+import org.knime.dl.keras.core.layers.DLKerasDefaultBaseNetworkTensorSpecOutput;
 import org.knime.dl.keras.core.layers.DLKerasInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -83,17 +76,22 @@ public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayer
         final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)m_layer;
         if (parentPortObjectSpec instanceof DLKerasNetworkPortObjectSpec) {
             // Append to existing network.
-            if (parentPortObjectSpec.getNetworkSpec().getOutputSpecs().length != 1) {
+            if (parentPortObjectSpec.getNetworkSpec().getOutputSpecs().length > 1) {
                 throw new InvalidSettingsException(
-                    "Appending layers to networks with multiple outputs is not yet supported.");
+                    "Appending a layer to a network with multiple outputs is not yet supported.");
             }
-            final DLKerasDefaultBaseNetworkSpecTensorSpecOutput baseNetworkOutput =
-                new DLKerasDefaultBaseNetworkSpecTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(), 0);
+            final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
+                new DLKerasDefaultBaseNetworkTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(), 0);
             innerLayer.setParent(index, baseNetworkOutput);
         } else if (parentPortObjectSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec) {
             // Append to layer.
-            innerLayer.setParent(index,
-                ((DLKerasUnmaterializedNetworkPortObjectSpec)parentPortObjectSpec).getOutputLayer());
+            final List<DLKerasLayer> outputLayers =
+                ((DLKerasUnmaterializedNetworkPortObjectSpec)parentPortObjectSpec).getOutputLayers();
+            if (outputLayers.size() > 1) {
+                throw new InvalidSettingsException(
+                    "Appending a layer to a layer of a list of layers is not yet supported.");
+            }
+            innerLayer.setParent(index, outputLayers.get(0));
         } else {
             throw new InvalidSettingsException(
                 "Input port object spec (" + parentPortObjectSpec.getClass().getCanonicalName()
@@ -106,9 +104,9 @@ public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayer
     protected void amendBaseNetworkSource(final int index, final DLKerasNetworkPortObjectBase parentPortObject)
         throws InvalidSettingsException, DLInvalidSourceException, IOException {
         if (parentPortObject instanceof DLKerasNetworkPortObject) {
-            final DLKerasDefaultBaseNetworkSpecTensorSpecOutput baseNetworkOutput =
-                (DLKerasDefaultBaseNetworkSpecTensorSpecOutput)((DLKerasInnerLayer)m_layer).getParent(index);
-            baseNetworkOutput.amendBaseNetworkSource(parentPortObject.getNetwork().getSource());
+            final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
+                (DLKerasDefaultBaseNetworkTensorSpecOutput)((DLKerasInnerLayer)m_layer).getParent(index);
+            baseNetworkOutput.setBaseNetworkSource(parentPortObject.getNetwork().getSource());
         } else if (parentPortObject instanceof DLKerasUnmaterializedNetworkPortObject) {
             // no op - there is no base network
         } else {
@@ -123,89 +121,5 @@ public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayer
     protected void validateLayer() throws InvalidSettingsException {
         super.validateLayer();
         ((DLKerasInnerLayer)m_layer).validateInputSpecs();
-    }
-
-    protected static final class DLKerasDefaultBaseNetworkSpecTensorSpecOutput
-        implements DLKerasBaseNetworkTensorSpecOutput {
-
-        private final DLKerasNetworkSpec m_baseNetworkSpec;
-
-        private final int m_baseNetworkOutputIndex;
-
-        private final List<DLTensorSpec> m_outputTensorSpec;
-
-        private DLNetworkLocation m_baseNetworkSource;
-
-        public DLKerasDefaultBaseNetworkSpecTensorSpecOutput(final DLKerasNetworkSpec baseNetworkSpec,
-            final int baseNetworkOutputIndex) {
-            m_baseNetworkSpec = baseNetworkSpec;
-            m_baseNetworkOutputIndex = baseNetworkOutputIndex;
-            m_outputTensorSpec = Collections.singletonList(baseNetworkSpec.getOutputSpecs()[baseNetworkOutputIndex]);
-        }
-
-        /**
-         * @throws IllegalStateException if the base network source is already set
-         * @throws NullPointerException if the argument is <code>null</code>
-         */
-        protected void amendBaseNetworkSource(final DLNetworkLocation baseNetworkSource) {
-            checkState(m_baseNetworkSource == null);
-            m_baseNetworkSource = checkNotNull(baseNetworkSource);
-        }
-
-        @Override
-        public DLKerasNetworkSpec getBaseNetworkSpec() {
-            return m_baseNetworkSpec;
-        }
-
-        @Override
-        public DLNetworkLocation getBaseNetworkSource() {
-            checkState(m_baseNetworkSource != null, "Base network source is not set. This is an implementation error.");
-            return m_baseNetworkSource;
-        }
-
-        @Override
-        public int getBaseNetworkOutputIndex() {
-            return m_baseNetworkOutputIndex;
-        }
-
-        @Override
-        public List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
-            return m_outputTensorSpec;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = 1;
-            result = 31 * result + m_baseNetworkSpec.hashCode();
-            result = 31 * result + m_baseNetworkOutputIndex;
-            result = 31 * result + ((m_baseNetworkSource == null) ? 0 : m_baseNetworkSource.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            final DLKerasDefaultBaseNetworkSpecTensorSpecOutput other =
-                (DLKerasDefaultBaseNetworkSpecTensorSpecOutput)obj;
-            if (other.m_baseNetworkOutputIndex != m_baseNetworkOutputIndex) {
-                return false;
-            }
-            if (other.m_baseNetworkSource != null) {
-                if (m_baseNetworkSource == null) {
-                    return false;
-                }
-            } else if (!other.m_baseNetworkSource.equals(m_baseNetworkSource)) {
-                return false;
-            }
-            if (!other.m_baseNetworkSpec.equals(m_baseNetworkSpec)) {
-                return false;
-            }
-            return true;
-        }
     }
 }

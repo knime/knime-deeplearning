@@ -134,10 +134,10 @@ public final class DLKerasNetworkLayerGraphSerializerTest {
     }
 
     private void testSerialize(final List<DLKerasLayer> outputLayers) throws IOException, ClassNotFoundException {
-        new DLKerasNetworkLayerGraphSerializer().writeGraphTo(outputLayers, m_outStream);
+        DLKerasNetworkLayerGraphSerializer.writeGraphTo(outputLayers, m_outStream);
         m_inStream = outStreamToInStream();
         final List<DLKerasLayer> deserializedOutputLayers =
-            new DLKerasNetworkLayerGraphSerializer().readGraphFrom(m_inStream);
+            DLKerasNetworkLayerGraphSerializer.readGraphFrom(m_inStream, null);
         assertGraphEquals(outputLayers, deserializedOutputLayers);
     }
 

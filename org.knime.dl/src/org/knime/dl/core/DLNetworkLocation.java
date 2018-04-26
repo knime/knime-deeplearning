@@ -49,7 +49,8 @@ package org.knime.dl.core;
 import java.net.URI;
 
 /**
- * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} in a value-based way.
+ * Implementations of this interface must override {@link #equals(Object)} and {@link #hashCode()} as per their
+ * documentations.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -59,7 +60,9 @@ public interface DLNetworkLocation {
     URI getURI();
 
     /**
-     * Value-based.
+     * The computation of the hash code value takes the type of the network location into account (e.g. a reference
+     * location would return a different value than a file store location even if both returned the same URI via
+     * {@link #getURI()}).
      * <P>
      * Inherited documentation: {@inheritDoc}
      */
@@ -67,7 +70,9 @@ public interface DLNetworkLocation {
     int hashCode();
 
     /**
-     * Value-based.
+     * The assessment of equality takes the type of the network location into account (e.g. a reference location would
+     * not equal a file store location even if both returned the same URI via {@link #getURI()} because a reference
+     * location is fixed whereas a file store location may change over time).
      * <P>
      * Inherited documentation: {@inheritDoc}
      */

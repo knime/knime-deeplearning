@@ -48,7 +48,6 @@ package org.knime.dl.keras.core.layers;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +105,6 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
 
     @Override
     public void setParent(final int index, final DLKerasTensorSpecsOutput parent) {
-        checkState(m_parents[index] == null);
         checkNotNull(parent);
         checkArgument(parent != this);
         m_parents[index] = parent;
