@@ -13,6 +13,7 @@ Export-Package: org.knime.dl.base.nodes,
  org.knime.dl.core.data,
  org.knime.dl.core.data.convert,
  org.knime.dl.core.execution,
+ org.knime.dl.core.export,
  org.knime.dl.core.training,
  org.knime.dl.util
 Require-Bundle: org.knime.core;bundle-version="[3.5.0,4.0.0)",
