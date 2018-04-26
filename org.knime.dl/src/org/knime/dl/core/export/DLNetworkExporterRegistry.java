@@ -48,7 +48,9 @@ package org.knime.dl.core.export;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
@@ -65,6 +67,9 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
 
     private static DLNetworkExporterRegistry instance;
 
+    /**
+     * @return the instance of this registry.
+     */
     public static synchronized DLNetworkExporterRegistry getInstance() {
         if (instance == null) {
             instance = new DLNetworkExporterRegistry();
@@ -79,7 +84,27 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
         register();
     }
 
-    // TODO access methods
+    /**
+     * Get an instance of the exporter with the given id.
+     *
+     * @param id the identifier of the exporter
+     * @return an instance of a {@link DLNetworkExporter}
+     * @throws NoSuchElementException if there is no exporter with the given identifier
+     */
+    public DLNetworkExporter<?> getExporterWithId(final String id) {
+        // TODO Should we throw an checked exception?
+        return m_exporters.stream().filter(e -> e.getIdentifier().equals(id)).findFirst().get();
+    }
+
+    /**
+     * Get all available exporters for a specified network type.
+     *
+     * @param type the network type
+     * @return a set of network exporters
+     */
+    public Set<DLNetworkExporter<?>> getExporterForType(final Class<? extends DLNetwork> type) {
+        return m_exporters.stream().filter(e -> e.getNetworkType().isAssignableFrom(type)).collect(Collectors.toSet());
+    }
 
     @Override
     protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
