@@ -68,7 +68,7 @@ public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNe
     }
 
     @Override
-    public void exportNetwork(final DLKerasNetwork network, final URL path, final boolean overwrite)
+    public void exportNetworkInternal(final DLKerasNetwork network, final URL path, final boolean overwrite)
         throws IOException {
         // TODO is it always fine copy it from the saved source?
         // TODO make more general for remote files

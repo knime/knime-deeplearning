@@ -54,9 +54,9 @@ import org.knime.dl.core.DLNetwork;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkExporter<N extends DLNetwork> {
+public interface DLNetworkExporter {
 
-    Class<N> getNetworkType();
+    Class<? extends DLNetwork> getNetworkType();
 
     default String getIdentifier() {
         return getClass().getCanonicalName();
@@ -66,6 +66,6 @@ public interface DLNetworkExporter<N extends DLNetwork> {
 
     String[] getValidExtensions();
 
-    void exportNetwork(N network, URL path, boolean overwrite) throws IOException;
+    void exportNetwork(DLNetwork network, URL path, boolean overwrite) throws IOException;
 
 }
