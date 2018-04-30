@@ -74,6 +74,9 @@ public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNe
         // TODO make more general for remote files
         final File source = FileUtil.getFileFromURL(network.getSource());
         final File dest = FileUtil.getFileFromURL(path);
+        if (dest.exists() && !overwrite) {
+            throw new IOException("The destination file already exists.");
+        }
         FileUtil.copy(source, dest);
     }
 
