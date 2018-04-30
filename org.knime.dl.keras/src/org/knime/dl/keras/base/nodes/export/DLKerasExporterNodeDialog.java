@@ -49,8 +49,10 @@ package org.knime.dl.keras.base.nodes.export;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Arrays;
 import java.util.Set;
 
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -95,10 +97,18 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
     private final FilesHistoryPanel m_filePanel;
 
     public DLKerasExporterNodeDialog() {
-        m_dcExporterId =
-            new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> exporterChanged());
+        // Create the dialog components
+        m_dcExporterId = new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> {
+            // TODO Wow that's dirty! The dialog component should update the settings model itself.
+            // But the dialog component is used in many places and I don't want to change everything right now.
+            m_smExporterId
+                .setStringArrayValue(((DialogComponentIdFromPrettyStringSelection)e.getSource()).getSelection());
+            exporterChanged();
+        });
         // TODO some exporters may allow folders
         m_filePanel = new FilesHistoryPanel(HISTORY_ID, LocationValidation.FileOutput);
+        m_filePanel.setDialogType(JFileChooser.SAVE_DIALOG);
+        m_filePanel.addChangeListener(e -> m_smFilePath.setStringValue(m_filePanel.getSelectedFile()));
         m_dcOverwrite = new DialogComponentBoolean(m_smOverwrite, "Overwrite the file if it exists.");
 
         // Add the dialog components
@@ -123,18 +133,23 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
     }
 
     private void exporterChanged() {
-        // TODO implement
+        final DLNetworkExporter exporter = EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]);
+        final String[] suffixes = Arrays.stream(exporter.getValidExtensions()).map(s -> "." + s).toArray(String[]::new);
+        m_filePanel.setSuffixes(suffixes);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        // Check if this node is configurable
         if (!(specs[0] instanceof DLNetworkPortObjectSpec)) {
             // TODO what is the common message here?
             throw new NotConfigurableException("Please configure the previous node.");
         }
+
+        // Get the list of exporters
         final DLNetworkPortObjectSpec spec = (DLNetworkPortObjectSpec)specs[0];
-        final Set<DLNetworkExporter<?>> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
+        final Set<DLNetworkExporter> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
         if (exporters.isEmpty()) {
             // TODO Maybe ask if a extension is missing?
             throw new NotConfigurableException("There is no exporter avaiable for the given network.");
@@ -142,10 +157,22 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
         final String[] names = exporters.stream().map(e -> e.getName()).toArray(String[]::new);
         final String[] ids = exporters.stream().map(e -> e.getIdentifier()).toArray(String[]::new);
         m_dcExporterId.replaceListItems(names, ids, null);
+
+        // Load the settings into the dialog components
+        m_dcExporterId.loadSettingsFrom(settings, specs);
+        m_dcOverwrite.loadSettingsFrom(settings, specs);
+        try {
+            m_smFilePath.loadSettingsFrom(settings);
+            m_filePanel.setSelectedFile(m_smFilePath.getStringValue());
+        } catch (final InvalidSettingsException e) {
+            m_smFilePath.setStringValue(m_filePanel.getSelectedFile());
+        }
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        // TODO implement
+        m_smExporterId.saveSettingsTo(settings);
+        m_smOverwrite.saveSettingsTo(settings);
+        m_smFilePath.saveSettingsTo(settings);
     }
 }

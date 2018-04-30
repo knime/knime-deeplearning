@@ -48,6 +48,7 @@ package org.knime.dl.keras.base.nodes.export;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -63,8 +64,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.util.FileUtil;
+import org.knime.dl.core.export.DLNetworkExporter;
 import org.knime.dl.core.export.DLNetworkExporterRegistry;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -87,6 +92,8 @@ final class DLKerasExporterNodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_overwrite = createOverwriteSettingsModel();
 
+    private DLNetworkExporter m_exporter;
+
     static SettingsModelStringArray createExporterIdSettingsModel() {
         return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{"", ""});
     }
@@ -105,13 +112,35 @@ final class DLKerasExporterNodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO implement
+        // Check that exporter is configured
+        if (m_exporterId.getStringArrayValue().length != 2) {
+            throw new InvalidSettingsException("No exporter selected. Please configure the node.");
+        }
+
+        // Get the configured exporter
+        try {
+            m_exporter = EXPORTER_REGISTRY.getExporterWithId(m_exporterId.getStringArrayValue()[1]);
+        } catch (final NoSuchElementException e) {
+            throw new InvalidSettingsException(
+                "The selected exporter is not avaiable. Are you missing a KNIME extension?", e);
+        }
+
+        // Check if the exporter fits the network type
+        final DLKerasNetworkPortObjectSpec portSpec = (DLKerasNetworkPortObjectSpec)inSpecs[0];
+        if (!m_exporter.getNetworkType().isAssignableFrom(portSpec.getNetworkType())) {
+            throw new InvalidSettingsException(
+                "The given network is not compatible with the exporter. Please reconfigure the node.");
+        }
+
+        // We have no output port
         return new PortObjectSpec[]{};
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        // TODO implement
+        final DLKerasNetworkPortObject inPort = (DLKerasNetworkPortObject)inObjects[0];
+        m_exporter.exportNetwork(inPort.getNetwork(), FileUtil.toURL(m_filePath.getStringValue()),
+            m_overwrite.getBooleanValue());
         return new PortObject[]{};
     }
 
@@ -150,6 +179,6 @@ final class DLKerasExporterNodeModel extends NodeModel {
 
     @Override
     protected void reset() {
-        // nothing to do
+        m_exporter = null;
     }
 }
