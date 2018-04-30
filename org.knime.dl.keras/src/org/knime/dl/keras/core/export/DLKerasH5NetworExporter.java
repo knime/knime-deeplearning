@@ -44,28 +44,37 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.core.export;
+package org.knime.dl.keras.core.export;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import org.knime.dl.core.DLNetwork;
+import org.knime.core.util.FileUtil;
+import org.knime.dl.core.export.DLAbstractNetworkExporter;
+import org.knime.dl.keras.core.DLKerasNetwork;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkExporter<N extends DLNetwork> {
+public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNetwork> {
 
-    Class<N> getNetworkType();
+    private static final String NAME = "Keras H5 Exporter";
 
-    default String getIdentifier() {
-        return getClass().getCanonicalName();
+    private static final String[] VALID_EXTENSIONS = {"h5"};
+
+    public DLKerasH5NetworExporter() {
+        super(DLKerasNetwork.class, NAME, VALID_EXTENSIONS);
     }
 
-    String getName();
-
-    String[] getValidExtensions();
-
-    void exportNetwork(N network, URL path, boolean overwrite) throws IOException;
+    @Override
+    public void exportNetwork(final DLKerasNetwork network, final URL path, final boolean overwrite)
+        throws IOException {
+        // TODO is it always fine copy it from the saved source?
+        // TODO make more general for remote files
+        final File source = FileUtil.getFileFromURL(network.getSource());
+        final File dest = FileUtil.getFileFromURL(path);
+        FileUtil.copy(source, dest);
+    }
 
 }

@@ -63,7 +63,7 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
 
     private static final String EXT_POINT_ID = "org.knime.dl.DLNetworkExporter";
 
-    private static final String EXT_POINT_ATTR_CLASS = "DLNetworkExecutor";
+    private static final String EXT_POINT_ATTR_CLASS = "DLNetworkExporter";
 
     private static DLNetworkExporterRegistry instance;
 

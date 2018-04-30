@@ -161,4 +161,10 @@
             factory-class="org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeFactory">
       </node>
   </extension>
+   <extension
+         point="org.knime.dl.DLNetworkExporter">
+      <DLNetworkExporter
+            DLNetworkExporter="org.knime.dl.keras.core.export.DLKerasH5NetworExporter">
+      </DLNetworkExporter>
+   </extension>
 </plugin>
