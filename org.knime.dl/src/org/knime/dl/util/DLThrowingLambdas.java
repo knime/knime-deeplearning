@@ -58,6 +58,12 @@ public final class DLThrowingLambdas {
 		void accept(I in) throws X;
 	}
 
+    @FunctionalInterface
+    public interface DLThrowingBiConsumer<I1, I2, X extends Exception> {
+
+        void accept(I1 in1, I2 in2) throws X;
+    }
+
 	@FunctionalInterface
 	public interface DLThrowingFunction<I, O, X extends Exception> {
 
