@@ -100,7 +100,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
             }
             graphSettings.addIntArray(CFG_KEY_OUTPUT_LAYERS, outputLayerIndices);
 
-            new DLKerasNetworkLayerGraphIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+            new DLKerasNetworkLayerGraphDepthFirstIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
                 @Override
                 public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
