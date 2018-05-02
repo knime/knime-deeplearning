@@ -109,17 +109,22 @@ public final class DLUtils {
             }
         }
 
-        public static File getFileFromSameBundle(final Object caller, final String relativePath)
+        public static File getFileFromSameBundle(final Class<?> classFromBundle, final String relativePath)
             throws IllegalArgumentException, IOException {
-            checkNotNull(caller);
+            checkNotNull(classFromBundle);
             checkNotNullOrEmpty(relativePath);
-            final Bundle bundle = FrameworkUtil.getBundle(caller.getClass());
+            final Bundle bundle = FrameworkUtil.getBundle(classFromBundle);
             if (bundle == null) {
                 throw new IllegalArgumentException(
                     "Failed to get file '" + relativePath + "' from the bundle of class '"
-                        + caller.getClass().getCanonicalName() + "'. Bundle could not be resolved.");
+                        + classFromBundle.getCanonicalName() + "'. Bundle could not be resolved.");
             }
             return DLUtils.Files.getFileFromBundle(bundle.getSymbolicName(), relativePath);
+        }
+
+        public static File getFileFromSameBundle(final Object caller, final String relativePath)
+            throws IllegalArgumentException, IOException {
+            return getFileFromSameBundle(caller.getClass(), relativePath);
         }
 
         public static String readAllUTF8(final File f) throws IOException {
