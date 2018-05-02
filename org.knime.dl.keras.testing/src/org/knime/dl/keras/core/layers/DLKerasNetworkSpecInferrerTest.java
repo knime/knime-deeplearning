@@ -99,7 +99,7 @@ public final class DLKerasNetworkSpecInferrerTest {
     }
 
     @Test
-    public void testMaterializeMultiInputMultiOutputForkJoinModel() {
+    public void testInferMultiInputMultiOutputForkJoinModel() {
         testOnMultiInputMultiOutputForkJoinModelSetup(this::inferSpecs, Function.identity());
     }
 

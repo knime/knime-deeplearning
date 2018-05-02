@@ -51,8 +51,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import org.eclipse.core.runtime.preferences.DefaultScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.junit.Assert;
 import org.knime.core.util.Pair;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -68,8 +66,6 @@ import org.knime.dl.keras.core.layers.impl.DLKerasDenseLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.PythonPreferencePage;
-import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -93,15 +89,6 @@ class DLKerasLayerTestSetups {
             MULTI_INPUT_MULTI_OUTPUT_NETWORK_1 = new DLNetworkReferenceLocation(
                 DLUtils.Files.getFileFromSameBundle(thisClass, "data/multi_in_out.h5").toURI());
         } catch (final Exception e) {
-            throw new ExceptionInInitializerError(e);
-        }
-
-        // TODO: remove
-        final IEclipsePreferences prefs = DefaultScope.INSTANCE.getNode("org.knime.python2");
-        prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, "/home/marcel/python-configs/knime_keras_py36.sh");
-        try {
-            prefs.flush();
-        } catch (final BackingStoreException e) {
             throw new ExceptionInInitializerError(e);
         }
     }
@@ -738,8 +725,8 @@ class DLKerasLayerTestSetups {
         assert inputSpecs[0].equals(baseNetwork0.getSpec().getInputSpecs()[0]);
         assert inputSpecs[1].equals(baseNetwork0.getSpec().getInputSpecs()[1]);
         assert inputSpecs[2].equals(baseNetwork0.getSpec().getInputSpecs()[2]);
-        assert inputSpecs[0].equals(baseNetwork1.getSpec().getInputSpecs()[0]);
-        assert inputSpecs[1].equals(baseNetwork1.getSpec().getInputSpecs()[1]);
+        assert inputSpecs[3].equals(baseNetwork1.getSpec().getInputSpecs()[0]);
+        assert inputSpecs[4].equals(baseNetwork1.getSpec().getInputSpecs()[1]);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
         assert outputSpecs.length == 4;
