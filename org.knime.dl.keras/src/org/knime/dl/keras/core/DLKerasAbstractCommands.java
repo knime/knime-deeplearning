@@ -80,6 +80,10 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
 	protected abstract String getLoadNetworkFromYamlCode(String path);
 
+    @Override
+    public abstract DLKerasNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network)
+        throws DLInvalidEnvironmentException, IOException;
+
 	public DLPythonNetworkHandle loadNetworkFromJson(final String path)
 			throws DLInvalidEnvironmentException, IOException {
 		getContext().executeInKernel(getLoadNetworkFromJsonCode(path));

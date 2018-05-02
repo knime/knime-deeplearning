@@ -56,7 +56,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.layers.DLInvalidInputSpecException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
@@ -70,7 +70,7 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
     private final DLKerasUnmaterializedNetworkPortObjectSpec m_spec;
 
     // also used for deserialization
-    DLKerasUnmaterializedPortObjectContent(final DLKerasLayer outputLayer) throws DLInvalidInputSpecException {
+    DLKerasUnmaterializedPortObjectContent(final DLKerasLayer outputLayer) throws DLInvalidTensorSpecException {
         m_spec = new DLKerasUnmaterializedNetworkPortObjectSpec(outputLayer);
     }
 
@@ -81,8 +81,9 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
 
     public DLKerasMaterializedPortObjectContent materialize(final URL storage) throws IOException {
         try {
-            final DLKerasNetwork materialized = new DLKerasNetworkMaterializer()
-                .materialize(Collections.singletonList(m_spec.getOutputLayer()), storage);
+            final DLKerasNetwork materialized =
+                new DLKerasNetworkMaterializer(Collections.singletonList(m_spec.getOutputLayer()), storage)
+                    .materialize();
             return new DLKerasMaterializedPortObjectContent(materialized, false);
         } catch (final Exception e) {
             throw new IOException(
@@ -96,8 +97,8 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
         public void savePortObjectContent(final DLKerasUnmaterializedPortObjectContent portObjectContent,
             final ObjectOutputStream objOut, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
-            new DLKerasNetworkLayerGraphSerializer().writeGraphTo(
-                Collections.singletonList(portObjectContent.m_spec.getOutputLayer()), objOut);
+            new DLKerasNetworkLayerGraphSerializer()
+                .writeGraphTo(Collections.singletonList(portObjectContent.m_spec.getOutputLayer()), objOut);
         }
 
         public DLKerasUnmaterializedPortObjectContent loadPortObjectContent(final ObjectInputStream objIn,

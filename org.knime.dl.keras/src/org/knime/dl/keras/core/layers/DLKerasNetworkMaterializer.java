@@ -49,9 +49,14 @@ package org.knime.dl.keras.core.layers;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.StringJoiner;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLInvalidDestinationException;
@@ -60,6 +65,7 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetworkLayerGraphTraversalException;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
@@ -70,7 +76,7 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 
-import com.google.common.collect.Lists;
+import gnu.trove.TIntHashSet;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -78,85 +84,36 @@ import com.google.common.collect.Lists;
  */
 public final class DLKerasNetworkMaterializer {
 
-    private int m_layerVariableSuffix;
+    private final List<DLKerasLayer> m_outputLayers;
+
+    private final URL m_saveUrl;
 
     /**
-     * Materializes the Keras network graph specified by the given output layers and their parents (i.e. predecessor
-     * nodes).
+     * Creates a new instance of this class that allows to materialize the Keras network graph specified by the given
+     * output layers and their inputs (i.e. predecessor nodes) and save it to the given <code>URL</code>.
      *
      * @param outputLayers the output layers of the network to materialize
      * @param saveUrl the location where the materialized network is saved
+     */
+    public DLKerasNetworkMaterializer(final List<DLKerasLayer> outputLayers, final URL saveUrl) {
+        m_outputLayers = outputLayers;
+        m_saveUrl = saveUrl;
+    }
+
+    /**
+     * Materializes the Keras network graph.
+     *
      * @return the materialized network
      * @throws DLNetworkLayerGraphTraversalException if traversing the network graph failed
      * @throws DLInvalidEnvironmentException if materialization in the back end failed
+     * @throws DLInvalidSourceException if materialization involved an existing base network whose source is unavailable
+     *             or invalid
      * @throws IOException if failed to materialize and save the network due to I/O related errors
      */
-    public DLKerasNetwork materialize(final List<DLKerasLayer> outputLayers, final URL saveUrl)
-        throws DLInvalidEnvironmentException, IOException {
-        m_layerVariableSuffix = 0;
-
-        // Parse layer graph and generate code:
-
-        final DLKerasNetworkLayerGraphIterator iterator = new DLKerasNetworkLayerGraphIterator(outputLayers);
-
-        final List<String> inputVariables = new ArrayList<>();
-        final String[] outputVariables = new String[outputLayers.size()];
-        final Map<DLKerasLayer, String> layerVariables = new HashMap<>();
-
-        for (int i = 0; i < outputLayers.size(); i++) {
-            final DLKerasLayer output = outputLayers.get(i);
-            final String outputVariable = getNextLayerVariable();
-            outputVariables[i] = outputVariable;
-            layerVariables.put(output, outputVariable);
-        }
-
-        final DLKerasNetworkLayerNameGenerator layerNameGen = new DLKerasNetworkLayerNameGenerator();
-        final ArrayList<String> generatedCodeLines = new ArrayList<>();
-
-        iterator.visitAll(new DLKerasLayerVisitor() {
-
-            @Override
-            public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
-                visitHidden(outputLayer);
-            }
-
-            @Override
-            public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
-                final DLKerasLayer[] parents = innerLayer.getParents();
-                final String[] parentVariables = new String[parents.length];
-                for (int i = 0; i < parents.length; i++) {
-                    final DLKerasLayer parent = parents[i];
-                    String parentVariable = layerVariables.get(parent);
-                    if (parentVariable == null) {
-                        parentVariable = getNextLayerVariable();
-                        layerVariables.put(parent, parentVariable);
-                    } // else it's a fork in the graph
-                    parentVariables[i] = parentVariable;
-                }
-                final String layerVariable = layerVariables.get(innerLayer);
-
-                generatedCodeLines.add(layerVariable + " = " //
-                    + innerLayer.getBackendRepresentation(layerNameGen.getNextLayerName(innerLayer)) //
-                    + '(' + (parentVariables.length == 1 //
-                        ? parentVariables[0] //
-                        : "[" + String.join(",", parentVariables) + "]") //
-                    + ')');
-            }
-
-            @Override
-            public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
-                final String layerVariable = layerVariables.get(inputLayer);
-                inputVariables.add(layerVariable);
-                generatedCodeLines.add(layerVariable + " = "
-                    + inputLayer.getBackendRepresentation(layerNameGen.getNextLayerName(inputLayer)));
-            }
-        });
-
-        // We traversed the graph along the layers' dependencies (i.e. from child to parent) from outputs to inputs.
-        // Thus, reversing the order of the lines of code yields a legal expression.
-        final String generatedCode = Lists.reverse(generatedCodeLines).stream().collect(Collectors.joining("\n"));
-
-        // Execute generated code and save network:
+    public DLKerasNetwork materialize() throws DLInvalidEnvironmentException, DLInvalidSourceException, IOException {
+        // Parse layer graph.
+        final DLKerasNetworkMaterializerParser parser = new DLKerasNetworkMaterializerParser();
+        new DLKerasNetworkLayerGraphIterator(m_outputLayers).visitAll(parser);
 
         // TODO: Hard-coded for the moment.
         final Class<DLKerasTensorFlowNetwork> backend = DLKerasTensorFlowNetwork.class;
@@ -164,38 +121,221 @@ public final class DLKerasNetworkMaterializer {
         final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
             .getNetworkLoader(backend).orElseThrow(() -> new IllegalStateException("Back end for Keras network type '"
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
+
         try (final DLKerasAbstractCommands commands =
             ((DLKerasNetworkLoader<?>)loader).createCommands(new DLPythonDefaultContext())) {
+            // Load base networks (if any). Make base networks available on Python side for later. We need the network
+            // specs (a) to reserve the layer names that are already present in the base networks and (b) to specify the
+            // inputs and outputs of the new network that come from the base networks.
+            final LinkedHashMap<DLKerasNetwork, DLKerasBaseNetworkHelperStruct> baseNetworks = parser.m_baseNetworks;
+            final List<DLKerasNetworkSpec> baseNetworkSpecs = new ArrayList<>(baseNetworks.size());
+            for (final Entry<DLKerasNetwork, DLKerasBaseNetworkHelperStruct> entry : baseNetworks.entrySet()) {
+                final DLKerasNetwork network = entry.getKey();
+                final DLPythonNetworkHandle handle = loader.load(network.getSource(), commands.getContext(), true);
+                baseNetworkSpecs.add(network.getSpec());
+                final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                    .n("import DLPythonNetwork") //
+                    .n("DLPythonNetwork.add_network(").as(entry.getValue().m_variable) //
+                    .a(", DLPythonNetwork.get_network(").as(handle.getIdentifier()).a("))");
+                commands.getContext().executeInKernel(b.toString());
+            }
+
+            // Base network layer names are reserved.
+            final DLKerasNetworkLayerNameGenerator layerNameGen =
+                DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
+
+            // Topological ordering.
+            final List<DLKerasTensorSpecsOutput> layersSortedByDepth = parser.m_maxDepthsFromOutputs.entrySet().stream()
+                .sorted(Comparator.comparingInt(Entry<DLKerasTensorSpecsOutput, Integer>::getValue).reversed())
+                .map(Entry<DLKerasTensorSpecsOutput, Integer>::getKey).collect(Collectors.toList());
+
+            // Generate code lines according to the topological ordering above. This ensures that each inner layer's
+            // inputs are generated before itself and that we get an "intuitive" layer naming order ("layerX_1" "before"
+            // "layerX_2" etc.).
+            final StringJoiner generatedCodeJoiner = new StringJoiner("\n");
+            for (final DLKerasTensorSpecsOutput layer : layersSortedByDepth) {
+                generatedCodeJoiner.add(parser.m_codeLinesToGenerate.get(layer).apply(layerNameGen));
+            }
+            final String generatedCode = generatedCodeJoiner.toString();
+
+            // Execute generated code and build network whose lists of inputs and outputs (possibly) contain inputs and
+            // outputs of base networks which have to be "expanded" (base network -> inputs/outputs) first.
+            // Make generated network available on Python side.
             final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .a("import keras").n(generatedCode) //
+                .n("import DLPythonNetwork") //
+                .n(baseNetworks.values(),
+                    n -> n.m_variable + " = DLPythonNetwork.get_network(\"" + n.m_variable + "\").model") //
+                .n("import keras").n(generatedCode) //
                 .n("generated_network = keras.models.Model(") //
-                .a("inputs=[" + String.join(",", inputVariables) + "]").a(", ") //
-                .a("outputs=[" + String.join(",", outputVariables) + "]") //
+                // All inputs and (non-connected) outputs of the base networks are kept.
+                // TODO: This behavior may not be intended.
+                .a("inputs=[" + String.join(",", expandNetworkInputs(parser.m_inputVariables)) + "]").a(", ") //
+                .a("outputs=[" + String.join(",", expandNetworkOutputs(parser.m_outputVariables)) + "]") //
                 .a(")") //
                 .n("import DLPythonNetworkType") //
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
-                .n("import DLPythonNetwork") //
-                .n("DLPythonNetwork.add_network('generated_network', network_type.wrap_model(generated_network))");
-
+                .n("DLPythonNetwork.add_network(\"generated_network\", network_type.wrap_model(generated_network))");
             commands.getContext().executeInKernel(b.toString());
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
             try {
-                loader.save(handle, saveUrl, commands.getContext());
+                loader.save(handle, m_saveUrl, commands.getContext());
             } catch (final DLInvalidDestinationException e) {
                 throw new IOException(e);
             }
-            DLKerasNetwork network;
             try {
-                network = loader.fetch(handle, saveUrl, commands.getContext());
+                return loader.fetch(handle, m_saveUrl, commands.getContext());
             } catch (final DLInvalidSourceException e) {
                 throw new IOException(e);
             }
-            return network;
         }
     }
 
-    private String getNextLayerVariable() {
-        return "generated_layer_" + m_layerVariableSuffix++;
+    private List<String> expandNetworkInputs(final List<Object> networkInputs) {
+        final List<String> expandedNetworkInputs = new ArrayList<>();
+        for (final Object networkInput : networkInputs) {
+            if (networkInput instanceof String) {
+                expandedNetworkInputs.add((String)networkInput);
+            } else {
+                final DLKerasBaseNetworkHelperStruct baseNetwork = (DLKerasBaseNetworkHelperStruct)networkInput;
+                for (int i = 0; i < baseNetwork.m_network.getSpec().getInputSpecs().length; i++) {
+                    expandedNetworkInputs.add(baseNetwork.m_variable + ".inputs[" + i + "]");
+                }
+            }
+        }
+        return expandedNetworkInputs;
+    }
+
+    private List<String> expandNetworkOutputs(final List<Object> networkOutputs) {
+        final List<String> expandedNetworkOutputs = new ArrayList<>();
+        for (final Object networkOutput : networkOutputs) {
+            if (networkOutput instanceof String) {
+                expandedNetworkOutputs.add((String)networkOutput);
+            } else {
+                final DLKerasBaseNetworkHelperStruct baseNetwork = (DLKerasBaseNetworkHelperStruct)networkOutput;
+                for (int i = 0; i < baseNetwork.m_network.getSpec().getOutputSpecs().length; i++) {
+                    if (!baseNetwork.m_connectedOutputs.contains(i)) {
+                        expandedNetworkOutputs.add(baseNetwork.m_variable + ".outputs[" + i + "]");
+                    }
+                }
+            }
+        }
+        return expandedNetworkOutputs;
+    }
+
+    private static class DLKerasNetworkMaterializerParser implements DLKerasLayerVisitor {
+
+        private final List<Object> m_inputVariables = new ArrayList<>();
+
+        private final List<Object> m_outputVariables = new ArrayList<>();
+
+        private final Map<DLKerasTensorSpecsOutput, String> m_layerVariables = new HashMap<>();
+
+        private int m_layerVariableSuffix = 0;
+
+        private final LinkedHashMap<DLKerasNetwork, DLKerasBaseNetworkHelperStruct> m_baseNetworks =
+            new LinkedHashMap<>();
+
+        private int m_baseNetworkVariableSuffix = 0;
+
+        private final Map<DLKerasTensorSpecsOutput, Function<DLKerasNetworkLayerNameGenerator, String>> m_codeLinesToGenerate =
+            new HashMap<>();
+
+        private LinkedHashMap<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
+
+        @Override
+        public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
+            final String layerVariable = getNextLayerVariable();
+            m_layerVariables.put(outputLayer, layerVariable);
+            m_outputVariables.add(layerVariable);
+
+            visitHidden(outputLayer);
+        }
+
+        @Override
+        public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
+            final String[] parentVariables = new String[innerLayer.getNumParents()];
+            for (int i = 0; i < innerLayer.getNumParents(); i++) {
+                final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
+                String parentVariable = m_layerVariables.get(parent);
+                if (parentVariable == null) {
+                    parentVariable = getNextLayerVariable();
+                    m_layerVariables.put(parent, parentVariable);
+                }
+                parentVariables[i] = parentVariable;
+            }
+            final String layerVariable = m_layerVariables.get(innerLayer);
+            m_codeLinesToGenerate.put(innerLayer, gen -> layerVariable + " = " //
+                + innerLayer.getBackendRepresentation(gen.getNextLayerName(innerLayer)) //
+                + '(' + (parentVariables.length == 1 //
+                    ? parentVariables[0] //
+                    : "[" + String.join(",", parentVariables) + "]") //
+                + ')');
+        }
+
+        @Override
+        public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
+            final String layerVariable = m_layerVariables.get(inputLayer);
+            m_inputVariables.add(layerVariable);
+            m_codeLinesToGenerate.put(inputLayer,
+                gen -> layerVariable + " = " + inputLayer.getBackendRepresentation(gen.getNextLayerName(inputLayer)));
+        }
+
+        @Override
+        public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
+            final String layerVariable = getNextLayerVariable();
+            m_layerVariables.put(inputOutputLayer, layerVariable);
+            m_inputVariables.add(layerVariable);
+            m_outputVariables.add(layerVariable);
+            m_codeLinesToGenerate.put(inputOutputLayer, gen -> layerVariable + " = "
+                + inputOutputLayer.getBackendRepresentation(gen.getNextLayerName(inputOutputLayer)));
+        }
+
+        @Override
+        public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
+            final DLKerasNetwork baseNetwork = baseNetworkOutput.getBaseNetwork();
+            // Re-use base network if it's already connected to another layer.
+            // TODO: This behavior may not be intended.
+            DLKerasBaseNetworkHelperStruct baseNetworkHelper = m_baseNetworks.get(baseNetwork);
+            if (baseNetworkHelper == null) {
+                baseNetworkHelper = new DLKerasBaseNetworkHelperStruct(getNextBaseNetworkVariable(), baseNetwork);
+                m_baseNetworks.put(baseNetwork, baseNetworkHelper);
+                m_inputVariables.add(baseNetworkHelper);
+                m_outputVariables.add(baseNetworkHelper);
+            }
+            final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
+            baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
+            final String layerVariable = m_layerVariables.get(baseNetworkOutput);
+            final String baseNetworkVariable = baseNetworkHelper.m_variable;
+            m_codeLinesToGenerate.put(baseNetworkOutput,
+                gen -> layerVariable + " = " + baseNetworkVariable + ".outputs[" + baseNetworkOutputIndex + "]");
+        }
+
+        @Override
+        public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            m_maxDepthsFromOutputs = maxDepthsFromOutputs;
+        }
+
+        private String getNextBaseNetworkVariable() {
+            return "base_network_" + m_baseNetworkVariableSuffix++;
+        }
+
+        private String getNextLayerVariable() {
+            return "generated_layer_" + m_layerVariableSuffix++;
+        }
+    }
+
+    private static class DLKerasBaseNetworkHelperStruct {
+
+        private final String m_variable;
+
+        private final DLKerasNetwork m_network;
+
+        private final TIntHashSet m_connectedOutputs = new TIntHashSet(5);
+
+        private DLKerasBaseNetworkHelperStruct(final String variable, final DLKerasNetwork network) {
+            m_variable = variable;
+            m_network = network;
+        }
     }
 }

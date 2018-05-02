@@ -44,12 +44,11 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers;
+package org.knime.dl.keras.core.layers;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.nodegen.base.member.NodeMemberInstance;
 import org.knime.nodegen.base.struct.NodeStructInstance;
 import org.scijava.param2.ParameterStructs;
