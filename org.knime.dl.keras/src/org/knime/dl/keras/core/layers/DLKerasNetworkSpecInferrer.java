@@ -47,7 +47,10 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
@@ -63,61 +66,102 @@ import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetwork
  */
 public final class DLKerasNetworkSpecInferrer {
 
-    private DLKerasNetworkLayerNameGenerator m_layerNameGen;
+    private final List<DLKerasLayer> m_outputLayers;
 
     /**
-     * Infers the specification of the Keras network graph specified by the given output layers and their inputs (i.e.
-     * predecessor nodes).
+     * Creates a new instance of this class that allows to infer the specification of the Keras network graph specified
+     * by the given output layers and their inputs (i.e. predecessor nodes).
      *
      * @param outputLayers the output layers of the network whose spec to infer
+     */
+    public DLKerasNetworkSpecInferrer(final List<DLKerasLayer> outputLayers) {
+        m_outputLayers = outputLayers;
+    }
+
+    /**
+     * Infers the specification of the Keras network graph.
+     *
      * @return the inferred network spec
      * @throws DLNetworkLayerGraphTraversalException if traversing the network graph failed
      */
-    public DLKerasNetworkSpec inferNetworkSpec(final List<DLKerasLayer> outputLayers) {
-        m_layerNameGen = new DLKerasNetworkLayerNameGenerator();
-        final List<DLTensorSpec> inputSpecs = new ArrayList<>(5);
-        final List<DLTensorSpec> hiddenSpecs = new ArrayList<>(20);
-        final List<DLTensorSpec> outputSpecs = new ArrayList<>(5);
-        new DLKerasNetworkLayerGraphIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+    public DLKerasNetworkSpec inferNetworkSpec() {
+        final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> inputSpecsToInfer =
+            new ArrayList<>(5);
+        final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> hiddenSpecsToInfer =
+            new ArrayList<>(20);
+        final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> outputSpecsToInfer =
+            new ArrayList<>(5);
+
+        final Set<DLKerasNetworkSpec> baseNetworkSpecs = new HashSet<>(2);
+
+        new DLKerasNetworkLayerGraphTopologicalOrderIterator(m_outputLayers).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
-                outputSpecs.addAll(amendTensorIdsAndNames(outputLayer, outputLayer.getOutputSpecs()));
+                outputSpecsToInfer.add(gen -> inferTensorSpecs(gen, outputLayer));
             }
 
             @Override
             public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
-                hiddenSpecs.addAll(amendTensorIdsAndNames(hiddenLayer, hiddenLayer.getOutputSpecs()));
+                hiddenSpecsToInfer.add(gen -> inferTensorSpecs(gen, hiddenLayer));
             }
 
             @Override
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
-                inputSpecs.addAll(amendTensorIdsAndNames(inputLayer, inputLayer.getInputSpecs()));
+                inputSpecsToInfer.add(gen -> inferTensorSpecs(gen, inputLayer));
             }
 
             @Override
             public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
-                inputSpecs.addAll(amendTensorIdsAndNames(inputOutputLayer, inputOutputLayer.getInputSpecs()));
-                outputSpecs.addAll(amendTensorIdsAndNames(inputOutputLayer, inputOutputLayer.getOutputSpecs()));
+                final Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>> inferInputOutputTensorSpecs =
+                    new Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>() {
+
+                        private List<DLTensorSpec> m_inputOutputTensorSpec;
+
+                        @Override
+                        public List<DLTensorSpec> apply(final DLKerasNetworkLayerNameGenerator gen) {
+                            if (m_inputOutputTensorSpec == null) {
+                                m_inputOutputTensorSpec = inferTensorSpecs(gen, inputOutputLayer);
+                            }
+                            return m_inputOutputTensorSpec;
+                        }
+                    };
+                inputSpecsToInfer.add(inferInputOutputTensorSpecs);
+                outputSpecsToInfer.add(inferInputOutputTensorSpecs);
             }
 
             @Override
             public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
-                // no op
+                baseNetworkSpecs.add(baseNetworkOutput.getBaseNetworkSpec());
             }
         });
-        return new DLKerasGenericNetworkSpec(inputSpecs.toArray(new DLTensorSpec[0]),
-            hiddenSpecs.toArray(new DLTensorSpec[0]), outputSpecs.toArray(new DLTensorSpec[0]));
+
+        // Base network layer names are reserved.
+        final DLKerasNetworkLayerNameGenerator layerNameGen =
+            DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
+
+        final DLTensorSpec[] inputSpecs = collectTensorSpecs(layerNameGen, inputSpecsToInfer);
+        final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
+        final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
+
+        return new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
     }
 
-    private List<DLTensorSpec> amendTensorIdsAndNames(final DLKerasLayer layer, final List<DLTensorSpec> tensorSpecs) {
+    private List<DLTensorSpec> inferTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
+        final DLKerasLayer layer) {
+        List<DLTensorSpec> tensorSpecs;
+        try {
+            tensorSpecs = layer.getOutputSpecs();
+        } catch (final DLInvalidTensorSpecException e) {
+            throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+        }
         final List<DLTensorSpec> amendedTensorSpecs = new ArrayList<>(tensorSpecs.size());
         for (int i = 0; i < tensorSpecs.size(); i++) {
             final DLTensorSpec tensorSpec = tensorSpecs.get(i);
             final DLTensorSpec amendedTensorSpec;
-            final String layerName = m_layerNameGen.getNextLayerName(layer);
+            final String layerName = layerNameGen.getNextLayerName(layer);
             // We cannot represent Keras layer nodes via KNIME nodes. Thus, the node index is always zero.
-            final String tensorName = m_layerNameGen.getOutputTensorName(layerName, 0, i);
+            final String tensorName = layerNameGen.getOutputTensorName(layerName, 0, i);
             if (tensorSpec.getBatchSize().isPresent()) {
                 amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
                     tensorSpec.getBatchSize().getAsLong(), tensorSpec.getShape(), tensorSpec.getElementType(),
@@ -129,5 +173,10 @@ public final class DLKerasNetworkSpecInferrer {
             amendedTensorSpecs.add(amendedTensorSpec);
         }
         return amendedTensorSpecs;
+    }
+
+    private DLTensorSpec[] collectTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
+        final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> specsToInfer) {
+        return specsToInfer.stream().flatMap(f -> f.apply(layerNameGen).stream()).toArray(l -> new DLTensorSpec[l]);
     }
 }

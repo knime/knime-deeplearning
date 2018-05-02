@@ -79,7 +79,7 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
 
     public DLKerasUnmaterializedNetworkPortObjectSpec(final DLKerasLayer outputLayer)
         throws DLInvalidTensorSpecException {
-        super(new DLKerasNetworkSpecInferrer().inferNetworkSpec(Collections.singletonList(checkNotNull(outputLayer))),
+        super(new DLKerasNetworkSpecInferrer(Collections.singletonList(checkNotNull(outputLayer))).inferNetworkSpec(),
             DLKerasNetwork.class);
         m_outputLayers = Collections.singletonList(outputLayer);
     }
