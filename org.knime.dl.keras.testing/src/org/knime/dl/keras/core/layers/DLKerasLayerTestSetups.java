@@ -54,6 +54,7 @@ import java.util.function.Function;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.junit.Assert;
+import org.knime.core.util.Pair;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
@@ -74,24 +75,25 @@ import org.osgi.service.prefs.BackingStoreException;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
+class DLKerasLayerTestSetups {
 
-    protected final DLNetworkLocation m_sequentialBaseNetwork;
+    public static final DLNetworkLocation SEQUENTIAL_NETWORK_0;
 
-    protected final DLNetworkLocation m_multiInputMultiOutputBaseNetwork0;
+    public static final DLNetworkLocation MULTI_INPUT_MULTI_OUTPUT_NETWORK_0;
 
-    protected final DLNetworkLocation m_multiInputMultiOutputBaseNetwork1;
+    public static final DLNetworkLocation MULTI_INPUT_MULTI_OUTPUT_NETWORK_1;
 
-    protected DLKerasNetworkMaterializerSpecInferrerTestBase() {
+    static {
         try {
-            m_sequentialBaseNetwork = new DLNetworkReferenceLocation(
-                DLUtils.Files.getFileFromSameBundle(this, "data/simple_test_model.h5").toURI());
-            m_multiInputMultiOutputBaseNetwork0 =
-                new DLNetworkReferenceLocation(DLUtils.Files.getFileFromSameBundle(this, "data/3in_3out.h5").toURI());
-            m_multiInputMultiOutputBaseNetwork1 = new DLNetworkReferenceLocation(
-                DLUtils.Files.getFileFromSameBundle(this, "data/multi_in_out.h5").toURI());
+            final Class<DLKerasLayerTestSetups> thisClass = DLKerasLayerTestSetups.class;
+            SEQUENTIAL_NETWORK_0 = new DLNetworkReferenceLocation(
+                DLUtils.Files.getFileFromSameBundle(thisClass, "data/simple_test_model.h5").toURI());
+            MULTI_INPUT_MULTI_OUTPUT_NETWORK_0 = new DLNetworkReferenceLocation(
+                DLUtils.Files.getFileFromSameBundle(thisClass, "data/3in_3out.h5").toURI());
+            MULTI_INPUT_MULTI_OUTPUT_NETWORK_1 = new DLNetworkReferenceLocation(
+                DLUtils.Files.getFileFromSameBundle(thisClass, "data/multi_in_out.h5").toURI());
         } catch (final Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new ExceptionInInitializerError(e);
         }
 
         // TODO: remove
@@ -100,45 +102,19 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         try {
             prefs.flush();
         } catch (final BackingStoreException e) {
-            throw new RuntimeException(e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 
-    protected <IO> IO testOnSingleLayer(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
-
-        final DLKerasDefaultInputLayer inout0 = new DLKerasDefaultInputLayer();
-
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(inout0));
-        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
-
-        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
-
-        final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
-        assert inputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
-
-        final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("input_1:0");
-        assert outputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
-
-        return testFunctionOutput;
+    private DLKerasLayerTestSetups() {
+        // utility class
     }
 
-    protected <IO> IO testOnSequentialModel(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+    public static List<DLKerasLayer> createSingleLayerTestSetup() {
+        return Arrays.asList(new DLKerasDefaultInputLayer());
+    }
+
+    public static List<DLKerasLayer> createSequentialModelTestSetup() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
@@ -153,36 +129,10 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
         out0.setParent(0, hidden2);
 
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
-        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
-
-        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
-
-        final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
-        assert inputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
-
-        final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
-        assert outputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
-
-        return testFunctionOutput;
+        return Arrays.asList(out0);
     }
 
-    protected <IO> IO testOnMultiInputModel(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+    public static List<DLKerasLayer> createMultiInputModelTestSetup() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
@@ -200,44 +150,10 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
         out0.setParent(0, hidden2);
 
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
-        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
-
-        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 2;
-
-        final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
-        assert inputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getName().equals("input_2:0");
-        assert inputSpec1.getBatchSize().getAsLong() == 32;
-        final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
-        assert inputShape1.length == 1;
-        assert inputShape1[0] == 1;
-        assert inputSpec1.getElementType() == float.class;
-
-        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
-
-        final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
-        assert outputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
-
-        return testFunctionOutput;
+        return Arrays.asList(out0);
     }
 
-    protected <IO> IO testOnMultiOutputModel(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+    public static List<DLKerasLayer> createMultiOutputModelTestSetup() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
@@ -255,44 +171,10 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
         out1.setParent(0, hidden2);
 
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0, out1));
-        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
-
-        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
-
-        final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
-        assert inputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 2;
-
-        final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
-        assert outputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_5/BiasAdd:0");
-        assert outputSpec1.getBatchSize().getAsLong() == 32;
-        final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        assert outputShape1.length == 1;
-        assert outputShape1[0] == 1;
-        assert outputSpec1.getElementType() == float.class;
-
-        return testFunctionOutput;
+        return Arrays.asList(out0, out1);
     }
 
-    protected <IO> IO testOnMultiInputMultiOutputModel(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+    public static List<DLKerasLayer> createMultiInputMultiOutputModelTestSetup() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
@@ -313,52 +195,10 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
         out1.setParent(0, hidden2);
 
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0, out1));
-        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
-
-        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 2;
-
-        final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
-        assert inputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getName().equals("input_2:0");
-        assert inputSpec1.getBatchSize().getAsLong() == 32;
-        final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
-        assert inputShape1.length == 1;
-        assert inputShape1[0] == 1;
-        assert inputSpec1.getElementType() == float.class;
-
-        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 2;
-
-        final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
-        assert outputSpec0.getBatchSize().getAsLong() == 32;
-        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
-
-        final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_4/BiasAdd:0");
-        assert outputSpec1.getBatchSize().getAsLong() == 32;
-        final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        assert outputShape1.length == 1;
-        assert outputShape1[0] == 1;
-        assert outputSpec1.getElementType() == float.class;
-
-        return testFunctionOutput;
+        return Arrays.asList(out0, out1);
     }
 
-    protected <IO> IO testOnMultiInputMultiOutputForkJoinModel(final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+    public static List<DLKerasLayer> createMultiInputMultiOutputForkJoinModelTestSetup() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
@@ -402,7 +242,292 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         out2.setParent(0, hidden6);
         out2.setParent(1, hidden7);
 
-        final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0, out1, out2));
+        return Arrays.asList(out0, out1, out2);
+    }
+
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedUnaryLayerTestSetup()
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final DLKerasNetwork baseNetwork =
+            new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader()).read(SEQUENTIAL_NETWORK_0, false);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
+
+        final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setParent(0, baseNetworkOut0);
+
+        return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
+    }
+
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
+        createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup()
+            throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
+
+        final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setParent(0, baseNetworkOut0);
+
+        return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
+    }
+
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedBinaryLayerTestSetup()
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final DLKerasNetwork baseNetwork =
+            new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader()).read(SEQUENTIAL_NETWORK_0, false);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
+
+        final DLKerasAddLayer out0 = new DLKerasAddLayer();
+        out0.setParent(0, baseNetworkOut0);
+        out0.setParent(1, baseNetworkOut0);
+
+        return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
+    }
+
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
+        createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup()
+            throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut1 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
+
+        final DLKerasAddLayer out0 = new DLKerasAddLayer();
+        out0.setParent(0, baseNetworkOut0);
+        out0.setParent(1, baseNetworkOut1);
+
+        return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
+    }
+
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
+        createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup()
+            throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false);
+
+        final DLKerasNetwork baseNetwork1 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork0Out0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 2);
+
+        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork1Out0 =
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork1, 0);
+
+        final DLKerasAddLayer out0 = new DLKerasAddLayer();
+        out0.setParent(0, baseNetwork0Out0);
+        out0.setParent(1, baseNetwork1Out0);
+
+        return new Pair<>(Arrays.asList(baseNetwork0, baseNetwork1), Arrays.asList(out0));
+    }
+
+    public static <IO> IO testOnSingleLayerSetup(final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createSingleLayerTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
+        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
+
+        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
+        assert inputSpecs.length == 1;
+
+        final DLTensorSpec inputSpec0 = inputSpecs[0];
+        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
+        assert inputShape0.length == 1;
+        assert inputShape0[0] == 1;
+        assert inputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
+        assert outputSpecs.length == 1;
+
+        final DLTensorSpec outputSpec0 = outputSpecs[0];
+        assert outputSpec0.getName().equals("input_1:0");
+        assert outputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
+        assert outputShape0.length == 1;
+        assert outputShape0[0] == 1;
+        assert outputSpec0.getElementType() == float.class;
+
+        return testFunctionOutput;
+    }
+
+    public static <IO> IO testOnSequentialModelSetup(final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createSequentialModelTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
+        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
+
+        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
+        assert inputSpecs.length == 1;
+
+        final DLTensorSpec inputSpec0 = inputSpecs[0];
+        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
+        assert inputShape0.length == 1;
+        assert inputShape0[0] == 1;
+        assert inputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
+        assert outputSpecs.length == 1;
+
+        final DLTensorSpec outputSpec0 = outputSpecs[0];
+        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
+        assert outputShape0.length == 1;
+        assert outputShape0[0] == 1;
+        assert outputSpec0.getElementType() == float.class;
+
+        return testFunctionOutput;
+    }
+
+    public static <IO> IO testOnMultiInputModelSetup(final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createMultiInputModelTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
+        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
+
+        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
+        assert inputSpecs.length == 2;
+
+        final DLTensorSpec inputSpec0 = inputSpecs[0];
+        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
+        assert inputShape0.length == 1;
+        assert inputShape0[0] == 1;
+        assert inputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec inputSpec1 = inputSpecs[1];
+        assert inputSpec1.getName().equals("input_2:0");
+        assert inputSpec1.getBatchSize().getAsLong() == 32;
+        final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
+        assert inputShape1.length == 1;
+        assert inputShape1[0] == 1;
+        assert inputSpec1.getElementType() == float.class;
+
+        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
+        assert outputSpecs.length == 1;
+
+        final DLTensorSpec outputSpec0 = outputSpecs[0];
+        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
+        assert outputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
+        assert outputShape0.length == 1;
+        assert outputShape0[0] == 1;
+        assert outputSpec0.getElementType() == float.class;
+
+        return testFunctionOutput;
+    }
+
+    public static <IO> IO testOnMultiOutputModelSetup(final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createMultiOutputModelTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
+        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
+
+        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
+        assert inputSpecs.length == 1;
+
+        final DLTensorSpec inputSpec0 = inputSpecs[0];
+        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
+        assert inputShape0.length == 1;
+        assert inputShape0[0] == 1;
+        assert inputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
+        assert outputSpecs.length == 2;
+
+        final DLTensorSpec outputSpec0 = outputSpecs[0];
+        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
+        assert outputShape0.length == 1;
+        assert outputShape0[0] == 1;
+        assert outputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec outputSpec1 = outputSpecs[1];
+        assert outputSpec1.getName().equals("dense_5/BiasAdd:0");
+        assert outputSpec1.getBatchSize().getAsLong() == 32;
+        final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
+        assert outputShape1.length == 1;
+        assert outputShape1[0] == 1;
+        assert outputSpec1.getElementType() == float.class;
+
+        return testFunctionOutput;
+    }
+
+    public static <IO> IO testOnMultiInputMultiOutputModelSetup(final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createMultiInputMultiOutputModelTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
+        final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
+
+        final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
+        assert inputSpecs.length == 2;
+
+        final DLTensorSpec inputSpec0 = inputSpecs[0];
+        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
+        assert inputShape0.length == 1;
+        assert inputShape0[0] == 1;
+        assert inputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec inputSpec1 = inputSpecs[1];
+        assert inputSpec1.getName().equals("input_2:0");
+        assert inputSpec1.getBatchSize().getAsLong() == 32;
+        final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
+        assert inputShape1.length == 1;
+        assert inputShape1[0] == 1;
+        assert inputSpec1.getElementType() == float.class;
+
+        final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
+        assert outputSpecs.length == 2;
+
+        final DLTensorSpec outputSpec0 = outputSpecs[0];
+        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
+        assert outputSpec0.getBatchSize().getAsLong() == 32;
+        final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
+        assert outputShape0.length == 1;
+        assert outputShape0[0] == 1;
+        assert outputSpec0.getElementType() == float.class;
+
+        final DLTensorSpec outputSpec1 = outputSpecs[1];
+        assert outputSpec1.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec1.getBatchSize().getAsLong() == 32;
+        final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
+        assert outputShape1.length == 1;
+        assert outputShape1[0] == 1;
+        assert outputSpec1.getElementType() == float.class;
+
+        return testFunctionOutput;
+    }
+
+    public static <IO> IO testOnMultiInputMultiOutputForkJoinModelSetup(
+        final Function<List<DLKerasLayer>, IO> testFunction,
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec) {
+        final List<DLKerasLayer> outputLayers = createMultiInputMultiOutputForkJoinModelTestSetup();
+
+        final IO testFunctionOutput = testFunction.apply(outputLayers);
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
@@ -462,17 +587,13 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO> IO testOnSequentialModelAppendedUnaryLayer(final Function<List<DLKerasLayer>, IO> testFunction,
+    public static <IO> IO testOnSequentialModelAppendedUnaryLayerSetup(
+        final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_sequentialBaseNetwork, false);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
-
-        final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setParent(0, baseNetworkOut0);
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedUnaryLayerTestSetup();
+        final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
+        final DLKerasLayer out0 = pair.getSecond().get(0);
 
         final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
@@ -496,18 +617,14 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO> IO testOnMultiInputMultiOutputModelAppendedUnaryLayer(
+    public static <IO> IO testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork0, false);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
-
-        final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setParent(0, baseNetworkOut0);
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
+            createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup();
+        final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
+        final DLKerasLayer out0 = pair.getSecond().get(0);
 
         final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
@@ -537,18 +654,13 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO> IO testOnSequentialModelAppendedBinaryLayer(final Function<List<DLKerasLayer>, IO> testFunction,
+    public static <IO> IO testOnSequentialModelAppendedBinaryLayerSetup(
+        final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_sequentialBaseNetwork, false);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
-
-        final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setParent(0, baseNetworkOut0);
-        out0.setParent(1, baseNetworkOut0);
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedBinaryLayerTestSetup();
+        final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
+        final DLKerasLayer out0 = pair.getSecond().get(0);
 
         final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
@@ -572,22 +684,14 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO> IO testOnMultiInputMultiOutputModelAppendedBinaryLayer(
+    public static <IO> IO testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork0, false);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut1 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
-
-        final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setParent(0, baseNetworkOut0);
-        out0.setParent(1, baseNetworkOut1);
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
+            createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup();
+        final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
+        final DLKerasLayer out0 = pair.getSecond().get(0);
 
         final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
@@ -615,25 +719,15 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO> IO testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayer(
+    public static <IO> IO testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork0, false);
-
-        final DLKerasNetwork baseNetwork1 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork1, false);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork0Out0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 2);
-
-        final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork1Out0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork1, 0);
-
-        final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setParent(0, baseNetwork0Out0);
-        out0.setParent(1, baseNetwork1Out0);
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
+            createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup();
+        final DLKerasNetwork baseNetwork0 = pair.getFirst().get(0);
+        final DLKerasNetwork baseNetwork1 = pair.getFirst().get(1);
+        final DLKerasLayer out0 = pair.getSecond().get(0);
 
         final IO testFunctionOutput = testFunction.apply(Arrays.asList(out0));
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
@@ -666,18 +760,18 @@ abstract class DLKerasNetworkMaterializerSpecInferrerTestBase {
         return testFunctionOutput;
     }
 
-    protected <IO extends DLKerasNetwork> IO testOnMultipleNetworksMultipleAppendedLayers(
+    public static <IO extends DLKerasNetwork> IO testOnMultipleNetworksMultipleAppendedLayersSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
         final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_sequentialBaseNetwork, false);
+        final DLKerasNetwork baseNetwork0 =
+            new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader()).read(SEQUENTIAL_NETWORK_0, false);
 
         final DLKerasNetwork baseNetwork1 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork0, false);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false);
 
         final DLKerasNetwork baseNetwork2 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(m_multiInputMultiOutputBaseNetwork1, false);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork0Out0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 0);

@@ -46,6 +46,19 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputForkJoinModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiOutputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultipleNetworksMultipleAppendedLayersSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelAppendedBinaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelAppendedUnaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSingleLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,7 +82,7 @@ import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkMaterializerTest extends DLKerasNetworkMaterializerSpecInferrerTestBase {
+public final class DLKerasNetworkMaterializerTest {
 
     private List<File> m_networkSaveFiles;
 
@@ -90,73 +103,73 @@ public final class DLKerasNetworkMaterializerTest extends DLKerasNetworkMaterial
 
     @Test
     public void testMaterializeSingleLayer() {
-        testOnSingleLayer(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnSingleLayerSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testMaterializeSequentialModel() {
-        testOnSequentialModel(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnSequentialModelSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testMaterializeMultiInputModel() {
-        testOnMultiInputModel(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnMultiInputModelSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testMaterializeMultiOutputModel() {
-        testOnMultiOutputModel(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnMultiOutputModelSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testMaterializeMultiInputMultiOutputModel() {
-        testOnMultiInputMultiOutputModel(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnMultiInputMultiOutputModelSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testMaterializeMultiInputMultiOutputForkJoinModel() {
-        testOnMultiInputMultiOutputForkJoinModel(this::materializeAndCheckCommonPostconditions,
+        testOnMultiInputMultiOutputForkJoinModelSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendUnaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnSequentialModelAppendedUnaryLayer(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
+        testOnSequentialModelAppendedUnaryLayerSetup(this::materializeAndCheckCommonPostconditions, DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendUnaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnMultiInputMultiOutputModelAppendedUnaryLayer(this::materializeAndCheckCommonPostconditions,
+        testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendBinaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnSequentialModelAppendedBinaryLayer(this::materializeAndCheckCommonPostconditions,
+        testOnSequentialModelAppendedBinaryLayerSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendBinaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnMultiInputMultiOutputModelAppendedBinaryLayer(this::materializeAndCheckCommonPostconditions,
+        testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendBinaryLayerToTwoMultiInputMultiOutputModels()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayer(this::materializeAndCheckCommonPostconditions,
+        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 
     @Test
     public void testAppendMultipleLayersToMultipleNetworks()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnMultipleNetworksMultipleAppendedLayers(this::materializeAndCheckCommonPostconditions,
+        testOnMultipleNetworksMultipleAppendedLayersSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
 

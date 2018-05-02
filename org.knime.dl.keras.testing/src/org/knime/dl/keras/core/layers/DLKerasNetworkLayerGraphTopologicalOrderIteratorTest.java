@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.layers;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
@@ -111,10 +111,8 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                final Integer inout0Depth = maxDepthsFromOutputs.get(inout0);
-                assert inout0Depth != null;
-                assert inout0Depth == 0;
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                assert maxDepthsFromOutputs.get(inout0) == 0;
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -184,10 +182,8 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                assert maxDepthsFromOutputs.get(out0) == 0;
                 assert maxDepthsFromOutputs.get(hidden2) == 1;
                 assert maxDepthsFromOutputs.get(hidden1) == 2;
                 assert maxDepthsFromOutputs.get(hidden0) == 3;
@@ -271,10 +267,8 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                assert maxDepthsFromOutputs.get(out0) == 0;
                 assert maxDepthsFromOutputs.get(hidden2) == 1;
                 assert maxDepthsFromOutputs.get(hidden1) == 2;
                 assert maxDepthsFromOutputs.get(hidden0) == 3;
@@ -361,13 +355,9 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
 
                 @Override
                 public void
-                    noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                    final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                    assert out0Depth != null;
-                    assert out0Depth == 0;
-                    final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                    assert out1Depth != null;
-                    assert out1Depth == 0;
+                    noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                    assert maxDepthsFromOutputs.get(out0) == 0;
+                    assert maxDepthsFromOutputs.get(out1) == 0;
                     assert maxDepthsFromOutputs.get(hidden2) == 1;
                     assert maxDepthsFromOutputs.get(hidden1) == 2;
                     assert maxDepthsFromOutputs.get(hidden0) == 3;
@@ -463,13 +453,9 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
 
                 @Override
                 public void
-                    noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                    final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                    assert out0Depth != null;
-                    assert out0Depth == 0;
-                    final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                    assert out1Depth != null;
-                    assert out1Depth == 0;
+                    noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                    assert maxDepthsFromOutputs.get(out0) == 0;
+                    assert maxDepthsFromOutputs.get(out1) == 0;
                     assert maxDepthsFromOutputs.get(hidden2) == 1;
                     assert maxDepthsFromOutputs.get(hidden1) == 2;
                     assert maxDepthsFromOutputs.get(hidden0) == 3;
@@ -617,16 +603,10 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIteratorTest {
 
                 @Override
                 public void
-                    noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                    final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                    assert out0Depth != null;
-                    assert out0Depth == 0;
-                    final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                    assert out1Depth != null;
-                    assert out1Depth == 0;
-                    final Integer out2Depth = maxDepthsFromOutputs.get(out2);
-                    assert out2Depth != null;
-                    assert out2Depth == 0;
+                    noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                    assert maxDepthsFromOutputs.get(out0) == 0;
+                    assert maxDepthsFromOutputs.get(out1) == 0;
+                    assert maxDepthsFromOutputs.get(out2) == 0;
                     assert maxDepthsFromOutputs.get(hidden5) == 1;
                     assert maxDepthsFromOutputs.get(hidden6) == 1;
                     assert maxDepthsFromOutputs.get(hidden7) == 1;

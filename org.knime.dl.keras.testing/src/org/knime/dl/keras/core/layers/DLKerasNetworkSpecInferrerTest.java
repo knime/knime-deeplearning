@@ -46,6 +46,18 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputForkJoinModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiOutputModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelAppendedBinaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSequentialModelAppendedUnaryLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnSingleLayerSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
@@ -59,66 +71,66 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkSpecInferrerTest extends DLKerasNetworkMaterializerSpecInferrerTestBase {
+public final class DLKerasNetworkSpecInferrerTest {
 
     @Test
     public void testInferSingleLayer() {
-        testOnSingleLayer(this::inferSpecs, Function.identity());
+        testOnSingleLayerSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testInferSequentialModel() {
-        testOnSequentialModel(this::inferSpecs, Function.identity());
+        testOnSequentialModelSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testInferMultiInputModel() {
-        testOnMultiInputModel(this::inferSpecs, Function.identity());
+        testOnMultiInputModelSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testInferMultiOutputModel() {
-        testOnMultiOutputModel(this::inferSpecs, Function.identity());
+        testOnMultiOutputModelSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testInferMultiInputMultiOutputModel() {
-        testOnMultiInputMultiOutputModel(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputModelSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testMaterializeMultiInputMultiOutputForkJoinModel() {
-        testOnMultiInputMultiOutputForkJoinModel(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputForkJoinModelSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testAppendUnaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnSequentialModelAppendedUnaryLayer(this::inferSpecs, Function.identity());
+        testOnSequentialModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testAppendUnaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnMultiInputMultiOutputModelAppendedUnaryLayer(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testAppendBinaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnSequentialModelAppendedBinaryLayer(this::inferSpecs, Function.identity());
+        testOnSequentialModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testAppendBinaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnMultiInputMultiOutputModelAppendedBinaryLayer(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
     }
 
     @Test
     public void testAppendBinaryLayerToTwoMultiInputMultiOutputModels()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayer(this::inferSpecs, Function.identity());
+        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
     }
 
     private DLKerasNetworkSpec inferSpecs(final List<DLKerasLayer> outputLayers) {

@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.layers;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
@@ -111,7 +111,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer inout0Depth = maxDepthsFromOutputs.get(inout0);
                 assert inout0Depth != null;
                 assert inout0Depth == 0;
@@ -184,7 +184,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
                 assert out0Depth != null;
                 assert out0Depth == 0;
@@ -271,7 +271,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
                 assert out0Depth != null;
                 assert out0Depth == 0;
@@ -359,7 +359,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
                 assert out0Depth != null;
                 assert out0Depth == 0;
@@ -459,7 +459,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
                 assert out0Depth != null;
                 assert out0Depth == 0;
@@ -613,7 +613,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
 
                 @Override
                 public void
-                    noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                    noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                     final Integer out0Depth = maxDepthsFromOutputs.get(out0);
                     assert out0Depth != null;
                     assert out0Depth == 0;
