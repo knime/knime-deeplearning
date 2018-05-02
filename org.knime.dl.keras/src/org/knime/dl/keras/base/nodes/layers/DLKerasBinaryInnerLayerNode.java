@@ -55,34 +55,40 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
-import org.knime.dl.keras.core.layers.DLKerasUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasBinaryInnerLayer;
+import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasDefaultNetworkFunction extends DLKerasAbstractLayerNode implements DLKerasNetworkFunction {
+public final class DLKerasBinaryInnerLayerNode extends DLKerasAbstractLayerNode
+    implements PortToPortBiFunction<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectBase, //
+            DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectSpecBase, //
+            DLKerasNetworkPortObjectSpecBase, DLKerasNetworkPortObjectSpecBase> {
 
-    public DLKerasDefaultNetworkFunction(final DLKerasUnaryInnerLayer layer) {
+    public DLKerasBinaryInnerLayerNode(final DLKerasBinaryInnerLayer layer) {
         super(layer);
     }
 
     @Override
-    public DLKerasNetworkPortObjectSpecBase configure(final DLKerasNetworkPortObjectSpecBase inSpec)
-        throws InvalidSettingsException {
-        if (!(inSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec)) {
-            throw new InvalidSettingsException("Appending layers to existing networks is not supported, yet.");
+    public DLKerasNetworkPortObjectSpecBase configure(final DLKerasNetworkPortObjectSpecBase firstInSpec,
+        final DLKerasNetworkPortObjectSpecBase secondInSpec) throws InvalidSettingsException {
+        if (!(firstInSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec
+            && secondInSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec)) {
+            throw new InvalidSettingsException("Apending layers to existing networks is not supported, yet.");
         }
-        final DLKerasUnaryInnerLayer unaryLayer = (DLKerasUnaryInnerLayer)m_layer;
-        unaryLayer.getParents()[0] = ((DLKerasUnmaterializedNetworkPortObjectSpec)inSpec).getOutputLayer();
-        unaryLayer.validateParameters();
-        unaryLayer.validateInputSpecs();
+        final DLKerasBinaryInnerLayer binaryLayer = (DLKerasBinaryInnerLayer)m_layer;
+        binaryLayer.setParent(0, ((DLKerasUnmaterializedNetworkPortObjectSpec)firstInSpec).getOutputLayer());
+        binaryLayer.setParent(1, ((DLKerasUnmaterializedNetworkPortObjectSpec)secondInSpec).getOutputLayer());
+        binaryLayer.validateParameters();
+        binaryLayer.validateInputSpecs();
         return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
     }
 
     @Override
-    public DLKerasNetworkPortObjectBase apply(final DLKerasNetworkPortObjectBase in, final ExecutionContext exec)
-        throws Exception {
+    public DLKerasNetworkPortObjectBase apply(final DLKerasNetworkPortObjectBase firstIn,
+        final DLKerasNetworkPortObjectBase secondIn, final ExecutionContext exec) throws Exception {
         final FileStore fileStore =
             DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
         return new DLKerasUnmaterializedNetworkPortObject(m_layer, fileStore);

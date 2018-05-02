@@ -46,16 +46,39 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.nodegen.base.supplier.port.PortSupplier;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkSupplier
-		extends PortSupplier<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectSpecBase> {
+public final class DLKerasDefaultInputLayerNode extends DLKerasAbstractLayerNode
+    implements PortSupplier<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectSpecBase> {
 
-	// NB: Convenience interface.
+    public DLKerasDefaultInputLayerNode(final DLKerasInputLayer inputLayer) {
+        super(inputLayer);
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectSpecBase configure() throws InvalidSettingsException {
+        m_layer.validateParameters();
+        return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectBase apply(final ExecutionContext exec) throws Exception {
+        final FileStore fileStore =
+            DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
+        return new DLKerasUnmaterializedNetworkPortObject(m_layer, fileStore);
+    }
 }

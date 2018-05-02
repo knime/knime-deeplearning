@@ -46,8 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.layers.dropout;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractNetworkFunctionNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasDefaultNetworkFunction;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
+import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
 import org.knime.dl.keras.core.layers.impl.DLKerasDropoutLayer;
 import org.knime.nodegen.base.function.port.PortToPortFunction;
 
@@ -55,10 +55,10 @@ import org.knime.nodegen.base.function.port.PortToPortFunction;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayerNodeFactory extends DLKerasAbstractNetworkFunctionNodeFactory {
+public final class DLKerasDropoutLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
 
     @Override
     protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasDefaultNetworkFunction(new DLKerasDropoutLayer());
+        return new DLKerasUnaryInnerLayerNode(new DLKerasDropoutLayer());
     }
 }

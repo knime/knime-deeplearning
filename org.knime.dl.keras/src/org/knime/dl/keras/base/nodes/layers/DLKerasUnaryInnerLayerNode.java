@@ -46,16 +46,48 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.nodegen.base.function.port.PortToPortFunctionNodeFactory;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.layers.DLKerasUnaryInnerLayer;
+import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractNetworkFunctionNodeFactory extends PortToPortFunctionNodeFactory {
+public final class DLKerasUnaryInnerLayerNode extends DLKerasAbstractLayerNode
+    implements PortToPortFunction<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectBase, //
+            DLKerasNetworkPortObjectSpecBase, DLKerasNetworkPortObjectSpecBase> {
 
-	protected DLKerasAbstractNetworkFunctionNodeFactory() {
-		super(DLKerasNetworkPortObjectBase.TYPE, DLKerasNetworkPortObjectBase.TYPE);
-	}
+    public DLKerasUnaryInnerLayerNode(final DLKerasUnaryInnerLayer layer) {
+        super(layer);
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectSpecBase configure(final DLKerasNetworkPortObjectSpecBase inSpec)
+        throws InvalidSettingsException {
+        if (!(inSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec)) {
+            throw new InvalidSettingsException("Appending layers to existing networks is not supported, yet.");
+        }
+        final DLKerasUnaryInnerLayer unaryLayer = (DLKerasUnaryInnerLayer)m_layer;
+        unaryLayer.setParent(0, ((DLKerasUnmaterializedNetworkPortObjectSpec)inSpec).getOutputLayer());
+        unaryLayer.validateParameters();
+        unaryLayer.validateInputSpecs();
+        return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectBase apply(final DLKerasNetworkPortObjectBase in, final ExecutionContext exec)
+        throws Exception {
+        final FileStore fileStore =
+            DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
+        return new DLKerasUnmaterializedNetworkPortObject(m_layer, fileStore);
+    }
 }

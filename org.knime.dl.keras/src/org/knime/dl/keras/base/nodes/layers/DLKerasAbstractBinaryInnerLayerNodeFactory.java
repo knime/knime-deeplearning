@@ -47,15 +47,15 @@
 package org.knime.dl.keras.base.nodes.layers;
 
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
-import org.knime.nodegen.base.function.port.PortToPortFunction;
+import org.knime.nodegen.base.bifunction.port.PortToPortBiFunctionNodeFactory;
 
 /**
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkFunction
-		extends PortToPortFunction<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectBase, //
-				DLKerasNetworkPortObjectSpecBase, DLKerasNetworkPortObjectSpecBase> {
+public abstract class DLKerasAbstractBinaryInnerLayerNodeFactory extends PortToPortBiFunctionNodeFactory {
 
-	// NB: Convenience interface.
+	protected DLKerasAbstractBinaryInnerLayerNodeFactory() {
+		super(DLKerasNetworkPortObjectBase.TYPE, DLKerasNetworkPortObjectBase.TYPE, DLKerasNetworkPortObjectBase.TYPE);
+	}
 }

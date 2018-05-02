@@ -46,8 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.layers.embedding;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractNetworkFunctionNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasDefaultNetworkFunction;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
+import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
 import org.knime.dl.keras.core.layers.impl.DLKerasEmbeddingLayer;
 import org.knime.nodegen.base.function.port.PortToPortFunction;
 
@@ -55,10 +55,10 @@ import org.knime.nodegen.base.function.port.PortToPortFunction;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasEmbeddingLayerNodeFactory extends DLKerasAbstractNetworkFunctionNodeFactory {
+public final class DLKerasEmbeddingLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
 
     @Override
     protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasDefaultNetworkFunction(new DLKerasEmbeddingLayer());
+        return new DLKerasUnaryInnerLayerNode(new DLKerasEmbeddingLayer());
     }
 }

@@ -46,8 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.layers.concatenate;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractNetworkBiFunctionNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasDefaultNetworkBiFunction;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryInnerLayerNodeFactory;
+import org.knime.dl.keras.base.nodes.layers.DLKerasBinaryInnerLayerNode;
 import org.knime.dl.keras.core.layers.impl.DLKerasConcatenateLayer;
 import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
 
@@ -55,10 +55,10 @@ import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConcatenateLayerNodeFactory extends DLKerasAbstractNetworkBiFunctionNodeFactory {
+public final class DLKerasConcatenateLayerNodeFactory extends DLKerasAbstractBinaryInnerLayerNodeFactory {
 
     @Override
     protected PortToPortBiFunction<?, ?, ?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasDefaultNetworkBiFunction(new DLKerasConcatenateLayer());
+        return new DLKerasBinaryInnerLayerNode(new DLKerasConcatenateLayer());
     }
 }
