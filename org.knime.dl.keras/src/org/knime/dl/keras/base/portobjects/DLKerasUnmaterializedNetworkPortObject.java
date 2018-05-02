@@ -65,7 +65,7 @@ import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphSerializer;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphSerializer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -86,7 +86,7 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
     private DLKerasPortObjectContent m_content;
 
     public DLKerasUnmaterializedNetworkPortObject(final List<DLKerasLayer> outputLayers, final FileStore fileStore) {
-        super(prependOutputFileStore(fileStore, DLKerasNetworkLayerGraphSerializer.getNetworkFileStores(outputLayers)));
+        super(prependOutputFileStore(fileStore, DLKerasNetworkGraphSerializer.getNetworkFileStores(outputLayers)));
         try {
             m_content = new DLKerasUnmaterializedPortObjectContent(outputLayers);
         } catch (final DLInvalidTensorSpecException e) {

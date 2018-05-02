@@ -68,7 +68,7 @@ import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 
 import gnu.trove.TIntArrayList;
 
@@ -76,9 +76,9 @@ import gnu.trove.TIntArrayList;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphSerializer {
+public final class DLKerasNetworkGraphSerializer {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasNetworkLayerGraphSerializer.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasNetworkGraphSerializer.class);
 
     private static final String CFG_KEY_GRAPH = "layer_graph";
 
@@ -94,12 +94,12 @@ public final class DLKerasNetworkLayerGraphSerializer {
 
     private static final String CFG_KEY_OUTPUT_LAYERS = "output_layers";
 
-    private DLKerasNetworkLayerGraphSerializer() {
+    private DLKerasNetworkGraphSerializer() {
     }
 
     public static final List<FileStore> getNetworkFileStores(final List<DLKerasLayer> outputLayers) {
         final ArrayList<FileStore> networkFileStores = new ArrayList<>(3);
-        new DLKerasNetworkLayerGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -154,7 +154,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
             // Collects all the base networks whose network location cannot be simply (de)serialized.
             final LinkedHashMap<Integer, DLKerasBaseNetworkTensorSpecOutput> nonReferenceBaseNetworkLayers =
                 new LinkedHashMap<>(2);
-            new DLKerasNetworkLayerGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+            new DLKerasNetworkGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
                 @Override
                 public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {

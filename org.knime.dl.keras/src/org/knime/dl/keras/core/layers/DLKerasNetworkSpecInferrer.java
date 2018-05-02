@@ -57,8 +57,8 @@ import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasGenericNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetworkLayerGraphTraversalException;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
 
 import gnu.trove.TIntHashSet;
 
@@ -84,7 +84,7 @@ public final class DLKerasNetworkSpecInferrer {
      * Infers the specification of the Keras network graph.
      *
      * @return the inferred network spec
-     * @throws DLNetworkLayerGraphTraversalException if traversing the network graph failed
+     * @throws DLNetworkGraphTraversalException if traversing the network graph failed
      */
     public DLKerasNetworkSpec inferNetworkSpec() {
         final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> inputSpecsToInfer =
@@ -97,7 +97,7 @@ public final class DLKerasNetworkSpecInferrer {
         final LinkedHashMap<DLKerasNetworkSpec, DLKerasBaseNetworkSpecHelperStruct> baseNetworkSpecs =
             new LinkedHashMap<>();
 
-        new DLKerasNetworkLayerGraphTopologicalOrderIterator(m_outputLayers).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphTopologicalOrderIterator(m_outputLayers).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -168,7 +168,7 @@ public final class DLKerasNetworkSpecInferrer {
         try {
             tensorSpecs = layer.getOutputSpecs();
         } catch (final DLInvalidTensorSpecException e) {
-            throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+            throw new DLNetworkGraphTraversalException(e.getMessage(), e);
         }
         final List<DLTensorSpec> amendedTensorSpecs = new ArrayList<>(tensorSpecs.size());
         for (int i = 0; i < tensorSpecs.size(); i++) {

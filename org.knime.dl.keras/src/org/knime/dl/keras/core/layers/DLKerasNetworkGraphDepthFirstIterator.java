@@ -62,7 +62,7 @@ import java.util.NoSuchElementException;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKerasNetworkLayerGraphIterator {
+public final class DLKerasNetworkGraphDepthFirstIterator implements DLKerasNetworkGraphIterator {
 
     private final Deque<DLKerasTensorSpecsOutput> m_pendingLayers = new ArrayDeque<>();
 
@@ -76,7 +76,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
      * @param outputLayers the output layers that define the graph
      * @throws NullPointerException if the list of output layers or one of the output layers is <code>null</code>
      */
-    public DLKerasNetworkLayerGraphDepthFirstIterator(final List<DLKerasLayer> outputLayers) {
+    public DLKerasNetworkGraphDepthFirstIterator(final List<DLKerasLayer> outputLayers) {
         for (int i = 0; i < outputLayers.size(); i++) {
             final DLKerasLayer output = outputLayers.get(i);
             if (output == null) {
@@ -96,7 +96,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
      *
      * @param visitor the visitor to which the next layer is passed, may be <code>null</code>
      * @return the visited layer
-     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws DLNetworkGraphTraversalException if an exception occurred while traversing the graph
      * @throws NoSuchElementException if the graph has no more elements
      */
     @Override
@@ -125,7 +125,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
                         visitor.visitHidden((DLKerasInnerLayer)layer);
                     }
                 } catch (final Exception e) {
-                    throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                    throw new DLNetworkGraphTraversalException(e.getMessage(), e);
                 }
             }
         } else if (layer instanceof DLKerasInputLayer) {
@@ -139,14 +139,14 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
                         visitor.visitInput((DLKerasInputLayer)layer);
                     }
                 } catch (final Exception e) {
-                    throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                    throw new DLNetworkGraphTraversalException(e.getMessage(), e);
                 }
             }
         } else if (layer instanceof DLKerasBaseNetworkTensorSpecOutput) {
             try {
                 visitor.visitBaseNetworkOutput((DLKerasBaseNetworkTensorSpecOutput)layer);
             } catch (final Exception e) {
-                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                throw new DLNetworkGraphTraversalException(e.getMessage(), e);
             }
         } else {
             throw new IllegalStateException("Keras layer '" + layer.getClass().getTypeName() + "' (" + layer
@@ -157,7 +157,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
             try {
                 visitor.noteLayerDepths(Collections.unmodifiableMap(m_layerDepths));
             } catch (final RuntimeException e) {
-                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                throw new DLNetworkGraphTraversalException(e.getMessage(), e);
             }
         }
         return layer;
@@ -167,7 +167,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
      * Visits all layers in the network graph (DFS) and passes each of them to the adequate method of the given visitor.
      *
      * @param visitor the visitor to which the layers are passed
-     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws DLNetworkGraphTraversalException if an exception occurred while traversing the graph
      */
     @Override
     public Map<DLKerasTensorSpecsOutput, Integer> visitAll(final DLKerasLayerVisitor visitor) {

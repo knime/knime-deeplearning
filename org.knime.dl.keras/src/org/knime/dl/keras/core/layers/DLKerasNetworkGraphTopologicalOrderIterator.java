@@ -64,12 +64,12 @@ import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiConsumer;
  * or the invocation of {@link #visitAll(DLKerasLayerVisitor)} trigger a full traversal of the layer graph to obtain its
  * topological ordering before the actual visiting is carried out. <br>
  * The order of layers of the same depth is governed by the behavior of
- * {@link DLKerasNetworkLayerGraphDepthFirstIterator}.
+ * {@link DLKerasNetworkGraphDepthFirstIterator}.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements DLKerasNetworkLayerGraphIterator {
+public final class DLKerasNetworkGraphTopologicalOrderIterator implements DLKerasNetworkGraphIterator {
 
     public static List<DLKerasTensorSpecsOutput>
         sortTopologically(final Collection<Entry<DLKerasTensorSpecsOutput, Integer>> maxDepthsFromOutputs) {
@@ -78,7 +78,7 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
             .map(Entry<DLKerasTensorSpecsOutput, Integer>::getKey).collect(Collectors.toList());
     }
 
-    private final DLKerasNetworkLayerGraphDepthFirstIterator m_depthFirstSearchIterator;
+    private final DLKerasNetworkGraphDepthFirstIterator m_depthFirstSearchIterator;
 
     private final Map<DLKerasTensorSpecsOutput, //
             DLThrowingBiConsumer<DLKerasLayerVisitor, DLKerasTensorSpecsOutput, Exception>> m_layerVisitors =
@@ -100,8 +100,8 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
      * @param outputLayers the output layers that define the graph
      * @throws NullPointerException if the list of output layers or one of the output layers is <code>null</code>
      */
-    public DLKerasNetworkLayerGraphTopologicalOrderIterator(final List<DLKerasLayer> outputLayers) {
-        m_depthFirstSearchIterator = new DLKerasNetworkLayerGraphDepthFirstIterator(outputLayers);
+    public DLKerasNetworkGraphTopologicalOrderIterator(final List<DLKerasLayer> outputLayers) {
+        m_depthFirstSearchIterator = new DLKerasNetworkGraphDepthFirstIterator(outputLayers);
     }
 
     @Override
@@ -135,14 +135,14 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
             try {
                 m_layerVisitors.get(layer).accept(visitor, layer);
             } catch (final Exception e) {
-                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                throw new DLNetworkGraphTraversalException(e.getMessage(), e);
             }
         }
         if (!m_layersSortedByDepth.hasNext() && visitor != null) {
             try {
                 visitor.noteLayerDepths(m_maxDepthsFromOutputs);
             } catch (final RuntimeException e) {
-                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+                throw new DLNetworkGraphTraversalException(e.getMessage(), e);
             }
         }
         return layer;

@@ -57,13 +57,13 @@ import org.knime.dl.core.DLUncheckedException;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensorSpecsOutput> {
+public interface DLKerasNetworkGraphIterator extends Iterator<DLKerasTensorSpecsOutput> {
 
     /**
      * Behaves like {@link #visitNext(DLKerasLayerVisitor) visitNext(null)}.
      *
      * @return the next layer
-     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws DLNetworkGraphTraversalException if an exception occurred while traversing the graph
      * @throws NoSuchElementException if the graph has no more elements
      */
     @Override
@@ -77,7 +77,7 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
      * @param visitor the visitor to which the next layer is passed, may be <code>null</code> in which case this method
      *            simply returns the next layer
      * @return the next layer
-     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws DLNetworkGraphTraversalException if an exception occurred while traversing the graph
      * @throws NoSuchElementException if the graph has no more elements
      */
     DLKerasTensorSpecsOutput visitNext(DLKerasLayerVisitor visitor);
@@ -89,7 +89,7 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
      *            simply returns the layer depth map
      * @return the same layer depth map that is passed to {@link DLKerasLayerVisitor#noteLayerDepths(Map)} if the
      *         visitor is non-<code>null</code>
-     * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
+     * @throws DLNetworkGraphTraversalException if an exception occurred while traversing the graph
      */
     Map<DLKerasTensorSpecsOutput, Integer> visitAll(DLKerasLayerVisitor visitor);
 
@@ -129,7 +129,7 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
          *
          * @param maxDepthsFromOutputs a map that contains, for each layer, the maximum distance to any output layer.
          *            The iteration order of the map is predictable (cf. {@link LinkedHashMap}) and conforms to the
-         *            iteration order of {@link DLKerasNetworkLayerGraphDepthFirstIterator}.
+         *            iteration order of {@link DLKerasNetworkGraphDepthFirstIterator}.
          */
         default void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
             // no op - most implementations won't need this information
@@ -139,11 +139,11 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
     /**
      * The exception that is thrown if an exception occurs during traversal of the network graph.
      */
-    public static class DLNetworkLayerGraphTraversalException extends DLUncheckedException {
+    public static class DLNetworkGraphTraversalException extends DLUncheckedException {
 
         private static final long serialVersionUID = 1L;
 
-        public DLNetworkLayerGraphTraversalException(final String message, final Throwable cause) {
+        public DLNetworkGraphTraversalException(final String message, final Throwable cause) {
             super(message != null ? message : "An exception occurred while traversing the Keras network layer graph.",
                 cause);
         }

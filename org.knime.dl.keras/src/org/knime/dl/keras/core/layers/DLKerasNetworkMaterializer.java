@@ -63,8 +63,8 @@ import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetworkLayerGraphTraversalException;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -101,7 +101,7 @@ public final class DLKerasNetworkMaterializer {
      * Materializes the Keras network graph.
      *
      * @return the materialized network
-     * @throws DLNetworkLayerGraphTraversalException if traversing the network graph failed
+     * @throws DLNetworkGraphTraversalException if traversing the network graph failed
      * @throws DLInvalidEnvironmentException if materialization in the back end failed
      * @throws DLInvalidSourceException if materialization involved an existing base network whose source is unavailable
      *             or invalid
@@ -110,7 +110,7 @@ public final class DLKerasNetworkMaterializer {
     public DLKerasNetwork materialize() throws DLInvalidEnvironmentException, DLInvalidSourceException, IOException {
         // Parse layer graph.
         final DLKerasNetworkMaterializerParser parser = new DLKerasNetworkMaterializerParser();
-        new DLKerasNetworkLayerGraphDepthFirstIterator(m_outputLayers).visitAll(parser);
+        new DLKerasNetworkGraphDepthFirstIterator(m_outputLayers).visitAll(parser);
 
         // TODO: Hard-coded for the moment.
         final Class<DLKerasTensorFlowNetwork> backend = DLKerasTensorFlowNetwork.class;
@@ -144,7 +144,7 @@ public final class DLKerasNetworkMaterializer {
                 DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
 
             // Topological ordering.
-            final List<DLKerasTensorSpecsOutput> layersSortedByDepth = DLKerasNetworkLayerGraphTopologicalOrderIterator
+            final List<DLKerasTensorSpecsOutput> layersSortedByDepth = DLKerasNetworkGraphTopologicalOrderIterator
                 .sortTopologically(parser.m_maxDepthsFromOutputs.entrySet());
 
             // Generate code lines according to the topological ordering above. This ensures that each inner layer's

@@ -71,7 +71,7 @@ import org.junit.Test;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphSerializerTest {
+public final class DLKerasNetworkGraphSerializerTest {
 
     private ObjectOutputStream m_outStream;
 
@@ -134,10 +134,10 @@ public final class DLKerasNetworkLayerGraphSerializerTest {
     }
 
     private void testSerialize(final List<DLKerasLayer> outputLayers) throws IOException, ClassNotFoundException {
-        DLKerasNetworkLayerGraphSerializer.writeGraphTo(outputLayers, m_outStream);
+        DLKerasNetworkGraphSerializer.writeGraphTo(outputLayers, m_outStream);
         m_inStream = outStreamToInStream();
         final List<DLKerasLayer> deserializedOutputLayers =
-            DLKerasNetworkLayerGraphSerializer.readGraphFrom(m_inStream, null);
+            DLKerasNetworkGraphSerializer.readGraphFrom(m_inStream, null);
         assertGraphEquals(outputLayers, deserializedOutputLayers);
     }
 
@@ -147,9 +147,9 @@ public final class DLKerasNetworkLayerGraphSerializerTest {
             assertLayerEquals(a.get(i), b.get(i));
         }
         final Map<DLKerasTensorSpecsOutput, Integer> layersA =
-            new DLKerasNetworkLayerGraphDepthFirstIterator(a).visitAll(null);
+            new DLKerasNetworkGraphDepthFirstIterator(a).visitAll(null);
         final Map<DLKerasTensorSpecsOutput, Integer> layersB =
-            new DLKerasNetworkLayerGraphDepthFirstIterator(b).visitAll(null);
+            new DLKerasNetworkGraphDepthFirstIterator(b).visitAll(null);
         assert layersA.size() == layersB.size();
         final Iterator<Entry<DLKerasTensorSpecsOutput, Integer>> layersBIterator = layersB.entrySet().iterator();
         for (final Entry<DLKerasTensorSpecsOutput, Integer> entryA : layersA.entrySet()) {

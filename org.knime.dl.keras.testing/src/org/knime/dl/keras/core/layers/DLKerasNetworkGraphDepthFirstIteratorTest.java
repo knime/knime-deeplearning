@@ -55,18 +55,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.impl.DLKerasAddLayer;
 import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
 import org.knime.dl.keras.core.layers.impl.DLKerasDenseLayer;
 
 /**
- * Also see {@link DLKerasNetworkLayerGraphTopologicalOrderIteratorTest}. Test cases should be kept in sync.
+ * Also see {@link DLKerasNetworkGraphTopologicalOrderIteratorTest}. Test cases should be kept in sync.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
+public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
     private AtomicInteger m_counter;
 
@@ -82,7 +82,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
     public void testSingleLayerGraphIteration() {
         final DLKerasDefaultInputLayer inout0 = new DLKerasDefaultInputLayer();
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(inout0)).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(inout0)).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -138,7 +138,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
         out0.setParent(0, hidden2);
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -218,7 +218,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
         out0.setParent(0, hidden2);
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -306,7 +306,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
         out1.setParent(0, hidden2);
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(out0, out1)).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(out0, out1)).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -399,7 +399,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
         out1.setParent(0, hidden2);
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(out0, out1)).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(out0, out1)).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -523,7 +523,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIteratorTest {
         out2.setParent(0, hidden6);
         out2.setParent(1, hidden7);
 
-        new DLKerasNetworkLayerGraphDepthFirstIterator(Arrays.asList(out0, out1, out2))
+        new DLKerasNetworkGraphDepthFirstIterator(Arrays.asList(out0, out1, out2))
             .visitAll(new DLKerasLayerVisitor() {
 
                 @Override
