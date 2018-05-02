@@ -49,27 +49,30 @@ package org.knime.dl.keras.core.layers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.knime.dl.core.DLUncheckedException;
 
 /**
- * Performs a depth-first search on a Keras layer graph specified by a list of output (i.e. leaf) nodes.
+ * Allows depth-first search on a Keras layer graph that is specified by a list of output layers (i.e. leaf nodes). The
+ * search begins at the first output layer in the list and follows the first (then the second etc.) input (i.e. parent)
+ * of a layer if one possesses multiple inputs.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasLayer> {
+public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasTensorSpecsOutput> {
 
-    private final Deque<DLKerasLayer> m_pendingLayers = new ArrayDeque<>();
+    private final Deque<DLKerasTensorSpecsOutput> m_pendingLayers = new ArrayDeque<>();
 
-    private final LinkedHashSet<DLKerasLayer> m_encounteredLayers = new LinkedHashSet<>();
+    private final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> m_layerDepths = new LinkedHashMap<>();
+
+    private final LinkedHashMap<DLKerasInnerLayer, DLKerasTensorSpecsOutput[]> m_layerParents = new LinkedHashMap<>();
 
     /**
-     * Creates an iterator over the network graph specified by the given output layers and their parents (i.e.
-     * predecessor nodes) to a stream.
+     * Creates an iterator over the network graph specified by the given output layers and their input layers.
      *
      * @param outputLayers the output layers that define the graph
      * @throws NullPointerException if the list of output layers or one of the output layers is <code>null</code>
@@ -96,7 +99,7 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
      * @throws NoSuchElementException if the graph has no more elements
      */
     @Override
-    public DLKerasLayer next() {
+    public DLKerasTensorSpecsOutput next() {
         return visitNext(null);
     }
 
@@ -108,26 +111,26 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
      * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
      * @throws NoSuchElementException if the graph has no more elements
      */
-    public DLKerasLayer visitNext(final DLKerasLayerVisitor visitor) {
-        final DLKerasLayer layer = m_pendingLayers.pop();
+    public DLKerasTensorSpecsOutput visitNext(final DLKerasLayerVisitor visitor) {
+        final DLKerasTensorSpecsOutput layer = m_pendingLayers.pop();
         if (layer instanceof DLKerasInnerLayer) {
-            boolean isOutputNode = false;
-            if (!m_encounteredLayers.contains(layer)) {
-                m_encounteredLayers.add(layer);
-                isOutputNode = true;
-            }
-            final DLKerasLayer[] parents = getParents((DLKerasInnerLayer)layer);
+            final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)layer;
+            final DLKerasTensorSpecsOutput[] parents = getParents(innerLayer);
+            m_layerParents.put(innerLayer, parents);
             for (int i = parents.length - 1; i >= 0; i--) {
-                final DLKerasLayer parent = parents[i];
-                if (!m_encounteredLayers.contains(parent)) {
-                    m_encounteredLayers.add(parent);
+                final DLKerasTensorSpecsOutput parent = parents[i];
+                // Parent may already be present if it's a fork.
+                if (!m_layerDepths.containsKey(parent)) {
                     m_pendingLayers.push(parent);
                 }
             }
+            // Must be an output layer if not already contained.
+            final int depth = m_layerDepths.computeIfAbsent(layer, k -> 0);
+            updateDepths(parents, depth + 1);
             if (visitor != null) {
                 try {
-                    // pseudo visitor pattern
-                    if (isOutputNode) {
+                    // Pseudo visitor pattern.
+                    if (depth == 0) {
                         visitor.visitOutput((DLKerasInnerLayer)layer);
                     } else {
                         visitor.visitHidden((DLKerasInnerLayer)layer);
@@ -137,17 +140,36 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
                 }
             }
         } else if (layer instanceof DLKerasInputLayer) {
+            // Must be an output layer if not already contained.
+            final int depth = m_layerDepths.computeIfAbsent(layer, k -> 0);
             if (visitor != null) {
                 try {
-                    visitor.visitInput((DLKerasInputLayer)layer);
+                    if (depth == 0) {
+                        visitor.visitInputOutput((DLKerasInputLayer)layer);
+                    } else {
+                        visitor.visitInput((DLKerasInputLayer)layer);
+                    }
                 } catch (final Exception e) {
                     throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
                 }
             }
+        } else if (layer instanceof DLKerasBaseNetworkTensorSpecOutput) {
+            try {
+                visitor.visitBaseNetworkOutput((DLKerasBaseNetworkTensorSpecOutput)layer);
+            } catch (final Exception e) {
+                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+            }
         } else {
-            throw new IllegalStateException(
-                "Keras layer '" + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation(null)
-                    + ") is neither marked as inner layer nor as input layer." + " This is an implementation error.");
+            throw new IllegalStateException("Keras layer '" + layer.getClass().getTypeName() + "' (" + layer
+                + ") is not marked as inner layer, input layer or base network output."
+                + " This is an implementation error.");
+        }
+        if (!hasNext() && visitor != null) {
+            try {
+                visitor.noteLayerDepths(m_layerDepths);
+            } catch (final RuntimeException e) {
+                throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
+            }
         }
         return layer;
     }
@@ -164,15 +186,31 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
         }
     }
 
-    private DLKerasLayer[] getParents(final DLKerasInnerLayer layer) {
-        final DLKerasLayer[] parents = layer.getParents();
+    private DLKerasTensorSpecsOutput[] getParents(final DLKerasInnerLayer layer) {
+        final DLKerasTensorSpecsOutput[] parents = new DLKerasTensorSpecsOutput[layer.getNumParents()];
         for (int i = 0; i < parents.length; i++) {
+            parents[i] = layer.getParent(i);
             if (parents[i] == null) {
                 throw new IllegalStateException("Parent at input index " + i + " of Keras layer '"
-                    + layer.getClass().getTypeName() + "' (" + layer.getBackendRepresentation(null) + ") is null.");
+                    + layer.getClass().getTypeName() + "' (" + layer + ") is null.");
             }
         }
         return parents;
+    }
+
+    private void updateDepths(final DLKerasTensorSpecsOutput[] layers, final int depth) {
+        for (final DLKerasTensorSpecsOutput layer : layers) {
+            final Integer layerDepth = m_layerDepths.get(layer);
+            if (layerDepth == null || layerDepth < depth) {
+                m_layerDepths.put(layer, depth);
+                if (layer instanceof DLKerasInnerLayer) {
+                    final DLKerasTensorSpecsOutput[] parents = m_layerParents.get(layer);
+                    if (parents != null) {
+                        updateDepths(parents, depth + 1);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -181,7 +219,7 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
     public static interface DLKerasLayerVisitor {
 
         /**
-         * Visitor method for output layers.
+         * Visitor method for output layers that are not input layers.
          */
         void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception;
 
@@ -191,9 +229,29 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
         void visitHidden(DLKerasInnerLayer hiddenLayer) throws Exception;
 
         /**
-         * Visitor method for input layers.
+         * Visitor method for input layers that are not output layers. Also see
+         * {@link #visitInputOutput(DLKerasInputLayer)}.
          */
         void visitInput(DLKerasInputLayer inputLayer) throws Exception;
+
+        /**
+         * Visitor method for input layers that are also output layers. Also see {@link #visitInput(DLKerasInputLayer)}.
+         */
+        void visitInputOutput(DLKerasInputLayer inputOutputLayer) throws Exception;
+
+        /**
+         * Visitor method for base network tensor outputs.
+         */
+        void visitBaseNetworkOutput(DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput);
+
+        /**
+         * Called after the last layer was visited.
+         *
+         * @param maxDepthsFromOutputs a map that contains, for each layer, the maximum distance to any output layer
+         */
+        default void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+            // no op - most implementations won't need this information
+        }
     }
 
     /**
@@ -203,7 +261,7 @@ public final class DLKerasNetworkLayerGraphIterator implements Iterator<DLKerasL
 
         private static final long serialVersionUID = 1L;
 
-        public DLNetworkLayerGraphTraversalException(final String message, final Throwable cause) {
+        private DLNetworkLayerGraphTraversalException(final String message, final Throwable cause) {
             super(message != null ? message : "An exception occurred while traversing the Keras network layer graph.",
                 cause);
         }

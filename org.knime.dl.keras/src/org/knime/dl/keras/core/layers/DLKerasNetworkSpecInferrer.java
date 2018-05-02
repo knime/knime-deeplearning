@@ -66,7 +66,7 @@ public final class DLKerasNetworkSpecInferrer {
     private DLKerasNetworkLayerNameGenerator m_layerNameGen;
 
     /**
-     * Infers the specification of the Keras network graph specified by the given output layers and their parents (i.e.
+     * Infers the specification of the Keras network graph specified by the given output layers and their inputs (i.e.
      * predecessor nodes).
      *
      * @param outputLayers the output layers of the network whose spec to infer
@@ -94,6 +94,17 @@ public final class DLKerasNetworkSpecInferrer {
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                 inputSpecs.addAll(amendTensorIdsAndNames(inputLayer, inputLayer.getInputSpecs()));
             }
+
+            @Override
+            public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
+                inputSpecs.addAll(amendTensorIdsAndNames(inputOutputLayer, inputOutputLayer.getInputSpecs()));
+                outputSpecs.addAll(amendTensorIdsAndNames(inputOutputLayer, inputOutputLayer.getOutputSpecs()));
+            }
+
+            @Override
+            public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
+                // no op
+            }
         });
         return new DLKerasGenericNetworkSpec(inputSpecs.toArray(new DLTensorSpec[0]),
             hiddenSpecs.toArray(new DLTensorSpec[0]), outputSpecs.toArray(new DLTensorSpec[0]));
@@ -105,7 +116,7 @@ public final class DLKerasNetworkSpecInferrer {
             final DLTensorSpec tensorSpec = tensorSpecs.get(i);
             final DLTensorSpec amendedTensorSpec;
             final String layerName = m_layerNameGen.getNextLayerName(layer);
-            // TODO: add support for Keras layer nodes
+            // We cannot represent Keras layer nodes via KNIME nodes. Thus, the node index is always zero.
             final String tensorName = m_layerNameGen.getOutputTensorName(layerName, 0, i);
             if (tensorSpec.getBatchSize().isPresent()) {
                 amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,

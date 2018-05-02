@@ -59,7 +59,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.dl.keras.base.nodes.layers.DLKerasLayerStructInstance;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
 
 /**
@@ -81,7 +80,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
     private static final String CFG_KEY_LAYER_PARENTS = "parents";
 
     /**
-     * Writes the Keras network graph specified by the given output layers and their parents (i.e. predecessor nodes) to
+     * Writes the Keras network graph specified by the given output layers and their inputs (i.e. predecessor nodes) to
      * a stream.
      *
      * @param outputLayers the output layers of the network to serialize
@@ -112,17 +111,29 @@ public final class DLKerasNetworkLayerGraphSerializer {
                 public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
                     final NodeSettingsWO layerSettings = saveLayer(innerLayer);
                     final NodeSettingsWO parentIndices = layerSettings.addNodeSettings(CFG_KEY_LAYER_PARENTS);
-                    final DLKerasLayer[] parents = innerLayer.getParents();
-                    for (int i = 0; i < parents.length; i++) {
-                        final Integer parentLayerIndex =
-                            layerIndices.computeIfAbsent(parents[i], l -> layerIndexCounter.getAndIncrement());
-                        parentIndices.addInt(Integer.toString(i), parentLayerIndex);
+                    for (int i = 0; i < innerLayer.getNumParents(); i++) {
+                        final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
+                        if (parent instanceof DLKerasLayer) {
+                            final Integer parentLayerIndex = layerIndices.computeIfAbsent((DLKerasLayer)parent,
+                                l -> layerIndexCounter.getAndIncrement());
+                            parentIndices.addInt(Integer.toString(i), parentLayerIndex);
+                        }
                     }
                 }
 
                 @Override
                 public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                     saveLayer(inputLayer);
+                }
+
+                @Override
+                public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
+                    saveLayer(inputOutputLayer);
+                }
+
+                @Override
+                public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
+                    // no op
                 }
 
                 private NodeSettingsWO saveLayer(final DLKerasLayer layer) {
@@ -149,7 +160,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
 
     /**
      * Reads a Keras network graph from stream and returns its output layers. The entire graph can be accessed via the
-     * layers' parent (i.e. predecessor node) relationships.
+     * layers' input (i.e. predecessor node) relationships.
      *
      * @param objIn the stream from which to read the network graph
      * @return the read network graph
@@ -170,9 +181,9 @@ public final class DLKerasNetworkLayerGraphSerializer {
                     .loadSettingsFrom(layerSettings.getNodeSettings(CFG_KEY_LAYER_PARAMS));
                 if (layer instanceof DLKerasInnerLayer) {
                     final NodeSettings parentIndices = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
-                    final DLKerasLayer[] parents = ((DLKerasInnerLayer)layer).getParents();
+                    final DLKerasInnerLayer innerLayer = ((DLKerasInnerLayer)layer);
                     for (int j = 0; j < parentIndices.getChildCount(); j++) {
-                        parents[j] = loadedLayers[parentIndices.getInt(Integer.toString(j))];
+                        innerLayer.setParent(j, loadedLayers[parentIndices.getInt(Integer.toString(j))]);
                     }
                 }
                 loadedLayers[i] = layer;
