@@ -47,9 +47,11 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -153,7 +155,7 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
         }
         if (!hasNext() && visitor != null) {
             try {
-                visitor.noteLayerDepths(m_layerDepths);
+                visitor.noteLayerDepths(Collections.unmodifiableMap(m_layerDepths));
             } catch (final RuntimeException e) {
                 throw new DLNetworkLayerGraphTraversalException(e.getMessage(), e);
             }
@@ -168,10 +170,11 @@ public final class DLKerasNetworkLayerGraphDepthFirstIterator implements DLKeras
      * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
      */
     @Override
-    public void visitAll(final DLKerasLayerVisitor visitor) {
+    public Map<DLKerasTensorSpecsOutput, Integer> visitAll(final DLKerasLayerVisitor visitor) {
         while (hasNext()) {
             visitNext(visitor);
         }
+        return Collections.unmodifiableMap(m_layerDepths);
     }
 
     private DLKerasTensorSpecsOutput[] getParents(final DLKerasInnerLayer layer) {

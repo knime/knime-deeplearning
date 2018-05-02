@@ -61,6 +61,8 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
 
+import gnu.trove.TIntArrayList;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -71,7 +73,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
 
     private static final String CFG_KEY_GRAPH = "layer_graph";
 
-    private static final String CFG_KEY_OUTPUT_LAYERS = "outputs";
+    private static final String CFG_KEY_OUTPUT_LAYERS = "output_layers";
 
     private static final String CFG_KEY_LAYER_CLASS = "class";
 
@@ -93,18 +95,13 @@ public final class DLKerasNetworkLayerGraphSerializer {
         final AtomicInteger layerIndexCounter = new AtomicInteger();
         final Map<DLKerasLayer, Integer> layerIndices = new HashMap<>();
         try {
-            final int[] outputLayerIndices = new int[outputLayers.size()];
-            for (int i = 0; i < outputLayers.size(); i++) {
-                outputLayerIndices[i] = layerIndexCounter.getAndIncrement();
-                layerIndices.put(outputLayers.get(i), outputLayerIndices[i]);
-            }
-            graphSettings.addIntArray(CFG_KEY_OUTPUT_LAYERS, outputLayerIndices);
-
-            new DLKerasNetworkLayerGraphDepthFirstIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+            final TIntArrayList outputLayerIndices = new TIntArrayList(outputLayers.size());
+            new DLKerasNetworkLayerGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
                 @Override
                 public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
                     visitHidden(outputLayer);
+                    outputLayerIndices.add(layerIndices.get(outputLayer));
                 }
 
                 @Override
@@ -113,11 +110,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
                     final NodeSettingsWO parentIndices = layerSettings.addNodeSettings(CFG_KEY_LAYER_PARENTS);
                     for (int i = 0; i < innerLayer.getNumParents(); i++) {
                         final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
-                        if (parent instanceof DLKerasLayer) {
-                            final Integer parentLayerIndex = layerIndices.computeIfAbsent((DLKerasLayer)parent,
-                                l -> layerIndexCounter.getAndIncrement());
-                            parentIndices.addInt(Integer.toString(i), parentLayerIndex);
-                        }
+                        parentIndices.addInt(Integer.toString(i), layerIndices.get(parent));
                     }
                 }
 
@@ -129,6 +122,7 @@ public final class DLKerasNetworkLayerGraphSerializer {
                 @Override
                 public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
                     saveLayer(inputOutputLayer);
+                    outputLayerIndices.add(layerIndices.get(inputOutputLayer));
                 }
 
                 @Override
@@ -137,9 +131,10 @@ public final class DLKerasNetworkLayerGraphSerializer {
                 }
 
                 private NodeSettingsWO saveLayer(final DLKerasLayer layer) {
-                    // Each layer is either an output layer or someone's parent. We created indices for both cases above.
-                    final Integer layerIndex = layerIndices.get(layer);
-                    final NodeSettingsWO layerSettings = graphSettings.addNodeSettings(layerIndex.toString());
+                    assert !layerIndices.containsKey(layer);
+                    final int layerIndex = layerIndexCounter.getAndIncrement();
+                    layerIndices.put(layer, layerIndex);
+                    final NodeSettingsWO layerSettings = graphSettings.addNodeSettings(Integer.toString(layerIndex));
                     try {
                         layerSettings.addString(CFG_KEY_LAYER_CLASS, layer.getClass().getCanonicalName());
                         // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
@@ -152,10 +147,11 @@ public final class DLKerasNetworkLayerGraphSerializer {
                     return layerSettings;
                 }
             });
+            graphSettings.addIntArray(CFG_KEY_OUTPUT_LAYERS, outputLayerIndices.toNativeArray());
+            graphSettings.writeToFile(objOut);
         } catch (final Exception e) {
             throw new IOException("An exception occurred while saving the Keras layer graph. See log for details.", e);
         }
-        graphSettings.writeToFile(objOut);
     }
 
     /**
@@ -170,8 +166,10 @@ public final class DLKerasNetworkLayerGraphSerializer {
     public List<DLKerasLayer> readGraphFrom(final ObjectInputStream objIn) throws IOException, ClassNotFoundException {
         try {
             final NodeSettings graphSettings = NodeSettings.readFromFile(objIn);
-            final DLKerasLayer[] loadedLayers = new DLKerasLayer[graphSettings.getChildCount()];
-            for (int i = graphSettings.getChildCount() - 1 - 1; i >= 0; i--) { // -1 because of saved output indices
+            // -1 because of saved output indices
+            final int numLayers = graphSettings.getChildCount() - 1;
+            final DLKerasLayer[] loadedLayers = new DLKerasLayer[numLayers];
+            for (int i = 0; i < numLayers; i++) {
                 final NodeSettings layerSettings = graphSettings.getNodeSettings(Integer.toString(i));
                 // Layers must expose a public nullary constructor.
                 final DLKerasLayer layer =
@@ -180,8 +178,8 @@ public final class DLKerasNetworkLayerGraphSerializer {
                 new DLKerasLayerStructInstance(layer)
                     .loadSettingsFrom(layerSettings.getNodeSettings(CFG_KEY_LAYER_PARAMS));
                 if (layer instanceof DLKerasInnerLayer) {
-                    final NodeSettings parentIndices = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
                     final DLKerasInnerLayer innerLayer = ((DLKerasInnerLayer)layer);
+                    final NodeSettings parentIndices = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
                     for (int j = 0; j < parentIndices.getChildCount(); j++) {
                         innerLayer.setParent(j, loadedLayers[parentIndices.getInt(Integer.toString(j))]);
                     }
@@ -194,7 +192,11 @@ public final class DLKerasNetworkLayerGraphSerializer {
                 outputs.add(loadedLayers[outputLayerIndices[i]]);
             }
             return outputs;
-        } catch (final InvalidSettingsException | InstantiationException | IllegalAccessException e) {
+        } catch (final ClassNotFoundException e) {
+            LOGGER.error(e);
+            throw new ClassNotFoundException(
+                "A class could not be found while loading the Keras layer graph. See log for details.", e);
+        } catch (final Exception e) {
             LOGGER.error(e);
             throw new IOException("An exception occurred while loading the Keras layer graph. See log for details.", e);
         }

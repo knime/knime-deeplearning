@@ -47,10 +47,10 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,7 +87,7 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
     /**
      * Populated in {@link #initializeSortedGraph()}.
      */
-    private LinkedHashMap<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
+    private Map<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
 
     /**
      * Populated in {@link #initializeSortedGraph()}.
@@ -119,13 +119,14 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
     }
 
     @Override
-    public void visitAll(final DLKerasLayerVisitor visitor) {
+    public Map<DLKerasTensorSpecsOutput, Integer> visitAll(final DLKerasLayerVisitor visitor) {
         if (m_layersSortedByDepth == null) {
             initializeSortedGraph();
         }
         while (m_layersSortedByDepth.hasNext()) {
             visitNextInternal(visitor);
         }
+        return m_maxDepthsFromOutputs;
     }
 
     private DLKerasTensorSpecsOutput visitNextInternal(final DLKerasLayerVisitor visitor) {
@@ -178,8 +179,8 @@ public final class DLKerasNetworkLayerGraphTopologicalOrderIterator implements D
             }
 
             @Override
-            public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
-                m_maxDepthsFromOutputs = maxDepthsFromOutputs;
+            public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+                m_maxDepthsFromOutputs = Collections.unmodifiableMap(maxDepthsFromOutputs);
             }
         });
 

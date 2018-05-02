@@ -239,7 +239,7 @@ public final class DLKerasNetworkMaterializer {
         private final Map<DLKerasTensorSpecsOutput, Function<DLKerasNetworkLayerNameGenerator, String>> m_codeLinesToGenerate =
             new HashMap<>();
 
-        private LinkedHashMap<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
+        private Map<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
 
         @Override
         public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
@@ -311,7 +311,7 @@ public final class DLKerasNetworkMaterializer {
         }
 
         @Override
-        public void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+        public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
             m_maxDepthsFromOutputs = maxDepthsFromOutputs;
         }
 

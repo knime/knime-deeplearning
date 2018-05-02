@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.knime.dl.core.DLUncheckedException;
@@ -73,8 +74,8 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
     /**
      * Visits the next layer in the network graph and passes it to the adequate method of the given visitor.
      *
-     * @param visitor the visitor to which the next layer is passed, may be <code>null</code> in which case this simply
-     *            returns the next layer
+     * @param visitor the visitor to which the next layer is passed, may be <code>null</code> in which case this method
+     *            simply returns the next layer
      * @return the next layer
      * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
      * @throws NoSuchElementException if the graph has no more elements
@@ -84,10 +85,13 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
     /**
      * Visits all layers in the network graph and passes each of them to the adequate method of the given visitor.
      *
-     * @param visitor the visitor to which the layers are passed
+     * @param visitor the visitor to which the layers are passed, may be <code>null</code> in which case this method
+     *            simply returns the layer depth map
+     * @return the same layer depth map that is passed to {@link DLKerasLayerVisitor#noteLayerDepths(Map)} if the
+     *         visitor is non-<code>null</code>
      * @throws DLNetworkLayerGraphTraversalException if an exception occurred while traversing the graph
      */
-    void visitAll(DLKerasLayerVisitor visitor);
+    Map<DLKerasTensorSpecsOutput, Integer> visitAll(DLKerasLayerVisitor visitor);
 
     /**
      * The visitor used to traverse the Keras network graph.
@@ -123,9 +127,11 @@ public interface DLKerasNetworkLayerGraphIterator extends Iterator<DLKerasTensor
         /**
          * Called after the last layer was visited.
          *
-         * @param maxDepthsFromOutputs a map that contains, for each layer, the maximum distance to any output layer
+         * @param maxDepthsFromOutputs a map that contains, for each layer, the maximum distance to any output layer.
+         *            The iteration order of the map is predictable (cf. {@link LinkedHashMap}) and conforms to the
+         *            iteration order of {@link DLKerasNetworkLayerGraphDepthFirstIterator}.
          */
-        default void noteLayerDepths(final LinkedHashMap<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
+        default void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
             // no op - most implementations won't need this information
         }
     }
