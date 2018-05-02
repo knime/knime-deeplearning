@@ -47,9 +47,9 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.knime.dl.core.DLDefaultTensorId;
@@ -59,6 +59,8 @@ import org.knime.dl.keras.core.DLKerasGenericNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkLayerGraphIterator.DLNetworkLayerGraphTraversalException;
+
+import gnu.trove.TIntHashSet;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -92,7 +94,8 @@ public final class DLKerasNetworkSpecInferrer {
         final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> outputSpecsToInfer =
             new ArrayList<>(5);
 
-        final Set<DLKerasNetworkSpec> baseNetworkSpecs = new HashSet<>(2);
+        final LinkedHashMap<DLKerasNetworkSpec, DLKerasBaseNetworkSpecHelperStruct> baseNetworkSpecs =
+            new LinkedHashMap<>();
 
         new DLKerasNetworkLayerGraphTopologicalOrderIterator(m_outputLayers).visitAll(new DLKerasLayerVisitor() {
 
@@ -132,16 +135,28 @@ public final class DLKerasNetworkSpecInferrer {
 
             @Override
             public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
-                baseNetworkSpecs.add(baseNetworkOutput.getBaseNetworkSpec());
+                final DLKerasNetworkSpec baseNetworkSpec = baseNetworkOutput.getBaseNetworkSpec();
+                DLKerasBaseNetworkSpecHelperStruct baseNetworkHelper = baseNetworkSpecs.get(baseNetworkSpec);
+                // Re-use base network if it's already connected to another layer.
+                // TODO: This behavior may not be intended.
+                if (baseNetworkHelper == null) {
+                    baseNetworkHelper = new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
+                    baseNetworkSpecs.put(baseNetworkSpec, baseNetworkHelper);
+                    inputSpecsToInfer.add(baseNetworkHelper::inferInputTensorSpecs);
+                    outputSpecsToInfer.add(baseNetworkHelper::inferOutputTensorSpecs);
+                }
+                final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
+                baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
             }
         });
 
         // Base network layer names are reserved.
         final DLKerasNetworkLayerNameGenerator layerNameGen =
-            DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
+            DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs.keySet());
 
         final DLTensorSpec[] inputSpecs = collectTensorSpecs(layerNameGen, inputSpecsToInfer);
-        final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
+        final DLTensorSpec[] hiddenSpecs = new DLTensorSpec[0];
+        // TODO: uncomment collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 
         return new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
@@ -160,7 +175,8 @@ public final class DLKerasNetworkSpecInferrer {
             final DLTensorSpec tensorSpec = tensorSpecs.get(i);
             final DLTensorSpec amendedTensorSpec;
             final String layerName = layerNameGen.getNextLayerName(layer);
-            // We cannot represent Keras layer nodes via KNIME nodes. Thus, the node index is always zero.
+            // We cannot represent Keras layer nodes via KNIME nodes (unless we introduce "layer define" and
+            // "layer apply" nodes). Thus, the node index is always zero.
             final String tensorName = layerNameGen.getOutputTensorName(layerName, 0, i);
             if (tensorSpec.getBatchSize().isPresent()) {
                 amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
@@ -178,5 +194,32 @@ public final class DLKerasNetworkSpecInferrer {
     private DLTensorSpec[] collectTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
         final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> specsToInfer) {
         return specsToInfer.stream().flatMap(f -> f.apply(layerNameGen).stream()).toArray(l -> new DLTensorSpec[l]);
+    }
+
+    private static class DLKerasBaseNetworkSpecHelperStruct {
+
+        private final DLKerasNetworkSpec m_networkSpec;
+
+        private final TIntHashSet m_connectedOutputs = new TIntHashSet(5);
+
+        private DLKerasBaseNetworkSpecHelperStruct(final DLKerasNetworkSpec networkSpec) {
+            m_networkSpec = networkSpec;
+        }
+
+        private List<DLTensorSpec> inferInputTensorSpecs(final DLKerasNetworkLayerNameGenerator generator) {
+            return Arrays.asList(m_networkSpec.getInputSpecs());
+        }
+
+        private List<DLTensorSpec> inferOutputTensorSpecs(final DLKerasNetworkLayerNameGenerator generator) {
+            final DLTensorSpec[] allOutTensorSpecs = m_networkSpec.getOutputSpecs();
+            final List<DLTensorSpec> outTensorSpecs =
+                new ArrayList<>(allOutTensorSpecs.length - m_connectedOutputs.size());
+            for (int i = 0; i < allOutTensorSpecs.length; i++) {
+                if (!m_connectedOutputs.contains(i)) {
+                    outTensorSpecs.add(allOutTensorSpecs[i]);
+                }
+            }
+            return outTensorSpecs;
+        }
     }
 }
