@@ -75,13 +75,6 @@ public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
     }
 
     @Override
-    protected Class<?> inferOutputElementType(final Class<?> firstInputElementType,
-        final Class<?> secondInputElementType) {
-        // TODO
-        return firstInputElementType;
-    }
-
-    @Override
     protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
         // TODO
         return firstInputShape;

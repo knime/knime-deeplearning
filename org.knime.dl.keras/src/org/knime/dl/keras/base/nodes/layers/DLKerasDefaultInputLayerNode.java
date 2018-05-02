@@ -71,7 +71,7 @@ public final class DLKerasDefaultInputLayerNode extends DLKerasAbstractLayerNode
 
     @Override
     public DLKerasNetworkPortObjectSpecBase configure() throws InvalidSettingsException {
-        m_layer.validateParameters();
+        validateLayer();
         return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
     }
 

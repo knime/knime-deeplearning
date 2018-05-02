@@ -89,11 +89,6 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryInnerLayer {
     }
 
     @Override
-    protected Class<?> inferOutputElementType(final Class<?> inputElementType) {
-        return inputElementType;
-    }
-
-    @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[] outputShape = inputShape.clone();
         outputShape[outputShape.length - 1] = m_units;

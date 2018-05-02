@@ -86,18 +86,13 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     }
 
     @Override
-    public List<DLTensorSpec> getInputSpecs() {
+    public List<DLTensorSpec> getOutputSpecs() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType);
         final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
         // TODO: check if batch size is enabled as soon as available
         return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy", m_batchSize, shape,
             elementType, dimensionOrder));
-    }
-
-    @Override
-    public List<DLTensorSpec> getOutputSpecs() {
-        return getInputSpecs();
     }
 
     @Override

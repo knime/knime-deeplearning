@@ -62,7 +62,7 @@ import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasBinaryInnerLayerNode extends DLKerasAbstractLayerNode
+public final class DLKerasBinaryInnerLayerNode extends DLKerasAbstractInnerLayerNode
     implements PortToPortBiFunction<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectBase, //
             DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectSpecBase, //
             DLKerasNetworkPortObjectSpecBase, DLKerasNetworkPortObjectSpecBase> {
@@ -74,21 +74,17 @@ public final class DLKerasBinaryInnerLayerNode extends DLKerasAbstractLayerNode
     @Override
     public DLKerasNetworkPortObjectSpecBase configure(final DLKerasNetworkPortObjectSpecBase firstInSpec,
         final DLKerasNetworkPortObjectSpecBase secondInSpec) throws InvalidSettingsException {
-        if (!(firstInSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec
-            && secondInSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec)) {
-            throw new InvalidSettingsException("Apending layers to existing networks is not supported, yet.");
-        }
-        final DLKerasBinaryInnerLayer binaryLayer = (DLKerasBinaryInnerLayer)m_layer;
-        binaryLayer.setParent(0, ((DLKerasUnmaterializedNetworkPortObjectSpec)firstInSpec).getOutputLayer());
-        binaryLayer.setParent(1, ((DLKerasUnmaterializedNetworkPortObjectSpec)secondInSpec).getOutputLayer());
-        binaryLayer.validateParameters();
-        binaryLayer.validateInputSpecs();
+        setLayerParent(0, firstInSpec);
+        setLayerParent(1, secondInSpec);
+        validateLayer();
         return new DLKerasUnmaterializedNetworkPortObjectSpec(m_layer);
     }
 
     @Override
     public DLKerasNetworkPortObjectBase apply(final DLKerasNetworkPortObjectBase firstIn,
         final DLKerasNetworkPortObjectBase secondIn, final ExecutionContext exec) throws Exception {
+        amendBaseNetworkSource(0, firstIn);
+        amendBaseNetworkSource(1, secondIn);
         final FileStore fileStore =
             DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
         return new DLKerasUnmaterializedNetworkPortObject(m_layer, fileStore);

@@ -71,7 +71,7 @@ public interface DLKerasLayer extends DLKerasTensorSpecsOutput {
     void validateParameters() throws InvalidSettingsException;
 
     /**
-     * @return returns a meaningful string representation of this layer, e.g. its back end representation
+     * @return a meaningful string representation of this layer, e.g. its back end representation
      */
     @Override
     String toString();

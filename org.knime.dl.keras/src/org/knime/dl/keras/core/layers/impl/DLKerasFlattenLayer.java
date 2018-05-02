@@ -75,11 +75,6 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryInnerLayer {
     }
 
     @Override
-    protected Class<?> inferOutputElementType(final Class<?> inputElementType) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         throw new RuntimeException("not yet implemented"); // TODO: NYI
     }

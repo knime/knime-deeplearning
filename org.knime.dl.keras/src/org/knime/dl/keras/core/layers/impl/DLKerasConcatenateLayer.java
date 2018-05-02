@@ -80,12 +80,6 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
     }
 
     @Override
-    protected Class<?> inferOutputElementType(final Class<?> firstInputElementType,
-        final Class<?> secondInputElementType) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
     protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
         throw new RuntimeException("not yet implemented"); // TODO: NYI
     }

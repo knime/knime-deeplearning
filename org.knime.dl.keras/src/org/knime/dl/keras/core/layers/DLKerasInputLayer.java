@@ -46,15 +46,11 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import java.util.List;
-
-import org.knime.dl.core.DLTensorSpec;
-
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasInputLayer extends DLKerasLayer {
 
-    List<DLTensorSpec> getInputSpecs();
+    // NB: Marker interface.
 }

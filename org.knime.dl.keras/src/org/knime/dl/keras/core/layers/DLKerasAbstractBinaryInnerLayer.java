@@ -70,9 +70,15 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
     protected abstract void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
         Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException;
 
-    protected abstract Class<?> inferOutputElementType(Class<?> firstInputElementType, Class<?> secondInputElementType);
-
     protected abstract Long[] inferOutputShape(Long[] firstInputShape, Long[] secondInputShape);
+
+    /**
+     * The default behavior is to return <code>firstInputElementType</code>.
+     */
+    protected Class<?> inferOutputElementType(final Class<?> firstInputElementType,
+        final Class<?> secondInputElementType) {
+        return firstInputElementType;
+    }
 
     @Override
     protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)

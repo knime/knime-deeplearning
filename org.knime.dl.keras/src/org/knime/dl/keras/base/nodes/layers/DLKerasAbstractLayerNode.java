@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.scijava.param2.Parameter;
 
@@ -60,5 +61,9 @@ public abstract class DLKerasAbstractLayerNode {
 
     protected DLKerasAbstractLayerNode(final DLKerasLayer layer) {
         m_layer = layer;
+    }
+
+    protected void validateLayer() throws InvalidSettingsException {
+        m_layer.validateParameters();
     }
 }
