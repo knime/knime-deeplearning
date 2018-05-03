@@ -258,7 +258,7 @@ final class DLExecutorNodeModel extends NodeModel {
 		}
 
 		try {
-			configureGeneral(networkSpec, networkType);
+			configureGeneral(networkType);
 			configureInputs(networkSpec, inDataSpec);
 			configureOutputs(networkSpec);
 		} catch (final Exception e) {
@@ -366,8 +366,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		// no op
 	}
 
-	private void configureGeneral(final DLNetworkSpec networkSpec, final Class<? extends DLNetwork> networkType)
-			throws Exception {
+	private void configureGeneral(final Class<? extends DLNetwork> networkType)
+			throws DLMissingDependencyException, InvalidSettingsException {
 		DLExecutionContext<?> backend = m_generalCfg.getContextEntry().getValue();
 		if (backend == null) {
 		    final List<DLExecutionContext<?>> availableBackends = DLExecutorGeneralConfig
@@ -388,7 +388,7 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
-			throws DLMissingExtensionException, InvalidSettingsException {
+			throws InvalidSettingsException {
 		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
 		for (final DLTensorSpec tensorSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
@@ -493,7 +493,43 @@ final class DLExecutorNodeModel extends NodeModel {
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId = new LinkedHashMap<>(
 				m_inputConverters.size());
 
-		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
+		fillInputSpecificMaps(inDataSpec, columnsForTensorId, inputConverterForTensorId);
+
+		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId =
+            createOutputConverterMap();
+
+		try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
+				final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
+						rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
+				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
+						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
+				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
+						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+								batchSize, columnsForTensorId, m_inputConverters),
+						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
+			final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer);
+			session.run(monitor);
+		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+			throw e;
+		} catch (final Exception e) {
+			handleGeneralException(e);
+		}
+	}
+
+    private LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> createOutputConverterMap() {
+        final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId = new LinkedHashMap<>(
+				m_outputConverters.size());
+		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> entry : m_outputConverters
+				.entrySet()) {
+			outputConverterForTensorId.put(entry.getKey().getIdentifier(), entry.getValue());
+		}
+        return outputConverterForTensorId;
+    }
+
+    private void fillInputSpecificMaps(final DataTableSpec inDataSpec,
+        final LinkedHashMap<DLTensorId, int[]> columnsForTensorId,
+        final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId) {
+        for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
 				.entrySet()) {
 			final DLTensorSpec spec = entry.getKey();
 			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(spec.getName());
@@ -510,61 +546,47 @@ final class DLExecutorNodeModel extends NodeModel {
 			columnsForTensorId.put(spec.getIdentifier(), indices);
 			inputConverterForTensorId.put(spec.getIdentifier(), entry.getValue());
 		}
+    }
 
-		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId = new LinkedHashMap<>(
-				m_outputConverters.size());
-		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> entry : m_outputConverters
-				.entrySet()) {
-			outputConverterForTensorId.put(entry.getKey().getIdentifier(), entry.getValue());
-		}
+    private static void handleGeneralException(final Exception e) throws CanceledExecutionException {
+        final Throwable cause = e.getCause();
+        if (cause != null) {
+        	if (cause instanceof CanceledExecutionException) {
+        		throw (CanceledExecutionException) cause;
+        	} else if (cause instanceof DLCanceledExecutionException) {
+        		throw new CanceledExecutionException(e.getMessage());
+        	}
+        }
+        String message;
+        if (e instanceof DLException) {
+        	message = e.getMessage();
+        } else {
+        	if (!Strings.isNullOrEmpty(e.getMessage())) {
+        		LOGGER.error(e.getMessage());
+        	}
+        	message = "An error occured during execution of the deep learning network. See log for details.";
+        }
+        throw new RuntimeException(message, e);
+    }
 
-		try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
-				final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
-						rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
-				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
-						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
-				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
-						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
-								batchSize, columnsForTensorId, m_inputConverters),
-						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
-			final DLExecutionStatus status = createExecutionStatus(inputPreparer);
-			final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
-			monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
-				final int currBatch = status.getCurrentBatch() + 1;
-				if (status.getNumBatches().isPresent()) {
-					final int numBatch = status.getNumBatches().getAsInt();
-					monitor.setProgress(currBatch / (double) numBatch,
-							"Processing batch " + currBatch + " of " + numBatch + "...");
-				} else {
-					monitor.setMessage("Processing batch " + currBatch + "...");
-				}
-			});
-			session.run(monitor);
-		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
-			throw e;
-		} catch (final Exception e) {
-			final Throwable cause = e.getCause();
-			if (cause != null) {
-				if (cause instanceof CanceledExecutionException) {
-					throw (CanceledExecutionException) cause;
-				} else if (cause instanceof DLCanceledExecutionException) {
-					throw new CanceledExecutionException(e.getMessage());
-				}
-			}
-			String message;
-			if (e instanceof DLException) {
-				message = e.getMessage();
-			} else {
-				if (!Strings.isNullOrEmpty(e.getMessage())) {
-					LOGGER.error(e.getMessage());
-				}
-				message = "An error occured during execution of the deep learning network. See log for details.";
-			}
-			throw new RuntimeException(message, e);
-		}
-	}
+    private static DLKnimeExecutionMonitor createExecutionMonitor(final ExecutionContext exec,
+        final DLKnimeNetworkExecutionInputPreparer inputPreparer) {
+        final DLExecutionStatus status = createExecutionStatus(inputPreparer);
+        final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
+        monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
+        	final int currBatch = status.getCurrentBatch() + 1;
+        	if (status.getNumBatches().isPresent()) {
+        		final int numBatch = status.getNumBatches().getAsInt();
+        		monitor.setProgress(currBatch / (double) numBatch,
+        				"Processing batch " + currBatch + " of " + numBatch + "...");
+        	} else {
+        		monitor.setMessage("Processing batch " + currBatch + "...");
+        	}
+        });
+        return monitor;
+    }
 	
-	private DLExecutionStatus createExecutionStatus(DLKnimeNetworkExecutionInputPreparer inputPreparer) {
+	private static DLExecutionStatus createExecutionStatus(DLKnimeNetworkExecutionInputPreparer inputPreparer) {
 	    int numBatches = -1;
         try {
             numBatches = (int) inputPreparer.getNumBatches();
@@ -576,7 +598,7 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
 	// workaround; when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
-	private Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
+	private static Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
 		final DLDataValueToTensorConverterFactory<? extends DataValue, ?> conv = inputCfg.getConverterEntry().getValue();
 		return conv.getSourceType();
 	}
