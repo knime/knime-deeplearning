@@ -83,6 +83,7 @@ import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDataTableRowIterator;
 import org.knime.dl.core.DLException;
@@ -426,7 +427,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 						+ "Are you missing a KNIME Deep Learning extension?");
 			}
 			backend = availableBackends.get(0);
-			m_generalCfg.getTrainingContextEntry().setValue(backend);
+			m_generalCfg.getContextEntry().setValue(backend);
 		}
         if (!inNetworkType.isAssignableFrom(backend.getNetworkType())) {
             throw new InvalidSettingsException(
@@ -533,13 +534,13 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			// TODO: check column selection (see dialog)!
 			DLKerasLossFunction lossFunction = targetCfg.getLossFunctionEntry().getValue();
 			if (lossFunction == null) {
-				final List<DLKerasLossFunction> availableLossFunctions = m_generalCfg.getTrainingContextEntry()
+				final List<DLKerasLossFunction> availableLossFunctions = m_generalCfg.getContextEntry()
 						.getValue().createLossFunctions().stream() //
 						.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
 						.collect(Collectors.toList());
 				if (availableLossFunctions.isEmpty()) {
 					throw new InvalidSettingsException("No loss functions available for target '" + tensorSpec.getName()
-							+ "' (with training context '" + m_generalCfg.getTrainingContextEntry().getValue().getName()
+							+ "' (with training context '" + m_generalCfg.getContextEntry().getValue().getName()
 							+ "').");
 				}
 				lossFunction = availableLossFunctions.get(0);
@@ -579,7 +580,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			doValidation = false;
 		}
 
-		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getTrainingContextEntry()
+		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getContextEntry()
 				.getValue();
 
 		// training configuration
