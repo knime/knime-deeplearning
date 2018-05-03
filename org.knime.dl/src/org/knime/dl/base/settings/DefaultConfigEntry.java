@@ -50,7 +50,7 @@ package org.knime.dl.base.settings;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DefaultConfigEntry<T> extends AbstractConfigEntry<T> {
+public class DefaultConfigEntry<T> extends AbstractStandardConfigEntry<T> {
 
 	public DefaultConfigEntry(final String entryKey, final Class<T> entryType) {
 		super(entryKey, entryType);

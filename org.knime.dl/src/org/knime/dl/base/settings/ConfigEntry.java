@@ -83,6 +83,10 @@ public interface ConfigEntry<T> {
 
 	void removeLoadListener(Consumer<ConfigEntry<T>> listener);
 
+	/**
+	 * @param listener the first parameter is the new config entry, the second is the old value of the config entry
+	 * 
+	 */
 	void addValueChangeListener(BiConsumer<ConfigEntry<T>, T> listener);
 
 	void removeValueChangeListener(BiConsumer<ConfigEntry<T>, T> listener);
