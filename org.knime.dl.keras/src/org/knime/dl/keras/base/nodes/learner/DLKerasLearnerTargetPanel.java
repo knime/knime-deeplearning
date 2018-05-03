@@ -48,223 +48,46 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.OptionalLong;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
-import org.knime.dl.base.nodes.DLConverterRefresher;
-import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
+import org.knime.dl.base.nodes.DLInputPanel;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.training.DLLossFunction;
-import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
-import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("serial")
-final class DLKerasLearnerTargetPanel extends JPanel {
-
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeDialog.class);
-
-	private final DLKerasLearnerTargetConfig m_cfg;
+final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerTargetConfig> {
 
 	private final DLTensorSpec m_targetTensorSpec;
 
-	private final DialogComponentObjectSelection<DLDataValueToTensorConverterFactory<?, ?>> m_dcConverter;
-
-	private final DataColumnSpecFilterPanel m_dcInputColumns;
-
 	private final DialogComponentObjectSelection<DLKerasLossFunction> m_dcLossFunction;
 
-	private DataTableSpec m_lastTableSpec;
 
 	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputDataSpec,
 			final DataTableSpec tableSpec) {
-		super(new GridBagLayout());
-		m_cfg = cfg;
+	    super(cfg, outputDataSpec, tableSpec, DLKerasLearnerNodeModel.IN_DATA_PORT_IDX, "Target columns:", "target");
 		m_targetTensorSpec = outputDataSpec;
-		m_lastTableSpec = tableSpec;
-
-		// construct panel:
-
-		setBorder(BorderFactory.createTitledBorder("Training target: " + m_targetTensorSpec.getName()));
-		final GridBagConstraints constr = new GridBagConstraints();
-		constr.gridx = 0;
-		constr.gridy = 0;
-		constr.weightx = 1;
-		constr.anchor = GridBagConstraints.WEST;
-		constr.fill = GridBagConstraints.VERTICAL;
-		// meta information
-		final JPanel numNeurons = new JPanel();
-		final GridBagConstraints numNeuronsConstr = new GridBagConstraints();
-		numNeuronsConstr.insets = new Insets(5, 0, 5, 0);
-		numNeurons.add(
-				new JLabel("Number of neurons: " + DLUtils.Shapes.getSizeAsString(m_targetTensorSpec.getShape())),
-				numNeuronsConstr);
-		add(numNeurons, constr);
-		constr.gridy++;
-		final JPanel shape = new JPanel();
-		final GridBagConstraints shapeConstr = new GridBagConstraints();
-		shapeConstr.insets = new Insets(5, 0, 5, 0);
-		shape.add(new JLabel("Shape: " + m_targetTensorSpec.getShape().toString()), shapeConstr);
-		add(shape, constr);
-		constr.gridy++;
-		// converter selection
-		m_dcConverter = new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(), c -> "From " + c.getName(),
-				"Conversion");
-		add(m_dcConverter.getComponentPanel(), constr);
-		constr.gridy++;
-		// column selection
-		final JPanel inputColumnsLabel = new JPanel();
-		inputColumnsLabel.add(new JLabel("Target columns:"));
-		add(inputColumnsLabel, constr);
-		constr.gridy++;
-		final JPanel inputColumnsFilter = new JPanel();
-		m_dcInputColumns = new DataColumnSpecFilterPanel();
-		inputColumnsFilter.add(m_dcInputColumns);
-		add(inputColumnsFilter, constr);
-		constr.gridy++;
-		// loss function selection
-		m_dcLossFunction = new DialogComponentObjectSelection<>(m_cfg.getLossFunctionEntry(), DLLossFunction::getName,
-				"Loss function");
-		add(m_dcLossFunction.getComponentPanel(), constr);
-		constr.gridy++;
-
-		m_cfg.getGeneralConfig().getTrainingContextEntry().addValueChangeListener((entry, oldValue) -> {
-			try {
-				refreshAvailableConverters(m_lastTableSpec);
-				refreshAvailableLossFunctions();
-			} catch (final NotConfigurableException ex) {
-				throw new IllegalStateException(ex.getMessage(), ex);
-			}
-		});
-
-		m_cfg.getConverterEntry()
-				.addValueChangeListener((entry, oldValue) -> refreshAllowedInputColumns(m_lastTableSpec));
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(m_targetTensorSpec.getShape());
-		if (inputSizeOpt.isPresent()) {
-			final long inputSize = inputSizeOpt.getAsLong();
-			// validate input: get user-selected columns and converter, ask
-			// converter for its output size given the input
-			// columns (if possible) and compare to number of available target
-			// neurons
-			final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
-			final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter = m_cfg.getConverterEntry()
-					.getValue();
-			final OptionalLong converterOutputSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
-			if (converterOutputSizeOpt.isPresent()) {
-				final long converterOutputSize = converterOutputSizeOpt.getAsLong();
-				if (converterOutputSize > inputSize) {
-					throw new InvalidSettingsException("Selected target columns provide more elements ("
-							+ converterOutputSize + ") than neurons available (" + inputSize + ") for network target '"
-							+ m_targetTensorSpec.getName() + "'. Try removing some columns from the selection.");
-				}
-				if (converterOutputSize < inputSize) {
-					throw new InvalidSettingsException("Selected target columns do not provide enough elements ("
-							+ converterOutputSize + ") to populate all neurons (" + inputSize + ") of network target '"
-							+ m_targetTensorSpec.getName() + "'. Try adding some columns to the selection.");
-				}
-			} else {
-				// we still can check if there are more input columns than input
-				// neurons since every column provides at
-				// least one element
-				if (includedColSpecs.size() > inputSize) {
-					throw new InvalidSettingsException("More target columns selected (" + includedColSpecs.size()
-							+ ") than neurons available (" + inputSize + ") for network target '"
-							+ m_targetTensorSpec.getName() + "'. Try removing some columns from the selection.");
-				}
-			}
-		}
-
-		m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
-		m_cfg.saveToSettings(settings);
+		m_dcLossFunction = addObjectSelectionRow(cfg.getLossFunctionEntry(), DLLossFunction::getName, "Loss function", null);
 	}
 
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-		m_lastTableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
-		try {
-			m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
-		} catch (final InvalidSettingsException e) {
-			// ignore
-			LOGGER.debug(e.getMessage() != null ? e.getMessage() : "Trying to restore from invalid settings.", e);
-		}
-		m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
-		refreshAvailableConverters(m_lastTableSpec);
-		refreshAllowedInputColumns(m_lastTableSpec);
+		super.loadSettingsFrom(settings, specs);
 		refreshAvailableLossFunctions();
 	}
-
-	private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
-		final DLTrainingContext<?, ?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
-		DLConverterRefresher converterRefresher;
-		try {
-			final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-					.comparing(DLDataValueToTensorConverterFactory::getName);
-			converterRefresher = new DLConverterRefresher(dataTableSpec,
-					trainingContext.getTensorFactory().getWritableBufferType(m_targetTensorSpec), m_targetTensorSpec,
-					true, nameComparator);
-		} catch (final DLNoConverterAvailableException e) {
-			throw new NotConfigurableException(e.getLongMessage());
-		}
-		final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
-		m_dcConverter.replaceListItems(converterFactories, null);
-	}
-
-	private void refreshAllowedInputColumns(final DataTableSpec dataTableSpec) {
-		final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-		if (dataTableSpec.containsCompatibleType(allowedColType)) {
-			// We need to save and reload the current configuration to take user actions into account that were taken
-			// since the dialog was opened. Else those would be overridden by the initial configuration.
-			m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
-			m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), dataTableSpec);
-			m_cfg.getInputColumnsEntry().setValue(new DataColumnSpecFilterConfiguration(
-					DLKerasLearnerInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType)));
-			final DataColumnSpecFilterConfiguration filterConfig = m_cfg.getInputColumnsEntry().getValue();
-			m_dcInputColumns.updateWithNewConfiguration(filterConfig);
-		}
-		// FIXME (knime-core):
-		// Strange behavior within DataColumnSpecFilterPanel (see
-		// #toFilteredStringArray where m_filter is always
-		// null because it doesn't get set in #updateWithNewConfiguration (only
-		// in the super class).
-		// Also see NameFilterPanel#loadConfiguration where
-		// #getRemovedFromIncludeList and #getRemovedFromExcludeList
-		// get added to the panel, which makes sense in general but not really
-		// when updating the filter config).
-	}
-
+	
 	private void refreshAvailableLossFunctions() throws NotConfigurableException {
-		final DLKerasTrainingContext<?> trainingContext = m_cfg.getGeneralConfig().getTrainingContextEntry().getValue();
+		final DLKerasTrainingContext<?> trainingContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
 		final List<DLKerasLossFunction> availableLossFunctions = trainingContext.createLossFunctions() //
 				.stream() //
 				.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
