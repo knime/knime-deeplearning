@@ -73,13 +73,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.base.nodes.DialogComponentObjectSelection;
+import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToListCellConverterFactory;
 import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -93,7 +93,7 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private final DLTensorSpec m_outputTensorSpec;
 
-	private final DialogComponentIdFromPrettyStringSelection m_dcConverter;
+	private final DialogComponentObjectSelection<DLTensorToDataCellConverterFactory<?, ?>> m_dcConverter;
 
 	private final CopyOnWriteArrayList<ChangeListener> m_removeListeners;
 
@@ -129,20 +129,19 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(outputRemoveBtn, outputRemoveBtnConstr);
 		constr.gridy++;
 		// converter selection
-		m_dcConverter = new DialogComponentIdFromPrettyStringSelection(m_cfg.getConverterModel(), "Conversion",
-				e -> m_cfg.getConverterModel().setStringArrayValue(
-						((DialogComponentIdFromPrettyStringSelection) e.getSource()).getSelection()));
+		m_dcConverter = new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(),
+		        c -> "To " + c.getName(), "Conversion");
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// prefix text input
-		final DialogComponentString dcPrefix = new DialogComponentString(m_cfg.getPrefixModel(),
-				"Output columns prefix");
+		final DialogComponentString dcPrefix = new DialogComponentString(
+		    ConfigUtil.toSettingsModelString(m_cfg.getPrefixEntry()),"Output columns prefix");
 		add(dcPrefix.getComponentPanel(), constr);
 		constr.gridy++;
 		// 'remove' button click event: remove output
 		outputRemoveBtn.addActionListener(e -> onRemove());
 
-		m_cfg.getGeneralConfig().addExecutionContextChangeListener(e -> {
+		m_cfg.getGeneralConfig().getContextEntry().addValueChangeListener((e, oldValue) -> {
 			try {
 				refreshAvailableConverters();
 			} catch (final NotConfigurableException ex) {
@@ -151,6 +150,10 @@ final class DLExecutorOutputPanel extends JPanel {
 		});
 
 		refreshAvailableConverters();
+	}
+	
+	public void unregisterListeners() {
+	    m_dcConverter.unregisterListeners();
 	}
 
 	DLExecutorOutputConfig getConfig() {
@@ -168,25 +171,20 @@ final class DLExecutorOutputPanel extends JPanel {
 	}
 
 	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-		refreshAvailableConverters();
-
 		try {
 			m_cfg.loadFromSettings(settings);
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
+		refreshAvailableConverters();
 	}
 
-	void saveToSettings(final NodeSettingsWO settings) {
+	void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
 		m_cfg.saveToSettings(settings);
 	}
 
 	private void refreshAvailableConverters() throws NotConfigurableException {
-		final DLExecutionContext<?> executionContext = DLExecutionContextRegistry.getInstance()
-				.getExecutionContext(m_cfg.getGeneralConfig().getExecutionContext()[1])
-				.orElseThrow(() -> new NotConfigurableException(
-						"Execution back end '" + m_cfg.getGeneralConfig().getExecutionContext()[0] + " ("
-								+ m_cfg.getGeneralConfig().getExecutionContext()[1] + ")' could not be found."));
+		final DLExecutionContext<?> executionContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = DLTensorToDataCellConverterRegistry
 				.getInstance().getPreferredFactoriesForSourceType(
 						executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec),
@@ -226,14 +224,7 @@ final class DLExecutorOutputPanel extends JPanel {
 					+ "'. Please make sure you are not missing a KNIME Deep Learning extension "
 					+ "and/or try to use a network that outputs different data types.");
 		}
-		final String[] names = new String[converterFactoriesSorted.size()];
-		final String[] ids = new String[converterFactoriesSorted.size()];
-		for (int i = 0; i < converterFactoriesSorted.size(); i++) {
-			final DLTensorToDataCellConverterFactory<?, ? extends DataCell> converter = converterFactoriesSorted.get(i);
-			names[i] = "To " + converter.getName();
-			ids[i] = converter.getIdentifier();
-		}
-		m_dcConverter.replaceListItems(names, ids, null);
+		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}
 
 	private void onRemove() {
