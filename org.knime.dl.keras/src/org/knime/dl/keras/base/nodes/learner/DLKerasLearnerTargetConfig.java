@@ -51,15 +51,15 @@ package org.knime.dl.keras.base.nodes.learner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
-import org.knime.dl.base.settings.AbstractConfig;
-import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.AbstractStandardConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLAbstractInputConfig;
+import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
@@ -67,32 +67,22 @@ import org.knime.dl.keras.core.training.DLKerasLossFunction;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerTargetConfig extends AbstractConfig {
-
-	private static final String CFG_KEY_CONVERTER = "converter";
-
-	private static final String CFG_VALUE_NULL_CONVERTER = "null";
-
-	private static final String CFG_KEY_INPUT_COL = "input_columns";
+final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLearnerGeneralConfig> {
 
 	private static final String CFG_KEY_LOSS_FUNC = "loss_function";
 
-	private final String m_targetTensorName;
-
-	private final DLKerasLearnerGeneralConfig m_generalConfig;
 
 	@SuppressWarnings("rawtypes") // Java limitation
 	DLKerasLearnerTargetConfig(final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
-		super(checkNotNullOrEmpty(targetTensorName));
-		m_targetTensorName = targetTensorName;
-		m_generalConfig = checkNotNull(generalCfg);
-		put(new AbstractConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
+		super(checkNotNullOrEmpty(targetTensorName), checkNotNull(generalCfg));
+		put(new AbstractStandardConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
 				DLDataValueToTensorConverterFactory.class) {
 
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String converterIdentifier = m_value != null //
 						? m_value.getIdentifier()
 						: CFG_VALUE_NULL_CONVERTER;
@@ -101,103 +91,63 @@ final class DLKerasLearnerTargetConfig extends AbstractConfig {
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String converterIdentifier = settings.getString(getEntryKey());
 				if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
 					throw new InvalidSettingsException(
-							"No target data converter available for network target '" + m_targetTensorName + "'.");
+							"No target data converter available for network target '" + getTensorName() + "'.");
 				}
 				m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
 						.orElseThrow(() -> new InvalidSettingsException("Target data converter '" + converterIdentifier
-								+ "' of network target '" + m_targetTensorName
+								+ "' of network target '" + getTensorName()
 								+ "' could not be found. Are you missing a KNIME extension?"));
 			}
 		});
-		put(new AbstractConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
+		put(new AbstractStandardConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
 				DataColumnSpecFilterConfiguration.class,
 				new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class))) {
 
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final NodeSettingsWO subSettings = settings.addNodeSettings(CFG_KEY_INPUT_COL);
 				m_value.saveConfiguration(subSettings);
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				// no op. Separate routines for loading in model and dialog required. See below.
 			}
 		});
-		put(new AbstractConfigEntry<DLKerasLossFunction>(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class) {
+		put(new AbstractStandardConfigEntry<DLKerasLossFunction>(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class) {
 
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String identifier = m_value != null ? m_value.getClass().getCanonicalName() : "null";
 				settings.addString(getEntryKey(), identifier);
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String identifier = settings.getString(getEntryKey());
 				if (!identifier.equals("null")) {
-					m_value = m_generalConfig.getTrainingContextEntry().getValue().createLossFunctions().stream()
+					m_value = getGeneralConfig().getContextEntry().getValue().createLossFunctions().stream()
 							.filter(o -> o.getClass().getCanonicalName().equals(identifier)) //
 							.findFirst() //
 							.orElseThrow(() -> new InvalidSettingsException(
-									"Loss function '" + identifier + "' of target '" + m_targetTensorName
+									"Loss function '" + identifier + "' of target '" + getTensorName()
 											+ " could not be found. Are you missing a KNIME Deep Learning extension?"));
 				}
 			}
 		});
 	}
 
-	String getTargetTensorName() {
-		return m_targetTensorName;
-	}
-
-	DLKerasLearnerGeneralConfig getGeneralConfig() {
-		return m_generalConfig;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	ConfigEntry<DLDataValueToTensorConverterFactory<?, ?>> getConverterEntry() {
-		return (ConfigEntry) get(CFG_KEY_CONVERTER, DLDataValueToTensorConverterFactory.class);
-	}
-
-	ConfigEntry<DataColumnSpecFilterConfiguration> getInputColumnsEntry() {
-		return get(CFG_KEY_INPUT_COL, DataColumnSpecFilterConfiguration.class);
-	}
 
 	ConfigEntry<DLKerasLossFunction> getLossFunctionEntry() {
 		return get(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class);
 	}
 
-	void loadFromSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-		if (settings.containsKey(m_targetTensorName)) {
-			loadFromSettings(settings);
-			final DataColumnSpecFilterConfiguration inputColumnConfig = getEntryValue(CFG_KEY_INPUT_COL,
-					DataColumnSpecFilterConfiguration.class);
-			final NodeSettingsRO inputColumnSettings = settings.getNodeSettings(getConfigKey())
-					.getNodeSettings(CFG_KEY_INPUT_COL).getNodeSettings(CFG_KEY_INPUT_COL);
-			inputColumnConfig.loadConfigurationInModel(inputColumnSettings);
-		}
-	}
-
-	void loadFromSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
-			throws InvalidSettingsException {
-		if (settings.containsKey(m_targetTensorName)) {
-			loadFromSettings(settings);
-			// we enforce inclusion by default
-			final DataColumnSpecFilterConfiguration inputColumnConfig = getEntryValue(CFG_KEY_INPUT_COL,
-					DataColumnSpecFilterConfiguration.class);
-			inputColumnConfig.loadDefault(spec, null, true);
-			final NodeSettingsRO inputColumnSettings = settings.getNodeSettings(getConfigKey())
-					.getNodeSettings(CFG_KEY_INPUT_COL).getNodeSettings(CFG_KEY_INPUT_COL);
-			inputColumnConfig.loadConfigurationInDialog(inputColumnSettings, spec);
-		}
-	}
 }
