@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.base.nodes.learner.view.jfreechart;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -53,12 +54,17 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -67,11 +73,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.Timer;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultCaret;
 
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.Range;
+import org.knime.core.node.util.SharedIcons;
 import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotView;
 import org.knime.dl.keras.base.nodes.learner.view.DLLinePlotViewData.DLLinePlotViewDataEntry;
 import org.knime.dl.keras.base.nodes.learner.view.rangeslider.RangeSlider;
@@ -84,6 +94,12 @@ import gnu.trove.TObjectFloatHashMap;
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFreeChartLinePlotViewSpec> {
+
+    final static int SLIDER_MIN = 0;
+
+    final static int SLIDER_MAX = 100;
+
+    final static Dimension RESET_BUTON_DIMENSION = new Dimension(10, 10);
 
     private final JFreeChartLinePlotPanel m_linePlot;
 
@@ -99,6 +115,17 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
 
     private final Timer m_currentValueUpdateTimer = new Timer(1000, (e) -> updateCurrentValueLabels());
 
+    private SliderPlotSync m_sliderPlotSync;
+
+    private NumberTextField m_absoluteLeftRange;
+
+    private NumberTextField m_absoluteRightRange;
+
+    /**
+     * Constructor for class DLJFreeChartLinePlotWithHistoryView specifying the plot view spec.
+     *
+     * @param plotViewSpec
+     */
     public DLJFreeChartLinePlotWithHistoryView(final DLJFreeChartLinePlotViewSpec plotViewSpec) {
         m_component = new JPanel(new GridBagLayout());
 
@@ -146,7 +173,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         gbc.gridy = 0;
         gbc.weightx = 1;
         gbc.weighty = 1;
-        gbc.insets = new Insets(0, 0, 0, 10);
+        gbc.insets = new Insets(0, 0, 0, 5);
         gbc.fill = GridBagConstraints.BOTH;
         m_linePlot = new JFreeChartLinePlotPanel(plotViewSpec);
         m_component.add(createPlotWithControlsPanel(m_linePlot), gbc);
@@ -156,6 +183,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         gbc.gridx = 1;
         gbc.weightx = 0;
         gbc.weighty = 1;
+        gbc.insets = new Insets(0, 0, 0, 0);
         gbc.fill = GridBagConstraints.VERTICAL;
         m_component.add(historyTabsPane, gbc);
     }
@@ -171,9 +199,21 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         gbc.fill = GridBagConstraints.BOTH;
         wrapper.add(chartPanel, gbc);
 
+        final JTabbedPane rangeControlTabsPane = new JTabbedPane();
+        rangeControlTabsPane.addChangeListener(e -> {
+            if (rangeControlTabsPane.getSelectedIndex() == 0) {
+                m_sliderPlotSync.reset();
+            } else {
+                applyAbsoluteRanges();
+            }
+        });
+        rangeControlTabsPane.addTab("Relative Zoom", createRelativeXRangeControls());
+        rangeControlTabsPane.addTab("Absolute Zoom", createAbsoluteXRangeControls());
+
         gbc.gridy = 1;
         gbc.weighty = 0;
-        wrapper.add(createXRangeControls(), gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        wrapper.add(rangeControlTabsPane, gbc);
 
         gbc.gridy = 2;
         wrapper.add(createSmoothingControls(), gbc);
@@ -187,13 +227,13 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(10, 10, 10, 0);
 
         final JCheckBox enableSmoothingBox = new JCheckBox("Smoothing");
         wrapper.add(enableSmoothingBox, gbc);
 
         gbc.gridx = 1;
-        gbc.insets = new Insets(10, 0, 10, 10);
+        gbc.insets = new Insets(10, 5, 10, 10);
         final JSpinner smoothingAlphaSpinner =
             new JSpinner(new SpinnerNumberModel(1 - JFreeChartLinePlotPanel.SMOOTHING_ALPHA_DEFAULT, 0.0, 1.0, 0.005));
         smoothingAlphaSpinner.setPreferredSize(new Dimension(80, 25));
@@ -212,8 +252,18 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
             m_linePlot.triggerSmoothedLinesUpdate();
         });
 
+        final JCheckBox enableLogScaleBox = new JCheckBox("Log Scale");
+        gbc.gridx++;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        wrapper.add(enableLogScaleBox, gbc);
+
+        enableLogScaleBox.addItemListener(e -> {
+            final boolean isLogScale = enableLogScaleBox.isSelected();
+            m_sliderPlotSync.setIsLogScale(isLogScale);
+        });
+
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 2;
+        gbc.gridx++;
         gbc.weightx = 1;
         wrapper.add(new Box(0), gbc);
 
@@ -223,15 +273,53 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         return border;
     }
 
-    private Component createXRangeControls() {
+    private Component createAbsoluteXRangeControls() {
         final JPanel wrapper = new JPanel(new GridBagLayout());
 
-        final int sliderMin = 0;
-        final int sliderMax = 100;
+        m_absoluteLeftRange = new NumberTextField(10, (DocumentAdapter)e -> {
+            if (m_absoluteLeftRange.getText().isEmpty()) {
+                m_sliderPlotSync.setHorizontalRange(0.0, m_absoluteRightRange.getNumber());
+            } else {
+                applyAbsoluteRanges();
+            }
+        });
+        m_absoluteRightRange = new NumberTextField(10, (DocumentAdapter)e -> {
+            if (m_absoluteRightRange.getText().isEmpty()) {
+                m_sliderPlotSync.setHorizontalRange(m_absoluteLeftRange.getNumber(), m_sliderPlotSync.getMaxX());
+            } else {
+                applyAbsoluteRanges();
+            }
+        });
+
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        wrapper.add(new JLabel("Left Bound:"), gbc);
+        gbc.gridx++;
+        wrapper.add(m_absoluteLeftRange, gbc);
+        gbc.gridx++;
+        wrapper.add(new JLabel("Right Bound:"), gbc);
+        gbc.gridx++;
+        wrapper.add(m_absoluteRightRange, gbc);
+        gbc.gridx++;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        wrapper.add(new Box(0), gbc);
+
+        return wrapper;
+    }
+
+    private void applyAbsoluteRanges() {
+        m_sliderPlotSync.setHorizontalRange(m_absoluteLeftRange.getNumber(), m_absoluteRightRange.getNumber());
+    }
+
+    private Component createRelativeXRangeControls() {
+        final JPanel wrapper = new JPanel(new GridBagLayout());
 
         final RangeSlider rangeSlider = new RangeSlider();
-        rangeSlider.setValue(sliderMin);
-        rangeSlider.setUpperValue(sliderMax);
+        rangeSlider.setValue(SLIDER_MIN);
+        rangeSlider.setUpperValue(SLIDER_MAX);
 
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -241,68 +329,35 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         gbc.fill = GridBagConstraints.HORIZONTAL;
         wrapper.add(rangeSlider, gbc);
 
-        // TODO prohibit listener trigger hack
-        final boolean[] hasAxisChanged = new boolean[]{false};
-        final boolean[] sliderChanged = new boolean[]{false};
-
-        rangeSlider.addChangeListener(e -> {
-            if (hasAxisChanged[0]) {
-                return;
-            }
-            sliderChanged[0] = true;
-
-            final int maxItemCount = getMaxItemCount();
-            final double lowerBound = (rangeSlider.getValue() / 100.0) * maxItemCount;
-            final double upperBound = (rangeSlider.getUpperValue() / 100.0) * maxItemCount;
-
-            if (lowerBound < upperBound) {
-                m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);
-                m_linePlot.autoRangeVerticalAxis();
-            }
-
-            sliderChanged[0] = false;
-        });
-
-        m_linePlot.getHorizontalAxis().addChangeListener(event -> {
-            if (sliderChanged[0]) {
-                return;
-            }
-            hasAxisChanged[0] = true;
-
-            final int maxItemCount = getMaxItemCount();
-            final Range axisRange = m_linePlot.getHorizontalAxis().getRange();
-            final int lowerSliderPos =
-                new Double(Math.rint((axisRange.getLowerBound() / maxItemCount) * 100)).intValue();
-            final int upperSliderPos =
-                new Double(Math.rint((axisRange.getUpperBound() / maxItemCount) * 100)).intValue();
-            rangeSlider.setValue(lowerSliderPos);
-            rangeSlider.setUpperValue(upperSliderPos);
-
-            hasAxisChanged[0] = false;
-        });
-
         final JButton resetSliderButton = new JButton("Reset");
-        resetSliderButton.addActionListener(e -> {
-            rangeSlider.setValue(sliderMin);
-            rangeSlider.setUpperValue(sliderMax);
-
-            autoRangeYrestoreBoundsX();
-        });
-
         gbc.gridx = 1;
         gbc.weightx = 0;
-        gbc.insets = new Insets(0, 10, 5, 10);
+        gbc.insets = new Insets(0, 10, 5, 5);
         wrapper.add(resetSliderButton, gbc);
 
-        final JPanel border = new JPanel(new GridLayout());
-        border.add(wrapper);
-        border.setBorder(BorderFactory.createTitledBorder("Horizontal Zoom:"));
-        return border;
-    }
+        final ToggleIcon scrollLockButton = new ToggleIcon(SharedIcons.ADD_ALL.get());
+        scrollLockButton.setIsSelected(true);
+        scrollLockButton.setToolTipText("Auto Range Plot");
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(0, 0, 5, 0);
+        wrapper.add(scrollLockButton, gbc);
 
-    private void autoRangeYrestoreBoundsX() {
-        m_linePlot.autoRangeVerticalAxis();
-        m_linePlot.restoreHorizontalDomainBounds();
+        m_sliderPlotSync = new SliderPlotSync(rangeSlider, m_linePlot);
+
+        scrollLockButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                m_sliderPlotSync.setIsScrollLock(!scrollLockButton.isSelected());
+            }
+        });
+
+        resetSliderButton.addActionListener(e -> {
+            m_sliderPlotSync.reset();
+        });
+
+        return wrapper;
     }
 
     private void updateCurrentValueLabels() {
@@ -312,16 +367,27 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         });
     }
 
-    public void setCurrentValueTimerUpdateDelay(final int miliseconds) {
-        m_currentValueUpdateTimer.setDelay(miliseconds);
+    /**
+     * Set the update delay of the current value filed in the history view.
+     *
+     * @param milliseconds the delay in milliseconds
+     */
+    public void setCurrentValueTimerUpdateDelay(final int milliseconds) {
+        m_currentValueUpdateTimer.setDelay(milliseconds);
     }
 
+    /**
+     * Start the timed update of the current value filed in the history view.
+     */
     public void startCurrentValueUpdate() {
         if (!m_currentValueUpdateTimer.isRunning()) {
             m_currentValueUpdateTimer.start();
         }
     }
 
+    /**
+     * Stop the timed update of the current value filed in the history view.
+     */
     public void stopCurrentValueUpdate() {
         if (m_currentValueUpdateTimer.isRunning()) {
             m_currentValueUpdateTimer.stop();
@@ -337,21 +403,293 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
     public void update(final String lineLabel, final Iterator<DLLinePlotViewDataEntry> iterator) {
         while (iterator.hasNext()) {
             final DLLinePlotViewDataEntry dataEntry = iterator.next();
+
             m_linePlot.plotNext(lineLabel, dataEntry.getX() + 1, dataEntry.getY()); // x-values are 0-based
             m_historyAreas.get(lineLabel).append(dataEntry.getY() + "\n");
             m_currentValues.put(lineLabel, dataEntry.getY());
+
+            m_sliderPlotSync.updateMaxXValue(dataEntry.getX() + 1);
+            m_sliderPlotSync.updateYBounds(dataEntry.getY());
+            m_sliderPlotSync.updateOnData();
         }
     }
 
-    private int getMaxItemCount() {
-        return m_linePlot.getMaxItemCount();
-    }
-
+    /**
+     * Get the isRunning flag.
+     *
+     * @return the isRunning flag
+     */
     public boolean isRunning() {
         return m_isRunning;
     }
 
+    /**
+     * Set the isRuinning flag.
+     *
+     * @param isRunning
+     */
     public void setIsRunning(final boolean isRunning) {
         m_isRunning = isRunning;
+    }
+
+    /**
+     * A JTextField that turns red if no double number is entered.
+     */
+    private class NumberTextField extends JTextField {
+
+        private static final long serialVersionUID = 1L;
+
+        private final static String NUMBER_PATTERN = "\\d*(\\.\\d+)?";
+
+        public NumberTextField(final int columns, final DocumentListener documentListener) {
+            super(columns);
+            this.getDocument().addDocumentListener(documentListener);
+            this.getDocument().addDocumentListener((DocumentAdapter)e -> checkText());
+        }
+
+        private void checkText() {
+            final String text = this.getText();
+            if (!text.matches(NUMBER_PATTERN) || text.isEmpty()) {
+                this.setForeground(Color.RED);
+            } else {
+                this.setForeground(null);
+            }
+        }
+
+        public Double getNumber() {
+            try {
+                return Double.parseDouble(this.getText());
+            } catch (final NumberFormatException e) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * A clickable icon that behaves like a checkbox.
+     */
+    private class ToggleIcon extends JPanel {
+
+        private static final long serialVersionUID = 1L;
+
+        private boolean m_isSelected = false;
+
+        private final JLabel m_iconLabel;
+
+        final Color[] m_colors = new Color[3];
+
+        public ToggleIcon(final Icon icon) {
+            m_iconLabel = new JLabel(icon);
+            m_iconLabel.setPreferredSize(new Dimension(icon.getIconWidth() + 12, icon.getIconHeight() + 12));
+            m_iconLabel.setOpaque(true);
+
+            m_colors[0] = new Color(220f / 255f, 220f / 255f, 220f / 255f);
+            m_colors[1] = new Color(200f / 255f, 200f / 255f, 200f / 255f);
+            m_colors[2] = null;
+
+            m_iconLabel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(final MouseEvent e) {
+                    m_isSelected = !m_isSelected;
+                    updateIconAppearance();
+                }
+
+                @Override
+                public void mouseEntered(final MouseEvent e) {
+                    if (!m_isSelected) {
+                        m_iconLabel.setBackground(m_colors[0]);
+                    }
+                }
+
+                @Override
+                public void mouseExited(final MouseEvent e) {
+                    if (!m_isSelected) {
+                        m_iconLabel.setBackground(m_colors[2]);
+                    }
+                }
+            });
+
+            add(m_iconLabel);
+        }
+
+        private void updateIconAppearance() {
+            m_iconLabel.setBackground(m_colors[m_isSelected ? 1 : 0]);
+        }
+
+        @Override
+        public synchronized void addMouseListener(final MouseListener l) {
+            m_iconLabel.addMouseListener(l);
+        }
+
+        @Override
+        public void setToolTipText(final String text) {
+            m_iconLabel.setToolTipText(text);
+        }
+
+        public void setIsSelected(final boolean isSelected) {
+            m_isSelected = isSelected;
+            updateIconAppearance();
+        }
+
+        public boolean isSelected() {
+            return m_isSelected;
+        }
+    }
+
+    /**
+     * Helper class which manages the synchronization of the horizontal range controls and the line plot.
+     */
+    private class SliderPlotSync {
+
+        private final RangeSlider m_slider;
+
+        private final JFreeChartLinePlotPanel m_linePlot;
+
+        private boolean m_isScrollLock = false;
+
+        private double m_maxXValue = 0.0;
+
+        private Double m_maxYValue;
+
+        private Double m_minYValue;
+
+        private boolean m_isEnabled = true;
+
+        private boolean m_isLogScale = false;
+
+        public SliderPlotSync(final RangeSlider slider, final JFreeChartLinePlotPanel linePlot) {
+            m_slider = slider;
+            m_linePlot = linePlot;
+
+            m_slider.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseDragged(final MouseEvent e) {
+                    syncPlot();
+                }
+            });
+        }
+
+        private void syncSlider() {
+            final double maxItemCount = m_maxXValue;
+            final Range axisRange = m_linePlot.getHorizontalAxis().getRange();
+            final int lowerSliderPos =
+                new Double(Math.rint((axisRange.getLowerBound() / maxItemCount) * 100)).intValue();
+            final int upperSliderPos =
+                new Double(Math.rint((axisRange.getUpperBound() / maxItemCount) * 100)).intValue();
+            m_slider.setValue(lowerSliderPos);
+            m_slider.setUpperValue(upperSliderPos);
+        }
+
+        private void syncPlot() {
+            final double maxX = m_maxXValue;
+            final double lowerBound = (m_slider.getValue() / 100.0) * maxX;
+            final double upperBound = (m_slider.getUpperValue() / 100.0) * maxX;
+
+            if (lowerBound < upperBound) {
+                m_linePlot.getHorizontalAxis().setRange(lowerBound, upperBound);
+                double lowerY = 0.0;
+                if (m_isLogScale) {
+                    lowerY = m_minYValue;
+                }
+                m_linePlot.getVerticalAxis().setRange(lowerY, m_maxYValue);
+            }
+        }
+
+        public void updateOnData() {
+            if (m_isEnabled) {
+                if (m_isScrollLock) {
+                    syncSlider();
+                } else {
+                    syncPlot();
+                }
+            }
+        }
+
+        public void reset() {
+            m_slider.setValue(SLIDER_MIN);
+            m_slider.setUpperValue(SLIDER_MAX);
+            setIsScrollLock(false);
+            enable();
+            updateOnData();
+        }
+
+        public void setIsScrollLock(final boolean isScrollLock) {
+            m_isScrollLock = isScrollLock;
+            updateOnData();
+        }
+
+        public void updateMaxXValue(final double max) {
+            if (max > m_maxXValue) {
+                m_maxXValue = max;
+            }
+        }
+
+        public void updateYBounds(final double update) {
+            if (m_minYValue == null) {
+                m_minYValue = update;
+            } else if (update < m_minYValue) {
+                m_minYValue = update;
+            }
+
+            if (m_maxYValue == null) {
+                m_maxYValue = update;
+            } else if (update > m_maxYValue) {
+                m_maxYValue = update;
+            }
+        }
+
+        public void setHorizontalRange(final Double lower, final Double upper) {
+            final NumberAxis axis = m_linePlot.getHorizontalAxis();
+
+            double l = 0.0;
+            double u = 0.0;
+
+            if (lower != null && upper != null) {
+                disable();
+                l = lower;
+                u = upper;
+            } else if (lower != null && upper == null) {
+                disable();
+                final Range r = axis.getRange();
+                l = lower;
+                u = r.getUpperBound();
+            } else if (lower == null && upper != null) {
+                disable();
+                final Range r = axis.getRange();
+                l = r.getLowerBound();
+                u = upper;
+            } else {
+                disable();
+                final Range r = axis.getRange();
+                l = r.getLowerBound();
+                u = r.getUpperBound();
+            }
+
+            if (l < u) {
+                axis.setRange(new Range(l, u));
+            }
+        }
+
+        public double getMaxX() {
+            return m_maxXValue;
+        }
+
+        public void enable() {
+            m_isEnabled = true;
+        }
+
+        public void disable() {
+            m_isEnabled = false;
+        }
+
+        public void setIsLogScale(final boolean isLogScale) {
+            m_isLogScale = isLogScale;
+            if (isLogScale) {
+                m_linePlot.enableLogAxis();
+            } else {
+                m_linePlot.restoreDefaultAxis();
+            }
+            syncPlot();
+        }
     }
 }

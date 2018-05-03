@@ -67,11 +67,14 @@ import javax.swing.SwingUtilities;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.util.LogFormat;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -86,7 +89,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
     private static final long serialVersionUID = 1L;
 
     /*
-     * Color list to use for plots, starting with the first one. If the number of plots in on chart exceeds the number
+     * Color list to use for plots, starting with the first one. If the number of plots in this chart exceeds the number
      * of colors defined here we will start with the first color again. See getNextColor().
      */
     private static final List<Color> LINE_COLORS = Collections
@@ -97,7 +100,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
     public static final double SMOOTHING_ALPHA_DEFAULT = 0.05;
 
     /* Global line width of all plots */
-    private static final int LINE_STROKE = 2;
+    private static final int LINE_STROKE = 1;
 
     private final DLJFreeChartLinePlotViewSpec m_spec;
 
@@ -124,6 +127,10 @@ public class JFreeChartLinePlotPanel extends JPanel {
     private double m_smoothingAlpha = SMOOTHING_ALPHA_DEFAULT;
 
     private int m_colorIdx = 0;
+
+    private ValueAxis m_defaultAxis;
+
+    private LogAxis m_logAxis;
 
     public JFreeChartLinePlotPanel(final DLJFreeChartLinePlotViewSpec spec) {
         super(new GridBagLayout());
@@ -235,8 +242,30 @@ public class JFreeChartLinePlotPanel extends JPanel {
             for (int i = 0; i < m_spec.numPlots(); i++) {
                 updateLineStyle(m_spec.getLineLabel(i), false);
             }
+
+            m_defaultAxis = m_plot.getRangeAxis();
+            m_logAxis = new LogAxis(m_spec.labelY());
+            m_logAxis.setTickLabelFont(m_defaultAxis.getTickLabelFont());
+            m_logAxis.setLabelFont(m_defaultAxis.getLabelFont());
+            final LogFormat logFormat = new LogFormat(10, "", "", true);
+            m_logAxis.setNumberFormatOverride(logFormat);
+
         }
         return m_chartPanel;
+    }
+
+    /**
+     * Restore the axis scale to its default.
+     */
+    public void restoreDefaultAxis() {
+        m_plot.setRangeAxis(m_defaultAxis);
+    }
+
+    /**
+     * Set the vertical axis scale to be logarithmic.
+     */
+    public void enableLogAxis() {
+        m_plot.setRangeAxis(m_logAxis);
     }
 
     /**
@@ -369,46 +398,61 @@ public class JFreeChartLinePlotPanel extends JPanel {
         m_dataset.getSeries(key).clear();
     }
 
+    /**
+     * Get the horizontal axis.
+     *
+     * @return the horizontal axis
+     */
     public NumberAxis getHorizontalAxis() {
         return (NumberAxis)m_plot.getDomainAxis();
     }
 
-    public NumberAxis getVerticalAxis() {
-        return (NumberAxis)m_plot.getRangeAxis();
+    /**
+     * Get the vertical axis.
+     *
+     * @return the vertical axis
+     */
+    public ValueAxis getVerticalAxis() {
+        return m_plot.getRangeAxis();
     }
 
+    /**
+     * Get the item renderer.
+     *
+     * @return the item renderer
+     */
     public XYItemRenderer getRenderer() {
         return m_plot.getRenderer();
     }
 
+    /**
+     * Get the dataset of this plot.
+     *
+     * @return the dataset
+     */
     public XYSeriesCollection getDataset() {
         return m_dataset;
     }
 
+    /**
+     * Get the plot.
+     *
+     * @return the plot
+     */
     public XYPlot getPlot() {
         return m_plot;
     }
 
     /**
-     * Set range of vertical axis to current max and min visible in plot. This is useful if we manually set the
-     * horizontal axis range.
+     * Restore the auto bounds on the vertical axis.
      */
-    public void autoRangeVerticalAxis() {
-        getVerticalAxis().setRange(getRenderer().findRangeBounds(getDataset()));
-    }
-
-    /**
-     * Set range of horizontal axis to current max and min visible in plot. This is useful if we manually set the
-     * vertical axis range.
-     */
-    public void autoRangeHorizontalAxis() {
-        getHorizontalAxis().setRange(getRenderer().findDomainBounds(getDataset()));
-    }
-
     public void restoreVerticalDomainBounds() {
         m_chartPanel.restoreAutoRangeBounds();
     }
 
+    /**
+     * Restore the auto bounds on the horizontal axis.
+     */
     public void restoreHorizontalDomainBounds() {
         m_chartPanel.restoreAutoDomainBounds();
     }
