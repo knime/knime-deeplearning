@@ -393,7 +393,29 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
-		DLKerasTrainingContext<?> backend = m_generalCfg.getTrainingContextEntry().getValue();
+		DLKerasTrainingContext<?> backend = configureBackend(inNetworkType);
+		configureOptimizer(backend);
+	}
+
+    private void configureOptimizer(DLKerasTrainingContext<?> backend) throws DLMissingDependencyException {
+        DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
+		if (optimizer == null) {
+			final List<DLKerasOptimizer> availableOptimizers = backend.createOptimizers().stream() //
+					.sorted(Comparator.comparing(DLKerasOptimizer::getName)) //
+					.collect(Collectors.toList());
+			if (availableOptimizers.isEmpty()) {
+				throw new DLMissingDependencyException(
+						"No compatible optimizers available. " + "Are you missing a KNIME Deep Learning extension?");
+			}
+			optimizer = availableOptimizers.get(0);
+			m_generalCfg.getOptimizerEntry().setValue(optimizer);
+		}
+		m_generalCfg.copyClipSettingsToOptimizer();
+    }
+
+    private DLKerasTrainingContext<?> configureBackend(final Class<? extends DLNetwork> inNetworkType)
+        throws DLMissingDependencyException, InvalidSettingsException {
+        DLKerasTrainingContext<?> backend = m_generalCfg.getContextEntry().getValue();
 		if (backend == null) {
 			final List<DLKerasTrainingContext<?>> availableBackends = DLKerasLearnerGeneralConfig
 					.getAvailableTrainingContexts(inNetworkType).stream()
@@ -411,20 +433,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
                 "Selected training back end is not compatible to the input deep learning network. "
                     + "Please reconfigure the node.");
         }
-		DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
-		if (optimizer == null) {
-			final List<DLKerasOptimizer> availableOptimizers = backend.createOptimizers().stream() //
-					.sorted(Comparator.comparing(DLKerasOptimizer::getName)) //
-					.collect(Collectors.toList());
-			if (availableOptimizers.isEmpty()) {
-				throw new DLMissingDependencyException(
-						"No compatible optimizers available. " + "Are you missing a KNIME Deep Learning extension?");
-			}
-			optimizer = availableOptimizers.get(0);
-			m_generalCfg.getOptimizerEntry().setValue(optimizer);
-		}
-		m_generalCfg.copyClipSettingsToOptimizer();
-	}
+        return backend;
+    }
+	
 
 	private void configureInputs(final DLNetworkSpec inNetworkSpec, final DataTableSpec inTableSpec,
 			final DataTableSpec inValidationTableSpec) throws InvalidSettingsException {
