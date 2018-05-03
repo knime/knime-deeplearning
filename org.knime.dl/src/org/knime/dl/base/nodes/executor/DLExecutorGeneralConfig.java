@@ -48,16 +48,19 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.util.Collection;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.dl.base.settings.SettingsModelConfigEntries;
+import org.knime.dl.base.settings.AbstractConfig;
+import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLGeneralConfig;
+import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
 /**
  * Note: all those config classes will certainly be generalized and extended in the future as they're probably viable
@@ -66,8 +69,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class DLExecutorGeneralConfig {
+class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<DLExecutionContext<?>> {
 
 	private static final String CFG_KEY_ROOT = "general_settings";
 
@@ -77,82 +81,62 @@ class DLExecutorGeneralConfig {
 
 	private static final String CFG_KEY_KEEP_INPUT_COLS = "keep_input_columns";
 
-	private final String[] m_executionContext;
 
-	private final SettingsModelIntegerBounded m_smBatchSize;
-
-	private final SettingsModelBoolean m_smKeepInputColumns;
-
-	private final CopyOnWriteArrayList<ChangeListener> m_execCtxChangeListeners;
-
-	DLExecutorGeneralConfig(final String defaultBackendName, final String defaultBackendId,
+	@SuppressWarnings("rawtypes") // java limitation
+    DLExecutorGeneralConfig(final String defaultBackendName, final String defaultBackendId,
 			final int defaultBatchSize) {
-		m_executionContext = new String[] { defaultBackendName, defaultBackendId };
-		m_smBatchSize = new SettingsModelIntegerBounded(CFG_KEY_BATCH_SIZE, defaultBatchSize, 1, Integer.MAX_VALUE);
-		m_smKeepInputColumns = new SettingsModelBoolean(CFG_KEY_KEEP_INPUT_COLS, false);
-		m_execCtxChangeListeners = new CopyOnWriteArrayList<>();
+	    super(CFG_KEY_ROOT);
+	    put(new AbstractConfigEntry<DLExecutionContext>(CFG_KEY_EXEC_CTX, DLExecutionContext.class) {
+
+            @Override
+            public void saveSettingsTo(NodeSettingsWO settings)
+                throws InvalidSettingsException {
+                final String[] ctx = new String[2];
+                if (m_value == null) {
+                    ctx[0] = defaultBackendName;
+                    ctx[1] = defaultBackendId;
+                } else {
+                    ctx[0] = m_value.getName();
+                    ctx[1] = m_value.getIdentifier();
+                }
+                settings.addStringArray(getEntryKey(), ctx);
+            }
+
+            @Override
+            public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+                String[] newExecCtx = settings.getStringArray(getEntryKey());
+                if (newExecCtx[1] != null) {
+                    m_value = DLExecutionContextRegistry.getInstance().getExecutionContext(newExecCtx[1])
+                        .orElseThrow(() -> new InvalidSettingsException("Executor back end '" + newExecCtx[0]
+                                + "' (" 
+                                + newExecCtx[1]
+                                        + ") could not be found. Are you missing a KNIME Deep Learning extension?"));
+                }
+            }
+	        
+        });
+		put(SettingsModelConfigEntries.createIntegerBoundedConfigEntry(CFG_KEY_BATCH_SIZE, defaultBatchSize,
+		    1, Integer.MAX_VALUE));
+		put(SettingsModelConfigEntries.createBooleanConfigEntry(CFG_KEY_KEEP_INPUT_COLS, false));
 	}
 
-	String[] getExecutionContext() {
-		return m_executionContext.clone();
+	ConfigEntry<Integer> getBatchSizeEntry() {
+	    return get(CFG_KEY_BATCH_SIZE, Integer.class);
 	}
 
-	void setExecutionContext(final String newExecCtxName, final String newExecCtxId) {
-		if (newExecCtxId != null && !newExecCtxId.equals(m_executionContext[1]) && newExecCtxName != null
-		// TODO: remove hard-coded values
-				&& !newExecCtxName.equals("<none>") && !newExecCtxName.equals(m_executionContext[0])) {
-			m_executionContext[0] = newExecCtxName;
-			m_executionContext[1] = newExecCtxId;
-			notifyExecutionContextChangeListeners();
-		}
-	}
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public ConfigEntry<DLExecutionContext<?>> getContextEntry() {
+        return (ConfigEntry) get(CFG_KEY_EXEC_CTX, DLExecutionContext.class);
+    }
+    
+    public ConfigEntry<Boolean> getKeepInputColumnsEntry() {
+        return get(CFG_KEY_KEEP_INPUT_COLS, Boolean.class);
+    }
 
-	SettingsModelIntegerBounded getBatchSizeModel() {
-		return m_smBatchSize;
-	}
 
-	SettingsModelBoolean getKeepInputColumnsModel() {
-		return m_smKeepInputColumns;
-	}
-
-	void addExecutionContextChangeListener(final ChangeListener l) {
-		if (!m_execCtxChangeListeners.contains(l)) {
-			m_execCtxChangeListeners.add(l);
-		}
-	}
-
-	void removeExecutionContextChangeListener(final ChangeListener l) {
-		m_execCtxChangeListeners.remove(l);
-	}
-
-	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
-		if (cfgSettings.getStringArray(CFG_KEY_EXEC_CTX).length != m_executionContext.length) {
-			throw new InvalidSettingsException("Saved settings for '" + CFG_KEY_EXEC_CTX
-					+ "' are of invalid size. Expected element count is " + m_executionContext.length + ".");
-		}
-		m_smBatchSize.validateSettings(cfgSettings);
-		m_smKeepInputColumns.validateSettings(cfgSettings);
-	}
-
-	void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(CFG_KEY_ROOT);
-		final String[] newExecCtx = cfgSettings.getStringArray(CFG_KEY_EXEC_CTX);
-		setExecutionContext(newExecCtx[0], newExecCtx[1]);
-		m_smBatchSize.loadSettingsFrom(cfgSettings);
-		m_smKeepInputColumns.loadSettingsFrom(cfgSettings);
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) {
-		final NodeSettingsWO cfgSettings = settings.addNodeSettings(CFG_KEY_ROOT);
-		cfgSettings.addStringArray(CFG_KEY_EXEC_CTX, m_executionContext);
-		m_smBatchSize.saveSettingsTo(cfgSettings);
-		m_smKeepInputColumns.saveSettingsTo(cfgSettings);
-	}
-
-	private void notifyExecutionContextChangeListeners() {
-		for (final ChangeListener l : m_execCtxChangeListeners) {
-			l.stateChanged(new ChangeEvent(this));
-		}
-	}
+    static Collection<DLExecutionContext<?>> getAvailableExecutionContexts(Class<? extends DLNetwork> networkType) {
+        return DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType(networkType);
+    }
+	
 }
