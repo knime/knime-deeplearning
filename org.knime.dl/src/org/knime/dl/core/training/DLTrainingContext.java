@@ -49,10 +49,10 @@ package org.knime.dl.core.training;
 import java.util.Collection;
 import java.util.Set;
 
+import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkInputPreparer;
-import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
@@ -64,30 +64,15 @@ import org.knime.dl.core.DLTensorSpec;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingConfig> {
-
-	/**
-	 * @return the network type that's associated with this training context
-	 */
-	Class<N> getNetworkType();
+public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingConfig> extends DLContext<N> {
 
 	/**
 	 * @return the identifier of this training context, not null, not empty, must be unique across all training contexts
 	 */
-	default String getIdentifier() {
+	@Override
+    default String getIdentifier() {
 		return getClass().getCanonicalName();
 	}
-
-	/**
-	 * @return the friendly name of this training context, not null, not empty, suitable to be displayed to the user
-	 */
-	String getName();
-
-	/**
-	 * @return the {@link DLTensorFactory tensor factory} that is associated with this training context. Training
-	 *         sessions created by this context use this factory to construct their networks' input and target tensors.
-	 */
-	DLTensorFactory getTensorFactory();
 
 	/**
 	 * @return the available optimizers in this training context
@@ -116,11 +101,5 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 */
 	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
 			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
-			DLNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
-
-	/**
-	 * @return a meaningful string representation of this training context, e.g. its name and identifier
-	 */
-	@Override
-	String toString();
+			DLNetworkInputPreparer validationInputPreparer);
 }
