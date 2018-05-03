@@ -46,96 +46,70 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
-import org.knime.dl.core.DLException;
+import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
+import org.knime.dl.base.nodes.DialogComponentObjectSelection;
+import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
 
-import com.google.common.base.Strings;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-class DLExecutorGeneralPanel extends JPanel {
-
-	private static final long serialVersionUID = 1L;
+class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DLExecutorGeneralConfig m_cfg;
 
-	private final DLNetworkSpec m_networkSpec;
-
-	private final Class<? extends DLNetwork> m_networkType;
-
-	private final DialogComponentIdFromPrettyStringSelection m_dcBackend;
+	private final DialogComponentObjectSelection<DLExecutionContext<?>> m_dcBackend;
 
 	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec networkSpec,
 			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
-		super(new GridBagLayout());
 		m_cfg = cfg;
-		m_networkSpec = networkSpec;
-		m_networkType = networkType;
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("General Settings"));
-		final GridBagConstraints constr = new GridBagConstraints();
-		constr.gridx = 0;
-		constr.gridy = 0;
-		constr.weightx = 1;
-		constr.anchor = GridBagConstraints.WEST;
-		constr.fill = GridBagConstraints.VERTICAL;
 		// execution context ("back end") selection
-		m_dcBackend = new DialogComponentIdFromPrettyStringSelection(
-				new SettingsModelStringArray("proxy", m_cfg.getExecutionContext()), "Back end", (e) -> {
-					final String[] newExecCtx = ((DialogComponentIdFromPrettyStringSelection) e.getSource())
-							.getSelection();
-					m_cfg.setExecutionContext(newExecCtx[0], newExecCtx[1]);
-				});
-		add(m_dcBackend.getComponentPanel(), constr);
-		constr.gridy++;
-		// batch size input
-		final DialogComponentNumber cdBatchSize = new DialogComponentNumber(m_cfg.getBatchSizeModel(),
-				"Input batch size", 100);
-		add(cdBatchSize.getComponentPanel(), constr);
-		constr.gridy++;
-		final DialogComponentBoolean appendColumnComponent = new DialogComponentBoolean(
-				m_cfg.getKeepInputColumnsModel(), "Keep input columns in output table");
-		add(appendColumnComponent.getComponentPanel(), constr);
+		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getContextEntry(),
+		        DLExecutionContext::getName, "Back end");
+		
+		addDoubleColumnRow(getFirstComponent(m_dcBackend, JLabel.class),
+		    getFirstComponent(m_dcBackend, JComboBox.class));
+		    
+		addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
+		    m_cfg.getBatchSizeEntry(), 1, Integer.MAX_VALUE), "Input batch size", 100);
+		addCheckboxRow(ConfigUtil.toSettingsModelBoolean(m_cfg.getKeepInputColumnsEntry()),
+		    "Keep input columns in output table", true);
 	}
+	
 
-	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-		try {
-			m_cfg.loadFromSettings(settings);
-		} catch (final InvalidSettingsException e) {
-			// ignore
-		}
-		refreshAvailableBackends();
+	@Override
+    public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+	    final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX];
+        final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
+        final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
+		refreshAvailableBackends(networkType);
 
 		// Check if the network has pre-defined input batch sizes. Note that different batch sizes for the same network
 		// are not supported (for networks with multiple inputs).
 		long batchSize = -1;
-		for (final DLTensorSpec inputSpec : m_networkSpec.getInputSpecs()) {
+		for (final DLTensorSpec inputSpec : networkSpec.getInputSpecs()) {
 			if (inputSpec.getBatchSize().isPresent()) {
 				final long bs = inputSpec.getBatchSize().getAsLong();
 				if (batchSize == -1) {
@@ -151,48 +125,47 @@ class DLExecutorGeneralPanel extends JPanel {
 			}
 		}
 		if (batchSize != -1) {
-			m_cfg.getBatchSizeModel().setIntValue((int) batchSize);
-			m_cfg.getBatchSizeModel().setEnabled(false);
+			m_cfg.getBatchSizeEntry().setValue((int) batchSize);
+			m_cfg.getBatchSizeEntry().setEnabled(false);
 		} else {
-			m_cfg.getBatchSizeModel().setEnabled(true);
+			m_cfg.getBatchSizeEntry().setEnabled(true);
 		}
 	}
 
-	void saveToSettings(final NodeSettingsWO settings) {
-		m_cfg.saveToSettings(settings);
+	@Override
+    public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+//		m_cfg.saveToSettings(settings);
 	}
 
-	void refreshAvailableBackends() throws NotConfigurableException {
+	void refreshAvailableBackends(Class<? extends DLNetwork> networkType) throws NotConfigurableException {
 		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
-				.getExecutionContextsForNetworkType((m_networkType)) //
+				.getExecutionContextsForNetworkType((networkType)) //
 				.stream() //
 				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
 				.collect(Collectors.toList());
 		if (availableExecutionContexts.isEmpty()) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		}
-		final String[] names = new String[availableExecutionContexts.size()];
-		final String[] ids = new String[availableExecutionContexts.size()];
-		for (int i = 0; i < availableExecutionContexts.size(); i++) {
-			final DLExecutionContext<?> executionContext = availableExecutionContexts.get(i);
-			names[i] = executionContext.getName();
-			ids[i] = executionContext.getIdentifier();
+		final DLExecutionContext<?> value = m_cfg.getContextEntry().getValue();
+		final DLExecutionContext<?> selectedContext;
+		if (availableExecutionContexts.isEmpty()) {
+            throw new NotConfigurableException("There is no available back end that supports the input network.");
+		} else if (value != null && containsContext(availableExecutionContexts, value)) {
+		    selectedContext = value;
+		} else {
+		    selectedContext = availableExecutionContexts.get(0);
+		    m_cfg.getContextEntry().setValue(selectedContext);
 		}
-		final String selectedName = m_cfg.getExecutionContext()[1] != null ? m_cfg.getExecutionContext()[0] : names[0];
-		try {
-			m_dcBackend.replaceListItems(names, ids, selectedName);
-		} catch (final Exception e) {
-			// some informative exception messages get lost because we have to wrap them in unchecked exceptions to pipe
-			// them through all those change listeners. try to recover them here.
-			Throwable current = e;
-			do {
-				if (current instanceof DLException || current instanceof NotConfigurableException
-						|| (current instanceof InvalidSettingsException
-								&& !Strings.isNullOrEmpty(current.getMessage()))) {
-					throw new NotConfigurableException(current.getMessage(), e);
-				}
-			} while (current != current.getCause() && (current = current.getCause()) != null);
-			throw e;
-		}
+		m_dcBackend.replaceListItems(availableExecutionContexts, selectedContext);
 	}
+	
+	private boolean containsContext(final List<DLExecutionContext<?>> contexts,
+        final DLExecutionContext<?> context) {
+    for (final DLExecutionContext<?> check : contexts) {
+        if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
+            return true;
+        }
+    }
+    return false;
+}
 }
