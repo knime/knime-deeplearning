@@ -47,7 +47,10 @@
 package org.knime.dl.keras.core.export;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 
 import org.knime.core.util.FileUtil;
@@ -63,6 +66,9 @@ public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNe
 
     private static final String[] VALID_EXTENSIONS = {"h5"};
 
+    /**
+     * Creates a new Keras h5 exporter.
+     */
     public DLKerasH5NetworExporter() {
         super(DLKerasNetwork.class, NAME, VALID_EXTENSIONS);
     }
@@ -70,14 +76,15 @@ public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNe
     @Override
     public void exportNetworkInternal(final DLKerasNetwork network, final URL path, final boolean overwrite)
         throws IOException {
-        // TODO is it always fine copy it from the saved source?
-        // TODO make more general for remote files
-        final File source = FileUtil.getFileFromURL(network.getSource());
+        // TODO make more general for remote destination files
         final File dest = FileUtil.getFileFromURL(path);
         if (dest.exists() && !overwrite) {
             throw new IOException("The destination file already exists.");
         }
-        FileUtil.copy(source, dest);
+        try (final InputStream sourceStream = FileUtil.openStreamWithTimeout(network.getSource());
+                final OutputStream destStream = new FileOutputStream(dest)) {
+            FileUtil.copy(sourceStream, destStream);
+        }
     }
 
 }
