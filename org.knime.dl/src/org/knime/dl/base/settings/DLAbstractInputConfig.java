@@ -83,7 +83,7 @@ public abstract class DLAbstractInputConfig<C extends DLGeneralConfig<?>> extend
 
     @Override
     public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        getInputColumnConfig().loadConfigurationInModel(settings);
+        getInputColumnConfig().loadConfigurationInModel(findInputColConfigParent(settings));
     }
 
     @Override
@@ -91,7 +91,17 @@ public abstract class DLAbstractInputConfig<C extends DLGeneralConfig<?>> extend
         DataColumnSpecFilterConfiguration inputColConfig = getInputColumnConfig();
         // we enforce inclusion by default
         inputColConfig.loadDefault(spec, null, true);
-        inputColConfig.loadConfigurationInDialog(settings, spec);
+        inputColConfig.loadConfigurationInDialog(findInputColConfigParent(settings), spec);
+    }
+    
+    private static NodeSettingsRO findInputColConfigParent(NodeSettingsRO settings) throws InvalidSettingsException {
+        NodeSettingsRO parent = settings;
+        NodeSettingsRO child = settings.getNodeSettings(CFG_KEY_INPUT_COL);
+        while (child.containsKey(CFG_KEY_INPUT_COL)) {
+            parent = child;
+            child = parent.getNodeSettings(CFG_KEY_INPUT_COL);
+        }
+        return parent;
     }
 
     @Override
