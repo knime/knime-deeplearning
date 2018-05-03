@@ -48,78 +48,61 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLAbstractIOConfig;
+import org.knime.dl.base.settings.SettingsModelConfigEntries;
+import org.knime.dl.base.settings.SettingsModelConfigEntry;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
+import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 
 /**
+ * 
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class DLExecutorOutputConfig {
+final class DLExecutorOutputConfig extends DLAbstractIOConfig<DLExecutorGeneralConfig> {
 
 	private static final String CFG_KEY_CONVERTER = "output_converter";
 
 	private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
 
-	private final String m_outputTensorName;
-
-	private final DLExecutorGeneralConfig m_generalConfig;
-
-	private final SettingsModelStringArray m_smConverter;
-
-	private final SettingsModelString m_smPrefix;
 
 	DLExecutorOutputConfig(final String outputTensorName, final DLExecutorGeneralConfig generalConfig) {
-		m_outputTensorName = checkNotNullOrEmpty(outputTensorName);
-		m_generalConfig = checkNotNull(generalConfig);
-		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
-		m_smPrefix = new SettingsModelString(CFG_KEY_OUTPUT_PREFIX, outputTensorName + "_");
+	    super(checkNotNullOrEmpty(outputTensorName), generalConfig);
+		put(new SettingsModelConfigEntry<>(
+		        CFG_KEY_CONVERTER, DLTensorToDataCellConverterFactory.class,
+		        s -> new SettingsModelStringArray(s, null),
+		        this::entryToSettingsModel,
+		        this::settingsModelToValue));
+		put(SettingsModelConfigEntries.createStringConfigEntry(CFG_KEY_OUTPUT_PREFIX, outputTensorName + "_"));
+	}
+	
+	@SuppressWarnings("rawtypes")
+    private SettingsModelStringArray entryToSettingsModel(ConfigEntry<DLTensorToDataCellConverterFactory> entry) {
+	    DLTensorToDataCellConverterFactory<?, ?> cf = entry.getValue();
+	    return new SettingsModelStringArray(entry.getEntryKey(), new String[] {cf.getName(), cf.getIdentifier()});
+	}
+	
+	private DLTensorToDataCellConverterFactory<?, ?> settingsModelToValue(SettingsModelStringArray sm) throws InvalidSettingsException {
+	    String[] array = sm.getStringArrayValue();
+	    return DLTensorToDataCellConverterRegistry.getInstance().getConverterFactory(array[1])
+	            .orElseThrow(() -> new InvalidSettingsException("Converter '" + array[0] + " ("
+	                    + array[1] + ") for network output '" + getTensorName()
+	                    + "' could not be found. Are you missing a KNIME extension?"));
 	}
 
-	/**
-	 * Equivalent to {@link #getOutputTensorName()}.
-	 */
-	String getConfigKey() {
-		return m_outputTensorName;
+	@SuppressWarnings({"unchecked", "rawtypes"})
+    ConfigEntry<DLTensorToDataCellConverterFactory<?, ?>> getConverterEntry() {
+	    return (ConfigEntry) get(CFG_KEY_CONVERTER, DLTensorToDataCellConverterFactory.class);
+	}
+	
+	ConfigEntry<String> getPrefixEntry() {
+	    return get(CFG_KEY_OUTPUT_PREFIX, String.class);
 	}
 
-	String getOutputTensorName() {
-		return m_outputTensorName;
-	}
-
-	DLExecutorGeneralConfig getGeneralConfig() {
-		return m_generalConfig;
-	}
-
-	SettingsModelStringArray getConverterModel() {
-		return m_smConverter;
-	}
-
-	SettingsModelString getPrefixModel() {
-		return m_smPrefix;
-	}
-
-	void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputTensorName);
-		m_smConverter.validateSettings(cfgSettings);
-		m_smPrefix.validateSettings(cfgSettings);
-	}
-
-	void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_outputTensorName);
-		m_smConverter.loadSettingsFrom(cfgSettings);
-		m_smPrefix.loadSettingsFrom(cfgSettings);
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) {
-		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_outputTensorName);
-		m_smConverter.saveSettingsTo(cfgSettings);
-		m_smPrefix.saveSettingsTo(cfgSettings);
-	}
 }
