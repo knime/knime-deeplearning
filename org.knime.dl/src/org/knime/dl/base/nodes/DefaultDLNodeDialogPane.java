@@ -51,13 +51,16 @@ package org.knime.dl.base.nodes;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -274,4 +277,24 @@ public class DefaultDLNodeDialogPane extends NodeDialogPane {
 		cp.add(wrapWithBorderPanel(panel, borderTitle));
 		return cp;
 	}
+
+	/**
+	 * @param label for the separator
+	 */
+    protected void addSeparator(String label) {
+        final JPanel separator = new JPanel(new GridBagLayout());
+        final GridBagConstraints separatorLabelConstr = new GridBagConstraints();
+        separatorLabelConstr.gridwidth = 1;
+        separatorLabelConstr.weightx = 0;
+        separatorLabelConstr.anchor = GridBagConstraints.WEST;
+        separatorLabelConstr.fill = GridBagConstraints.NONE;
+        separatorLabelConstr.insets = new Insets(7, 7, 7, 7);
+        final GridBagConstraints separatorSeparatorConstr = new GridBagConstraints();
+        separatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
+        separatorSeparatorConstr.weightx = 1;
+        separatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
+        separator.add(new JLabel(label), separatorLabelConstr);
+        separator.add(new JSeparator(), separatorSeparatorConstr);
+        addPanelToWrapper(separator);
+    }
 }
