@@ -140,33 +140,38 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			outputPanel.saveToSettings(outputSettings);
 		}
 	}
+	
+	private void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
+	    if (specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX] == null) {
+            throw new NotConfigurableException("Input deep learning network port object is missing.");
+        }
+        if (specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX] == null) {
+            throw new NotConfigurableException("Input data table is missing.");
+        }
+
+        if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX])) {
+            throw new NotConfigurableException("Input port object is not a valid deep learning network port object.");
+        }
+        if (((DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX]).getNumColumns() == 0) {
+            throw new NotConfigurableException("Input table is missing or has no columns.");
+        }
+        final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
+
+        if (portObjectSpec.getNetworkSpec() == null) {
+            throw new NotConfigurableException("Input port object's deep learning network spec is missing.");
+        }
+        if (portObjectSpec.getNetworkType() == null) {
+            throw new NotConfigurableException("Input port object's deep learning network type is missing.");
+        }
+	}
 
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		if (specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX] == null) {
-			throw new NotConfigurableException("Input deep learning network port object is missing.");
-		}
-		if (specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX] == null) {
-			throw new NotConfigurableException("Input data table is missing.");
-		}
-
-		if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX])) {
-			throw new NotConfigurableException("Input port object is not a valid deep learning network port object.");
-		}
-		if (((DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX]).getNumColumns() == 0) {
-			throw new NotConfigurableException("Input table is missing or has no columns.");
-		}
+		checkPortObjectSpecs(specs);
 
 		final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
-		final DataTableSpec tableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
-
-		if (portObjectSpec.getNetworkSpec() == null) {
-			throw new NotConfigurableException("Input port object's deep learning network spec is missing.");
-		}
-		if (portObjectSpec.getNetworkType() == null) {
-			throw new NotConfigurableException("Input port object's deep learning network type is missing.");
-		}
+        final DataTableSpec tableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
 
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
 
@@ -184,10 +189,12 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		if (m_lastConfiguredNetworkSpec == null) {
 			reset();
 			createDialogContent(portObjectSpec);
-			createInputAndTargetPanels(portObjectSpec.getNetworkSpec(), tableSpec);
+			createInputPanels(networkSpec, tableSpec);
+            createTargetPanels(networkSpec, tableSpec);
 		} else if (networkChanged || tableSpecChanged) {
 			reset();
-			createInputAndTargetPanels(portObjectSpec.getNetworkSpec(), tableSpec);
+			createInputPanels(networkSpec, tableSpec);
+            createTargetPanels(networkSpec, tableSpec);
 		}
 
 		try {
