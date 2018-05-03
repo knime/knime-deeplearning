@@ -91,6 +91,12 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;
 
+    /**
+     * Creates a new default exporter node dialog. This dialog consists of a combobox where the exporter is selected, a
+     * file chooser and a overwrite checkbox.
+     *
+     * @param history_id the history identifier for the file chooser
+     */
     public DLDefaultExporterNodeDialog(final String history_id) {
         // Create the dialog components
         m_dcExporterId = new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> {

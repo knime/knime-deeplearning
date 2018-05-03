@@ -56,16 +56,36 @@ import org.knime.dl.core.DLNetwork;
  */
 public interface DLNetworkExporter {
 
+    /**
+     * @return the type of the deep learning network
+     */
     Class<? extends DLNetwork> getNetworkType();
 
+    /**
+     * @return a unique identifier for this exporter
+     */
     default String getIdentifier() {
         return getClass().getCanonicalName();
     }
 
+    /**
+     * @return the human readable name of this exporter.
+     */
     String getName();
 
+    /**
+     * @return a list of valid extensions.
+     */
     String[] getValidExtensions();
 
+    /**
+     * Exports the deep learning network to the given location.
+     *
+     * @param network the deep learning network
+     * @param path where the network should be exported to
+     * @param overwrite if the file should be overwritten if it already exists
+     * @throws IOException if writing the file fails
+     */
     void exportNetwork(DLNetwork network, URL path, boolean overwrite) throws IOException;
 
 }

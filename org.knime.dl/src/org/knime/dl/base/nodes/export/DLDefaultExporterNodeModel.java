@@ -102,6 +102,11 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_KEY_OVERWRITE, false);
     }
 
+    /**
+     * Creates a new default network exporter with an input of the given type.
+     *
+     * @param inputType type of the input port object. Must be the type of a DLNetworkPortObject
+     */
     public DLDefaultExporterNodeModel(final PortType inputType) {
         super(new PortType[]{inputType}, null);
         if (!DLNetworkPortObject.class.isAssignableFrom(inputType.getPortObjectClass())) {
