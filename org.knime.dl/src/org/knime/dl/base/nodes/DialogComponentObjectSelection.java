@@ -57,6 +57,8 @@ import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.swing.DefaultListCellRenderer;
@@ -91,6 +93,12 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 	private final JComboBox<T> m_combobox;
 
 	private boolean m_isReplacing = false;
+	
+	private Consumer<ConfigEntry<T>> m_loadListener;
+	
+	private Consumer<ConfigEntry<T>> m_enableListener;
+	
+	private BiConsumer<ConfigEntry<T>, T> m_changeListener;
 
 	/**
 	 * Creates a new instance of this dialog component.
@@ -126,17 +134,20 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 		m_combobox.setRenderer(renderer);
 
 		// On load
-		config.addLoadListener(e -> setEnabledComponents(m_config.getEnabled()));
+		m_loadListener = e -> setEnabledComponents(m_config.getEnabled());
+		config.addLoadListener(m_loadListener);
 		final AtomicBoolean isSelectionChanged = new AtomicBoolean(false);
 		// Config changes
-		config.addValueChangeListener((e, oldValue) -> {
-			if (!isSelectionChanged.get()) {
-				isSelectionChanged.set(true);
-				updateComponent();
-				isSelectionChanged.set(false);
-			}
-		});
-		config.addEnableChangeListener(e -> updateComponent());
+		m_changeListener = (e, oldValue) -> {
+            if (!isSelectionChanged.get()) {
+                isSelectionChanged.set(true);
+                updateComponent();
+                isSelectionChanged.set(false);
+            }
+        };
+		config.addValueChangeListener(m_changeListener);
+		m_enableListener = e -> updateComponent();
+		config.addEnableChangeListener(m_enableListener);
 		// Selection changes
 		m_combobox.addItemListener(e -> {
 			if (e.getStateChange() == ItemEvent.SELECTED && !isSelectionChanged.get()) {
@@ -147,8 +158,20 @@ public final class DialogComponentObjectSelection<T> extends DialogComponent {
 		});
 	}
 
+	/**
+	 * @return the {@link ConfigEntry} this dialog component displays
+	 */
 	public ConfigEntry<T> getConfigEntry() {
 		return m_config;
+	}
+	
+	/**
+	 * Unregisters the listeners added to the config entry.
+	 */
+	public void unregisterListeners() {
+	    m_config.removeEnableChangeListener(m_enableListener);
+	    m_config.removeLoadListener(m_loadListener);
+	    m_config.removeValueChangeListener(m_changeListener);
 	}
 
 	/**
