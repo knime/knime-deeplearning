@@ -575,83 +575,163 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			return inPortObject;
 		}
 
-		final boolean doValidation;
-		if (inValidationTable != null) {
-			if (inValidationTable.size() == 0) {
-				setWarningMessage("Validation data table is empty. No validation will be performed.");
-				doValidation = false;
-			} else {
-				doValidation = true;
-			}
-		} else {
-			doValidation = false;
-		}
+		final boolean doValidation = doValidation(inValidationTable);
 
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getContextEntry()
 				.getValue();
 
 		// training configuration
-		final int trainingBatchSize = m_generalCfg.getBatchSizeEntry().getValue();
-		final int numEpochs = m_generalCfg.getEpochsEntry().getValue();
-		final int validationBatchSize = m_generalCfg.getValidationBatchSizeEntry().getValue();
-		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
-		final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = new HashMap<>();
-		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
-			final DLKerasLossFunction lossFunction = m_targetCfgs.get(targetSpec.getName()).getLossFunctionEntry()
-					.getValue();
-			lossFunctions.put(targetSpec, lossFunction);
-		}
-		final ArrayList<DLKerasCallback> callbacks = new ArrayList<>(3);
-		if (m_generalCfg.getTerminateOnNaNEntry().getEnabled()) {
-			callbacks.add(m_generalCfg.getTerminateOnNaNEntry().getValue());
-		}
-		if (m_generalCfg.getEarlyStoppingEntry().getEnabled()) {
-			callbacks.add(m_generalCfg.getEarlyStoppingEntry().getValue());
-		}
-		if (m_generalCfg.getReduceLROnPlateauEntry().getEnabled()) {
-			callbacks.add(m_generalCfg.getReduceLROnPlateauEntry().getValue());
-		}
-		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(numEpochs, trainingBatchSize,
-				validationBatchSize, optimizer, lossFunctions, callbacks);
+		final DLKerasTrainingConfig trainingConfig = createTrainingConfig(inNetworkSpec);
 
 		final Map<DLTensorId, int[]> columnsForTensorId = new HashMap<>(
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
 				columnsForTensorId.size());
-		for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
-			final DLTensorSpec spec = entry.getKey();
-			final DataColumnSpecFilterConfiguration filterConfig;
-			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(spec.getName());
-			if (inputCfg != null) {
-				filterConfig = inputCfg.getInputColumnsEntry().getValue();
-			} else {
-				filterConfig = m_targetCfgs.get(spec.getName()).getInputColumnsEntry().getValue();
-			}
-			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(entry.getValue().getSourceType());
-			// the input columns that will be used to fill the current spec's tensor
-			final int[] indices = Arrays.stream(filterConfig.applyTo(inTableSpec).getIncludes()).mapToInt(column -> {
-				final int idx = inTableSpec.findColumnIndex(column);
-				if (idx == -1) {
-					throw new IllegalStateException("Selected input/target column '" + column
-							+ "' could not be found in the training data table.");
-				}
-				return idx;
-			}).toArray();
-			columnsForTensorId.put(spec.getIdentifier(), indices);
-			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
-		}
+		fillInputSpecificMaps(inTableSpec, columnsForTensorId, converterForTensorId);
 
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
 		// alternative strategy for handling incomplete batches.
-		final int numTrainingBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) trainingBatchSize);
-		final int totalNumTrainingBatches = numEpochs * numTrainingBatchesPerEpoch;
-		@SuppressWarnings("null") // inValidiationTable is present if doValidation is true
+		final int numTrainingBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) trainingConfig.getBatchSize());
+		final int totalNumTrainingBatches = trainingConfig.getEpochs() * numTrainingBatchesPerEpoch;
 		final int numBatchesPerValidation = doValidation
-				? (int) Math.ceil(inValidationTable.size() / (double) validationBatchSize)
+				? (int) Math.ceil(inValidationTable.size() / (double) trainingConfig.getValidationBatchSize())
 				: 0;
-		final int totalNumValidationBatches = numEpochs * numBatchesPerValidation;
+		final int totalNumValidationBatches = trainingConfig.getEpochs() * numBatchesPerValidation;
 
-		m_viewSpecs = new DLDefaultJFreeChartLinePlotViewSpec[2];
+		prepareView(doValidation, totalNumTrainingBatches, totalNumValidationBatches);
+
+		final Random random = createRandom();
+
+		m_status = new DLKerasDefaultTrainingStatus(trainingConfig.getEpochs(), numTrainingBatchesPerEpoch);
+		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
+				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
+						rowIterator, (int)trainingConfig.getBatchSize(), converterForTensorId);
+				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
+						? new DLKnimeNetworkValidationInputPreparer(
+								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), (int)trainingConfig.getValidationBatchSize(),
+								converterForTensorId)
+						: null;
+				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
+						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+								trainingConfig.getBatchSize(), columnsForTensorId, m_converters),
+						inputPreparer, validationPreparer);) {
+			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
+			setupTrainingStatus(doValidation, trainingConfig, numTrainingBatchesPerEpoch, totalNumTrainingBatches,
+                monitor);
+			session.run(monitor);
+			exec.setMessage("Saving trained Keras deep learning network...");
+			return session.getTrainedNetwork(exec);
+		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+			m_status.setStatus(Status.USER_INTERRUPTED);
+			throw e;
+		} catch (final Exception e) {
+			throw handleGeneralException(e);
+		}
+	}
+
+    private RuntimeException handleGeneralException(final Exception e) throws CanceledExecutionException {
+        final Throwable cause = e.getCause();
+        if (cause != null) {
+        	if (cause instanceof CanceledExecutionException) {
+        		m_status.setStatus(Status.USER_INTERRUPTED);
+        		throw (CanceledExecutionException) cause;
+        	} else if (cause instanceof DLCanceledExecutionException) {
+        		m_status.setStatus(Status.USER_INTERRUPTED);
+        		throw new CanceledExecutionException(e.getMessage());
+        	}
+        }
+        String message;
+        if (e instanceof DLException) {
+        	message = e.getMessage();
+        } else {
+        	if (!Strings.isNullOrEmpty(e.getMessage())) {
+        		LOGGER.error(e.getMessage());
+        	}
+        	message = "An error occured during training of the Keras deep learning network. See log for details.";
+        }
+        m_status.setStatus(Status.EXCEPTION);
+        return new RuntimeException(message, e);
+    }
+
+    private void setupTrainingStatus(final boolean doValidation, final DLKerasTrainingConfig trainingConfig,
+        final int numTrainingBatchesPerEpoch, final int totalNumTrainingBatches,
+        final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor) {
+        m_status.setViewSpecs(m_viewSpecs);
+        m_status.setViewData(m_viewData);
+        m_status.trainingEnded().addListener((src, v) -> {
+        	try {
+        		notifyViews(m_status);
+        	} catch (final Exception e) {
+        		LOGGER.warn("An error occurred while updating the learner's view. "
+        				+ "The actual learning process remains unaffected.", e);
+        	}
+        });
+        m_status.epochStarted().addListener((src, v) -> {
+        	try {
+        		notifyViews(m_status);
+        	} catch (final Exception e) {
+        		LOGGER.warn("An error occurred while updating the learner's view. "
+        				+ "The actual learning process remains unaffected.", e);
+        	}
+        });
+        m_status.epochEnded().addListener((src, metrics) -> {
+        	if (doValidation) {
+        		final int currentBatch = m_status.getCurrentEpoch() * numTrainingBatchesPerEpoch
+        				+ m_status.getCurrentBatchInEpoch();
+        		// update view
+        		final DLSparseLinePlotViewData accuracyPlot = (DLSparseLinePlotViewData) m_viewData[0].get(1);
+        		accuracyPlot.getDataX().add(currentBatch);
+        		accuracyPlot.getDataY().add(metrics.get("val_accuracy").getValue());
+        		final DLSparseLinePlotViewData lossPlot = (DLSparseLinePlotViewData) m_viewData[1].get(1);
+        		lossPlot.getDataX().add(currentBatch);
+        		lossPlot.getDataY().add(metrics.get("val_loss").getValue());
+        		try {
+        			notifyViews(m_status);
+        		} catch (final Exception e) {
+        			LOGGER.warn("An error occurred while updating the learner's view. "
+        					+ "The actual learning process remains unaffected.", e);
+        		}
+        	}
+        });
+        m_status.batchStarted().addListener((src, v) -> {
+        	// update progress
+        	final int currentBatch = m_status.getCurrentBatchInEpoch() + 1;
+        	final int currentEpoch = m_status.getCurrentEpoch() + 1;
+        	final double progress = ((currentEpoch - 1) * numTrainingBatchesPerEpoch + currentBatch)
+        			/ (double) totalNumTrainingBatches;
+        	monitor.setProgress(progress, "Processing batch " + currentBatch + " of " + numTrainingBatchesPerEpoch
+        			+ " in epoch " + currentEpoch + " of " + trainingConfig.getEpochs() + "...");
+        });
+        m_status.batchEnded().addListener((src, metrics) -> {
+        	// update view
+        	((DLDenseLinePlotViewData) m_viewData[0].get(0)).getDataY().add(metrics.get("accuracy").getValue());
+        	((DLDenseLinePlotViewData) m_viewData[1].get(0)).getDataY().add(metrics.get("loss").getValue());
+        	try {
+        		notifyViews(m_status);
+        	} catch (final Exception e) {
+        		LOGGER.warn("An error occurred while updating the learner's view. "
+        				+ "The actual learning process remains unaffected.", e);
+        	}
+        });
+        m_status.validationStarted().addListener((src, v) -> monitor.setMessage(
+        		"Validating model in epoch " + (m_status.getCurrentEpoch() + 1) + " of " + trainingConfig.getEpochs() + "..."));
+        if (m_generalCfg.getEarlyStoppingEntry().getEnabled()) {
+        	m_status.stoppedEarly()
+        			.addListener((src,
+        					epoch) -> setWarningMessage("Training stopped in epoch "
+        							+ (m_status.getCurrentEpoch() + 1)
+        							+ " as the monitored quantity has stopped improving (early stopping)."));
+        }
+        if (m_generalCfg.getTerminateOnNaNEntry().getEnabled()) {
+        	m_status.terminatedOnNaNLoss().addListener(
+        			(src, batch) -> setWarningMessage("Training terminated in batch " + (batch + 1) + " of epoch "
+        					+ (m_status.getCurrentEpoch() + 1) + " due to a NaN (not a number) loss."));
+        }
+    }
+
+    private void prepareView(final boolean doValidation, final int totalNumTrainingBatches,
+        final int totalNumValidationBatches) {
+        m_viewSpecs = new DLDefaultJFreeChartLinePlotViewSpec[2];
 		m_viewData = new DLLinePlotViewDataCollection[2];
 		if (doValidation) {
 			m_viewSpecs[0] = new DLDefaultJFreeChartLinePlotViewSpec("accuracy", "Accuracy", "Accuracy", "Batches",
@@ -674,124 +754,84 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			m_viewData[1] = new DLDefaultLinePlotViewDataCollection<>(m_viewSpecs[1],
 					new DLDenseLinePlotViewData(totalNumTrainingBatches));
 		}
+    }
 
-		final Random random = createRandom();
-
-		m_status = new DLKerasDefaultTrainingStatus(numEpochs, numTrainingBatchesPerEpoch);
-		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
-				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
-						rowIterator, trainingBatchSize, converterForTensorId);
-				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
-						? new DLKnimeNetworkValidationInputPreparer(
-								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), validationBatchSize,
-								converterForTensorId)
-						: null;
-				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
-						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
-								trainingBatchSize, columnsForTensorId, m_converters),
-						inputPreparer, validationPreparer);) {
-			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
-			m_status.setViewSpecs(m_viewSpecs);
-			m_status.setViewData(m_viewData);
-			m_status.trainingEnded().addListener((src, v) -> {
-				try {
-					notifyViews(m_status);
-				} catch (final Exception e) {
-					LOGGER.warn("An error occurred while updating the learner's view. "
-							+ "The actual learning process remains unaffected.", e);
-				}
-			});
-			m_status.epochStarted().addListener((src, v) -> {
-				try {
-					notifyViews(m_status);
-				} catch (final Exception e) {
-					LOGGER.warn("An error occurred while updating the learner's view. "
-							+ "The actual learning process remains unaffected.", e);
-				}
-			});
-			m_status.epochEnded().addListener((src, metrics) -> {
-				if (doValidation) {
-					final int currentBatch = m_status.getCurrentEpoch() * numTrainingBatchesPerEpoch
-							+ m_status.getCurrentBatchInEpoch();
-					// update view
-					final DLSparseLinePlotViewData accuracyPlot = (DLSparseLinePlotViewData) m_viewData[0].get(1);
-					accuracyPlot.getDataX().add(currentBatch);
-					accuracyPlot.getDataY().add(metrics.get("val_accuracy").getValue());
-					final DLSparseLinePlotViewData lossPlot = (DLSparseLinePlotViewData) m_viewData[1].get(1);
-					lossPlot.getDataX().add(currentBatch);
-					lossPlot.getDataY().add(metrics.get("val_loss").getValue());
-					try {
-						notifyViews(m_status);
-					} catch (final Exception e) {
-						LOGGER.warn("An error occurred while updating the learner's view. "
-								+ "The actual learning process remains unaffected.", e);
-					}
-				}
-			});
-			m_status.batchStarted().addListener((src, v) -> {
-				// update progress
-				final int currentBatch = m_status.getCurrentBatchInEpoch() + 1;
-				final int currentEpoch = m_status.getCurrentEpoch() + 1;
-				final double progress = ((currentEpoch - 1) * numTrainingBatchesPerEpoch + currentBatch)
-						/ (double) totalNumTrainingBatches;
-				monitor.setProgress(progress, "Processing batch " + currentBatch + " of " + numTrainingBatchesPerEpoch
-						+ " in epoch " + currentEpoch + " of " + numEpochs + "...");
-			});
-			m_status.batchEnded().addListener((src, metrics) -> {
-				// update view
-				((DLDenseLinePlotViewData) m_viewData[0].get(0)).getDataY().add(metrics.get("accuracy").getValue());
-				((DLDenseLinePlotViewData) m_viewData[1].get(0)).getDataY().add(metrics.get("loss").getValue());
-				try {
-					notifyViews(m_status);
-				} catch (final Exception e) {
-					LOGGER.warn("An error occurred while updating the learner's view. "
-							+ "The actual learning process remains unaffected.", e);
-				}
-			});
-			m_status.validationStarted().addListener((src, v) -> monitor.setMessage(
-					"Validating model in epoch " + (m_status.getCurrentEpoch() + 1) + " of " + numEpochs + "..."));
-			if (m_generalCfg.getEarlyStoppingEntry().getEnabled()) {
-				m_status.stoppedEarly()
-						.addListener((src,
-								epoch) -> setWarningMessage("Training stopped in epoch "
-										+ (m_status.getCurrentEpoch() + 1)
-										+ " as the monitored quantity has stopped improving (early stopping)."));
-			}
-			if (m_generalCfg.getTerminateOnNaNEntry().getEnabled()) {
-				m_status.terminatedOnNaNLoss().addListener(
-						(src, batch) -> setWarningMessage("Training terminated in batch " + (batch + 1) + " of epoch "
-								+ (m_status.getCurrentEpoch() + 1) + " due to a NaN (not a number) loss."));
-			}
-			session.run(monitor);
-			exec.setMessage("Saving trained Keras deep learning network...");
-			return session.getTrainedNetwork(exec);
-		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
-			m_status.setStatus(Status.USER_INTERRUPTED);
-			throw e;
-		} catch (final Exception e) {
-			final Throwable cause = e.getCause();
-			if (cause != null) {
-				if (cause instanceof CanceledExecutionException) {
-					m_status.setStatus(Status.USER_INTERRUPTED);
-					throw (CanceledExecutionException) cause;
-				} else if (cause instanceof DLCanceledExecutionException) {
-					m_status.setStatus(Status.USER_INTERRUPTED);
-					throw new CanceledExecutionException(e.getMessage());
-				}
-			}
-			String message;
-			if (e instanceof DLException) {
-				message = e.getMessage();
+    private void fillInputSpecificMaps(final DataTableSpec inTableSpec, final Map<DLTensorId, int[]> columnsForTensorId,
+        final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId) {
+        for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
+			final DLTensorSpec spec = entry.getKey();
+			final DataColumnSpecFilterConfiguration filterConfig;
+			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(spec.getName());
+			if (inputCfg != null) {
+				filterConfig = inputCfg.getInputColumnsEntry().getValue();
 			} else {
-				if (!Strings.isNullOrEmpty(e.getMessage())) {
-					LOGGER.error(e.getMessage());
-				}
-				message = "An error occured during training of the Keras deep learning network. See log for details.";
+				filterConfig = m_targetCfgs.get(spec.getName()).getInputColumnsEntry().getValue();
 			}
-			m_status.setStatus(Status.EXCEPTION);
-			throw new RuntimeException(message, e);
+			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(entry.getValue().getSourceType());
+			// the input columns that will be used to fill the current spec's tensor
+			final int[] indices = Arrays.stream(filterConfig.applyTo(inTableSpec).getIncludes()).mapToInt(column -> {
+				final int idx = inTableSpec.findColumnIndex(column);
+				if (idx == -1) {
+					throw new IllegalStateException("Selected input/target column '" + column
+							+ "' could not be found in the training data table.");
+				}
+				return idx;
+			}).toArray();
+			columnsForTensorId.put(spec.getIdentifier(), indices);
+			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
 		}
-	}
+    }
+
+    private DLKerasTrainingConfig createTrainingConfig(final DLKerasNetworkSpec inNetworkSpec) {
+        final int trainingBatchSize = m_generalCfg.getBatchSizeEntry().getValue();
+		final int numEpochs = m_generalCfg.getEpochsEntry().getValue();
+		final int validationBatchSize = m_generalCfg.getValidationBatchSizeEntry().getValue();
+		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
+		final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = createLossFunctionMap(inNetworkSpec);
+		final ArrayList<DLKerasCallback> callbacks = createCallbackList();
+		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(numEpochs, trainingBatchSize,
+				validationBatchSize, optimizer, lossFunctions, callbacks);
+        return trainingConfig;
+    }
+
+    private ArrayList<DLKerasCallback> createCallbackList() {
+        final ArrayList<DLKerasCallback> callbacks = new ArrayList<>(3);
+		if (m_generalCfg.getTerminateOnNaNEntry().getEnabled()) {
+			callbacks.add(m_generalCfg.getTerminateOnNaNEntry().getValue());
+		}
+		if (m_generalCfg.getEarlyStoppingEntry().getEnabled()) {
+			callbacks.add(m_generalCfg.getEarlyStoppingEntry().getValue());
+		}
+		if (m_generalCfg.getReduceLROnPlateauEntry().getEnabled()) {
+			callbacks.add(m_generalCfg.getReduceLROnPlateauEntry().getValue());
+		}
+        return callbacks;
+    }
+
+    private Map<DLTensorSpec, DLKerasLossFunction> createLossFunctionMap(final DLKerasNetworkSpec inNetworkSpec) {
+        final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = new HashMap<>();
+		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
+			final DLKerasLossFunction lossFunction = m_targetCfgs.get(targetSpec.getName()).getLossFunctionEntry()
+					.getValue();
+			lossFunctions.put(targetSpec, lossFunction);
+		}
+        return lossFunctions;
+    }
+
+    private boolean doValidation(final BufferedDataTable inValidationTable) {
+        final boolean doValidation;
+		if (inValidationTable != null) {
+			if (inValidationTable.size() == 0) {
+				setWarningMessage("Validation data table is empty. No validation will be performed.");
+				doValidation = false;
+			} else {
+				doValidation = true;
+			}
+		} else {
+			doValidation = false;
+		}
+        return doValidation;
+    }
 
 	private Random createRandom() {
 		final ConfigEntry<Long> seedCfg = m_generalCfg.getRandomSeed();
