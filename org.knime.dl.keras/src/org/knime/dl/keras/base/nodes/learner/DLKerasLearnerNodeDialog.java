@@ -65,6 +65,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
+import org.knime.dl.base.nodes.DLInputsPanel;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
@@ -97,7 +98,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private DLKerasLearningBehaviorPanel m_learningBehaviorPanel;
 
-	private final ArrayList<DLKerasLearnerInputPanel> m_inputPanels = new ArrayList<>();
+	private DLInputsPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig> m_inputsPanel;
 
 	private final ArrayList<DLKerasLearnerTargetPanel> m_targetPanels = new ArrayList<>();
 
@@ -117,8 +118,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	@Override
 	public void reset() {
 		// null check is necessary because this method is called from super constructor
-		if (m_inputPanels != null) {
-			m_inputPanels.clear();
+		if (m_inputsPanel != null) {
+		    m_inputsPanel.reset();
 			m_targetPanels.clear();
 		}
 		super.reset();
@@ -130,10 +131,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 		m_generalCfg.saveToSettings(settings);
 
-		final NodeSettingsWO inputSettings = settings.addNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_INPUT);
-		for (final DLKerasLearnerInputPanel inputPanel : m_inputPanels) {
-			inputPanel.saveToSettings(inputSettings);
-		}
+		m_inputsPanel.saveSettingsTo(settings);
 
 		final NodeSettingsWO outputSettings = settings.addNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
 		for (final DLKerasLearnerTargetPanel outputPanel : m_targetPanels) {
@@ -207,92 +205,72 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		super.loadSettingsFrom(settings, specs);
 
 		// we have to be more careful here. Now, we want the following
-		// behaviour:
-		// * if a layer with the same name was loaded, it should still have the
-		// same settings
-		// * if a layer with a different name was loaded, the settings should
-		// change
-		if (settings.containsKey(DLKerasLearnerNodeModel.CFG_KEY_INPUT)) {
-			final NodeSettingsRO inputSettings;
-			try {
-				inputSettings = settings.getNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_INPUT);
-			} catch (final InvalidSettingsException e) {
-				throw new NotConfigurableException(e.getMessage(), e);
-			}
-			for (final DLKerasLearnerInputPanel inputPanel : m_inputPanels) {
-				inputPanel.loadFromSettings(inputSettings, specs);
-			}
-		}
+        // behaviour:
+        // * if a layer with the same name was loaded, it should still have the
+        // same settings
+        // * if a layer with a different name was loaded, the settings should
+        // change
+            m_inputsPanel.loadSettingsFrom(settings, specs);
 
-		if (settings.containsKey(DLKerasLearnerNodeModel.CFG_KEY_TARGET)) {
-			final NodeSettingsRO targetSettings;
-			try {
-				targetSettings = settings.getNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
-			} catch (final InvalidSettingsException e) {
-				throw new NotConfigurableException(e.getMessage(), e);
-			}
-			for (final DLKerasLearnerTargetPanel targetPanel : m_targetPanels) {
-				targetPanel.loadFromSettings(targetSettings, specs);
-			}
-		}
+		loadTargetSettings(settings, specs);
 
 		m_lastConfiguredTableSpec = tableSpec;
 		m_lastConfiguredNetworkSpec = networkSpec;
 	}
+	
+	private void loadTargetSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+	    if (settings.containsKey(DLKerasLearnerNodeModel.CFG_KEY_TARGET)) {
+            final NodeSettingsRO targetSettings;
+            try {
+                targetSettings = settings.getNodeSettings(DLKerasLearnerNodeModel.CFG_KEY_TARGET);
+            } catch (final InvalidSettingsException e) {
+                throw new NotConfigurableException(e.getMessage(), e);
+            }
+            for (final DLKerasLearnerTargetPanel targetPanel : m_targetPanels) {
+                targetPanel.loadFromSettings(targetSettings, specs);
+            }
+        }
+	}
 
-	private void createInputAndTargetPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
-			throws NotConfigurableException {
-		// input settings:
-		m_inputTab.reset();
-		setWrapperPanel(m_inputTab.getTabRoot());
-		final JPanel inputsSeparator = new JPanel(new GridBagLayout());
-		final GridBagConstraints inputsSeparatorLabelConstr = new GridBagConstraints();
-		inputsSeparatorLabelConstr.gridwidth = 1;
-		inputsSeparatorLabelConstr.weightx = 0;
-		inputsSeparatorLabelConstr.anchor = GridBagConstraints.WEST;
-		inputsSeparatorLabelConstr.fill = GridBagConstraints.NONE;
-		inputsSeparatorLabelConstr.insets = new Insets(7, 7, 7, 7);
-		final GridBagConstraints inputsSeparatorSeparatorConstr = new GridBagConstraints();
-		inputsSeparatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
-		inputsSeparatorSeparatorConstr.weightx = 1;
-		inputsSeparatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
-		inputsSeparator.add(new JLabel("Input Data"), inputsSeparatorLabelConstr);
-		inputsSeparator.add(new JSeparator(), inputsSeparatorSeparatorConstr);
-		addPanelToWrapper(inputsSeparator);
-		// inputs
-		for (final DLTensorSpec inputDataSpec : networkSpec.getInputSpecs()) {
-			if (!DLUtils.Shapes.isKnown(inputDataSpec.getShape())) {
-				throw new NotConfigurableException(
-						"Input '" + inputDataSpec.getName() + "' has an unknown shape. This is not supported.");
-			}
-			addInputPanel(inputDataSpec, tableSpec, m_generalCfg);
-		}
-
-		// output settings:
-		m_targetTab.reset();
-		setWrapperPanel(m_targetTab.getTabRoot());
-		final JPanel targetsSeparator = new JPanel(new GridBagLayout());
-		final GridBagConstraints targetsSeparatorLabelConstr = new GridBagConstraints();
-		targetsSeparatorLabelConstr.gridwidth = 1;
-		targetsSeparatorLabelConstr.weightx = 0;
-		targetsSeparatorLabelConstr.anchor = GridBagConstraints.WEST;
-		targetsSeparatorLabelConstr.fill = GridBagConstraints.NONE;
-		targetsSeparatorLabelConstr.insets = new Insets(7, 7, 7, 7);
-		final GridBagConstraints targetsSeparatorSeparatorConstr = new GridBagConstraints();
-		targetsSeparatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
-		targetsSeparatorSeparatorConstr.weightx = 1;
-		targetsSeparatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
-		targetsSeparator.add(new JLabel("Training Targets"), targetsSeparatorLabelConstr);
-		targetsSeparator.add(new JSeparator(), targetsSeparatorSeparatorConstr);
-		addPanelToWrapper(targetsSeparator);
-		// outputs
-		for (final DLTensorSpec targetDataSpec : networkSpec.getOutputSpecs()) {
-			if (!DLUtils.Shapes.isKnown(targetDataSpec.getShape())) {
-				throw new NotConfigurableException(
-						"Target '" + targetDataSpec.getName() + "' has an unknown shape. This is not supported.");
-			}
-			addOutputPanel(targetDataSpec, tableSpec, m_generalCfg);
-		}
+	private void createInputPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
+            throws NotConfigurableException {
+	    // input settings:
+        m_inputTab.reset();
+        setWrapperPanel(m_inputTab.getTabRoot());
+        addSeparator("Input Data");
+        m_inputsPanel = new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg,
+                DLKerasLearnerInputConfig::new, DLKerasLearnerNodeModel.IN_DATA_PORT_IDX,
+                DLKerasLearnerNodeModel.CFG_KEY_INPUT, "Training input");
+        addDialogComponentGroup(m_inputsPanel);
+	}
+	
+	private void createTargetPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
+            throws NotConfigurableException {
+	 // output settings:
+        m_targetTab.reset();
+        setWrapperPanel(m_targetTab.getTabRoot());
+        final JPanel targetsSeparator = new JPanel(new GridBagLayout());
+        final GridBagConstraints targetsSeparatorLabelConstr = new GridBagConstraints();
+        targetsSeparatorLabelConstr.gridwidth = 1;
+        targetsSeparatorLabelConstr.weightx = 0;
+        targetsSeparatorLabelConstr.anchor = GridBagConstraints.WEST;
+        targetsSeparatorLabelConstr.fill = GridBagConstraints.NONE;
+        targetsSeparatorLabelConstr.insets = new Insets(7, 7, 7, 7);
+        final GridBagConstraints targetsSeparatorSeparatorConstr = new GridBagConstraints();
+        targetsSeparatorSeparatorConstr.gridwidth = GridBagConstraints.REMAINDER;
+        targetsSeparatorSeparatorConstr.weightx = 1;
+        targetsSeparatorSeparatorConstr.fill = GridBagConstraints.HORIZONTAL;
+        targetsSeparator.add(new JLabel("Training Targets"), targetsSeparatorLabelConstr);
+        targetsSeparator.add(new JSeparator(), targetsSeparatorSeparatorConstr);
+        addPanelToWrapper(targetsSeparator);
+        // outputs
+        for (final DLTensorSpec targetDataSpec : networkSpec.getOutputSpecs()) {
+            if (!DLUtils.Shapes.isKnown(targetDataSpec.getShape())) {
+                throw new NotConfigurableException(
+                        "Target '" + targetDataSpec.getName() + "' has an unknown shape. This is not supported.");
+            }
+            addTargetPanel(targetDataSpec, tableSpec, m_generalCfg);
+        }
 	}
 
 	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec) throws NotConfigurableException {
@@ -316,24 +294,14 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
 	}
 
-	private void addInputPanel(final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec,
-			final DLKerasLearnerGeneralConfig generalCfg) throws NotConfigurableException {
-		final DLKerasLearnerInputConfig inputCfg = DLKerasLearnerNodeModel
-				.createInputTensorModelConfig(inputDataSpec.getName(), generalCfg);
-		final DLKerasLearnerInputPanel inputPanel = new DLKerasLearnerInputPanel(inputCfg, inputDataSpec, tableSpec);
-		// add input panel to dialog
-		m_inputPanels.add(inputPanel);
-		addPanelToWrapper(inputPanel);
-	}
-
-	private void addOutputPanel(final DLTensorSpec targetDataSpec, final DataTableSpec tableSpec,
-			final DLKerasLearnerGeneralConfig generalCfg) throws NotConfigurableException {
+	private void addTargetPanel(final DLTensorSpec targetDataSpec, final DataTableSpec tableSpec,
+			final DLKerasLearnerGeneralConfig generalCfg) {
 		final DLKerasLearnerTargetConfig targetCfg = DLKerasLearnerNodeModel
 				.createOutputTensorModelConfig(targetDataSpec.getName(), generalCfg);
 		final DLKerasLearnerTargetPanel targetPanel = new DLKerasLearnerTargetPanel(targetCfg, targetDataSpec,
 				tableSpec);
 		// add target panel to dialog
 		m_targetPanels.add(targetPanel);
-		addPanelToWrapper(targetPanel);
+		addDialogComponentGroupWithBorder(targetPanel, "Training target: " + targetDataSpec.getName());
 	}
 }
