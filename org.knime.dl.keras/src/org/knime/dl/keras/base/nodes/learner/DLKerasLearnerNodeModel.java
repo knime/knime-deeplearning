@@ -80,6 +80,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.nodes.DLConverterRefresher;
+import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
@@ -254,7 +255,12 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 		try {
 			configureGeneral(inNetworkType);
-			configureInputs(inNetworkSpec, inTableSpec, inValidationTableSpec);
+			final DLTensorSpec[] inputSpecs = inNetworkSpec.getInputSpecs();
+	        final DLTensorSpec[] targetSpecs = inNetworkSpec.getOutputSpecs();
+	        final DLKerasTrainingContext<?> trainingContext = m_generalCfg.getTrainingContext().getValue();
+	        m_converters = new LinkedHashMap<>(inputSpecs.length + targetSpecs.length);
+			configureInputs(inTableSpec, inValidationTableSpec, trainingContext, inputSpecs);
+			configureTargets(inTableSpec, trainingContext, targetSpecs);
 		} catch (final Exception e) {
 			throw new InvalidSettingsException(e.getMessage(), e);
 		}
@@ -438,8 +444,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     }
 	
 
-	private void configureInputs(final DLNetworkSpec inNetworkSpec, final DataTableSpec inTableSpec,
-			final DataTableSpec inValidationTableSpec) throws InvalidSettingsException {
+	private void configureInputs(final DataTableSpec inTableSpec, final DataTableSpec inValidationTableSpec,
+			DLKerasTrainingContext<?> trainingContext, final DLTensorSpec[] inputSpecs) throws InvalidSettingsException {
 		if (inTableSpec.getNumColumns() == 0) {
 			setWarningMessage("Training data table has no columns. Output network will equal input network.");
 		}
@@ -453,13 +459,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 					+ "the same order.");
 		}
 
-		final DLTensorSpec[] inputSpecs = inNetworkSpec.getInputSpecs();
-		final DLTensorSpec[] targetSpecs = inNetworkSpec.getOutputSpecs();
-		m_converters = new LinkedHashMap<>(inputSpecs.length + targetSpecs.length);
 		if (inputSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no input specs.");
 		}
-		final DLKerasTrainingContext<?> trainingContext = m_generalCfg.getTrainingContext().getValue();
+		
 		for (final DLTensorSpec tensorSpec : inputSpecs) {
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
@@ -495,7 +498,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			}
 			// TODO: check column selection (see dialog)!
 		}
-		if (targetSpecs.length == 0) {
+	}
+
+    private void configureTargets(final DataTableSpec inTableSpec, final DLKerasTrainingContext<?> trainingContext,
+        final DLTensorSpec[] targetSpecs) throws InvalidSettingsException, DLNoConverterAvailableException {
+        if (targetSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no target specs.");
 		}
 		for (final DLTensorSpec tensorSpec : targetSpecs) {
@@ -547,7 +554,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				targetCfg.getLossFunctionEntry().setValue(lossFunction);
 			}
 		}
-	}
+    }
 
 	private DLNetworkPortObjectSpec createOutputSpec(final DLNetworkPortObjectSpec inPortObjectSpec)
 			throws InvalidSettingsException {
