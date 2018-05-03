@@ -55,8 +55,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.base.settings.AbstractConfig;
-import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.AbstractStandardConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLGeneralConfig;
 import org.knime.dl.base.settings.DefaultConfigEntry;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.training.DLTrainingContextRegistry;
@@ -69,8 +70,9 @@ import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerGeneralConfig extends AbstractConfig {
+final class DLKerasLearnerGeneralConfig extends AbstractConfig implements DLGeneralConfig<DLKerasTrainingContext<?>> {
 
 	static final String CFG_KEY_ROOT = "general_settings";
 
@@ -113,18 +115,18 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 	@SuppressWarnings("rawtypes") // Java limitation
 	DLKerasLearnerGeneralConfig() {
 		super(CFG_KEY_ROOT);
-		put(new AbstractConfigEntry<DLKerasTrainingContext>(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class) {
+		put(new AbstractStandardConfigEntry<DLKerasTrainingContext>(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class) {
 
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String identifier = m_value != null ? m_value.getIdentifier() : "null";
 				settings.addString(getEntryKey(), identifier);
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final String trainingContextIdentifier = settings.getString(getEntryKey());
 				if (!trainingContextIdentifier.equals("null")) {
 					m_value = (DLKerasTrainingContext) DLTrainingContextRegistry.getInstance()
@@ -149,27 +151,29 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 			}
 		});
 
-		put(new AbstractConfigEntry<DLKerasOptimizer>(CFG_KEY_OPTIMIZER, DLKerasOptimizer.class) {
+		put(new AbstractStandardConfigEntry<DLKerasOptimizer>(CFG_KEY_OPTIMIZER, DLKerasOptimizer.class) {
+		    
+		    private static final String IDENTIFIER = "identifier";
 
 			@Override
 			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final NodeSettingsWO optimizerSettings = settings.addNodeSettings(getEntryKey());
 				if (m_value != null) {
-					optimizerSettings.addString("identifier", m_value.getClass().getCanonicalName());
+					optimizerSettings.addString(IDENTIFIER, m_value.getClass().getCanonicalName());
 					m_value.saveToSettings(optimizerSettings);
 				} else {
-					optimizerSettings.addString("identifier", "null");
+					optimizerSettings.addString(IDENTIFIER, "null");
 				}
 			}
 
 			@Override
 			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException, IllegalStateException, UnsupportedOperationException {
+					throws InvalidSettingsException {
 				final NodeSettingsRO optimizerSettings = settings.getNodeSettings(getEntryKey());
-				final String optimizerIdentifier = optimizerSettings.getString("identifier");
+				final String optimizerIdentifier = optimizerSettings.getString(IDENTIFIER);
 				if (!optimizerIdentifier.equals("null")) {
-					m_value = getTrainingContextEntry().getValue().createOptimizers().stream()
+					m_value = getContextEntry().getValue().createOptimizers().stream()
 							.filter(o -> o.getClass().getCanonicalName().equals(optimizerIdentifier))//
 							.findFirst() //
 							.orElseThrow(() -> new InvalidSettingsException("Optimizer '" + optimizerIdentifier
@@ -214,8 +218,9 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig {
 		put(randomSeed);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	ConfigEntry<DLKerasTrainingContext<?>> getTrainingContextEntry() {
+	@Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public ConfigEntry<DLKerasTrainingContext<?>> getContextEntry() {
 		return (ConfigEntry) get(CFG_KEY_TRAINING_CONTEXT, DLKerasTrainingContext.class);
 	}
 

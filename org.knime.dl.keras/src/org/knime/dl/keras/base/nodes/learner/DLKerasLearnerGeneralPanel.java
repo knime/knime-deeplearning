@@ -88,7 +88,7 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 			final Class<? extends DLNetwork> networkType) {
 		m_cfg = cfg;
 
-		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getTrainingContextEntry(), DLTrainingContext::getName,
+		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getContextEntry(), DLTrainingContext::getName,
 				"Back end");
 		addDoubleColumnRow(getFirstComponent(m_dcBackend, JLabel.class),
 				getFirstComponent(m_dcBackend, JComboBox.class));
@@ -181,14 +181,14 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				.sorted(Comparator.comparing(DLKerasTrainingContext::getName)) //
 				.collect(Collectors.toList());
 
-		final DLKerasTrainingContext<?> value = m_cfg.getTrainingContextEntry().getValue();
+		final DLKerasTrainingContext<?> value = m_cfg.getContextEntry().getValue();
 		final DLKerasTrainingContext<?> selectedTrainingContext;
 		if (availableTrainingContexts.isEmpty()) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		} else if (value != null && containsContext(availableTrainingContexts, value)) {
-			selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
+			selectedTrainingContext = m_cfg.getContextEntry().getValue();
 		} else {
-			m_cfg.getTrainingContextEntry().setValue(value);
+			m_cfg.getContextEntry().setValue(value);
 			selectedTrainingContext = availableTrainingContexts.get(0);
 		}
 		m_dcBackend.replaceListItems(availableTrainingContexts, selectedTrainingContext);

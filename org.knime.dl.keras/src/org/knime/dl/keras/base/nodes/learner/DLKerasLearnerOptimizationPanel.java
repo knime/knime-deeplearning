@@ -129,7 +129,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 
 	void refreshAvailableOptimizers() throws NotConfigurableException {
 		// refresh available optimizers
-		final DLKerasTrainingContext<?> selectedTrainingContext = m_cfg.getTrainingContextEntry().getValue();
+		final DLKerasTrainingContext<?> selectedTrainingContext = m_cfg.getContextEntry().getValue();
 		if (selectedTrainingContext == null) {
 			throw new NotConfigurableException("There is no available back end that supports the input network.");
 		}

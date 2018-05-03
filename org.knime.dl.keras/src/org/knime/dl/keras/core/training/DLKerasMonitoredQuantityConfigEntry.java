@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.training;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.AbstractStandardConfigEntry;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.keras.core.training.DLKerasMetric.DLKerasAccuracy;
@@ -58,7 +58,7 @@ import org.knime.dl.keras.core.training.DLKerasMetric.DLKerasAccuracy;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasMonitoredQuantityConfigEntry extends AbstractConfigEntry<DLKerasMonitoredQuantity> {
+public class DLKerasMonitoredQuantityConfigEntry extends AbstractStandardConfigEntry<DLKerasMonitoredQuantity> {
 
 	private static final String CFG_KEY_QUANTITY = "quantity";
 
