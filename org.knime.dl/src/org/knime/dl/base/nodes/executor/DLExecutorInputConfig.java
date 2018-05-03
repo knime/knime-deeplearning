@@ -48,14 +48,12 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,124 +61,83 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.DLAbstractInputConfig;
+import org.knime.dl.base.settings.SettingsModelConfigEntry;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class DLExecutorInputConfig {
+class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfig> {
 
-	private static final String CFG_KEY_CONVERTER = "converter";
+    DLExecutorInputConfig(final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
+        super(checkNotNullOrEmpty(inputTensorName), generalCfg);
+        put(new SettingsModelConfigEntry<>(CFG_KEY_CONVERTER, DLDataValueToTensorConverterFactory.class,
+            s -> new SettingsModelStringArray(s, null),
+            e -> new SettingsModelStringArray(e.getEntryKey(),
+                new String[]{e.getValue().getName(), e.getValue().getIdentifier()}),
+            this::createFactoryFromSettingsModel));
+        put(new AbstractConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
+            DataColumnSpecFilterConfiguration.class,
+            new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class))) {
 
-	private static final String CFG_KEY_INPUT_COL = "input_columns";
+            @Override
+            public void saveSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
+                m_value.saveConfiguration(settings);
+            }
 
-	private final String m_inputTensorName;
+            @Override
+            public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+                // no op. Separate routines for loading in model and dialog required. See super class.
+            }
+        });
+    }
 
-	private final DLExecutorGeneralConfig m_generalConfig;
+    private DLDataValueToTensorConverterFactory<?, ?> createFactoryFromSettingsModel(SettingsModelStringArray sm)
+        throws InvalidSettingsException {
+        String[] array = sm.getStringArrayValue();
+        return DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(array[1]).orElseThrow(
+            () -> new InvalidSettingsException("Data Converter '" + array[0] + "' (" + array[1] + ") of network input '"
+                + getTensorName() + "' could not be found. Are you missing a KNIME extension?"));
+    }
 
-	private final SettingsModelStringArray m_smConverter;
+    // TODO: this is a workaround (Do we still need this?)
+    static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
+        private Class<? extends DataValue>[] m_filterClasses;
 
-	private DataColumnSpecFilterConfiguration m_smInputCol;
+        @SafeVarargs
+        public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
+            setFilterClasses(filterValueClasses);
+        }
 
-	DLExecutorInputConfig(final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
-		m_inputTensorName = checkNotNullOrEmpty(inputTensorName);
-		m_generalConfig = checkNotNull(generalCfg);
-		m_smConverter = new SettingsModelStringArray(CFG_KEY_CONVERTER, new String[2]);
-		m_smInputCol = new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL,
-				new DLDataTypeColumnFilter(DataValue.class));
-	}
+        @Override
+        public final boolean include(final DataColumnSpec cspec) {
+            for (final Class<? extends DataValue> cl : m_filterClasses) {
+                if (cspec.getType().isCompatible(cl)) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
-	/**
-	 * Equivalent to {@link #getInputTensorName()}.
-	 */
-	String getConfigKey() {
-		return m_inputTensorName;
-	}
+        Class<? extends DataValue>[] getFilterClasses() {
+            return m_filterClasses;
+        }
 
-	String getInputTensorName() {
-		return m_inputTensorName;
-	}
-
-	DLExecutorGeneralConfig getGeneralConfig() {
-		return m_generalConfig;
-	}
-
-	SettingsModelStringArray getConverterModel() {
-		return m_smConverter;
-	}
-
-	DataColumnSpecFilterConfiguration getInputColumnsModel() {
-		return m_smInputCol;
-	}
-
-	void setInputColumnsModelFilter(final DLDataTypeColumnFilter inputColumnsFilter) {
-		m_smInputCol = new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, inputColumnsFilter);
-	}
-
-	NodeSettingsRO validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO cfgSettings = settings.getNodeSettings(m_inputTensorName);
-		m_smConverter.validateSettings(cfgSettings);
-		return cfgSettings;
-	}
-
-	void loadFromSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO child = settings.getNodeSettings(m_inputTensorName);
-		if (settings.containsKey(m_inputTensorName)) {
-			m_smConverter.loadSettingsFrom(child);
-			m_smInputCol.loadConfigurationInModel(child);
-		}
-	}
-
-	void loadFromSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
-			throws InvalidSettingsException {
-		// we enforce inclusion by default
-		m_smInputCol.loadDefault(spec, null, true);
-		final NodeSettingsRO child = settings.getNodeSettings(m_inputTensorName);
-		if (settings.containsKey(m_inputTensorName)) {
-			m_smConverter.loadSettingsFrom(child);
-			m_smInputCol.loadConfigurationInDialog(child, spec);
-		}
-	}
-
-	void saveToSettings(final NodeSettingsWO settings) {
-		final NodeSettingsWO cfgSettings = settings.addNodeSettings(m_inputTensorName);
-		m_smConverter.saveSettingsTo(cfgSettings);
-		m_smInputCol.saveConfiguration(cfgSettings);
-	}
-
-	// TODO: this is a workaround
-	static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
-		private Class<? extends DataValue>[] m_filterClasses;
-
-		@SafeVarargs
-		public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
-			setFilterClasses(filterValueClasses);
-		}
-
-		@Override
-		public final boolean include(final DataColumnSpec cspec) {
-			for (final Class<? extends DataValue> cl : m_filterClasses) {
-				if (cspec.getType().isCompatible(cl)) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		Class<? extends DataValue>[] getFilterClasses() {
-			return m_filterClasses;
-		}
-
-		@SafeVarargs
-		final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
-			if (filterValueClasses == null || filterValueClasses.length == 0) {
-				throw new NullPointerException("Classes must not be null");
-			}
-			final List<Class<? extends DataValue>> list = Arrays.asList(filterValueClasses);
-			if (list.contains(null)) {
-				throw new NullPointerException("List of value classes must not " + "contain null elements.");
-			}
-			m_filterClasses = filterValueClasses;
-		}
-	}
+        @SafeVarargs
+        final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
+            if (filterValueClasses == null || filterValueClasses.length == 0) {
+                throw new NullPointerException("Classes must not be null");
+            }
+            final List<Class<? extends DataValue>> list = Arrays.asList(filterValueClasses);
+            if (list.contains(null)) {
+                throw new NullPointerException("List of value classes must not " + "contain null elements.");
+            }
+            m_filterClasses = filterValueClasses;
+        }
+    }
 }
