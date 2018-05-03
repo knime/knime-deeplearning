@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.learner;
+package org.knime.dl.base.settings;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +57,7 @@ import org.knime.core.node.util.filter.InputFilter;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
+public final class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
 
 	private Class<? extends DataValue>[] m_filterClasses;
 
