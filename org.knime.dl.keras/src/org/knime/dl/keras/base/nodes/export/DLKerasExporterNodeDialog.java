@@ -57,7 +57,6 @@ import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -77,8 +76,6 @@ import org.knime.dl.core.export.DLNetworkExporterRegistry;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class DLKerasExporterNodeDialog extends NodeDialogPane {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasExporterNodeModel.class);
 
     private static final String HISTORY_ID = "org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeModel";
 
@@ -143,16 +140,15 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         // Check if this node is configurable
         if (!(specs[0] instanceof DLNetworkPortObjectSpec)) {
-            // TODO what is the common message here?
-            throw new NotConfigurableException("Please configure the previous node.");
+            throw new NotConfigurableException("Cannot be configured without input network");
         }
 
         // Get the list of exporters
         final DLNetworkPortObjectSpec spec = (DLNetworkPortObjectSpec)specs[0];
         final Set<DLNetworkExporter> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
         if (exporters.isEmpty()) {
-            // TODO Maybe ask if a extension is missing?
-            throw new NotConfigurableException("There is no exporter avaiable for the given network.");
+            throw new NotConfigurableException(
+                "There is no exporter avaiable for the given network. Are you missing a KNIME extension?");
         }
         final String[] names = exporters.stream().map(e -> e.getName()).toArray(String[]::new);
         final String[] ids = exporters.stream().map(e -> e.getIdentifier()).toArray(String[]::new);

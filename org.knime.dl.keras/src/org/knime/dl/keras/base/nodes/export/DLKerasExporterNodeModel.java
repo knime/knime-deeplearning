@@ -54,7 +54,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -75,8 +74,6 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class DLKerasExporterNodeModel extends NodeModel {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasExporterNodeModel.class);
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
