@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.export;
+package org.knime.dl.base.nodes.export;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,16 +64,15 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.export.DLNetworkExporter;
 import org.knime.dl.core.export.DLNetworkExporterRegistry;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasExporterNodeModel extends NodeModel {
+public final class DLDefaultExporterNodeModel extends NodeModel {
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
@@ -103,8 +102,11 @@ final class DLKerasExporterNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_KEY_OVERWRITE, false);
     }
 
-    protected DLKerasExporterNodeModel() {
-        super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, null);
+    public DLDefaultExporterNodeModel(final PortType inputType) {
+        super(new PortType[]{inputType}, null);
+        if (!DLNetworkPortObject.class.isAssignableFrom(inputType.getPortObjectClass())) {
+            throw new IllegalArgumentException("The given type must be the type of a DLNetworkPortObject.");
+        }
     }
 
     @Override
@@ -123,7 +125,7 @@ final class DLKerasExporterNodeModel extends NodeModel {
         }
 
         // Check if the exporter fits the network type
-        final DLKerasNetworkPortObjectSpec portSpec = (DLKerasNetworkPortObjectSpec)inSpecs[0];
+        final DLNetworkPortObjectSpec portSpec = (DLNetworkPortObjectSpec)inSpecs[0];
         if (!m_exporter.getNetworkType().isAssignableFrom(portSpec.getNetworkType())) {
             throw new InvalidSettingsException(
                 "The given network is not compatible with the exporter. Please reconfigure the node.");
@@ -135,7 +137,7 @@ final class DLKerasExporterNodeModel extends NodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final DLKerasNetworkPortObject inPort = (DLKerasNetworkPortObject)inObjects[0];
+        final DLNetworkPortObject inPort = (DLNetworkPortObject)inObjects[0];
         m_exporter.exportNetwork(inPort.getNetwork(), FileUtil.toURL(m_filePath.getStringValue()),
             m_overwrite.getBooleanValue());
         return new PortObject[]{};

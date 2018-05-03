@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.export;
+package org.knime.dl.base.nodes.export;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -75,17 +75,15 @@ import org.knime.dl.core.export.DLNetworkExporterRegistry;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasExporterNodeDialog extends NodeDialogPane {
-
-    private static final String HISTORY_ID = "org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeModel";
+public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
-    private final SettingsModelStringArray m_smExporterId = DLKerasExporterNodeModel.createExporterIdSettingsModel();
+    private final SettingsModelStringArray m_smExporterId = DLDefaultExporterNodeModel.createExporterIdSettingsModel();
 
-    private final SettingsModelString m_smFilePath = DLKerasExporterNodeModel.createFilePathSettingsModel();
+    private final SettingsModelString m_smFilePath = DLDefaultExporterNodeModel.createFilePathSettingsModel();
 
-    private final SettingsModelBoolean m_smOverwrite = DLKerasExporterNodeModel.createOverwriteSettingsModel();
+    private final SettingsModelBoolean m_smOverwrite = DLDefaultExporterNodeModel.createOverwriteSettingsModel();
 
     private final DialogComponentIdFromPrettyStringSelection m_dcExporterId;
 
@@ -93,7 +91,7 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;
 
-    public DLKerasExporterNodeDialog() {
+    public DLDefaultExporterNodeDialog(final String history_id) {
         // Create the dialog components
         m_dcExporterId = new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> {
             // TODO Wow that's dirty! The dialog component should update the settings model itself.
@@ -103,7 +101,7 @@ final class DLKerasExporterNodeDialog extends NodeDialogPane {
             exporterChanged();
         });
         // TODO some exporters may allow folders
-        m_filePanel = new FilesHistoryPanel(HISTORY_ID, LocationValidation.FileOutput);
+        m_filePanel = new FilesHistoryPanel(history_id, LocationValidation.FileOutput);
         m_filePanel.setDialogType(JFileChooser.SAVE_DIALOG);
         m_filePanel.addChangeListener(e -> m_smFilePath.setStringValue(m_filePanel.getSelectedFile()));
         m_dcOverwrite = new DialogComponentBoolean(m_smOverwrite, "Overwrite the file if it exists.");
