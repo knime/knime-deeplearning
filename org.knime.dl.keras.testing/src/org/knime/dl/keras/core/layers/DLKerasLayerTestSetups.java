@@ -328,7 +328,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 1;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -339,7 +339,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 1;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("input_1:0");
+        assert outputSpec0.getName().equals("input_1_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -360,7 +360,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 1;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -371,7 +371,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 1;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_4_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -392,7 +392,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 2;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -400,7 +400,7 @@ class DLKerasLayerTestSetups {
         assert inputSpec0.getElementType() == float.class;
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getName().equals("input_2:0");
+        assert inputSpec1.getName().equals("input_2_0:0");
         assert inputSpec1.getBatchSize().getAsLong() == 32;
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
         assert inputShape1.length == 1;
@@ -411,7 +411,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 1;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_3_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -432,7 +432,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 1;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -443,7 +443,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 2;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_4_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -451,7 +451,7 @@ class DLKerasLayerTestSetups {
         assert outputSpec0.getElementType() == float.class;
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_5/BiasAdd:0");
+        assert outputSpec1.getName().equals("dense_5_0:0");
         assert outputSpec1.getBatchSize().getAsLong() == 32;
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
         assert outputShape1.length == 1;
@@ -472,7 +472,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 2;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -480,7 +480,7 @@ class DLKerasLayerTestSetups {
         assert inputSpec0.getElementType() == float.class;
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getName().equals("input_2:0");
+        assert inputSpec1.getName().equals("input_2_0:0");
         assert inputSpec1.getBatchSize().getAsLong() == 32;
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
         assert inputShape1.length == 1;
@@ -491,7 +491,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 2;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_3/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_3_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -499,7 +499,7 @@ class DLKerasLayerTestSetups {
         assert outputSpec0.getElementType() == float.class;
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec1.getName().equals("dense_4_0:0");
         assert outputSpec1.getBatchSize().getAsLong() == 32;
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
         assert outputShape1.length == 1;
@@ -521,7 +521,7 @@ class DLKerasLayerTestSetups {
         assert inputSpecs.length == 3;
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getName().equals("input_1:0");
+        assert inputSpec0.getName().equals("input_1_0:0");
         assert inputSpec0.getBatchSize().getAsLong() == 32;
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
         assert inputShape0.length == 1;
@@ -529,7 +529,7 @@ class DLKerasLayerTestSetups {
         assert inputSpec0.getElementType() == float.class;
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getName().equals("input_2:0");
+        assert inputSpec1.getName().equals("input_2_0:0");
         assert inputSpec1.getBatchSize().getAsLong() == 32;
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
         assert inputShape1.length == 1;
@@ -537,7 +537,7 @@ class DLKerasLayerTestSetups {
         assert inputSpec1.getElementType() == float.class;
 
         final DLTensorSpec inputSpec2 = inputSpecs[2];
-        assert inputSpec2.getName().equals("input_3:0");
+        assert inputSpec2.getName().equals("input_3_0:0");
         assert inputSpec2.getBatchSize().getAsLong() == 32;
         final long[] inputShape2 = DLUtils.Shapes.getFixedShape(inputSpec2.getShape()).get();
         assert inputShape2.length == 1;
@@ -548,7 +548,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 3;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_6/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_6_0:0");
         assert outputSpec0.getBatchSize().getAsLong() == 32;
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -556,7 +556,7 @@ class DLKerasLayerTestSetups {
         assert outputSpec0.getElementType() == float.class;
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_7/BiasAdd:0");
+        assert outputSpec1.getName().equals("dense_7_0:0");
         assert outputSpec1.getBatchSize().getAsLong() == 32;
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
         assert outputShape1.length == 1;
@@ -564,7 +564,7 @@ class DLKerasLayerTestSetups {
         assert outputSpec1.getElementType() == float.class;
 
         final DLTensorSpec outputSpec2 = outputSpecs[2];
-        assert outputSpec2.getName().equals("add_4/add:0");
+        assert outputSpec2.getName().equals("add_4_0:0");
         assert outputSpec2.getBatchSize().getAsLong() == 32;
         final long[] outputShape2 = DLUtils.Shapes.getFixedShape(outputSpec2.getShape()).get();
         assert outputShape2.length == 1;
@@ -594,7 +594,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 1;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("dense_4/BiasAdd:0");
+        assert outputSpec0.getName().equals("dense_4_0:0");
         assert !outputSpec0.getBatchSize().isPresent();
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -629,7 +629,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs[0].equals(baseNetwork.getSpec().getOutputSpecs()[0]);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getName().equals("dense_7/BiasAdd:0");
+        assert outputSpec1.getName().equals("dense_7_0:0");
         assert !outputSpec1.getBatchSize().isPresent();
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
         assert outputShape1.length == 1;
@@ -661,7 +661,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 1;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("add_1/add:0");
+        assert outputSpec0.getName().equals("add_1_0:0");
         assert !outputSpec0.getBatchSize().isPresent();
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -694,7 +694,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 2;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getName().equals("add_4/add:0");
+        assert outputSpec0.getName().equals("add_4_0:0");
         assert !outputSpec0.getBatchSize().isPresent();
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
         assert outputShape0.length == 1;
@@ -735,7 +735,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs[1].equals(baseNetwork0.getSpec().getOutputSpecs()[1]);
 
         final DLTensorSpec outputSpec2 = outputSpecs[2];
-        assert outputSpec2.getName().equals("add_3/add:0");
+        assert outputSpec2.getName().equals("add_3_0:0");
         assert !outputSpec2.getBatchSize().isPresent();
         final long[] outputShape2 = DLUtils.Shapes.getFixedShape(outputSpec2.getShape()).get();
         assert outputShape2.length == 1;
