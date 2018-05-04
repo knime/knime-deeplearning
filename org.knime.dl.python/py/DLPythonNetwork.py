@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from pandas.util.testing import network
 
 # ------------------------------------------------------------------------
 #  Copyright by KNIME AG, Zurich, Switzerland
@@ -50,6 +49,8 @@ from pandas.util.testing import network
 '''
 
 import abc
+
+from pandas.util.testing import network
 
 
 _networks = {}

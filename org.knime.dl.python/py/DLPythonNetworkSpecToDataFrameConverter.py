@@ -48,7 +48,7 @@ import DLPythonNetwork
 import pandas as pd
 
 
-class DLPythonNetworkSpecExtractor(object):
+class DLPythonNetworkSpecToDataFrameConverter(object):
 
     def __init__(self, network_spec):
         self._network_spec = network_spec
@@ -87,9 +87,9 @@ class DLPythonNetworkSpecExtractor(object):
         return specs.convert_objects(convert_numeric=True)
 
 
-def get_layer_data_specs_as_data_frame(identifier):
+def get_layer_data_specs_as_data_frames(identifier):
     network = DLPythonNetwork.get_network(identifier)
-    extractor = DLPythonNetworkSpecExtractor(network.spec)
+    extractor = DLPythonNetworkSpecToDataFrameConverter(network.spec)
     input_specs = extractor.input_specs_to_data_frame()
     intermediate_output_specs = extractor.intermediate_output_specs_to_data_frame()
     output_specs = extractor.output_specs_to_data_frame()

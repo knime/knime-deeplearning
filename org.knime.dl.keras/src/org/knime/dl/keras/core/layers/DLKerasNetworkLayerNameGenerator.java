@@ -133,6 +133,7 @@ public final class DLKerasNetworkLayerNameGenerator {
     }
 
     public String getOutputTensorName(final String layerName, final int nodeIndex, final int tensorIndex) {
+        // equals the naming scheme in DLKerasNetworkSpecExtractor on Python side
         return layerName + "_" + nodeIndex + ":" + tensorIndex;
     }
 }

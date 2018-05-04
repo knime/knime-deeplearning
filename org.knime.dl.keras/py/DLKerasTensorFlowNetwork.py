@@ -48,11 +48,10 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
+from DLKerasNetworkSpecExtractor import DLKerasNetworkSpecExtractor
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-
-from DLPythonNetwork import DLPythonTensorSpec
 
 
 class DLKerasTensorFlowNetworkReader(DLKerasNetworkReader):
@@ -84,10 +83,8 @@ class DLKerasTensorFlowNetwork(DLKerasNetwork):
         #    config.callbacks.append(tb)
     #    super().train()
 
-    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape, dimension_order):
-        name = tensor.name
-        element_type = tensor.dtype.name  # TensorFlow returns a TF dtype
-        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type, dimension_order)
+    def _extract_model_spec(self):
+        return DLKerasTensorFlowNetworkSpecExtractor(self._model).extract_spec()
 
 
 class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):
@@ -99,3 +96,12 @@ class DLKerasTensorFlowNetworkSpec(DLKerasNetworkSpec):
     def network_type(self):
         from DLKerasTensorFlowNetworkType import instance as TensorFlow
         return TensorFlow()
+
+
+class DLKerasTensorFlowNetworkSpecExtractor(DLKerasNetworkSpecExtractor):
+
+    def __init__(self, model):
+        super().__init__(model)
+
+    def _get_tensor_element_type(self, tensor):
+        return tensor.dtype.name  # TensorFlow returns a TF dtype

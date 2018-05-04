@@ -48,11 +48,10 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
+from DLKerasNetworkSpecExtractor import DLKerasNetworkSpecExtractor
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-
-from DLPythonNetwork import DLPythonTensorSpec
 
 
 class DLKerasCNTKNetworkReader(DLKerasNetworkReader):
@@ -75,12 +74,8 @@ class DLKerasCNTKNetwork(DLKerasNetwork):
     def __init__(self, model):
         super().__init__(model)
 
-    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape, dimension_order):
-        name = tensor.name
-        if name is None or name == '':
-            name = tensor_id
-        element_type = tensor.dtype.__name__  # CNTK returns a numpy type
-        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type, dimension_order)
+    def _extract_model_spec(self):
+        return DLKerasCNTKNetworkSpecExtractor(self._model).extract_spec()
 
 
 class DLKerasCNTKNetworkSpec(DLKerasNetworkSpec):
@@ -92,3 +87,12 @@ class DLKerasCNTKNetworkSpec(DLKerasNetworkSpec):
     def network_type(self):
         from DLKerasCNTKNetworkType import instance as CNTK
         return CNTK()
+
+
+class DLKerasCNTKNetworkSpecExtractor(DLKerasNetworkSpecExtractor):
+
+    def __init__(self, model):
+        super().__init__(model)
+
+    def _get_tensor_element_type(self, tensor):
+        return tensor.dtype.__name__  # CNTK returns a numpy type

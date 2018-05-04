@@ -632,13 +632,14 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
     }
 
 	protected String getExtractNetworkSpecsCode(final DLPythonNetworkHandle network) {
-		return "import DLPythonNetworkSpecExtractor\n" + //
+		return "import DLPythonNetworkSpecToDataFrameConverter\n" + //
 				"global " + INPUT_SPECS_NAME + "\n" + //
 				"global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
 				"global " + OUTPUT_SPECS_NAME + "\n" + //
 				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + ", " + //
 				OPTIMIZER_SPECS + ", " + LOSS_SPECS + ", " + METRICS_SPECS + " = " + //
-				"DLPythonNetworkSpecExtractor.get_layer_data_specs_as_data_frame('" + network.getIdentifier() + "')";
+            "DLPythonNetworkSpecToDataFrameConverter.get_layer_data_specs_as_data_frames('" + network.getIdentifier()
+            + "')";
 	}
 
 	private TableChunker createSingleTensorTableChunker(final DLTensor<? extends DLWritableBuffer> tensor)

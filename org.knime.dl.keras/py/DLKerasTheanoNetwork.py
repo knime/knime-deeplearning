@@ -48,11 +48,10 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
+from DLKerasNetworkSpecExtractor import DLKerasNetworkSpecExtractor
 from DLKerasNetwork import DLKerasNetwork
 from DLKerasNetwork import DLKerasNetworkReader
 from DLKerasNetwork import DLKerasNetworkSpec
-
-from DLPythonNetwork import DLPythonTensorSpec
 
 
 class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
@@ -75,12 +74,8 @@ class DLKerasTheanoNetwork(DLKerasNetwork):
     def __init__(self, model):
         super().__init__(model)
 
-    def _get_tensor_spec(self, layer, node_idx, tensor_idx, tensor_id, tensor, tensor_shape, dimension_order):
-        name = tensor.name
-        if name is None or name == '':
-            name = tensor_id
-        element_type = tensor.dtype  # Theano returns a string
-        return DLPythonTensorSpec(tensor_id, name, tensor_shape[0], list(tensor_shape[1:]), element_type, dimension_order)
+    def _extract_model_spec(self):
+        return DLKerasTheanoNetworkSpecExtractor(self._model).extract_spec()
 
 
 class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
@@ -92,3 +87,12 @@ class DLKerasTheanoNetworkSpec(DLKerasNetworkSpec):
     def network_type(self):
         from DLKerasTheanoNetworkType import instance as Theano
         return Theano()
+
+
+class DLKerasTheanoNetworkSpecExtractor(DLKerasNetworkSpecExtractor):
+
+    def __init__(self, model):
+        super().__init__(model)
+
+    def _get_tensor_element_type(self, tensor):
+        return tensor.dtype  # Theano returns a string
