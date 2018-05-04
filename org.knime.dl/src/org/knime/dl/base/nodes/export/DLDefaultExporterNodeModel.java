@@ -63,6 +63,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
@@ -138,6 +139,13 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
         if (!m_exporter.getNetworkType().isAssignableFrom(portSpec.getNetworkType())) {
             throw new InvalidSettingsException(
                 "The given network is not compatible with the exporter. Please reconfigure the node.");
+        }
+
+        // Check the output file
+        final String fileCheckWarning =
+            CheckUtils.checkDestinationFile(m_filePath.getStringValue(), m_overwrite.getBooleanValue());
+        if (fileCheckWarning != null) {
+            setWarningMessage(fileCheckWarning);
         }
 
         // We have no output port
