@@ -126,7 +126,7 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
             m_exporter = EXPORTER_REGISTRY.getExporterWithId(m_exporterId.getStringArrayValue()[1]);
         } catch (final NoSuchElementException e) {
             throw new InvalidSettingsException(
-                "The selected exporter is not avaiable. Are you missing a KNIME extension?", e);
+                "The selected exporter is not available. Are you missing a KNIME extension?", e);
         }
 
         // Check if the exporter fits the network type

@@ -144,7 +144,7 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         // Check if this node is configurable
         if (!(specs[0] instanceof DLNetworkPortObjectSpec)) {
-            throw new NotConfigurableException("Cannot be configured without input network");
+            throw new NotConfigurableException("Cannot be configured without input network.");
         }
 
         // Get the list of exporters
@@ -152,7 +152,7 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
         final Set<DLNetworkExporter> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
         if (exporters.isEmpty()) {
             throw new NotConfigurableException(
-                "There is no exporter avaiable for the given network. Are you missing a KNIME extension?");
+                "There is no exporter available for the given network. Are you missing a KNIME extension?");
         }
         final String[] names = exporters.stream().map(e -> e.getName()).toArray(String[]::new);
         final String[] ids = exporters.stream().map(e -> e.getIdentifier()).toArray(String[]::new);
