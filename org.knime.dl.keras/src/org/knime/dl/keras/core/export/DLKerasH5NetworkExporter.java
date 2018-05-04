@@ -81,7 +81,7 @@ public class DLKerasH5NetworkExporter extends DLAbstractNetworkExporter<DLKerasN
         if (dest.exists() && !overwrite) {
             throw new IOException("The destination file already exists.");
         }
-        try (final InputStream sourceStream = FileUtil.openStreamWithTimeout(network.getSource());
+        try (final InputStream sourceStream = FileUtil.openStreamWithTimeout(network.getSource().getURI().toURL());
                 final OutputStream destStream = new FileOutputStream(dest)) {
             FileUtil.copy(sourceStream, destStream);
         }
