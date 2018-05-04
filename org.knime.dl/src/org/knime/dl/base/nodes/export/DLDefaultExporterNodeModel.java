@@ -66,13 +66,15 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.export.DLNetworkExporter;
 import org.knime.dl.core.export.DLNetworkExporterRegistry;
 
 /**
+ * @param <N> Type of the deep learning network
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDefaultExporterNodeModel extends NodeModel {
+public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeModel {
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
@@ -88,7 +90,7 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_overwrite = createOverwriteSettingsModel();
 
-    private DLNetworkExporter m_exporter;
+    private DLNetworkExporter<N> m_exporter;
 
     static SettingsModelStringArray createExporterIdSettingsModel() {
         return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{});
@@ -115,6 +117,7 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // Check that exporter is configured
         if (m_exporterId.getStringArrayValue().length != 2) {
@@ -123,7 +126,8 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
 
         // Get the configured exporter
         try {
-            m_exporter = EXPORTER_REGISTRY.getExporterWithId(m_exporterId.getStringArrayValue()[1]);
+            m_exporter =
+                (DLNetworkExporter<N>)EXPORTER_REGISTRY.getExporterWithId(m_exporterId.getStringArrayValue()[1]);
         } catch (final NoSuchElementException e) {
             throw new InvalidSettingsException(
                 "The selected exporter is not available. Are you missing a KNIME extension?", e);
@@ -141,9 +145,10 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         final DLNetworkPortObject inPort = (DLNetworkPortObject)inObjects[0];
-        m_exporter.exportNetwork(inPort.getNetwork(), FileUtil.toURL(m_filePath.getStringValue()),
+        m_exporter.exportNetwork((N)inPort.getNetwork(), FileUtil.toURL(m_filePath.getStringValue()),
             m_overwrite.getBooleanValue());
         return new PortObject[]{};
     }

@@ -54,12 +54,12 @@ import org.knime.dl.core.DLNetwork;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkExporter {
+public interface DLNetworkExporter<N extends DLNetwork> {
 
     /**
      * @return the type of the deep learning network
      */
-    Class<? extends DLNetwork> getNetworkType();
+    Class<N> getNetworkType();
 
     /**
      * @return a unique identifier for this exporter
@@ -86,6 +86,6 @@ public interface DLNetworkExporter {
      * @param overwrite if the file should be overwritten if it already exists
      * @throws IOException if writing the file fails
      */
-    void exportNetwork(DLNetwork network, URL path, boolean overwrite) throws IOException;
+    void exportNetwork(N network, URL path, boolean overwrite) throws IOException;
 
 }

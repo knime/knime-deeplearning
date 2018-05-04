@@ -77,7 +77,7 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
         return instance;
     }
 
-    private final Set<DLNetworkExporter> m_exporters = new HashSet<>();
+    private final Set<DLNetworkExporter<?>> m_exporters = new HashSet<>();
 
     private DLNetworkExporterRegistry() {
         super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -91,7 +91,7 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
      * @return an instance of a {@link DLNetworkExporter}
      * @throws NoSuchElementException if there is no exporter with the given identifier
      */
-    public DLNetworkExporter getExporterWithId(final String id) {
+    public DLNetworkExporter<?> getExporterWithId(final String id) {
         // TODO Should we throw an checked exception?
         return m_exporters.stream().filter(e -> e.getIdentifier().equals(id)).findFirst().get();
     }
@@ -102,17 +102,17 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
      * @param type the network type
      * @return a set of network exporters
      */
-    public Set<DLNetworkExporter> getExporterForType(final Class<? extends DLNetwork> type) {
+    public Set<DLNetworkExporter<?>> getExporterForType(final Class<? extends DLNetwork> type) {
         return m_exporters.stream().filter(e -> e.getNetworkType().isAssignableFrom(type)).collect(Collectors.toSet());
     }
 
     @Override
     protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
         throws Throwable {
-        registerNetworkExporterInternal((DLNetworkExporter)elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
+        registerNetworkExporterInternal((DLNetworkExporter<?>)elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
     }
 
-    private synchronized void registerNetworkExporterInternal(final DLNetworkExporter exporter) {
+    private synchronized void registerNetworkExporterInternal(final DLNetworkExporter<?> exporter) {
         final Class<? extends DLNetwork> networkType = exporter.getNetworkType();
         if (networkType == null) {
             throw new IllegalArgumentException("The exporter's associated network type must not be null.");

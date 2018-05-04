@@ -46,16 +46,13 @@
  */
 package org.knime.dl.core.export;
 
-import java.io.IOException;
-import java.net.URL;
-
 import org.knime.dl.core.DLNetwork;
 
 /**
  * @param <N> Type of the deep learning network
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLAbstractNetworkExporter<N extends DLNetwork> implements DLNetworkExporter {
+public abstract class DLAbstractNetworkExporter<N extends DLNetwork> implements DLNetworkExporter<N> {
 
     private final Class<N> m_networkType;
 
@@ -91,23 +88,4 @@ public abstract class DLAbstractNetworkExporter<N extends DLNetwork> implements 
         return m_validExtensions;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void exportNetwork(final DLNetwork network, final URL path, final boolean overwrite) throws IOException {
-        if (!m_networkType.isAssignableFrom(network.getClass())) {
-            throw new IllegalArgumentException("This exporter is not applicable for networks of type \""
-                + network.getClass() + "\". Expected type: \"" + m_networkType + "\".");
-        }
-        exportNetworkInternal((N)network, path, overwrite);
-    }
-
-    /**
-     * Internally export the deep learning network.
-     *
-     * @param network the deep learning network
-     * @param path where the network should be exported to
-     * @param overwrite if the file should be overwritten if it already exists
-     * @throws IOException if writing the file fails
-     */
-    public abstract void exportNetworkInternal(N network, URL path, boolean overwrite) throws IOException;
 }

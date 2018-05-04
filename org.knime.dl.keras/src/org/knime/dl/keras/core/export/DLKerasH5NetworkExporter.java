@@ -74,7 +74,7 @@ public class DLKerasH5NetworkExporter extends DLAbstractNetworkExporter<DLKerasN
     }
 
     @Override
-    public void exportNetworkInternal(final DLKerasNetwork network, final URL path, final boolean overwrite)
+    public void exportNetwork(final DLKerasNetwork network, final URL path, final boolean overwrite)
         throws IOException {
         // TODO make more general for remote destination files
         final File dest = FileUtil.getFileFromURL(path);

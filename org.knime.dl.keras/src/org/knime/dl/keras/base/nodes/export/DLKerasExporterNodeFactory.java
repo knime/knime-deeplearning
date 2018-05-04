@@ -56,11 +56,11 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNodeModel> {
+public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNodeModel<?>> {
 
     @Override
-    public DLDefaultExporterNodeModel createNodeModel() {
-        return new DLDefaultExporterNodeModel(DLKerasNetworkPortObjectBase.TYPE);
+    public DLDefaultExporterNodeModel<?> createNodeModel() {
+        return new DLDefaultExporterNodeModel<>(DLKerasNetworkPortObjectBase.TYPE);
     }
 
     @Override
@@ -69,8 +69,8 @@ public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNod
     }
 
     @Override
-    public NodeView<DLDefaultExporterNodeModel> createNodeView(final int viewIndex,
-        final DLDefaultExporterNodeModel nodeModel) {
+    public NodeView<DLDefaultExporterNodeModel<?>> createNodeView(final int viewIndex,
+        final DLDefaultExporterNodeModel<?> nodeModel) {
         return null;
     }
 
