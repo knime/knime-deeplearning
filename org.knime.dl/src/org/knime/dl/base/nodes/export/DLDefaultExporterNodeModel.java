@@ -91,7 +91,7 @@ public final class DLDefaultExporterNodeModel extends NodeModel {
     private DLNetworkExporter m_exporter;
 
     static SettingsModelStringArray createExporterIdSettingsModel() {
-        return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{"", ""});
+        return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{});
     }
 
     static SettingsModelString createFilePathSettingsModel() {
