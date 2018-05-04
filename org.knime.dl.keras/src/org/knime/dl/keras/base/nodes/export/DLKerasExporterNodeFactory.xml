@@ -15,8 +15,7 @@
 			The exporter to use.
 			<ul>
 				<li>
-					<b>Keras H5 Exporter:</b>
-					Exports the Keras deep learning network including its weights to a
+					Keras H5 Exporter: Exports the Keras deep learning network including its weights to a
 					*.h5 file.
 				</li>
 			</ul>
