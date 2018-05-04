@@ -60,7 +60,7 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNetwork> {
+public class DLKerasH5NetworkExporter extends DLAbstractNetworkExporter<DLKerasNetwork> {
 
     private static final String NAME = "Keras H5 Exporter";
 
@@ -69,7 +69,7 @@ public class DLKerasH5NetworExporter extends DLAbstractNetworkExporter<DLKerasNe
     /**
      * Creates a new Keras h5 exporter.
      */
-    public DLKerasH5NetworExporter() {
+    public DLKerasH5NetworkExporter() {
         super(DLKerasNetwork.class, NAME, VALID_EXTENSIONS);
     }
 
