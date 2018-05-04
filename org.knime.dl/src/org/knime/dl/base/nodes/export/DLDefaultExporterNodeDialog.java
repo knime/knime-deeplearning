@@ -134,7 +134,7 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
     }
 
     private void exporterChanged() {
-        final DLNetworkExporter<?> exporter = EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]);
+        final DLNetworkExporter<?> exporter = EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]).get();
         final String[] suffixes = Arrays.stream(exporter.getValidExtensions()).map(s -> "." + s).toArray(String[]::new);
         m_filePanel.setSuffixes(suffixes);
     }
@@ -149,7 +149,7 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
 
         // Get the list of exporters
         final DLNetworkPortObjectSpec spec = (DLNetworkPortObjectSpec)specs[0];
-        final Set<DLNetworkExporter<?>> exporters = EXPORTER_REGISTRY.getExporterForType(spec.getNetworkType());
+        final Set<DLNetworkExporter<?>> exporters = EXPORTER_REGISTRY.getExportersForType(spec.getNetworkType());
         if (exporters.isEmpty()) {
             throw new NotConfigurableException(
                 "There is no exporter available for the given network. Are you missing a KNIME extension?");

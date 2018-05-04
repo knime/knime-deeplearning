@@ -49,6 +49,7 @@ package org.knime.dl.core.export;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -91,9 +92,8 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
      * @return an instance of a {@link DLNetworkExporter}
      * @throws NoSuchElementException if there is no exporter with the given identifier
      */
-    public DLNetworkExporter<?> getExporterWithId(final String id) {
-        // TODO Should we throw an checked exception?
-        return m_exporters.stream().filter(e -> e.getIdentifier().equals(id)).findFirst().get();
+    public Optional<DLNetworkExporter<?>> getExporterWithId(final String id) {
+        return m_exporters.stream().filter(e -> e.getIdentifier().equals(id)).findFirst();
     }
 
     /**
@@ -102,7 +102,7 @@ public final class DLNetworkExporterRegistry extends DLAbstractExtensionPointReg
      * @param type the network type
      * @return a set of network exporters
      */
-    public Set<DLNetworkExporter<?>> getExporterForType(final Class<? extends DLNetwork> type) {
+    public Set<DLNetworkExporter<?>> getExportersForType(final Class<? extends DLNetwork> type) {
         return m_exporters.stream().filter(e -> e.getNetworkType().isAssignableFrom(type)).collect(Collectors.toSet());
     }
 
