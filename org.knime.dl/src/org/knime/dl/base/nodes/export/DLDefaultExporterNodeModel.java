@@ -125,12 +125,12 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
         }
 
         // Get the configured exporter
+        final String exporterId = m_exporterId.getStringArrayValue()[1];
         try {
-            m_exporter =
-                (DLNetworkExporter<N>)EXPORTER_REGISTRY.getExporterWithId(m_exporterId.getStringArrayValue()[1]);
+            m_exporter = (DLNetworkExporter<N>)EXPORTER_REGISTRY.getExporterWithId(exporterId);
         } catch (final NoSuchElementException e) {
             throw new InvalidSettingsException(
-                "The selected exporter is not available. Are you missing a KNIME extension?", e);
+                "The selected exporter '" + exporterId + "' is not available. Are you missing a KNIME extension?", e);
         }
 
         // Check if the exporter fits the network type
