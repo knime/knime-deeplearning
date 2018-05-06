@@ -66,13 +66,21 @@ import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkSpec;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -169,7 +177,9 @@ public final class DLKerasNetworkPortObject extends
                     () -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                         + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
             try {
-                final DLKerasNetwork network = new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
+                DLKerasNetwork network = new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
+                // Keep the old tensor names for backward compatibility reasons (node settings entry keys).
+                network = retainOldTensorNames(network, spec);
                 m_spec = new DLKerasNetworkPortObjectSpec(network.getSpec(), m_spec.getNetworkType());
             } catch (DLInvalidSourceException | DLInvalidEnvironmentException e) {
                 throw new IOException(e.getMessage(), e);
@@ -180,6 +190,52 @@ public final class DLKerasNetworkPortObject extends
     private boolean specIsOutdated(final DLKerasNetworkSpec spec) {
         return Stream.of(spec.getInputSpecs(), spec.getHiddenOutputSpecs(), spec.getOutputSpecs()).flatMap(Stream::of)
             .anyMatch(s -> s.getIdentifier() == null || s.getDimensionOrder() == null);
+    }
+
+    private DLKerasNetwork retainOldTensorNames(final DLKerasNetwork newNetwork, final DLKerasNetworkSpec oldSpec)
+        throws DLInvalidSourceException {
+        final DLKerasNetworkSpec newSpec = newNetwork.getSpec();
+        final DLTensorSpec[] inputSpecsRetainedNames =
+            retainOldTensorNames(newSpec.getInputSpecs(), oldSpec.getInputSpecs());
+        // Note: We don't need to deal with hidden specs because old versions didn't expose them anyway.
+        final DLTensorSpec[] newHiddenSpecs = newSpec.getHiddenOutputSpecs();
+        final DLTensorSpec[] outputSpecsRetainedNames =
+            retainOldTensorNames(newSpec.getOutputSpecs(), oldSpec.getOutputSpecs());
+        final DLKerasNetworkSpec networkSpecRetainedNames;
+        if (newNetwork instanceof DLKerasCNTKNetwork) {
+            networkSpecRetainedNames =
+                new DLKerasCNTKNetworkSpec(inputSpecsRetainedNames, newHiddenSpecs, outputSpecsRetainedNames);
+        } else if (newNetwork instanceof DLKerasTensorFlowNetwork) {
+            networkSpecRetainedNames =
+                new DLKerasTensorFlowNetworkSpec(inputSpecsRetainedNames, newHiddenSpecs, outputSpecsRetainedNames);
+        } else if (newNetwork instanceof DLKerasTheanoNetwork) {
+            networkSpecRetainedNames =
+                new DLKerasTheanoNetworkSpec(inputSpecsRetainedNames, newHiddenSpecs, outputSpecsRetainedNames);
+        } else {
+            // This can only happen due to third party code.
+            throw new UnsupportedOperationException(
+                "Backward compatibility can only be ensured for built-in Keras network types.");
+        }
+        return networkSpecRetainedNames.create(newNetwork.getSource());
+    }
+
+    private DLTensorSpec[] retainOldTensorNames(final DLTensorSpec[] newSpecs, final DLTensorSpec[] oldSpecs) {
+        final DLTensorSpec[] specsRetainedName = new DLTensorSpec[newSpecs.length];
+        for (int i = 0; i < newSpecs.length; i++) {
+            final DLTensorSpec newSpec = newSpecs[i];
+            final DLTensorSpec oldSpec = oldSpecs[i];
+            final DLTensorSpec specRetainedName;
+            if (newSpec.getBatchSize().isPresent()) {
+                specRetainedName = new DLDefaultTensorSpec(newSpec.getIdentifier(), oldSpec.getName(),
+                    newSpec.getBatchSize().getAsLong(), newSpec.getShape(), newSpec.getElementType(),
+                    newSpec.getDimensionOrder());
+            } else {
+                specRetainedName = new DLDefaultTensorSpec(newSpec.getIdentifier(), oldSpec.getName(),
+                    newSpec.getShape(), newSpec.getElementType(), newSpec.getDimensionOrder());
+            }
+            specsRetainedName[i] = specRetainedName;
+        }
+        return specsRetainedName;
     }
 
     @Override
