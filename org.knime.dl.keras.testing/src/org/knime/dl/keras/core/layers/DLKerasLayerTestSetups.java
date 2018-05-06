@@ -629,6 +629,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs[0].equals(baseNetwork.getSpec().getOutputSpecs()[0]);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
+        // Currently fails because of ignored hidden layer in base network. Pending.
         assert outputSpec1.getName().equals("dense_7_0:0");
         assert !outputSpec1.getBatchSize().isPresent();
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
@@ -694,6 +695,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs.length == 2;
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
+        // Currently fails because order of network outputs is not yet as desired. Pending.
         assert outputSpec0.getName().equals("add_4_0:0");
         assert !outputSpec0.getBatchSize().isPresent();
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
@@ -735,6 +737,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs[1].equals(baseNetwork0.getSpec().getOutputSpecs()[1]);
 
         final DLTensorSpec outputSpec2 = outputSpecs[2];
+        // Currently fails because order of network outputs is not yet as desired. Pending.
         assert outputSpec2.getName().equals("add_3_0:0");
         assert !outputSpec2.getBatchSize().isPresent();
         final long[] outputShape2 = DLUtils.Shapes.getFixedShape(outputSpec2.getShape()).get();
