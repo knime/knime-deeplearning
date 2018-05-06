@@ -64,17 +64,29 @@ import gnu.trove.TObjectIntHashMap;
  */
 public final class DLKerasNetworkLayerNameGenerator {
 
-    // Either "prefix_layerindex" (layer name),
+    // Either "prefix_layerindex",
     // "prefix_layerindex_nodeindex:tensorindex" (tensor name),
-    // "prefix_layerindex/opname:tensorindex" (tensor name, legacy),
-    // "prefix_layerindex_opname:tensorindex" (tensor name, legacy) or
-    // "prefix_layerindex:tensorindex" (tensor name, legacy).
+    // "prefix_layerindex:tensorindex" (tensor name, legacy),
+    // "prefix_layerindex/opname:tensorindex" (tensor name, legacy) or
+    // "prefix_layerindex_opname:tensorindex" (tensor name, legacy).
     // Group 1 is prefix, group 2 is layer index, the rest is not of interest.
-    private static final Pattern LAYER_NAME = Pattern.compile("(^.*)_(\\d+)(?:(_\\d+:\\d+)|(((_|/).+)?:\\d+))?");
+    private static final Pattern LAYER_NAME = Pattern.compile("(^.*?)_(\\d+)" + // Prefix and layer index
+        "((_\\d+:\\d+)" + //
+        "|(:\\d+)" + //
+        "|(/.+:\\d+)" + //
+        "|(_.+:\\d+))?");
 
     private static final Pattern TO_SNAKE_CASE_INTERMEDIATE = Pattern.compile("(.)([A-Z][a-z0-9]+)");
 
     private static final Pattern TO_SNAKE_CASE_INSECURE = Pattern.compile("([a-z])([A-Z])");
+
+    public static DLKerasNetworkLayerNameGenerator
+        createFromBaseNetworks(final Collection<DLKerasNetworkSpec> baseNetworks) {
+        final List<String> tensorNames = baseNetworks.stream().flatMap(n -> Arrays
+            .asList(n.getInputSpecs(), n.getHiddenOutputSpecs(), n.getOutputSpecs()).stream().flatMap(Arrays::stream))
+            .map(DLTensorSpec::getName).collect(Collectors.toList());
+        return new DLKerasNetworkLayerNameGenerator(tensorNames);
+    }
 
     // Mimics
     // https://github.com/keras-team/keras/blob/d673afd5979a4e541266763f65bbd65fabf20b0b/keras/engine/topology.py#L2854
@@ -85,14 +97,6 @@ public final class DLKerasNetworkLayerNameGenerator {
             return insecure;
         }
         return "private" + insecure;
-    }
-
-    public static DLKerasNetworkLayerNameGenerator
-        createFromBaseNetworks(final Collection<DLKerasNetworkSpec> baseNetworks) {
-        final List<String> tensorNames = baseNetworks.stream().flatMap(n -> Arrays
-            .asList(n.getInputSpecs(), n.getHiddenOutputSpecs(), n.getOutputSpecs()).stream().flatMap(Arrays::stream))
-            .map(DLTensorSpec::getName).collect(Collectors.toList());
-        return new DLKerasNetworkLayerNameGenerator(tensorNames);
     }
 
     private final TObjectIntHashMap<String> m_prefixCounts;
@@ -128,8 +132,12 @@ public final class DLKerasNetworkLayerNameGenerator {
         final int prefixStartIndex = identifier.lastIndexOf('.') + 1;
         final String prefix =
             prefixStartIndex != 0 ? toSnakeCase(identifier.substring(prefixStartIndex).toLowerCase()) : "layer";
-        final int index = m_prefixCounts.adjustOrPutValue(prefix, 1, 1);
-        return prefix + "_" + index;
+        return getNextLayerName(prefix);
+    }
+
+    public String getNextLayerName(final String layerPrefix) {
+        final int index = m_prefixCounts.adjustOrPutValue(layerPrefix, 1, 1);
+        return layerPrefix + "_" + index;
     }
 
     public String getOutputTensorName(final String layerName, final int nodeIndex, final int tensorIndex) {
