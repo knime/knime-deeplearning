@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.training;
 import java.util.Collection;
 import java.util.Map;
 
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
@@ -66,7 +66,7 @@ public interface DLKerasTrainingConfig extends DLTrainingConfig {
 	/**
 	 * @return a mapping of network outputs to loss functions
 	 */
-	Map<DLTensorSpec, DLKerasLossFunction> getLosses();
+    Map<DLTensorId, DLKerasLossFunction> getLosses();
 
 	// TODO: getMetrics and DLMetric
 

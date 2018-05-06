@@ -121,9 +121,9 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
 		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
-		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
+        final Map<DLTensorId, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
-			losses.put(network.getSpec().getOutputSpecs()[i], loss);
+            losses.put(network.getSpec().getOutputSpecs()[i].getIdentifier(), loss);
 		}
 
 		final List<DLKerasCallback> callbacks = Collections.emptyList();
@@ -191,9 +191,9 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final int epochs = 2;
 		final DLKerasOptimizer optimizer = ctx.createOptimizers().iterator().next();
 		final DLKerasLossFunction loss = ctx.createLossFunctions().iterator().next();
-		final Map<DLTensorSpec, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
+        final Map<DLTensorId, DLKerasLossFunction> losses = new HashMap<>(network.getSpec().getOutputSpecs().length);
 		for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
-			losses.put(network.getSpec().getOutputSpecs()[i], loss);
+            losses.put(network.getSpec().getOutputSpecs()[i].getIdentifier(), loss);
 		}
 
 		final List<DLKerasCallback> callbacks = Collections.emptyList();

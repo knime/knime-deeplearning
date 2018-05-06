@@ -399,11 +399,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	}
 
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
-		DLKerasTrainingContext<?> backend = configureBackend(inNetworkType);
+		final DLKerasTrainingContext<?> backend = configureBackend(inNetworkType);
 		configureOptimizer(backend);
 	}
 
-    private void configureOptimizer(DLKerasTrainingContext<?> backend) throws DLMissingDependencyException {
+    private void configureOptimizer(final DLKerasTrainingContext<?> backend) throws DLMissingDependencyException {
         DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
 		if (optimizer == null) {
 			final List<DLKerasOptimizer> availableOptimizers = backend.createOptimizers().stream() //
@@ -441,10 +441,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         }
         return backend;
     }
-	
+
 
 	private void configureInputs(final DataTableSpec inTableSpec, final DataTableSpec inValidationTableSpec,
-			DLKerasTrainingContext<?> trainingContext, final DLTensorSpec[] inputSpecs) throws InvalidSettingsException {
+			final DLKerasTrainingContext<?> trainingContext, final DLTensorSpec[] inputSpecs) throws InvalidSettingsException {
 		if (inTableSpec.getNumColumns() == 0) {
 			setWarningMessage("Training data table has no columns. Output network will equal input network.");
 		}
@@ -461,7 +461,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		if (inputSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no input specs.");
 		}
-		
+
 		for (final DLTensorSpec tensorSpec : inputSpecs) {
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
@@ -736,7 +736,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		final int numEpochs = m_generalCfg.getEpochsEntry().getValue();
 		final int validationBatchSize = m_generalCfg.getValidationBatchSizeEntry().getValue();
 		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
-		final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = createLossFunctionMap(inNetworkSpec);
+        final Map<DLTensorId, DLKerasLossFunction> lossFunctions = createLossFunctionMap(inNetworkSpec);
 		final ArrayList<DLKerasCallback> callbacks = createCallbackList();
 		return new DLKerasDefaultTrainingConfig(numEpochs, trainingBatchSize,
 				validationBatchSize, optimizer, lossFunctions, callbacks);
@@ -756,12 +756,12 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         return callbacks;
     }
 
-    private Map<DLTensorSpec, DLKerasLossFunction> createLossFunctionMap(final DLKerasNetworkSpec inNetworkSpec) {
-        final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = new HashMap<>();
+    private Map<DLTensorId, DLKerasLossFunction> createLossFunctionMap(final DLKerasNetworkSpec inNetworkSpec) {
+        final Map<DLTensorId, DLKerasLossFunction> lossFunctions = new HashMap<>();
 		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
 			final DLKerasLossFunction lossFunction = m_targetCfgs.get(targetSpec.getName()).getLossFunctionEntry()
 					.getValue();
-			lossFunctions.put(targetSpec, lossFunction);
+            lossFunctions.put(targetSpec.getIdentifier(), lossFunction);
 		}
         return lossFunctions;
     }

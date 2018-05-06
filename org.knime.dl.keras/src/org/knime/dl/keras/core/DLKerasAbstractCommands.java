@@ -122,7 +122,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 				.n("import keras") //
 				.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //
 				.n(config.getLosses().entrySet(),
-						e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getName()) + "] = "
+                e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getIdentifierString()) + "] = "
 								+ e.getValue().getBackendRepresentation()) //
 				.n("import DLKerasTrainingCallbacks") //
 				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")")

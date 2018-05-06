@@ -72,7 +72,7 @@ class DLKerasNetworkSpecExtractor(object):
         self._visited_inputs = set()
         self._visited_outputs = set()
 
-        self._output_layer_tensor_names = {}
+        self._output_layer_tensor_ids = {}
 
         self._dimension_order = self._determine_dimension_order()
 
@@ -173,12 +173,12 @@ class DLKerasNetworkSpecExtractor(object):
                 if output_tensor in self._model_outputs:
                     # preserve order of output tensors
                     self._output_specs[self._model_outputs.index(output_tensor)] = tensor_spec
-                    self._output_layer_tensor_names.setdefault(layer.name, []).append(tensor_spec.name)
+                    self._output_layer_tensor_ids.setdefault(layer.name, []).append(tensor_spec.identifier)
                 else:
                     self._intermediate_output_specs.append(tensor_spec)
 
     def _create_tensor_spec(self, layer, node_idx, tensor_idx, tensor, shape, dimension_order):
-        # back end independent 'canonical' name
+        # back end independent 'canonical' name/id
         # equals the naming scheme in org.knime.dl.keras.core.layers.DLKerasNetworkLayerNameGenerator on Java side
         id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
         element_type = self._get_tensor_element_type(tensor)
@@ -186,7 +186,7 @@ class DLKerasNetworkSpecExtractor(object):
 
     def _extract_losses(self):
         # Can be either a string, function, list or dict according to the Keras API. In the end, we want a dictionary
-        # that maps an output tensor name to a loss.
+        # that maps an output tensor id to a loss.
         if isinstance(self._model.loss, str) or callable(self._model.loss):
             # normalize to list
             losses = [self._model.loss] * len(self._output_specs)
@@ -194,13 +194,13 @@ class DLKerasNetworkSpecExtractor(object):
             losses = self._model.loss
         if not isinstance(losses, dict):
             # must be a list, normalize to dict
-            losses = {self._output_specs[i].name: losses[i] for i in range(len(self._output_specs))}
+            losses = {self._output_specs[i].identifier: losses[i] for i in range(len(self._output_specs))}
         else:
-            # Keras stores dicts that map an output _layer_ name to a loss. We want an output tensor name.
+            # Keras stores dicts that map an output layer name to a loss. We want an output tensor id.
             temp = {}
             for layer_name, loss in losses.items():
-                for tensor_name in self._output_layer_tensor_names[layer_name]:
-                    temp[tensor_name] = loss
+                for tensor_id in self._output_layer_tensor_ids[layer_name]:
+                    temp[tensor_id] = loss
             losses = temp
         import keras.losses as kl
         for tensor, loss in losses.items():
@@ -208,22 +208,22 @@ class DLKerasNetworkSpecExtractor(object):
         return losses
 
     def _extract_metrics(self):
-        # We want a dictionary that maps an output tensor name to a list of metrics.
+        # We want a dictionary that maps an output tensor id to a list of metrics.
         metrics = self._model.metrics
         if metrics is None:
             metrics = {}
         if not isinstance(metrics, dict):
-            metrics = {self._output_specs[i].name: metrics for i in range(len(self._output_specs))}
+            metrics = {self._output_specs[i].identifier: metrics for i in range(len(self._output_specs))}
         else:
-            # Keras stores dicts that map an output _layer_ name to a (list of) metric(s).
-            # We want an output tensor name.
+            # Keras stores dicts that map an output layer name to a (list of) metric(s).
+            # We want an output tensor id.
             temp = {}
             for layer_name, metric in metrics.items():
                 if isinstance(metric, str) or callable(metric):
                     # normalize to list
                     metric = [metric]
-                for tensor_name in self._output_layer_tensor_names[layer_name]:
-                    temp[tensor_name] = metric
+                for tensor_id in self._output_layer_tensor_ids[layer_name]:
+                    temp[tensor_id] = metric
             metrics = temp
             import keras.metrics as km
             for tensor, metric in metrics.items():

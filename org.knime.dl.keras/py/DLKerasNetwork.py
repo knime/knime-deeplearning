@@ -132,9 +132,10 @@ class DLKerasNetwork(DLPythonNetwork):
         # HACK: old code, this should be a dictionary (layer_name, loss)!
         loss = []
         for output_spec in self.spec.output_specs:
-            loss.append(config.loss[output_spec.name])
+            loss.append(config.loss[output_spec.identifier])
         metrics = config.metrics
 
+        # TODO: support per-output metrics
         if not any(m == 'acc' or m == 'accuracy' for m in metrics):
             metrics.append('acc')
 

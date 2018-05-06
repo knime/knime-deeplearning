@@ -52,7 +52,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.DLTensorId;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -64,7 +64,7 @@ public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 	private final long m_batchSize;
 	private final long m_validationBatchSize;
 	private final DLKerasOptimizer m_optimizer;
-	private final Map<DLTensorSpec, DLKerasLossFunction> m_losses;
+	private final Map<DLTensorId, DLKerasLossFunction> m_losses;
 	private final Collection<DLKerasCallback> m_callbacks;
 
 	/**
@@ -79,7 +79,7 @@ public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 	 * @param callbacks may be null or empty in which case it defaults to an empty list
 	 */
 	public DLKerasDefaultTrainingConfig(final int epochs, final int batchSize, final Integer validationBatchSize,
-			final DLKerasOptimizer optimizer, final Map<DLTensorSpec, DLKerasLossFunction> losses,
+			final DLKerasOptimizer optimizer, final Map<DLTensorId, DLKerasLossFunction> losses,
 			final Collection<DLKerasCallback> callbacks) {
 		m_epochs = epochs;
 		m_batchSize = batchSize;
@@ -111,7 +111,7 @@ public class DLKerasDefaultTrainingConfig implements DLKerasTrainingConfig {
 	}
 
 	@Override
-	public Map<DLTensorSpec, DLKerasLossFunction> getLosses() {
+    public Map<DLTensorId, DLKerasLossFunction> getLosses() {
 		return m_losses;
 	}
 
