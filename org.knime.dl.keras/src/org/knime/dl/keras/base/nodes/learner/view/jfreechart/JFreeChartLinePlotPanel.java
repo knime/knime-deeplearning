@@ -75,6 +75,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.util.LogFormat;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -185,7 +186,12 @@ public class JFreeChartLinePlotPanel extends JPanel {
             new ExponentialSmoothingIterator(m_dataset.getSeries(lineLabel), smoothingAlpha));
     }
 
-    private ChartPanel getChartPanel() {
+    /**
+     * Get the chart panel.
+     *
+     * @return the chart panel
+     */
+    public ChartPanel getChartPanel() {
         if (m_chartPanel == null) {
             m_lineChart = ChartFactory.createXYLineChart(m_spec.title(), m_spec.labelX(), m_spec.labelY(),
                 m_dataset = createDataset(), PlotOrientation.VERTICAL, true, true, false);
@@ -396,6 +402,10 @@ public class JFreeChartLinePlotPanel extends JPanel {
     private void clearSmoothedLine(final String lineLabel) {
         final String key = lineLabel + SMOOTHED_LINE_KEY_SUFFIX;
         m_dataset.getSeries(key).clear();
+    }
+
+    public Range getCurrentYBounds() {
+        return getRenderer().findRangeBounds(m_dataset);
     }
 
     /**
