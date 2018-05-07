@@ -176,7 +176,7 @@ public abstract class AbstractGridBagDialogComponentGroup implements IDialogComp
 		gbc.insets = new Insets(0, 20, 0, 20);
 		gbc.gridx = 0;
 		gbc.gridy = m_currentRow;
-		gbc.weightx = 0;
+		gbc.weightx = 1;
 		gbc.weighty = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.anchor = GridBagConstraints.WEST;
