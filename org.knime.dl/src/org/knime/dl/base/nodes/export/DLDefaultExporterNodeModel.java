@@ -94,7 +94,7 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
     private DLNetworkExporter<N> m_exporter;
 
     static SettingsModelStringArray createExporterIdSettingsModel() {
-        return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{});
+        return new SettingsModelStringArray(CFG_KEY_EXPORTER_ID, new String[]{"", ""});
     }
 
     static SettingsModelString createFilePathSettingsModel() {
@@ -121,12 +121,12 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
     @SuppressWarnings("unchecked")
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // Check that exporter is configured
-        if (m_exporterId.getStringArrayValue().length != 2) {
+        final String exporterId = m_exporterId.getStringArrayValue()[1];
+        if (exporterId.isEmpty()) {
             throw new InvalidSettingsException("No exporter selected. Please configure the node.");
         }
 
         // Get the configured exporter
-        final String exporterId = m_exporterId.getStringArrayValue()[1];
         try {
             m_exporter = (DLNetworkExporter<N>)EXPORTER_REGISTRY.getExporterWithId(exporterId).get();
         } catch (final NoSuchElementException e) {
