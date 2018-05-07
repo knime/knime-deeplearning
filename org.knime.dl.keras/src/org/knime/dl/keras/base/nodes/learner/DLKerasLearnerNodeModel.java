@@ -122,13 +122,13 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
-import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLearnerNodeModel {
 
@@ -469,23 +469,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
                 DLConfigurationUtility.configureInput(inputCfg, tensorSpec, trainingContext, inTableSpec,
                     m_lastConfiguredTableSpec, "Input");
 			m_converters.put(tensorSpec, converter);
-			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
-			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
-			// check if selected columns are still in input table
-			if (m_lastConfiguredTableSpec != null) {
-				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
-				if (missingColumns.length != 0) {
-					throw new InvalidSettingsException(
-							"Selected column '" + missingColumns[0] + "' of input '" + tensorSpec.getName()
-									+ "' is missing in the training data table. Please reconfigure the node.");
-				}
-			}
-			// TODO: check column selection (see dialog)!
 		}
 	}
 
     private void configureTargets(final DataTableSpec inTableSpec, final DLKerasTrainingContext<?> trainingContext,
-        final DLTensorSpec[] targetSpecs) throws InvalidSettingsException, DLNoConverterAvailableException {
+        final DLTensorSpec[] targetSpecs) throws InvalidSettingsException {
         if (targetSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no target specs.");
 		}
@@ -496,37 +484,29 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
 			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, "Target");
 			m_converters.put(tensorSpec, converter);
-			final DataColumnSpecFilterConfiguration filterConfig = targetCfg.getInputColumnsEntry().getValue();
-			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
-			// check if selected columns are still in input table
-			if (m_lastConfiguredTableSpec != null) {
-				final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
-				if (missingColumns.length != 0) {
-					throw new InvalidSettingsException(
-							"Selected column '" + missingColumns[0] + "' of target '" + tensorSpec.getName()
-									+ "' is missing in the training data table. Please reconfigure the node.");
-				}
-			}
-			// TODO: check column selection (see dialog)!
-			DLKerasLossFunction lossFunction = targetCfg.getLossFunctionEntry().getValue();
-			if (lossFunction == null) {
-				final List<DLKerasLossFunction> availableLossFunctions = m_generalCfg.getContextEntry()
-						.getValue().createLossFunctions().stream() //
-						.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
-						.collect(Collectors.toList());
-				if (availableLossFunctions.isEmpty()) {
-					throw new InvalidSettingsException("No loss functions available for target '" + tensorSpec.getName()
-							+ "' (with training context '" + m_generalCfg.getContextEntry().getValue().getName()
-							+ "').");
-				}
-				lossFunction = availableLossFunctions.get(0);
-				targetCfg.getLossFunctionEntry().setValue(lossFunction);
-			}
+			setLossFunction(tensorSpec, targetCfg);
 		}
     }
 
-	private DLNetworkPortObjectSpec createOutputSpec(final DLNetworkPortObjectSpec inPortObjectSpec)
-			throws InvalidSettingsException {
+    private void setLossFunction(final DLTensorSpec tensorSpec, final DLKerasLearnerTargetConfig targetCfg)
+        throws InvalidSettingsException {
+        DLKerasLossFunction lossFunction = targetCfg.getLossFunctionEntry().getValue();
+        if (lossFunction == null) {
+        	final List<DLKerasLossFunction> availableLossFunctions = m_generalCfg.getContextEntry()
+        			.getValue().createLossFunctions().stream() //
+        			.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
+        			.collect(Collectors.toList());
+        	if (availableLossFunctions.isEmpty()) {
+        		throw new InvalidSettingsException("No loss functions available for target '" + tensorSpec.getName()
+        				+ "' (with training context '" + m_generalCfg.getContextEntry().getValue().getName()
+        				+ "').");
+        	}
+        	lossFunction = availableLossFunctions.get(0);
+        	targetCfg.getLossFunctionEntry().setValue(lossFunction);
+        }
+    }
+
+	private static DLNetworkPortObjectSpec createOutputSpec(final DLNetworkPortObjectSpec inPortObjectSpec) {
 		// TODO: create new network spec with updated training config
 		return inPortObjectSpec;
 	}
@@ -758,9 +738,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		final DLKerasOptimizer optimizer = m_generalCfg.getOptimizerEntry().getValue();
 		final Map<DLTensorSpec, DLKerasLossFunction> lossFunctions = createLossFunctionMap(inNetworkSpec);
 		final ArrayList<DLKerasCallback> callbacks = createCallbackList();
-		final DLKerasTrainingConfig trainingConfig = new DLKerasDefaultTrainingConfig(numEpochs, trainingBatchSize,
+		return new DLKerasDefaultTrainingConfig(numEpochs, trainingBatchSize,
 				validationBatchSize, optimizer, lossFunctions, callbacks);
-        return trainingConfig;
     }
 
     private ArrayList<DLKerasCallback> createCallbackList() {
