@@ -284,7 +284,7 @@ public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<
             m_cfg.getInputColumnsEntry().setValue(filterConfig, true);
             m_dcInputColumns.updateWithNewConfiguration(filterConfig);
         }
-        // FIXME (knime-core):
+        // FIXME (knime-core): (AN: Is this still valid?)
         // Strange behavior within DataColumnSpecFilterPanel (see
         // #toFilteredStringArray where m_filter is always
         // null because it doesn't get set in #updateWithNewConfiguration (only

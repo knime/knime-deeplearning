@@ -70,16 +70,15 @@ import org.knime.dl.util.DLUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link DLGeneralConfig}
  * @param <I> the type of {@link DLInputConfig}
+ * @param <P> the type of {@link DLInputPanel} this object should manage
  */
-public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<C>>
+public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<C>, P extends DLInputPanel<C, I>>
     extends AbstractGridBagDialogComponentGroup {
 
-    private ArrayList<DLInputPanel<?, ?>> m_inputPanels = new ArrayList<>();
+    private ArrayList<P> m_inputPanels = new ArrayList<>();
 
-    private BiFunction<String, C, I> m_inputConfigurationCreator;
+    private final BiFunction<DLTensorSpec, DataTableSpec, P> m_inputPanelCreator;
 
-    private final int m_inDataPortIdx;
-    
     private final String m_inputsCfgKey;
     
     private final String m_borderLabel;
@@ -88,33 +87,29 @@ public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInput
      * @param networkSpec the spec of the deep learning network
      * @param tableSpec the spec of the input table
      * @param generalCfg the general configuration of the node
-     * @param inputConfigurationCreator a {@link BiFunction} that creates an {@link DLInputConfig} from a
-     * tensor name and <b>generalCfg</b>
-     * @param inDataPortIdx the port index of the input table
+     * @param inputPanelCreator a {@link BiFunction} that creates an {@link DLInputPanel} from a
+     * tensor spec and a table spec
      * @param inputsCfgKey the config key for the input configs
      * @param borderLabel Label displayed on the border of a single input
      * @throws NotConfigurableException if a tensor has an unknown shape
      */
     public DLInputsPanel(DLNetworkSpec networkSpec, DataTableSpec tableSpec, C generalCfg,
-        BiFunction<String, C, I> inputConfigurationCreator, int inDataPortIdx, String inputsCfgKey,
+        BiFunction<DLTensorSpec, DataTableSpec, P> inputPanelCreator, String inputsCfgKey,
         String borderLabel) throws NotConfigurableException {
-        m_inputConfigurationCreator = inputConfigurationCreator;
-        m_inDataPortIdx = inDataPortIdx;
         m_inputsCfgKey = inputsCfgKey;
         m_borderLabel = borderLabel;
+        m_inputPanelCreator = inputPanelCreator;
         for (final DLTensorSpec inputTensorSpec : networkSpec.getInputSpecs()) {
             if (!DLUtils.Shapes.isKnown(inputTensorSpec.getShape())) {
                 throw new NotConfigurableException(
                     "Input '" + inputTensorSpec.getName() + "' has an unknown shape. This is not supported.");
             }
-            addInputPanel(inputTensorSpec, tableSpec, generalCfg);
+            addInputPanel(inputTensorSpec, tableSpec);
         }
     }
 
-    private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec, final C generalCfg) {
-        final I inputCfg = m_inputConfigurationCreator.apply(inputTensorSpec.getName(), generalCfg);
-        final DLInputPanel<C, ?> inputPanel =
-            new DLInputPanel<>(inputCfg, inputTensorSpec, tableSpec, m_inDataPortIdx, "Inputs", "input");
+    private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec) {
+        final P inputPanel = m_inputPanelCreator.apply(inputTensorSpec, tableSpec);
         // add input panel to dialog
         m_inputPanels.add(inputPanel);
         JPanel panel = inputPanel.getComponentGroupPanel();
@@ -139,7 +134,7 @@ public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInput
             } catch (final InvalidSettingsException e) {
                 throw new NotConfigurableException(e.getMessage(), e);
             }
-            for (final DLInputPanel<?, ?> inputPanel : m_inputPanels) {
+            for (final P inputPanel : m_inputPanels) {
                 inputPanel.loadSettingsFrom(inputSettings, specs);
             }
         }

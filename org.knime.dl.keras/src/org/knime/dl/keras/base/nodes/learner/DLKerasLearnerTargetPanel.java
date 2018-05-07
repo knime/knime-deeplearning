@@ -81,7 +81,8 @@ final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerGeneral
 		m_dcLossFunction = addObjectSelectionRow(cfg.getLossFunctionEntry(), DLLossFunction::getName, "Loss function", null);
 	}
 
-	void loadFromSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+	@Override
+    public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
 		super.loadSettingsFrom(settings, specs);
 		refreshAvailableLossFunctions();
 	}
