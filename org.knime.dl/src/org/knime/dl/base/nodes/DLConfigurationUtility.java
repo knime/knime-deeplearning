@@ -48,6 +48,7 @@ package org.knime.dl.base.nodes;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -59,6 +60,8 @@ import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.util.DLUtils;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -125,6 +128,10 @@ public class DLConfigurationUtility {
         ((DLDataTypeColumnFilter)filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
         // check if selected columns are still in input table
         if (lastConfiguredTableSpec != null) {
+            if (includesChanged(inTableSpec, lastConfiguredTableSpec, filterConfig)) {
+                throw new InvalidSettingsException("The included columns for " + tensorRole.toLowerCase() + " '"
+                    + tensorSpec.getName() + "' changed. Please reconfigure the node.");
+            }
             final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
             if (missingColumns.length != 0) {
                 throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of "
@@ -132,5 +139,12 @@ public class DLConfigurationUtility {
                     + "' is missing in the training data table. Please reconfigure the node.");
             }
         }
+    }
+
+    private static boolean includesChanged(DataTableSpec inTableSpec, DataTableSpec lastConfiguredTableSpec,
+        DataColumnSpecFilterConfiguration filterConfig) {
+        Set<String> includesOld = Sets.newHashSet(filterConfig.applyTo(lastConfiguredTableSpec).getIncludes());
+        Set<String> includesNew = Sets.newHashSet(filterConfig.applyTo(inTableSpec).getIncludes());
+        return !includesOld.equals(includesNew);
     }
 }

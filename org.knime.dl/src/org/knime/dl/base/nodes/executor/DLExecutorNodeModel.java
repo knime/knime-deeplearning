@@ -252,9 +252,10 @@ final class DLExecutorNodeModel extends NodeModel {
 		if (m_lastConfiguredNetworkSpec != null && m_lastConfiguredTableSpec != null) {
 			if (!m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec)) {
 				throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
-			} else if (!m_lastConfiguredTableSpec.equals(m_lastIncomingTableSpec)) {
-			    throw new InvalidSettingsException("Input table changed. Please reconfigure the node.");
-			}
+			} 
+//			else if (!m_lastConfiguredTableSpec.equals(m_lastIncomingTableSpec)) {
+//			    throw new InvalidSettingsException("Input table changed. Please reconfigure the node.");
+//			}
 		} else if (m_initialLoaded) {
 			// loaded from saved workflow
 			m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
