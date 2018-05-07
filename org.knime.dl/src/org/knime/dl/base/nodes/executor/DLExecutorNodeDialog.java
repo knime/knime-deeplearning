@@ -56,12 +56,14 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
+import org.knime.dl.base.nodes.DLInputPanel;
 import org.knime.dl.base.nodes.DLInputsPanel;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -78,7 +80,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     private DLExecutorGeneralConfig m_generalCfg;
 
-    private DLInputsPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> m_inputsPanel;
+    private DLInputsPanel<DLExecutorGeneralConfig, DLExecutorInputConfig, DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig>> m_inputsPanel;
 
     private DLExecutorOutputsPanel m_outputsPanel;
 
@@ -96,7 +98,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         m_generalCfg = DLExecutorNodeModel.createGeneralModelConfig();
     }
 
-    private void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
+    private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
         if (specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
             throw new NotConfigurableException("Input deep learning network port object is missing.");
         }
@@ -151,6 +153,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
             createOutputPanels(networkSpec);
         } else if (networkChanged || tableSpecChanged) {
             reset();
+            createDialogContent(currNetworkSpec);
             createInputPanels(networkSpec, currTableSpec);
             createOutputPanels(networkSpec);
         }
@@ -196,7 +199,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         setWrapperPanel(m_optionsTab.getTabRoot());
         // general settings:
         m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec, networkType);
-        addDialogComponentGroup(m_generalPanel);
+        addDialogComponentGroupWithBorder(m_generalPanel, "General Settings");
     }
 
     private void createOutputPanels(final DLNetworkSpec networkSpec) {
@@ -215,9 +218,14 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         throws NotConfigurableException {
         addSeparator("Inputs");
         m_inputsPanel =
-            new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg, DLExecutorNodeModel::createInputTensorModelConfig,
-                DLExecutorNodeModel.IN_DATA_PORT_IDX, DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
-        addDialogComponentGroup(m_inputsPanel);
+            new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg, this::createInputPanel,
+                    DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
+        addPanelToWrapper(m_inputsPanel.getComponentGroupPanel());
+    }
+    
+    private DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> createInputPanel(DLTensorSpec tensorSpec, DataTableSpec tableSpec) {
+        DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
+        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, DLExecutorNodeModel.IN_DATA_PORT_IDX, "Input columns:", "input");
     }
 
 }
