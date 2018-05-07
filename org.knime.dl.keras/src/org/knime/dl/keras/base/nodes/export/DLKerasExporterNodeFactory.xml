@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasexporter.png" type="Sink">
-	<name>Keras Network Exporter</name>
+	<name>Keras Network Writer</name>
 
 	<shortDescription>
-		Exports a Keras network to a file.
+		Writes a Keras network to a file.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			Export a Keras network to a file.
+			Writes a Keras network to a file.
 		</intro>
-		<option name="Exporter">
-			The exporter to use.
+		<option name="Writer">
+			The writer to use.
 			<ul>
 				<li>
-					Keras H5 Exporter: Exports the Keras deep learning network including its weights to a
+					Keras H5 Writer: Writes the Keras network including its weights to a
 					*.h5 file.
 				</li>
 			</ul>
