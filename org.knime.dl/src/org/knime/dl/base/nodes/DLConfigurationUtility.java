@@ -90,7 +90,7 @@ public class DLConfigurationUtility {
         validateTensorSpec(tensorSpec, tensorRole);
         DLDataValueToTensorConverterFactory<?, ?> converter = getConverter(tableSpec, context, tensorSpec, cfg);
         updateColFilterConfig(tableSpec, tensorSpec, cfg, converter, lastConfiguredTableSpec, tensorRole);
-        return null;
+        return converter;
     }
 
     private static void validateTensorSpec(DLTensorSpec tensorSpec, String tensorPurpose)
