@@ -53,9 +53,7 @@ import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
@@ -72,6 +70,7 @@ import org.knime.dl.core.execution.DLExecutionContextRegistry;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
@@ -79,8 +78,7 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DialogComponentObjectSelection<DLExecutionContext<?>> m_dcBackend;
 
-	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg, final DLNetworkSpec networkSpec,
-			final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
+	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg) {
 		m_cfg = cfg;
 
 		// construct panel:
@@ -132,11 +130,6 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		}
 	}
 
-	@Override
-    public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-//		m_cfg.saveToSettings(settings);
-	}
-
 	void refreshAvailableBackends(Class<? extends DLNetwork> networkType) throws NotConfigurableException {
 		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
 				.getExecutionContextsForNetworkType((networkType)) //
@@ -159,7 +152,7 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		m_dcBackend.replaceListItems(availableExecutionContexts, selectedContext);
 	}
 	
-	private boolean containsContext(final List<DLExecutionContext<?>> contexts,
+	private static boolean containsContext(final List<DLExecutionContext<?>> contexts,
         final DLExecutionContext<?> context) {
     for (final DLExecutionContext<?> check : contexts) {
         if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {

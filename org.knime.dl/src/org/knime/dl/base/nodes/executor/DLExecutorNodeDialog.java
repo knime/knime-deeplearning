@@ -61,7 +61,6 @@ import org.knime.dl.base.nodes.DLInputsPanel;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 
@@ -85,10 +84,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
     private DLExecutorOutputsPanel m_outputsPanel;
 
     private DLNetworkSpec m_lastIncomingNetworkSpec;
-
-    private DLNetworkSpec m_lastConfiguredNetworkSpec;
-
-    private DataTableSpec m_lastConfiguredTableSpec;
 
     /**
      * Creates a new dialog.
@@ -143,20 +138,11 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
             LOGGER.warn("Input deep learning network has no output specs.");
         }
 
-        final boolean networkChanged = !m_lastIncomingNetworkSpec.equals(m_lastConfiguredNetworkSpec);
-        final boolean tableSpecChanged = !currTableSpec.equals(m_lastConfiguredTableSpec);
-
-        if (m_lastConfiguredNetworkSpec == null) {
-            reset();
-            createDialogContent(currNetworkSpec);
-            createInputPanels(networkSpec, currTableSpec);
-            createOutputPanels(networkSpec);
-        } else if (networkChanged || tableSpecChanged) {
-            reset();
-            createDialogContent(currNetworkSpec);
-            createInputPanels(networkSpec, currTableSpec);
-            createOutputPanels(networkSpec);
-        }
+        // always rebuild dialog to avoid the state purgatory
+        reset();
+        createDialogContent();
+        createInputPanels(networkSpec, currTableSpec);
+        createOutputPanels(networkSpec);
 
         try {
             // we can always try to load the general settings, even if the network has changed
@@ -170,8 +156,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         m_inputsPanel.loadSettingsFrom(settings, specs);
         m_outputsPanel.loadSettingsFrom(settings, specs);
 
-        m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
-        m_lastConfiguredTableSpec = currTableSpec;
     }
 
     @Override
@@ -191,20 +175,18 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         super.reset();
     }
 
-    private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec) throws NotConfigurableException {
-        final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
-        final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
-
+    private void createDialogContent() {
         m_optionsTab.reset();
         setWrapperPanel(m_optionsTab.getTabRoot());
         // general settings:
-        m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg, networkSpec, networkType);
-        addDialogComponentGroupWithBorder(m_generalPanel, "General Settings");
+        addSeparator("General Settings");
+        m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg);
+        addDialogComponentGroup(m_generalPanel);
     }
 
     private void createOutputPanels(final DLNetworkSpec networkSpec) {
         // output settings:
-        addSeparator("Outputs:");
+        addSeparator("Outputs");
         m_outputsPanel = new DLExecutorOutputsPanel(networkSpec, m_generalCfg, this.getPanel(),
             m_lastIncomingNetworkSpec.getHiddenOutputSpecs().length + m_lastIncomingNetworkSpec.getOutputSpecs().length,
             () -> {
@@ -220,7 +202,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         m_inputsPanel =
             new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg, this::createInputPanel,
                     DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
-        addPanelToWrapper(m_inputsPanel.getComponentGroupPanel());
+        addDialogComponentGroup(m_inputsPanel);
     }
     
     private DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> createInputPanel(DLTensorSpec tensorSpec, DataTableSpec tableSpec) {
