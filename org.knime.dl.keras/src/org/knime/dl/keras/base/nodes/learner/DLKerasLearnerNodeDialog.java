@@ -61,7 +61,6 @@ import org.knime.dl.base.nodes.DLInputsPanel;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
-import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 
@@ -174,7 +173,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		// first time we open dialog
 		if (m_lastConfiguredNetworkSpec == null) {
 			reset();
-			createDialogContent(portObjectSpec);
+			createDialogContent();
 			createInputPanels(networkSpec, tableSpec);
             createTargetPanels(networkSpec, tableSpec);
 		} else if (networkChanged || tableSpecChanged) {
@@ -240,15 +239,13 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	    return new DLKerasLearnerTargetPanel(cfg, tensorSpec, tableSpec);
 	}
 
-	private void createDialogContent(final DLNetworkPortObjectSpec portObjectSpec) throws NotConfigurableException {
-		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
-		final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
+	private void createDialogContent() throws NotConfigurableException {
 
 		// general settings:
 		m_generalTab.reset();
 		setWrapperPanel(m_generalTab.getTabRoot());
 
-		m_generalPanel = new DLKerasLearnerGeneralPanel(m_generalCfg, networkSpec, networkType);
+		m_generalPanel = new DLKerasLearnerGeneralPanel(m_generalCfg);
 		addDialogComponentGroupWithBorder(m_generalPanel, "General Settings");
 
 		m_optiPanel = new DLKerasLearnerOptimizationPanel(m_generalCfg);

@@ -84,8 +84,7 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DialogComponentObjectSelection<DLKerasTrainingContext<?>> m_dcBackend;
 
-	DLKerasLearnerGeneralPanel(final DLKerasLearnerGeneralConfig cfg, final DLNetworkSpec networkSpec,
-			final Class<? extends DLNetwork> networkType) {
+	DLKerasLearnerGeneralPanel(final DLKerasLearnerGeneralConfig cfg) {
 		m_cfg = cfg;
 
 		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getContextEntry(), DLTrainingContext::getName,
@@ -194,7 +193,7 @@ class DLKerasLearnerGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		m_dcBackend.replaceListItems(availableTrainingContexts, selectedTrainingContext);
 	}
 
-	private boolean containsContext(final List<DLKerasTrainingContext<?>> contexts,
+	private static boolean containsContext(final List<DLKerasTrainingContext<?>> contexts,
 			final DLKerasTrainingContext<?> context) {
 		for (final DLKerasTrainingContext<?> check : contexts) {
 			if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
