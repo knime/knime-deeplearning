@@ -50,19 +50,16 @@ package org.knime.dl.base.nodes.executor;
 
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
-import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.settings.AbstractConfigEntry;
+import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
+import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.base.settings.SettingsModelConfigEntry;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
@@ -77,9 +74,7 @@ class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfi
     DLExecutorInputConfig(final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
         super(checkNotNullOrEmpty(inputTensorName), generalCfg);
         put(new SettingsModelConfigEntry<>(CFG_KEY_CONVERTER, DLDataValueToTensorConverterFactory.class,
-            s -> new SettingsModelStringArray(s, null),
-            e -> new SettingsModelStringArray(e.getEntryKey(),
-                new String[]{e.getValue().getName(), e.getValue().getIdentifier()}),
+            s -> new SettingsModelStringArray(s, null), this::createSettingsModelFromEntry,
             this::createFactoryFromSettingsModel));
         put(new AbstractConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
             DataColumnSpecFilterConfiguration.class,
@@ -97,6 +92,13 @@ class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfi
         });
     }
 
+    private SettingsModelStringArray createSettingsModelFromEntry(
+        @SuppressWarnings("rawtypes") ConfigEntry<DLDataValueToTensorConverterFactory> entry) {
+        DLDataValueToTensorConverterFactory<?, ?> factory = entry.getValue();
+        return new SettingsModelStringArray(entry.getEntryKey(),
+            new String[]{factory.getName(), factory.getIdentifier()});
+    }
+
     private DLDataValueToTensorConverterFactory<?, ?> createFactoryFromSettingsModel(SettingsModelStringArray sm)
         throws InvalidSettingsException {
         String[] array = sm.getStringArrayValue();
@@ -105,39 +107,4 @@ class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfi
                 + getTensorName() + "' could not be found. Are you missing a KNIME extension?"));
     }
 
-    // TODO: this is a workaround (Do we still need this?)
-    static class DLDataTypeColumnFilter extends InputFilter<DataColumnSpec> {
-        private Class<? extends DataValue>[] m_filterClasses;
-
-        @SafeVarargs
-        public DLDataTypeColumnFilter(final Class<? extends DataValue>... filterValueClasses) {
-            setFilterClasses(filterValueClasses);
-        }
-
-        @Override
-        public final boolean include(final DataColumnSpec cspec) {
-            for (final Class<? extends DataValue> cl : m_filterClasses) {
-                if (cspec.getType().isCompatible(cl)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        Class<? extends DataValue>[] getFilterClasses() {
-            return m_filterClasses;
-        }
-
-        @SafeVarargs
-        final void setFilterClasses(final Class<? extends DataValue>... filterValueClasses) {
-            if (filterValueClasses == null || filterValueClasses.length == 0) {
-                throw new NullPointerException("Classes must not be null");
-            }
-            final List<Class<? extends DataValue>> list = Arrays.asList(filterValueClasses);
-            if (list.contains(null)) {
-                throw new NullPointerException("List of value classes must not " + "contain null elements.");
-            }
-            m_filterClasses = filterValueClasses;
-        }
-    }
 }
