@@ -89,9 +89,10 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.dl.base.nodes.executor.DLExecutorInputConfig.DLDataTypeColumnFilter;
+import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLExecutionSpecCreator;
@@ -118,6 +119,7 @@ import com.google.common.base.Strings;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DLExecutorNodeModel extends NodeModel {
 
@@ -250,6 +252,8 @@ final class DLExecutorNodeModel extends NodeModel {
 		if (m_lastConfiguredNetworkSpec != null && m_lastConfiguredTableSpec != null) {
 			if (!m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec)) {
 				throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
+			} else if (!m_lastConfiguredTableSpec.equals(m_lastIncomingTableSpec)) {
+			    throw new InvalidSettingsException("Input table changed. Please reconfigure the node.");
 			}
 		} else if (m_initialLoaded) {
 			// loaded from saved workflow
@@ -392,35 +396,19 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
 		for (final DLTensorSpec tensorSpec : networkSpec.getInputSpecs()) {
 			// validate layer spec
-			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException(
-						"Input '" + tensorSpec.getName() + "' has an unknown shape. This is not supported.");
-			}
 			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
 			if (inputCfg == null) {
 				throw new InvalidSettingsException(
 						"Network input '" + tensorSpec.getName() + "' is not yet configured.");
 			}
 			// get selected converter
-			final DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
+			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(inputCfg, tensorSpec,
+			    m_generalCfg.getContextEntry().getValue(), inDataSpec, m_lastConfiguredTableSpec, "Input");
 			m_inputConverters.put(tensorSpec, converter);
-
-			if (m_lastConfiguredTableSpec != null) {
-				// check if selected columns are still in input table:
-				final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
-				// workaround
-				((DLDataTypeColumnFilter) filterConfig.getFilter())
-						.setFilterClasses(getAllowedInputColumnType(inputCfg));
-				final String[] missingColumns = filterConfig.applyTo(inDataSpec).getRemovedFromIncludes();
-				if (missingColumns.length != 0) {
-					throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of input '"
-							+ tensorSpec.getName() + "' is missing. Please reconfigure the node.");
-				}
-			}
 		}
 	}
 
-	private void configureOutputs(final DLNetworkSpec networkSpec)
+    private void configureOutputs(final DLNetworkSpec networkSpec)
 			throws DLMissingExtensionException, InvalidSettingsException {
 		if (m_outputCfgs.size() == 0) {
 			throw new InvalidSettingsException("No network output was selected.");

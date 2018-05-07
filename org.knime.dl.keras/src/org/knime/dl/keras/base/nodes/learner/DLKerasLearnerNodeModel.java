@@ -79,8 +79,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
-import org.knime.dl.base.nodes.DLConverterRefresher;
-import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
+import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
@@ -466,24 +465,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (final DLTensorSpec tensorSpec : inputSpecs) {
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
-			// validate layer spec
-			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException(
-						"Input '" + tensorSpec.getName() + "' has an unknown shape. This is not supported, yet.");
-			}
-			// get selected converter
-			DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
-			if (converter == null) { // TODO: or if table changed
-				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-						.comparing(DLDataValueToTensorConverterFactory::getName);
-				final DLConverterRefresher converterRefresher = new DLConverterRefresher(inTableSpec,
-						trainingContext.getTensorFactory().getWritableBufferType(tensorSpec), tensorSpec, false,
-						nameComparator);
-				final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher
-						.getConverters();
-				converter = converterFactories.get(0);
-				inputCfg.getConverterEntry().setValue(converter);
-			}
+			DLDataValueToTensorConverterFactory<?, ?> converter =
+                DLConfigurationUtility.configureInput(inputCfg, tensorSpec, trainingContext, inTableSpec,
+                    m_lastConfiguredTableSpec, "Input");
 			m_converters.put(tensorSpec, converter);
 			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
 			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
@@ -508,24 +492,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (final DLTensorSpec tensorSpec : targetSpecs) {
 			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
-			// validate layer spec
-			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException(
-						"Target '" + tensorSpec.getName() + "' has an unknown shape. This is not supported, yet.");
-			}
 			// get selected converter
-			DLDataValueToTensorConverterFactory<?, ?> converter = targetCfg.getConverterEntry().getValue();
-			if (converter == null) { // TODO: or if table changed
-				final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator = Comparator
-						.comparing(DLDataValueToTensorConverterFactory::getName);
-				final DLConverterRefresher converterRefresher = new DLConverterRefresher(inTableSpec,
-						trainingContext.getTensorFactory().getWritableBufferType(tensorSpec), tensorSpec, true,
-						nameComparator);
-				final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher
-						.getConverters();
-				converter = converterFactories.get(0);
-				targetCfg.getConverterEntry().setValue(converter);
-			}
+			DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
+			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, "Target");
 			m_converters.put(tensorSpec, converter);
 			final DataColumnSpecFilterConfiguration filterConfig = targetCfg.getInputColumnsEntry().getValue();
 			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
