@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLInputPanel;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
@@ -67,7 +66,7 @@ import org.knime.dl.keras.core.training.DLKerasTrainingContext;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerTargetConfig> {
+final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerTargetConfig> {
 
 	private final DLTensorSpec m_targetTensorSpec;
 
@@ -76,14 +75,15 @@ final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerGeneral
 
 	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputDataSpec,
 			final DataTableSpec tableSpec) {
-	    super(cfg, outputDataSpec, tableSpec, DLKerasLearnerNodeModel.IN_DATA_PORT_IDX, "Target columns:", "target");
+	    super(cfg, outputDataSpec, tableSpec, "Target columns:", "target");
 		m_targetTensorSpec = outputDataSpec;
 		m_dcLossFunction = addObjectSelectionRow(cfg.getLossFunctionEntry(), DLLossFunction::getName, "Loss function", null);
 	}
 
 	@Override
-    public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-		super.loadSettingsFrom(settings, specs);
+    public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
+            throws NotConfigurableException {
+		super.loadSettingsFrom(settings, tableSpec);
 		refreshAvailableLossFunctions();
 	}
 	

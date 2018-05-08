@@ -73,7 +73,6 @@ import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
-import org.knime.dl.base.settings.DLGeneralConfig;
 import org.knime.dl.base.settings.DLInputConfig;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLContext;
@@ -85,10 +84,9 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <C> the type of general config
  * @param <I> the type of input config
  */
-public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<C>>
+public class DLInputPanel<I extends DLInputConfig<?>>
     extends AbstractGridBagDialogComponentGroup {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLInputPanel.class);
@@ -104,29 +102,22 @@ public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<
 
     private final DataColumnSpecFilterPanel m_dcInputColumns;
 
-    private final int m_dataPortIdx;
-
     private final String m_label;
-
-    private DataTableSpec m_lastTableSpec;
 
     private final List<BiConsumer<?, ?>> m_listeners = new ArrayList<>();
 
     /**
      * 
      * @param cfg stores the configuration of this input
-     * @param inputDataSpec the spec of the tensor which will be fed with the input data
+     * @param tensorSpec the spec of the tensor which will be fed with the input data
      * @param tableSpec the spec of the input table
-     * @param dataPortIdx the index of the data port of the node this panel belongs to
      * @param header the string displayed above the column selection e.g. "Input columns:"
      * @param label what is actually filled with the values from the table e.g. "input" or "target"
      */
-    public DLInputPanel(final I cfg, final DLTensorSpec inputDataSpec, final DataTableSpec tableSpec,
-        final int dataPortIdx, final String header, final String label) {
+    public DLInputPanel(final I cfg, final DLTensorSpec tensorSpec, final DataTableSpec tableSpec,
+        final String header, final String label) {
         m_cfg = cfg;
-        m_inputTensorSpec = inputDataSpec;
-        m_lastTableSpec = tableSpec;
-        m_dataPortIdx = dataPortIdx;
+        m_inputTensorSpec = tensorSpec;
         m_label = label;
 
         // construct panel:
@@ -150,14 +141,14 @@ public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<
 
         m_cfg.getGeneralConfig().getContextEntry().addValueChangeListener((entry, oldValue) -> {
             try {
-                refreshAvailableConverters(m_lastTableSpec);
+                refreshAvailableConverters(tableSpec);
             } catch (final NotConfigurableException ex) {
                 throw new IllegalStateException(ex.getMessage(), ex);
             }
         });
 
         m_cfg.getConverterEntry()
-            .addValueChangeListener(addListener((entry, oldValue) -> refreshAllowedInputColumns(m_lastTableSpec)));
+            .addValueChangeListener(addListener((entry, oldValue) -> refreshAllowedInputColumns(tableSpec)));
     }
 
     /**
@@ -218,27 +209,31 @@ public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<
         m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
         m_cfg.saveToSettings(settings);
     }
+    
+    @Override
+    public final void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+        throw new UnsupportedOperationException(
+            "This class should only be loaded with DLInputPanel#loadSettingsFrom(NodeSettingsRO, DataTableSpec).");
+    }
 
     /**
      * Loads the configuration stored in <b>settings</b>.
      * 
      * @param settings the settings to load
-     * @param specs input port object specs, we are only interested in the input table spec
+     * @param tableSpec 
      * @throws NotConfigurableException if the configuration can't be loaded
      */
-    @Override
-    public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
         throws NotConfigurableException {
-        m_lastTableSpec = (DataTableSpec)specs[m_dataPortIdx];
         try {
-            m_cfg.loadFromSettingsInDialog(settings, m_lastTableSpec);
+            m_cfg.loadFromSettingsInDialog(settings, tableSpec);
         } catch (final InvalidSettingsException e) {
             // ignore
             LOGGER.debug(e.getMessage() != null ? e.getMessage() : "Trying to restore from invalid settings.", e);
         }
-        m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_lastTableSpec);
-        refreshAvailableConverters(m_lastTableSpec);
-        refreshAllowedInputColumns(m_lastTableSpec);
+        m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), tableSpec);
+        refreshAvailableConverters(tableSpec);
+        refreshAllowedInputColumns(tableSpec);
     }
 
     private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
@@ -255,6 +250,14 @@ public class DLInputPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<
         }
         final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
         m_dcConverter.replaceListItems(converterFactories, null);
+    }
+    
+    /**
+     * @return the spec this panel represents
+     * 
+     */
+    public DLTensorSpec getTensorSpec() {
+        return m_inputTensorSpec;
     }
 
     /**
