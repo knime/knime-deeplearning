@@ -216,6 +216,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
                 }
             } else {
                 applyAbsoluteRanges();
+                m_sliderPlotSync.setIsAbsoluteRange(true);
             }
         });
         rangeControlTabsPane.addTab("Relative Zoom", createRelativeXRangeControls());
@@ -578,6 +579,8 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
 
         private boolean m_isLogScale = false;
 
+        private boolean m_isAbsoluteRange = false;
+
         public SliderPlotSync(final RangeSlider slider, final JFreeChartLinePlotPanel linePlot) {
             m_slider = slider;
             m_linePlot = linePlot;
@@ -609,7 +612,12 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
                         final Range axisRange = m_linePlot.getHorizontalAxis().getRange();
                         m_absoluteLeftRange.setText(DOUBLE_FORMAT.format(axisRange.getLowerBound()));
                         m_absoluteRightRange.setText(DOUBLE_FORMAT.format(axisRange.getUpperBound()));
-                        enable();
+
+                        if (m_isAbsoluteRange || m_isScrollLock) {
+                            disable();
+                        } else {
+                            enable();
+                        }
                     }
                 }
             });
@@ -670,6 +678,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         public void reset() {
             m_slider.setValue(SLIDER_MIN);
             m_slider.setUpperValue(SLIDER_MAX);
+            setIsAbsoluteRange(false);
             setIsScrollLock(false);
             enable();
             updateOnData();
@@ -753,6 +762,10 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
                 m_linePlot.restoreDefaultAxis();
             }
             autoZoomYAxis();
+        }
+
+        public void setIsAbsoluteRange(final boolean isAbsoluteRange) {
+            m_isAbsoluteRange = isAbsoluteRange;
         }
     }
 }
