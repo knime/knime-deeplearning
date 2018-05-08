@@ -60,13 +60,12 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.settings.DLGeneralConfig;
 import org.knime.dl.base.settings.DLInputConfig;
-import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.util.DLUtils;
 
 /**
  * Handles the dialog components for the network inputs.
- * 
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link DLGeneralConfig}
  * @param <I> the type of {@link DLInputConfig}
@@ -75,31 +74,31 @@ import org.knime.dl.util.DLUtils;
 public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInputConfig<C>, P extends DLInputPanel<C, I>>
     extends AbstractGridBagDialogComponentGroup {
 
-    private ArrayList<P> m_inputPanels = new ArrayList<>();
+    private final ArrayList<P> m_inputPanels = new ArrayList<>();
 
     private final BiFunction<DLTensorSpec, DataTableSpec, P> m_inputPanelCreator;
 
     private final String m_inputsCfgKey;
-    
+
     private final String m_borderLabel;
 
     /**
-     * @param networkSpec the spec of the deep learning network
+     * @param tensorSpecs the list of relevant tensor specs of the deep learning network
      * @param tableSpec the spec of the input table
      * @param generalCfg the general configuration of the node
-     * @param inputPanelCreator a {@link BiFunction} that creates an {@link DLInputPanel} from a
-     * tensor spec and a table spec
+     * @param inputPanelCreator a {@link BiFunction} that creates an {@link DLInputPanel} from a tensor spec and a table
+     *            spec
      * @param inputsCfgKey the config key for the input configs
      * @param borderLabel Label displayed on the border of a single input
      * @throws NotConfigurableException if a tensor has an unknown shape
      */
-    public DLInputsPanel(DLNetworkSpec networkSpec, DataTableSpec tableSpec, C generalCfg,
-        BiFunction<DLTensorSpec, DataTableSpec, P> inputPanelCreator, String inputsCfgKey,
-        String borderLabel) throws NotConfigurableException {
+    public DLInputsPanel(final DLTensorSpec[] tensorSpecs, final DataTableSpec tableSpec, final C generalCfg,
+        final BiFunction<DLTensorSpec, DataTableSpec, P> inputPanelCreator, final String inputsCfgKey,
+        final String borderLabel) throws NotConfigurableException {
         m_inputsCfgKey = inputsCfgKey;
         m_borderLabel = borderLabel;
         m_inputPanelCreator = inputPanelCreator;
-        for (final DLTensorSpec inputTensorSpec : networkSpec.getInputSpecs()) {
+        for (final DLTensorSpec inputTensorSpec : tensorSpecs) {
             if (!DLUtils.Shapes.isKnown(inputTensorSpec.getShape())) {
                 throw new NotConfigurableException(
                     "Input '" + inputTensorSpec.getName() + "' has an unknown shape. This is not supported.");
@@ -112,11 +111,11 @@ public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInput
         final P inputPanel = m_inputPanelCreator.apply(inputTensorSpec, tableSpec);
         // add input panel to dialog
         m_inputPanels.add(inputPanel);
-        JPanel panel = inputPanel.getComponentGroupPanel();
+        final JPanel panel = inputPanel.getComponentGroupPanel();
         panel.setBorder(BorderFactory.createTitledBorder(m_borderLabel + ": " + inputTensorSpec.getName()));
         addComponent(panel);
     }
-    
+
     @Override
     public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         final NodeSettingsWO inputSettings = settings.addNodeSettings(m_inputsCfgKey);
@@ -124,9 +123,9 @@ public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInput
             inputPanel.saveToSettings(inputSettings);
         }
     }
-    
+
     @Override
-    public void loadSettingsFrom(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+    public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         if (settings.containsKey(m_inputsCfgKey)) {
             final NodeSettingsRO inputSettings;
             try {
@@ -139,7 +138,7 @@ public final class DLInputsPanel<C extends DLGeneralConfig<?>, I extends DLInput
             }
         }
     }
-    
+
     /**
      * Resets all input panels.
      * This especially means that the input panels unregister their listeners.

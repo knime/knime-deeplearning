@@ -77,7 +77,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     private DLExecutorGeneralPanel m_generalPanel;
 
-    private DLExecutorGeneralConfig m_generalCfg;
+    private final DLExecutorGeneralConfig m_generalCfg;
 
     private DLInputsPanel<DLExecutorGeneralConfig, DLExecutorInputConfig, DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig>> m_inputsPanel;
 
@@ -200,13 +200,13 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         throws NotConfigurableException {
         addSeparator("Inputs");
         m_inputsPanel =
-            new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg, this::createInputPanel,
+            new DLInputsPanel<>(networkSpec.getInputSpecs(), tableSpec, m_generalCfg, this::createInputPanel,
                     DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
         addDialogComponentGroup(m_inputsPanel);
     }
-    
-    private DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> createInputPanel(DLTensorSpec tensorSpec, DataTableSpec tableSpec) {
-        DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
+
+    private DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+        final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
         return new DLInputPanel<>(cfg, tensorSpec, tableSpec, DLExecutorNodeModel.IN_DATA_PORT_IDX, "Input columns:", "input");
     }
 

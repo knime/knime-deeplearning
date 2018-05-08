@@ -125,7 +125,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 		m_targetsPanel.saveSettingsTo(settings);
 	}
-	
+
 	private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
 	    if (specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX] == null) {
             throw new NotConfigurableException("Input deep learning network port object is missing.");
@@ -203,7 +203,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_lastConfiguredTableSpec = tableSpec;
 		m_lastConfiguredNetworkSpec = networkSpec;
 	}
-	
+
 
 	private void createInputPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
             throws NotConfigurableException {
@@ -211,31 +211,32 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
         m_inputTab.reset();
         setWrapperPanel(m_inputTab.getTabRoot());
         addSeparator("Input Data");
-        m_inputsPanel = new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg,
+        m_inputsPanel = new DLInputsPanel<>(networkSpec.getInputSpecs(), tableSpec, m_generalCfg,
                 this::createInputPanel,
                 DLKerasLearnerNodeModel.CFG_KEY_INPUT, "Training input");
         addDialogComponentGroup(m_inputsPanel);
 	}
-	
-	private DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig> createInputPanel(DLTensorSpec tensorSpec, DataTableSpec tableSpec) {
-	    DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
+
+	private DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+	    final DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
 	    return new DLInputPanel<>(inputCfg, tensorSpec,
 	            tableSpec, DLKerasLearnerNodeModel.IN_DATA_PORT_IDX, "Input columns:", "input");
 	}
-	
+
 	private void createTargetPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
             throws NotConfigurableException {
 	 // output settings:
         m_targetTab.reset();
         setWrapperPanel(m_targetTab.getTabRoot());
         addSeparator("Training Targets");
-        m_targetsPanel = new DLInputsPanel<>(networkSpec, tableSpec, m_generalCfg, this::createTargetPanel,
+        m_targetsPanel = new DLInputsPanel<>(networkSpec.getOutputSpecs(), tableSpec, m_generalCfg,
+            this::createTargetPanel,
                 DLKerasLearnerNodeModel.CFG_KEY_TARGET, "Training target");
         addDialogComponentGroup(m_targetsPanel);
 	}
-	
-	private DLKerasLearnerTargetPanel createTargetPanel(DLTensorSpec tensorSpec, DataTableSpec tableSpec) {
-	    DLKerasLearnerTargetConfig cfg = new DLKerasLearnerTargetConfig(tensorSpec.getName(), m_generalCfg);
+
+	private DLKerasLearnerTargetPanel createTargetPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+	    final DLKerasLearnerTargetConfig cfg = new DLKerasLearnerTargetConfig(tensorSpec.getName(), m_generalCfg);
 	    return new DLKerasLearnerTargetPanel(cfg, tensorSpec, tableSpec);
 	}
 
