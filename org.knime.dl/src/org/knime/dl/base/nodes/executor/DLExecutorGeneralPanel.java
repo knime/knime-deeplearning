@@ -136,11 +136,10 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 				.stream() //
 				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
 				.collect(Collectors.toList());
-		if (availableExecutionContexts.isEmpty()) {
-			throw new NotConfigurableException("There is no available back end that supports the input network.");
-		}
 		final DLExecutionContext<?> value = m_cfg.getContextEntry().getValue();
 		final DLExecutionContext<?> selectedContext;
+		// needs to be called to ensure that there is a list of items to select from
+		m_dcBackend.replaceListItems(availableExecutionContexts, null);
 		if (availableExecutionContexts.isEmpty()) {
             throw new NotConfigurableException("There is no available back end that supports the input network.");
 		} else if (value != null && containsContext(availableExecutionContexts, value)) {
@@ -153,12 +152,13 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 	}
 	
 	private static boolean containsContext(final List<DLExecutionContext<?>> contexts,
-        final DLExecutionContext<?> context) {
-    for (final DLExecutionContext<?> check : contexts) {
-        if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
-            return true;
-        }
-    }
-    return false;
-}
+	    final DLExecutionContext<?> context) {
+	    for (final DLExecutionContext<?> check : contexts) {
+	        if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
 }
