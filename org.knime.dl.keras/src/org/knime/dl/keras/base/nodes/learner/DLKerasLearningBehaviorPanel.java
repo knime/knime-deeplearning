@@ -65,7 +65,7 @@ public class DLKerasLearningBehaviorPanel extends AbstractGridBagDialogComponent
 
 	private final DLKerasLearnerGeneralConfig m_cfg;
 
-	DLKerasLearningBehaviorPanel(final DLKerasLearnerGeneralConfig cfg) throws NotConfigurableException {
+	DLKerasLearningBehaviorPanel(final DLKerasLearnerGeneralConfig cfg) {
 		m_cfg = cfg;
 
 		final ConfigEntry<DLKerasTerminateOnNaN> terminateOnNaN = m_cfg.getTerminateOnNaNEntry();

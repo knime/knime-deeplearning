@@ -80,7 +80,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 
 	private final JXCollapsiblePane m_optimizerParamGroupWrapper;
 
-	DLKerasLearnerOptimizationPanel(final DLKerasLearnerGeneralConfig cfg) throws NotConfigurableException {
+	DLKerasLearnerOptimizationPanel(final DLKerasLearnerGeneralConfig cfg) {
 		m_cfg = cfg;
 
 		// optimizer selection
@@ -93,9 +93,7 @@ public class DLKerasLearnerOptimizationPanel extends AbstractGridBagDialogCompon
 		m_optimizerParamGroupWrapper = new JXCollapsiblePane(Direction.UP);
 		m_optimizerParamGroupWrapper.setAnimated(false);
 		addComponent(m_optimizerParamGroupWrapper);
-		optimizer.addValueChangeListener((entry, oldValue) -> {
-			updateOptimizerPanel(entry.getValue());
-		});
+		optimizer.addValueChangeListener((entry, oldValue) -> updateOptimizerPanel(entry.getValue()));
 
 		// clip norm
 		final ConfigEntry<Double> clipNorm = m_cfg.getClipNormEntry();

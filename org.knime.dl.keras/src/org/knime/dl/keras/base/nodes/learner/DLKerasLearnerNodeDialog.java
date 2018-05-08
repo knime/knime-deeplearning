@@ -67,55 +67,79 @@ import org.knime.dl.core.DLTensorSpec;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeDialog.class);
 
-	private final DLDefaultNodeDialogTab m_generalTab = new DLDefaultNodeDialogTab("Options");
-
-	private final DLDefaultNodeDialogTab m_advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
-
-	private final DLDefaultNodeDialogTab m_inputTab = new DLDefaultNodeDialogTab("Input Data");
-
-	private final DLDefaultNodeDialogTab m_targetTab = new DLDefaultNodeDialogTab("Target Data");
-
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
 
-	private DLKerasLearnerGeneralPanel m_generalPanel;
+	private final DLKerasLearnerGeneralPanel m_generalPanel;
 
-	private DLKerasLearnerOptimizationPanel m_optiPanel;
+	private final DLKerasLearnerOptimizationPanel m_optiPanel;
 
-	private DLKerasLearningBehaviorPanel m_learningBehaviorPanel;
+	private final DLKerasLearningBehaviorPanel m_learningBehaviorPanel;
 
-	private DLInputsPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig, DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig>> m_inputsPanel;
+	private final DLInputsPanel<DLInputPanel<DLKerasLearnerInputConfig>> m_inputsPanel;
 
-	private DLInputsPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerTargetConfig, DLKerasLearnerTargetPanel> m_targetsPanel;
-
-	private DLNetworkSpec m_lastConfiguredNetworkSpec;
-
-	private DataTableSpec m_lastConfiguredTableSpec;
+	private final DLInputsPanel<DLKerasLearnerTargetPanel> m_targetsPanel;
 
 	public DLKerasLearnerNodeDialog() {
-		addTab(m_inputTab.getTitle(), m_inputTab.getTab(), false);
-		addTab(m_targetTab.getTitle(), m_targetTab.getTab(), false);
-		addTab(m_generalTab.getTitle(), m_generalTab.getTab(), false);
-		addTab(m_advancedTab.getTitle(), m_advancedTab.getTab(), false);
+	    DLDefaultNodeDialogTab generalTab = new DLDefaultNodeDialogTab("Options");
+	    DLDefaultNodeDialogTab advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
+	    DLDefaultNodeDialogTab inputTab = new DLDefaultNodeDialogTab("Input Data");
+	    DLDefaultNodeDialogTab targetTab = new DLDefaultNodeDialogTab("Target Data");
+		addTab(inputTab.getTitle(), inputTab.getTab(), false);
+		addTab(targetTab.getTitle(), targetTab.getTab(), false);
+		addTab(generalTab.getTitle(), generalTab.getTab(), false);
+		addTab(advancedTab.getTitle(), advancedTab.getTab(), false);
 
 		m_generalCfg = DLKerasLearnerNodeModel.createGeneralModelConfig();
+		m_inputsPanel = new DLInputsPanel<>(this::createInputPanel,
+		        DLKerasLearnerNodeModel.CFG_KEY_INPUT, "Training input");
+		m_targetsPanel = new DLInputsPanel<>(this::createTargetPanel,
+		        DLKerasLearnerNodeModel.CFG_KEY_TARGET, "Training target");
+		m_generalPanel = new DLKerasLearnerGeneralPanel(m_generalCfg);
+		m_learningBehaviorPanel = new DLKerasLearningBehaviorPanel(m_generalCfg);
+		m_optiPanel = new DLKerasLearnerOptimizationPanel(m_generalCfg);
+		
+		// inputs
+		setWrapperPanel(inputTab.getTabRoot());
+        addSeparator("Input Data");
+        addDialogComponentGroup(m_inputsPanel);
+        
+        // targets
+        setWrapperPanel(targetTab.getTabRoot());
+        addSeparator("Training Targets");
+        addDialogComponentGroup(m_targetsPanel);
+		
+		// general settings
+		setWrapperPanel(generalTab.getTabRoot());
+        addDialogComponentGroupWithBorder(m_generalPanel, "General Settings");
+        addDialogComponentGroupWithBorder(m_optiPanel, "Optimizer Settings");
+
+        // advanced settings:
+        setWrapperPanel(advancedTab.getTabRoot());
+        addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
 	}
 
-	@Override
-	public void reset() {
-		// null check is necessary because this method is called from super constructor
-		if (m_inputsPanel != null) {
-		    m_inputsPanel.reset();
-		    m_targetsPanel.reset();
-		}
-		super.reset();
-	}
 
-	@Override
+	private DLKerasLearnerTargetPanel createTargetPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+        final DLKerasLearnerTargetConfig cfg = new DLKerasLearnerTargetConfig(tensorSpec.getName(), m_generalCfg);
+        return new DLKerasLearnerTargetPanel(cfg, tensorSpec, tableSpec);
+    }
+
+
+    private DLInputPanel<DLKerasLearnerInputConfig> createInputPanel(final DLTensorSpec tensorSpec,
+        final DataTableSpec tableSpec) {
+        final DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
+        return new DLInputPanel<>(inputCfg, tensorSpec,
+                tableSpec, "Input columns:", "input");
+    }
+
+
+    @Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 		super.saveSettingsTo(settings);
 
@@ -140,7 +164,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
         if (((DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX]).getNumColumns() == 0) {
             throw new NotConfigurableException("Input table is missing or has no columns.");
         }
-        final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
+        final DLNetworkPortObjectSpec portObjectSpec =
+                (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
 
         if (portObjectSpec.getNetworkSpec() == null) {
             throw new NotConfigurableException("Input port object's deep learning network spec is missing.");
@@ -155,7 +180,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			throws NotConfigurableException {
 		checkPortObjectSpecs(specs);
 
-		final DLNetworkPortObjectSpec portObjectSpec = (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
+		final DLNetworkPortObjectSpec portObjectSpec =
+		        (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
         final DataTableSpec tableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
 
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
@@ -167,96 +193,17 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 			LOGGER.warn("Input deep learning network has no output specs.");
 		}
 
-		final boolean networkChanged = !networkSpec.equals(m_lastConfiguredNetworkSpec);
-		final boolean tableSpecChanged = !tableSpec.equals(m_lastConfiguredTableSpec);
-
-		// first time we open dialog
-		if (m_lastConfiguredNetworkSpec == null) {
-			reset();
-			createDialogContent();
-			createInputPanels(networkSpec, tableSpec);
-            createTargetPanels(networkSpec, tableSpec);
-		} else if (networkChanged || tableSpecChanged) {
-			reset();
-			createInputPanels(networkSpec, tableSpec);
-            createTargetPanels(networkSpec, tableSpec);
-		}
-
 		try {
 			// we can always try to load the general settings, even if the network has changed
 			m_generalCfg.loadFromSettings(settings);
 		} catch (final InvalidSettingsException e1) {
-			throw new NotConfigurableException(e1.getMessage());
+			throw new NotConfigurableException(e1.getMessage(), e1);
 		}
 
 		super.loadSettingsFrom(settings, specs);
 
-		// we have to be more careful here. Now, we want the following
-        // behaviour:
-        // * if a layer with the same name was loaded, it should still have the
-        // same settings
-        // * if a layer with a different name was loaded, the settings should
-        // change
-		m_inputsPanel.loadSettingsFrom(settings, specs);
-		m_targetsPanel.loadSettingsFrom(settings, specs);
-
-		m_lastConfiguredTableSpec = tableSpec;
-		m_lastConfiguredNetworkSpec = networkSpec;
-	}
-
-
-	private void createInputPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
-            throws NotConfigurableException {
-	    // input settings:
-        m_inputTab.reset();
-        setWrapperPanel(m_inputTab.getTabRoot());
-        addSeparator("Input Data");
-        m_inputsPanel = new DLInputsPanel<>(networkSpec.getInputSpecs(), tableSpec, m_generalCfg,
-                this::createInputPanel,
-                DLKerasLearnerNodeModel.CFG_KEY_INPUT, "Training input");
-        addDialogComponentGroup(m_inputsPanel);
-	}
-
-	private DLInputPanel<DLKerasLearnerGeneralConfig, DLKerasLearnerInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
-	    final DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
-	    return new DLInputPanel<>(inputCfg, tensorSpec,
-	            tableSpec, DLKerasLearnerNodeModel.IN_DATA_PORT_IDX, "Input columns:", "input");
-	}
-
-	private void createTargetPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
-            throws NotConfigurableException {
-	 // output settings:
-        m_targetTab.reset();
-        setWrapperPanel(m_targetTab.getTabRoot());
-        addSeparator("Training Targets");
-        m_targetsPanel = new DLInputsPanel<>(networkSpec.getOutputSpecs(), tableSpec, m_generalCfg,
-            this::createTargetPanel,
-                DLKerasLearnerNodeModel.CFG_KEY_TARGET, "Training target");
-        addDialogComponentGroup(m_targetsPanel);
-	}
-
-	private DLKerasLearnerTargetPanel createTargetPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
-	    final DLKerasLearnerTargetConfig cfg = new DLKerasLearnerTargetConfig(tensorSpec.getName(), m_generalCfg);
-	    return new DLKerasLearnerTargetPanel(cfg, tensorSpec, tableSpec);
-	}
-
-	private void createDialogContent() throws NotConfigurableException {
-
-		// general settings:
-		m_generalTab.reset();
-		setWrapperPanel(m_generalTab.getTabRoot());
-
-		m_generalPanel = new DLKerasLearnerGeneralPanel(m_generalCfg);
-		addDialogComponentGroupWithBorder(m_generalPanel, "General Settings");
-
-		m_optiPanel = new DLKerasLearnerOptimizationPanel(m_generalCfg);
-		addDialogComponentGroupWithBorder(m_optiPanel, "Optimizer Settings");
-
-		// advanced settings:
-		m_advancedTab.reset();
-		setWrapperPanel(m_advancedTab.getTabRoot());
-		m_learningBehaviorPanel = new DLKerasLearningBehaviorPanel(m_generalCfg);
-		addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
+		m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), tableSpec);
+		m_targetsPanel.loadSettingsFrom(settings, networkSpec.getOutputSpecs(), tableSpec);
 	}
 
 }
