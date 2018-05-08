@@ -250,7 +250,7 @@ public class JFreeChartLinePlotPanel extends JPanel {
             }
 
             m_defaultAxis = m_plot.getRangeAxis();
-            m_logAxis = new LogAxis(m_spec.labelY());
+            m_logAxis = new LogAxis("Log( " + m_spec.labelY() + " )");
             m_logAxis.setTickLabelFont(m_defaultAxis.getTickLabelFont());
             m_logAxis.setLabelFont(m_defaultAxis.getLabelFont());
             final LogFormat logFormat = new LogFormat(10, "", "", true);
