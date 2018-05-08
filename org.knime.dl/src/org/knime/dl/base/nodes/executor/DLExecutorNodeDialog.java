@@ -73,24 +73,39 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
-    private final DLDefaultNodeDialogTab m_optionsTab = new DLDefaultNodeDialogTab("Options");
-
-    private DLExecutorGeneralPanel m_generalPanel;
+    private final DLExecutorGeneralPanel m_generalPanel;
 
     private final DLExecutorGeneralConfig m_generalCfg;
 
-    private DLInputsPanel<DLExecutorGeneralConfig, DLExecutorInputConfig, DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig>> m_inputsPanel;
+    private final DLInputsPanel<DLInputPanel<?>> m_inputsPanel;
 
-    private DLExecutorOutputsPanel m_outputsPanel;
-
-    private DLNetworkSpec m_lastIncomingNetworkSpec;
+    private final DLExecutorOutputsPanel m_outputsPanel;
 
     /**
      * Creates a new dialog.
      */
     public DLExecutorNodeDialog() {
-        addTab(m_optionsTab.getTitle(), m_optionsTab.getTab());
+        DLDefaultNodeDialogTab optionsTab = new DLDefaultNodeDialogTab("Options");
+        addTab(optionsTab.getTitle(), optionsTab.getTab());
         m_generalCfg = DLExecutorNodeModel.createGeneralModelConfig();
+        m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg);
+        m_inputsPanel = new DLInputsPanel<>(this::createInputPanel, DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
+        m_outputsPanel = new DLExecutorOutputsPanel(m_generalCfg, getPanel(), () -> {
+                getPanel().validate();
+                getPanel().repaint();
+            });
+        setWrapperPanel(optionsTab.getTabRoot());
+        addSeparator("General Settings");
+        addDialogComponentGroup(m_generalPanel);
+        addSeparator("Inputs");
+        addDialogComponentGroup(m_inputsPanel);
+        addSeparator("Outputs");
+        addPanelToWrapper(m_outputsPanel.getPanel());
+    }
+
+    private DLInputPanel<DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+        final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
+        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, "Input columns:", "input");
     }
 
     private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
@@ -129,7 +144,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         final DataTableSpec currTableSpec = (DataTableSpec)specs[DLExecutorNodeModel.IN_DATA_PORT_IDX];
 
         final DLNetworkSpec networkSpec = currNetworkSpec.getNetworkSpec();
-        m_lastIncomingNetworkSpec = networkSpec;
 
         if (networkSpec.getInputSpecs().length == 0) {
             LOGGER.warn("Input deep learning network has no input specs.");
@@ -138,12 +152,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
             LOGGER.warn("Input deep learning network has no output specs.");
         }
 
-        // always rebuild dialog to avoid the state purgatory
-        reset();
-        createDialogContent();
-        createInputPanels(networkSpec, currTableSpec);
-        createOutputPanels(networkSpec);
-
         try {
             // we can always try to load the general settings, even if the network has changed
             m_generalCfg.loadFromSettings(settings);
@@ -151,10 +159,9 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
             throw new NotConfigurableException(e1.getMessage());
         }
 
-        super.loadSettingsFrom(settings, specs);
-
-        m_inputsPanel.loadSettingsFrom(settings, specs);
+        m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), currTableSpec);
         m_outputsPanel.loadSettingsFrom(settings, specs);
+        super.loadSettingsFrom(settings, specs);
 
     }
 
@@ -164,50 +171,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         m_generalCfg.saveToSettings(settings);
         m_inputsPanel.saveSettingsTo(settings);
         m_outputsPanel.saveToSettings(settings);
-    }
-
-    @Override
-    public void reset() {
-        // null check is necessary because super constructor calls this method
-        if (m_inputsPanel != null) {
-            m_inputsPanel.reset();
-        }
-        super.reset();
-    }
-
-    private void createDialogContent() {
-        m_optionsTab.reset();
-        setWrapperPanel(m_optionsTab.getTabRoot());
-        // general settings:
-        addSeparator("General Settings");
-        m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg);
-        addDialogComponentGroup(m_generalPanel);
-    }
-
-    private void createOutputPanels(final DLNetworkSpec networkSpec) {
-        // output settings:
-        addSeparator("Outputs");
-        m_outputsPanel = new DLExecutorOutputsPanel(networkSpec, m_generalCfg, this.getPanel(),
-            m_lastIncomingNetworkSpec.getHiddenOutputSpecs().length + m_lastIncomingNetworkSpec.getOutputSpecs().length,
-            () -> {
-                getPanel().validate();
-                getPanel().repaint();
-            });
-        addPanelToWrapper(m_outputsPanel.getPanel());
-    }
-
-    private void createInputPanels(final DLNetworkSpec networkSpec, final DataTableSpec tableSpec)
-        throws NotConfigurableException {
-        addSeparator("Inputs");
-        m_inputsPanel =
-            new DLInputsPanel<>(networkSpec.getInputSpecs(), tableSpec, m_generalCfg, this::createInputPanel,
-                    DLExecutorNodeModel.CFG_KEY_INPUTS, "Input");
-        addDialogComponentGroup(m_inputsPanel);
-    }
-
-    private DLInputPanel<DLExecutorGeneralConfig, DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
-        final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
-        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, DLExecutorNodeModel.IN_DATA_PORT_IDX, "Input columns:", "input");
     }
 
 }
