@@ -84,7 +84,9 @@ final class DLExecutorOutputsPanel {
     
     private JButton m_addOutputButton = new JButton("add output");
     
-    private final int m_numPossibleOutputs;
+    private int m_numPossibleOutputs = 0;
+    
+    private DLNetworkSpec m_networkSpec = null;
     
     private final DLExecutorGeneralConfig m_generalCfg;
     
@@ -95,29 +97,27 @@ final class DLExecutorOutputsPanel {
     private final JPanel m_panel = new JPanel(new GridBagLayout());
     
     /**
-     * @param networkSpec 
      * @param generalCfg 
      * @param dialogPanel 
-     * @param numPossibleOutputs 
      * @param callBack 
      * 
      */
-    public DLExecutorOutputsPanel(final DLNetworkSpec networkSpec, final DLExecutorGeneralConfig generalCfg, JPanel dialogPanel,
-        final int numPossibleOutputs, CallBackAction callBack) {
+    public DLExecutorOutputsPanel(final DLExecutorGeneralConfig generalCfg, JPanel dialogPanel, CallBackAction callBack) {
         m_callBack = callBack;
-        m_numPossibleOutputs = numPossibleOutputs;
         m_generalCfg = generalCfg;
-        m_addOutputButton.addActionListener(e -> addAction(networkSpec, generalCfg, dialogPanel));
+        m_addOutputButton.addActionListener(e -> addAction(generalCfg, dialogPanel));
         m_panel.add(m_addOutputButton, createAddBtnConstraints());
         m_gbc.gridy++;
     }
+    
     
     public JPanel getPanel() {
         return m_panel;
     }
 
-    private void addAction(final DLNetworkSpec networkSpec, final DLExecutorGeneralConfig generalCfg,
+    private void addAction(final DLExecutorGeneralConfig generalCfg,
         JPanel dialogPanel) {
+        assert m_networkSpec != null;
         // 'add output' dialog
         final JPanel outputsAddDlg = new JPanel(new GridBagLayout());
         final GridBagConstraints addOutputDialogConstr = new GridBagConstraints();
@@ -127,25 +127,9 @@ final class DLExecutorOutputsPanel {
         addOutputDialogConstr.anchor = GridBagConstraints.WEST;
         addOutputDialogConstr.fill = GridBagConstraints.VERTICAL;
         // available outputs
-        final ArrayList<String> availableOutputs = new ArrayList<>(networkSpec.getOutputSpecs().length
-                + networkSpec.getHiddenOutputSpecs().length - m_outputPanels.size());
+        final ArrayList<String> availableOutputs = new ArrayList<>(m_numPossibleOutputs - m_outputPanels.size());
         final HashMap<String, DLTensorSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
-        for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
-            final String outputName = outputSpec.getName();
-            if (!m_outputPanels.containsKey(outputName)) {
-                availableOutputs.add(outputName);
-                availableOutputsMap.put(outputName, outputSpec);
-            }
-        }
-        for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
-            final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
-            final String intermediateName = intermediateSpec.getName();
-            if (!m_outputPanels.containsKey(intermediateName)) {
-                final String intermediateDisplayName = intermediateName + " (hidden)";
-                availableOutputs.add(intermediateDisplayName);
-                availableOutputsMap.put(intermediateDisplayName, intermediateSpec);
-            }
-        }
+        fillAvailableOutputs(m_networkSpec, availableOutputs, availableOutputsMap);
         // output selection
         final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
         final DialogComponentStringSelection dcOutput = new DialogComponentStringSelection(smOutput, "Output",
@@ -169,8 +153,28 @@ final class DLExecutorOutputsPanel {
             }
         }
     }
+
+    private void fillAvailableOutputs(final DLNetworkSpec networkSpec, final ArrayList<String> availableOutputs,
+        final HashMap<String, DLTensorSpec> availableOutputsMap) {
+        for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, outputSpec, "");
+        }
+        for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
+            final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, intermediateSpec, " (hidden)");
+        }
+    }
+
+    private void addToAvailableOutputs(final ArrayList<String> availableOutputs,
+        final HashMap<String, DLTensorSpec> availableOutputsMap, final DLTensorSpec outputSpec, final String nameSuffix) {
+        final String outputName = outputSpec.getName() + nameSuffix;
+        if (!m_outputPanels.containsKey(outputName)) {
+            availableOutputs.add(outputName);
+            availableOutputsMap.put(outputName, outputSpec);
+        }
+    }
     
-    private GridBagConstraints createAddBtnConstraints() {
+    private static GridBagConstraints createAddBtnConstraints() {
         final GridBagConstraints outputsAddBtnConstr = new GridBagConstraints();
         outputsAddBtnConstr.weightx = 1;
         outputsAddBtnConstr.anchor = GridBagConstraints.EAST;
@@ -213,7 +217,7 @@ final class DLExecutorOutputsPanel {
             m_callBack.callBack();
         }
     }
-
+    
     private void removeOutputPanel(final String outputName, final DLExecutorOutputPanel outputPanel) {
         if (m_outputPanels.remove(outputName) != null) {
             outputPanel.unregisterListeners();
@@ -229,8 +233,9 @@ final class DLExecutorOutputsPanel {
             clearOutputs();
             final NodeSettingsRO outputSettings;
             final String[] orderedOutputs;
-            final DLNetworkSpec networkSpec =
+            m_networkSpec =
                     ((DLNetworkPortObjectSpec)specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX]).getNetworkSpec();
+            m_numPossibleOutputs = m_networkSpec.getOutputSpecs().length + m_networkSpec.getHiddenOutputSpecs().length;
             try {
                 outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
                 orderedOutputs = loadOutputOrder(settings, outputSettings);
@@ -240,7 +245,7 @@ final class DLExecutorOutputsPanel {
             for (final String layerName : orderedOutputs) {
                 if (!m_outputPanels.containsKey(layerName)) {
                     final Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName,
-                            networkSpec.getOutputSpecs(), networkSpec.getHiddenOutputSpecs());
+                            m_networkSpec.getOutputSpecs(), m_networkSpec.getHiddenOutputSpecs());
                     if (spec.isPresent()) {
                         addOutputPanel(spec.get(), m_generalCfg);
                     }
@@ -259,7 +264,7 @@ final class DLExecutorOutputsPanel {
     }
     
 
-    private String[] loadOutputOrder(final NodeSettingsRO settings, final NodeSettingsRO outputSettings)
+    private static String[] loadOutputOrder(final NodeSettingsRO settings, final NodeSettingsRO outputSettings)
         throws InvalidSettingsException {
         final String[] orderedOutputs;
         if (outputSettings.getChildCount() > 0) {
