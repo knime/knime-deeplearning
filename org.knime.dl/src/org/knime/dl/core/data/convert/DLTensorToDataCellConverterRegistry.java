@@ -58,6 +58,7 @@ import java.util.OptionalLong;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.core.data.DataCell;
+import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
@@ -71,6 +72,8 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensionPointRegistry {
+    
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLTensorToDataCellConverterRegistry.class);
 
 	private static final String EXT_POINT_ID = "org.knime.dl.DLTensorToDataCellConverterFactory";
 
@@ -114,17 +117,22 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 			final Class<? extends DLReadableBuffer> sourceType, final DLTensorSpec sourceSpec) {
 		final ArrayList<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> convs = new ArrayList<>();
 		for (final DLTensorToDataCellConverterFactory<?, ?> candidate : m_converters.values()) {
-			if (candidate.getBufferType().isAssignableFrom(sourceType)) {
-				convs.add(candidate);
-				final OptionalLong destCount = candidate.getDestCount(sourceSpec);
-				// TODO: Figure out whether this is the best we can do
-				// Currently a missing destCount is a direct indicator that the converter
-				// can have multiple outputs
-				if (!destCount.isPresent() || destCount.getAsLong() > 1) {
-					// if we have multiple outputs, we can also output a list
-					convs.add(new DLTensorToListCellConverterFactory<>(candidate));
-				}
-			}
+		    try {
+		        if (candidate.getBufferType().isAssignableFrom(sourceType)) {
+		            final OptionalLong destCount = candidate.getDestCount(sourceSpec);
+		            convs.add(candidate);
+		            // TODO: Figure out whether this is the best we can do
+		            // Currently a missing destCount is a direct indicator that the converter
+		            // can have multiple outputs
+		            if (!destCount.isPresent() || destCount.getAsLong() > 1) {
+		                // if we have multiple outputs, we can also output a list
+		                convs.add(new DLTensorToListCellConverterFactory<>(candidate));
+		            }
+		        }
+		    } catch (Throwable t) {
+		        LOGGER.warn("An unexpected error occurred in DLTensorToDataCellConverter '" 
+		                + candidate.getIdentifier() + "'.", t);
+		    }
 		}
 		convs.sort(Comparator.comparing(DLTensorToDataCellConverterFactory::getIdentifier));
 		return convs;
