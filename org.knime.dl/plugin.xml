@@ -3,7 +3,6 @@
 <plugin>
    <extension-point id="DLDataValueToTensorConverterFactory" name="DLDataValueToTensorConverterFactory" schema="schema/org.knime.dl.DLDataValueToTensorConverterFactory.exsd"/>
    <extension-point id="DLExecutionContext" name="DLExecutionContext" schema="schema/org.knime.dl.DLExecutionContext.exsd"/>
-   <extension-point id="DLTensorFactory" name="DLTensorFactory" schema="schema/org.knime.dl.DLTensorFactory.exsd"/>
    <extension-point id="DLTensorToDataCellConverterFactory" name="DLTensorToDataCellConverterFactory" schema="schema/org.knime.dl.DLTensorToDataCellConverterFactory.exsd"/>
    <extension-point id="DLTrainingContext" name="DLTrainingContext" schema="schema/org.knime.dl.DLTrainingContext.exsd"/>
    <extension-point id="DLNetworkExporter" name="DLNetworkExporter" schema="schema/org.knime.dl.DLNetworkExporter.exsd"/>
