@@ -97,10 +97,6 @@ public abstract class DLAbstractNetworkExecutionSession<N extends DLNetwork> imp
 		return Sets.difference(requestedOutputs, outputSpecIds).isEmpty();
 	}
 
-	private static boolean isTensorFactoryValid(final DLNetwork network, final DLTensorFactory tensorFactory) {
-		return network.getClass() == tensorFactory.getNetworkType();
-	}
-
 	protected final N m_network;
 
 	protected final Set<DLTensorSpec> m_executionInputSpecs;
@@ -135,7 +131,6 @@ public abstract class DLAbstractNetworkExecutionSession<N extends DLNetwork> imp
 				"Network input specs and execution input specs differ.");
 		checkArgument(areOutputSpecsValid(network, requestedOutputs),
 				"Network output specs and requested output specs differ.");
-		checkArgument(isTensorFactoryValid(network, tensorFactory), "Tensor factory does not match network type.");
 		m_network = network;
 		m_executionInputSpecs = executionInputSpecs;
 		m_expectedBatchSize = m_executionInputSpecs.stream().findAny()

@@ -53,7 +53,6 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.core.DLTensorRegistry;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasEarlyStopping;
 import org.knime.dl.keras.core.training.DLKerasCallback.DLKerasReduceLROnPlateau;
@@ -80,6 +79,7 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdamax;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasNadam;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasRMSProp;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradientDescent;
+import org.knime.dl.python.core.DLPythonTensorFactory;
 
 /**
  * @param <N> the {@link DLKerasNetwork Keras network} type for which to create {@link DLKerasNetworkTrainingSession
@@ -101,9 +101,7 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 	protected DLKerasAbstractTrainingContext(final Class<N> networkType, final String name) {
 		m_networkType = checkNotNull(networkType);
 		m_name = checkNotNullOrEmpty(name);
-		m_layerDataFactory = DLTensorRegistry.getInstance().getTensorFactory(m_networkType)
-				.orElseThrow(() -> new IllegalStateException("Deep learning network type '" + m_networkType
-						+ "' is not supported. No layer data factory found."));
+		m_layerDataFactory = new DLPythonTensorFactory();
 	}
 
 	@Override

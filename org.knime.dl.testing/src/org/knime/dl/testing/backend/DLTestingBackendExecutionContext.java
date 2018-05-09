@@ -54,14 +54,14 @@ import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
-import org.knime.dl.testing.backend.DLTestingBackendFactories.DLTestingBackendTensorFactory;
+import org.knime.dl.testing.DLTestingTensorFactory;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public class DLTestingBackendExecutionContext implements DLExecutionContext<DLTestingBackendNetwork> {
-    private final DLTensorFactory m_tensorFactory = new DLTestingBackendTensorFactory();
+    private final DLTensorFactory m_tensorFactory = new DLTestingTensorFactory();
 
     @Override
     public Class<DLTestingBackendNetwork> getNetworkType() {

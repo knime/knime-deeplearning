@@ -111,11 +111,6 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 				.allMatch(s -> s.getBatchSize().getAsLong() == trainingConfig.getBatchSize());
 	}
 
-	private static boolean doesTensorFactoryMatchNetworkType(final DLNetwork network,
-			final DLTensorFactory tensorFactory) {
-		return network.getClass() == tensorFactory.getNetworkType();
-	}
-
 	/**
 	 * The network to train.
 	 */
@@ -182,8 +177,6 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 				"Execution input specs are not fully defined.");
 		checkArgument(doExecInputsSpecsMatchConfig(trainingConfig, executionInputSpecs),
 				"Batch size of execution input specs to not match training config.");
-		checkArgument(doesTensorFactoryMatchNetworkType(network, checkNotNull(tensorFactory)),
-				"Tensor factory does not match network type.");
 		m_network = network;
 		m_trainingConfig = checkNotNull(trainingConfig);
 		m_executionInputSpecs = executionInputSpecs;

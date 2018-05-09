@@ -77,11 +77,6 @@ import org.knime.dl.util.DLUtils;
  */
 public class DLTestingTensorFactory implements DLTensorFactory {
 
-	@Override
-	public Class<?> getNetworkType() {
-		throw new UnsupportedOperationException();
-	}
-
 	public Class<?> getElementType(final Class<? extends DLBuffer> bufferType) {
 		if (bufferType.equals(DLWritableDoubleBuffer.class) || bufferType.equals(DLReadableDoubleBuffer.class)) {
 			return double.class;

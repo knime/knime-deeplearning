@@ -56,8 +56,6 @@ import org.knime.dl.core.data.DLWritableBuffer;
  */
 public interface DLTensorFactory {
 
-	Class<?> getNetworkType();
-
 	/**
 	 * Only return basic interfaces such as "DLReadableDoubleBuffer" etc.
 	 *

@@ -75,7 +75,7 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLPythonAbstractTensorFactory implements DLTensorFactory {
+public class DLPythonTensorFactory implements DLTensorFactory {
 
 	@Override
 	public Class<? extends DLWritableBuffer> getWritableBufferType(final DLTensorSpec spec) {

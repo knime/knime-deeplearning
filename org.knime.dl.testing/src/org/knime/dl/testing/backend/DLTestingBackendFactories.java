@@ -60,7 +60,6 @@ import org.knime.dl.core.data.convert.DLAbstractTensorDataValueToTensorConverter
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
-import org.knime.dl.testing.DLTestingTensorFactory;
 import org.knime.dl.testing.backend.DLTestingDataCells.DoubleDataCell;
 import org.knime.dl.testing.backend.DLTestingDataCells.TestingDataValue;
 
@@ -69,13 +68,6 @@ import org.knime.dl.testing.backend.DLTestingDataCells.TestingDataValue;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public class DLTestingBackendFactories {
-
-    public static class DLTestingBackendTensorFactory extends DLTestingTensorFactory {
-        @Override
-        public Class<?> getNetworkType() {
-            return DLTestingBackendNetwork.class;
-        }
-    }
 
     public static class DLTestingDataValueToFloatTensorConverterFactory
     extends
