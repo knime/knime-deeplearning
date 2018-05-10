@@ -97,7 +97,8 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
 
     private void removeInputPanel(P panel) {
         panel.unregisterListeners();
-        m_inputPanels.remove(panel);
+        m_inputPanels.remove(panel.getTensorSpec());
+        getComponentGroupPanel().remove(panel.getComponentGroupPanel());
     }
 
     private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec) {
