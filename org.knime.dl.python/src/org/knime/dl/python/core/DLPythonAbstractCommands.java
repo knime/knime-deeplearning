@@ -88,6 +88,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Row;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
@@ -148,6 +149,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	 * should use {@link #getContext()}.
 	 */
 	protected final DLPythonContext m_context;
+
+	private final Map<DLTensorId, DLPythonTableChunker> m_tableChunkers = new HashMap<>();
 
 	/**
 	 * Set to <code>true</code> if the setup steps in {@link #getContext()} were successful.
@@ -295,7 +298,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.entrySet()) {
 			final DLTensorId tensorIdentifier = input.getKey();
 			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
+			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
 			try {
 				getContext().getKernel().putData(tensorIdentifier.getIdentifierString(), tableChunker, 1);
 			} catch (final IOException ex) {
@@ -449,7 +452,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 					monitor.checkCanceled();
 					for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-						final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
+						final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 						try {
 							getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
 						} catch (final IOException ex) {
@@ -476,7 +479,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						monitor.checkCanceled();
 						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 							final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-							final TableChunker tableChunker = createSingleTensorTableChunker(tensor);
+							final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 							try {
 								// TODO: different identifiers for validation input? (pre-fetching on Python side...)
 								getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
@@ -642,40 +645,96 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             + "')";
 	}
 
-	private TableChunker createSingleTensorTableChunker(final DLTensor<? extends DLWritableBuffer> tensor)
-			throws IOException {
-		// TODO: try to cache something here or at call site (serializers, table spec, entire chunker, ...)
-		final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
-				.filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
-						&& ((DLSerializerFactory) ext.getJavaSerializerFactory()).getBufferType()
-								.isAssignableFrom(tensor.getBuffer().getClass()))
-				.findFirst() //
-				.orElseThrow(() -> new RuntimeException(
-						"Transmitting data to Python failed. No matching serializer available."));
-		// TODO: if nothing found, we should also try to match primitive types with their wrapper types (guava
-		// Primitives.wrap etc.)
-		final Serializer<DLPythonDataBuffer> serializer = (Serializer<DLPythonDataBuffer>) extension
-				.getJavaSerializerFactory().createSerializer();
-		final Cell cell = new CellImpl(serializer.serialize((DLPythonDataBuffer) tensor.getBuffer()));
-		final long[] shape = DLUtils.Shapes.getFixedShape(tensor.getSpec().getShape())
-				.orElseThrow(() -> new IllegalStateException("Execution spec does not contain fixed shape."));
-		final Cell shapeCell = new CellImpl(shape, getNotMissingForLength(shape.length));
-		final String identifier = tensor.getSpec().getIdentifier().getIdentifierString();
-		final TableSpec tableSpec = new TableSpecImpl(new Type[] { Type.BYTES, Type.LONG_LIST },
-				new String[] { identifier, "shape" }, Collections.singletonMap(identifier, extension.getId()));
-		final Row row = new RowImpl(identifier, 2);
-		row.setCell(cell, 0);
-		row.setCell(shapeCell, 1);
-		final KeyValueTableIterator iterator = new KeyValueTableIterator(tableSpec, row);
-		return new DLSingletonTableChunker(iterator);
-	}
+    private TableChunker createSingleTensorTableChunker(final DLTensorId tensorId, final DLTensor<? extends DLWritableBuffer> tensor)
+        throws IOException {
+        DLPythonTableChunker tableChunker = m_tableChunkers.get(tensorId);
+        if (tableChunker == null) {
+            tableChunker = new DLPythonTableChunker(tensor);
+            m_tableChunkers.put(tensorId, tableChunker);
+        }
+        tableChunker.resetWithNextTensor(tensor);
+        return tableChunker;
+    }
 
-	private byte[] getNotMissingForLength(final int length) {
-		final int entries = length / 8 + 1;
-		final byte[] missings = new byte[entries];
-		Arrays.fill(missings, UnsignedBytes.MAX_VALUE);
-		return missings;
-	}
+    private static byte[] getNotMissingForLength(final int length) {
+        final int entries = length / 8 + 1;
+        final byte[] missings = new byte[entries];
+        Arrays.fill(missings, UnsignedBytes.MAX_VALUE);
+        return missings;
+    }
+
+    private static final class DLPythonTableChunker implements TableChunker {
+
+        private TableIterator m_iterator;
+
+        private boolean m_hasNextChunk = true;
+
+        private final Serializer<DLPythonDataBuffer<?>> m_serializer;
+
+        private final TableSpec m_tableSpec;
+
+        private final Row m_row;
+
+        private DLPythonTableChunker(final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
+            // Create the serializer
+            final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
+                .filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
+                    && ((DLSerializerFactory)ext.getJavaSerializerFactory()).getBufferType()
+                        .isAssignableFrom(tensor.getBuffer().getClass()))
+                .findFirst() //
+                .orElseThrow(() -> new RuntimeException(
+                    "Transmitting data to Python failed. No matching serializer available."));
+            // TODO: if nothing found, we should also try to match primitive types with their wrapper types (guava
+            // Primitives.wrap etc.)
+            m_serializer = (Serializer<DLPythonDataBuffer<?>>)extension.getJavaSerializerFactory().createSerializer();
+
+            // Create the shape cell (the same every time)
+            final long[] shape = DLUtils.Shapes.getFixedShape(tensor.getSpec().getShape())
+                .orElseThrow(() -> new IllegalStateException("Execution spec does not contain fixed shape."));
+            final Cell shapeCell = new CellImpl(shape, getNotMissingForLength(shape.length));
+
+            // Create the table spec
+            final String identifier = tensor.getSpec().getIdentifier().getIdentifierString();
+            m_tableSpec = new TableSpecImpl(new Type[]{Type.BYTES, Type.LONG_LIST}, new String[]{identifier, "shape"},
+                Collections.singletonMap(identifier, extension.getId()));
+
+            // Create the row
+            m_row = new RowImpl(identifier, 2);
+            m_row.setCell(shapeCell, 1);
+        }
+
+        @Override
+        public boolean hasNextChunk() {
+            return m_hasNextChunk;
+        }
+
+        @Override
+        public TableIterator nextChunk(final int numRows) {
+            if (m_hasNextChunk) {
+                m_hasNextChunk = false;
+            }
+            return m_iterator;
+        }
+
+        @Override
+        public int getNumberRemainingRows() {
+            // TODO does this make sense?
+            return m_iterator.getNumberRemainingRows();
+        }
+
+        @Override
+        public TableSpec getTableSpec() {
+            return m_tableSpec;
+        }
+
+        private void resetWithNextTensor(final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
+            final Cell cell = new CellImpl(m_serializer.serialize((DLPythonDataBuffer<?>)tensor.getBuffer()));
+            m_row.setCell(cell, 0);
+            // TODO reuse an iterator?
+            m_iterator = new KeyValueTableIterator(m_tableSpec, m_row);
+            m_hasNextChunk = true;
+        }
+    }
 
     protected abstract static class DLPythonAbstractNetworkReaderCommands {
 
