@@ -211,6 +211,8 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 
 		private final JTextArea m_pythonStdOutOutputArea;
 
+		private final JTextArea m_pythonStdErrOutputArea;
+
 		/**
 		 * Data iterators for this view. Its important that each view has its own iterator state if we open several
 		 * views at once.
@@ -240,7 +242,13 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
             ((DefaultCaret) m_pythonStdOutOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             m_pythonStdOutOutputArea.setEditable(false);
             m_pythonStdOutOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-            tabs.addTab("Python StdOut", new JScrollPane(m_pythonStdOutOutputArea));
+            tabs.addTab("Python Standard Output", new JScrollPane(m_pythonStdOutOutputArea));
+
+            m_pythonStdErrOutputArea = new JTextArea();
+            ((DefaultCaret) m_pythonStdErrOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+            m_pythonStdErrOutputArea.setEditable(false);
+            m_pythonStdErrOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+            tabs.addTab("Python Standart Error", new JScrollPane(m_pythonStdErrOutputArea));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
@@ -370,6 +378,7 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 
 			// Update log output
 			m_pythonStdOutOutputArea.setText(monitor.getStdOutOutput());
+			m_pythonStdErrOutputArea.setText(monitor.getStdErrOutput());
 		}
 
 		public void reset() {
