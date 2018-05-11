@@ -52,7 +52,6 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.swing.JButton;
@@ -220,12 +219,18 @@ final class DLExecutorOutputsPanel {
     
     private void removeOutputPanel(final String outputName, final DLExecutorOutputPanel outputPanel) {
         if (m_outputPanels.remove(outputName) != null) {
-            outputPanel.unregisterListeners();
-            m_panel.remove(outputPanel);
-            m_addOutputButton.setEnabled(true);
-            m_callBack.callBack();
+            doRemoval(outputPanel);
         }
     }
+
+
+    private void doRemoval(final DLExecutorOutputPanel outputPanel) {
+        outputPanel.unregisterListeners();
+        m_panel.remove(outputPanel);
+        m_addOutputButton.setEnabled(true);
+        m_callBack.callBack();
+    }
+    
     
     void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
@@ -258,9 +263,10 @@ final class DLExecutorOutputsPanel {
     }
     
     private void clearOutputs() {
-        for (Entry<String, DLExecutorOutputPanel> output : m_outputPanels.entrySet()) {
-            removeOutputPanel(output.getKey(), output.getValue());
+        for (DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
+            doRemoval(outputPanel);
         }
+        m_outputPanels.clear();
     }
     
 
