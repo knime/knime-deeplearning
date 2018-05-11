@@ -97,6 +97,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSp
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
 import org.knime.python2.kernel.DefaultJavaToPythonResponse;
 import org.knime.python2.kernel.Messages;
+import org.knime.python2.kernel.PythonOutputListener;
 import org.knime.python2.kernel.PythonToJavaMessage;
 import org.knime.python2.kernel.PythonToJavaMessageHandler;
 
@@ -436,6 +437,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		PythonToJavaMessageHandler onEpochEndHandler = null;
 		PythonToJavaMessageHandler onBatchBeginHandler = null;
 		PythonToJavaMessageHandler onBatchEndHandler = null;
+        PythonOutputListener stdOutListener = null;
+        PythonOutputListener stdErrListener = null;
 
 		try {
 			final DLPythonTrainingStatus status = monitor.getTrainingStatus();
@@ -572,6 +575,22 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			};
 			messages.registerMessageHandler(onBatchEndHandler);
 
+            // Add log listeners
+            final StringBuilder stdOut = new StringBuilder();
+            final StringBuilder stdErr = new StringBuilder();
+            stdOutListener = (msg) -> {
+                stdOut.append(msg);
+                stdOut.append("\n");
+                status.setStdOutOutput(stdOut.toString());
+            };
+            stdErrListener = (msg) -> {
+                stdErr.append(msg);
+                stdErr.append("\n");
+                status.setStdErrOutput(stdErr.toString());
+            };
+            getContext().getKernel().addStdoutListener(stdOutListener);
+            getContext().getKernel().addStderrorListener(stdErrListener);
+
 			final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 					.a("import DLPythonNetwork") //
 					.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
@@ -608,6 +627,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			if (onBatchEndHandler != null) {
 				messages.unregisterMessageHandler(onBatchEndHandler);
 			}
+
+            // Remove log listeners
+            getContext().getKernel().removeStderrorListener(stdOutListener);
+            getContext().getKernel().removeStderrorListener(stdErrListener);
 		}
 	}
 
