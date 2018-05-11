@@ -46,36 +46,16 @@
  */
 package org.knime.dl.core;
 
-import java.util.OptionalDouble;
-import java.util.function.Supplier;
-
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLSessionMonitor extends DLCancelable {
+public interface DLCancelable {
 
-	OptionalDouble getProgress();
+    /**
+     * Checks if the execution has been canceled.
+     *
+     * @throws DLCanceledExecutionException if the execution has been canceled.
+     */
+    void checkCanceled() throws DLCanceledExecutionException;
 
-	void setProgress(double progress);
-
-	void setProgress(double progress, String message);
-
-	default void setProgress(final double progress, final Supplier<String> message) {
-		setProgress(progress, message.get());
-	}
-
-	String getMessage();
-
-	void setMessage(String message);
-
-	default void setMessage(final Supplier<String> message) {
-		setMessage(message.get());
-	}
-
-	void cancel();
-
-	void reset();
-
-	DLSessionMonitor createSubMonitor(double fraction);
 }

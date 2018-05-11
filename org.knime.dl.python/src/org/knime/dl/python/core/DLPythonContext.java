@@ -49,6 +49,8 @@ package org.knime.dl.python.core;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -65,13 +67,30 @@ public interface DLPythonContext extends AutoCloseable {
 	// NB: we cannot offer an execute method that allows direct execution of a source code string as there are known
 	// issues when trying to execute Python with "-c" option enabled from a Windows batch file.
 
-	String[] execute(File script, String... args) throws IOException;
+	/**
+	 * Executes the given script with the given arguments.
+	 *
+     * @param cancelable to check if execution has been canceled
+     * @param script the python script
+     * @param args the arguments of the python script
+	 * @return stdout and stderr in an array list
+	 * @throws IOException if an error occurred while starting the python process
+	 * @throws DLCanceledExecutionException if the execution has been canceled
+	 */
+	String[] execute(DLCancelable cancelable, File script, String... args) throws IOException, DLCanceledExecutionException;
 
 	/**
+	 * Executes the given source code.
+	 *
+	 * @param code the python source code
+     * @param cancelable to check if execution has been canceled
+	 * @return stdout and stderr in an array list
+	 * @throws DLCanceledExecutionException if the execution has been canceled
 	 * @throws DLInvalidEnvironmentException if execution failed, i.e. if the Python kernel returns an error output
-	 * @throws IOException if an error occurred while communicating with the Python kernel
+     * @throws IOException If an error occurred while communicating with the python kernel
 	 */
-	String[] executeInKernel(final String code) throws DLInvalidEnvironmentException, IOException;
+	String[] executeInKernel(final String code, DLCancelable cancelable)
+	        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
 
 	@Override
 	void close();
