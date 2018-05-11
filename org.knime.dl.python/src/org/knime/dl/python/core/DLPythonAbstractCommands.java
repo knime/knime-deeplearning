@@ -92,7 +92,6 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableIterato
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableSpec;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
-import org.knime.python2.extensions.serializationlibrary.interfaces.impl.KeyValueTableIterator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
@@ -665,7 +664,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
     private static final class DLPythonTableChunker implements TableChunker {
 
-        private TableIterator m_iterator;
+        private final DLPythonResetableTableIterator m_iterator;
 
         private boolean m_hasNextChunk = true;
 
@@ -701,6 +700,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             // Create the row
             m_row = new RowImpl(identifier, 2);
             m_row.setCell(shapeCell, 1);
+            m_iterator = new DLPythonResetableTableIterator(m_tableSpec, m_row);
         }
 
         @Override
@@ -718,7 +718,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         @Override
         public int getNumberRemainingRows() {
-            // TODO does this make sense?
             return m_iterator.getNumberRemainingRows();
         }
 
@@ -730,9 +729,47 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         private void resetWithNextTensor(final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
             final Cell cell = new CellImpl(m_serializer.serialize((DLPythonDataBuffer<?>)tensor.getBuffer()));
             m_row.setCell(cell, 0);
-            // TODO reuse an iterator?
-            m_iterator = new KeyValueTableIterator(m_tableSpec, m_row);
+            m_iterator.reset();
             m_hasNextChunk = true;
+        }
+    }
+
+    private static final class DLPythonResetableTableIterator implements TableIterator {
+
+        private final TableSpec m_tableSpec;
+
+        private final Row m_row;
+
+        private boolean m_hasNext = true;
+
+        private DLPythonResetableTableIterator(final TableSpec tableSpec, final Row row) {
+            m_tableSpec = tableSpec;
+            m_row = row;
+        }
+
+        @Override
+        public Row next() {
+            m_hasNext = false;
+            return m_row;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return m_hasNext;
+        }
+
+        @Override
+        public int getNumberRemainingRows() {
+            return m_hasNext ? 1 : 0;
+        }
+
+        @Override
+        public TableSpec getTableSpec() {
+            return m_tableSpec;
+        }
+
+        private void reset() {
+            m_hasNext = true;
         }
     }
 
