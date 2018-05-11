@@ -66,7 +66,9 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 import org.knime.core.node.NodeModel;
@@ -206,7 +208,7 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 
 		private final DLEvent<Void> m_userStoppedLearning = new DLDefaultEvent<>();
 
-		// TODO: private JTextArea m_pythonConsoleOutputArea;
+		private final JTextArea m_pythonStdOutOutputArea;
 
 		/**
 		 * Data iterators for this view. Its important that each view has its own iterator state if we open several
@@ -233,15 +235,12 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 				tabs.addTab(spec.title(), tab.getComponent());
 			}
 
-			// TODO: enable asap
-			// Python output tab
-			// m_pythonConsoleOutputArea = new JTextArea();
-			// final DefaultCaret caret = (DefaultCaret)
-			// m_pythonConsoleOutputArea.getCaret();
+			m_pythonStdOutOutputArea = new JTextArea();
+			// TODO what should I do with the Caret?
+			// final DefaultCaret caret = (DefaultCaret) m_pythonConsoleOutputArea.getCaret();
 			// caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-			// m_pythonConsoleOutputArea.setEditable(false);
-			// tabs.addTab("Python Output", new
-			// JScrollPane(m_pythonConsoleOutputArea));
+			m_pythonStdOutOutputArea.setEditable(false);
+			tabs.addTab("Python StdOut", new JScrollPane(m_pythonStdOutOutputArea));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
@@ -368,6 +367,9 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 					}
 				}
 			}
+
+			// Update log output
+			m_pythonStdOutOutputArea.setText(monitor.getStdOutOutput());
 		}
 
 		public void reset() {

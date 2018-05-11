@@ -82,4 +82,8 @@ public interface DLProgressMonitor extends Externalizable {
 	DLViewDataCollection[] getViewData();
 
 	void setViewData(DLViewDataCollection[] viewData);
+
+	String getStdOutOutput();
+
+	String getStdErrOutput();
 }
