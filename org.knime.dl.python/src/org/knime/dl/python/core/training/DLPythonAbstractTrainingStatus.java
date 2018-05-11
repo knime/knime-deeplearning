@@ -46,6 +46,10 @@
  */
 package org.knime.dl.python.core.training;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import org.knime.dl.core.training.DLAbstractTrainingStatus;
 
 /**
@@ -91,4 +95,17 @@ public class DLPythonAbstractTrainingStatus extends DLAbstractTrainingStatus imp
         m_stdErr = stdErr;
     }
 
+    @Override
+    public void writeExternal(final ObjectOutput objOut) throws IOException {
+        super.writeExternal(objOut);
+        objOut.writeObject(m_stdOut);
+        objOut.writeObject(m_stdErr);
+    }
+
+    @Override
+    public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+        super.readExternal(objIn);
+        m_stdOut = (String)objIn.readObject();
+        m_stdErr = (String)objIn.readObject();
+    }
 }
