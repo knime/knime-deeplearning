@@ -61,7 +61,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.dl.core.DLTensorSpec;
 
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
 
 /**
  * Handles the dialog components for the network inputs.
@@ -72,7 +71,7 @@ import com.google.common.collect.Sets.SetView;
 public final class DLInputsPanel<P extends DLInputPanel<?>>
     extends AbstractGridBagDialogComponentGroup {
 
-    private final LinkedHashMap<DLTensorSpec, P> m_inputPanels = new LinkedHashMap<>();
+    private LinkedHashMap<DLTensorSpec, P> m_inputPanels = new LinkedHashMap<>();
 
     private final BiFunction<DLTensorSpec, DataTableSpec, P> m_inputPanelCreator;
     
@@ -94,22 +93,16 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
         m_inputPanelCreator = inputPanelCreator;
     }
 
-
-    private void removeInputPanel(P panel) {
-        panel.unregisterListeners();
-        m_inputPanels.remove(panel.getTensorSpec());
+    private void removeFromGroupPanel(P panel) {
         getComponentGroupPanel().remove(panel.getComponentGroupPanel());
     }
 
-    private void addInputPanel(final DLTensorSpec inputTensorSpec, final DataTableSpec tableSpec) {
-        final P inputPanel = m_inputPanelCreator.apply(inputTensorSpec, tableSpec);
-        // add input panel to dialog
-        m_inputPanels.put(inputTensorSpec, inputPanel);
+    private void addToGroupPanel(final DLTensorSpec inputTensorSpec, final P inputPanel) {
         final JPanel panel = inputPanel.getComponentGroupPanel();
         panel.setBorder(BorderFactory.createTitledBorder(m_borderLabel + ": " + inputTensorSpec.getName()));
         addComponent(panel);
     }
-
+    
     @Override
     public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         final NodeSettingsWO inputSettings = settings.addNodeSettings(m_inputsCfgKey);
@@ -134,16 +127,23 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
     private void updatePanelList(final DLTensorSpec[] tensorSpecs, final DataTableSpec tableSpec) {
         Set<DLTensorSpec> newSpecs = Sets.newHashSet(tensorSpecs);
         Set<DLTensorSpec> panelSpecs = m_inputPanels.keySet();
-        if (newSpecs.equals(panelSpecs)) {
-            return; // nothing to do all specs are already displayed correctly
+        
+        m_inputPanels.values().forEach(this::removeFromGroupPanel);
+        LinkedHashMap<DLTensorSpec, P> newInputPanels = new LinkedHashMap<>(tensorSpecs.length);
+        for (DLTensorSpec tensorSpec : tensorSpecs) {
+            P panel;
+            if (panelSpecs.contains(tensorSpec)) {
+                panel = m_inputPanels.get(tensorSpec);
+            } else {
+                panel = m_inputPanelCreator.apply(tensorSpec, tableSpec);
+            }
+            addToGroupPanel(tensorSpec, panel);
+            newInputPanels.put(tensorSpec, panel);
         }
-
-        SetView<DLTensorSpec> removedTensors = Sets.difference(panelSpecs, newSpecs);
-        removedTensors.stream().map(m_inputPanels::get).forEach(this::removeInputPanel);
-
-        SetView<DLTensorSpec> additionalTensors = Sets.difference(newSpecs, panelSpecs);
-        additionalTensors.forEach(t -> addInputPanel(t, tableSpec));
+        Sets.difference(panelSpecs, newSpecs).stream().map(m_inputPanels::get).forEach(p -> p.unregisterListeners());
+        m_inputPanels = newInputPanels;
     }
+    
     
     private void loadPanels(final NodeSettingsRO settings, final DataTableSpec tableSpec) throws NotConfigurableException {
         if (settings.containsKey(m_inputsCfgKey)) {
