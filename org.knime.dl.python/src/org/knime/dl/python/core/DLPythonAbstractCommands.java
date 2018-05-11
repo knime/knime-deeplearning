@@ -69,12 +69,12 @@ import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLReportedMetric;
 import org.knime.dl.core.training.DLTrainingMonitor;
-import org.knime.dl.core.training.DLTrainingStatus;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
 import org.knime.dl.python.core.data.serde.DLSerializerFactory;
+import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
@@ -426,7 +426,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	@Override
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
-			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
+			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException {
 		final Messages messages = getContext().getKernel().getMessages();
 
@@ -438,7 +438,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		PythonToJavaMessageHandler onBatchEndHandler = null;
 
 		try {
-			final DLTrainingStatus status = monitor.getTrainingStatus();
+			final DLPythonTrainingStatus status = monitor.getTrainingStatus();
 
 			trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_training_data") {
 

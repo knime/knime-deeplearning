@@ -59,6 +59,7 @@ import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingStatus;
+import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -119,6 +120,6 @@ public interface DLPythonCommands extends AutoCloseable {
 	 *            for cancellation or update the {@link DLTrainingStatus training status}.
 	 */
 	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider trainingInputProvider,
-			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<?> monitor)
+			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException;
 }

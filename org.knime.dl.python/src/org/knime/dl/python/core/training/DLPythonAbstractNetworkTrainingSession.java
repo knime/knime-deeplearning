@@ -76,7 +76,7 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLTrainingStatus, N extends DLPythonNetwork, //
+public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonTrainingStatus, N extends DLPythonNetwork, //
 		CFG extends DLTrainingConfig, C extends DLPythonCommands>
 	extends DLAbstractNetworkTrainingSession<S, N, CFG> implements DLPythonNetworkTrainingSession<S> {
 

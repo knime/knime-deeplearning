@@ -61,6 +61,7 @@ import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkHandleTableCreatorFactory;
+import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
@@ -152,7 +153,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
 	@Override
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
-			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<?> monitor)
+			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException {
 		final Messages messages = getContext().getKernel().getMessages();
 
