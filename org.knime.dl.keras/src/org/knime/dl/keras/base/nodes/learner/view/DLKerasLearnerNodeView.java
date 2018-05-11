@@ -70,6 +70,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.text.DefaultCaret;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
@@ -235,12 +236,11 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 				tabs.addTab(spec.title(), tab.getComponent());
 			}
 
-			m_pythonStdOutOutputArea = new JTextArea();
-			// TODO what should I do with the Caret?
-			// final DefaultCaret caret = (DefaultCaret) m_pythonConsoleOutputArea.getCaret();
-			// caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-			m_pythonStdOutOutputArea.setEditable(false);
-			tabs.addTab("Python StdOut", new JScrollPane(m_pythonStdOutOutputArea));
+            m_pythonStdOutOutputArea = new JTextArea();
+            ((DefaultCaret) m_pythonStdOutOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+            m_pythonStdOutOutputArea.setEditable(false);
+            m_pythonStdOutOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+            tabs.addTab("Python StdOut", new JScrollPane(m_pythonStdOutOutputArea));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
