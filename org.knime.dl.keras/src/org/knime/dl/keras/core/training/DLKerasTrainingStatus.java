@@ -47,13 +47,13 @@
 package org.knime.dl.keras.core.training;
 
 import org.knime.dl.core.DLEvent;
-import org.knime.dl.core.training.DLTrainingStatus;
+import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasTrainingStatus extends DLTrainingStatus {
+public interface DLKerasTrainingStatus extends DLPythonTrainingStatus {
 
 	// events:
 

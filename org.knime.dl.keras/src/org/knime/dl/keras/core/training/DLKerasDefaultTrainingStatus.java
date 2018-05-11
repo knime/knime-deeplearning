@@ -48,16 +48,16 @@ package org.knime.dl.keras.core.training;
 
 import org.knime.dl.core.DLDefaultEvent;
 import org.knime.dl.core.DLEvent;
-import org.knime.dl.core.training.DLAbstractTrainingStatus;
 import org.knime.dl.keras.base.nodes.learner.view.DLProgressMonitor;
 import org.knime.dl.keras.base.nodes.learner.view.DLViewDataCollection;
 import org.knime.dl.keras.base.nodes.learner.view.DLViewSpec;
+import org.knime.dl.python.core.training.DLPythonAbstractTrainingStatus;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDefaultTrainingStatus extends DLAbstractTrainingStatus
+public final class DLKerasDefaultTrainingStatus extends DLPythonAbstractTrainingStatus
 		implements DLKerasTrainingStatus, DLProgressMonitor {
 
 	private DLViewSpec[] m_viewSpecs;
