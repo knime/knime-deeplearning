@@ -50,7 +50,7 @@ package org.knime.dl.keras.core.execution;
 
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.python.core.DLPythonTensorFactory;
+import org.knime.dl.python.core.DLPythonDefaultTensorFactory;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -67,7 +67,7 @@ public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> 
 	protected DLKerasAbstractExecutionContext(final Class<N> networkType, final String name) {
 		m_networkType = networkType;
 		m_name = name;
-		m_layerDataFactory = new DLPythonTensorFactory();
+		m_layerDataFactory = new DLPythonDefaultTensorFactory();
 	}
 
 	@Override

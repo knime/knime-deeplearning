@@ -79,7 +79,7 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasAdamax;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasNadam;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasRMSProp;
 import org.knime.dl.keras.core.training.DLKerasOptimizer.DLKerasStochasticGradientDescent;
-import org.knime.dl.python.core.DLPythonTensorFactory;
+import org.knime.dl.python.core.DLPythonDefaultTensorFactory;
 
 /**
  * @param <N> the {@link DLKerasNetwork Keras network} type for which to create {@link DLKerasNetworkTrainingSession
@@ -101,7 +101,7 @@ public abstract class DLKerasAbstractTrainingContext<N extends DLKerasNetwork> i
 	protected DLKerasAbstractTrainingContext(final Class<N> networkType, final String name) {
 		m_networkType = checkNotNull(networkType);
 		m_name = checkNotNullOrEmpty(name);
-		m_layerDataFactory = new DLPythonTensorFactory();
+		m_layerDataFactory = new DLPythonDefaultTensorFactory();
 	}
 
 	@Override
