@@ -52,6 +52,8 @@ import java.net.URL;
 import java.util.List;
 
 import org.knime.core.data.filestore.FileStore;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
@@ -136,12 +138,14 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
 	 *            will be redone. Otherwise, previous test results will be used if available.
 	 * @param timeout timeout in milliseconds after which the installation test will be interrupted
+	 * @param cancelable to check if the operation has been canceled
 	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
 	 * @throws DLPythonInstallationTestTimeoutException if the installation test timed out or was interrupted in terms
 	 *             of threading
+	 * @throws DLCanceledExecutionException if the operation has been canceled
 	 */
-	void checkAvailability(boolean forceRefresh, int timeout)
-			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException;
+	void checkAvailability(boolean forceRefresh, int timeout, DLCancelable cancelable)
+			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException, DLCanceledExecutionException;
 
 	/**
 	 * Loads a network from a source into a context.
@@ -152,13 +156,15 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 *            loaded. This is an optional feature for supporting back ends. For non-supporting back ends, calling
 	 *            this method with different values for <code>loadTrainingConfig</code> should result in same return
 	 *            values and side effects.
+	 * @param cancelable to check if the operation has been canceled
 	 * @return the network handle
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to load the network
+	 * @throws DLCanceledExecutionException if the operation has been canceled
 	 */
-	DLPythonNetworkHandle load(URI source, DLPythonContext context, boolean loadTrainingConfig)
-			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
+	DLPythonNetworkHandle load(URI source, DLPythonContext context, boolean loadTrainingConfig, DLCancelable cancelable)
+			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	/**
 	 * Fetches the network representation of a handle from a context.
@@ -166,14 +172,16 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @param handle the handle
 	 * @param source the source
 	 * @param context the context
+	 * @param cancelable to check if the operation has been canceled
 	 * @return the network
 	 * @throws IllegalArgumentException if the handle is invalid
 	 * @throws DLInvalidSourceException if the source is unavailable or invalid
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to fetch the network
+	 * @throws DLCanceledExecutionException if the operation has been canceled
 	 */
-    N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
+    N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context, DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	/**
 	 * Saves a network from a context to a destination.
@@ -181,13 +189,15 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
 	 * @param handle the handle
 	 * @param destination the destination
 	 * @param context the context
+	 * @param cancelable to check if the operation has been canceled
 	 * @throws IllegalArgumentException if the handle is invalid
 	 * @throws DLInvalidDestinationException if the destination is invalid
 	 * @throws DLInvalidEnvironmentException if the context is invalid
 	 * @throws IOException if failed to save the network
+	 * @throws DLCanceledExecutionException if the operation has been canceled
 	 */
-	void save(DLPythonNetworkHandle handle, URI destination, DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException;
+	void save(DLPythonNetworkHandle handle, URI destination, DLPythonContext context, DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
     /**
      * Returns a new Python compatible port object that stores the given network in the given file store. Note that the

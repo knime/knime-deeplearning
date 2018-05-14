@@ -98,7 +98,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 				.orElseThrow(() -> new DLMissingExtensionException(
 						"Python back end '" + inputNetwork.getClass().getCanonicalName()
 								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-        final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource().getURI(), context, true);
+        final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource().getURI(), context, true, cancelable);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {
@@ -185,13 +185,13 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					exec);
             final URI fileStoreURI = fileStore.getFile().toURI();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-            loader.save(handle, fileStoreURI, context);
+            loader.save(handle, fileStoreURI, context, cancelable);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
-            return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context)};
+            return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context, cancelable)};
 		} finally {
 			context.close();
 		}

@@ -57,6 +57,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
@@ -144,8 +146,8 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 
     protected <N extends DLPythonNetwork> DLPythonNetworkPortObject<? extends DLPythonNetwork> createOutputPortObject(
         final DLPythonNetworkLoader<N> loader, final DLPythonNetworkHandle handle, final FileStore fileStore,
-        final DLPythonContext context) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-        final N network = loader.fetch(handle, new DLNetworkFileStoreLocation(fileStore), context);
+        final DLPythonContext context, final DLCancelable cancelable) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final N network = loader.fetch(handle, new DLNetworkFileStoreLocation(fileStore), context, cancelable);
         return loader.createPortObject(network, fileStore);
     }
 

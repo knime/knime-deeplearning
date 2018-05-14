@@ -56,7 +56,9 @@ import java.util.Optional;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLNotCancelable;
 
 /**
  * Registry for deep learning {@link DLPythonNetworkLoader network Python loaders}.
@@ -122,7 +124,7 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 		for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
 			new Thread(() -> {
 				try {
-					loader.checkAvailability(true, m_installationTestTimeout);
+					loader.checkAvailability(true, m_installationTestTimeout, new DLNotCancelable());
 				} catch (final DLPythonInstallationTestTimeoutException e) {
 					Thread.currentThread().interrupt();
 					LOGGER.debug(e);
@@ -134,7 +136,9 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 				} catch (final DLMissingDependencyException e) {
 					LOGGER.debug("Installation test in deep learning Python network loader registry failed: "
 							+ e.getMessage(), e);
-				}
+				} catch (final DLCanceledExecutionException e) {
+				    // Doesn't happen
+                }
 			}, "DL-Installation-Test-Trigger-" + loader.getNetworkType().getName()).start();
 		}
 	}

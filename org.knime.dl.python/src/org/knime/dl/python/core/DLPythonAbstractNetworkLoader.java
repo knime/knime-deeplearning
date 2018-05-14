@@ -55,6 +55,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
@@ -71,17 +73,17 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 	protected abstract DLPythonInstallationTester getInstallationTester();
 
 	@Override
-	public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout)
+	public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
 			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
-		getInstallationTester().testInstallation(forceRefresh, timeout, this);
+		getInstallationTester().testInstallation(forceRefresh, timeout, this, cancelable);
 	}
 
 	@Override
-	public void save(final DLPythonNetworkHandle handle, final URI destination, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException {
+	public void save(final DLPythonNetworkHandle handle, final URI destination, final DLPythonContext context, final DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final File destinationFile = FileUtil.getFileFromURL(validateDestination(destination));
 		final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
-		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath());
+		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath(), cancelable);
 	}
 
 	protected static class DLPythonInstallationTester {
@@ -98,7 +100,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 		}
 
 		protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
-				final DLPythonAbstractNetworkLoader<?> loader)
+				final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
 				throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
 			if (forceRefresh || !m_tested) {
 				final AtomicBoolean success = new AtomicBoolean();
@@ -107,9 +109,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 				try (DLPythonContext context = new DLPythonDefaultContext()) {
 					final Thread t = new Thread(() -> {
 						try {
-							loader.createCommands(context).testInstallation();
+							loader.createCommands(context).testInstallation(cancelable);
 							success.set(true);
-						} catch (final DLInvalidEnvironmentException e) {
+						} catch (final DLInvalidEnvironmentException | DLCanceledExecutionException e) {
 							message.set(e.getMessage());
 						}
 					}, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());

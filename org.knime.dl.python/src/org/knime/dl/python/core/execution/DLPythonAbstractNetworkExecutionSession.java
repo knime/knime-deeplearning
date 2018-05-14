@@ -113,7 +113,7 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
 					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
-                .load(m_network.getSource().getURI(), m_commands.getContext(), false);
+                .load(m_network.getSource().getURI(), m_commands.getContext(), false, monitor);
 		}
 		final DLExecutionStatus status = monitor.getExecutionStatus();
 		long currentInBatchSize = m_expectedBatchSize;
@@ -128,9 +128,9 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 				final DLTensor<? extends DLWritableBuffer> tensor = m_input.values().stream().findAny().get();
 				currentInBatchSize = tensor.getBuffer().size() / tensor.getExampleSize();
 			}
-			m_commands.setNetworkInputs(m_handle, m_input);
+			m_commands.setNetworkInputs(m_handle, m_input, monitor);
 			monitor.checkCanceled();
-			m_commands.executeNetwork(m_handle, m_requestedOutputs, currentInBatchSize);
+			m_commands.executeNetwork(m_handle, m_requestedOutputs, currentInBatchSize, monitor);
 			monitor.checkCanceled();
 			for (final DLTensor<?> input : m_input.values()) {
 				input.getBuffer().reset();
@@ -140,7 +140,7 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 				final DLTensorSpec[] outputSpecs = ArrayUtils.addAll(m_network.getSpec().getOutputSpecs(),
 						m_network.getSpec().getHiddenOutputSpecs());
 				final Map<DLTensorId, long[]> outputShapes = m_commands.getNetworkOutputShapes(m_handle,
-						m_requestedOutputs);
+						m_requestedOutputs, monitor);
 				for (final DLTensorSpec spec : outputSpecs) {
 					if (m_requestedOutputs.contains(spec.getIdentifier())) {
 						final long[] outShape = outputShapes.get(spec.getIdentifier());
@@ -153,7 +153,7 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 					}
 				}
 			}
-			m_commands.getNetworkOutputs(m_handle, m_output);
+			m_commands.getNetworkOutputs(m_handle, m_output, monitor);
 			monitor.checkCanceled();
 			m_outputConsumer.accept(m_output);
 			for (final DLTensor<?> output : m_output.values()) {

@@ -120,6 +120,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		final DLPythonContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
+		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 		try {
 			context.getKernel().putFlowVariables(DLPythonCreatorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
@@ -132,7 +133,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 			String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
-			checkExecutePostConditions(context, new DLExecutionMonitorCancelable(exec));
+			checkExecutePostConditions(context, cancelable);
 			output = context.getKernel().execute("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //
@@ -156,14 +157,14 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 					exec);
             final URI fileStoreURI = fileStore.getFile().toURI();
 			final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(outputNetworkName);
-            loader.save(handle, fileStoreURI, context);
+            loader.save(handle, fileStoreURI, context, cancelable);
 			if (!fileStore.getFile().exists()) {
 				throw new IllegalStateException(
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
 			return new DLNetworkPortObject[] {
-                createOutputPortObject(loader, handle, fileStore, context)};
+                createOutputPortObject(loader, handle, fileStore, context, cancelable)};
 		} finally {
 			context.close();
 		}
