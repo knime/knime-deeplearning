@@ -51,6 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -143,16 +144,30 @@ public final class DLKerasNetworkPortObject extends
         this(network, getNetworkFileStore(network));
     }
 
+    /**
+     * Copies the given network to the first file store of the given file store list if that file store exists and the
+     * network is not already stored there. If the network was copied, a new network instance is created that points to
+     * the file store location.
+     */
     private DLKerasNetworkPortObject(final DLKerasNetwork network, final List<FileStore> fileStores)
         throws IOException {
         super(fileStores);
-        m_content = new DLKerasMaterializedPortObjectContent(checkNotNull(network));
         m_network = network;
-        m_spec = m_content.getSpec();
         if (getFileStoreCount() > 0) {
-            // Copy network to file store.
-            flushToFileStoreInternal(network, getFileStore(0));
+            final URL fileStoreUrl = getFileStore(0).getFile().toURI().toURL();
+            final URL networkUrl = m_network.getSource().getURI().toURL();
+            if (!fileStoreUrl.equals(networkUrl)) {
+                // Copy network to file store.
+                flushToFileStoreInternal(m_network, getFileStore(0));
+                try {
+                    m_network = m_network.getSpec().create(new DLNetworkFileStoreLocation(getFileStore(0)));
+                } catch (final DLInvalidSourceException e) {
+                    throw new IOException(e.getMessage(), e);
+                }
+            }
         }
+        m_content = new DLKerasMaterializedPortObjectContent(checkNotNull(m_network));
+        m_spec = m_content.getSpec();
     }
 
     /**
