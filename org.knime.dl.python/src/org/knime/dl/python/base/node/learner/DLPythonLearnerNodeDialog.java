@@ -135,7 +135,7 @@ final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 			m_workspacePreparer = kernel -> {
 				try {
 					NodeContext.pushContext(DLPythonLearnerNodeDialog.this.getNodeContext());
-					DLPythonLearnerNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), new DLNotCancelable());
+					DLPythonLearnerNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
 					m_sourceCodePanel.updateVariables();
 				} catch (final Exception e) {
 					m_sourceCodePanel.errorToConsole(

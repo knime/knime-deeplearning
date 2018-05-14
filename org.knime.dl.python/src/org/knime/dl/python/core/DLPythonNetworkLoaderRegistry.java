@@ -124,7 +124,7 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 		for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
 			new Thread(() -> {
 				try {
-					loader.checkAvailability(true, m_installationTestTimeout, new DLNotCancelable());
+					loader.checkAvailability(true, m_installationTestTimeout, DLNotCancelable.INSTANCE);
 				} catch (final DLPythonInstallationTestTimeoutException e) {
 					Thread.currentThread().interrupt();
 					LOGGER.debug(e);

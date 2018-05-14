@@ -186,7 +186,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
 			try {
 				kerasNetworkLoader.checkAvailability(false,
-						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(), new DLNotCancelable());
+						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
 			} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException | DLCanceledExecutionException e) {
 				availableLoaders.remove(i);
 				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());

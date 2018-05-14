@@ -201,7 +201,7 @@ public final class DLKerasNetworkPortObject extends
                 () -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                     + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
         try {
-            return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true, new DLNotCancelable());
+            return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true, DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
             throw new IOException(e.getMessage(), e);
         }

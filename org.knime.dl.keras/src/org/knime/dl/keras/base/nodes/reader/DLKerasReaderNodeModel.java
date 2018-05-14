@@ -161,7 +161,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
 			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
-			    new DLNotCancelable());
+			    DLNotCancelable.INSTANCE);
 		} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException | DLCanceledExecutionException e) {
 			throw new InvalidSettingsException(
 					"Selected Keras back end '" + loader.getName() + "' is not available anymore. "
@@ -176,7 +176,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 			try {
 				// TODO: we could allow the user to configure "loadTrainingConfig" flag
                 m_network =
-                    new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true, new DLNotCancelable());
+                    new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true, DLNotCancelable.INSTANCE);
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {

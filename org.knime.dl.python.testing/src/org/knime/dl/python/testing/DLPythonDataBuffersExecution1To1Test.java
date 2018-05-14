@@ -112,7 +112,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.python.testing";
 
-	private static final DLCancelable CANCELABLE = new DLNotCancelable();
+	private static final DLCancelable CANCELABLE = DLNotCancelable.INSTANCE;
 
 	private DLPythonAbstractCommands m_commands;
 

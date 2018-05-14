@@ -103,7 +103,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, new DLNotCancelable());
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, DLNotCancelable.INSTANCE);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -167,7 +167,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, new DLNotCancelable());
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, DLNotCancelable.INSTANCE);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;

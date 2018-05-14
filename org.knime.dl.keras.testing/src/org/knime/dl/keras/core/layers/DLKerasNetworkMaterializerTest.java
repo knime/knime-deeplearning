@@ -197,7 +197,7 @@ public final class DLKerasNetworkMaterializerTest {
 
             final DLKerasNetworkSpec rereadNetworkSpec =
                 new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-                    .read(pair.getSecond(), false, new DLNotCancelable()).getSpec();
+                    .read(pair.getSecond(), false, DLNotCancelable.INSTANCE).getSpec();
             assert networkSpec.equals(rereadNetworkSpec);
 
             return network;

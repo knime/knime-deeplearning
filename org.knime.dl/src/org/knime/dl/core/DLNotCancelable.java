@@ -51,6 +51,12 @@ package org.knime.dl.core;
  */
 public class DLNotCancelable implements DLCancelable {
 
+    public static final DLCancelable INSTANCE = new DLNotCancelable();
+
+    private DLNotCancelable() {
+        // Singleton
+    }
+
     @Override
     public void checkCanceled() throws DLCanceledExecutionException {
         // Is never canceled

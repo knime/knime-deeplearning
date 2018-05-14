@@ -133,13 +133,13 @@ public final class DLKerasNetworkMaterializer {
                 baseNetworkSpecs.add(baseNetworkHelper.m_networkSpec);
                 try {
                     final DLPythonNetworkHandle baseNetworkHandle = loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(),
-                        true, new DLNotCancelable());
+                        true, DLNotCancelable.INSTANCE);
                     final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
                         .n("import DLPythonNetwork") //
                         .n("DLPythonNetwork.add_network(") //
                         /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
                         /**/ .as(baseNetworkHelper.m_variable).a(")");
-                    commands.getContext().executeInKernel(b.toString(), new DLNotCancelable());
+                    commands.getContext().executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
                 } catch (final DLCanceledExecutionException e) {
                     // Won't happen
                 }
@@ -180,19 +180,19 @@ public final class DLKerasNetworkMaterializer {
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
                 .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
             try {
-                commands.getContext().executeInKernel(b.toString(), new DLNotCancelable());
+                commands.getContext().executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
             } catch (final DLCanceledExecutionException e) {
                 // Won't happen
             }
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
             try {
-                loader.save(handle, m_saveLocation.getURI(), commands.getContext(), new DLNotCancelable());
+                loader.save(handle, m_saveLocation.getURI(), commands.getContext(), DLNotCancelable.INSTANCE);
             } catch (final DLInvalidDestinationException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }
             try {
-                return loader.fetch(handle, m_saveLocation, commands.getContext(), new DLNotCancelable());
+                return loader.fetch(handle, m_saveLocation, commands.getContext(), DLNotCancelable.INSTANCE);
             } catch (final DLInvalidSourceException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }

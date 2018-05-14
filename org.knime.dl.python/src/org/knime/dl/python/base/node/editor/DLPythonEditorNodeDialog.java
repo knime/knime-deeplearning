@@ -139,7 +139,7 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 		m_workspacePreparer = kernel -> {
 			try {
 				NodeContext.pushContext(DLPythonEditorNodeDialog.this.getNodeContext());
-				DLPythonEditorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), new DLNotCancelable());
+				DLPythonEditorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
 				m_sourceCodePanel.updateVariables();
 			} catch (final Exception e) {
 				m_sourceCodePanel.errorToConsole(
