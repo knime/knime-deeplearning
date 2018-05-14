@@ -88,12 +88,12 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 
 	private static boolean areInputSpecsCongruent(final DLNetwork network,
 			final Set<DLTensorSpec> executionInputSpecs) {
-		final DLTensorSpec[] inputSpecs = ArrayUtils.addAll(network.getSpec().getInputSpecs(),
-				network.getSpec().getOutputSpecs());
-		if (inputSpecs.length != executionInputSpecs.size()) {
+		final Set<DLTensorSpec> inputSpecs = Sets.newHashSet(ArrayUtils.addAll(network.getSpec().getInputSpecs(),
+				network.getSpec().getOutputSpecs()));
+		if (inputSpecs.size() != executionInputSpecs.size()) {
 			return false;
 		}
-		final Set<DLTensorId> inputSpecIds = Arrays.stream(inputSpecs).map(DLTensorSpec::getIdentifier)
+		final Set<DLTensorId> inputSpecIds = inputSpecs.stream().map(DLTensorSpec::getIdentifier)
 				.collect(Collectors.toSet());
 		final Set<DLTensorId> executionInputSpecIds = executionInputSpecs.stream().map(DLTensorSpec::getIdentifier)
 				.collect(Collectors.toSet());

@@ -483,9 +483,25 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
 			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, "Target");
+			if (m_converters.containsKey(tensorSpec)) {
+			    checkConverterEquality(tensorSpec, converter);
+			}
 			m_converters.put(tensorSpec, converter);
 			setLossFunction(tensorSpec, targetCfg);
 		}
+    }
+    
+    private void checkConverterEquality(DLTensorSpec tensorSpec, DLDataValueToTensorConverterFactory<?, ?> converter) {
+        DLDataValueToTensorConverterFactory<?, ?> alreadyConfiguredConverter = m_converters.get(tensorSpec);
+        if (!converter.equals(alreadyConfiguredConverter)) {
+            throw new IllegalStateException("You use the tensor '" 
+                    + tensorSpec.getName() 
+                    + "' both as input and target but with different converters ('"
+                    + alreadyConfiguredConverter.getIdentifier() 
+                    + "' and '" 
+                    + converter.getIdentifier() 
+                    + "'. This is not supported.");
+        }
     }
 
     private void setLossFunction(final DLTensorSpec tensorSpec, final DLKerasLearnerTargetConfig targetCfg)
