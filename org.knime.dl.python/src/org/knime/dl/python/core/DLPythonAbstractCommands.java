@@ -61,6 +61,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
@@ -238,12 +240,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
 	@Override
-	public synchronized void testInstallation() throws DLInvalidEnvironmentException {
+	public synchronized void testInstallation(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
 		try {
 			final File script = getInstallationTestFile();
 			final String[] output = m_context.isKernelOpen()
 					? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
-					: m_context.execute(script);
+					: m_context.execute(cancelable, script);
 			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
 				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
 				final String cause = idx != -1 //
@@ -266,33 +268,33 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
     @Override
-    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig)
-        throws DLInvalidEnvironmentException, IOException {
+    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig, final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLPythonAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
             .a(reader.importReader()) //
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
             .n(getRegisterNetworkCode("network", null));
-        getContext().executeInKernel(b.toString());
+        getContext().executeInKernel(b.toString(), cancelable);
         return (DLPythonNetworkHandle)getContext().getKernel()
             .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
     }
 
 	@Override
-	public void saveNetwork(final DLPythonNetworkHandle network, final String path)
-			throws DLInvalidEnvironmentException, IOException {
+	public void saveNetwork(final DLPythonNetworkHandle network, final String path, final DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
 				.n("network.save(").asr(path).a(")");
-		getContext().executeInKernel(b.toString());
+		getContext().executeInKernel(b.toString(), cancelable);
 	}
 
 	// TODO: implement network handle
 	@Override
 	public void setNetworkInputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
+			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs, final DLCancelable cancelable)
 			throws DLInvalidEnvironmentException, IOException {
 		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
 				.entrySet()) {
@@ -300,6 +302,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
 			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
 			try {
+			    // TODO make cancelable!
 				getContext().getKernel().putData(tensorIdentifier.getIdentifierString(), tableChunker, 1);
 			} catch (final IOException ex) {
 				throw new RuntimeException("Transmitting input data to Python failed.", ex);
@@ -309,7 +312,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	@Override
 	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs,
-			final long batchSize) throws DLInvalidEnvironmentException, IOException {
+			final long batchSize, final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
@@ -324,15 +327,16 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
 				.n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
 				.a("] = pd.DataFrame(output_shapes)");
-		getContext().executeInKernel(b.toString());
+		getContext().executeInKernel(b.toString(), cancelable);
 	}
 
 	@Override
 	public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
-			final Set<T> outputs) throws DLInvalidEnvironmentException, IOException {
+			final Set<T> outputs, final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final Map<T, long[]> shapes = new HashMap<>(outputs.size());
 		final Map<String, T> idMap = outputs.stream()
 				.collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
+		// TODO make cancelable!
 		getContext().getKernel().getData(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
 
 			@Override
@@ -376,13 +380,14 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	// TODO: implement network handle
 	@Override
 	public void getNetworkOutputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
-			throws DLInvalidEnvironmentException, IOException {
+			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs, final DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
 				.entrySet()) {
 			final DLTensorId tensorIdentifier = output.getKey();
 			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
+			// TODO make cancelable!
 			getContext().getKernel().getData(tensorIdentifier.getIdentifierString(),
 					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
@@ -428,7 +433,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	@Override
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
 			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
-			throws DLInvalidEnvironmentException, IOException {
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final Messages messages = getContext().getKernel().getMessages();
 
 		PythonToJavaMessageHandler trainingDataRequestHandler = null;
@@ -607,7 +612,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				b.n("validation_data_supplier = None");
 			}
 			b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
-			getContext().executeInKernel(b.toString());
+			getContext().executeInKernel(b.toString(), monitor);
 		} finally {
 			if (trainingDataRequestHandler != null) {
 				messages.unregisterMessageHandler(trainingDataRequestHandler);

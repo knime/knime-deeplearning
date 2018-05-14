@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLNetworkSpec;
@@ -77,21 +79,21 @@ public interface DLPythonCommands extends AutoCloseable {
 	 */
 	DLPythonContext getContext() throws DLInvalidEnvironmentException;
 
-	void testInstallation() throws DLInvalidEnvironmentException;
+	void testInstallation(DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException;
 
-	DLPythonNetworkHandle loadNetwork(String path, boolean loadTrainingConfig)
-			throws DLInvalidEnvironmentException, IOException;
+	DLPythonNetworkHandle loadNetwork(String path, boolean loadTrainingConfig, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
-	DLNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network) throws DLInvalidEnvironmentException, IOException;
+	DLNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network, DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
-	void saveNetwork(DLPythonNetworkHandle network, String path) throws DLInvalidEnvironmentException, IOException;
+	void saveNetwork(DLPythonNetworkHandle network, String path, DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	void setNetworkInputs(DLPythonNetworkHandle network,
-			Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs)
-			throws DLInvalidEnvironmentException, IOException;
+			Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
-	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs, final long batchSize)
-			throws DLInvalidEnvironmentException, IOException;
+	void executeNetwork(DLPythonNetworkHandle network, Set<? extends DLTensorId> requestedOutputs, final long batchSize, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	/**
 	 * Retrieves the shapes of the output tensors from python. </br>
@@ -104,12 +106,12 @@ public interface DLPythonCommands extends AutoCloseable {
 	 * @throws DLInvalidEnvironmentException
 	 * @throws IOException
 	 */
-	<T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(DLPythonNetworkHandle network, Set<T> outputs)
-			throws DLInvalidEnvironmentException, IOException;
+	<T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(DLPythonNetworkHandle network, Set<T> outputs, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	void getNetworkOutputs(DLPythonNetworkHandle network,
-			Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs)
-			throws DLInvalidEnvironmentException, IOException;
+			Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	/**
 	 * @param the network to train
@@ -121,5 +123,5 @@ public interface DLPythonCommands extends AutoCloseable {
 	 */
 	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider trainingInputProvider,
 			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
-			throws DLInvalidEnvironmentException, IOException;
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 }
