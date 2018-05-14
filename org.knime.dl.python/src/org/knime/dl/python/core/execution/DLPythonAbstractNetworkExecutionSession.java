@@ -113,7 +113,7 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
 					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
-                .load(m_network.getSource().getURI(), m_commands.getContext(), false, monitor);
+                .load(m_network.getSource().getURI(), m_commands.getContext(monitor), false, monitor);
 		}
 		final DLExecutionStatus status = monitor.getExecutionStatus();
 		long currentInBatchSize = m_expectedBatchSize;

@@ -99,8 +99,8 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.readFromJson(path)) //
             .n(getRegisterNetworkCode("network", null));
-        getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext()
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        return (DLPythonNetworkHandle)getContext(cancelable)
             .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
@@ -112,13 +112,13 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.readFromYaml(path)) //
             .n(getRegisterNetworkCode("network", null));
-        getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext()
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        return (DLPythonNetworkHandle)getContext(cancelable)
             .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException {
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 	    final Collection<DLKerasCustomLoss> customLosses = getCustomLosses(config.getLosses().values());
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("from DLKerasNetwork import DLKerasTrainingConfig");
@@ -143,7 +143,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 		.n("import DLPythonNetwork") //
 		.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
 		.n("network.spec.training_config = config");
-		getContext().executeInKernel(b.toString(), cancelable);
+		getContext(cancelable).executeInKernel(b.toString(), cancelable);
 	}
 
 	private Collection<DLKerasCustomLoss> getCustomLosses(final Collection<DLKerasLossFunction> lossFunctions) {
@@ -157,7 +157,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
 			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final Messages messages = getContext().getKernel().getMessages();
+		final Messages messages = getContext(monitor).getKernel().getMessages();
 
 		PythonToJavaMessageHandler terminateOnNaNHandler = null;
 		PythonToJavaMessageHandler earlyStoppingHandler = null;

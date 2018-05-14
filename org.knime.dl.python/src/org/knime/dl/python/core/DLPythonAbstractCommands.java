@@ -184,7 +184,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
     protected abstract DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands();
 
 	@Override
-	public final synchronized DLPythonContext getContext() throws DLInvalidEnvironmentException {
+	public final synchronized DLPythonContext getContext(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
 		if (!m_contextSetup) {
 			// setup Python process environment
 			try {
@@ -193,7 +193,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						.n("DLPythonKernelGateway._instance = ")
 						/**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals(), request_from_java)").n()
 						.toString();
-				final String error = m_context.getKernel().execute(setupGatewayCode + getSetupEnvironmentCode())[1];
+				final String error = m_context.executeInKernel(setupGatewayCode + getSetupEnvironmentCode(), cancelable)[1];
 				if (!error.isEmpty()) {
 					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back end environment could not be set up.\nCause: " + error);
@@ -205,11 +205,11 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			}
 			// register all back ends
 			try {
-				final String error = m_context.getKernel()
-						.execute(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
+				final String error = m_context
+						.executeInKernel(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
 								.stream() //
 								.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
-								.collect(Collectors.joining()))[1];
+								.collect(Collectors.joining()), cancelable)[1];
 				if (!error.isEmpty()) {
 					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back ends could not be registered.\nCause: " + error);
@@ -222,7 +222,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			}
 			// setup the actual back end
 			try {
-				final String error = m_context.getKernel().execute(getSetupBackendCode())[1];
+				final String error = m_context.executeInKernel(getSetupBackendCode(), cancelable)[1];
 				if (!error.isEmpty()) {
 					throw new DLInvalidEnvironmentException(
 							"Deep learning Python back end could not be set up.\nCause: " + error);
@@ -276,8 +276,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
             .n(getRegisterNetworkCode("network", null));
-        getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext()
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        return (DLPythonNetworkHandle)getContext(cancelable)
             .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
@@ -288,7 +288,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
 				.n("network.save(").asr(path).a(")");
-		getContext().executeInKernel(b.toString(), cancelable);
+		getContext(cancelable).executeInKernel(b.toString(), cancelable);
 	}
 
 	// TODO: implement network handle
@@ -302,8 +302,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
 			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
 			try {
-			    // TODO make cancelable!
-				getContext().putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1, cancelable);
+				getContext(cancelable).putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1, cancelable);
 			} catch (final IOException ex) {
 				throw new RuntimeException("Transmitting input data to Python failed.", ex);
 			}
@@ -327,7 +326,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
 				.n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
 				.a("] = pd.DataFrame(output_shapes)");
-		getContext().executeInKernel(b.toString(), cancelable);
+		getContext(cancelable).executeInKernel(b.toString(), cancelable);
 	}
 
 	@Override
@@ -336,8 +335,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final Map<T, long[]> shapes = new HashMap<>(outputs.size());
 		final Map<String, T> idMap = outputs.stream()
 				.collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
-		// TODO make cancelable!
-		getContext().getDataFromKernel(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
+		getContext(cancelable).getDataFromKernel(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
 
 			@Override
 			public void addRow(final Row row) {
@@ -387,8 +385,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			final DLTensorId tensorIdentifier = output.getKey();
 			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
-			// TODO make cancelable!
-			getContext().getDataFromKernel(tensorIdentifier.getIdentifierString(),
+			getContext(cancelable).getDataFromKernel(tensorIdentifier.getIdentifierString(),
 					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
 						@Override
@@ -434,7 +431,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
 			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final Messages messages = getContext().getKernel().getMessages();
+		final Messages messages = getContext(monitor).getKernel().getMessages();
 
 		PythonToJavaMessageHandler trainingDataRequestHandler = null;
 		PythonToJavaMessageHandler validationDataRequestHandler = null;
@@ -461,7 +458,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 						final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 						try {
-							getContext().putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
+							getContext(monitor).putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
 						} catch (final IOException ex) {
 							throw new IOException("Transmitting training data to Python failed.", ex);
 						} finally {
@@ -489,7 +486,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 							final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 							try {
 								// TODO: different identifiers for validation input? (pre-fetching on Python side...)
-								getContext().putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
+								getContext(monitor).putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
 							} catch (final IOException ex) {
 								throw new IOException("Transmitting validation data to Python failed.", ex);
 							} finally {
@@ -593,8 +590,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
                 stdErr.append("\n");
                 status.setStdErrOutput(stdErr.toString());
             };
-            getContext().getKernel().addStdoutListener(stdOutListener);
-            getContext().getKernel().addStderrorListener(stdErrListener);
+            getContext(monitor).getKernel().addStdoutListener(stdOutListener);
+            getContext(monitor).getKernel().addStderrorListener(stdErrListener);
 
 			final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 					.a("import DLPythonNetwork") //
@@ -612,7 +609,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				b.n("validation_data_supplier = None");
 			}
 			b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
-			getContext().executeInKernel(b.toString(), monitor);
+			getContext(monitor).executeInKernel(b.toString(), monitor);
 		} finally {
 			if (trainingDataRequestHandler != null) {
 				messages.unregisterMessageHandler(trainingDataRequestHandler);
@@ -634,8 +631,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			}
 
             // Remove log listeners
-            getContext().getKernel().removeStderrorListener(stdOutListener);
-            getContext().getKernel().removeStderrorListener(stdErrListener);
+            getContext(monitor).getKernel().removeStderrorListener(stdOutListener);
+            getContext(monitor).getKernel().removeStderrorListener(stdErrListener);
 		}
 	}
 

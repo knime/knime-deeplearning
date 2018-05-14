@@ -77,7 +77,7 @@ public interface DLPythonCommands extends AutoCloseable {
 	 *             instance. The thrown exception contains a detailed error message that is suitable to be displayed to
 	 *             the user.
 	 */
-	DLPythonContext getContext() throws DLInvalidEnvironmentException;
+	DLPythonContext getContext(DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException;
 
 	void testInstallation(DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException;
 

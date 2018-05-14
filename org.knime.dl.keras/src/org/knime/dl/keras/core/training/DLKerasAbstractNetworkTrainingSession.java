@@ -136,11 +136,11 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 		final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
 				exec);
         final URI fileStoreURI = fileStore.getFile().toURI();
-        loader.save(m_handle, fileStoreURI, m_commands.getContext(), cancelable);
+        loader.save(m_handle, fileStoreURI, m_commands.getContext(cancelable), cancelable);
 		if (!fileStore.getFile().exists()) {
 			throw new IllegalStateException("Failed to save trained Keras deep learning network.");
 		}
         return new DLKerasNetworkPortObject(
-            loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext(), cancelable));
+            loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext(cancelable), cancelable));
 	}
 }

@@ -132,14 +132,16 @@ public final class DLKerasNetworkMaterializer {
             for (final DLKerasBaseNetworkHelperStruct baseNetworkHelper : baseNetworks.values()) {
                 baseNetworkSpecs.add(baseNetworkHelper.m_networkSpec);
                 try {
-                    final DLPythonNetworkHandle baseNetworkHandle = loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(),
-                        true, DLNotCancelable.INSTANCE);
+                    final DLPythonNetworkHandle baseNetworkHandle =
+                        loader.load(baseNetworkHelper.m_networkSource.getURI(),
+                            commands.getContext(DLNotCancelable.INSTANCE), true, DLNotCancelable.INSTANCE);
                     final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
                         .n("import DLPythonNetwork") //
                         .n("DLPythonNetwork.add_network(") //
                         /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
                         /**/ .as(baseNetworkHelper.m_variable).a(")");
-                    commands.getContext().executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
+                    commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(),
+                        DLNotCancelable.INSTANCE);
                 } catch (final DLCanceledExecutionException e) {
                     // Won't happen
                 }
@@ -180,19 +182,21 @@ public final class DLKerasNetworkMaterializer {
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
                 .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
             try {
-                commands.getContext().executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
+                commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
             } catch (final DLCanceledExecutionException e) {
                 // Won't happen
             }
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
             try {
-                loader.save(handle, m_saveLocation.getURI(), commands.getContext(), DLNotCancelable.INSTANCE);
+                loader.save(handle, m_saveLocation.getURI(), commands.getContext(DLNotCancelable.INSTANCE),
+                    DLNotCancelable.INSTANCE);
             } catch (final DLInvalidDestinationException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }
             try {
-                return loader.fetch(handle, m_saveLocation, commands.getContext(), DLNotCancelable.INSTANCE);
+                return loader.fetch(handle, m_saveLocation, commands.getContext(DLNotCancelable.INSTANCE),
+                    DLNotCancelable.INSTANCE);
             } catch (final DLInvalidSourceException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }

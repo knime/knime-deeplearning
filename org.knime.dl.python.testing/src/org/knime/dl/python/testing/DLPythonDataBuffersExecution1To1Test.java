@@ -180,7 +180,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, CANCELABLE);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testDouble.py"));
-		m_commands.getContext().executeInKernel(code, CANCELABLE);
+		m_commands.getContext(CANCELABLE).executeInKernel(code, CANCELABLE);
 
 		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
@@ -229,7 +229,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, CANCELABLE);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testFloat.py"));
-		m_commands.getContext().executeInKernel(code, CANCELABLE);
+		m_commands.getContext(CANCELABLE).executeInKernel(code, CANCELABLE);
 
 		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
@@ -277,7 +277,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, CANCELABLE);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testInt.py"));
-		m_commands.getContext().executeInKernel(code, CANCELABLE);
+		m_commands.getContext(CANCELABLE).executeInKernel(code, CANCELABLE);
 
 		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
@@ -325,7 +325,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 		m_commands.setNetworkInputs(HANDLE, networkInput, CANCELABLE);
 		final String code = DLUtils.Files.readAllUTF8(
 				DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testLong.py"));
-		m_commands.getContext().executeInKernel(code, CANCELABLE);
+		m_commands.getContext(CANCELABLE).executeInKernel(code, CANCELABLE);
 
 		final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
 		for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
