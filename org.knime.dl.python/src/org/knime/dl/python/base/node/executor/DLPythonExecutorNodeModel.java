@@ -62,6 +62,9 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLExecutionMonitorCancelable;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingExtensionException;
@@ -87,8 +90,8 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 
 	static final int IN_DATA_PORT_IDX = 1;
 
-	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context)
-			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context, final DLCancelable cancelable)
+			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final DLPythonNetworkLoader<? extends DLPythonNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
 				.getNetworkLoader(inputNetwork.getClass())
 				.orElseThrow(() -> new DLMissingExtensionException(
@@ -100,7 +103,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 		try {
 			context.executeInKernel("import DLPythonNetwork\n" + //
 					"global " + inputNetworkName + "\n" + //
-					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model", cancelable);
 		} catch (final IOException e) {
 			throw new IOException(
 					"An error occurred while communicating with Python (while setting up the Python network).", e);
@@ -131,7 +134,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 					getAvailableFlowVariables().values());
 			final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
 			final DLPythonNetwork network = portObject.getNetwork();
-			setupNetwork(network, context);
+			setupNetwork(network, context, new DLExecutionMonitorCancelable(exec));
 			exec.createSubProgress(0.1).setProgress(1);
 			context.getKernel().putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));

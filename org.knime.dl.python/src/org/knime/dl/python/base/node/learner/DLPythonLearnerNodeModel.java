@@ -66,6 +66,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLExecutionMonitorCancelable;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingExtensionException;
@@ -93,8 +96,8 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 
 	static final int IN_DATA_PORT_IDX = 1;
 
-	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context)
-			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context, final DLCancelable cancelable)
+			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final DLPythonNetworkLoader<? extends DLPythonNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
 				.getNetworkLoader(inputNetwork.getClass())
 				.orElseThrow(() -> new DLMissingExtensionException(
@@ -106,15 +109,15 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 		try {
 			context.executeInKernel("import DLPythonNetwork\n" + //
 					"global " + inputNetworkName + "\n" + //
-					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model");
+					inputNetworkName + " = DLPythonNetwork.get_network('" + networkHandleId + "').model", cancelable);
 		} catch (final IOException e) {
 			throw new IOException(
 					"An error occurred while communicating with Python (while setting up the Python network).", e);
 		}
 	}
 
-	static void checkExecutePostConditions(final DLPythonContext context)
-			throws DLInvalidEnvironmentException, IOException {
+	static void checkExecutePostConditions(final DLPythonContext context, final DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		final String outputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
 		// check if output network variable was assigned at all
 		DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
@@ -125,7 +128,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 				.as("Variable '" + outputNetworkName
 						+ "' is not defined. Please make sure to define it in your script.")
 				.a(")");
-		context.executeInKernel(b.toString());
+		context.executeInKernel(b.toString(), cancelable);
 		// check if output network variable was assigned with a valid value
 		b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetworkType") //
@@ -136,7 +139,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 				.as("\\nPlease check your assignment of '" + outputNetworkName
 						+ "' within the script and make sure you are not missing any KNIME extensions.") //
 				.a(")");
-		context.executeInKernel(b.toString());
+		context.executeInKernel(b.toString(), cancelable);
 	}
 
 	private DataTableSpec m_lastIncomingTableSpec;
@@ -150,6 +153,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		final DLPythonNetworkPortObject<?> inPortObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
 		final DLPythonNetwork inNetwork = inPortObject.getNetwork();
+		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
 		// if the input table is empty, we simply copy and output the input network
 		final BufferedDataTable inTable = (BufferedDataTable) inData[IN_DATA_PORT_IDX];
@@ -162,7 +166,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 		try {
 			context.getKernel().putFlowVariables(DLPythonLearnerNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
-			setupNetwork(inNetwork, context);
+			setupNetwork(inNetwork, context, cancelable);
 			final String loadBackendCode = DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders().stream()
 					.map(l -> "import " + l.getPythonModuleName() + "\n") //
 					.collect(Collectors.joining());
@@ -175,7 +179,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
-			checkExecutePostConditions(context);
+			checkExecutePostConditions(context, cancelable);
 			output = context.getKernel().execute("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //

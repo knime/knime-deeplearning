@@ -60,6 +60,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
@@ -134,7 +135,7 @@ final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 			m_workspacePreparer = kernel -> {
 				try {
 					NodeContext.pushContext(DLPythonLearnerNodeDialog.this.getNodeContext());
-					DLPythonLearnerNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel));
+					DLPythonLearnerNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), new DLNotCancelable());
 					m_sourceCodePanel.updateVariables();
 				} catch (final Exception e) {
 					m_sourceCodePanel.errorToConsole(
