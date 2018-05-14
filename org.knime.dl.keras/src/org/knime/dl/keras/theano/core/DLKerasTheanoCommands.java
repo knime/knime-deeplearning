@@ -59,7 +59,6 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -78,16 +77,13 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLCancelable cancelable)
 			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		getContext().executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
-		final PythonKernel kernel = getContext().getKernel();
-		final DLTensorSpec[] inputSpecs = (DLTensorSpec[]) kernel
-				.getData(INPUT_SPECS_NAME, new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
-				.getTable();
+        final DLTensorSpec[] inputSpecs = (DLTensorSpec[])getContext().getDataFromKernel(INPUT_SPECS_NAME,
+            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
 		// final DLTensorSpec[] hiddenOutputSpecs =
 		// (DLTensorSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
 		// new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE)).getTable();
-		final DLTensorSpec[] outputSpecs = (DLTensorSpec[]) kernel
-				.getData(OUTPUT_SPECS_NAME, new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))
-				.getTable();
+        final DLTensorSpec[] outputSpecs = (DLTensorSpec[])getContext().getDataFromKernel(OUTPUT_SPECS_NAME,
+            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
 		// TODO: Keras does not expose "hidden outputs" (see above) for the moment as we're not yet able to
 		// extract those via the executor node. Support for this will be added in a future enhancement patch.
 		return new DLKerasTheanoNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO hiddenOutputSpecs */, outputSpecs);

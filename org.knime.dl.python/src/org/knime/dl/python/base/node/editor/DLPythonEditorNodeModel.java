@@ -156,20 +156,20 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
 					.collect(Collectors.joining());
 			// TODO: we should move this logic out of the node in a later iteration
-			context.getKernel().execute(loadBackendCode, exec);
+			context.executeInKernel(loadBackendCode, cancelable);
 			final String outputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-			String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
+			String[] output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			checkExecutePostConditions(context, cancelable);
-			output = context.getKernel().execute("import DLPythonNetwork\n" + //
+			output = context.executeInKernel("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
 					"import pandas as pd\n" + //
 					"network_type = DLPythonNetworkType.get_model_network_type(" + outputNetworkName + ")\n" + //
                 "DLPythonNetwork.add_network(network_type.wrap_model(" + outputNetworkName + "), '" + outputNetworkName
                 + "')\n" + //
 					"global network_type_identifier\n" + //
-					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", exec);
+					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", cancelable);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.5).setProgress(1);

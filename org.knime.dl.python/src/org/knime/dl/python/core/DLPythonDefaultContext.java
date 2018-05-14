@@ -63,6 +63,9 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.python.typeextension.PythonModuleExtensions;
 import org.knime.python2.PythonPreferencePage;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelException;
 import org.knime.python2.kernel.PythonKernelOptions;
@@ -197,6 +200,20 @@ public final class DLPythonDefaultContext implements DLPythonContext {
             narrowPythonException(exception.get());
         }
         return output.get();
+    }
+
+    @Override
+    public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk, final DLCancelable cancelable)
+        throws IOException, DLCanceledExecutionException {
+        // TODO check if canceled once KNIME python supports canceling the data transfer
+        m_kernel.putData(name, tableChunker, rowsPerChunk);
+    }
+
+    @Override
+    public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf, final DLCancelable cancelable)
+        throws IOException, DLCanceledExecutionException {
+        // TODO check if canceled once KNIME python supports canceling the data transfer
+        return m_kernel.getData(name, tcf);
     }
 
 	@Override

@@ -129,16 +129,17 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 		}
 		BufferedDataTable outTable = null;
 		final DLPythonDefaultContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
+		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 		try {
 			context.getKernel().putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 			final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
 			final DLPythonNetwork network = portObject.getNetwork();
-			setupNetwork(network, context, new DLExecutionMonitorCancelable(exec));
+            setupNetwork(network, context, cancelable);
 			exec.createSubProgress(0.1).setProgress(1);
 			context.getKernel().putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
-			final String[] output = context.getKernel().execute(getConfig().getSourceCode(), exec);
+			final String[] output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
 			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
 			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
 			exec.createSubProgress(0.4).setProgress(1);

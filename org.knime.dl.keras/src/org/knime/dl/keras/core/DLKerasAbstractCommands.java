@@ -100,8 +100,8 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             .n("network = ").a("reader.").a(reader.readFromJson(path)) //
             .n(getRegisterNetworkCode("network", null));
         getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext().getKernel()
-            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+        return (DLPythonNetworkHandle)getContext()
+            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
     public DLPythonNetworkHandle loadNetworkFromYaml(final String path, final DLCancelable cancelable)
@@ -113,8 +113,8 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             .n("network = ").a("reader.").a(reader.readFromYaml(path)) //
             .n(getRegisterNetworkCode("network", null));
         getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext().getKernel()
-            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+        return (DLPythonNetworkHandle)getContext()
+            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config, final DLCancelable cancelable)

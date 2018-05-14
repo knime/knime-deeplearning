@@ -52,6 +52,9 @@ import java.io.IOException;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
 import org.knime.python2.kernel.PythonKernel;
 
 /**
@@ -91,6 +94,12 @@ public interface DLPythonContext extends AutoCloseable {
 	 */
 	String[] executeInKernel(final String code, DLCancelable cancelable)
 	        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
+
+    void putDataInKernel(String name, final TableChunker tableChunker, final int rowsPerChunk, DLCancelable cancelable)
+        throws IOException, DLCanceledExecutionException;
+
+    TableCreator<?> getDataFromKernel(String name, TableCreatorFactory tcf, DLCancelable cancelable)
+        throws IOException, DLCanceledExecutionException;
 
 	@Override
 	void close();

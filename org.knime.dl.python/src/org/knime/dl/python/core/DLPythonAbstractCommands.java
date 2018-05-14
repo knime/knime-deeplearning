@@ -244,7 +244,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		try {
 			final File script = getInstallationTestFile();
 			final String[] output = m_context.isKernelOpen()
-					? m_context.getKernel().execute(DLUtils.Files.readAllUTF8(script))
+					? m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable)
 					: m_context.execute(cancelable, script);
 			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
 				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
@@ -277,8 +277,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
             .n(getRegisterNetworkCode("network", null));
         getContext().executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext().getKernel()
-            .getData(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory()).getTable();
+        return (DLPythonNetworkHandle)getContext()
+            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
     }
 
 	@Override
@@ -295,7 +295,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	@Override
 	public void setNetworkInputs(final DLPythonNetworkHandle network,
 			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException {
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
 		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
 				.entrySet()) {
 			final DLTensorId tensorIdentifier = input.getKey();
@@ -303,7 +303,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
 			try {
 			    // TODO make cancelable!
-				getContext().getKernel().putData(tensorIdentifier.getIdentifierString(), tableChunker, 1);
+				getContext().putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1, cancelable);
 			} catch (final IOException ex) {
 				throw new RuntimeException("Transmitting input data to Python failed.", ex);
 			}
@@ -337,7 +337,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		final Map<String, T> idMap = outputs.stream()
 				.collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
 		// TODO make cancelable!
-		getContext().getKernel().getData(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
+		getContext().getDataFromKernel(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
 
 			@Override
 			public void addRow(final Row row) {
@@ -367,7 +367,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				return null;
 			}
 
-		});
+		}, cancelable);
 		// ensure that we have a shape for each output tensor
 		if (shapes.size() != outputs.size()) {
 			throw new IllegalStateException(
@@ -388,7 +388,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
 			// TODO make cancelable!
-			getContext().getKernel().getData(tensorIdentifier.getIdentifierString(),
+			getContext().getDataFromKernel(tensorIdentifier.getIdentifierString(),
 					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
 						@Override
@@ -426,7 +426,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						public DLTensor<? extends DLReadableBuffer> getTable() {
 							return tensor;
 						}
-					});
+					}, cancelable);
 		}
 	}
 
@@ -461,7 +461,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
 						final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 						try {
-							getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
+							getContext().putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
 						} catch (final IOException ex) {
 							throw new IOException("Transmitting training data to Python failed.", ex);
 						} finally {
@@ -489,7 +489,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 							final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
 							try {
 								// TODO: different identifiers for validation input? (pre-fetching on Python side...)
-								getContext().getKernel().putData(entry.getKey().getIdentifierString(), tableChunker, 1);
+								getContext().putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
 							} catch (final IOException ex) {
 								throw new IOException("Transmitting validation data to Python failed.", ex);
 							} finally {
