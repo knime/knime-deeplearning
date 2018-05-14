@@ -74,10 +74,12 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkReferenceLocation;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
@@ -158,8 +160,9 @@ final class DLKerasReaderNodeModel extends NodeModel {
         }
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
-			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout());
-		} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException e) {
+			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
+			    new DLNotCancelable());
+		} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException | DLCanceledExecutionException e) {
 			throw new InvalidSettingsException(
 					"Selected Keras back end '" + loader.getName() + "' is not available anymore. "
 							+ "Please check your local installation.\nDetails: " + e.getMessage());
@@ -173,7 +176,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 			try {
 				// TODO: we could allow the user to configure "loadTrainingConfig" flag
                 m_network =
-                    new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true);
+                    new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true, new DLNotCancelable());
 			} catch (final Exception e) {
 				String message;
 				if (e instanceof DLException) {

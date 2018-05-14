@@ -76,7 +76,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.python.core.DLPythonInstallationTestTimeoutException;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -184,8 +186,8 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
 			try {
 				kerasNetworkLoader.checkAvailability(false,
-						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout());
-			} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException e) {
+						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(), new DLNotCancelable());
+			} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException | DLCanceledExecutionException e) {
 				availableLoaders.remove(i);
 				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());
 			}
