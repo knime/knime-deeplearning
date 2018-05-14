@@ -55,10 +55,12 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Function;
 
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
@@ -129,14 +131,18 @@ public final class DLKerasNetworkMaterializer {
             final List<DLKerasNetworkSpec> baseNetworkSpecs = new ArrayList<>(baseNetworks.size());
             for (final DLKerasBaseNetworkHelperStruct baseNetworkHelper : baseNetworks.values()) {
                 baseNetworkSpecs.add(baseNetworkHelper.m_networkSpec);
-                final DLPythonNetworkHandle baseNetworkHandle =
-                    loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(), true);
-                final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                    .n("import DLPythonNetwork") //
-                    .n("DLPythonNetwork.add_network(") //
-                    /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
-                    /**/ .as(baseNetworkHelper.m_variable).a(")");
-                commands.getContext().executeInKernel(b.toString());
+                try {
+                    final DLPythonNetworkHandle baseNetworkHandle = loader.load(baseNetworkHelper.m_networkSource.getURI(), commands.getContext(),
+                        true, new DLNotCancelable());
+                    final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                        .n("import DLPythonNetwork") //
+                        .n("DLPythonNetwork.add_network(") //
+                        /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
+                        /**/ .as(baseNetworkHelper.m_variable).a(")");
+                    commands.getContext().executeInKernel(b.toString(), new DLNotCancelable());
+                } catch (final DLCanceledExecutionException e) {
+                    // Won't happen
+                }
             }
 
             // Base network layer names are reserved.
@@ -144,8 +150,8 @@ public final class DLKerasNetworkMaterializer {
                 DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
 
             // Topological ordering.
-            final List<DLKerasTensorSpecsOutput> layersSortedByDepth = DLKerasNetworkGraphTopologicalOrderIterator
-                .sortTopologically(parser.m_maxDepthsFromOutputs.entrySet());
+            final List<DLKerasTensorSpecsOutput> layersSortedByDepth =
+                DLKerasNetworkGraphTopologicalOrderIterator.sortTopologically(parser.m_maxDepthsFromOutputs.entrySet());
 
             // Generate code lines according to the topological ordering above. This ensures that each inner layer's
             // inputs are generated before itself and that we get an "intuitive" layer naming order ("layerX_1" "before"
@@ -173,17 +179,21 @@ public final class DLKerasNetworkMaterializer {
                 .n("import DLPythonNetworkType") //
                 .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
                 .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
-            commands.getContext().executeInKernel(b.toString());
+            try {
+                commands.getContext().executeInKernel(b.toString(), new DLNotCancelable());
+            } catch (final DLCanceledExecutionException e) {
+                // Won't happen
+            }
 
             final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
             try {
-                loader.save(handle, m_saveLocation.getURI(), commands.getContext());
-            } catch (final DLInvalidDestinationException e) {
+                loader.save(handle, m_saveLocation.getURI(), commands.getContext(), new DLNotCancelable());
+            } catch (final DLInvalidDestinationException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }
             try {
-                return loader.fetch(handle, m_saveLocation, commands.getContext());
-            } catch (final DLInvalidSourceException e) {
+                return loader.fetch(handle, m_saveLocation, commands.getContext(), new DLNotCancelable());
+            } catch (final DLInvalidSourceException | DLCanceledExecutionException e) {
                 throw new IOException(e);
             }
         }

@@ -67,11 +67,13 @@ import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.dl.base.portobjects.DLAbstractNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
@@ -199,8 +201,8 @@ public final class DLKerasNetworkPortObject extends
                 () -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                     + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
         try {
-            return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true);
-        } catch (DLInvalidSourceException | DLInvalidEnvironmentException e) {
+            return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true, new DLNotCancelable());
+        } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
             throw new IOException(e.getMessage(), e);
         }
     }
