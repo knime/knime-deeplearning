@@ -49,6 +49,8 @@ package org.knime.dl.keras.theano.core;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
@@ -73,9 +75,9 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 	}
 
 	@Override
-	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle)
-			throws DLInvalidEnvironmentException, IOException {
-		getContext().executeInKernel(getExtractNetworkSpecsCode(handle));
+	public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+		getContext().executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
 		final PythonKernel kernel = getContext().getKernel();
 		final DLTensorSpec[] inputSpecs = (DLTensorSpec[]) kernel
 				.getData(INPUT_SPECS_NAME, new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE))

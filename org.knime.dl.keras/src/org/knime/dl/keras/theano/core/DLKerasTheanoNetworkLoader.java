@@ -50,6 +50,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
@@ -87,11 +89,11 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 
 	@Override
     public DLKerasTheanoNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source,
-			final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+			final DLPythonContext context, final DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         validateSource(source.getURI());
 		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
-		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
+		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
 		return new DLKerasTheanoNetwork(spec, source);
 	}
 

@@ -51,6 +51,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
@@ -84,6 +86,6 @@ public interface DLKerasNetworkLoader<N extends DLKerasNetwork> extends DLPython
 	}
 
 	@Override
-	N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException;
+	N fetch(DLPythonNetworkHandle handle, DLNetworkLocation source, DLPythonContext context, DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 }

@@ -50,6 +50,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
@@ -86,11 +88,11 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 	}
 
 	@Override
-	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source, final DLPythonContext context)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+	public DLKerasCNTKNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source, final DLPythonContext context, final DLCancelable cancelable)
+			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         validateSource(source.getURI());
 		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context));
-		final DLKerasCNTKNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle));
+		final DLKerasCNTKNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
 		return new DLKerasCNTKNetwork(spec, source);
 	}
 

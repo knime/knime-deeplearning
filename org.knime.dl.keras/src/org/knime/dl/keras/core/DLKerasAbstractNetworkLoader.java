@@ -60,6 +60,7 @@ import org.knime.base.filehandling.remote.files.RemoteFile;
 import org.knime.base.filehandling.remote.files.RemoteFileHandlerRegistry;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.util.FileUtil;
+import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -118,7 +119,7 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
     }
 
 	@Override
-	public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig)
+	public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig, final DLCancelable cancelable)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
 		try {
             final URL sourceURL = validateSource(source);
@@ -134,11 +135,11 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 			final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
-				networkHandle = commands.loadNetwork(filePath, loadTrainingConfig);
+				networkHandle = commands.loadNetwork(filePath, loadTrainingConfig, cancelable);
 			} else if (fileExtension.equals("json")) {
-				networkHandle = commands.loadNetworkFromJson(filePath);
+				networkHandle = commands.loadNetworkFromJson(filePath, cancelable);
 			} else if (fileExtension.equals("yaml")) {
-				networkHandle = commands.loadNetworkFromYaml(filePath);
+				networkHandle = commands.loadNetworkFromYaml(filePath, cancelable);
 			} else {
 				throw new DLInvalidSourceException(
 						"Keras network reader only supports network files of type h5, json and yaml.");
