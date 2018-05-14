@@ -53,11 +53,11 @@ import java.util.Set;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
-import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.base.settings.DLInputConfig;
 import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.util.DLUtils;
 
@@ -106,17 +106,22 @@ public class DLConfigurationUtility {
 
     private static DLDataValueToTensorConverterFactory<?, ?> getConverter(final DataTableSpec inTableSpec,
         DLContext<?> context, final DLTensorSpec tensorSpec, final DLInputConfig<?> inputCfg)
-        throws DLNoConverterAvailableException {
+        throws InvalidSettingsException {
         DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
+        Class<? extends DLWritableBuffer> bufferType = context.getTensorFactory().getWritableBufferType(tensorSpec);
         if (converter == null) { // TODO: or if table changed
             final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
                 Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
-            final DLConverterRefresher converterRefresher = new DLConverterRefresher(inTableSpec,
-                context.getTensorFactory().getWritableBufferType(tensorSpec), tensorSpec, false, nameComparator);
+            final DLConverterRefresher converterRefresher =
+                new DLConverterRefresher(inTableSpec, bufferType, tensorSpec, false, nameComparator);
             final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories =
                 converterRefresher.getConverters();
             converter = converterFactories.get(0);
             inputCfg.getConverterEntry().setValue(converter);
+        } else if (!converter.getBufferType().isInstance(bufferType)) {
+            throw new InvalidSettingsException("The configured converter '" + converter.getIdentifier()
+                + "' is not compatible with the tensor '" + tensorSpec.getName() + "' of type "
+                + tensorSpec.getElementType().getCanonicalName() + ". Please reconfigure the node.");
         }
         return converter;
     }
