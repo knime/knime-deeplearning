@@ -65,10 +65,12 @@ import org.junit.Test;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
@@ -162,7 +164,7 @@ public final class DLKerasNetworkMaterializerTest {
 
     @Test
     public void testAppendBinaryLayerToMultiInputMultiOutputModel()
-        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
@@ -179,7 +181,7 @@ public final class DLKerasNetworkMaterializerTest {
 
     @Test
     public void testAppendMultipleLayersToMultipleNetworks()
-        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         testOnMultipleNetworksMultipleAppendedLayersSetup(this::materializeAndCheckCommonPostconditions,
             DLKerasNetwork::getSpec);
     }
@@ -194,8 +196,8 @@ public final class DLKerasNetworkMaterializerTest {
             assert network.getSource().equals(pair.getSecond());
 
             final DLKerasNetworkSpec rereadNetworkSpec =
-                new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader()).read(pair.getSecond(), false)
-                    .getSpec();
+                new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
+                    .read(pair.getSecond(), false, new DLNotCancelable()).getSpec();
             assert networkSpec.equals(rereadNetworkSpec);
 
             return network;

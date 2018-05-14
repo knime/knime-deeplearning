@@ -64,6 +64,7 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLNetworkReferenceLocation;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
@@ -102,7 +103,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true);
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, new DLNotCancelable());
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -166,7 +167,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true);
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, new DLNotCancelable());
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
