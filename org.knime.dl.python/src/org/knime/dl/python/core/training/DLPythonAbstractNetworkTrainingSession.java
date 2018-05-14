@@ -49,6 +49,7 @@ package org.knime.dl.python.core.training;
 import java.io.IOException;
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -131,12 +132,14 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	 *
 	 * @param handle the handle of the network for which to set the training config
 	 * @param config the training config to set
+	 * @param cancelable to check if the operation has been canceled
 	 * @throws DLInvalidEnvironmentException if setting the training config led to an exception on Python side or if the
 	 *             Python side was not properly set up
 	 * @throws IOException if an error occurred while communication with Python
+	 * @throws DLCanceledExecutionException if the operation has been canceled
 	 */
-	protected abstract void setNetworkTrainingConfig(DLPythonNetworkHandle handle, CFG config)
-			throws DLInvalidEnvironmentException, IOException;
+	protected abstract void setNetworkTrainingConfig(DLPythonNetworkHandle handle, CFG config, DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
 	@Override
 	public void close() throws Exception {
@@ -155,7 +158,7 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
 							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
                 .load(m_network.getSource().getURI(), m_commands.getContext(), true, monitor);
-			setNetworkTrainingConfig(m_handle, m_trainingConfig);
+			setNetworkTrainingConfig(m_handle, m_trainingConfig, monitor);
 		}
 		m_commands.trainNetwork(m_handle, m_trainingInputProvider, m_validationInputProvider, monitor);
 	}

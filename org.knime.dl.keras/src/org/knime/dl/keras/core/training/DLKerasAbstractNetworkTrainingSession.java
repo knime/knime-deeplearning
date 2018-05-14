@@ -54,6 +54,9 @@ import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLExecutionMonitorCancelable;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
@@ -117,9 +120,9 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 	}
 
 	@Override
-	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config)
-			throws DLInvalidEnvironmentException, IOException {
-		m_commands.setNetworkTrainingConfig(handle, config);
+	protected void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config, final DLCancelable cancelable)
+			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+		m_commands.setNetworkTrainingConfig(handle, config, cancelable);
 	}
 
 	@Override
@@ -127,16 +130,17 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 		if (m_commands == null) {
 			throw new IllegalStateException("Network was not trained, yet.");
 		}
+		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 		final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
 				.getNetworkLoader(m_network.getClass()).get();
 		final FileStore fileStore = DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(),
 				exec);
         final URI fileStoreURI = fileStore.getFile().toURI();
-        loader.save(m_handle, fileStoreURI, m_commands.getContext());
+        loader.save(m_handle, fileStoreURI, m_commands.getContext(), cancelable);
 		if (!fileStore.getFile().exists()) {
 			throw new IllegalStateException("Failed to save trained Keras deep learning network.");
 		}
         return new DLKerasNetworkPortObject(
-            loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext()));
+            loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext(), cancelable));
 	}
 }
