@@ -167,7 +167,6 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        super.saveSettingsTo(settings);
         m_generalCfg.saveToSettings(settings);
         m_inputsPanel.saveSettingsTo(settings);
         m_outputsPanel.saveToSettings(settings);
