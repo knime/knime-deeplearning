@@ -110,6 +110,11 @@ final class DLKerasMaterializedPortObjectContent implements DLKerasPortObjectCon
         return m_network;
     }
 
+    void setNetwork(final DLKerasNetwork network) {
+        m_network = network;
+        m_networkSource = network.getSource();
+    }
+
     DLNetworkLocation getNetworkSource() {
         return m_networkSource;
     }
