@@ -118,7 +118,7 @@ public class DLConfigurationUtility {
                 converterRefresher.getConverters();
             converter = converterFactories.get(0);
             inputCfg.getConverterEntry().setValue(converter);
-        } else if (!converter.getBufferType().isInstance(bufferType)) {
+        } else if (!converter.getBufferType().isAssignableFrom(bufferType)) {
             throw new InvalidSettingsException("The configured converter '" + converter.getIdentifier()
                 + "' is not compatible with the tensor '" + tensorSpec.getName() + "' of type "
                 + tensorSpec.getElementType().getCanonicalName() + ". Please reconfigure the node.");
