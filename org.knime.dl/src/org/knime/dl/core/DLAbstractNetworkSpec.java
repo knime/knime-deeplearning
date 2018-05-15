@@ -52,9 +52,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.core.util.Version;
 import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
@@ -66,6 +68,12 @@ import org.knime.dl.core.training.DLTrainingConfig;
 public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implements DLNetworkSpec {
 
 	private static final long serialVersionUID = 1L;
+
+    /**
+     * @since 3.6 - This field will default to <code>3.5.0</code> when deserializing older versions of this spec. See
+     *        {@link DLNetworkSpec#getBundleVersion()}.
+     */
+    private Version m_bundleVersion;
 
 	private final DLTensorSpec[] m_inputSpecs;
 
@@ -84,8 +92,10 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	 * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
 	 * @param outputSpecs the output tensor specs, can be empty
 	 */
-	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+    protected DLAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+        final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
+        m_bundleVersion = checkNotNull(bundleVersion);
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.").clone();
 		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
 				"Hidden output data specs must not be null, but may be empty.").clone();
@@ -101,8 +111,10 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	 * @param outputSpecs the output tensor specs, can be empty
 	 * @param the {@link DLTrainingConfig training configuration}
 	 */
-	protected DLAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+    protected DLAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+        final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final CFG trainingConfig) {
+        m_bundleVersion = checkNotNull(bundleVersion);
 		m_inputSpecs = checkNotNull(inputSpecs, "Input data specs must not be null, but may be empty.").clone();
 		m_hiddenOutputSpecs = checkNotNull(hiddenOutputSpecs,
 				"Hidden output data specs must not be null, but may be empty.").clone();
@@ -115,6 +127,11 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	protected abstract boolean equalsInternal(DLNetworkSpec other);
 
 	@Override
+    public Version getBundleVersion() {
+        return m_bundleVersion;
+    }
+
+    @Override
 	public DLTensorSpec[] getInputSpecs() {
 		return m_inputSpecs.clone();
 	}
@@ -151,23 +168,25 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 			return false;
 		}
 		final DLAbstractNetworkSpec<?> other = (DLAbstractNetworkSpec<?>) obj;
-		return other.m_inputSpecs.length == m_inputSpecs.length //
-				&& other.m_hiddenOutputSpecs.length == m_hiddenOutputSpecs.length //
-				&& other.m_outputSpecs.length == m_outputSpecs.length //
-				&& Arrays.deepEquals(other.m_inputSpecs, m_inputSpecs) //
-				&& Arrays.deepEquals(other.m_hiddenOutputSpecs, m_hiddenOutputSpecs) //
-				&& Arrays.deepEquals(other.m_outputSpecs, m_outputSpecs) //
-				&& other.m_trainingConfig.equals(m_trainingConfig)//
-				&& equalsInternal(other);
+        return // Do not add bundle version.
+        other.m_inputSpecs.length == m_inputSpecs.length //
+            && other.m_hiddenOutputSpecs.length == m_hiddenOutputSpecs.length //
+            && other.m_outputSpecs.length == m_outputSpecs.length //
+            && Arrays.deepEquals(other.m_inputSpecs, m_inputSpecs) //
+            && Arrays.deepEquals(other.m_hiddenOutputSpecs, m_hiddenOutputSpecs) //
+            && Arrays.deepEquals(other.m_outputSpecs, m_outputSpecs) //
+            && other.m_trainingConfig.equals(m_trainingConfig)//
+            && equalsInternal(other);
 	}
 
 	@Override
 	public String toString() {
-		return "Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
-				"Hidden outputs: " + Arrays.toString(m_hiddenOutputSpecs) + "\n" + //
-				"Outputs: " + Arrays.toString(m_outputSpecs) + "\n" + //
-				"Training config: " + //
-				(m_trainingConfig.isPresent() ? "\n" + m_trainingConfig.get().toString() : "none");
+        return "Version: " + Objects.toString(m_bundleVersion) + "\n" + //
+            "Inputs: " + Arrays.toString(m_inputSpecs) + "\n" + //
+            "Hidden outputs: " + Arrays.toString(m_hiddenOutputSpecs) + "\n" + //
+            "Outputs: " + Arrays.toString(m_outputSpecs) + "\n" + //
+            "Training config: " + //
+            (m_trainingConfig.isPresent() ? "\n" + m_trainingConfig.get().toString() : "none");
 	}
 
 	private void writeObject(final ObjectOutputStream stream) throws IOException {
@@ -180,10 +199,14 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 		@SuppressWarnings("unchecked") // we know what we serialized
 		final CFG trainingConfig = (CFG) stream.readObject();
 		m_trainingConfig = Optional.ofNullable(trainingConfig);
+        if (m_bundleVersion == null) {
+            m_bundleVersion = new Version(3, 5, 0);
+        }
 	}
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
+        // Do not add bundle version.
 		b.append(m_inputSpecs);
 		b.append(m_hiddenOutputSpecs);
 		b.append(m_outputSpecs);

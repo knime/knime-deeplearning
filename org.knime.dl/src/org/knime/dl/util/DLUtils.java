@@ -68,6 +68,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLFixedTensorShape;
@@ -442,6 +443,33 @@ public final class DLUtils {
                     }
                 };
                 return StringUtils.join(iterator, separator) + separator + "...";
+            }
+        }
+    }
+
+    public static class Misc {
+
+        private Misc() {
+        }
+
+        /**
+         * @param classFromBundle the class of whose bundle to retrieve the version
+         * @return the version of the bundle of the argument. Returns an all-zero version if the bundle version is
+         *         unspecified.
+         * @throws IllegalArgumentException if the bundle of the argument could not be resolved
+         */
+        public static Version getVersionOfSameBundle(final Class<?> classFromBundle) {
+            checkNotNull(classFromBundle);
+            final Bundle bundle = FrameworkUtil.getBundle(classFromBundle);
+            if (bundle == null) {
+                throw new IllegalArgumentException("Failed to get version from the bundle of class '"
+                    + classFromBundle.getCanonicalName() + "'. Bundle could not be resolved.");
+            }
+            final org.osgi.framework.Version osgiVersion = bundle.getVersion();
+            if (osgiVersion == org.osgi.framework.Version.emptyVersion) {
+                return new Version(0, 0, 0);
+            } else {
+                return new Version(osgiVersion.getMajor(), osgiVersion.getMinor(), osgiVersion.getMicro());
             }
         }
     }

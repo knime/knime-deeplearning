@@ -46,9 +46,11 @@
  */
 package org.knime.dl.keras.core;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -57,15 +59,26 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<DLKerasTrainingConfig>
 		implements DLKerasNetworkSpec {
 
+    /**
+     * Must only be called by implementing classes that are in the same bundle as {@link DLKerasAbstractNetworkSpec}.
+     *
+     * @return the version of the KNIME Deep Learning Keras bundle
+     */
+    protected static Version getKerasBundleVersion() {
+        return DLUtils.Misc.getVersionOfSameBundle(DLKerasAbstractNetworkSpec.class);
+    }
+
 	private static final long serialVersionUID = 1L;
 
-	protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+    protected DLKerasAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+        final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
-		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(bundleVersion, inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
-	protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+    protected DLKerasAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+        final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-		super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+        super(bundleVersion, inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
 	}
 }

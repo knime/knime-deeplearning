@@ -51,6 +51,7 @@ import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingConfig;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -61,7 +62,8 @@ public class DLTestingBackendNetworkSpec extends DLAbstractNetworkSpec<DLTrainin
 
     public DLTestingBackendNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] intermediateOutputSpecs,
         final DLTensorSpec[] outputSpecs) {
-        super(inputSpecs, intermediateOutputSpecs, outputSpecs);
+        super(DLUtils.Misc.getVersionOfSameBundle(DLTestingBackendNetworkSpec.class), inputSpecs,
+            intermediateOutputSpecs, outputSpecs);
     }
 
     @Override

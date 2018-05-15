@@ -72,8 +72,9 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
     /**
      * @since 3.6 - This field will be <code>null</code> when deserializing older versions of this spec. In this case,
-     *        the spec object is in a corrupt state and has to be discarded and the underlying network has to be reread
-     *        by the client code that triggered the deserialization. See {@link DLTensorSpec#getIdentifier()}.
+     *        the spec object is in a corrupt state and has to be discarded and an upgraded spec instance has to be
+     *        created by the client code that triggered the deserialization, e.g. by rereading the underlying network.
+     *        See {@link DLTensorSpec#getIdentifier()}.
      */
     private final DLTensorId m_identifier;
 

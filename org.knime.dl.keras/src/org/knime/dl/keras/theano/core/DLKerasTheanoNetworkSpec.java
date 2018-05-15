@@ -65,12 +65,13 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec {
 
 	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
-		super(inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(DLKerasAbstractNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-		super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+        super(DLKerasAbstractNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs,
+            trainingConfig);
 	}
 
 	@Override

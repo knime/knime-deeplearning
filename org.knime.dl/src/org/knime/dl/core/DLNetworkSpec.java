@@ -51,6 +51,7 @@ package org.knime.dl.core;
 import java.io.Serializable;
 import java.util.Optional;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.training.DLTrainingConfig;
 
 /**
@@ -67,6 +68,18 @@ import org.knime.dl.core.training.DLTrainingConfig;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetworkSpec extends Serializable {
+
+    /**
+     * Returns the bundle version which was used to create this network spec. The bundle version refers to the bundle of
+     * the runtime type of this interface instance. Please note that the version should only be used for version
+     * management (e.g. resolving backward compatibility issues). As such, it is not considered by {@link #hashCode()}
+     * and {@link #equals(Object)}.
+     *
+     * @return the bundle version
+     * @since 3.6 - This getter will return <code>3.5.0</code> if this instance is the result of deserializing an older
+     *        version of this spec class.
+     */
+    Version getBundleVersion();
 
 	// TODO: these could be collections if this would be preferred sometime. However, keep in mind that certain back
 	// ends (e.g. Keras when training multi-output networks) require ordered collections of specs and should narrow the

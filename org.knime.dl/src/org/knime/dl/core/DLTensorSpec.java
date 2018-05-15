@@ -65,12 +65,13 @@ import java.util.OptionalLong;
 public interface DLTensorSpec extends Serializable {
 
 	/**
-	 * @return the identifier of the tensor. Note that <code>null</code> may be returned when calling older versions of
-	 *         this spec, see <code>since</code> tag.
-	 * @since 3.6 - This getter will return <code>null</code> if this instance is the result of deserializing an older
-	 *        version of this spec class. In this case, the spec object is in a corrupt state and has to be discarded
-	 *        and the underlying network has to be reread by the client code that triggered the deserialization.
-	 */
+     * @return the identifier of the tensor. Note that <code>null</code> may be returned when calling older versions of
+     *         this spec, see <code>since</code> tag.
+     * @since 3.6 - This getter will return <code>null</code> if this instance is the result of deserializing an older
+     *        version of this spec class. In this case, the spec object is in a corrupt state and has to be discarded
+     *        and an upgraded spec instance has to be created by the client code that triggered the deserialization,
+     *        e.g. by rereading the underlying network.
+     */
 	DLTensorId getIdentifier();
 
 	/**
@@ -93,12 +94,16 @@ public interface DLTensorSpec extends Serializable {
 	 * @return the shape of the tensor
 	 */
 	DLTensorShape getShape();
-	
+
 	/**
-	 * Returns the dimension order this tensor expects e.g. [Height, Width, Channel] for channels last.
-	 * 
-	 * @return the order of dimensions
-	 */
+     * Returns the dimension order this tensor expects e.g. [Height, Width, Channel] for channels last.
+     *
+     * @return the order of dimensions
+     * @since 3.6 - This getter will return <code>null</code> if this instance is the result of deserializing an older
+     *        version of this spec class. In this case, the spec object is in a corrupt state and has to be discarded
+     *        and an upgraded spec instance has to be created by the client code that triggered the deserialization,
+     *        e.g. by rereading the underlying network.
+     */
 	DLDimensionOrder getDimensionOrder();
 
 	/**
