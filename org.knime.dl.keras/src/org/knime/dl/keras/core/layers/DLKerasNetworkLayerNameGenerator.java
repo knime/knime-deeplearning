@@ -55,6 +55,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.util.Version;
+import org.knime.dl.core.DLUncheckedException;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
@@ -107,7 +108,7 @@ public final class DLKerasNetworkLayerNameGenerator {
         final Class<? extends DLKerasNetworkSpec> networkSpecClass) {
         final String trimmed = tensorName.trim();
         if (networkSpecClass == DLKerasCNTKNetworkSpec.class) {
-            throw new UnsupportedOperationException("You tried to append a Keras layer node to a Keras (CNTK) "
+            throw new DLUncheckedException("You tried to append a Keras layer node to a Keras (CNTK) "
                 + "network specification that was created using a previous version of KNIME.\n"
                 + "Backward compatibility cannot be ensured for CNTK.\n"
                 + "Please reconfigure/execute the respective preceding nodes that created a CNTK network "
@@ -123,20 +124,20 @@ public final class DLKerasNetworkLayerNameGenerator {
             } catch (final NumberFormatException ex) {
                 // ignore, we'll throw an exception anyway
             }
-            throw new IllegalArgumentException("You tried to append a Keras layer node to a Keras (TensorFlow) "
+            throw new DLUncheckedException("You tried to append a Keras layer node to a Keras (TensorFlow) "
                 + "network specification that was created using a previous version of KNIME.\n"
                 + "Backward compatibility could not be ensured for tensor name '" + trimmed + "'.\n"
                 + "Please reconfigure/re-execute the respective preceding nodes that created a TensorFlow network "
                 + "specification.");
         } else if (networkSpecClass == DLKerasTheanoNetworkSpec.class) {
-            throw new UnsupportedOperationException("You tried to append a Keras layer node to a Keras (Theano) "
+            throw new DLUncheckedException("You tried to append a Keras layer node to a Keras (Theano) "
                 + "network specification that was created using a previous version of KNIME.\n"
                 + "Backward compatibility cannot be ensured for Theano.\n"
                 + "Please reconfigure/execute the respective preceding nodes that created a Theano network "
                 + "specification and consider switching to a Keras back end that is under active development "
                 + "(TensorFlow, CNTK).");
         } else {
-            throw new UnsupportedOperationException("You tried to append a Keras layer node to a Keras network "
+            throw new DLUncheckedException("You tried to append a Keras layer node to a Keras network "
                 + "specification that features an unknown back end (" + networkSpecClass.getCanonicalName()
                 + "). Backward compatibility cannot be ensured for third party back ends.");
         }

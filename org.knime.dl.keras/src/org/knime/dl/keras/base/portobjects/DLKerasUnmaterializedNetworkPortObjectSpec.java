@@ -69,6 +69,7 @@ import org.knime.dl.keras.core.layers.DLKerasBaseNetworkTensorSpecOutput;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkSpecInferrer;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -170,8 +171,9 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
                 throw new IOException("Failed to load Keras deep learning network port object spec."
                     + " Are you missing a KNIME Deep Learning extension?", e);
             } catch (final Exception e) {
-                throw new IOException(
-                    "Failed to load Keras deep learning network port object spec. See log for details", e);
+                final String message = DLUtils.Misc.findDisplayableErrorMessage(e)
+                    .orElse("Failed to load Keras deep learning network port object spec. See log for details.");
+                throw new IOException(message, e);
             }
         }
     }

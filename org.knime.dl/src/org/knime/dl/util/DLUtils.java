@@ -71,6 +71,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
+import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLPartialTensorShape;
@@ -450,6 +451,26 @@ public final class DLUtils {
     public static class Misc {
 
         private Misc() {
+        }
+
+        /**
+         * Finds the latest {@link DLException} in a {@link Throwable#getCause() chain} of throwables and returns its
+         * message.
+         *
+         * @param throwable the last throwable in the chain of throwables
+         * @return an optional that contains the error message if one is found
+         */
+        public static Optional<String> findDisplayableErrorMessage(final Throwable throwable) {
+            if (throwable == null) {
+                return Optional.empty();
+            }
+            Throwable t = throwable;
+            do {
+                if (t instanceof DLException) {
+                    return Optional.of(((DLException)t).getMessage());
+                }
+            } while (t != t.getCause() && (t = t.getCause()) != null);
+            return Optional.empty();
         }
 
         /**

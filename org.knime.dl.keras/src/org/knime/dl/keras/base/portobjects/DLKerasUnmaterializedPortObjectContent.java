@@ -58,6 +58,7 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -106,9 +107,9 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
             return new DLKerasMaterializedPortObjectContent(materialized);
         } catch (final Exception e) {
             NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage(), e);
-            throw new IOException(
-                "An error occurred while creating the Keras network from its layer specifications. See log for details.",
-                e);
+            final String message = DLUtils.Misc.findDisplayableErrorMessage(e).orElse(
+                "An error occurred while creating the Keras network from its layer specifications. See log for details.");
+            throw new IOException(message, e);
         }
     }
 
