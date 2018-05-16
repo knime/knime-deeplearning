@@ -165,6 +165,12 @@ final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLear
                 String customCode = settings.getString(CFG_KEY_CUSTOM_CODE);
                 m_value.setCustomCode(customCode);
             }
+            
+            @Override
+            protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
+                m_value = new DLKerasCustomLoss(targetTensorName);
+                return true;
+            }
         });
     }
 
