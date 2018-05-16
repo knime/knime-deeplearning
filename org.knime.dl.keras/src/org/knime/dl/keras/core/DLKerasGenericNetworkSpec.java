@@ -61,13 +61,12 @@ public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
 
     public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs) {
-        super(DLKerasAbstractNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
     }
 
     public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-        super(DLKerasAbstractNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs,
-            trainingConfig);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
     }
 
     private static final long serialVersionUID = 1L;

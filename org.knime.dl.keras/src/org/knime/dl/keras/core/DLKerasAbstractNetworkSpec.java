@@ -59,15 +59,6 @@ import org.knime.dl.util.DLUtils;
 public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<DLKerasTrainingConfig>
 		implements DLKerasNetworkSpec {
 
-    /**
-     * Must only be called by implementing classes that are in the same bundle as {@link DLKerasAbstractNetworkSpec}.
-     *
-     * @return the version of the KNIME Deep Learning Keras bundle
-     */
-    protected static Version getKerasBundleVersion() {
-        return DLUtils.Misc.getVersionOfSameBundle(DLKerasAbstractNetworkSpec.class);
-    }
-
 	private static final long serialVersionUID = 1L;
 
     protected DLKerasAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
