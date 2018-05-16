@@ -775,8 +775,14 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     private Map<DLTensorId, DLKerasLossFunction> createLossFunctionMap(final DLKerasNetworkSpec inNetworkSpec) {
         final Map<DLTensorId, DLKerasLossFunction> lossFunctions = new HashMap<>();
 		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
-			final DLKerasLossFunction lossFunction = m_targetCfgs.get(targetSpec.getName()).getLossFunctionEntry()
-					.getValue();
+			final DLKerasLossFunction lossFunction;
+			DLKerasLearnerTargetConfig cfg = m_targetCfgs.get(targetSpec.getName());
+			ConfigEntry<DLKerasLossFunction> lossEntry = cfg.getLossFunctionEntry();
+			if (cfg.getUseCustomLossEntry().getValue()) {
+			    lossFunction = cfg.getCustomLossFunctionEntry().getValue();
+			} else {
+			    lossFunction = lossEntry.getValue();
+			}
             lossFunctions.put(targetSpec.getIdentifier(), lossFunction);
 		}
         return lossFunctions;
