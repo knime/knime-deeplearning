@@ -130,7 +130,7 @@
 				selected input converter.
 			</option>
 		</tab>
-		<tab name="Training Data">
+		<tab name="Target Data">
 			<option name="Conversion">
 				The converter that is used to transform the
 				selected target columns into a format that is accepted by the
@@ -142,8 +142,13 @@
 				The availability of a column depends on the currently
 				selected input converter.
 			</option>
-			<option name="Loss function">
-				The loss function for the network target.
+			<option name="Standard loss function">
+				Choose one of the loss functions provided by Keras for your target.
+			</option>
+			<option name="Custom loss function">
+				Define your own loss function as a Python snippet.
+				The function <i>custom_loss</i> will be used as loss function for the target.
+				It must always be present, therefore its signature is not editable.
 			</option>
 		</tab>
 	</fullDescription>
