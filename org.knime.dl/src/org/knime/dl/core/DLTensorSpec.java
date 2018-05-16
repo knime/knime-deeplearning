@@ -64,21 +64,20 @@ import java.util.OptionalLong;
  */
 public interface DLTensorSpec extends Serializable {
 
-	/**
-     * @return the identifier of the tensor. Note that <code>null</code> may be returned when calling older versions of
-     *         this spec, see <code>since</code> tag.
-     * @since 3.6 - This getter will return <code>null</code> if this instance is the result of deserializing an older
-     *        version of this spec class. In this case, the spec object is in a corrupt state and has to be discarded
-     *        and an upgraded spec instance has to be created by the client code that triggered the deserialization,
-     *        e.g. by rereading the underlying network.
+    /**
+     * @return the identifier of the tensor. Note that the {@link #getName() tensor name} will be returned when calling
+     *         older versions of this spec, see <code>since</code> tag.
+     * @since 3.6 - This getter will return the {@link #getName() tensor name} if this instance is the result of
+     *        deserializing an older version of this spec class.
      */
-	DLTensorId getIdentifier();
+    DLTensorId getIdentifier();
 
 	/**
-	 * Returns the name of the tensor.
-	 *
-	 * @return the name of the tensor
-	 */
+     * Returns the name of the tensor. The tensor name is for display purposes only. As such, it is not considered by
+     * {@link #hashCode()} and {@link #equals(Object)}.
+     *
+     * @return the name of the tensor
+     */
 	String getName();
 
 	/**
@@ -95,16 +94,16 @@ public interface DLTensorSpec extends Serializable {
 	 */
 	DLTensorShape getShape();
 
-	/**
-     * Returns the dimension order this tensor expects e.g. [Height, Width, Channel] for channels last.
+    /**
+     * Returns the dimension order this tensor expects e.g. <em>[Height, Width, Channel]</em> for <em>channels
+     * last</em>. Note that <code>null</code> will be returned when calling older versions of this spec, see
+     * <code>since</code> tag.
      *
      * @return the order of dimensions
      * @since 3.6 - This getter will return <code>null</code> if this instance is the result of deserializing an older
-     *        version of this spec class. In this case, the spec object is in a corrupt state and has to be discarded
-     *        and an upgraded spec instance has to be created by the client code that triggered the deserialization,
-     *        e.g. by rereading the underlying network.
+     *        version of this spec class.
      */
-	DLDimensionOrder getDimensionOrder();
+    DLDimensionOrder getDimensionOrder();
 
 	/**
 	 * Returns the type of the tensor's elements

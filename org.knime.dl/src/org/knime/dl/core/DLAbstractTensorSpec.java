@@ -55,7 +55,6 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Objects;
 import java.util.OptionalLong;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -71,12 +70,10 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
     private static final long serialVersionUID = 1L;
 
     /**
-     * @since 3.6 - This field will be <code>null</code> when deserializing older versions of this spec. In this case,
-     *        the spec object is in a corrupt state and has to be discarded and an upgraded spec instance has to be
-     *        created by the client code that triggered the deserialization, e.g. by rereading the underlying network.
-     *        See {@link DLTensorSpec#getIdentifier()}.
+     * @since 3.6 - This field will default to {@link #m_name} when deserializing older versions of this spec. See
+     *        {@link DLTensorSpec#getIdentifier()}.
      */
-    private final DLTensorId m_identifier;
+    private DLTensorId m_identifier;
 
     private final String m_name;
 
@@ -211,8 +208,8 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
             return false;
         }
         final DLAbstractTensorSpec other = (DLAbstractTensorSpec)obj;
-        return Objects.equals(other.m_identifier, m_identifier) //
-            && other.m_name.equals(m_name) //
+        return other.m_identifier.equals(m_identifier) //
+            // We do not consider the name as it's for display purposes only.
             && other.m_batchSize.equals(m_batchSize) //
             && other.m_shape.equals(m_shape) //
             && other.m_elementType.equals(m_elementType) //
@@ -221,7 +218,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
     @Override
     public String toString() {
-        return Objects.toString(m_identifier) + " (" + m_name + "): "
+        return m_identifier + " (name: " + m_name + "): "
             + (m_batchSize.isPresent() ? m_batchSize.getAsLong() + ", " : "") + m_shape.toString() + ", "
             + m_elementType.getSimpleName();
     }
@@ -235,12 +232,15 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
         stream.defaultReadObject();
         final long batchSize = stream.readLong();
         m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
+        if (m_identifier == null) {
+            m_identifier = new DLDefaultTensorId(m_name);
+        }
     }
 
     private int hashCodeInternal() {
         final HashCodeBuilder b = new HashCodeBuilder(17, 37);
         b.append(m_identifier);
-        b.append(m_name);
+        // We do not consider the name as it's for display purposes only.
         b.append(m_batchSize);
         b.append(m_shape);
         b.append(m_elementType);
