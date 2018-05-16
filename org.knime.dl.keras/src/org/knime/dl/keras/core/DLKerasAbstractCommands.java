@@ -47,12 +47,16 @@
 package org.knime.dl.keras.core;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCustomLoss;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -112,24 +116,38 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config)
 			throws DLInvalidEnvironmentException, IOException {
+	    final Collection<DLKerasCustomLoss> customLosses = getCustomLosses(config.getLosses().values());
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-				.a("from DLKerasNetwork import DLKerasTrainingConfig") //
-				.n("config = DLKerasTrainingConfig()") //
-				.n("config.epochs = ").a(config.getEpochs()) //
-				.n("config.batch_size = ").a(config.getBatchSize()) //
-				.n("config.validation_batch_size = ").a(config.getValidationBatchSize()) //
-				// TODO: how to import dependencies (here: of optimizer and losses) in a generic way?
-				.n("import keras") //
-				.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //
-				.n(config.getLosses().entrySet(),
-                e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getIdentifierString()) + "] = "
-								+ e.getValue().getBackendRepresentation()) //
-				.n("import DLKerasTrainingCallbacks") //
-				.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")")
-				.n("import DLPythonNetwork") //
-				.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
-				.n("network.spec.training_config = config");
+				.a("from DLKerasNetwork import DLKerasTrainingConfig");
+		if (!customLosses.isEmpty()) {
+		    for (DLKerasCustomLoss customLoss : customLosses) {
+		        b.n().a(customLoss.getCustomCodeExecution());
+		    }
+		}
+		
+		b.n("config = DLKerasTrainingConfig()") //
+		.n("config.epochs = ").a(config.getEpochs()) //
+		.n("config.batch_size = ").a(config.getBatchSize()) //
+		.n("config.validation_batch_size = ").a(config.getValidationBatchSize()) //
+		// TODO: how to import dependencies (here: of optimizer and losses) in a generic way?
+		.n("import keras") //
+		.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //
+		.n(config.getLosses().entrySet(),
+		    e -> "config.loss[" + DLPythonUtils.toPython(e.getKey().getIdentifierString()) + "] = "
+		            + e.getValue().getBackendRepresentation()) //
+		.n("import DLKerasTrainingCallbacks") //
+		.n(config.getCallbacks(), c -> "config.callbacks.append(" + c.getBackendRepresentation() + ")")
+		.n("import DLPythonNetwork") //
+		.n("network = DLPythonNetwork.get_network(").as(handle.getIdentifier()).a(")")
+		.n("network.spec.training_config = config");
 		getContext().executeInKernel(b.toString());
+	}
+	
+	private Collection<DLKerasCustomLoss> getCustomLosses(Collection<DLKerasLossFunction> lossFunctions) {
+	    return lossFunctions.stream()
+	            .filter(l -> l instanceof DLKerasCustomLoss)
+	            .map(l -> (DLKerasCustomLoss)l)
+	            .collect(Collectors.toList());
 	}
 
 	@Override
