@@ -48,19 +48,13 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.dl.base.nodes.DLInputPanel;
-import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.training.DLLossFunction;
-import org.knime.dl.keras.core.training.DLKerasLossFunction;
-import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -68,44 +62,27 @@ import org.knime.dl.keras.core.training.DLKerasTrainingContext;
  */
 final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerTargetConfig> {
 
-	private final DLTensorSpec m_targetTensorSpec;
-
-	private final DialogComponentObjectSelection<DLKerasLossFunction> m_dcLossFunction;
+	private final DLKerasLearnerLossFunctionPanel m_lossFunctionPanel;
 
 
 	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputDataSpec,
 			final DataTableSpec tableSpec) {
 	    super(cfg, outputDataSpec, tableSpec, "Target columns:", "target");
-		m_targetTensorSpec = outputDataSpec;
-		m_dcLossFunction = addObjectSelectionRow(cfg.getLossFunctionEntry(), DLLossFunction::getName, "Loss function", null);
+		m_lossFunctionPanel = new DLKerasLearnerLossFunctionPanel(cfg, outputDataSpec);
+		addComponent(m_lossFunctionPanel.getPanel());
 	}
 
 	@Override
     public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
             throws NotConfigurableException {
 		super.loadSettingsFrom(settings, tableSpec);
-		refreshAvailableLossFunctions();
+		m_lossFunctionPanel.loadSettings();
 	}
 	
-	private void refreshAvailableLossFunctions() throws NotConfigurableException {
-		final DLKerasTrainingContext<?> trainingContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
-		final List<DLKerasLossFunction> availableLossFunctions = trainingContext.createLossFunctions() //
-				.stream() //
-				.sorted(Comparator.comparing(DLKerasLossFunction::getName)) //
-				.collect(Collectors.toList());
-		if (availableLossFunctions.isEmpty()) {
-			throw new NotConfigurableException("No loss functions available for output '" + m_targetTensorSpec.getName()
-					+ "' (with training context '" + trainingContext.getName() + "').");
-		}
-		final DLKerasLossFunction selectedLossFunction = m_cfg.getLossFunctionEntry().getValue() != null
-				? m_cfg.getLossFunctionEntry().getValue()
-				: availableLossFunctions.get(0);
-		for (int i = availableLossFunctions.size() - 1; i >= 0; i--) {
-			if (availableLossFunctions.get(i).getClass() == selectedLossFunction.getClass()) {
-				availableLossFunctions.remove(i);
-				availableLossFunctions.add(i, selectedLossFunction);
-			}
-		}
-		m_dcLossFunction.replaceListItems(availableLossFunctions, selectedLossFunction);
+	@Override
+	public void saveToSettings(NodeSettingsWO settings) throws InvalidSettingsException {
+	    m_lossFunctionPanel.saveSettings();
+	    super.saveToSettings(settings);
 	}
+	
 }
