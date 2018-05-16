@@ -178,11 +178,13 @@ class DLKerasNetworkSpecExtractor(object):
                     self._intermediate_output_specs.append(tensor_spec)
 
     def _create_tensor_spec(self, layer, node_idx, tensor_idx, tensor, shape, dimension_order):
-        # back end independent 'canonical' name/id
-        # equals the naming scheme in org.knime.dl.keras.core.layers.DLKerasNetworkLayerNameGenerator on Java side
+        # back end independent 'canonical' id
+        # equals the naming scheme in org.knime.dl.keras.util.DLKerasUtils on Java side
         id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
+        # back end dependent tensor name
+        name = tensor.name
         element_type = self._get_tensor_element_type(tensor)
-        return DLPythonTensorSpec(id, id, shape[0], list(shape[1:]), element_type, dimension_order)
+        return DLPythonTensorSpec(id, name, shape[0], list(shape[1:]), element_type, dimension_order)
 
     def _extract_losses(self):
         # Can be either a string, function, list or dict according to the Keras API. In the end, we want a dictionary
