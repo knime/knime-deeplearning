@@ -63,6 +63,7 @@ import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
+import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCustomLoss;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -71,83 +72,112 @@ import org.knime.dl.keras.core.training.DLKerasLossFunction;
  */
 final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLearnerGeneralConfig> {
 
-	private static final String CFG_KEY_LOSS_FUNC = "loss_function";
+    private static final String CFG_KEY_LOSS_FUNC = "loss_function";
 
+    private static final String CFG_KEY_CUSTOM_LOSS_FUNC = "custom_loss_function";
+    
+    private static final String CFG_KEY_USE_CUSTOM_LOSS = "useCustomLoss";
+    
+    @SuppressWarnings("rawtypes") // Java limitation
+    DLKerasLearnerTargetConfig(final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
+        super(checkNotNullOrEmpty(targetTensorName), checkNotNull(generalCfg));
+        put(new AbstractStandardConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
+            DLDataValueToTensorConverterFactory.class) {
 
-	@SuppressWarnings("rawtypes") // Java limitation
-	DLKerasLearnerTargetConfig(final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
-		super(checkNotNullOrEmpty(targetTensorName), checkNotNull(generalCfg));
-		put(new AbstractStandardConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
-				DLDataValueToTensorConverterFactory.class) {
+            @Override
+            protected void saveEntry(final NodeSettingsWO settings) throws InvalidSettingsException {
+                final String converterIdentifier = m_value != null //
+                    ? m_value.getIdentifier() : CFG_VALUE_NULL_CONVERTER;
+                settings.addString(getEntryKey(), converterIdentifier);
+            }
 
-			@Override
-			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException {
-				final String converterIdentifier = m_value != null //
-						? m_value.getIdentifier()
-						: CFG_VALUE_NULL_CONVERTER;
-				settings.addString(getEntryKey(), converterIdentifier);
-			}
+            @Override
+            protected void loadEntry(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final String converterIdentifier = settings.getString(getEntryKey());
+                if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
+                    throw new InvalidSettingsException(
+                        "No target data converter available for network target '" + getTensorName() + "'.");
+                }
+                m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
+                    .orElseThrow(() -> new InvalidSettingsException(
+                        "Target data converter '" + converterIdentifier + "' of network target '" + getTensorName()
+                            + "' could not be found. Are you missing a KNIME extension?"));
+            }
+        });
+        put(new AbstractStandardConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
+            DataColumnSpecFilterConfiguration.class,
+            new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class))) {
 
-			@Override
-			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException {
-				final String converterIdentifier = settings.getString(getEntryKey());
-				if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
-					throw new InvalidSettingsException(
-							"No target data converter available for network target '" + getTensorName() + "'.");
-				}
-				m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
-						.orElseThrow(() -> new InvalidSettingsException("Target data converter '" + converterIdentifier
-								+ "' of network target '" + getTensorName()
-								+ "' could not be found. Are you missing a KNIME extension?"));
-			}
-		});
-		put(new AbstractStandardConfigEntry<DataColumnSpecFilterConfiguration>(CFG_KEY_INPUT_COL,
-				DataColumnSpecFilterConfiguration.class,
-				new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class))) {
+            @Override
+            protected void saveEntry(final NodeSettingsWO settings) throws InvalidSettingsException {
+                final NodeSettingsWO subSettings = settings.addNodeSettings(CFG_KEY_INPUT_COL);
+                m_value.saveConfiguration(subSettings);
+            }
 
-			@Override
-			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException {
-				final NodeSettingsWO subSettings = settings.addNodeSettings(CFG_KEY_INPUT_COL);
-				m_value.saveConfiguration(subSettings);
-			}
+            @Override
+            protected void loadEntry(final NodeSettingsRO settings) throws InvalidSettingsException {
+                // no op. Separate routines for loading in model and dialog required. See below.
+            }
+        });
+        put(new AbstractStandardConfigEntry<DLKerasLossFunction>(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class) {
 
-			@Override
-			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException {
-				// no op. Separate routines for loading in model and dialog required. See below.
-			}
-		});
-		put(new AbstractStandardConfigEntry<DLKerasLossFunction>(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class) {
+            @Override
+            protected void saveEntry(final NodeSettingsWO settings) throws InvalidSettingsException {
+                final String identifier = m_value != null ? m_value.getClass().getCanonicalName() : "null";
+                settings.addString(getEntryKey(), identifier);
+            }
 
-			@Override
-			protected void saveEntry(final NodeSettingsWO settings)
-					throws InvalidSettingsException {
-				final String identifier = m_value != null ? m_value.getClass().getCanonicalName() : "null";
-				settings.addString(getEntryKey(), identifier);
-			}
+            @Override
+            protected void loadEntry(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final String identifier = settings.getString(getEntryKey());
+                if (!identifier.equals("null")) {
+                    m_value = getGeneralConfig().getContextEntry().getValue().createLossFunctions().stream()
+                        .filter(o -> o.getClass().getCanonicalName().equals(identifier)) //
+                        .findFirst() //
+                        .orElseThrow(() -> new InvalidSettingsException(
+                            "Loss function '" + identifier + "' of target '" + getTensorName()
+                                + " could not be found. Are you missing a KNIME Deep Learning extension?"));
+                }
+            }
+        });
+        
+        put(new AbstractStandardConfigEntry<Boolean>(CFG_KEY_USE_CUSTOM_LOSS, Boolean.class, false) {
+            @Override
+            protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
+                // backward compatibility to versions prior to 3.6 where there was no custom loss
+                m_value = false;
+                return true;
+            }
+        });
+        
+        put(new AbstractStandardConfigEntry<DLKerasCustomLoss>(CFG_KEY_CUSTOM_LOSS_FUNC, DLKerasCustomLoss.class,
+            new DLKerasCustomLoss(targetTensorName)) {
 
-			@Override
-			protected void loadEntry(final NodeSettingsRO settings)
-					throws InvalidSettingsException {
-				final String identifier = settings.getString(getEntryKey());
-				if (!identifier.equals("null")) {
-					m_value = getGeneralConfig().getContextEntry().getValue().createLossFunctions().stream()
-							.filter(o -> o.getClass().getCanonicalName().equals(identifier)) //
-							.findFirst() //
-							.orElseThrow(() -> new InvalidSettingsException(
-									"Loss function '" + identifier + "' of target '" + getTensorName()
-											+ " could not be found. Are you missing a KNIME Deep Learning extension?"));
-				}
-			}
-		});
-	}
+            private static final String CFG_KEY_CUSTOM_CODE = "custom_code";
 
+            @Override
+            protected void saveEntry(NodeSettingsWO settings) throws InvalidSettingsException {
+                settings.addString(CFG_KEY_CUSTOM_CODE, getValue().getCustomCodeDialog());
+            }
 
-	ConfigEntry<DLKerasLossFunction> getLossFunctionEntry() {
-		return get(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class);
-	}
+            @Override
+            protected void loadEntry(NodeSettingsRO settings) throws InvalidSettingsException {
+                String customCode = settings.getString(CFG_KEY_CUSTOM_CODE);
+                m_value.setCustomCode(customCode);
+            }
+        });
+    }
 
+    ConfigEntry<DLKerasLossFunction> getLossFunctionEntry() {
+        return get(CFG_KEY_LOSS_FUNC, DLKerasLossFunction.class);
+    }
+
+    ConfigEntry<DLKerasCustomLoss> getCustomLossFunctionEntry() {
+        return get(CFG_KEY_CUSTOM_LOSS_FUNC, DLKerasCustomLoss.class);
+    }
+    
+    ConfigEntry<Boolean> getUseCustomLossEntry() {
+        return get(CFG_KEY_USE_CUSTOM_LOSS, Boolean.class);
+    }
+    
 }
