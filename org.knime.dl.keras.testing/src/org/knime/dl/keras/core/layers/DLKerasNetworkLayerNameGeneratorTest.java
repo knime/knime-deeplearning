@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.layers;
 import java.util.Arrays;
 
 import org.junit.Test;
-import org.knime.core.node.NodeLogger;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -59,20 +59,13 @@ public final class DLKerasNetworkLayerNameGeneratorTest {
 
     @Test
     public void testReservedNames() {
+        // Layer names.
         assertLayerNameEqualsForReservedNames("layer", "layer_6", "layer_5");
         assertLayerNameEqualsForReservedNames("layer", "layer_16", "layer_15");
 
+        // Tensor ids.
         assertLayerNameEqualsForReservedNames("layer", "layer_3", "layer_2_3:4");
         assertLayerNameEqualsForReservedNames("layer", "layer_13", "layer_12_13:14");
-
-        assertLayerNameEqualsForReservedNames("layer", "layer_4", "layer_3:4");
-        assertLayerNameEqualsForReservedNames("layer", "layer_14", "layer_13:14");
-
-        assertLayerNameEqualsForReservedNames("layer", "layer_7", "layer_6/op:8");
-        assertLayerNameEqualsForReservedNames("layer", "layer_17", "layer_16/op:18");
-
-        assertLayerNameEqualsForReservedNames("layer", "layer_5", "layer_4_op:6");
-        assertLayerNameEqualsForReservedNames("layer", "layer_15", "layer_14_op:16");
 
         assertLayerNameEqualsForReservedNames("layer_snake_case", "layer_snake_case_4", "layer_snake_case_3");
         assertLayerNameEqualsForReservedNames("layer_snake_case", "layer_snake_case_14", "layer_snake_case_13");
@@ -81,10 +74,20 @@ public final class DLKerasNetworkLayerNameGeneratorTest {
         assertLayerNameEqualsForReservedNames("layer_snake_case_1_3", "layer_snake_case_1_3_5",
             "layer_snake_case_1_3_4");
 
-        // Would currently fail. Pending.
-        NodeLogger.getLogger(DLKerasLayerTestSetups.class)
-            .warn("DL Keras: Skipping some assertions that rely on pending work.");
-        // assertLayerNameEqualsForReservedNames("layer_snake_case_1", "layer_snake_case_1_3", "layer_snake_case_1_2_3:4");
+        assertLayerNameEqualsForReservedNames("layer_snake_case_1", "layer_snake_case_1_3", "layer_snake_case_1_2_3:4");
+    }
+
+    @Test
+    public void testBackwardCompatibilityWithLegacyTensorNames() {
+
+        assertLayerNameEqualsForReservedNames("layer", "layer_4", convertToLayerName("layer_3:4"));
+        assertLayerNameEqualsForReservedNames("layer", "layer_14", convertToLayerName("layer_13:14"));
+
+        assertLayerNameEqualsForReservedNames("layer", "layer_7", convertToLayerName("layer_6/op:8"));
+        assertLayerNameEqualsForReservedNames("layer", "layer_17", convertToLayerName("layer_16/op:18"));
+
+        assertLayerNameEqualsForReservedNames("layer", "layer_5", convertToLayerName("layer_4_op:6"));
+        assertLayerNameEqualsForReservedNames("layer", "layer_15", convertToLayerName("layer_14_op:16"));
     }
 
     private void assertLayerNameEqualsForReservedNames(final String layerPrefix, final String expectedName,
@@ -95,5 +98,10 @@ public final class DLKerasNetworkLayerNameGeneratorTest {
 
     private String getLayerNameForReservedNames(final String layerPrefix, final String... reservedNames) {
         return new DLKerasNetworkLayerNameGenerator(Arrays.asList(reservedNames)).getNextLayerName(layerPrefix);
+    }
+
+    private String convertToLayerName(final String tensorName) {
+        return DLKerasNetworkLayerNameGenerator.convertLegacyTensorNameToLayerName(tensorName,
+            DLKerasTensorFlowNetworkSpec.class);
     }
 }
