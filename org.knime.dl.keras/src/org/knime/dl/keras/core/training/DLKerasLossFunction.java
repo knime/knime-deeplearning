@@ -81,6 +81,17 @@ public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetric {
 			super(name, kerasIdentifier);
 		}
 	}
+	
+	public static final class DLKerasCustomLoss extends DLKerasAbstractCustomMetric implements DLKerasLossFunction {
+
+        /**
+         * @param tensorIdentifier
+         */
+        public DLKerasCustomLoss(String tensorIdentifier) {
+            super("Custom loss", "custom_loss", tensorIdentifier);
+        }
+	    
+	}
 
 	// Convenience classes for the different loss functions of the Keras back end:
 

@@ -50,6 +50,8 @@ import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.dl.core.training.DLMetric;
+import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.util.DLUtils.Preconditions;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -146,6 +148,61 @@ public interface DLKerasMetric extends DLMetric {
 		public String toString() {
 			return getName() + " (" + getBackendRepresentation() + ")";
 		}
+	}
+	
+	public abstract static class DLKerasAbstractCustomMetric extends DLKerasAbstractMetric {
+	    
+	    private final String m_functionIdentifier;
+
+	    private String m_customCode;
+	    
+	    private final String m_functionMatcher;
+	    
+        /**
+         * @param name
+         * @param kerasIdentifier
+         */
+        protected DLKerasAbstractCustomMetric(String name, String identifier, String tensorIdentifier) {
+            super(name, identifier + "_" + replaceIncompatibleCharsWithUnderscores(tensorIdentifier));
+            m_functionIdentifier = identifier;
+            m_functionMatcher = "def " + m_functionIdentifier + "(";
+            m_customCode = getDefaultCode();
+        }
+        
+        protected String getDefaultCode() {
+            return DLPythonUtils.createSourceCodeBuilder()
+                    .a("import keras.backend as K")
+                    .n()
+                    .n("def ").a(m_functionIdentifier).a("(y_true, y_pred):")
+                    .n().t().a("# insert your custom code here")
+                    .n().t().a("return K.categorical_crossentropy(y_true, y_pred)")
+                    .toString();
+        }
+        
+        // TODO figure out which other characters are not allowed and replace them as well
+        public static String replaceIncompatibleCharsWithUnderscores(String string) {
+            return string.replaceAll("[^\\w_]", "_");
+        }
+        
+        public String getCustomCodeDialog() {
+            return m_customCode;
+        }
+        
+        public String getCustomCodeExecution() {
+            String executionCode = m_customCode.replaceAll(m_functionIdentifier, getBackendRepresentation());
+            return executionCode;
+        }
+        
+        public void setCustomCode(String customCode) {
+            Preconditions.checkNotNullOrEmpty(customCode);
+            if (!customCode.contains(m_functionMatcher)) {
+                throw new IllegalArgumentException("The provided code does not contain the required function '"
+            + m_functionIdentifier + "'.");
+            }
+            m_customCode = customCode;
+        }
+        
+	    
 	}
 
 	public static final class DLKerasAccuracy extends DLKerasAbstractMetric {
