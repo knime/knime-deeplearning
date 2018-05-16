@@ -24,7 +24,7 @@ Require-Bundle: org.knime.base;bundle-version="[3.5.0,4.0.0)",
  net.sf.trove4j;bundle-version="[2.0.2,3.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  org.swinglabs.swingx.all;bundle-version="[1.6.5,2.0.0)",
- com.fifesoft.rsyntaxtextarea,
- org.knime.jsnippets
+ com.fifesoft.rsyntaxtextarea;bundle-version="[2.5.7,3.0.0)",
+ org.knime.jsnippets;bundle-version="[3.5.0,4.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
