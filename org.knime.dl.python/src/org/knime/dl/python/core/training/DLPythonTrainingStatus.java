@@ -53,11 +53,27 @@ import org.knime.dl.core.training.DLTrainingStatus;
  */
 public interface DLPythonTrainingStatus extends DLTrainingStatus {
 
+    /**
+     * @return the standard output of the training
+     */
     String getStdOutOutput();
 
+    /**
+     * @return the standard error of the training
+     */
     String getStdErrOutput();
 
+    /**
+     * Set the standard output of the training.
+     *
+     * @param stdOut the standard output as a String
+     */
     void setStdOutOutput(String stdOut);
 
+    /**
+     * Set the standard error of the training.
+     *
+     * @param stdErr the standard error as a String
+     */
     void setStdErrOutput(String stdErr);
 }
