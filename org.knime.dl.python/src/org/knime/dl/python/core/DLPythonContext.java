@@ -96,10 +96,10 @@ public interface DLPythonContext extends AutoCloseable {
 	        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
 
     void putDataInKernel(String name, final TableChunker tableChunker, final int rowsPerChunk, DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException;
+        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException;
 
     TableCreator<?> getDataFromKernel(String name, TableCreatorFactory tcf, DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException;
+        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException;
 
 	@Override
 	void close();

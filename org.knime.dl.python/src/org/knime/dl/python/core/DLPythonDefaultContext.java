@@ -171,7 +171,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
             public void run() {
                 String[] out;
                 try {
-                    out = m_kernel.execute(code);
+                    out = getKernel().execute(code);
                     output.set(out);
                     // If the error log has content throw it as exception
                     if (!out[1].isEmpty()) {
@@ -204,16 +204,16 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     @Override
     public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk, final DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException {
+        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
         // TODO check if canceled once KNIME python supports canceling the data transfer
-        m_kernel.putData(name, tableChunker, rowsPerChunk);
+        getKernel().putData(name, tableChunker, rowsPerChunk);
     }
 
     @Override
     public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf, final DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException {
+        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
         // TODO check if canceled once KNIME python supports canceling the data transfer
-        return m_kernel.getData(name, tcf);
+        return getKernel().getData(name, tcf);
     }
 
 	@Override
