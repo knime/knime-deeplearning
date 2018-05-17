@@ -105,7 +105,11 @@ public class DLPythonAbstractTrainingStatus extends DLAbstractTrainingStatus imp
     @Override
     public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
         super.readExternal(objIn);
-        m_stdOut = (String)objIn.readObject();
-        m_stdErr = (String)objIn.readObject();
+        try {
+            m_stdOut = (String)objIn.readObject();
+            m_stdErr = (String)objIn.readObject();
+        } catch (final IOException e) {
+            // Backwards compatibility
+        }
     }
 }
