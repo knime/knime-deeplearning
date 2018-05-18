@@ -55,7 +55,7 @@ import org.knime.dl.core.training.DLAbstractTrainingStatus;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonAbstractTrainingStatus extends DLAbstractTrainingStatus implements DLPythonTrainingStatus {
+public abstract class DLPythonAbstractTrainingStatus extends DLAbstractTrainingStatus implements DLPythonTrainingStatus {
 
     private String m_stdOut = "";
 

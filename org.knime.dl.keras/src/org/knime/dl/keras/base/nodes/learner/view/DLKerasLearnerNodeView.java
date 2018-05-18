@@ -242,13 +242,13 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
             ((DefaultCaret) m_pythonStdOutOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             m_pythonStdOutOutputArea.setEditable(false);
             m_pythonStdOutOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-            tabs.addTab("Python Standard Output", new JScrollPane(m_pythonStdOutOutputArea));
+            tabs.addTab("Log", new JScrollPane(m_pythonStdOutOutputArea));
 
             m_pythonStdErrOutputArea = new JTextArea();
             ((DefaultCaret) m_pythonStdErrOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             m_pythonStdErrOutputArea.setEditable(false);
             m_pythonStdErrOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-            tabs.addTab("Python Standart Error", new JScrollPane(m_pythonStdErrOutputArea));
+            tabs.addTab("Error Log", new JScrollPane(m_pythonStdErrOutputArea));
 
 			final GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;
