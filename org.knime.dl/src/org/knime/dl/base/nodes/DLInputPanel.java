@@ -51,14 +51,11 @@ package org.knime.dl.base.nodes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.OptionalLong;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -86,8 +83,7 @@ import org.knime.dl.util.DLUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <I> the type of input config
  */
-public class DLInputPanel<I extends DLInputConfig<?>>
-    extends AbstractGridBagDialogComponentGroup {
+public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDialogComponentGroup {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLInputPanel.class);
 
@@ -102,7 +98,7 @@ public class DLInputPanel<I extends DLInputConfig<?>>
 
     private final DataColumnSpecFilterPanel m_dcInputColumns;
 
-    private final String m_label;
+    private final DLTensorRole m_tensorRole;
 
     private final List<BiConsumer<?, ?>> m_listeners = new ArrayList<>();
 
@@ -112,13 +108,13 @@ public class DLInputPanel<I extends DLInputConfig<?>>
      * @param tensorSpec the spec of the tensor which will be fed with the input data
      * @param tableSpec the spec of the input table
      * @param header the string displayed above the column selection e.g. "Input columns:"
-     * @param label what is actually filled with the values from the table e.g. "input" or "target"
+     * @param tensorRole the role of the tensor (i.e. either INPUT or TARGET)
      */
-    public DLInputPanel(final I cfg, final DLTensorSpec tensorSpec, final DataTableSpec tableSpec,
-        final String header, final String label) {
+    public DLInputPanel(final I cfg, final DLTensorSpec tensorSpec, final DataTableSpec tableSpec, final String header,
+        final DLTensorRole tensorRole) {
         m_cfg = cfg;
         m_inputTensorSpec = tensorSpec;
-        m_label = label;
+        m_tensorRole = tensorRole;
 
         // construct panel:
 
@@ -169,49 +165,16 @@ public class DLInputPanel<I extends DLInputConfig<?>>
      * @throws InvalidSettingsException if the user configuration is invalid
      */
     public void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(m_inputTensorSpec.getShape());
-        if (inputSizeOpt.isPresent()) {
-            final long inputSize = inputSizeOpt.getAsLong();
-            // validate input: get user-selected columns and converter, ask
-            // converter for its output size given the input
-            // columns (if possible) and compare to number of available input
-            // neurons
-            final Set<DataColumnSpec> includedColSpecs = m_dcInputColumns.getIncludeList();
-            final DLDataValueToTensorConverterFactory<? extends DataValue, ?> converter =
-                m_cfg.getConverterEntry().getValue();
-            final OptionalLong converterOutputSizeOpt = converter.getDestCount(new ArrayList<>(includedColSpecs));
-            if (converterOutputSizeOpt.isPresent()) {
-                final long converterOutputSize = converterOutputSizeOpt.getAsLong();
-                if (converterOutputSize > inputSize) {
-                    throw new InvalidSettingsException("Selected " + m_label + " columns provide more elements ("
-                        + converterOutputSize + ") than neurons available (" + inputSize + ") for network " + m_label
-                        + " '" + m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
-                }
-                if (converterOutputSize < inputSize) {
-                    throw new InvalidSettingsException(
-                        "Selected " + m_label + " columns do not provide enough elements (" + converterOutputSize
-                            + ") to populate all neurons (" + inputSize + ") of network " + m_label + " '"
-                            + m_inputTensorSpec.getName() + "'. Try adding some columns to the selection.");
-                }
-            } else {
-                // we still can check if there are more input columns than input
-                // neurons since every column provides at
-                // least one element
-                if (includedColSpecs.size() > inputSize) {
-                    throw new InvalidSettingsException(
-                        "More " + m_label + " columns selected (" + includedColSpecs.size()
-                            + ") than neurons available (" + inputSize + ") for network " + m_label + " '"
-                            + m_inputTensorSpec.getName() + "'. Try removing some columns from the selection.");
-                }
-            }
-        }
+        DLConfigurationUtility.inputMatchesTensorSpec(m_inputTensorSpec, m_dcInputColumns.getIncludeList(),
+            m_cfg.getConverterEntry().getValue(), m_tensorRole);
 
         m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
         m_cfg.saveToSettings(settings);
     }
-    
+
     @Override
-    public final void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+    public final void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
+        throws NotConfigurableException {
         throw new UnsupportedOperationException(
             "This class should only be loaded with DLInputPanel#loadSettingsFrom(NodeSettingsRO, DataTableSpec).");
     }
@@ -220,7 +183,7 @@ public class DLInputPanel<I extends DLInputConfig<?>>
      * Loads the configuration stored in <b>settings</b>.
      * 
      * @param settings the settings to load
-     * @param tableSpec 
+     * @param tableSpec
      * @throws NotConfigurableException if the configuration can't be loaded
      */
     public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
@@ -251,7 +214,7 @@ public class DLInputPanel<I extends DLInputConfig<?>>
         final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
         m_dcConverter.replaceListItems(converterFactories, null);
     }
-    
+
     /**
      * @return the spec this panel represents
      * 
@@ -267,14 +230,13 @@ public class DLInputPanel<I extends DLInputConfig<?>>
     public void unregisterListeners() {
         // brute force just try all config entries where we registered a listener
         for (BiConsumer listener : m_listeners) {
-            m_cfg.getGeneralConfig().getContextEntry()
-                .removeValueChangeListener(listener);
+            m_cfg.getGeneralConfig().getContextEntry().removeValueChangeListener(listener);
             m_cfg.getConverterEntry().removeValueChangeListener(listener);
         }
         m_listeners.clear();
         m_dcConverter.unregisterListeners();
     }
-    
+
     private void refreshAllowedInputColumns(final DataTableSpec dataTableSpec) {
         final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
         if (dataTableSpec.containsCompatibleType(allowedColType)) {

@@ -80,6 +80,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
+import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
@@ -467,7 +468,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
 			DLDataValueToTensorConverterFactory<?, ?> converter =
                 DLConfigurationUtility.configureInput(inputCfg, tensorSpec, trainingContext, inTableSpec,
-                    m_lastConfiguredTableSpec, "Input");
+                    m_lastConfiguredTableSpec, DLTensorRole.INPUT);
 			m_converters.put(tensorSpec, converter);
 		}
 	}
@@ -482,7 +483,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
 			// get selected converter
 			DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
-			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, "Target");
+			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, DLTensorRole.TARGET);
 			if (m_converters.containsKey(tensorSpec)) {
 			    checkConverterEquality(tensorSpec, converter);
 			}

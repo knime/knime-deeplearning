@@ -46,10 +46,15 @@
  */
 package org.knime.dl.base.nodes;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
@@ -89,18 +94,19 @@ public class DLConfigurationUtility {
      */
     public static DLDataValueToTensorConverterFactory<?, ?> configureInput(DLInputConfig<?> cfg,
         DLTensorSpec tensorSpec, DLContext<?> context, DataTableSpec tableSpec, DataTableSpec lastConfiguredTableSpec,
-        String tensorRole) throws InvalidSettingsException {
+        DLTensorRole tensorRole) throws InvalidSettingsException {
         validateTensorSpec(tensorSpec, tensorRole);
         DLDataValueToTensorConverterFactory<?, ?> converter = getConverter(tableSpec, context, tensorSpec, cfg);
-        updateColFilterConfig(tableSpec, tensorSpec, cfg, converter, lastConfiguredTableSpec, tensorRole);
+        String[] includes = updateColFilterConfig(tableSpec, tensorSpec, cfg, converter, lastConfiguredTableSpec, tensorRole);
+        inputMatchesTensorSpec(tensorSpec, getSpecsForNames(includes, tableSpec), converter, tensorRole);
         return converter;
     }
 
-    private static void validateTensorSpec(DLTensorSpec tensorSpec, String tensorPurpose)
+    private static void validateTensorSpec(DLTensorSpec tensorSpec, DLTensorRole tensorRole)
         throws InvalidSettingsException {
         if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-            throw new InvalidSettingsException(
-                tensorPurpose + " '" + tensorSpec.getName() + "' has an unknown shape. This is not supported, yet.");
+            throw new InvalidSettingsException(tensorRole.getUpperCase() + " '" + tensorSpec.getName()
+                + "' has an unknown shape. This is not supported, yet.");
         }
     }
 
@@ -126,24 +132,29 @@ public class DLConfigurationUtility {
         return converter;
     }
 
-    private static void updateColFilterConfig(final DataTableSpec inTableSpec, final DLTensorSpec tensorSpec,
+    private static String[] updateColFilterConfig(final DataTableSpec inTableSpec, final DLTensorSpec tensorSpec,
         final DLInputConfig<?> inputCfg, DLDataValueToTensorConverterFactory<?, ?> converter,
-        final DataTableSpec lastConfiguredTableSpec, String tensorRole) throws InvalidSettingsException {
+        final DataTableSpec lastConfiguredTableSpec, DLTensorRole tensorRole) throws InvalidSettingsException {
         final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
         ((DLDataTypeColumnFilter)filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
         // check if selected columns are still in input table
         if (lastConfiguredTableSpec != null) {
             if (includesChanged(inTableSpec, lastConfiguredTableSpec, filterConfig)) {
-                throw new InvalidSettingsException("The included columns for " + tensorRole.toLowerCase() + " '"
+                throw new InvalidSettingsException("The included columns for " + tensorRole.getLowerCase() + " '"
                     + tensorSpec.getName() + "' changed. Please reconfigure the node.");
             }
             final String[] missingColumns = filterConfig.applyTo(inTableSpec).getRemovedFromIncludes();
             if (missingColumns.length != 0) {
                 throw new InvalidSettingsException("Selected column '" + missingColumns[0] + "' of "
-                    + tensorRole.toLowerCase() + " '" + tensorSpec.getName()
+                    + tensorRole.getLowerCase() + " '" + tensorSpec.getName()
                     + "' is missing in the training data table. Please reconfigure the node.");
             }
         }
+        return filterConfig.applyTo(inTableSpec).getIncludes();
+    }
+    
+    private static Set<DataColumnSpec> getSpecsForNames(String[] names, DataTableSpec tableSpec) {
+        return Arrays.stream(names).map(n -> tableSpec.getColumnSpec(n)).collect(Collectors.toSet());
     }
 
     private static boolean includesChanged(DataTableSpec inTableSpec, DataTableSpec lastConfiguredTableSpec,
@@ -151,5 +162,54 @@ public class DLConfigurationUtility {
         Set<String> includesOld = Sets.newHashSet(filterConfig.applyTo(lastConfiguredTableSpec).getIncludes());
         Set<String> includesNew = Sets.newHashSet(filterConfig.applyTo(inTableSpec).getIncludes());
         return !includesOld.equals(includesNew);
+    }
+
+    /**
+     * Checks if the selected inputs are compatible with the tensor spec i.e. if the number of elements provided by the
+     * selected columns matches the number of elements in the tensor spec (provided both are known).
+     * 
+     * @param tensorSpec the spec of the tensor
+     * @param includes the specs of the selected columns
+     * @param converter
+     * @param tensorRole should be either INPUT or TARGET
+     * @throws InvalidSettingsException if the number of elements in the inputs does not match the number of elements of
+     *             the tensor
+     */
+    public static void inputMatchesTensorSpec(DLTensorSpec tensorSpec, Set<DataColumnSpec> includes,
+        DLDataValueToTensorConverterFactory<?, ?> converter, DLTensorRole tensorRole) throws InvalidSettingsException {
+        final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(tensorSpec.getShape());
+        if (inputSizeOpt.isPresent()) {
+            final long inputSize = inputSizeOpt.getAsLong();
+            // validate input: get user-selected columns and converter, ask
+            // converter for its output size given the input
+            // columns (if possible) and compare to number of available input
+            // neurons
+            final OptionalLong converterOutputSizeOpt = converter.getDestCount(new ArrayList<>(includes));
+            if (converterOutputSizeOpt.isPresent()) {
+                final long converterOutputSize = converterOutputSizeOpt.getAsLong();
+                if (converterOutputSize > inputSize) {
+                    throw new InvalidSettingsException("Selected " + tensorRole.getLowerCase()
+                        + " columns provide more elements (" + converterOutputSize + ") than neurons available ("
+                        + inputSize + ") for network " + tensorRole.getLowerCase() + " '" + tensorSpec.getName()
+                        + "'. Try removing some columns from the selection.");
+                }
+                if (converterOutputSize < inputSize) {
+                    throw new InvalidSettingsException("Selected " + tensorRole.getLowerCase()
+                        + " columns do not provide enough elements (" + converterOutputSize
+                        + ") to populate all neurons (" + inputSize + ") of network " + tensorRole.getLowerCase() + " '"
+                        + tensorSpec.getName() + "'. Try adding some columns to the selection.");
+                }
+            } else {
+                // we still can check if there are more input columns than input
+                // neurons since every column provides at
+                // least one element
+                if (includes.size() > inputSize) {
+                    throw new InvalidSettingsException(
+                        "More " + tensorRole.getLowerCase() + " columns selected (" + includes.size()
+                            + ") than neurons available (" + inputSize + ") for network " + tensorRole.getLowerCase()
+                            + " '" + tensorSpec.getName() + "'. Try removing some columns from the selection.");
+                }
+            }
+        }
     }
 }

@@ -58,6 +58,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
 import org.knime.dl.base.nodes.DLInputPanel;
 import org.knime.dl.base.nodes.DLInputsPanel;
+import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
@@ -105,7 +106,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     private DLInputPanel<DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
         final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
-        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, "Input columns:", "input");
+        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, "Input columns:", DLTensorRole.INPUT);
     }
 
     private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {

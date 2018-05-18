@@ -90,6 +90,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
+import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
@@ -404,7 +405,7 @@ final class DLExecutorNodeModel extends NodeModel {
 			}
 			// get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(inputCfg, tensorSpec,
-			    m_generalCfg.getContextEntry().getValue(), inDataSpec, m_lastConfiguredTableSpec, "Input");
+			    m_generalCfg.getContextEntry().getValue(), inDataSpec, m_lastConfiguredTableSpec, DLTensorRole.INPUT);
 			m_inputConverters.put(tensorSpec, converter);
 		}
 	}

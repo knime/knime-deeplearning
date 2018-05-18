@@ -58,6 +58,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
 import org.knime.dl.base.nodes.DLInputPanel;
 import org.knime.dl.base.nodes.DLInputsPanel;
+import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.nodes.DefaultDLNodeDialogPane;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
@@ -135,7 +136,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
         final DataTableSpec tableSpec) {
         final DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
         return new DLInputPanel<>(inputCfg, tensorSpec,
-                tableSpec, "Input columns:", "input");
+                tableSpec, "Input columns:", DLTensorRole.INPUT);
     }
 
 

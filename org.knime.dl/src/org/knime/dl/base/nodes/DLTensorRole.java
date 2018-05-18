@@ -43,47 +43,52 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jul 10, 2017 (marcel): created
  */
-package org.knime.dl.keras.base.nodes.learner;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.dl.base.nodes.DLInputPanel;
-import org.knime.dl.base.nodes.DLTensorRole;
-import org.knime.dl.core.DLTensorSpec;
+package org.knime.dl.base.nodes;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerTargetConfig> {
+public enum DLTensorRole {
+    
+    /**
+     * Tensor is an input of a deep learning model.
+     */
+    INPUT("input", "Input"),
+    /**
+     * Tensor is an output of a deep learning model.
+     */
+    OUTPUT("output", "Output"),
+    /**
+     * Tensor is an output of an intermediate layer.
+     */
+    INTERMEDIATE_OUTPUT("intermediate output", "Intermediate output"),
+    /**
+     * Tensor is a training target of a deep learning model.
+     */
+    TARGET("target", "Target");
+    
+    
+    DLTensorRole(String lowerCase, String upperCase) {
+        m_lowerCase = lowerCase;
+        m_upperCase = upperCase;
+    }
+    
+    private final String m_lowerCase;
+    private final String m_upperCase;
+    
+    /**
+     * @return the lower case name of the tensor role
+     */
+    public String getLowerCase() {
+        return m_lowerCase;
+    }
+    
+    /**
+     * @return the upper case name of the tensor role (only the first letter should be upper case)
+     */
+    public String getUpperCase() {
+        return m_upperCase;
+    }
 
-	private final DLKerasLearnerLossFunctionPanel m_lossFunctionPanel;
-
-
-	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputDataSpec,
-			final DataTableSpec tableSpec) {
-	    super(cfg, outputDataSpec, tableSpec, "Target columns:", DLTensorRole.TARGET);
-		m_lossFunctionPanel = new DLKerasLearnerLossFunctionPanel(cfg, outputDataSpec);
-		addComponent(m_lossFunctionPanel.getPanel());
-	}
-
-	@Override
-    public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
-            throws NotConfigurableException {
-		super.loadSettingsFrom(settings, tableSpec);
-		m_lossFunctionPanel.loadSettings();
-	}
-	
-	@Override
-	public void saveToSettings(NodeSettingsWO settings) throws InvalidSettingsException {
-	    m_lossFunctionPanel.saveSettings();
-	    super.saveToSettings(settings);
-	}
-	
 }
