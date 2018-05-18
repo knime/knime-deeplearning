@@ -56,6 +56,8 @@ import java.util.stream.Collectors;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -64,6 +66,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.base.node.jsnippet.guarded.GuardedDocument;
 import org.knime.base.node.jsnippet.guarded.GuardedSection;
+import org.knime.base.node.jsnippet.ui.JSnippetTextArea;
 import org.knime.base.node.util.KnimeSyntaxTextArea;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
@@ -148,8 +151,36 @@ final class DLKerasLearnerLossFunctionPanel {
 
     void loadSettings() throws NotConfigurableException {
         refreshAvailableLossFunctions();
+        CustomLossFunctionDocument doc = new CustomLossFunctionDocument(m_cfg.getCustomLossFunctionEntry().getValue().getCustomCodeDialog());
+        doc.addDocumentListener(new DocumentListener() {
+            private int m_lastLineCount = m_customCodeArea.getTextArea().getLineCount();
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateIfLineCountChanged();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateIfLineCountChanged();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateIfLineCountChanged();
+            }
+            
+            private void updateIfLineCountChanged() {
+                int newLineCount = m_customCodeArea.getTextArea().getLineCount();
+                if (newLineCount != m_lastLineCount) {
+                    m_lastLineCount = newLineCount;
+                    m_panel.revalidate();
+                }
+            }
+            
+        });
         m_customCodeArea.getTextArea().setDocument(
-            new CustomLossFunctionDocument(m_cfg.getCustomLossFunctionEntry().getValue().getCustomCodeDialog()));
+            doc);
     }
 
     void saveSettings() throws InvalidSettingsException {
@@ -210,6 +241,13 @@ final class DLKerasLearnerLossFunctionPanel {
         }
     }
 
+    /**
+     * The logic in this class is shamelessly copied from {@link JSnippetTextArea}.
+     * If we should need this logic somewhere else, we can simply extract it into a public class but for now we keep
+     * it private to avoid any problems if we should decide to go public in the future.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
     private static class CustomLossFunctionTextArea extends KnimeSyntaxTextArea {
 
         /**
