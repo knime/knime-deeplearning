@@ -54,7 +54,7 @@ import java.util.List;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractUnaryInnerLayer extends DLKerasAbstractInnerLayer
-    implements DLKerasUnaryInnerLayer {
+    implements DLKerasUnaryLayer {
 
     public DLKerasAbstractUnaryInnerLayer(final String kerasIdentifier) {
         super(kerasIdentifier, 1);

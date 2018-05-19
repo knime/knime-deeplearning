@@ -62,18 +62,31 @@ import org.knime.dl.keras.core.layers.DLKerasInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME Gmbh, Konstanz, Germany
  */
-public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayerNode {
+class DLKerasLayerNodeUtil {
 
-    protected DLKerasAbstractInnerLayerNode(final DLKerasInnerLayer layer) {
-        super(layer);
+    static void amendBaseNetworkSource(final DLKerasInnerLayer layer, final int index,
+        final DLKerasNetworkPortObjectBase parentPortObject)
+        throws InvalidSettingsException, DLInvalidSourceException, IOException {
+        if (parentPortObject instanceof DLKerasNetworkPortObject) {
+            final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
+                (DLKerasDefaultBaseNetworkTensorSpecOutput)layer.getParent(index);
+            baseNetworkOutput.setBaseNetworkSource(parentPortObject.getNetwork().getSource());
+        } else if (parentPortObject instanceof DLKerasUnmaterializedNetworkPortObject) {
+            // no op - there is no base network
+        } else {
+            throw new InvalidSettingsException("Input port object (" + parentPortObject.getClass().getCanonicalName()
+                + ") is neither of type " + DLKerasNetworkPortObject.class.getCanonicalName() + " nor of type "
+                + DLKerasUnmaterializedNetworkPortObject.class.getCanonicalName()
+                + ". This is an implementation error.");
+        }
     }
 
-    protected void setLayerParent(final int index, final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec)
-        throws InvalidSettingsException {
-        final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)m_layer;
+    static void setLayerParent(final DLKerasInnerLayer layer, final int index,
+        final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec) throws InvalidSettingsException {
+        final DLKerasInnerLayer innerLayer = layer;
         if (parentPortObjectSpec instanceof DLKerasNetworkPortObjectSpec) {
             // Append to existing network.
             if (parentPortObjectSpec.getNetworkSpec().getOutputSpecs().length > 1) {
@@ -99,27 +112,5 @@ public abstract class DLKerasAbstractInnerLayerNode extends DLKerasAbstractLayer
                     + DLKerasUnmaterializedNetworkPortObjectSpec.class.getCanonicalName()
                     + ". This is an implementation error.");
         }
-    }
-
-    protected void amendBaseNetworkSource(final int index, final DLKerasNetworkPortObjectBase parentPortObject)
-        throws InvalidSettingsException, DLInvalidSourceException, IOException {
-        if (parentPortObject instanceof DLKerasNetworkPortObject) {
-            final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
-                (DLKerasDefaultBaseNetworkTensorSpecOutput)((DLKerasInnerLayer)m_layer).getParent(index);
-            baseNetworkOutput.setBaseNetworkSource(parentPortObject.getNetwork().getSource());
-        } else if (parentPortObject instanceof DLKerasUnmaterializedNetworkPortObject) {
-            // no op - there is no base network
-        } else {
-            throw new InvalidSettingsException("Input port object (" + parentPortObject.getClass().getCanonicalName()
-                + ") is neither of type " + DLKerasNetworkPortObject.class.getCanonicalName() + " nor of type "
-                + DLKerasUnmaterializedNetworkPortObject.class.getCanonicalName()
-                + ". This is an implementation error.");
-        }
-    }
-
-    @Override
-    protected void validateLayer() throws InvalidSettingsException {
-        super.validateLayer();
-        ((DLKerasInnerLayer)m_layer).validateInputSpecs();
     }
 }
