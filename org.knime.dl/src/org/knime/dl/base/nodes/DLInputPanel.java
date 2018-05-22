@@ -101,16 +101,17 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
     private final DLTensorRole m_tensorRole;
 
     private final List<BiConsumer<?, ?>> m_listeners = new ArrayList<>();
+    
+    private DataTableSpec m_tableSpec;
 
     /**
      * 
      * @param cfg stores the configuration of this input
      * @param tensorSpec the spec of the tensor which will be fed with the input data
-     * @param tableSpec the spec of the input table
      * @param header the string displayed above the column selection e.g. "Input columns:"
      * @param tensorRole the role of the tensor (i.e. either INPUT or TARGET)
      */
-    public DLInputPanel(final I cfg, final DLTensorSpec tensorSpec, final DataTableSpec tableSpec, final String header,
+    public DLInputPanel(final I cfg, final DLTensorSpec tensorSpec, final String header,
         final DLTensorRole tensorRole) {
         m_cfg = cfg;
         m_inputTensorSpec = tensorSpec;
@@ -137,14 +138,14 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
 
         m_cfg.getGeneralConfig().getContextEntry().addValueChangeListener((entry, oldValue) -> {
             try {
-                refreshAvailableConverters(tableSpec);
+                refreshAvailableConverters();
             } catch (final NotConfigurableException ex) {
                 throw new IllegalStateException(ex.getMessage(), ex);
             }
         });
 
         m_cfg.getConverterEntry()
-            .addValueChangeListener(addListener((entry, oldValue) -> refreshAllowedInputColumns(tableSpec)));
+            .addValueChangeListener(addListener((entry, oldValue) -> refreshAllowedInputColumns()));
     }
 
     /**
@@ -188,6 +189,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
      */
     public void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec tableSpec)
         throws NotConfigurableException {
+        m_tableSpec = tableSpec;
         try {
             m_cfg.loadFromSettingsInDialog(settings, tableSpec);
         } catch (final InvalidSettingsException e) {
@@ -195,17 +197,18 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
             LOGGER.debug(e.getMessage() != null ? e.getMessage() : "Trying to restore from invalid settings.", e);
         }
         m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), tableSpec);
-        refreshAvailableConverters(tableSpec);
-        refreshAllowedInputColumns(tableSpec);
+        refreshAvailableConverters();
+        refreshAllowedInputColumns();
     }
 
-    private void refreshAvailableConverters(final DataTableSpec dataTableSpec) throws NotConfigurableException {
+    private void refreshAvailableConverters() throws NotConfigurableException {
+        assert m_tableSpec != null;
         final DLContext<?> context = m_cfg.getGeneralConfig().getContextEntry().getValue();
         DLConverterRefresher converterRefresher;
         try {
             final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
                 Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
-            converterRefresher = new DLConverterRefresher(dataTableSpec,
+            converterRefresher = new DLConverterRefresher(m_tableSpec,
                 context.getTensorFactory().getWritableBufferType(m_inputTensorSpec), m_inputTensorSpec, false,
                 nameComparator);
         } catch (final DLNoConverterAvailableException e) {
@@ -237,13 +240,14 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
         m_dcConverter.unregisterListeners();
     }
 
-    private void refreshAllowedInputColumns(final DataTableSpec dataTableSpec) {
+    private void refreshAllowedInputColumns() {
+        assert m_tableSpec != null;
         final Class<? extends DataValue> allowedColType = m_cfg.getConverterEntry().getValue().getSourceType();
-        if (dataTableSpec.containsCompatibleType(allowedColType)) {
+        if (m_tableSpec.containsCompatibleType(allowedColType)) {
             // We need to save and reload the current configuration to take user actions into account that were taken
             // since the dialog was opened. Else those would be overridden by the initial configuration.
             m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
-            m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), dataTableSpec);
+            m_dcInputColumns.loadConfiguration(m_cfg.getInputColumnsEntry().getValue(), m_tableSpec);
             final DataColumnSpecFilterConfiguration filterConfig = new DataColumnSpecFilterConfiguration(
                 DLAbstractInputConfig.CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(allowedColType));
             m_cfg.getInputColumnsEntry().setValue(filterConfig, true);

@@ -104,9 +104,9 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         addPanelToWrapper(m_outputsPanel.getPanel());
     }
 
-    private DLInputPanel<DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+    private DLInputPanel<DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec) {
         final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
-        return new DLInputPanel<>(cfg, tensorSpec, tableSpec, "Input columns:", DLTensorRole.INPUT);
+        return new DLInputPanel<>(cfg, tensorSpec, "Input columns:", DLTensorRole.INPUT);
     }
 
     private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {

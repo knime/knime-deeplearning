@@ -49,6 +49,7 @@ package org.knime.dl.base.nodes;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -73,7 +74,7 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
 
     private LinkedHashMap<DLTensorSpec, P> m_inputPanels = new LinkedHashMap<>();
 
-    private final BiFunction<DLTensorSpec, DataTableSpec, P> m_inputPanelCreator;
+    private final Function<DLTensorSpec, P> m_inputPanelCreator;
     
     private final String m_inputsCfgKey;
 
@@ -86,7 +87,7 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
      * @param inputsCfgKey the config key for the input configs
      * @param borderLabel Label displayed on the border of a single input
      */
-    public DLInputsPanel(final BiFunction<DLTensorSpec, DataTableSpec, P> inputPanelCreator,
+    public DLInputsPanel(final Function<DLTensorSpec, P> inputPanelCreator,
         final String inputsCfgKey, String borderLabel) {
         m_inputsCfgKey = inputsCfgKey;
         m_borderLabel = borderLabel;
@@ -120,11 +121,11 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
      */
     public void loadSettingsFrom(final NodeSettingsRO settings, final DLTensorSpec[] tensorSpecs, final DataTableSpec tableSpec)
         throws NotConfigurableException {
-        updatePanelList(tensorSpecs, tableSpec);
+        updatePanelList(tensorSpecs);
         loadPanels(settings, tableSpec);
     }
     
-    private void updatePanelList(final DLTensorSpec[] tensorSpecs, final DataTableSpec tableSpec) {
+    private void updatePanelList(final DLTensorSpec[] tensorSpecs) {
         Set<DLTensorSpec> newSpecs = Sets.newHashSet(tensorSpecs);
         Set<DLTensorSpec> panelSpecs = m_inputPanels.keySet();
         
@@ -135,7 +136,7 @@ public final class DLInputsPanel<P extends DLInputPanel<?>>
             if (panelSpecs.contains(tensorSpec)) {
                 panel = m_inputPanels.get(tensorSpec);
             } else {
-                panel = m_inputPanelCreator.apply(tensorSpec, tableSpec);
+                panel = m_inputPanelCreator.apply(tensorSpec);
             }
             addToGroupPanel(tensorSpec, panel);
             newInputPanels.put(tensorSpec, panel);

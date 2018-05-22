@@ -126,17 +126,15 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	}
 
 
-	private DLKerasLearnerTargetPanel createTargetPanel(final DLTensorSpec tensorSpec, final DataTableSpec tableSpec) {
+	private DLKerasLearnerTargetPanel createTargetPanel(final DLTensorSpec tensorSpec) {
         final DLKerasLearnerTargetConfig cfg = new DLKerasLearnerTargetConfig(tensorSpec.getName(), m_generalCfg);
-        return new DLKerasLearnerTargetPanel(cfg, tensorSpec, tableSpec);
+        return new DLKerasLearnerTargetPanel(cfg, tensorSpec);
     }
 
 
-    private DLInputPanel<DLKerasLearnerInputConfig> createInputPanel(final DLTensorSpec tensorSpec,
-        final DataTableSpec tableSpec) {
+    private DLInputPanel<DLKerasLearnerInputConfig> createInputPanel(final DLTensorSpec tensorSpec) {
         final DLKerasLearnerInputConfig inputCfg = new DLKerasLearnerInputConfig(tensorSpec.getName(), m_generalCfg);
-        return new DLInputPanel<>(inputCfg, tensorSpec,
-                tableSpec, "Input columns:", DLTensorRole.INPUT);
+        return new DLInputPanel<>(inputCfg, tensorSpec, "Input columns:", DLTensorRole.INPUT);
     }
 
 

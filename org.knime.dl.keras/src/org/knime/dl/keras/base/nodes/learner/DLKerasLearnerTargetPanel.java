@@ -66,10 +66,9 @@ final class DLKerasLearnerTargetPanel extends DLInputPanel<DLKerasLearnerTargetC
 	private final DLKerasLearnerLossFunctionPanel m_lossFunctionPanel;
 
 
-	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputDataSpec,
-			final DataTableSpec tableSpec) {
-	    super(cfg, outputDataSpec, tableSpec, "Target columns:", DLTensorRole.TARGET);
-		m_lossFunctionPanel = new DLKerasLearnerLossFunctionPanel(cfg, outputDataSpec);
+	DLKerasLearnerTargetPanel(final DLKerasLearnerTargetConfig cfg, final DLTensorSpec outputTensorSpec) {
+	    super(cfg, outputTensorSpec, "Target columns:", DLTensorRole.TARGET);
+		m_lossFunctionPanel = new DLKerasLearnerLossFunctionPanel(cfg, outputTensorSpec);
 		addComponent(m_lossFunctionPanel.getPanel());
 	}
 
