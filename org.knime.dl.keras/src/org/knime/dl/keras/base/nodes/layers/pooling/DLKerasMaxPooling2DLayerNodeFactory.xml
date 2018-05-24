@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasmaxpooling2dlayer.png" type="Other">
+	<name>Keras MaxPooling2D Layer</name>
+
+	<shortDescription>
+		A layer that performs a max pooling operation on spatial data.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			A layer that performs a max pooling operation on spatial data. Corresponds to the
+			<a href="https://keras.io/layers/pooling/#maxpooling2d">MaxPooling2D Keras layer</a>
+			.
+		</intro>
+		<option name="Pool size">
+			Factors by which to downscale (vertical, horizontal). (2, 2) will halve the input in both
+			spatial
+			dimension. If only one integer is specified, the same window length will be used for both dimensions.
+		</option>
+		<option name="Strides">
+			Strides values. If only one integer is specified, the same stride will be used for both
+			dimensions.
+		</option>
+		<option name="Padding">
+			<ul>
+				<li>Same: ...</li>
+				<li>Valid: ...</li>
+			</ul>
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>MaxPooling2D</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>MaxPooling2D</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

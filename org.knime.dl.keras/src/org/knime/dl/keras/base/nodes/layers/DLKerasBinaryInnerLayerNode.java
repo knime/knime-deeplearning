@@ -44,13 +44,51 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.base.nodes.layers;
+
+import java.util.Arrays;
+
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.layers.DLKerasBinaryInnerLayer;
+import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasUnaryLayer extends DLKerasInnerLayer {
+public final class DLKerasBinaryInnerLayerNode extends DLKerasAbstractInnerLayerNode
+    implements PortToPortBiFunction<DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectBase, //
+            DLKerasNetworkPortObjectBase, DLKerasNetworkPortObjectSpecBase, //
+            DLKerasNetworkPortObjectSpecBase, DLKerasNetworkPortObjectSpecBase> {
 
-    // NB: Marker interface.
+    public DLKerasBinaryInnerLayerNode(final DLKerasBinaryInnerLayer layer) {
+        super(layer);
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectSpecBase configure(final DLKerasNetworkPortObjectSpecBase firstInSpec,
+        final DLKerasNetworkPortObjectSpecBase secondInSpec) throws InvalidSettingsException {
+        setLayerParent(0, firstInSpec);
+        setLayerParent(1, secondInSpec);
+        validateLayer();
+        return new DLKerasUnmaterializedNetworkPortObjectSpec(Arrays.asList(m_layer));
+    }
+
+    @Override
+    public DLKerasNetworkPortObjectBase apply(final DLKerasNetworkPortObjectBase firstIn,
+        final DLKerasNetworkPortObjectBase secondIn, final ExecutionContext exec) throws Exception {
+        amendBaseNetworkSource(0, firstIn);
+        amendBaseNetworkSource(1, secondIn);
+        final FileStore fileStore =
+            DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
+        return new DLKerasUnmaterializedNetworkPortObject(Arrays.asList(m_layer), fileStore);
+    }
 }

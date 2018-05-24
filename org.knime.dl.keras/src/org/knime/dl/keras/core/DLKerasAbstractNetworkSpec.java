@@ -50,6 +50,7 @@ import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

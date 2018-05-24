@@ -44,54 +44,82 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.layers.impl;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.python.util.DLPythonUtils;
+import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractUnaryInnerLayer extends DLKerasAbstractInnerLayer
-    implements DLKerasUnaryInnerLayer {
+public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryInnerLayer {
 
-    public DLKerasAbstractUnaryInnerLayer(final String kerasIdentifier) {
-        super(kerasIdentifier, 1);
-    }
+    @Parameter(label = "Filters", min = "1", max = "1000000", stepSize = "1")
+    int m_filters = 1;
 
-    public DLKerasAbstractUnaryInnerLayer(final String kerasIdentifier, final DLKerasLayer parent) {
-        super(kerasIdentifier, new DLKerasLayer[]{parent});
-    }
+    @Parameter(label = "Kernel size")
+    String m_kernelSize = "1, 1";
 
-    // Convenience methods:
+    @Parameter(label = "Strides")
+    String m_strides = "1, 1";
 
-    protected abstract void validateInputSpec(Class<?> inputElementType, Long[] inputShape)
-        throws DLInvalidTensorSpecException;
+    @Parameter(label = "Padding", choices = {"same", "valid"})
+    String m_padding = "valid";
 
-    protected abstract Long[] inferOutputShape(Long[] inputShape);
+    @Parameter(label = "Activation function", choices = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
+        "softmax", "softplus", "softsign", "tanh"})
+    String m_activation = "linear";
 
-    /**
-     * The default behavior is to return <code>inputElementType</code>.
-     */
-    protected Class<?> inferOutputElementType(final Class<?> inputElementType) {
-        return inputElementType;
+    @Parameter(label = "Use bias?")
+    boolean m_useBias = true;
+
+    public DLKerasConv2DLayer() {
+        super("keras.layers.Conv2D");
     }
 
     @Override
-    protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)
+    public void validateParameters() throws InvalidSettingsException {
+        throw new RuntimeException("not yet implemented"); // TODO: NYI
+    }
+
+    @Override
+    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        validateInputSpec(inputElementTypes.get(0), inputShapes.get(0));
+        throw new RuntimeException("not yet implemented"); // TODO: NYI
     }
 
     @Override
-    protected final List<Class<?>> inferOutputElementTypes(final List<Class<?>> inputElementTypes)
-        throws DLInvalidTensorSpecException {
-        return Collections.singletonList(inferOutputElementType(inputElementTypes.get(0)));
+    protected Long[] inferOutputShape(final Long[] inputShape) {
+        throw new RuntimeException("not yet implemented"); // TODO: NYI
     }
 
     @Override
-    protected final List<Long[]> inferOutputShapes(final List<Long[]> inputShape) {
-        return Collections.singletonList(inferOutputShape(inputShape.get(0)));
+    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
+        positionalParams.add(DLPythonUtils.toPython(m_filters));
+        final int[] kernelSize = getKernelSize();
+        positionalParams.add(kernelSize.length == 1 //
+            ? DLPythonUtils.toPython(kernelSize[0]) : DLPythonUtils.toPython(kernelSize));
+        final int[] strides = getStrides();
+        namedParams.put("strides", strides.length == 1 //
+            ? DLPythonUtils.toPython(strides[0]) : DLPythonUtils.toPython(strides));
+        namedParams.put("padding", DLPythonUtils.toPython(m_padding));
+        namedParams.put("activation", DLPythonUtils.toPython(m_activation));
+        namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
+    }
+
+    private int[] getKernelSize() {
+        return Arrays.stream(m_kernelSize.split(",")).mapToInt(Integer::parseInt).toArray();
+    }
+
+    private int[] getStrides() {
+        return Arrays.stream(m_strides.split(",")).mapToInt(Integer::parseInt).toArray();
     }
 }

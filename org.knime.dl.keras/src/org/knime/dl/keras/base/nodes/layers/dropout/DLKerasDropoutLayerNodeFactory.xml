@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasdropoutlayer.png" type="Other">
+	<name>Keras Dropout Layer</name>
+
+	<shortDescription>
+		A dropout layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			A dropout layer. Corresponds to the
+			<a href="https://keras.io/layers/core/#dropout">Dropout Keras layer</a>
+			.
+		</intro>
+		<option name="Drop rate">
+			Fraction of the input units to drop.
+		</option>
+		<option name="Random seed">
+			Random seed to use for the dropping.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Dropout</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Dropout</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

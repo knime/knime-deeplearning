@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkeraslstmlayer.png" type="Other">
+	<name>Keras LSTM Layer</name>
+
+	<shortDescription>
+		Long-Short Term Memory (LSTM) layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Long-Short Term Memory (LSTM) layer. Corresponds to the
+			<a href="https://keras.io/layers/recurrent/#lstm">LSTM Keras layer</a>
+			.
+		</intro>
+		<option name="Units">
+			Dimensionality of the output space.
+		</option>
+		<option name="Activation function">
+			The activation function to use.
+		</option>
+		<option name="Recurrent activation function">
+			The activation function to use for the recurrent step.
+		</option>
+		<option name="Use bias?">
+			If checked, a bias vector will be used.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add an
+			<tt>LSTM</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>LSTM</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

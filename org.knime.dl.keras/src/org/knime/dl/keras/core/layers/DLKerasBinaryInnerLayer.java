@@ -44,67 +44,13 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers;
-
-import javax.swing.JPanel;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
-import org.knime.nodegen.base.struct.DefaultNodeStructInstance;
-import org.knime.nodegen.base.struct.NodeStructInstance;
-import org.scijava.Context;
-import org.scijava.swing.widget2.SwingWidgetPanelFactory;
-import org.scijava.swing.widget2.SwingWidgetPanelFactory.WidgetPanel;
-import org.scijava.widget2.WidgetService;
-
-import net.miginfocom.swing.MigLayout;
+package org.knime.dl.keras.core.layers;
 
 /**
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLayerNodeDialogPane extends NodeDialogPane {
+public interface DLKerasBinaryInnerLayer extends DLKerasInnerLayer {
 
-    // TODO reuse existing context. don't startup one context for each node. that's too expensive.
-    // TODO can we get rid of the context?
-    private final Context m_ctx = new Context(WidgetService.class);
-
-    // TODO can we get rid of the service?
-    private final WidgetService m_widgets;
-
-    private NodeStructInstance<DLKerasLayer> m_instance;
-
-    public DLKerasLayerNodeDialogPane(DLKerasLayer layer) {
-        m_instance = new DefaultNodeStructInstance<>(layer);
-
-        final JPanel nodeDialogPanel = new JPanel(new MigLayout("", "[grow]", ""));
-
-        m_widgets = m_ctx.getService(WidgetService.class);
-
-        final SwingWidgetPanelFactory factory = new SwingWidgetPanelFactory();
-        final WidgetPanel<?> panel = (WidgetPanel<?>)m_widgets.createPanel(m_instance, factory);
-        nodeDialogPanel.add(panel.getComponent(), "growx");
-
-        addTab("Options", nodeDialogPanel);
-    }
-
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        try {
-            m_instance.loadSettingsFrom(settings);
-        } catch (final InvalidSettingsException e) {
-            throw new NotConfigurableException("No settings available yet: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    protected void saveSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
-        m_instance.saveSettingsTo(settings);
-    }
-
+    // NB: Marker interface.
 }

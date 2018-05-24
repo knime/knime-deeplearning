@@ -44,13 +44,21 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.base.nodes.layers.conv;
+
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
+import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
+import org.knime.dl.keras.core.layers.impl.DLKerasConv2DLayer;
+import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasBinaryLayer extends DLKerasInnerLayer {
+public final class DLKerasConv2DLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
 
-    // NB: Marker interface.
+    @Override
+    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
+        return new DLKerasUnaryInnerLayerNode(new DLKerasConv2DLayer());
+    }
 }

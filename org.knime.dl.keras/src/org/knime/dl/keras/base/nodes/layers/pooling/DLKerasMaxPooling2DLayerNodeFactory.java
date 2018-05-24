@@ -44,43 +44,21 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.base.nodes.layers.pooling;
 
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.knime.nodegen.base.member.NodeMemberInstance;
-import org.knime.nodegen.base.struct.NodeStructInstance;
-import org.scijava.param2.ParameterStructs;
-import org.scijava.param2.ValidityException;
-import org.scijava.param2.ValidityProblem;
-import org.scijava.struct2.Member;
-import org.scijava.struct2.Struct;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
+import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
+import org.knime.dl.keras.core.layers.impl.DLKerasMaxPooling2DLayer;
+import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasLayerStructInstance extends NodeStructInstance<DLKerasLayer> {
+public final class DLKerasMaxPooling2DLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
 
-	private static Struct structFromLayer(final DLKerasLayer layer) {
-		try {
-			return ParameterStructs.structOf(layer.getClass());
-		} catch (final ValidityException e) {
-			final String problemMessages = e.problems().stream() //
-					.map(ValidityProblem::getMessage) //
-					.filter(Objects::nonNull) //
-					.collect(Collectors.joining("\n"));
-			throw new IllegalArgumentException(problemMessages, e);
-		}
-	}
-
-	public DLKerasLayerStructInstance(final DLKerasLayer layer) throws IllegalArgumentException {
-		super(structFromLayer(layer), layer);
-	}
-
-	@Override
-	public NodeMemberInstance<?> createMemberInstance(final Member<?> member, final Object layer) {
-		return new NodeMemberInstance<>(member, layer);
-	}
+    @Override
+    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
+        return new DLKerasUnaryInnerLayerNode(new DLKerasMaxPooling2DLayer());
+    }
 }

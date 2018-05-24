@@ -86,52 +86,52 @@
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.add.DLKerasAddLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.add.DLKerasAddLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.concatenate.DLKerasConcatenateLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.concatenate.DLKerasConcatenateLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.conv.DLKerasConv2DLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.conv.DLKerasConv2DLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.dense.DLKerasDenseLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.dense.DLKerasDenseLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.dropout.DLKerasDropoutLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.dropout.DLKerasDropoutLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.embedding.DLKerasEmbeddingLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasEmbeddingLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.flatten.DLKerasFlattenLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.flatten.DLKerasFlattenLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.DLKerasInputLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.input.DLKerasInputLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layer.lstm.DLKerasLSTMLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.lstm.DLKerasLSTMLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.DLKerasMaxPooling2DLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasMaxPooling2DLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras"

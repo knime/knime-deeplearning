@@ -60,6 +60,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
@@ -199,9 +200,14 @@ public final class DLKerasNetworkGraphSerializer {
 
                 private NodeSettingsWO saveLayer(final DLKerasLayer layer) {
                     final NodeSettingsWO layerSettings = createLayerSettings(layer);
-                    // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
-                    new DLKerasLayerStructInstance(layer)
-                        .saveSettingsTo(layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS));
+                    try {
+                        // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
+                        new DLKerasLayerStructInstance(layer)
+                            .saveSettingsTo(layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS));
+                    } catch (final InvalidSettingsException e) {
+                        LOGGER.error(e);
+                        throw new RuntimeException(e);
+                    }
                     return layerSettings;
                 }
 
