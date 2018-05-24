@@ -312,13 +312,15 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	@Override
 	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs,
 			final long batchSize, final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final String outputIdentifiers = requestedOutputs.stream().map((id) -> "'" + id.getIdentifierString() + "'")
+            .collect(Collectors.joining(", ", "[", "]"));
 		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
 				.a("import DLPythonNetwork") //
 				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
 				.n("in_data = {}") //
 				.n("for input_spec in network.spec.input_specs:") //
 				.n().t().a("in_data[input_spec.identifier] = globals()[input_spec.identifier]") //
-				.n("out_data = network.execute(in_data, ").a(batchSize).a(")") //
+				.n("out_data = network.execute(in_data, ").a(batchSize).a(", ").a(outputIdentifiers).a(")") //
 				.n("import pandas as pd") //
 				.n("output_shapes = {}") //
 				.n("for name, data in out_data.items():") //
