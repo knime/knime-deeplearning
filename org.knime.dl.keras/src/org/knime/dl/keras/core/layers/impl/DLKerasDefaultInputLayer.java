@@ -122,9 +122,6 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     }
 
     private Long[] getShape() {
-        return Arrays.stream(m_shape.split(",")) //
-            .map(String::trim) //
-            .map(s -> s.equals("?") ? null : Long.parseLong(s)) //
-            .toArray(l -> new Long[l]);
+        return DLPythonUtils.parseShape(m_shape);
     }
 }
