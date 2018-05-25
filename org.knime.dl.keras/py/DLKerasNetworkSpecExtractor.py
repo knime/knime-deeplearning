@@ -182,7 +182,10 @@ class DLKerasNetworkSpecExtractor(object):
         # equals the naming scheme in org.knime.dl.keras.util.DLKerasUtils on Java side
         id = layer.name + '_' + str(node_idx) + ':' + str(tensor_idx)
         # back end dependent tensor name
-        name = tensor.name
+        if hasattr(tensor, 'name') and tensor.name:
+            name = tensor.name
+        else:
+            name = id
         element_type = self._get_tensor_element_type(tensor)
         return DLPythonTensorSpec(id, name, shape[0], list(shape[1:]), element_type, dimension_order)
 
