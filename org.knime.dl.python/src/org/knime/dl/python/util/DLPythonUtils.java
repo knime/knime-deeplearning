@@ -46,6 +46,13 @@
  */
 package org.knime.dl.python.util;
 
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.function.Function;
+
 /**
  * Various Python specific utility methods and classes.
  *
@@ -180,6 +187,26 @@ public final class DLPythonUtils {
 		}
 		return toPythonList(str);
 	}
+	
+	public static String toPython(final OptionalLong ol) {
+	    return ol.isPresent() ? toPython(ol.getAsLong()) : NONE;
+	}
+	
+	public static String toPython(final OptionalInt oi) {
+        return oi.isPresent() ? toPython(oi.getAsInt()) : NONE;
+    }
+
+	public static String toPython(final OptionalDouble od) {
+        return od.isPresent() ? toPython(od.getAsDouble()) : NONE;
+    }
+	
+	public static String toPython(Optional<String> os) {
+	    return os.orElse(NONE);
+	}
+	
+	public static <T> String toPython(Optional<T> oo, Function<T, String> toString) {
+	    return toPython(oo.map(toString));
+	}
 
 	public static String toPythonFormattedStringArray(final String[] sa) {
 		final String[] str = new String[sa.length];
@@ -200,4 +227,12 @@ public final class DLPythonUtils {
 	private static String toPythonList(final String[] elements) {
 		return "[" + String.join(",", elements) + "]";
 	}
+	
+	public static Long[] parseShape(String shapeString) {
+	    return Arrays.stream(shapeString.split(",")) //
+	            .map(String::trim) //
+	            .map(s -> s.equals("?") ? null : Long.parseLong(s)) //
+	            .toArray(Long[]::new);
+	}
+	
 }
