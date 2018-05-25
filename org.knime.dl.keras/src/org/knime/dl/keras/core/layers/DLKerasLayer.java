@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.scijava.param2.Parameter;
 
 /**
@@ -56,23 +55,10 @@ import org.scijava.param2.Parameter;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasLayer extends DLKerasTensorSpecsOutput {
-
-    /**
-     * The fully qualified name of the layer on Python side.
-     */
-    String getKerasIdentifier();
+public interface DLKerasLayer extends DLKerasTensorSpecsOutput, DLKerasObject {
 
     /**
      * @param layerName may be <code>null</code>, in which case the argument will be ignored
      */
     String getBackendRepresentation(String layerName);
-
-    void validateParameters() throws InvalidSettingsException;
-
-    /**
-     * @return a meaningful string representation of this layer, e.g. its back end representation
-     */
-    @Override
-    String toString();
 }

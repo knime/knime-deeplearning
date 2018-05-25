@@ -46,43 +46,43 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
-import org.knime.dl.python.util.DLPythonUtils;
-
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
-
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
+public abstract class DLKerasAbstractUtilityObject extends DLKerasAbstractObject implements DLKerasUtilityObject {
     
+    private final String m_name;
 
-    // Convenience method:
+    /**
+     * @param kerasIdentifier the identifier in Keras
+     * @param name human readable
+     */
+    public DLKerasAbstractUtilityObject(String kerasIdentifier, String name) {
+        super(kerasIdentifier);
+        m_name = checkNotNull(name);
+    }
 
     @Override
-    public String getBackendRepresentation(final String layerName) {
+    public String getBackendRepresentation() {
         final ArrayList<String> positionalParams = new ArrayList<>();
         final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
         populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
-        }
         return getKerasIdentifier() + "(" //
             + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
             + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
                 .collect(Collectors.joining(", ")) //
             + ")";
     }
-
+    
     @Override
-    public String toString() {
-        return getBackendRepresentation(null);
+    public String getName() {
+        return m_name;
     }
+
 }

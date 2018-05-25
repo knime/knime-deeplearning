@@ -46,43 +46,17 @@
  */
 package org.knime.dl.keras.core.layers;
 
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.stream.Collectors;
-
-import org.knime.dl.python.util.DLPythonUtils;
-
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * Utility objects include initializers, regularizers, constraints and activations.
+ * 
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
+public interface DLKerasUtilityObject extends DLKerasObject {
 
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
+    String getBackendRepresentation();
     
-
-    // Convenience method:
-
-    @Override
-    public String getBackendRepresentation(final String layerName) {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
-        }
-        return getKerasIdentifier() + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
-    }
-
-    @Override
-    public String toString() {
-        return getBackendRepresentation(null);
-    }
+    /**
+     * @return a human readable name
+     */
+    String getName();
 }

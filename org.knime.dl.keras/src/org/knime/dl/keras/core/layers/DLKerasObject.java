@@ -46,43 +46,23 @@
  */
 package org.knime.dl.keras.core.layers;
 
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.stream.Collectors;
-
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.core.node.InvalidSettingsException;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
+public interface DLKerasObject {
 
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
-    
+    /**
+     * The fully qualified name of the layer on Python side.
+     */
+    String getKerasIdentifier();
 
-    // Convenience method:
+    void validateParameters() throws InvalidSettingsException;
 
-    @Override
-    public String getBackendRepresentation(final String layerName) {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
-        }
-        return getKerasIdentifier() + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
-    }
+    /**
+     * @return a meaningful string representation of this layer, e.g. its back end representation
+     */
+    String toString();
 
-    @Override
-    public String toString() {
-        return getBackendRepresentation(null);
-    }
 }

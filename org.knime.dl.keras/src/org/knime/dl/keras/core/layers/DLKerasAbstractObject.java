@@ -46,43 +46,31 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.stream.Collectors;
 
-import org.knime.dl.python.util.DLPythonUtils;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
+public abstract class DLKerasAbstractObject implements DLKerasObject {
 
-    protected DLKerasAbstractLayer(final String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
-    
+    private final String m_kerasIdentifier;
 
-    // Convenience method:
-
-    @Override
-    public String getBackendRepresentation(final String layerName) {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        if (layerName != null) {
-            namedParams.put("name", DLPythonUtils.toPython(layerName));
-        }
-        return getKerasIdentifier() + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
+    /**
+     * 
+     */
+    public DLKerasAbstractObject(final String kerasIdentifier) {
+        m_kerasIdentifier = checkNotNull(kerasIdentifier);
     }
 
     @Override
-    public String toString() {
-        return getBackendRepresentation(null);
+    public String getKerasIdentifier() {
+        return m_kerasIdentifier;
     }
+
+    protected abstract void populateParameters(List<String> positionalParams, Map<String, String> namedParams);
+
 }
