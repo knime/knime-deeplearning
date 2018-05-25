@@ -46,8 +46,12 @@
  */
 package org.knime.dl.keras.core.layers.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
@@ -58,6 +62,7 @@ import org.scijava.param2.Parameter;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer {
 
@@ -67,29 +72,115 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
     @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
     int m_outputDim;
 
+    // TODO add parameters for initializer, regularizer and constraint
+
+    @Parameter(label = "Mask zero")
+    boolean m_maskZero = false;
+
+    @Parameter(label = "Input length")
+    Optional<String> m_inputLength = Optional.empty();
+
+    /**
+     * Constructor for embedding layers.
+     */
     public DLKerasEmbeddingLayer() {
         super("keras.layers.Embedding");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        if (m_inputDim < 1 || m_inputDim > 1000000) {
+            throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
+        }
+        if (m_outputDim < 1 || m_outputDim > 1000000) {
+            throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
+        }
+        if (hasInputLength()) {
+            Long[] inputLength;
+            try {
+                inputLength = parseInputLength();
+            } catch (NumberFormatException e) {
+                throw new InvalidSettingsException("The provided input length is invalid.", e);
+            }
+            for (Long dim : inputLength) {
+                if (dim == null) {
+                    throw new InvalidSettingsException("If input length is given it must not contain null dimensions.");
+                }
+                if (dim < 1) {
+                    throw new InvalidSettingsException("Invalid input length dimension: " + dim);
+                }
+            }
+            throw new InvalidSettingsException("Invalid input length: " + m_inputLength);
+        }
+    }
+
+    private boolean hasInputLength() {
+        return m_inputLength.isPresent();
+    }
+
+    private Long[] parseInputLength() {
+        return DLPythonUtils.parseShape(
+            m_inputLength.orElseThrow(() -> new IllegalStateException("The input length parameter is not provided.")));
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        if (!int.class.equals(inputElementType)) {
+            throw new DLInvalidTensorSpecException("The input to an embedding layer must be of type integer.");
+        }
+        if (m_inputLength != null) {
+            checkInputLength(inputShape);
+        }
+    }
+
+    private void checkInputLength(Long[] inputShape) throws DLInvalidTensorSpecException {
+        Long[] inputLength = parseInputLength();
+        if (inputLength.length != inputShape.length - 1) {
+            throw createInvalidInputShapeException(inputLength, inputShape);
+        }
+        for (int i = 0; i < inputLength.length; i++) {
+            Long l = inputLength[i];
+            Long incoming = inputShape[i + 1];
+            if (l != null && incoming != null && !l.equals(incoming)) {
+                throw createInvalidInputShapeException(inputLength, inputShape);
+            }
+        }
+    }
+
+    private static DLInvalidTensorSpecException createInvalidInputShapeException(Long[] inputLength,
+        Long[] inputShape) {
+        return new DLInvalidTensorSpecException("'Input length' is " + Arrays.deepToString(inputLength)
+            + ", but received input has shape " + Arrays.deepToString(inputShape));
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        if (!hasInputLength()) {
+            return Stream.concat(Arrays.stream(inputShape), Stream.of(m_outputDim)).toArray(Long[]::new);
+        }
+        Long[] inLength = parseInputLength();
+        for (int i = 0; i < inLength.length; i++) {
+            if (inLength[i] == 0) {
+                inLength[i] = inputShape[i + 1];
+            }
+        }
+        return Stream.concat(Stream.concat(Stream.of(inputShape[0]), Arrays.stream(inLength)), Stream.of(m_outputDim))
+            .toArray(Long[]::new);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_inputDim));
         positionalParams.add(DLPythonUtils.toPython(m_outputDim));
+        namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
+        namedParams.put("input_length", hasInputLength() ? "None" : inputLengthToPython());
+        // TODO populate remaining parameters
     }
+
+    private String inputLengthToPython() {
+        return Arrays.stream(parseInputLength()).map(d -> d == null ? "None" : d.toString())
+            .collect(Collectors.joining(", ", "(", ")"));
+    }
+
 }

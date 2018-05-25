@@ -54,6 +54,7 @@ import org.knime.nodegen.base.function.port.PortToPortFunction;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasEmbeddingLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
 
