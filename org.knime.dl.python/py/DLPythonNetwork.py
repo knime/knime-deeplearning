@@ -108,7 +108,7 @@ class DLPythonNetwork(object):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def execute(self, in_data, batch_size, output_identifiers=None):
+    def execute(self, in_data, batch_size, output_identifiers):
         raise NotImplementedError()
 
     @abc.abstractmethod

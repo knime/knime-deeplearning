@@ -118,26 +118,26 @@ class DLKerasNetwork(DLPythonNetwork):
             self._spec = self._extract_model_spec()
         return self._spec
 
-    def execute(self, in_data, batch_size, output_identifiers=None):
+    def execute(self, in_data, batch_size, output_identifiers):
         model = self._model
         X = self._format_input(in_data, batch_size)
-        if output_identifiers is None:
-            Y = model.predict(X, batch_size=batch_size, verbose=0)  # don't change to predict_proba
-            return self._format_output(Y)
-        else:
-            outputs = []
-            for id in output_identifiers:
-                matchObj = re.match(r'^(.*)_(\d):(\d)$', id)
-                layer_name = matchObj.group(1)
-                node_idx = int(matchObj.group(2))
-                tensor_idx = int(matchObj.group(3))
-                output_tensors = model.get_layer(layer_name).get_output_at(node_idx)
-                if not isinstance(output_tensors, list):
-                    output_tensors = [output_tensors]
-                outputs.append(output_tensors[tensor_idx])
-            intermediate_model = Model(inputs=model.inputs, outputs=outputs)
-            Y = intermediate_model.predict(X, batch_size=batch_size, verbose=0)
-            return self._format_output(Y, output_identifiers)
+
+        # Get the requested output tensors
+        outputs = []
+        for id in output_identifiers:
+            matchObj = re.match(r'^(.*)_(\d):(\d)$', id)
+            layer_name = matchObj.group(1)
+            node_idx = int(matchObj.group(2))
+            tensor_idx = int(matchObj.group(3))
+            output_tensors = model.get_layer(layer_name).get_output_at(node_idx)
+            if not isinstance(output_tensors, list):
+                output_tensors = [output_tensors]
+            outputs.append(output_tensors[tensor_idx])
+
+        # Build the model with the requested outputs
+        intermediate_model = Model(inputs=model.inputs, outputs=outputs)
+        Y = intermediate_model.predict(X, batch_size=batch_size, verbose=0)
+        return self._format_output(Y, output_identifiers)
 
     def train(self, training_data_supplier, validation_data_supplier=None):
         assert training_data_supplier is not None
@@ -194,7 +194,7 @@ class DLKerasNetwork(DLPythonNetwork):
     def _format_input(self, in_data, batch_size):
         return self._format_tensor(in_data, self.spec.input_specs, batch_size)
 
-    def _format_output(self, Y, output_identifiers=None):
+    def _format_output(self, Y, output_identifiers):
         # some networks have multiple outputs, some do not
         if not isinstance(Y, (list, tuple)):
             Y = [Y]
