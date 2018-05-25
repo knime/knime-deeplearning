@@ -73,21 +73,20 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
 		super(context);
 	}
 
-	@Override
-	public DLKerasCNTKNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		getContext(cancelable).executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
+    @Override
+    public DLKerasCNTKNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
+        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        getContext(cancelable).executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
         final DLTensorSpec[] inputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(INPUT_SPECS_NAME,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
-		// final DLTensorSpec[] hiddenOutputSpecs =
-		// (DLTensorSpec[]) m_kernel.getData(DLPythonCommandsConfig.INTERMEDIATE_OUTPUT_SPECS_NAME,
-		// new DLKerasTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE)).getTable();
+        final DLTensorSpec[] hiddenOutputSpecs =
+            (DLTensorSpec[])getContext(cancelable).getDataFromKernel(HIDDEN_OUTPUT_SPECS_NAME,
+                new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
         final DLTensorSpec[] outputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(OUTPUT_SPECS_NAME,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
-		// TODO: Keras does not expose "hidden outputs" (see above) for the moment as we're not yet able to
-		// extract those via the executor node. Support for this will be added in a future enhancement patch.
-		return new DLKerasCNTKNetworkSpec(inputSpecs, new DLTensorSpec[0] /* TODO hiddenOutputSpecs */, outputSpecs);
-	}
+
+        return new DLKerasCNTKNetworkSpec(inputSpecs, hiddenOutputSpecs, outputSpecs);
+    }
 
 	@Override
 	protected String getSetupEnvironmentCode() {
