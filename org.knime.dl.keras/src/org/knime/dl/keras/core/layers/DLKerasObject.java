@@ -54,15 +54,16 @@ import org.knime.core.node.InvalidSettingsException;
 public interface DLKerasObject {
 
     /**
-     * The fully qualified name of the layer on Python side.
+     * @return the fully qualified name of the object on Python side.
      */
     String getKerasIdentifier();
 
     void validateParameters() throws InvalidSettingsException;
 
     /**
-     * @return a meaningful string representation of this layer, e.g. its back end representation
+     * @return a meaningful string representation of this object, e.g. its back end representation
      */
+    @Override
     String toString();
 
 }

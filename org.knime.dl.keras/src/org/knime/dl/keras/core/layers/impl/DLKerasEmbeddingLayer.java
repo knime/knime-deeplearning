@@ -67,18 +67,18 @@ import org.scijava.param2.Parameter;
 public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer {
 
     @Parameter(label = "Input dimension", min = "1", max = "1000000", stepSize = "1")
-    int m_inputDim;
+    private int m_inputDim;
 
     @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
-    int m_outputDim;
+    private int m_outputDim;
 
     // TODO add parameters for initializer, regularizer and constraint
 
     @Parameter(label = "Mask zero")
-    boolean m_maskZero = false;
+    private boolean m_maskZero = false;
 
     @Parameter(label = "Input length")
-    Optional<String> m_inputLength = Optional.empty();
+    private Optional<String> m_inputLength = Optional.empty();
 
     /**
      * Constructor for embedding layers.
@@ -110,7 +110,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
                     throw new InvalidSettingsException("Invalid input length dimension: " + dim);
                 }
             }
-            throw new InvalidSettingsException("Invalid input length: " + m_inputLength);
         }
     }
 

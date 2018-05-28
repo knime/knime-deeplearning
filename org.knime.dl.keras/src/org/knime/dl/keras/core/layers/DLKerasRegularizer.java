@@ -112,7 +112,7 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-            namedParams.put("l1", toPython(m_l2));
+            namedParams.put("l2", toPython(m_l2));
         }
         
     }

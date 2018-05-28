@@ -60,7 +60,7 @@ public final class DLParameterValidationUtils {
     }
     
     /**
-     * Checks if <b>object</b> is contained in <b>set</b> and throws an exception if not.
+     * Checks if <b>object</b> is contained in <b>choices</b> and throws an exception if not.
      * 
      * @param object the object that should be contained in <b>set</b>
      * @param choices the set of possible choices
