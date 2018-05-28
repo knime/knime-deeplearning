@@ -125,7 +125,7 @@ class DLKerasNetwork(DLPythonNetwork):
         # Get the requested output tensors
         outputs = []
         for id in output_identifiers:
-            matchObj = re.match(r'^(.*)_(\d):(\d)$', id)
+            matchObj = re.match(r'^(.*)_(\d+):(\d+)$', id)
             layer_name = matchObj.group(1)
             node_idx = int(matchObj.group(2))
             tensor_idx = int(matchObj.group(3))
