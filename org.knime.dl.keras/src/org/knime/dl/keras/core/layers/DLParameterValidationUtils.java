@@ -46,25 +46,32 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLParameterValidationUtils {
+
+    private final static String PARTIAL_SHAPE_PATTERN = "(\\d+|\\?)(,(\\d+|\\?))*";
+
+    private final static String SHAPE_PATTERN = "\\d+(,\\d+))*";
 
     private DLParameterValidationUtils() {
         // static utility class
     }
-    
+
     /**
      * Checks if <b>object</b> is contained in <b>choices</b> and throws an exception if not.
      * 
      * @param object the object that should be contained in <b>set</b>
      * @param choices the set of possible choices
-     * @param choiceLabel a name for what is contained in <b>choices</b> 
+     * @param choiceLabel a name for what is contained in <b>choices</b>
      * @throws InvalidSettingsException if <b>set</b> does not contain <b>object</b>
      * 
      */
@@ -73,5 +80,61 @@ public final class DLParameterValidationUtils {
             throw new InvalidSettingsException("Unsupported " + choiceLabel + " '" + object + "'.");
         }
     }
-    
+
+    /**
+     * Throws an exception of the the values of the specified array are lower or equal to zero.
+     * 
+     * @param tuple the tuple to check
+     * @param parameterName the parameter name for reporting
+     * @throws InvalidSettingsException
+     */
+    public static void checkTupleNotZeroNotNegative(final Long[] tuple, final String parameterName)
+        throws InvalidSettingsException {
+        for (Long l : tuple) {
+            if (l != null && l <= 0) {
+                throw new InvalidSettingsException(
+                    "Value/s of parameter " + parameterName + " must not be zero or negative.");
+            }
+        }
+    }
+
+    /**
+     * Throws an exception of the the values of the specified array length is not equal to the specified length.
+     * 
+     * @param tuple the tuple to check
+     * @param expectedLength the expected array length
+     * @param parameterName the parameter name for reporting
+     * @throws InvalidSettingsException
+     */
+    public static void checkTupleLength(final Long[] tuple, final int expectedLength, final String parameterName)
+        throws InvalidSettingsException {
+        if (tuple.length != expectedLength) {
+            throw new InvalidSettingsException(
+                "There must be exactly " + expectedLength + " values in tuple for parameter " + parameterName + ".");
+        }
+    }
+
+    /**
+     * Checks if the specified string representation of a tuple an be parsed to a shape array and throws an exception if
+     * not.
+     * 
+     * @param tuple the tuple to check
+     * @param partialAllowed whether partial shapes (question marks in the String) are allowed or not
+     * @throws InvalidSettingsException
+     */
+    public static void checkTupleString(final String tuple, final boolean partialAllowed)
+        throws InvalidSettingsException {
+        if (partialAllowed) {
+            if (!tuple.matches(PARTIAL_SHAPE_PATTERN)) {
+                throw new InvalidSettingsException(
+                    "Invalid tuple format: " + tuple + ". Must be digits or a question mark separated by a comma.");
+            }
+        } else {
+            if (!tuple.matches(SHAPE_PATTERN)) {
+                throw new InvalidSettingsException(
+                    "Invalid tuple format: " + tuple + ". Must be digits separated by a comma.");
+            }
+        }
+
+    }
 }

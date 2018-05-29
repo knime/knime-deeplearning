@@ -128,7 +128,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
         if (!int.class.equals(inputElementType)) {
             throw new DLInvalidTensorSpecException("The input to an embedding layer must be of type integer.");
         }
-        if (m_inputLength != null) {
+        if (hasInputLength()) {
             checkInputLength(inputShape);
         }
     }
@@ -173,13 +173,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
         positionalParams.add(DLPythonUtils.toPython(m_inputDim));
         positionalParams.add(DLPythonUtils.toPython(m_outputDim));
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
-        namedParams.put("input_length", hasInputLength() ? "None" : inputLengthToPython());
+        namedParams.put("input_length", hasInputLength() ? "None" : DLPythonUtils.toPython(parseInputLength()));
         // TODO populate remaining parameters
     }
-
-    private String inputLengthToPython() {
-        return Arrays.stream(parseInputLength()).map(d -> d == null ? "None" : d.toString())
-            .collect(Collectors.joining(", ", "(", ")"));
-    }
-
 }

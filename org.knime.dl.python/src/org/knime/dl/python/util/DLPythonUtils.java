@@ -58,6 +58,7 @@ import java.util.function.Function;
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLPythonUtils {
 
@@ -179,6 +180,10 @@ public final class DLPythonUtils {
 		}
 		return toPythonList(str);
 	}
+	
+	public static String toPython(final Long[] la) {
+        return toPythonList(Arrays.stream(la).map(l -> l == null ? NONE : toPython(l)).toArray(String[]::new));
+    }
 
 	public static String toPython(final String[] sa) {
 		final String[] str = new String[sa.length];
