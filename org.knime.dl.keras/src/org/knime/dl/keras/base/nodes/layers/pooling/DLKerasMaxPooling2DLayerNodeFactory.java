@@ -48,7 +48,7 @@ package org.knime.dl.keras.base.nodes.layers.pooling;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
 import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
-import org.knime.dl.keras.core.layers.impl.DLKerasMaxPooling2DLayer;
+import org.knime.dl.keras.core.layers.impl.pooling.DLKerasMaxPooling2DLayer;
 import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**

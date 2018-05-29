@@ -44,14 +44,16 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.core.layers.impl.pooling;
 
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.scijava.param2.Parameter;
 
@@ -67,8 +69,8 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryInnerLay
     @Parameter(label = "Strides")
     String m_strides = "1, 1";
 
-    @Parameter(label = "Padding", choices = {"same", "valid"})
-    String m_padding = "valid";
+    @Parameter(label = "Data Format", choices = {"channels_last", "channels_first"})
+    String m_dataFormat = "channels_last";
 
     public DLKerasMaxPooling2DLayer() {
         super("keras.layers.MaxPooling2D");
@@ -76,24 +78,28 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryInnerLay
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
+            new String[]{"Pool size", "Strides"}, 2);
+        DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.DATA_FORMATS, "data format");
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        // nothing to do here
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
+        Long[] strides = DLPythonUtils.parseShape(m_strides);
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides, "valid", m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
-        namedParams.put("padding", DLPythonUtils.toPython(m_padding));
+        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat));
     }
 }
