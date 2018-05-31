@@ -130,7 +130,7 @@ public final class DLConvolutionLayerUtils {
     /**
      * Computes the output shape for convolution like layers. The dilation rate is hardcoded to 1.
      * 
-     * @param inputShape the 2-D or 3-D convolutional input shape, also works for n-D
+     * @param inputShape the 1-D, 2-D or 3-D input shape + channel, also works for n-D
      * @param filterSize the filter in each spatial dimension
      * @param stride the stride in each spatial dimension
      * @param dialtion the dilation in each spatial dimension
@@ -145,15 +145,7 @@ public final class DLConvolutionLayerUtils {
             throw new RuntimeException("Convolutional parameters not specified for each dimension.");
         }
 
-        int channelIndex;
-        if (dataFormat.equals("channels_first")) {
-            channelIndex = 0;
-        } else if (dataFormat.equals("channels_last")) {
-            channelIndex = inputShape.length - 1;
-        } else {
-            throw new RuntimeException("Value " + dataFormat + " for data format parameter is not supported.");
-        }
-
+        int channelIndex = findChannelIndex(inputShape, dataFormat);
         Long[] newDims = IntStream.range(0, inputShape.length - 1).filter(i -> i != channelIndex)
             .mapToLong(i -> inputShape[i]).boxed().toArray(Long[]::new);
 
@@ -165,6 +157,29 @@ public final class DLConvolutionLayerUtils {
         } else {
             return Stream.concat(outputShape, Stream.of(inputShape[channelIndex])).toArray(Long[]::new);
         }
+    }
+
+    private static int findChannelIndex(final Long[] inputShape, final String dataFormat) {
+        int channelIndex;
+        if (dataFormat.equals("channels_first")) {
+            channelIndex = 0;
+        } else if (dataFormat.equals("channels_last")) {
+            channelIndex = inputShape.length - 1;
+        } else {
+            throw new RuntimeException("Value " + dataFormat + " for data format parameter is not supported.");
+        }
+        return channelIndex;
+    }
+
+    /**
+     * Computes the output shape for global pooling layers. Hence, just returning the value of the channel dimension.
+     * 
+     * @param inputShape the 1-D, 2-D or 3-D input shape + channel, also works for n-D
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @return resulting output shape after global pooling operation
+     */
+    public static Long[] computeGlobalPoolingOutputShape(final Long[] inputShape, final String dataFormat) {
+        return new Long[]{inputShape[findChannelIndex(inputShape, dataFormat)]};
     }
 
     /**
