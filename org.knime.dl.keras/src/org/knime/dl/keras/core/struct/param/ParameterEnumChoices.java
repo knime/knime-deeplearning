@@ -80,6 +80,11 @@ public class ParameterEnumChoices<T extends Enum<?>> implements ParameterChoices
                 }
 
                 @Override
+                public String toString() {
+                    return m_constants[idx].toString();
+                }
+
+                @Override
                 public T get() {
                     return m_constants[idx];
                 }

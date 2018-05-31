@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.layers;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasDistribution {
+public enum DLKerasDistribution implements DLKerasEnum {
         NORMAL("Normal", "normal"), UNIFORM("Uniform", "uniform");
 
     private String m_label;
@@ -61,12 +61,18 @@ public enum DLKerasDistribution {
         m_value = value;
     }
 
+    @Override
     public String value() {
         return m_value;
     }
 
     @Override
     public String toString() {
+        return label();
+    }
+
+    @Override
+    public String label() {
         return m_label;
     }
 }

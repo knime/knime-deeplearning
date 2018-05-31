@@ -51,7 +51,7 @@ package org.knime.dl.keras.core.layers;
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasPadding {
+public enum DLKerasPadding implements DLKerasEnum {
 
         VALID("Valid", "valid"), SAME("Same", "same"), FULL("Full", "full");
 
@@ -64,12 +64,18 @@ public enum DLKerasPadding {
         m_value = value;
     }
 
+    @Override
     public String value() {
         return m_value;
     }
 
     @Override
     public String toString() {
+        return label();
+    }
+
+    @Override
+    public String label() {
         return m_label;
     }
 }

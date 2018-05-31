@@ -111,13 +111,6 @@ public interface ParameterMember<T> extends Member<T> {
     }
 
     /**
-     * @return the available list of strings
-     */
-    default String[] strings() {
-        return null;
-    }
-
-    /**
      * Gets a human-readable label.
      * 
      * @return human readable label.

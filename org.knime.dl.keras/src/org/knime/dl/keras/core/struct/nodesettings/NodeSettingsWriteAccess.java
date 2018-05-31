@@ -87,14 +87,29 @@ class NodeSettingsWriteAccess extends AbstractStructAccess<MemberWriteAccess<?, 
                 (ValueWriteAccess<T, NodeSettingsWO>)new NodeSettingsStringAccessWO((Member<String>)member);
             writeAccess = casted;
         } else if (rawType.equals(String[].class)) {
-            writeAccess = null;
+            writeAccess = createPrimitiveArrayAccessWO(member);
+        } else if (rawType.isEnum()) {
+            writeAccess = createEnumAccessWO(member);
         } else {
-            writeAccess = createStructInstanceWriteAccess(member);
+            writeAccess = createObjectAccessWO(member);
         }
         return new DefaultMemberWriteAccess<>(member, writeAccess);
     }
 
-    private static <T> ValueWriteAccess<T, NodeSettingsWO> createStructInstanceWriteAccess(Member<T> member) {
+    private static <T> ValueWriteAccess<T, NodeSettingsWO> createEnumAccessWO(Member<T> member) {
+        return new ValueWriteAccess<T, NodeSettingsWO>() {
+
+            @Override
+            public void set(NodeSettingsWO storage, T value) throws InvalidSettingsException {
+                if (value != null) {
+                    final Enum<?> casted = ((Enum<?>)value);
+                    storage.addString(member.getKey(), casted.name());
+                }
+            }
+        };
+    }
+
+    private static <T> ValueWriteAccess<T, NodeSettingsWO> createObjectAccessWO(Member<T> member) {
         return new ValueWriteAccess<T, NodeSettingsWO>() {
             @Override
             public void set(NodeSettingsWO settings, T obj) throws InvalidSettingsException {

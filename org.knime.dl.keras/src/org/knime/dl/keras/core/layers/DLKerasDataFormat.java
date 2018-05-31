@@ -51,7 +51,7 @@ package org.knime.dl.keras.core.layers;
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasDataFormat {
+public enum DLKerasDataFormat implements DLKerasEnum {
 
         CHANNEL_FIRST("Channel First", "channel_first"), CHANNEL_LAST("Channel Last", "channel_last");
 
@@ -64,13 +64,18 @@ public enum DLKerasDataFormat {
         m_value = value;
     }
 
+    @Override
     public String value() {
         return m_value;
     }
 
     @Override
     public String toString() {
-        return m_label;
+        return label();
     }
 
+    @Override
+    public String label() {
+        return m_label;
+    }
 }

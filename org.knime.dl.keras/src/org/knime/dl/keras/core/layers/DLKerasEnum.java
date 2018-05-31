@@ -49,30 +49,15 @@ package org.knime.dl.keras.core.layers;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasMode implements DLKerasEnum {
-        FAN_IN("Fan In", "fan_in"), FAN_OUT("Fan Out", "fan_out"), FAN_AVG("Fan Average", "fan_avg");
+public interface DLKerasEnum {
+    /**
+     * @return the value
+     */
+    String value();
 
-    private String m_label;
+    /**
+     * @return a human readable label
+     */
+    String label();
 
-    private String m_value;
-
-    DLKerasMode(String label, String value) {
-        m_label = label;
-        m_value = value;
-    }
-
-    @Override
-    public String value() {
-        return m_value;
-    }
-
-    @Override
-    public String toString() {
-        return label();
-    }
-
-    @Override
-    public String label() {
-        return m_label;
-    }
 }

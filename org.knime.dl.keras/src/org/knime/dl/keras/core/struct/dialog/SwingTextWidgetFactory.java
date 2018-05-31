@@ -74,8 +74,7 @@ class SwingTextWidgetFactory implements SwingWidgetFactory<String> {
 
     @Override
     public boolean supports(final Member<?> member) {
-        return ClassUtils.isText(member.getRawType()) && ((ParameterMember<?>)member).isRequired()
-            && ((ParameterMember<?>)member).strings().length == 0;
+        return ClassUtils.isText(member.getRawType()) && ((ParameterMember<?>)member).isRequired();
     }
 
     @Override

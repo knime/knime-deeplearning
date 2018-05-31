@@ -58,6 +58,11 @@ public interface DLKerasObject {
      */
     String getKerasIdentifier();
 
+    /**
+     * Validates parameters
+     * 
+     * @throws InvalidSettingsException
+     */
     void validateParameters() throws InvalidSettingsException;
 
     /**

@@ -87,18 +87,39 @@ class NodeSettingsReadAccess extends AbstractStructAccess<MemberReadAccess<?, No
                 (ValueReadAccess<T, NodeSettingsRO>)new NodeSettingsStringAccessRO((Member<String>)member);
             readAccess = casted;
         } else if (rawType.equals(String[].class)) {
-            readAccess = null;
+            readAccess = createPrimitiveArrayAccessRO(member);
+        } else if (rawType.isEnum()) {
+            readAccess = createEnumAccessRO(member);
         } else {
-            readAccess = createStructInstanceReadAccess(member);
+            readAccess = createObjectAccessRO(member);
         }
         return new DefaultMemberReadAccess<>(member, readAccess);
+
     }
 
-    private static <T> ValueReadAccess<T, NodeSettingsRO> createStructInstanceReadAccess(Member<T> member) {
+    private static <T> ValueReadAccess<T, NodeSettingsRO> createEnumAccessRO(Member<T> member) {
+        return new ValueReadAccess<T, NodeSettingsRO>() {
+
+            @Override
+            public T get(NodeSettingsRO storage) throws InvalidSettingsException {
+                final String key = member.getKey();
+                if (storage.containsKey(key)) {
+                    return enumValue(storage.getString(key), member.getRawType());
+                }
+                return null;
+            }
+
+            public <V extends Enum<V>> V enumOf(final Class<V> type, final String value) {
+                return Enum.valueOf(type, value);
+            }
+        };
+    }
+
+    private static <T> ValueReadAccess<T, NodeSettingsRO> createObjectAccessRO(Member<T> member) {
         return new ValueReadAccess<T, NodeSettingsRO>() {
             @Override
             public T get(NodeSettingsRO settings) throws InvalidSettingsException {
-                // TODO Caching of accesses
+                // String ODO Caching of accesses
                 try {
                     if (settings.containsKey(member.getKey())) {
                         NodeSettingsRO nestedSettings = settings.getNodeSettings(member.getKey());
@@ -131,6 +152,15 @@ class NodeSettingsReadAccess extends AbstractStructAccess<MemberReadAccess<?, No
 
     private static <T> ValueReadAccess<T, NodeSettingsRO> createPrimitiveArrayAccessRO(Member<T> member) {
         return new NodeSettingsPrimitiveArrayAccessRO<>(member);
+    }
+
+    // TODO use types version
+    private static <T> T enumValue(final String name, final Class<T> dest) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        final Enum result = Enum.valueOf((Class)dest, name);
+        @SuppressWarnings("unchecked")
+        final T typedResult = (T)result;
+        return typedResult;
     }
 
 }

@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.layers;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasDataType {
+public enum DLKerasDataType implements DLKerasEnum {
         BOOL("Boolean", "bool"), FLOAT_16("Float 16", "float16"), FLOAT_32("Float 32", "float32"),
         INT_8("Int 8", "int8"), INT_16("Int 16", "int16"), INT_32("Int 32", "int32"), INT_64("Int 64", "int64");
 
@@ -62,12 +62,18 @@ public enum DLKerasDataType {
         m_value = value;
     }
 
+    @Override
     public String value() {
         return m_value;
     }
 
     @Override
     public String toString() {
+        return label();
+    }
+
+    @Override
+    public String label() {
         return m_label;
     }
 }
