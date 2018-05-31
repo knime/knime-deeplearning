@@ -73,6 +73,15 @@ public final class DLConvolutionLayerUtils {
      * Supported padding modes.
      */
     public static final Set<String> PADDINGSS = Collections.unmodifiableSet(Sets.newHashSet("same", "valid"));
+    
+    /**
+     * Default dilations for pooling layers.
+     */
+    public static final Long[] DEFAULT_1D_DILATION = new Long[]{1L};
+    @SuppressWarnings("javadoc")
+    public static final Long[] DEFAULT_2D_DILATION = new Long[]{1L, 1L};
+    @SuppressWarnings("javadoc")
+    public static final Long[] DEFAULT_3D_DILATION = new Long[]{1L, 1L, 1L};
 
     private DLConvolutionLayerUtils() {
         // static utility class
@@ -124,12 +133,13 @@ public final class DLConvolutionLayerUtils {
      * @param inputShape the 2-D or 3-D convolutional input shape, also works for n-D
      * @param filterSize the filter in each spatial dimension
      * @param stride the stride in each spatial dimension
+     * @param dialtion the dilation in each spatial dimension
      * @param padding the padding mode to use
      * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
      * @return resulting output shape after convolution operation with specified parameters
      */
     public static Long[] computeOutputShape(final Long[] inputShape, final Long[] filterSize, final Long[] stride,
-        final String padding, final String dataFormat) {
+        final Long[] dialtion, final String padding, final String dataFormat) {
 
         if ((inputShape.length - 1) != filterSize.length || filterSize.length != stride.length) {
             throw new RuntimeException("Convolutional parameters not specified for each dimension.");
@@ -148,7 +158,7 @@ public final class DLConvolutionLayerUtils {
             .mapToLong(i -> inputShape[i]).boxed().toArray(Long[]::new);
 
         Stream<Long> outputShape = IntStream.range(0, newDims.length - 1)
-            .mapToLong(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], 1L, padding)).boxed();
+            .mapToLong(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], dialtion[i], padding)).boxed();
 
         if (dataFormat.equals("channels_first")) {
             return Stream.concat(Stream.of(inputShape[channelIndex]), outputShape).toArray(Long[]::new);

@@ -60,6 +60,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
 
@@ -93,7 +94,8 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
     protected Long[] inferOutputShape(final Long[] inputShape) {
         Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
         Long[] strides = DLPythonUtils.parseShape(m_strides);
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides, "valid", m_dataFormat);
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
+            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, "valid", m_dataFormat);
     }
 
     @Override
