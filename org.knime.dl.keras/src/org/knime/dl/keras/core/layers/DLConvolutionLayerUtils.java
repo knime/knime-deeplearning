@@ -72,8 +72,8 @@ public final class DLConvolutionLayerUtils {
     /**
      * Supported padding modes.
      */
-    public static final Set<String> PADDINGSS = Collections.unmodifiableSet(Sets.newHashSet("same", "valid"));
-    
+    public static final Set<String> PADDINGS = Collections.unmodifiableSet(Sets.newHashSet("valid", "same", "full"));
+
     /**
      * Default dilations for pooling layers.
      */
@@ -193,6 +193,8 @@ public final class DLConvolutionLayerUtils {
             case "valid":
                 outputLength = inputLength - dilatedFilterSize + 1;
                 break;
+            case "full":
+                outputLength = inputLength + dilatedFilterSize - 1;
             default:
                 throw new RuntimeException("Value " + padding + " for padding parameter is not supported.");
         }

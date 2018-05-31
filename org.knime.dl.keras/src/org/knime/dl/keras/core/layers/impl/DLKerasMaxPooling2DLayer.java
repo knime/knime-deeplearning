@@ -70,8 +70,11 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Strides")
     String m_strides = "1, 1";
 
-    @Parameter(label = "Data Format", strings = {"channels_last", "channels_first"})
-    String m_dataFormat = "channels_last";
+    @Parameter(label = "Padding", choices = {"channels_last", "channels_first"})
+    String m_padding = "channels_last";
+    
+    @Parameter(label = "Data Format", choices = {"valid", "same", "full"})
+    String m_dataFormat = "valid";
 
     public DLKerasMaxPooling2DLayer() {
         super("keras.layers.MaxPooling2D");
@@ -82,6 +85,7 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
             new String[]{"Pool size", "Strides"}, 2);
         DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.DATA_FORMATS, "data format");
+        DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.PADDINGS, "data format");
     }
 
     @Override
@@ -95,7 +99,7 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
         Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
         Long[] strides = DLPythonUtils.parseShape(m_strides);
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
-            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, "valid", m_dataFormat);
+            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding, m_dataFormat);
     }
 
     @Override
@@ -103,5 +107,6 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat));
+        namedParams.put("padding", DLPythonUtils.toPython(m_padding));
     }
 }
