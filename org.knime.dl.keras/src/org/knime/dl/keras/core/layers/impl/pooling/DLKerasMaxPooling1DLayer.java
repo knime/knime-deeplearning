@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.core.layers.impl.pooling;
 
 import java.util.List;
 import java.util.Map;
@@ -58,32 +58,32 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Pool size")
-    private String m_poolSize = "2, 2";
+    private String m_poolSize = "2";
 
     @Parameter(label = "Strides")
-    private String m_strides = "1, 1";
+    private String m_strides = "1";
 
-    @Parameter(label = "Data Format", strings = {"channels_last", "channels_first"})
+    /**
+     * This is hard-coded to "channels_last" in Keras
+     */
     private String m_dataFormat = "channels_last";
 
     @Parameter(label = "Padding", strings = {"valid", "same", "full"})
     private String m_padding = "valid";
 
-    public DLKerasMaxPooling2DLayer() {
-        super("keras.layers.MaxPooling2D");
+    public DLKerasMaxPooling1DLayer() {
+        super("keras.layers.MaxPooling1D");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
-            new String[]{"Pool size", "Strides"}, 2);
+            new String[]{"Pool size", "Strides"}, 1);
         DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.DATA_FORMATS, "data format");
         DLParameterValidationUtils.checkContains(m_padding, DLConvolutionLayerUtils.PADDINGS, "data format");
     }
@@ -99,7 +99,7 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
         Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
         Long[] strides = DLPythonUtils.parseShape(m_strides);
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
-            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding, m_dataFormat);
+            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding, m_dataFormat);
     }
 
     @Override

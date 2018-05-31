@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.core.layers.impl.pooling;
 
 import java.util.List;
 import java.util.Map;
@@ -62,22 +62,22 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasAveragePooling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Pool size")
-    private String m_poolSize = "2, 2";
+    String m_poolSize = "2, 2";
 
     @Parameter(label = "Strides")
-    private String m_strides = "1, 1";
+    String m_strides = "1, 1";
 
     @Parameter(label = "Data Format", strings = {"channels_last", "channels_first"})
-    private String m_dataFormat = "channels_last";
+    String m_dataFormat = "channels_last";
 
     @Parameter(label = "Padding", strings = {"valid", "same", "full"})
-    private String m_padding = "valid";
+    String m_padding = "valid";
 
-    public DLKerasMaxPooling2DLayer() {
-        super("keras.layers.MaxPooling2D");
+    public DLKerasAveragePooling2DLayer() {
+        super("keras.layers.AveragePooling2D");
     }
 
     @Override
