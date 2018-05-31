@@ -47,16 +47,12 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.python.util.DLPythonUtils;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
@@ -64,22 +60,13 @@ import com.google.common.collect.Sets;
 public final class DLConvolutionLayerUtils {
 
     /**
-     * Supported data formats.
-     */
-    public static final Set<String> DATA_FORMATS =
-        Collections.unmodifiableSet(Sets.newHashSet("channels_last", "channels_first"));
-
-    /**
-     * Supported padding modes.
-     */
-    public static final Set<String> PADDINGS = Collections.unmodifiableSet(Sets.newHashSet("valid", "same", "full"));
-
-    /**
      * Default dilations for pooling layers.
      */
     public static final Long[] DEFAULT_1D_DILATION = new Long[]{1L};
+
     @SuppressWarnings("javadoc")
     public static final Long[] DEFAULT_2D_DILATION = new Long[]{1L, 1L};
+
     @SuppressWarnings("javadoc")
     public static final Long[] DEFAULT_3D_DILATION = new Long[]{1L, 1L, 1L};
 

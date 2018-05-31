@@ -44,29 +44,29 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.param;
+package org.knime.dl.keras.core.layers;
 
 /**
- * A single parameter choice option. See {@link ParameterChoices}.
- * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * 
- * @param <T> the type of the {@link ParameterChoice}
  */
-public interface ParameterChoice<T> {
+public enum DLKerasMode {
+        FAN_IN("Fan In", "fan_in"), FAN_OUT("Fan Out", "fan_out"), FAN_AVG("Fan Average", "fan_avg");
 
-    /**
-     * @return concrete type of choice
-     */
-    Class<T> getRawType();
+    private String m_label;
 
-    /**
-     * @return key of choice
-     */
-    String getKey();
+    private String m_value;
 
-    /**
-     * @return an instance of <T>
-     */
-    T get();
+    DLKerasMode(String label, String value) {
+        m_label = label;
+        m_value = value;
+    }
+
+    public String value() {
+        return m_value;
+    }
+
+    @Override
+    public String toString() {
+        return m_label;
+    }
 }

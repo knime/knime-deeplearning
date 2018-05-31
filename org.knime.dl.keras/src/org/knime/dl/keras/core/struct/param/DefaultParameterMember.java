@@ -81,11 +81,6 @@ abstract class DefaultParameterMember<T> implements ParameterMember<T> {
 
     // -- ParameterMember methods --
 
-    @Override
-    public String[] strings() {
-        return getAnnotation().strings();
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public ParameterChoices<T> choices() {
@@ -101,14 +96,15 @@ abstract class DefaultParameterMember<T> implements ParameterMember<T> {
                 throw new IllegalStateException(
                     "Can't create instance of a choice. Most likely empty constructor is missing.", e);
             }
-        } else {
-            String[] strings = getAnnotation().strings();
-            if (strings.length > 0) {
-                return (ParameterChoices<T>)new ParameterStringChoices(strings);
-            }
+        } else if (getRawType().isEnum()) {
+            // TODO urks
+            return createEnumChoices((Class)getRawType());
         }
-        // TODO add choices wrapper for enum.
         return null;
+    }
+
+    private <V extends Enum<V>> ParameterChoices<V> createEnumChoices(Class<V> rawType) {
+        return new ParameterEnumChoices<>(rawType.getEnumConstants());
     }
 
     @Override

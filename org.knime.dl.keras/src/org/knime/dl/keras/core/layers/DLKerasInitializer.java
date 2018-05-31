@@ -48,16 +48,12 @@ package org.knime.dl.keras.core.layers;
 
 import static org.knime.dl.python.util.DLPythonUtils.toPython;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -229,20 +225,14 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
      */
     static final class DLKerasVarianceScalingInitializer extends DLKerasAbstractSeededInitializer {
 
-        private static final Set<String> MODES =
-            Collections.unmodifiableSet(Sets.newHashSet("fan_in", "fan_out", "fan_avg"));
-
-        private static final Set<String> DISTRIBUTIONS =
-            Collections.unmodifiableSet(Sets.newHashSet("normal", "uniform"));
-
         @Parameter(label = "Scale")
         private float m_scale = 1.0f;
 
-        @Parameter(label = "Mode", strings = {"fan_in", "fan_out", "fan_avg"})
-        private String m_mode = "fan_in";
+        @Parameter(label = "Mode")
+        private DLKerasMode m_mode = DLKerasMode.FAN_IN;
 
-        @Parameter(label = "Distribution", strings = {"normal", "uniform"})
-        private String m_distribution = "normal";
+        @Parameter(label = "Distribution")
+        private DLKerasDistribution m_distribution = DLKerasDistribution.NORMAL;
 
         /**
          */
@@ -253,8 +243,8 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("scale", toPython(m_scale));
-            namedParams.put("mode", toPython(m_mode));
-            namedParams.put("distribution", toPython(m_distribution));
+            namedParams.put("mode", toPython(m_mode.value()));
+            namedParams.put("distribution", toPython(m_distribution.value()));
             super.populateParameters(positionalParams, namedParams);
         }
 
@@ -263,8 +253,6 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
             if (m_scale <= 0.0) {
                 throw new InvalidSettingsException("Scale must be positive.");
             }
-            DLParameterValidationUtils.checkContains(m_mode, MODES, "mode");
-            DLParameterValidationUtils.checkContains(m_distribution, DISTRIBUTIONS, "distribution");
         }
 
     }

@@ -46,27 +46,69 @@
  */
 package org.knime.dl.keras.core.struct.param;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * A single parameter choice option. See {@link ParameterChoices}.
+ * Choices implementation for padding.
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * 
- * @param <T> the type of the {@link ParameterChoice}
  */
-public interface ParameterChoice<T> {
+public abstract class AbstractParameterStringChoices implements ParameterChoices<String> {
 
-    /**
-     * @return concrete type of choice
-     */
-    Class<T> getRawType();
+    private final List<ParameterChoice<String>> m_choices;
 
-    /**
-     * @return key of choice
-     */
-    String getKey();
+    public AbstractParameterStringChoices() {
+        m_choices = new ArrayList<>();
+    }
 
-    /**
-     * @return an instance of <T>
-     */
-    T get();
+    protected void add(String label, String value) {
+        m_choices.add(new ParameterChoice<String>() {
+
+            @Override
+            public Class<String> getRawType() {
+                return String.class;
+            }
+
+            @Override
+            public String getKey() {
+                return value.toLowerCase();
+            }
+
+            @Override
+            public String get() {
+                return value;
+            }
+        });
+    }
+
+    @Override
+    public ParameterChoice<? extends String> fromKey(String key) {
+        for (ParameterChoice<String> choice : m_choices) {
+            if (choice.getKey().equals(key)) {
+                return choice;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public ParameterChoice<? extends String> fromObject(String obj) {
+        for (ParameterChoice<String> choice : m_choices) {
+            if (choice.get().equals(obj)) {
+                return choice;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public ParameterChoice<? extends String>[] choices() {
+        @SuppressWarnings("unchecked")
+        final ParameterChoice<String>[] dest = new ParameterChoice[m_choices.size()];
+        return m_choices.toArray(dest);
+    }
+
 }

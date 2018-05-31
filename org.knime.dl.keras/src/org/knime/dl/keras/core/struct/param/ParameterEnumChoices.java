@@ -46,45 +46,42 @@
  */
 package org.knime.dl.keras.core.struct.param;
 
-import org.knime.core.node.InvalidSettingsException;
-
 /**
  * Represents an {@link Enum} from which a particular {@link Enum} value can be selected e.g. in a dialog.
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @param <T> type of {@link Enum}.
  */
-public class ParameterEnumChoices<T extends Enum<T>> implements ParameterChoices<T> {
-
-    private final Class<T> m_enum;
+public class ParameterEnumChoices<T extends Enum<?>> implements ParameterChoices<T> {
 
     private final ParameterChoice<T>[] m_choices;
+
+    private T[] m_constants;
 
     /**
      * @param in of {@link Enum}. Expected to be an {@link Enum}.
      */
     @SuppressWarnings("unchecked")
-    public ParameterEnumChoices(Class<T> in) {
-        m_enum = in;
-        final T[] enumConstants = m_enum.getEnumConstants();
-        m_choices = new ParameterChoice[enumConstants.length];
+    public ParameterEnumChoices(T[] in) {
+        m_constants = in;
+        m_choices = new ParameterChoice[m_constants.length];
         for (int i = 0; i < m_choices.length; i++) {
             final int idx = i;
             m_choices[i] = new ParameterChoice<T>() {
 
                 @Override
                 public Class<T> getRawType() {
-                    return m_enum;
+                    return (Class<T>)m_constants.getClass().getComponentType();
                 }
 
                 @Override
                 public String getKey() {
-                    return enumConstants[idx].name();
+                    return m_constants[idx].name();
                 }
 
                 @Override
-                public T get() throws InvalidSettingsException {
-                    return enumConstants[idx];
+                public T get() {
+                    return m_constants[idx];
                 }
             };
         }

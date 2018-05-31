@@ -82,7 +82,4 @@ public @interface Parameter {
     /** Defines the list of possible values. */
     @SuppressWarnings("rawtypes")
     Class<? extends ParameterChoices> choices() default ParameterChoices.class;
-
-    /** Defines the list of possible values (multiple choice text fields only). */
-    String[] strings() default {};
 }

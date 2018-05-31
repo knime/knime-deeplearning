@@ -65,13 +65,13 @@ public final class DLKerasLSTMLayer extends DLKerasAbstractUnaryLayer {
     private int m_units = 1;
 
     // TODO USE CHOICES
-    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
-        "softmax", "softplus", "softsign", "tanh"})
+    //    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
+    //        "softmax", "softplus", "softsign", "tanh"})
     private String m_activation = "tanh";
 
     // TODO USE CHOICES
-    @Parameter(label = "Recurrent activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu",
-        "sigmoid", "softmax", "softplus", "softsign", "tanh"})
+    //    @Parameter(label = "Recurrent activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu",
+    //        "sigmoid", "softmax", "softplus", "softsign", "tanh"})
     private String m_recurrentActivation = "hard_sigmoid";
 
     @Parameter(label = "Use bias?")

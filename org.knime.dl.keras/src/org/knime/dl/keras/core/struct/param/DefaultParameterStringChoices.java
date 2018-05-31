@@ -47,71 +47,19 @@
 
 package org.knime.dl.keras.core.struct.param;
 
-import org.knime.core.node.InvalidSettingsException;
-
 /**
  * Represents a String[] from which a particular String value can be selected e.g. in a dialog.
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class ParameterStringChoices implements ParameterChoices<String> {
-
-    private ParameterChoice<String>[] m_choices;
+public final class DefaultParameterStringChoices extends AbstractParameterStringChoices {
 
     /**
      * @param choices the available String choices.
      */
-    @SuppressWarnings("unchecked")
-    public ParameterStringChoices(String[] choices) {
-        m_choices = new ParameterChoice[choices.length];
+    public DefaultParameterStringChoices(String[] choices) {
         for (int i = 0; i < choices.length; i++) {
-            m_choices[i] = createAt(choices[i]);
+            add(choices[i], choices[i]);
         }
-    }
-
-    @Override
-    public ParameterChoice<String>[] choices() {
-        return m_choices;
-    }
-
-    @Override
-    public ParameterChoice<? extends String> fromKey(String key) {
-        for (int i = 0; i < m_choices.length; i++) {
-            if (m_choices[i].getKey().equalsIgnoreCase(key)) {
-                return m_choices[i];
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public ParameterChoice<? extends String> fromObject(String obj) {
-        return fromKey(obj);
-    }
-
-    // Internal helper
-    private static ParameterChoice<String> createAt(String choice) {
-        return new ParameterChoice<String>() {
-
-            @Override
-            public String toString() {
-                return choice;
-            }
-
-            @Override
-            public Class<String> getRawType() {
-                return String.class;
-            }
-
-            @Override
-            public String getKey() {
-                return choice;
-            }
-
-            @Override
-            public String get() throws InvalidSettingsException {
-                return getKey();
-            }
-        };
     }
 }

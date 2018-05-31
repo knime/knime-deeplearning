@@ -57,6 +57,7 @@ import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
+import org.knime.dl.keras.core.layers.DLKerasDataType;
 import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -78,9 +79,8 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     private Integer m_batchSize = 32;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
-    @Parameter(label = "Data type",
-        strings = {"bool", "float16", "float32", "float64", "int8", "int16", "int32", "int64"})
-    private String m_dataType = "float32";
+    @Parameter(label = "Data type")
+    private DLKerasDataType m_dataType = DLKerasDataType.FLOAT_32;
 
     public DLKerasDefaultInputLayer() {
         super("keras.layers.Input");
@@ -89,7 +89,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Override
     public List<DLTensorSpec> getOutputSpecs() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
-        final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType);
+        final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
         final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
         // TODO: check if batch size is enabled as soon as available
         return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy", m_batchSize, shape,
@@ -118,7 +118,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
         final String[] shape = Arrays.stream(getShape())
             .map(l -> l != null ? DLPythonUtils.toPython(l) : DLPythonUtils.NONE).toArray(l -> new String[l]);
         namedParams.put("batch_shape", "(" + DLPythonUtils.toPython(m_batchSize) + "," + String.join(",", shape) + ")");
-        namedParams.put("dtype", DLPythonUtils.toPython(m_dataType));
+        namedParams.put("dtype", DLPythonUtils.toPython(m_dataType.value()));
     }
 
     private Long[] getShape() {

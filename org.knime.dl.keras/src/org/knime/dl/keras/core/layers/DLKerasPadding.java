@@ -44,29 +44,32 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.param;
+package org.knime.dl.keras.core.layers;
 
 /**
- * A single parameter choice option. See {@link ParameterChoices}.
+ * Enum describing paddings options in Keras
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * 
- * @param <T> the type of the {@link ParameterChoice}
  */
-public interface ParameterChoice<T> {
+public enum DLKerasPadding {
 
-    /**
-     * @return concrete type of choice
-     */
-    Class<T> getRawType();
+        VALID("Valid", "valid"), SAME("Same", "same"), FULL("Full", "full");
 
-    /**
-     * @return key of choice
-     */
-    String getKey();
+    private String m_label;
 
-    /**
-     * @return an instance of <T>
-     */
-    T get();
+    private String m_value;
+
+    DLKerasPadding(String label, String value) {
+        m_label = label;
+        m_value = value;
+    }
+
+    public String value() {
+        return m_value;
+    }
+
+    @Override
+    public String toString() {
+        return m_label;
+    }
 }

@@ -53,7 +53,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -71,11 +72,14 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     /**
      * This is hard-coded to "channels_last" in Keras
      */
-    private String m_dataFormat = "channels_last";
+    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
-    @Parameter(label = "Padding", strings = {"valid", "same", "full"})
-    private String m_padding = "valid";
+    @Parameter(label = "Padding")
+    private DLKerasPadding m_padding = DLKerasPadding.VALID;
 
+    /**
+     * Constructor
+     */
     public DLKerasMaxPooling1DLayer() {
         super("keras.layers.MaxPooling1D");
     }
@@ -84,8 +88,6 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
             new String[]{"Pool size", "Strides"}, 1);
-        DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.DATA_FORMATS, "data format");
-        DLParameterValidationUtils.checkContains(m_padding, DLConvolutionLayerUtils.PADDINGS, "data format");
     }
 
     @Override
@@ -99,14 +101,14 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
         Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
         Long[] strides = DLPythonUtils.parseShape(m_strides);
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
-            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding, m_dataFormat);
+            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat));
-        namedParams.put("padding", DLPythonUtils.toPython(m_padding));
+        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
     }
 }

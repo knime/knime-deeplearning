@@ -59,6 +59,9 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
  */
 public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
+    /**
+     * Constructor
+     */
     public DLKerasFlattenLayer() {
         super("keras.layers.Flatten");
     }

@@ -64,6 +64,9 @@ public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUna
      */
     private String m_dataFormat = "channels_last";
 
+    /**
+     * Constructor
+     */
     public DLKerasGlobalAveragePooling1DLayer() {
         super("keras.layers.GlobalAveragePooling1D");
     }

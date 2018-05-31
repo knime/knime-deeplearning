@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.core.struct.param;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 
@@ -93,11 +92,11 @@ public final class ParameterObjectChoice<T> implements ParameterNestedStructChoi
     }
 
     @Override
-    public T get() throws InvalidSettingsException {
+    public T get() {
         try {
             return m_rawType.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new InvalidSettingsException(
+            throw new IllegalArgumentException(
                 "Cannot instantiate object from type " + m_rawType + ". Most likely the empty constructor is missing.",
                 e);
         }

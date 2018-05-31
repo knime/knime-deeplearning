@@ -64,13 +64,17 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Units", min = "1", max = "1000000", stepSize = "1")
     private long m_units = 1;
 
-    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
-        "softmax", "softplus", "softsign", "tanh"})
+    // TODO create layers and add choices
+    //    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
+    //        "softmax", "softplus", "softsign", "tanh"})
     private String m_activation = "linear";
 
     @Parameter(label = "Use bias?")
     private boolean m_useBias = true;
 
+    /**
+     * Constructor
+     */
     public DLKerasDenseLayer() {
         super("keras.layers.Dense");
     }
@@ -98,6 +102,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_units));
+        // TODO replace with layers
         namedParams.put("activation", DLPythonUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
     }

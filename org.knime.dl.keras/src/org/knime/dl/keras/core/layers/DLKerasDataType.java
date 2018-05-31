@@ -44,29 +44,30 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.param;
+package org.knime.dl.keras.core.layers;
 
 /**
- * A single parameter choice option. See {@link ParameterChoices}.
- * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * 
- * @param <T> the type of the {@link ParameterChoice}
  */
-public interface ParameterChoice<T> {
+public enum DLKerasDataType {
+        BOOL("Boolean", "bool"), FLOAT_16("Float 16", "float16"), FLOAT_32("Float 32", "float32"),
+        INT_8("Int 8", "int8"), INT_16("Int 16", "int16"), INT_32("Int 32", "int32"), INT_64("Int 64", "int64");
 
-    /**
-     * @return concrete type of choice
-     */
-    Class<T> getRawType();
+    private String m_label;
 
-    /**
-     * @return key of choice
-     */
-    String getKey();
+    private String m_value;
 
-    /**
-     * @return an instance of <T>
-     */
-    T get();
+    DLKerasDataType(String label, String value) {
+        m_label = label;
+        m_value = value;
+    }
+
+    public String value() {
+        return m_value;
+    }
+
+    @Override
+    public String toString() {
+        return m_label;
+    }
 }

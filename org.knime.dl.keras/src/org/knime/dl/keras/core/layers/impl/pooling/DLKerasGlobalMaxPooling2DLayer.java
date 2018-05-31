@@ -53,7 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -64,31 +64,34 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Data Format", strings = {"channels_last", "channels_first"})
-    private String m_dataFormat = "channels_last";
+    @Parameter(label = "Data Format")
+    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
+    /**
+     * Constructor
+     */
     public DLKerasGlobalMaxPooling2DLayer() {
         super("keras.layers.GlobalMaxPooling2D");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkContains(m_dataFormat, DLConvolutionLayerUtils.DATA_FORMATS, "data format");
+        // NB: Nothing to do
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // nothing to do here
+        // NB: Nothing to do here
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat);
+        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat.value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat));
+        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }
 }
