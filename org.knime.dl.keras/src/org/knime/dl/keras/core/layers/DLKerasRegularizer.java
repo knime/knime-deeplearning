@@ -46,13 +46,13 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import static org.knime.dl.python.util.DLPythonUtils.*;
+import static org.knime.dl.python.util.DLPythonUtils.toPython;
 
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.scijava.param2.Parameter;
+import org.knime.dl.keras.core.struct.param.Parameter;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -60,7 +60,7 @@ import org.scijava.param2.Parameter;
 public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
     // marker interface
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -68,7 +68,7 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
         @Parameter(label = "L1 regularization factor", min = "0.0000001")
         private float m_l1;
-        
+
         /**
          */
         public DLKerasL1Regularizer() {
@@ -86,9 +86,9 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("l1", toPython(m_l1));
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -96,7 +96,7 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
         @Parameter(label = "L2 regularization factor", min = "0.0000001")
         private float m_l2;
-        
+
         /**
          */
         public DLKerasL2Regularizer() {
@@ -114,9 +114,9 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("l2", toPython(m_l2));
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -124,10 +124,10 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
         @Parameter(label = "L1 regularization factor", min = "0.0000001")
         private float m_l1;
-        
+
         @Parameter(label = "L2 regularization factor", min = "0.0000001")
         private float m_l2;
-        
+
         /**
          */
         public DLKerasL1L2Regularizer() {
@@ -149,6 +149,6 @@ public interface DLKerasRegularizer extends DLKerasUtilityObject {
             namedParams.put("l1", toPython(m_l1));
             namedParams.put("l2", toPython(m_l2));
         }
-        
+
     }
 }

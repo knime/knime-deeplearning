@@ -46,16 +46,89 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import java.util.Arrays;
+
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.dl.base.portobjects.DLNetworkPortObject;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractInputLayerNodeFactory.DLKerasInputLayerNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.nodegen.base.supplier.port.PortSupplierNodeFactory;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec;
+import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.layers.DLKerasInputLayer;
+import org.knime.dl.keras.core.struct.param.ValidityException;
 
 /**
+ * Abstract implementation of a {@link NodeFactory} which can serve as the basis to create nodes based on
+ * {@link DLKerasInputLayer}s.
+ * 
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractInputLayerNodeFactory extends PortSupplierNodeFactory {
+public abstract class DLKerasAbstractInputLayerNodeFactory<T extends DLKerasInputLayer>
+    extends NodeFactory<DLKerasInputLayerNodeModel<T>> {
 
-	public DLKerasAbstractInputLayerNodeFactory() {
-		super(DLKerasNetworkPortObjectBase.TYPE);
-	}
+    private Class<T> m_layerType;
+
+    public DLKerasAbstractInputLayerNodeFactory(final Class<T> layer) {
+        m_layerType = layer;
+    }
+
+    @Override
+    public DLKerasInputLayerNodeModel<T> createNodeModel() {
+        return new DLKerasInputLayerNodeModel<>(m_layerType);
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        try {
+            return new DLKerasLayerNodeDialogPane<>(m_layerType);
+        } catch (ValidityException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    public NodeView<DLKerasInputLayerNodeModel<T>> createNodeView(int viewIndex,
+        DLKerasInputLayerNodeModel<T> nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    static class DLKerasInputLayerNodeModel<T extends DLKerasInputLayer> extends DLKerasAbstractLayerNodeModel<T> {
+
+        protected DLKerasInputLayerNodeModel(final Class<T> classType) {
+            super(new PortType[0], new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, classType);
+        }
+
+        @Override
+        protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
+            final FileStore fileStore =
+                DLNetworkPortObject.createFileStoreForSaving(DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION, exec);
+            return new PortObject[]{new DLKerasUnmaterializedNetworkPortObject(Arrays.asList(m_layer), fileStore)};
+        }
+
+        @Override
+        protected PortObjectSpec[] configure(PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+            m_layer.validateParameters();
+            return new PortObjectSpec[]{new DLKerasUnmaterializedNetworkPortObjectSpec(Arrays.asList(m_layer))};
+        }
+    }
 }

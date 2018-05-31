@@ -46,24 +46,16 @@
  */
 package org.knime.dl.keras.base.nodes.layers.flatten;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasFlattenLayer;
-import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasFlattenLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
+public final class DLKerasFlattenLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasFlattenLayer> {
 
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    @Override
-    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasUnaryInnerLayerNode(new DLKerasFlattenLayer());
+    public DLKerasFlattenLayerNodeFactory() {
+        super(DLKerasFlattenLayer.class);
     }
 }

@@ -46,13 +46,13 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import static org.knime.dl.python.util.DLPythonUtils.*;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.scijava.param2.Parameter;
+import static org.knime.dl.python.util.DLPythonUtils.toPython;
 
 import java.util.List;
 import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -85,16 +85,16 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
         }
 
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static abstract class DLKerasAbstractAxisConstraint extends DLKerasAbstractConstraint {
 
-     // how should axis be declared?
+        // how should axis be declared?
         @Parameter(label = "Axis")
         private int[] m_axis = {0};
-        
+
         /**
          * @param kerasIdentifier
          * @param name
@@ -102,20 +102,19 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
         public DLKerasAbstractAxisConstraint(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             // TODO do we support python style negative indexing?
             super.validateParameters();
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("axis", toPython(m_axis));
             super.populateParameters(positionalParams, namedParams);
         }
     }
-    
 
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -124,7 +123,6 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
 
         @Parameter(label = "Maximum norm", min = "0.0000001")
         private float m_maxValue = 2.0f;
-        
 
         /**
          */
@@ -146,7 +144,7 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
             super.populateParameters(positionalParams, namedParams);
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -157,9 +155,9 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
         public DLKerasNonNegativeConstraint() {
             super("keras.constraints.NonNeg", "Non negative constraint");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -170,20 +168,20 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
         public DLKerasUnitNormConstraint() {
             super("keras.constraints.UnitNorm", "Unit norm constraint");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static final class DLKerasMinMaxNormConstraint extends DLKerasAbstractAxisConstraint {
-        
+
         @Parameter(label = "Minimum norm", min = "0.0")
         private float m_minValue = 0.0f;
-        
+
         @Parameter(label = "Maximum norm", min = "0.0000001")
         private float m_maxValue = 1.0f;
-        
+
         @Parameter(label = "Rate", min = "0.0", max = "1.0")
         private float m_rate = 1.0f;
 
@@ -192,7 +190,7 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
         public DLKerasMinMaxNormConstraint() {
             super("keras.constraints.MinMaxNorm", "Min-max norm constraint");
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             super.validateParameters();
@@ -202,7 +200,7 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
             if (m_minValue < 0) {
                 throw new InvalidSettingsException("The minimum norm must be non-negative.");
             }
-            if (m_rate < 0  || m_rate > 1) {
+            if (m_rate < 0 || m_rate > 1) {
                 throw new InvalidSettingsException("The rate must be in the [0, 1] interval.");
             }
         }
@@ -214,6 +212,6 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
             namedParams.put("rate", toPython(m_rate));
             super.populateParameters(positionalParams, namedParams);
         }
-        
+
     }
 }

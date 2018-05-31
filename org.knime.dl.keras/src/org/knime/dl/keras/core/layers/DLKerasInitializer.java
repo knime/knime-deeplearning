@@ -46,17 +46,16 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import static org.knime.dl.python.util.DLPythonUtils.*;
+import static org.knime.dl.python.util.DLPythonUtils.toPython;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 import com.google.common.collect.Sets;
 
@@ -65,13 +64,14 @@ import com.google.common.collect.Sets;
  */
 public interface DLKerasInitializer extends DLKerasUtilityObject {
     // marker interface
-    
+
     /**
      * Declares parameter validation and population to reduce boilerplate in deriving classes.
      * 
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static abstract class DLKerasAbstractInitializer extends DLKerasAbstractUtilityObject implements DLKerasInitializer {
+    static abstract class DLKerasAbstractInitializer extends DLKerasAbstractUtilityObject
+        implements DLKerasInitializer {
 
         /**
          * @param kerasIdentifier
@@ -80,18 +80,18 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasAbstractInitializer(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             // nothing to validate
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             // nothing to populate
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -102,9 +102,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasZerosInitializer() {
             super("keras.initializers.Zeros", "Zeros initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -115,9 +115,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasOnesInitializer() {
             super("keras.initializers.Ones", "Ones initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -125,27 +125,28 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
 
         @Parameter(label = "Value")
         private float m_value = 0;
-        
+
         /**
          */
         public DLKerasConstantInitializer() {
             super("keras.initializers.Constant", "Constant initializer");
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("value", toPython(m_value));
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
-        
+
+        // TODO make component for seed
         @Parameter(label = "Seed", required = false)
-        private OptionalLong m_seed = OptionalLong.empty();
+        private Long m_seed = null;
 
         /**
          * @param kerasIdentifier
@@ -154,25 +155,25 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasAbstractSeededInitializer(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("seed", DLPythonUtils.toPython(m_seed));
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static abstract class DLKerasAbstractNormalInitializer extends DLKerasAbstractSeededInitializer {
-        
+
         @Parameter(label = "Mean", min = "0.0000001")
         private float m_mean = 0.0f;
 
         @Parameter(label = "Standard deviation", min = "0.0000001")
         private float m_stddev = 0.05f;
-        
+
         /**
          * @param kerasIdentifier
          * @param name
@@ -180,23 +181,23 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasAbstractNormalInitializer(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         protected final void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("mean", toPython(m_mean));
             namedParams.put("stddev", toPython(m_stddev));
             super.populateParameters(positionalParams, namedParams);
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             if (m_stddev <= 0.0) {
                 throw new InvalidSettingsException("The standard deviation must be positive.");
             }
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -209,7 +210,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         }
 
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -220,25 +221,27 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasTruncatedNormalInitializer() {
             super("keras.initializers.TruncatedNormal", "Truncated normal initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static final class DLKerasVarianceScalingInitializer extends DLKerasAbstractSeededInitializer {
-        
-        private static final Set<String> MODES = Collections.unmodifiableSet(Sets.newHashSet("fan_in", "fan_out", "fan_avg"));
-        
-        private static final Set<String> DISTRIBUTIONS = Collections.unmodifiableSet(Sets.newHashSet("normal", "uniform"));
-        
+
+        private static final Set<String> MODES =
+            Collections.unmodifiableSet(Sets.newHashSet("fan_in", "fan_out", "fan_avg"));
+
+        private static final Set<String> DISTRIBUTIONS =
+            Collections.unmodifiableSet(Sets.newHashSet("normal", "uniform"));
+
         @Parameter(label = "Scale")
         private float m_scale = 1.0f;
-        
-        @Parameter(label = "Mode", choices = {"fan_in", "fan_out", "fan_avg"})
+
+        @Parameter(label = "Mode", strings = {"fan_in", "fan_out", "fan_avg"})
         private String m_mode = "fan_in";
-        
-        @Parameter(label = "Distribution", choices = {"normal", "uniform"})
+
+        @Parameter(label = "Distribution", strings = {"normal", "uniform"})
         private String m_distribution = "normal";
 
         /**
@@ -246,7 +249,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasVarianceScalingInitializer() {
             super("keras.initializers.VarianceScaling", "Variance scaling initializer");
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("scale", toPython(m_scale));
@@ -263,14 +266,14 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
             DLParameterValidationUtils.checkContains(m_mode, MODES, "mode");
             DLParameterValidationUtils.checkContains(m_distribution, DISTRIBUTIONS, "distribution");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static final class DLKerasOrthogonalInitializer extends DLKerasAbstractSeededInitializer {
-        
+
         @Parameter(label = "Gain")
         private float m_gain = 1.0f;
 
@@ -279,7 +282,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasOrthogonalInitializer() {
             super("keras.initializers.Orthogonal", "Orthogonal initializer");
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("gain", toPython(m_gain));
@@ -290,9 +293,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public void validateParameters() throws InvalidSettingsException {
             // nothing to validate
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -305,14 +308,14 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasAbstractPlainSeededInitializer(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         public final void validateParameters() throws InvalidSettingsException {
             // nothing to validate
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -325,7 +328,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         }
 
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -336,9 +339,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasGlorotNormalInitializer() {
             super("keras.initializers.glorot_normal", "Glorot normal initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -349,9 +352,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasGlorotUniformInitializer() {
             super("keras.initializers.glorot_uniform", "Glorot uniform initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -362,9 +365,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasHeNormalInitializer() {
             super("keras.initializers.he_normal", "He normal initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -375,9 +378,9 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasLeCunNormalInitializer() {
             super("keras.initializers.lecun_normal", "LeCun normal initializer");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -388,7 +391,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         public DLKerasHeUniformInitializer() {
             super("keras.initializers.he_uniform", "He uniform initializer");
         }
-        
+
     }
-    
+
 }

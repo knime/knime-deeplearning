@@ -46,24 +46,16 @@
  */
 package org.knime.dl.keras.base.nodes.layers.add;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasBinaryInnerLayerNode;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasAddLayer;
-import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasAddLayerNodeFactory extends DLKerasAbstractBinaryInnerLayerNodeFactory {
+public final class DLKerasAddLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasAddLayer> {
 
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    @Override
-    protected PortToPortBiFunction<?, ?, ?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasBinaryInnerLayerNode(new DLKerasAddLayer());
+    public DLKerasAddLayerNodeFactory() {
+        super(DLKerasAddLayer.class);
     }
 }

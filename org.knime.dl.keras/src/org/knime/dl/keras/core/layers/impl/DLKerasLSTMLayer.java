@@ -51,38 +51,40 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasLSTMLayer extends DLKerasAbstractUnaryInnerLayer {
+public final class DLKerasLSTMLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Units", min = "1", max = "1000000", stepSize = "1")
-    int m_units = 1;
+    private int m_units = 1;
 
-    @Parameter(label = "Activation function", choices = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
+    // TODO USE CHOICES
+    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
         "softmax", "softplus", "softsign", "tanh"})
-    String m_activation = "tanh";
+    private String m_activation = "tanh";
 
-    @Parameter(label = "Recurrent activation function", choices = {"elu", "hard_sigmoid", "linear", "relu", "selu",
+    // TODO USE CHOICES
+    @Parameter(label = "Recurrent activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu",
         "sigmoid", "softmax", "softplus", "softsign", "tanh"})
-    String m_recurrentActivation = "hard_sigmoid";
+    private String m_recurrentActivation = "hard_sigmoid";
 
     @Parameter(label = "Use bias?")
-    boolean m_useBias = true;
+    private boolean m_useBias = true;
 
     @Parameter(label = "Use unit forget bias?")
-    boolean m_unitForgetBias = true;
+    private boolean m_unitForgetBias = true;
 
     @Parameter(label = "Is stateful?")
-    boolean m_stateful = false;
+    private boolean m_stateful = false;
 
     @Parameter(label = "Unroll loop?")
-    boolean m_unroll = false;
+    private boolean m_unroll = false;
 
     public DLKerasLSTMLayer() {
         super("keras.layers.LSTM");

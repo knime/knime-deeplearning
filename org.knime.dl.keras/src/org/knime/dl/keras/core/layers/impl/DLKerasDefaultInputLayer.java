@@ -59,10 +59,10 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
 import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -71,16 +71,16 @@ import org.scijava.param2.Parameter;
 public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer implements DLKerasInputLayer {
 
     @Parameter(label = "Shape")
-    String m_shape = "1";
+    private String m_shape = "1";
 
-    // TODO: This should be an optional setting. we need to be able to enable/disable params.
+    // TODO make non-required
     @Parameter(label = "Batch size", min = "0", max = "1000000", stepSize = "1")
-    int m_batchSize = 32;
+    private Integer m_batchSize = 32;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
     @Parameter(label = "Data type",
-        choices = {"bool", "float16", "float32", "float64", "int8", "int16", "int32", "int64"})
-    String m_dataType = "float32";
+        strings = {"bool", "float16", "float32", "float64", "int8", "int16", "int32", "int64"})
+    private String m_dataType = "float32";
 
     public DLKerasDefaultInputLayer() {
         super("keras.layers.Input");

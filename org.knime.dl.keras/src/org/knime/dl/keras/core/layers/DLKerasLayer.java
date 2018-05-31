@@ -46,8 +46,6 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import org.scijava.param2.Parameter;
-
 /**
  * Deriving classes must expose a public nullary constructor that is used for deserialization. Parameters must be
  * non-final and annotated with {@link Parameter} to enable injection.
@@ -57,8 +55,6 @@ import org.scijava.param2.Parameter;
  */
 public interface DLKerasLayer extends DLKerasTensorSpecsOutput, DLKerasObject {
 
-    /**
-     * @param layerName may be <code>null</code>, in which case the argument will be ignored
-     */
     String getBackendRepresentation(String layerName);
+
 }

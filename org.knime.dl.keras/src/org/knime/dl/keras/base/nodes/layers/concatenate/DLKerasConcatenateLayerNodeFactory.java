@@ -46,19 +46,17 @@
  */
 package org.knime.dl.keras.base.nodes.layers.concatenate;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasBinaryInnerLayerNode;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasConcatenateLayer;
-import org.knime.nodegen.base.bifunction.port.PortToPortBiFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConcatenateLayerNodeFactory extends DLKerasAbstractBinaryInnerLayerNodeFactory {
+public final class DLKerasConcatenateLayerNodeFactory
+    extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasConcatenateLayer> {
 
-    @Override
-    protected PortToPortBiFunction<?, ?, ?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasBinaryInnerLayerNode(new DLKerasConcatenateLayer());
+    public DLKerasConcatenateLayerNodeFactory() {
+        super(DLKerasConcatenateLayer.class);
     }
 }

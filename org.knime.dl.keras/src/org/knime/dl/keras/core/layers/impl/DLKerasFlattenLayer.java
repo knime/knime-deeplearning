@@ -51,13 +51,13 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryInnerLayer {
+public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
     public DLKerasFlattenLayer() {
         super("keras.layers.Flatten");

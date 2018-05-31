@@ -46,19 +46,17 @@
  */
 package org.knime.dl.keras.base.nodes.layers.dense;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasDenseLayer;
-import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDenseLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
+public final class DLKerasDenseLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDenseLayer> {
 
-    @Override
-    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasUnaryInnerLayerNode(new DLKerasDenseLayer());
+    public DLKerasDenseLayerNodeFactory() {
+        super(DLKerasDenseLayer.class);
     }
+
 }

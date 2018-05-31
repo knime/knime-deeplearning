@@ -51,22 +51,22 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryInnerLayer {
+public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Drop rate")
-    float m_rate;
+    private float m_rate;
 
-    // TODO: optional setting, pending
-    // @Parameter(label = "Random seed")
-    // int m_seed;
+    // TODO use Seed component
+    @Parameter(label = "Random seed", required = false)
+    private Long m_seed = null;
 
     public DLKerasDropoutLayer() {
         super("keras.layers.Dropout");

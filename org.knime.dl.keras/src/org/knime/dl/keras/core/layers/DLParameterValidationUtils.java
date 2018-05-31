@@ -46,8 +46,6 @@
  */
 package org.knime.dl.keras.core.layers;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;

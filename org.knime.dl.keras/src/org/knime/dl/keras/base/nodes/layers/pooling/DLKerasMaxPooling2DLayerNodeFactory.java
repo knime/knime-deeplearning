@@ -46,19 +46,17 @@
  */
 package org.knime.dl.keras.base.nodes.layers.pooling;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
-import org.knime.dl.keras.core.layers.impl.pooling.DLKerasMaxPooling2DLayer;
-import org.knime.nodegen.base.function.port.PortToPortFunction;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.DLKerasMaxPooling2DLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMaxPooling2DLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
+public final class DLKerasMaxPooling2DLayerNodeFactory
+    extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasMaxPooling2DLayer> {
 
-    @Override
-    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasUnaryInnerLayerNode(new DLKerasMaxPooling2DLayer());
+    public DLKerasMaxPooling2DLayerNodeFactory() {
+        super(DLKerasMaxPooling2DLayer.class);
     }
 }

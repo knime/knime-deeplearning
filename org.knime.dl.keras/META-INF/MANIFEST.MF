@@ -3,7 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Deep Learning - Keras Integration
 Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
 Bundle-Version: 3.6.0.qualifier
-Bundle-ClassPath: knime-dl-keras.jar
+Bundle-ClassPath: knime-dl-keras.jar,
+ libs/eventbus-1.4.jar,
+ libs/gentyref-1.2.0.jar,
+ libs/miglayout-3.7.4.jar,
+ libs/scijava-common-2.69.1-SNAPSHOT.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.keras.core,
  org.knime.dl.keras.tensorflow.core,
@@ -17,7 +21,6 @@ Require-Bundle: org.knime.base;bundle-version="[3.5.0,4.0.0)",
  org.knime.ext.jfreechart;bundle-version="[3.5.0,4.0.0)",
  org.knime.dl;bundle-version="[3.5.0,4.0.0)",
  org.knime.dl.python;bundle-version="[3.5.0,4.0.0)",
- org.knime.nodegen;bundle-version="[3.6.0,4.0.0)",
  org.knime.python2;bundle-version="[3.5.0,4.0.0)",
  org.knime.time;bundle-version="[3.6.0,4.0.0)",
  com.google.guava;bundle-version="[19.0.0,19.0.0]",

@@ -3,5 +3,9 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="libs/eventbus-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/gentyref-1.2.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/miglayout-3.7.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/scijava-common-2.69.1-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

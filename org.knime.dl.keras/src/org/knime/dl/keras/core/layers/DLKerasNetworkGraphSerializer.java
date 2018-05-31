@@ -63,12 +63,21 @@ import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
+import org.knime.dl.keras.core.struct.Structs;
+import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
+import org.knime.dl.keras.core.struct.instance.MemberReadWriteInstance;
+import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
+import org.knime.dl.keras.core.struct.instance.StructInstance;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsStructs;
+import org.knime.dl.keras.core.struct.param.ParameterStructs;
+import org.knime.dl.keras.core.struct.param.ValidityException;
 
 import gnu.trove.TIntArrayList;
 
@@ -198,16 +207,16 @@ public final class DLKerasNetworkGraphSerializer {
                     baseNetworkSpecs.put(layerIndex, baseNetworkOutput.getBaseNetworkSpec());
                 }
 
-                private NodeSettingsWO saveLayer(final DLKerasLayer layer) {
+                private NodeSettingsWO saveLayer(final DLKerasLayer layer)
+                    throws ValidityException, InvalidSettingsException {
                     final NodeSettingsWO layerSettings = createLayerSettings(layer);
-                    try {
-                        // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
-                        new DLKerasLayerStructInstance(layer)
-                            .saveSettingsTo(layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS));
-                    } catch (final InvalidSettingsException e) {
-                        LOGGER.error(e);
-                        throw new RuntimeException(e);
-                    }
+                    // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
+                    final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance =
+                        ParameterStructs.createInstance(layer);
+                    final StructInstance<MemberWriteInstance<?>, ?> settingsInstance =
+                        NodeSettingsStructs.createNodeSettingsInstance(
+                            layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS), layerInstance.struct());
+                    Structs.shallowCopyUnsafe(layerInstance, settingsInstance);
                     return layerSettings;
                 }
 
@@ -273,9 +282,12 @@ public final class DLKerasNetworkGraphSerializer {
                 if (DLKerasLayer.class.isAssignableFrom(layerClass)) {
                     // Ordinary layers must expose a public nullary constructor.
                     layer = (DLKerasLayer)layerClass.newInstance();
-                    // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
-                    new DLKerasLayerStructInstance((DLKerasLayer)layer)
-                        .loadSettingsFrom(layerSettings.getNodeSettings(CFG_KEY_LAYER_PARAMS));
+                    final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance =
+                        ParameterStructs.createInstance((DLKerasLayer)layer);
+                    final StructInstance<MemberReadInstance<?>, ?> settingsInstance = NodeSettingsStructs
+                        .createNodeSettingsInstance((NodeSettingsRO)layerSettings.getNodeSettings(CFG_KEY_LAYER_PARAMS),
+                            layerInstance.struct());
+                    Structs.shallowCopyUnsafe(settingsInstance, layerInstance);
                     if (layer instanceof DLKerasInnerLayer) {
                         final DLKerasInnerLayer innerLayer = ((DLKerasInnerLayer)layer);
                         final NodeSettings parentIndices = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);

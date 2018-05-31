@@ -49,22 +49,20 @@ package org.knime.dl.keras.core.layers.impl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer {
+public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Input dimension", min = "1", max = "1000000", stepSize = "1")
     private int m_inputDim;
@@ -77,8 +75,8 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
     @Parameter(label = "Mask zero")
     private boolean m_maskZero = false;
 
-    @Parameter(label = "Input length")
-    private Optional<String> m_inputLength = Optional.empty();
+    @Parameter(label = "Input length", required = false)
+    private String m_inputLength = null;
 
     /**
      * Constructor for embedding layers.
@@ -114,12 +112,15 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryInnerLayer 
     }
 
     private boolean hasInputLength() {
-        return m_inputLength.isPresent();
+        return m_inputLength == null;
     }
 
     private Long[] parseInputLength() {
-        return DLPythonUtils.parseShape(
-            m_inputLength.orElseThrow(() -> new IllegalStateException("The input length parameter is not provided.")));
+        if (hasInputLength()) {
+            return DLPythonUtils.parseShape(m_inputLength);
+        } else {
+            throw new IllegalStateException("The input length parameter is not provided.");
+        }
     }
 
     @Override

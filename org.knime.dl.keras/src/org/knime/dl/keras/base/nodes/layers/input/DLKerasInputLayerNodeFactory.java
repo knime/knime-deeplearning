@@ -47,18 +47,15 @@
 package org.knime.dl.keras.base.nodes.layers.input;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractInputLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasDefaultInputLayerNode;
 import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
-import org.knime.nodegen.base.supplier.port.PortSupplier;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasInputLayerNodeFactory extends DLKerasAbstractInputLayerNodeFactory {
+public final class DLKerasInputLayerNodeFactory extends DLKerasAbstractInputLayerNodeFactory<DLKerasDefaultInputLayer> {
 
-    @Override
-    protected PortSupplier<?, ?> createPortSupplier() {
-        return new DLKerasDefaultInputLayerNode(new DLKerasDefaultInputLayer());
+    public DLKerasInputLayerNodeFactory() {
+        super(DLKerasDefaultInputLayer.class);
     }
 }

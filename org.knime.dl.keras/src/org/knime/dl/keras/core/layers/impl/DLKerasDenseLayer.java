@@ -51,25 +51,25 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDenseLayer extends DLKerasAbstractUnaryInnerLayer {
+public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Units", min = "1", max = "1000000", stepSize = "1")
-    long m_units = 1;
+    private long m_units = 1;
 
-    @Parameter(label = "Activation function", choices = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
+    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
         "softmax", "softplus", "softsign", "tanh"})
-    String m_activation = "linear";
+    private String m_activation = "linear";
 
     @Parameter(label = "Use bias?")
-    boolean m_useBias = true;
+    private boolean m_useBias = true;
 
     public DLKerasDenseLayer() {
         super("keras.layers.Dense");

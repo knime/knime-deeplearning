@@ -4,30 +4,15 @@
 	<name>Keras Input Layer</name>
 
 	<shortDescription>
-		An input layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			An input layer. Corresponds to the
-			<a href="https://keras.io/layers/core/#input">Input Keras layer</a>
-			.
 		</intro>
-		<option name="Shape">
-			Dimensions of the network input (excluding the batch dimension, see below).
-		</option>
-		<option name="Batch size">
-			...
-		</option>
-		<option name="Data type">
-			The data type expected by the input.
-		</option>
 	</fullDescription>
 	<ports>
 		<outPort index="0" name="Deep Learning Network">
-			A Keras deep learning network that consists of a single
-			<tt>Input</tt>
-			layer.
+			TODO
 		</outPort>
 	</ports>
 </knimeNode>

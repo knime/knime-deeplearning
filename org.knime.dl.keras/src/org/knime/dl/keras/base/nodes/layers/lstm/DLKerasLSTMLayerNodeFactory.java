@@ -46,19 +46,16 @@
  */
 package org.knime.dl.keras.base.nodes.layers.lstm;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryInnerLayerNodeFactory;
-import org.knime.dl.keras.base.nodes.layers.DLKerasUnaryInnerLayerNode;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasLSTMLayer;
-import org.knime.nodegen.base.function.port.PortToPortFunction;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasLSTMLayerNodeFactory extends DLKerasAbstractUnaryInnerLayerNodeFactory {
+public final class DLKerasLSTMLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasLSTMLayer> {
 
-    @Override
-    protected PortToPortFunction<?, ?, ?, ?> createPortToPortFunction() {
-        return new DLKerasUnaryInnerLayerNode(new DLKerasLSTMLayer());
+    public DLKerasLSTMLayerNodeFactory() {
+        super(DLKerasLSTMLayer.class);
     }
 }

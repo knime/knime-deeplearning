@@ -48,7 +48,6 @@ package org.knime.dl.keras.core.layers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-
 import java.util.List;
 import java.util.Map;
 

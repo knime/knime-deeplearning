@@ -52,8 +52,8 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.scijava.param2.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -61,8 +61,9 @@ import org.scijava.param2.Parameter;
  */
 public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLayer {
 
+    // TODO is -1 correct?
     @Parameter(label = "Axis")
-    int m_axis = -1;
+    private int m_axis = -1;
 
     public DLKerasConcatenateLayer() {
         super("keras.layers.Concatenate");
