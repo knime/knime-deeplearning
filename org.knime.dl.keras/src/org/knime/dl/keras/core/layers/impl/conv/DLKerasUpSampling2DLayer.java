@@ -91,7 +91,7 @@ public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[] size = DLPythonUtils.parseShape(m_size);
-        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, size, m_dataFormat.value());
+        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, size, m_dataFormat);
     }
 
     @Override

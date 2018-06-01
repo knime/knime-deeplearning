@@ -91,7 +91,7 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[][] padding = DLConvolutionLayerUtils.parseCroppingOrPadding(m_padding);
-        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, m_dataFormat.value());
+        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, m_dataFormat);
     }
 
     @Override

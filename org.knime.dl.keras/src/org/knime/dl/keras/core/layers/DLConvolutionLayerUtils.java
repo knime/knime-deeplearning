@@ -234,7 +234,7 @@ public final class DLConvolutionLayerUtils {
      * @return resulting output shape after the cropping operation
      */
     public static Long[] computeCroppingOutputShape(final Long[] inputShape, final Long[][] croppings,
-        final String dataFormat) {
+        final DLKerasDataFormat dataFormat) {
         return computeShapePerRealDimension(inputShape, croppings.length, dataFormat,
             (in, idx) -> in == null ? null : in - croppings[idx][0] - croppings[idx][1]);
     }
@@ -248,7 +248,7 @@ public final class DLConvolutionLayerUtils {
      * @return resulting output shape after the padding operation
      */
     public static Long[] computePaddingOutputShape(final Long[] inputShape, final Long[][] paddings,
-        final String dataFormat) {
+        final DLKerasDataFormat dataFormat) {
         return computeShapePerRealDimension(inputShape, paddings.length, dataFormat,
             (in, idx) -> in == null ? null : in + paddings[idx][0] - paddings[idx][1]);
     }
@@ -262,7 +262,7 @@ public final class DLConvolutionLayerUtils {
      * @return resulting output shape after the up-sampling operation
      */
     public static Long[] computeUpSamplingOutputShape(final Long[] inputShape, final Long[] size,
-        final String dataFormat) {
+        final DLKerasDataFormat dataFormat) {
         return computeShapePerRealDimension(inputShape, size.length, dataFormat,
             (in, idx) -> in == null ? null : in * size[idx]);
     }
@@ -272,9 +272,9 @@ public final class DLConvolutionLayerUtils {
      * feature dimension.
      */
     private static Long[] computeShapePerRealDimension(final Long[] inputShape, final int realDims,
-        final String dataFormat, final BiFunction<Long, Integer, Long> computeFn) {
+        final DLKerasDataFormat dataFormat, final BiFunction<Long, Integer, Long> computeFn) {
         final Long[] outputShape = new Long[inputShape.length];
-        final int startIdx = dataFormat.equals("channels_first") ? 2 : 1;
+        final int startIdx = dataFormat == DLKerasDataFormat.CHANNEL_FIRST ? 2 : 1;
         for (int i = 0; i < inputShape.length; i++) {
             if (i >= startIdx && i - startIdx < realDims) {
                 outputShape[i] = computeFn.apply(inputShape[i], i - startIdx);
@@ -299,7 +299,7 @@ public final class DLConvolutionLayerUtils {
     public static Long[] computeDeconv2DOutputShape(final Long[] inputShape, final int filters, final Long[] kernelSize,
         final Long[] stride, final DLKerasDataFormat dataFormat, final DLKerasPadding padding) {
         final int cAxis, hAxis, wAxis;
-        if (dataFormat.equals(DLKerasDataFormat.CHANNEL_FIRST)) {
+        if (dataFormat == DLKerasDataFormat.CHANNEL_FIRST) {
             cAxis = 1;
             hAxis = 2;
             wAxis = 3;

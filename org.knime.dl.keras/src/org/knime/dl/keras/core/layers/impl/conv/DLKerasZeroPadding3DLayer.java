@@ -97,13 +97,15 @@ public final class DLKerasZeroPadding3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[][] padding = DLConvolutionLayerUtils.parseCroppingOrPadding(m_paddingDim1, m_paddingDim2, m_paddingDim3);
-        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, m_dataFormat.value());
+        final Long[][] padding =
+            DLConvolutionLayerUtils.parseCroppingOrPadding(m_paddingDim1, m_paddingDim2, m_paddingDim3);
+        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[][] padding = DLConvolutionLayerUtils.parseCroppingOrPadding(m_paddingDim1, m_paddingDim2, m_paddingDim3);
+        final Long[][] padding =
+            DLConvolutionLayerUtils.parseCroppingOrPadding(m_paddingDim1, m_paddingDim2, m_paddingDim3);
         namedParams.put("padding", DLPythonUtils.toPython(padding));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }

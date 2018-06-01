@@ -95,7 +95,7 @@ public final class DLKerasCropping2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2);
-        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat.value());
+        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat);
     }
 
     @Override

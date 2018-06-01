@@ -97,13 +97,15 @@ public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2, m_croppingDim3);
-        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat.value());
+        final Long[][] cropping =
+            DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2, m_croppingDim3);
+        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2, m_croppingDim3);
+        final Long[][] cropping =
+            DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2, m_croppingDim3);
         namedParams.put("cropping", DLPythonUtils.toPython(cropping));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }
