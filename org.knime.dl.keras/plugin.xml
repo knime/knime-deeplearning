@@ -136,7 +136,7 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.flatten.DLKerasFlattenLayerNodeFactory">
       </node>
       <node
-            category-path="/lab/labs/deeplearning/keras/layers/pooling"   
+            category-path="/labs/deeplearning/keras/layers"   
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.input.DLKerasInputLayerNodeFactory">
       </node>
