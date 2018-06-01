@@ -54,6 +54,9 @@ import java.util.stream.Stream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasConstraint;
+import org.knime.dl.keras.core.layers.DLKerasInitializer;
+import org.knime.dl.keras.core.layers.DLKerasRegularizer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -70,7 +73,14 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
     private int m_outputDim;
 
-    // TODO add parameters for initializer, regularizer and constraint
+    @Parameter(label = "Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_initializer = new DLKerasInitializer.DLKerasRandomUniformInitializer();
+
+    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_embeddingRegularizer = null;
+    
+    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_constraint = null;
 
     @Parameter(label = "Mask zero")
     private boolean m_maskZero = false;
@@ -93,6 +103,17 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         if (m_outputDim < 1 || m_outputDim > 1000000) {
             throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
         }
+        
+        m_initializer.validateParameters();
+        
+        if (m_embeddingRegularizer != null) {
+            m_embeddingRegularizer.validateParameters();
+        }
+        
+        if (m_constraint != null) {
+            m_constraint.validateParameters();
+        }
+        
         if (hasInputLength()) {
             Long[] inputLength;
             try {
@@ -112,7 +133,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     private boolean hasInputLength() {
-        return m_inputLength == null;
+        return m_inputLength != null;
     }
 
     private Long[] parseInputLength() {
@@ -173,8 +194,10 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_inputDim));
         positionalParams.add(DLPythonUtils.toPython(m_outputDim));
+        namedParams.put("embeddings_initializer", m_initializer.getBackendRepresentation());
+        namedParams.put("embeddings_regularizer", m_embeddingRegularizer != null ? m_embeddingRegularizer.getBackendRepresentation() : DLPythonUtils.NONE);
+        namedParams.put("embeddings_constraint", m_constraint != null ? m_embeddingRegularizer.getBackendRepresentation() : DLPythonUtils.NONE);
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
-        namedParams.put("input_length", hasInputLength() ? "None" : DLPythonUtils.toPython(parseInputLength()));
-        // TODO populate remaining parameters
+        namedParams.put("input_length", hasInputLength() ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseInputLength()));
     }
 }
