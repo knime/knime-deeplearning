@@ -154,7 +154,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
         private Number toNumber(Object minimum, Integer def) {
             final String casted = (String)minimum;
-            return casted.isEmpty() ? def : Integer.valueOf(casted);
+            return casted == null || casted.isEmpty() ? def : Integer.valueOf(casted);
         }
 
         // -- AdjustmentListener methods --

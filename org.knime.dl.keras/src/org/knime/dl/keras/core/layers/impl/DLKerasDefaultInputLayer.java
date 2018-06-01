@@ -74,8 +74,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Parameter(label = "Shape")
     private String m_shape = "1";
 
-    // TODO make non-required
-    @Parameter(label = "Batch size", min = "0", max = "1000000", stepSize = "1")
+    @Parameter(label = "Batch size", min = "0", max = "1000000", stepSize = "1", required = false)
     private Integer m_batchSize = 32;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
@@ -92,8 +91,8 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
         final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
         // TODO: check if batch size is enabled as soon as available
-        return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy", m_batchSize, shape,
-            elementType, dimensionOrder));
+        return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy",
+            m_batchSize == null ? 32 : m_batchSize, shape, elementType, dimensionOrder));
     }
 
     @Override
@@ -117,7 +116,8 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         final String[] shape = Arrays.stream(getShape())
             .map(l -> l != null ? DLPythonUtils.toPython(l) : DLPythonUtils.NONE).toArray(l -> new String[l]);
-        namedParams.put("batch_shape", "(" + DLPythonUtils.toPython(m_batchSize) + "," + String.join(",", shape) + ")");
+        namedParams.put("batch_shape",
+            "(" + DLPythonUtils.toPython(m_batchSize == null ? 32 : m_batchSize) + "," + String.join(",", shape) + ")");
         namedParams.put("dtype", DLPythonUtils.toPython(m_dataType.value()));
     }
 

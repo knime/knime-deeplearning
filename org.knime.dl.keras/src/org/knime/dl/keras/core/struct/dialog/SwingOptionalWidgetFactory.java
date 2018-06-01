@@ -49,7 +49,6 @@ package org.knime.dl.keras.core.struct.dialog;
 
 import java.lang.reflect.Type;
 
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -59,6 +58,8 @@ import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
+
+import net.miginfocom.swing.MigLayout;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -120,13 +121,10 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
                     return casted.getType();
                 }
             });
-            //            final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
-            //            m_panel.setLayout(layout);
-            m_activateBox = new JCheckBox("Test");
+            m_activateBox = new JCheckBox();
             m_activateBox.addItemListener((i) -> {
                 m_widget.setEnabled(m_activateBox.isSelected());
             });
-            m_panel.setLayout(new BoxLayout(m_panel, BoxLayout.X_AXIS));
             m_panel.add(m_activateBox);
             m_panel.add(m_widget.getComponent());
 
