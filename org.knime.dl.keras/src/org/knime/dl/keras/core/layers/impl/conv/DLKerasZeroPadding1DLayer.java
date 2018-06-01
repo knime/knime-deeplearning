@@ -64,7 +64,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Cropping")
+    @Parameter(label = "Padding")
     private String m_padding = "0, 0";
 
     // Data format is always "channel_last"

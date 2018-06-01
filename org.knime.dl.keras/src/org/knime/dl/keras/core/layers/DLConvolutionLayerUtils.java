@@ -255,7 +255,7 @@ public final class DLConvolutionLayerUtils {
     public static Long[] computePaddingOutputShape(final Long[] inputShape, final Long[][] paddings,
         final DLKerasDataFormat dataFormat) {
         return computeShapePerRealDimension(inputShape, paddings.length, dataFormat,
-            (in, idx) -> in == null ? null : in + paddings[idx][0] - paddings[idx][1]);
+            (in, idx) -> in == null ? null : in + paddings[idx][0] + paddings[idx][1]);
     }
 
     /**
