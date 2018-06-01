@@ -53,8 +53,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasConstraint;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLKerasInitializer;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLKerasRegularizer;
+import org.knime.dl.keras.core.layers.DLKerasUtiltiyObjectUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -92,11 +96,30 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Use bias?")
     boolean m_useBias = true;
 
-    // TODO initializers
+    @Parameter(label = "Kernel Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_kernelInitializer = new DLKerasInitializer.DLKerasGlorotUniformInitializer();
 
-    // TODO regularizers
+    @Parameter(label = "Bias Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_biasInitializer = new DLKerasInitializer.DLKerasZerosInitializer();
 
-    // TODO constraints
+    @Parameter(label = "Kernel Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_kernelRegularizer = null;
+
+    @Parameter(label = "Bias Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_biasRegularizer = null;
+
+    @Parameter(label = "Activity Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_activityRegularizer = null;
+
+    @Parameter(label = "Kernel Constraint", required = false,
+        choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_kernelConstraint = null;
+
+    @Parameter(label = "Bias Constraint", required = false, choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_biasConstraint = null;
 
     /**
      * Constructor
@@ -135,8 +158,12 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("dilation_rate", DLPythonUtils.toPython(m_dilationRate));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
-        // TODO initializers
-        // TODO regularizers
-        // TODO constraints
+        namedParams.put("kernel_initializer", DLKerasUtiltiyObjectUtils.toPython(m_kernelInitializer));
+        namedParams.put("bias_initializer", DLKerasUtiltiyObjectUtils.toPython(m_biasInitializer));
+        namedParams.put("kernel_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_kernelRegularizer));
+        namedParams.put("bias_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_biasRegularizer));
+        namedParams.put("activity_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_activityRegularizer));
+        namedParams.put("kernel_contraint", DLKerasUtiltiyObjectUtils.toPython(m_kernelConstraint));
+        namedParams.put("bias_contraint", DLKerasUtiltiyObjectUtils.toPython(m_biasConstraint));
     }
 }

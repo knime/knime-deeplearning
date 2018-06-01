@@ -53,8 +53,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasConstraint;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLKerasInitializer;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLKerasRegularizer;
+import org.knime.dl.keras.core.layers.DLKerasUtiltiyObjectUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -95,11 +99,42 @@ public final class DLKerasSeparableConv1DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Use bias?")
     boolean m_useBias = true;
 
-    // TODO initializers
+    @Parameter(label = "Depthwise Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_depthwiseInitializer = new DLKerasInitializer.DLKerasGlorotUniformInitializer();
 
-    // TODO regularizers
+    @Parameter(label = "Pointwise Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_pointwiseInitializer = new DLKerasInitializer.DLKerasGlorotUniformInitializer();
 
-    // TODO constraints
+    @Parameter(label = "Bias Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_biasInitializer = new DLKerasInitializer.DLKerasZerosInitializer();
+
+    @Parameter(label = "Depthwise Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_depthwiseRegularizer = null;
+
+    @Parameter(label = "Pointwise Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_pointwiseRegularizer = null;
+
+    @Parameter(label = "Bias Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_biasRegularizer = null;
+
+    @Parameter(label = "Activity Regularizer", required = false,
+        choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_activityRegularizer = null;
+
+    @Parameter(label = "Depthwise Constraint", required = false,
+        choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_depthwiseConstraint = null;
+
+    @Parameter(label = "Pointwise Constraint", required = false,
+        choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_pointwiseConstraint = null;
+
+    @Parameter(label = "Bias Constraint", required = false, choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_biasConstraint = null;
+
     /**
      * Constructor
      */
@@ -138,8 +173,15 @@ public final class DLKerasSeparableConv1DLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("depth_multipier", DLPythonUtils.toPython(m_depthMultiplier));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
-        // TODO initializers
-        // TODO regularizers
-        // TODO constraints
+        namedParams.put("depthwise_initializer", DLKerasUtiltiyObjectUtils.toPython(m_depthwiseInitializer));
+        namedParams.put("pointwise_initializer", DLKerasUtiltiyObjectUtils.toPython(m_pointwiseInitializer));
+        namedParams.put("bias_initializer", DLKerasUtiltiyObjectUtils.toPython(m_biasInitializer));
+        namedParams.put("depthwise_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_depthwiseRegularizer));
+        namedParams.put("pointwise_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_pointwiseRegularizer));
+        namedParams.put("bias_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_biasRegularizer));
+        namedParams.put("activity_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_activityRegularizer));
+        namedParams.put("depthwise_constraint", DLKerasUtiltiyObjectUtils.toPython(m_depthwiseConstraint));
+        namedParams.put("pointwise_constraint", DLKerasUtiltiyObjectUtils.toPython(m_pointwiseConstraint));
+        namedParams.put("bias_constraint", DLKerasUtiltiyObjectUtils.toPython(m_biasConstraint));
     }
 }
