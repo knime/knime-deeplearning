@@ -1,34 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasmaxpoolinglayer.png" type="Other">
-	<name>Keras Max Pooling 2D Layer</name>
+	<name>Keras Average Pooling 1D Layer</name>
 
 	<shortDescription>
-		Keras Max Pooling 2D Layer
+		Keras Average Pooling 1D Layer
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/pooling/#maxpooling2d">Keras Max Pooling 2D Layer</a>
+			<a href="https://keras.io/layers/pooling/#averagepooling1d">Keras Average Pooling 1D Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
 			<option name="Strides">
-				The step size of the pooling window in two dimensions.
+				The step size of the pooling window in one dimension.
 			</option>
 			<option name="Pool Size">
-				The size of the pooling window in two dimensions.
-			</option>
-			<option name="Data Format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (height, width, channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels, height, width)
-					</li>
-				</ul>
+				The size of the pooling window in one dimension.
 			</option>
 			<option name="Padding">
 				Different padding modes to apply to the spatial dimensions (excluding the batch and channel dimensions) 

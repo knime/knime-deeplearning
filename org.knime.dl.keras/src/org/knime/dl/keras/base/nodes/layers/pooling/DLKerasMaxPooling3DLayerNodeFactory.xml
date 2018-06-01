@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasmaxpoolinglayer.png" type="Other">
-	<name>Keras Max Pooling 2D Layer</name>
+	<name>Keras Max Pooling 3D Layer</name>
 
 	<shortDescription>
-		Keras Max Pooling 2D Layer
+		Keras Max Pooling 3D Layer
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/pooling/#maxpooling2d">Keras Max Pooling 2D Layer</a>
+			<a href="https://keras.io/layers/pooling/#maxpooling3d">Keras Max Pooling 3D Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
 			<option name="Strides">
-				The step size of the pooling window in two dimensions.
+				The step size of the pooling window in three dimensions.
 			</option>
 			<option name="Pool Size">
-				The size of the pooling window in two dimensions.
+				The size of the pooling window in three dimensions.
 			</option>
 			<option name="Data Format">
 				<ul>
 					<li>
-						channels_last: corresponds to inputs with shape (height, width, channels)
+						channels_last: corresponds to inputs with shape (spatial_dim1, spatial_dim2, spatial_dim3, channels)
 					</li>
 					<li>
-						channels_first: corresponds to inputs with shape (channels, height, width)
+						channels_first: corresponds to inputs with shape (channels, spatial_dim1, spatial_dim2, spatial_dim3)
 					</li>
 				</ul>
 			</option>

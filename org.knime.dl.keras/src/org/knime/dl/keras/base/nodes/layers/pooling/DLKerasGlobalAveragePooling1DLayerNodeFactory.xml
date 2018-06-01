@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasmaxpoolinglayer.png" type="Other">
+	<name>Keras Global Average Pooling 1D Layer</name>
+
+	<shortDescription>
+		Keras Global Average Pooling 1D Layer
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node adds a
+			<a href="https://keras.io/layers/pooling/#globalaveragepooling1d">Keras Global Average Pooling 1D Layer</a>
+			to an existing deep learning network.
+		</intro>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>

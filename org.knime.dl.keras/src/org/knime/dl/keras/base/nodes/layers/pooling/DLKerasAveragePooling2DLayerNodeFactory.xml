@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasmaxpoolinglayer.png" type="Other">
-	<name>Keras Max Pooling 2D Layer</name>
+	<name>Keras Average Pooling 2D Layer</name>
 
 	<shortDescription>
-		Keras Max Pooling 2D Layer
+		Keras Average Pooling 2D Layer
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/pooling/#maxpooling2d">Keras Max Pooling 2D Layer</a>
+			<a href="https://keras.io/layers/pooling/#averagepooling2d">Keras Average Pooling 2D Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">

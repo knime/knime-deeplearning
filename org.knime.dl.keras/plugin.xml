@@ -80,6 +80,13 @@
             name="Layers"
             path="/labs/deeplearning/keras">
       </category>
+      <category
+            icon="icons/keras-layers.gif"
+            level-id="pooling"
+            locked="true"
+            name="Pooling"
+            path="/labs/deeplearning/keras/layers">
+      </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
@@ -129,14 +136,59 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.flatten.DLKerasFlattenLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers"
+            category-path="/lab/labs/deeplearning/keras/layers/pooling"   
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.input.DLKerasInputLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers"
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasMaxPooling1DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasMaxPooling2DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasMaxPooling3DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasGlobalMaxPooling1DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasGlobalMaxPooling2DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasGlobalAveragePooling1DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasGlobalAveragePooling2DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasAveragePooling1DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasAveragePooling2DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/pooling"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasAveragePooling3DLayerNodeFactory">
       </node>
   </extension>
    <extension
