@@ -87,7 +87,7 @@ public final class DLKerasAveragePooling2DLayer extends DLKerasAbstractUnaryLaye
     @Override
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
-            new String[]{"Pool size", "Strides"}, 2);
+            new String[]{"Pool size", "Strides"}, 2, false);
     }
 
     @Override

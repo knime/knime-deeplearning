@@ -83,7 +83,7 @@ public final class DLKerasZeroPadding2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_paddingDim1, m_paddingDim2},
-            new String[]{"Padding Dimension 1", "Padding Dimension 2"}, 2);
+            new String[]{"Padding Dimension 1", "Padding Dimension 2"}, 2, true);
     }
 
     @Override

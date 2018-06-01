@@ -79,7 +79,7 @@ public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_cropping}, new String[]{"Cropping"}, 2);
+        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_cropping}, new String[]{"Cropping"}, 2, true);
     }
 
     @Override

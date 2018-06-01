@@ -82,11 +82,12 @@ public final class DLConvolutionLayerUtils {
      * @param tuples the string representation of the tuples to validate
      * @param parameterNames the parameter names used for reporting
      * @param n the expected number of elements in each tuple
+     * @param allowZero if zero is allowed
      * @throws InvalidSettingsException if the String format of tuple is not supported, if the tuple cannot be parsed,
      *             if the tuple length does not match the specified length, if tuple values are negative or zero
      */
-    public static void validateTupleStrings(final String[] tuples, final String[] parameterNames, final int n)
-        throws InvalidSettingsException {
+    public static void validateTupleStrings(final String[] tuples, final String[] parameterNames, final int n,
+        final boolean allowZero) throws InvalidSettingsException {
         List<InvalidSettingsException> problems = new ArrayList<>();
 
         int i = 0;
@@ -95,7 +96,11 @@ public final class DLConvolutionLayerUtils {
                 DLParameterValidationUtils.checkTupleString(tuple, false);
                 Long[] parsedTuple = DLPythonUtils.parseShape(tuple);
                 DLParameterValidationUtils.checkTupleLength(parsedTuple, n, parameterNames[i]);
-                DLParameterValidationUtils.checkTupleNotZeroNotNegative(parsedTuple, parameterNames[i]);
+                if (allowZero) {
+                    DLParameterValidationUtils.checkTupleNotNegative(parsedTuple, parameterNames[i]);
+                } else {
+                    DLParameterValidationUtils.checkTupleNotZeroNotNegative(parsedTuple, parameterNames[i]);
+                }
             } catch (InvalidSettingsException e) {
                 problems.add(e);
             } finally {

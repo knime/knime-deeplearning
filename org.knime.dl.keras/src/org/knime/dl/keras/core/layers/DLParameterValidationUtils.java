@@ -97,6 +97,22 @@ public final class DLParameterValidationUtils {
     }
 
     /**
+     * Throws an exception of the the values of the specified array are lower than zero.
+     *
+     * @param tuple the tuple to check
+     * @param parameterName the parameter name for reporting
+     * @throws InvalidSettingsException
+     */
+    public static void checkTupleNotNegative(final Long[] tuple, final String parameterName)
+        throws InvalidSettingsException {
+        for (Long l : tuple) {
+            if (l != null && l < 0) {
+                throw new InvalidSettingsException("Value/s of parameter " + parameterName + " must not be negative.");
+            }
+        }
+    }
+
+    /**
      * Throws an exception of the the values of the specified array length is not equal to the specified length.
      * 
      * @param tuple the tuple to check
@@ -135,4 +151,5 @@ public final class DLParameterValidationUtils {
         }
 
     }
+
 }

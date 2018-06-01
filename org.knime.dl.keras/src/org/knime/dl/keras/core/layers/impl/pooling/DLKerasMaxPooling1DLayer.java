@@ -87,7 +87,7 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
-            new String[]{"Pool size", "Strides"}, 1);
+            new String[]{"Pool size", "Strides"}, 1, false);
     }
 
     @Override

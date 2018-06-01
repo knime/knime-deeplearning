@@ -79,7 +79,7 @@ public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_size}, new String[]{"Size"}, 2);
+        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_size}, new String[]{"Size"}, 2, false);
     }
 
     @Override
