@@ -65,7 +65,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasUpSampling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Size", min = "1", max = "1000000", stepSize = "1")
-    long m_size = 2;
+    private int m_size = 2;
 
     // Data format is always "channel_last"
     private final DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
@@ -90,7 +90,8 @@ public final class DLKerasUpSampling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, new Long[]{m_size}, m_dataFormat);
+        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, new Long[]{new Long(m_size)},
+            m_dataFormat);
     }
 
     @Override
