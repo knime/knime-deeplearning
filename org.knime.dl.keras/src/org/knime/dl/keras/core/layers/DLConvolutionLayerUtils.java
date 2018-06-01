@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -273,7 +274,7 @@ public final class DLConvolutionLayerUtils {
     private static Long[] computeShapePerRealDimension(final Long[] inputShape, final int realDims,
         final String dataFormat, final BiFunction<Long, Integer, Long> computeFn) {
         final Long[] outputShape = new Long[inputShape.length];
-        final int startIdx = dataFormat == "channels_first" ? 2 : 1;
+        final int startIdx = dataFormat.equals("channels_first") ? 2 : 1;
         for (int i = 0; i < inputShape.length; i++) {
             if (i >= startIdx && i - startIdx < realDims) {
                 outputShape[i] = computeFn.apply(inputShape[i], i - startIdx);
@@ -282,5 +283,63 @@ public final class DLConvolutionLayerUtils {
             }
         }
         return outputShape;
+    }
+
+    /**
+     * Computes the output shape for a 2-D transpose convolution layer.
+     *
+     * @param inputShape the 2-D input shape + channel
+     * @param filters the number of output filters of the corresponding convolution
+     * @param stride the stride in each spatial dimension
+     * @param kernelSize the size of the convolution kernel in each spatial dimension
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @param padding the padding mode to use
+     * @return resulting output shape after deconvolution operation with specified parameters
+     */
+    public static Long[] computeDeconv2DOutputShape(final Long[] inputShape, final int filters, final Long[] kernelSize,
+        final Long[] stride, final DLKerasDataFormat dataFormat, final DLKerasPadding padding) {
+        final int cAxis, hAxis, wAxis;
+        if (dataFormat.equals(DLKerasDataFormat.CHANNEL_FIRST)) {
+            cAxis = 1;
+            hAxis = 2;
+            wAxis = 3;
+        } else {
+            cAxis = 3;
+            hAxis = 1;
+            wAxis = 2;
+        }
+
+        final Long[] outputShape = Arrays.copyOf(inputShape, inputShape.length);
+        outputShape[cAxis] = new Long(filters);
+        outputShape[hAxis] =
+            DLConvolutionLayerUtils.deconvLength(outputShape[hAxis], stride[0], kernelSize[0], padding);
+        outputShape[wAxis] =
+            DLConvolutionLayerUtils.deconvLength(outputShape[wAxis], stride[1], kernelSize[1], padding);
+        return outputShape;
+    }
+
+    /**
+     * Computes the deconvolution output size of one dimension.
+     *
+     * @param dimSize the size of the dimension
+     * @param strideSize the stride in this dimension
+     * @param kernelSize the kernel size in this dimension
+     * @param padding the chosen padding
+     * @return the size of the dimension after the deconvolution
+     */
+    private static Long deconvLength(final Long dimSize, final Long strideSize, final Long kernelSize,
+        final DLKerasPadding padding) {
+        if (dimSize == null) {
+            return null;
+        }
+        switch (padding) {
+            case VALID:
+                return dimSize * strideSize + Math.max(kernelSize - strideSize, 0);
+            case FULL:
+                return dimSize * strideSize - (strideSize + kernelSize - 2);
+            case SAME:
+                return dimSize * strideSize;
+        }
+        return null; // Won't happen
     }
 }
