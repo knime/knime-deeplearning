@@ -114,7 +114,7 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // TODO check input shape
+        DLConvolutionLayerUtils.validateInputRank(inputShape, 3);
     }
 
     @Override

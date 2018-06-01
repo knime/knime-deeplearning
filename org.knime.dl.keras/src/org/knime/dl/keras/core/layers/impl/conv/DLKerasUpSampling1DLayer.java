@@ -85,7 +85,7 @@ public final class DLKerasUpSampling1DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // TODO check input shape
+        DLConvolutionLayerUtils.validateInputRank(inputShape, 2);
     }
 
     @Override
