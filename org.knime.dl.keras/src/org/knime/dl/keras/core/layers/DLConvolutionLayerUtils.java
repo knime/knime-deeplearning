@@ -135,10 +135,10 @@ public final class DLConvolutionLayerUtils {
         }
 
         int channelIndex = findChannelIndex(inputShape, dataFormat);
-        Long[] newDims = IntStream.range(0, inputShape.length - 1).filter(i -> i != channelIndex)
+        Long[] newDims = IntStream.range(0, inputShape.length).filter(i -> i != channelIndex)
             .mapToLong(i -> inputShape[i]).boxed().toArray(Long[]::new);
 
-        Stream<Long> outputShape = IntStream.range(0, newDims.length - 1)
+        Stream<Long> outputShape = IntStream.range(0, newDims.length)
             .mapToLong(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], dialtion[i], padding)).boxed();
 
         if (dataFormat.equals("channels_first")) {
