@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasConstraint;
 import org.knime.dl.keras.core.layers.DLKerasInitializer;
 import org.knime.dl.keras.core.layers.DLKerasRegularizer;
+import org.knime.dl.keras.core.layers.DLKerasUtiltiyObjectUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -194,9 +195,9 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_inputDim));
         positionalParams.add(DLPythonUtils.toPython(m_outputDim));
-        namedParams.put("embeddings_initializer", m_initializer.getBackendRepresentation());
-        namedParams.put("embeddings_regularizer", m_embeddingRegularizer != null ? m_embeddingRegularizer.getBackendRepresentation() : DLPythonUtils.NONE);
-        namedParams.put("embeddings_constraint", m_constraint != null ? m_embeddingRegularizer.getBackendRepresentation() : DLPythonUtils.NONE);
+        namedParams.put("embeddings_initializer", DLKerasUtiltiyObjectUtils.toPython(m_initializer));
+        namedParams.put("embeddings_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_embeddingRegularizer));
+        namedParams.put("embeddings_constraint", DLKerasUtiltiyObjectUtils.toPython(m_constraint));
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
         namedParams.put("input_length", hasInputLength() ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseInputLength()));
     }
