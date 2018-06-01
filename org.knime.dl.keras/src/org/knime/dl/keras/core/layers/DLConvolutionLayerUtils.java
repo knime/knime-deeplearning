@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -233,18 +234,8 @@ public final class DLConvolutionLayerUtils {
      */
     public static Long[] computeCroppingOutputShape(final Long[] inputShape, final Long[][] croppings,
         final String dataFormat) {
-        final Long[] outputShape = new Long[inputShape.length];
-        final int n = croppings.length;
-        final int startIdx = dataFormat == "channels_first" ? 2 : 1;
-        for (int i = 0; i < inputShape.length; i++) {
-            if (i >= startIdx && i - startIdx < n) {
-                outputShape[i] = inputShape[i] == null ? null
-                    : inputShape[i] - croppings[i - startIdx][0] - croppings[i - startIdx][0];
-            } else {
-                outputShape[i] = inputShape[i];
-            }
-        }
-        return outputShape;
+        return computeShapePerRealDimension(inputShape, croppings.length, dataFormat,
+            (in, idx) -> in == null ? null : in - croppings[idx][0] - croppings[idx][1]);
     }
 
     /**
@@ -257,13 +248,35 @@ public final class DLConvolutionLayerUtils {
      */
     public static Long[] computePaddingOutputShape(final Long[] inputShape, final Long[][] paddings,
         final String dataFormat) {
+        return computeShapePerRealDimension(inputShape, paddings.length, dataFormat,
+            (in, idx) -> in == null ? null : in + paddings[idx][0] - paddings[idx][1]);
+    }
+
+    /**
+     * Computes the output shape of up-sampling layers.
+     *
+     * @param inputShape the input shape
+     * @param size up-sampling size per dimension
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @return resulting output shape after the up-sampling operation
+     */
+    public static Long[] computeUpSamplingOutputShape(final Long[] inputShape, final Long[] size,
+        final String dataFormat) {
+        return computeShapePerRealDimension(inputShape, size.length, dataFormat,
+            (in, idx) -> in == null ? null : in * size[idx]);
+    }
+
+    /**
+     * Computes an output shape by applying the given compute function to every dimension which isn't the batch of
+     * feature dimension.
+     */
+    private static Long[] computeShapePerRealDimension(final Long[] inputShape, final int realDims,
+        final String dataFormat, final BiFunction<Long, Integer, Long> computeFn) {
         final Long[] outputShape = new Long[inputShape.length];
-        final int n = paddings.length;
         final int startIdx = dataFormat == "channels_first" ? 2 : 1;
         for (int i = 0; i < inputShape.length; i++) {
-            if (i >= startIdx && i - startIdx < n) {
-                outputShape[i] = inputShape[i] == null ? null
-                    : inputShape[i] + paddings[i - startIdx][0] + paddings[i - startIdx][0];
+            if (i >= startIdx && i - startIdx < realDims) {
+                outputShape[i] = computeFn.apply(inputShape[i], i - startIdx);
             } else {
                 outputShape[i] = inputShape[i];
             }
