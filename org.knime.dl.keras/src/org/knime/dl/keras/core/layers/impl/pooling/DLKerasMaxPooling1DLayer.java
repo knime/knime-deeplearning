@@ -63,7 +63,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Pool size")
+    @Parameter(label = "Pool Size")
     private String m_poolSize = "2";
 
     @Parameter(label = "Strides")
