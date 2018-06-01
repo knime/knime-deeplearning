@@ -62,6 +62,22 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
     // marker interface
 
     /**
+     * Choices for {@link DLKerasConstraint}s to be used in layers.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static class DLKerasConstraintChoices extends DLKerasAbstractUtilityObjectChoices<DLKerasConstraint> {
+        /**
+         */
+        @SuppressWarnings("unchecked")
+        public DLKerasConstraintChoices() {
+            super(new Class[]{DLKerasMaxNormConstraint.class,
+                DLKerasNonNegativeConstraint.class, DLKerasUnitNormConstraint.class, DLKerasMinMaxNormConstraint.class});
+        }
+        
+    }
+
+    /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static abstract class DLKerasAbstractConstraint extends DLKerasAbstractUtilityObject implements DLKerasConstraint {

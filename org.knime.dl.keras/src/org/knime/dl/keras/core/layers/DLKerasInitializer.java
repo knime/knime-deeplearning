@@ -61,6 +61,28 @@ import org.knime.dl.python.util.DLPythonUtils;
 public interface DLKerasInitializer extends DLKerasUtilityObject {
     // marker interface
 
+    
+    /**
+     * Choices for {@link DLKerasInitializer}s to be used in layers.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static final class DLKerasInitializerChoices extends DLKerasAbstractUtilityObjectChoices<DLKerasInitializer> {
+
+        /**
+         */
+        @SuppressWarnings("unchecked")
+        public DLKerasInitializerChoices() {
+            super(new Class[]{DLKerasIdentityInitializer.class,
+                DLKerasZerosInitializer.class, DLKerasOnesInitializer.class, DLKerasConstantInitializer.class,
+                DLKerasRandomNormalInitializer.class, DLKerasRandomUniformInitializer.class,
+                DLKerasTruncatedNormalInitializer.class, DLKerasVarianceScalingInitializer.class,
+                DLKerasOrthogonalInitializer.class, DLKerasLeCunUniformInitializer.class,
+                DLKerasGlorotNormalInitializer.class, DLKerasGlorotUniformInitializer.class,
+                DLKerasHeNormalInitializer.class, DLKerasLeCunNormalInitializer.class, DLKerasHeUniformInitializer.class});
+        }
+    }
+
     /**
      * Declares parameter validation and population to reduce boilerplate in deriving classes.
      * 
@@ -86,6 +108,28 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             // nothing to populate
         }
+    }
+
+    /**
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static final class DLKerasIdentityInitializer extends DLKerasAbstractInitializer {
+
+        @Parameter(label = "Gain")
+        private float m_gain = 1.0f;
+
+        /**
+         */
+        public DLKerasIdentityInitializer() {
+            super("keras.initializers.Identity", "Identity initializer");
+        }
+
+        @Override
+        protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+            namedParams.put("gain", toPython(m_gain));
+            super.populateParameters(positionalParams, namedParams);
+        }
+
     }
 
     /**
@@ -216,6 +260,41 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
          */
         public DLKerasTruncatedNormalInitializer() {
             super("keras.initializers.TruncatedNormal", "Truncated normal initializer");
+        }
+
+    }
+
+    /**
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static final class DLKerasRandomUniformInitializer extends DLKerasAbstractSeededInitializer {
+
+        @Parameter(label = "Minimum value")
+        private float m_minVal = -0.05f;
+
+        @Parameter(label = "Maximum value")
+        private float m_maxVal = 0.05f;
+
+        /**
+         */
+        public DLKerasRandomUniformInitializer() {
+            super("keras.initializers.RandomUniform", "Random uniform initializer");
+        }
+
+        @Override
+        public void validateParameters() throws InvalidSettingsException {
+            super.validateParameters();
+            if (m_minVal >= m_maxVal) {
+                throw new InvalidSettingsException(
+                    "The minimum value (" + m_minVal + ") must be smaller than the maximum value(" + m_maxVal + ".");
+            }
+        }
+
+        @Override
+        protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+            namedParams.put("minval", toPython(m_minVal));
+            namedParams.put("maxval", toPython(m_maxVal));
+            super.populateParameters(positionalParams, namedParams);
         }
 
     }

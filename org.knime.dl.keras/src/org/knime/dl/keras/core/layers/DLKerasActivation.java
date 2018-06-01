@@ -60,11 +60,32 @@ import org.knime.dl.python.util.DLPythonUtils;
 public interface DLKerasActivation extends DLKerasUtilityObject {
 
     // marker interface
+
     
+    /**
+     * Choices for {@link DLKerasActivation}s to be used in layers.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static final class DLKerasActivationChoices extends DLKerasAbstractUtilityObjectChoices<DLKerasActivation> {
+
+        /**
+         */
+        @SuppressWarnings("unchecked")
+        public DLKerasActivationChoices() {
+            super(new Class[]{DLKerasSoftmaxActivation.class, DLKerasELUActivation.class,
+                DLKerasSELUActivation.class, DLKerasSoftPlusActivation.class, DLKerasSoftSignActivation.class,
+                DLKerasReLuActivation.class, DLKerasTanhActivation.class, DLKerasSigmoidActivation.class,
+                DLKerasHardSigmoidActivation.class, DLKerasLinearActivation.class});
+        }
+        
+    }
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static abstract class DLKerasParameterLessActivation extends DLKerasAbstractUtilityObject implements DLKerasActivation {
+    static abstract class DLKerasParameterLessActivation extends DLKerasAbstractUtilityObject
+        implements DLKerasActivation {
 
         /**
          * @param kerasIdentifier
@@ -73,7 +94,7 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasParameterLessActivation(String kerasIdentifier, String name) {
             super(kerasIdentifier, name);
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             // nothing to validate
@@ -83,9 +104,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             // nothing to populate
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -93,7 +114,7 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
 
         @Parameter(label = "Axis")
         private int m_axis = -1;
-        
+
         /**
          */
         public DLKerasSoftmaxActivation() {
@@ -110,81 +131,81 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
             namedParams.put("axis", DLPythonUtils.toPython(m_axis));
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static abstract class DLKerasAbstractLinearActivation extends DLKerasAbstractUtilityObject implements DLKerasActivation {
+    static abstract class DLKerasAbstractLinearActivation extends DLKerasAbstractUtilityObject
+        implements DLKerasActivation {
 
         @Parameter(label = "Alpha")
         private float m_alpha;
-        
+
         /**
          * @param kerasIdentifier
          * @param name
-         * @param defaultAlpha 
+         * @param defaultAlpha
          */
         public DLKerasAbstractLinearActivation(String kerasIdentifier, String name, float defaultAlpha) {
             super(kerasIdentifier, name);
             m_alpha = defaultAlpha;
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             // TODO Keras doesn't make any assumptions but we might want to prevent non-sense (would first have to figure out what non-sense is though)
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             namedParams.put("alpha", DLPythonUtils.toPython(m_alpha));
         }
-        
+
     }
-    
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static final class DLKerasELUActivation extends DLKerasAbstractLinearActivation {
 
         private static final float DEFAULT_ALPHA = 1.0f;
-        
+
         /**
          */
         public DLKerasELUActivation() {
             super("keras.activations.elu", "ELU activation", DEFAULT_ALPHA);
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
     static final class DLKerasReLuActivation extends DLKerasAbstractLinearActivation {
 
         private static final float DEFAULT_ALPHA = 0.0f;
-        
+
         @Parameter(label = "Max value", required = false)
-        private OptionalDouble m_maxValue = OptionalDouble.empty(); 
-        
+        private OptionalDouble m_maxValue = OptionalDouble.empty();
+
         /**
          */
         public DLKerasReLuActivation() {
             super("keras.activations.relu", "ReLU activation", DEFAULT_ALPHA);
         }
-        
+
         @Override
         public void validateParameters() throws InvalidSettingsException {
             // TODO Keras doesn't make any assumptions but we might want to prevent non-sense
             super.validateParameters();
         }
-        
+
         @Override
         protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
             super.populateParameters(positionalParams, namedParams);
             namedParams.put("max_value", DLPythonUtils.toPython(m_maxValue));
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -196,7 +217,7 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
             super("keras.activations.selu", "SELU activation");
         }
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -209,9 +230,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasSoftPlusActivation(String kerasIdentifier, String name) {
             super("keras.activations.softplus", "Softplus activation");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -222,9 +243,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasSoftSignActivation() {
             super("keras.activations.softsign", "Softsign activation");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -235,9 +256,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasTanhActivation() {
             super("keras.activations.tanh", "Tanh activation");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -248,9 +269,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasSigmoidActivation() {
             super("keras.activations.sigmoid", "Sigmoid activation");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -261,9 +282,9 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasHardSigmoidActivation() {
             super("keras.activations.hard_sigmoid", "Hard sigmoid activation");
         }
-        
+
     }
-    
+
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -274,6 +295,6 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
         public DLKerasLinearActivation() {
             super("keras.activations.linear", "Linear activation");
         }
-        
+
     }
 }

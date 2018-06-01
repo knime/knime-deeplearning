@@ -60,6 +60,22 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 public interface DLKerasRegularizer extends DLKerasUtilityObject {
 
     // marker interface
+    
+    /**
+     * Choices for {@link DLKerasRegularizer}s to be used in layers.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    static final class DLKerasRegularizerChoices extends DLKerasAbstractUtilityObjectChoices<DLKerasRegularizer> {
+
+        /**
+         */
+        @SuppressWarnings("unchecked")
+        public DLKerasRegularizerChoices() {
+            super(new Class[] {DLKerasL1Regularizer.class, DLKerasL2Regularizer.class, DLKerasL1L2Regularizer.class});
+        }
+        
+    }
 
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
