@@ -47,7 +47,7 @@
 package org.knime.dl.keras.base.nodes.layers.pooling;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasMaxPooling2DLayer;
+import org.knime.dl.keras.core.layers.impl.pooling.DLKerasMaxPooling2DLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

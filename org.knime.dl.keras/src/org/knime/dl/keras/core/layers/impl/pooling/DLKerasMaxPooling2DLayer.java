@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.core.layers.impl.pooling;
 
 import java.util.List;
 import java.util.Map;
