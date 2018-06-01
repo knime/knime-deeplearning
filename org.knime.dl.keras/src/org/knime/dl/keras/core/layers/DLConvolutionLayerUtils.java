@@ -320,13 +320,13 @@ public final class DLConvolutionLayerUtils {
         final Long[] stride, final DLKerasDataFormat dataFormat, final DLKerasPadding padding) {
         final int cAxis, hAxis, wAxis;
         if (dataFormat == DLKerasDataFormat.CHANNEL_FIRST) {
-            cAxis = 1;
-            hAxis = 2;
-            wAxis = 3;
-        } else {
-            cAxis = 3;
+            cAxis = 0;
             hAxis = 1;
             wAxis = 2;
+        } else {
+            cAxis = 2;
+            hAxis = 0;
+            wAxis = 1;
         }
 
         final Long[] outputShape = Arrays.copyOf(inputShape, inputShape.length);
