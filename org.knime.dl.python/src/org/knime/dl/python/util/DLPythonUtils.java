@@ -185,6 +185,10 @@ public final class DLPythonUtils {
         return toPythonList(Arrays.stream(la).map(l -> l == null ? NONE : toPython(l)).toArray(String[]::new));
     }
 
+    public static String toPython(final Long[][] la) {
+        return toPythonList(Arrays.stream(la).map(l -> toPython(l)).toArray(String[]::new));
+    }
+
 	public static String toPython(final String[] sa) {
 		final String[] str = new String[sa.length];
 		for (int i = 0; i < str.length; i++) {

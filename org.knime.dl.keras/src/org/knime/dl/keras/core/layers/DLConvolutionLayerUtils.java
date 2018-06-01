@@ -204,4 +204,46 @@ public final class DLConvolutionLayerUtils {
         return (outputLength + stride - 1) / stride;
     }
 
+    /**
+     * Parses the list of croppings or paddings. One String should contain one or two integers.
+     *
+     * @param croppings a list of Strings containing one or two integers.
+     * @return list of croppings or paddings per dimension.
+     */
+    public static Long[][] parseCroppingOrPadding(final String... croppings) {
+        final Long[][] result = new Long[croppings.length][2];
+        for (int i = 0; i < croppings.length; i++) {
+            Long[] c = DLPythonUtils.parseShape(croppings[i]);
+            if (c.length == 2) {
+                result[i] = c;
+            } else {
+                result[i] = new Long[]{c[0], c[0]};
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Computes the output shape of cropping layers.
+     *
+     * @param inputShape the input shape
+     * @param croppings a list of 2 croppings per dimension
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @return resulting output shape after the cropping operation
+     */
+    public static Long[] computeCroppingOutputShape(final Long[] inputShape, final Long[][] croppings,
+        final String dataFormat) {
+        final Long[] outputShape = new Long[inputShape.length];
+        final int n = croppings.length;
+        final int startIdx = dataFormat == "channels_first" ? 2 : 1;
+        for (int i = 0; i < inputShape.length; i++) {
+            if (i >= startIdx && i - startIdx < n) {
+                outputShape[i] = inputShape[i] == null ? null
+                    : inputShape[i] - croppings[i - startIdx][0] - croppings[i - startIdx][0];
+            } else {
+                outputShape[i] = inputShape[i];
+            }
+        }
+        return outputShape;
+    }
 }
