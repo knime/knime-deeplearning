@@ -279,7 +279,7 @@ public final class DLConvolutionLayerUtils {
     private static Long[] computeShapePerRealDimension(final Long[] inputShape, final int realDims,
         final DLKerasDataFormat dataFormat, final BiFunction<Long, Integer, Long> computeFn) {
         final Long[] outputShape = new Long[inputShape.length];
-        final int startIdx = dataFormat == DLKerasDataFormat.CHANNEL_FIRST ? 2 : 1;
+        final int startIdx = dataFormat == DLKerasDataFormat.CHANNEL_FIRST ? 1 : 0;
         for (int i = 0; i < inputShape.length; i++) {
             if (i >= startIdx && i - startIdx < realDims) {
                 outputShape[i] = computeFn.apply(inputShape[i], i - startIdx);
