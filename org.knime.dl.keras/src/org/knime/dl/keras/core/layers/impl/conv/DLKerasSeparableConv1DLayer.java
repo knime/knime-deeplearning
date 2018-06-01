@@ -53,6 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasActivation;
 import org.knime.dl.keras.core.layers.DLKerasConstraint;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasInitializer;
@@ -91,10 +92,8 @@ public final class DLKerasSeparableConv1DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Depth Multiplier", min = "1", max = "1000000", stepSize = "1")
     private int m_depthMultiplier = 1;
 
-    // TODO USE CHOICES
-    //    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
-    //        "softmax", "softplus", "softsign", "tanh"})
-    private String m_activation = "linear";
+    @Parameter(label = "Activation function", choices = DLKerasActivation.DLKerasActivationChoices.class)
+    private DLKerasActivation m_activation = new DLKerasActivation.DLKerasLinearActivation();
 
     @Parameter(label = "Use bias?")
     boolean m_useBias = true;
@@ -171,7 +170,7 @@ public final class DLKerasSeparableConv1DLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("dilation_rate", DLPythonUtils.toPython(m_dilationRate));
         namedParams.put("depth_multipier", DLPythonUtils.toPython(m_depthMultiplier));
-        namedParams.put("activation", DLPythonUtils.toPython(m_activation));
+        namedParams.put("activation", DLKerasUtiltiyObjectUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("depthwise_initializer", DLKerasUtiltiyObjectUtils.toPython(m_depthwiseInitializer));
         namedParams.put("pointwise_initializer", DLKerasUtiltiyObjectUtils.toPython(m_pointwiseInitializer));

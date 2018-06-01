@@ -61,7 +61,6 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
 
     // marker interface
 
-    
     /**
      * Choices for {@link DLKerasActivation}s to be used in layers.
      * 
@@ -73,12 +72,12 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
          */
         @SuppressWarnings("unchecked")
         public DLKerasActivationChoices() {
-            super(new Class[]{DLKerasSoftmaxActivation.class, DLKerasELUActivation.class,
-                DLKerasSELUActivation.class, DLKerasSoftPlusActivation.class, DLKerasSoftSignActivation.class,
-                DLKerasReLuActivation.class, DLKerasTanhActivation.class, DLKerasSigmoidActivation.class,
-                DLKerasHardSigmoidActivation.class, DLKerasLinearActivation.class});
+            super(new Class[]{DLKerasSoftmaxActivation.class, DLKerasELUActivation.class, DLKerasSELUActivation.class,
+                DLKerasSoftPlusActivation.class, DLKerasSoftSignActivation.class, DLKerasReLuActivation.class,
+                DLKerasTanhActivation.class, DLKerasSigmoidActivation.class, DLKerasHardSigmoidActivation.class,
+                DLKerasLinearActivation.class});
         }
-        
+
     }
 
     /**
@@ -224,10 +223,8 @@ public interface DLKerasActivation extends DLKerasUtilityObject {
     static final class DLKerasSoftPlusActivation extends DLKerasParameterLessActivation {
 
         /**
-         * @param kerasIdentifier
-         * @param name
          */
-        public DLKerasSoftPlusActivation(String kerasIdentifier, String name) {
+        public DLKerasSoftPlusActivation() {
             super("keras.activations.softplus", "Softplus activation");
         }
 
