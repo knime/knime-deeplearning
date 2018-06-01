@@ -53,7 +53,7 @@ package org.knime.dl.keras.core.layers;
  */
 public enum DLKerasDataFormat implements DLKerasEnum {
 
-        CHANNEL_FIRST("Channel First", "channel_first"), CHANNEL_LAST("Channel Last", "channel_last");
+        CHANNEL_FIRST("Channel First", "channels_first"), CHANNEL_LAST("Channel Last", "channels_last");
 
     private String m_label;
 
