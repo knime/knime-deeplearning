@@ -111,7 +111,7 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
     @Override
     public void validateParameters() throws InvalidSettingsException {
         DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_kernelSize, m_strides, m_dilationRate},
-            new String[]{"Pool size", "Strides", "Dilation Rate"}, 2, false);
+            new String[]{"Kernel size", "Strides", "Dilation Rate"}, 2, false);
     }
 
     @Override
