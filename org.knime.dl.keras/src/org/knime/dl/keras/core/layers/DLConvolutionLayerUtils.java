@@ -246,4 +246,28 @@ public final class DLConvolutionLayerUtils {
         }
         return outputShape;
     }
+
+    /**
+     * Computes the output shape of padding layers.
+     *
+     * @param inputShape the input shape
+     * @param paddings a list of 2 paddings per dimension
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @return resulting output shape after the padding operation
+     */
+    public static Long[] computePaddingOutputShape(final Long[] inputShape, final Long[][] paddings,
+        final String dataFormat) {
+        final Long[] outputShape = new Long[inputShape.length];
+        final int n = paddings.length;
+        final int startIdx = dataFormat == "channels_first" ? 2 : 1;
+        for (int i = 0; i < inputShape.length; i++) {
+            if (i >= startIdx && i - startIdx < n) {
+                outputShape[i] = inputShape[i] == null ? null
+                    : inputShape[i] + paddings[i - startIdx][0] + paddings[i - startIdx][0];
+            } else {
+                outputShape[i] = inputShape[i];
+            }
+        }
+        return outputShape;
+    }
 }
