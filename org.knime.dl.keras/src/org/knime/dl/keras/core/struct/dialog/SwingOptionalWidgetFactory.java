@@ -88,6 +88,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
 
         public Widget(final Member<T> member) {
             super(member);
+            getComponent();
         }
 
         @Override

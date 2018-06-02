@@ -65,9 +65,9 @@ import org.knime.dl.keras.core.struct.param.ParameterStructs;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-class NodeSettingsReadAccess extends AbstractStructAccess<MemberReadAccess<?, NodeSettingsRO>>
+class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, NodeSettingsRO>>
     implements StructReadAccess<NodeSettingsRO, MemberReadAccess<?, NodeSettingsRO>> {
-    public NodeSettingsReadAccess(Struct struct) {
+    public NodeSettingsAccessRO(Struct struct) {
         super(struct);
         for (final Member<?> member : struct) {
             addMemberInstance(createMemberInstancesRO(member));
@@ -87,7 +87,10 @@ class NodeSettingsReadAccess extends AbstractStructAccess<MemberReadAccess<?, No
                 (ValueReadAccess<T, NodeSettingsRO>)new NodeSettingsStringAccessRO((Member<String>)member);
             readAccess = casted;
         } else if (rawType.equals(String[].class)) {
-            readAccess = createPrimitiveArrayAccessRO(member);
+            @SuppressWarnings("unchecked")
+            final ValueReadAccess<T, NodeSettingsRO> casted =
+                (ValueReadAccess<T, NodeSettingsRO>)new NodeSettingsStringArrayAccessRO((Member<String[]>)member);
+            readAccess = casted;
         } else if (rawType.isEnum()) {
             readAccess = createEnumAccessRO(member);
         } else {

@@ -125,7 +125,7 @@ public final class ParameterStructs {
         try {
             return new ParameterStructAccess<S>(ParameterStructs.structOf(type), type);
         } catch (ValidityException e) {
-            // Can't happen
+            e.printStackTrace();
             return null;
         }
     }

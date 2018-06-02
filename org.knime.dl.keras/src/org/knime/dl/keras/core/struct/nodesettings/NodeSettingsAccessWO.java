@@ -65,9 +65,9 @@ import org.knime.dl.keras.core.struct.param.ParameterStructs;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-class NodeSettingsWriteAccess extends AbstractStructAccess<MemberWriteAccess<?, NodeSettingsWO>>
+class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, NodeSettingsWO>>
     implements StructWriteAccess<NodeSettingsWO, MemberWriteAccess<?, NodeSettingsWO>> {
-    public NodeSettingsWriteAccess(Struct struct) {
+    public NodeSettingsAccessWO(Struct struct) {
         super(struct);
         for (final Member<?> member : struct) {
             addMemberInstance(createMemberWriteAccess(member));
@@ -77,9 +77,9 @@ class NodeSettingsWriteAccess extends AbstractStructAccess<MemberWriteAccess<?, 
     private static <T> MemberWriteAccess<T, NodeSettingsWO> createMemberWriteAccess(Member<T> member) {
         final Class<T> rawType = member.getRawType();
         final ValueWriteAccess<T, NodeSettingsWO> writeAccess;
-        if (ClassUtils.isPrimitiveOrWrapper(rawType)) {
+        if (ClassUtils.isPrimitiveOrWrapper(rawType) && !rawType.isArray()) {
             writeAccess = createPrimitiveAccessWO(member);
-        } else if (rawType.isArray() && rawType.getComponentType().isPrimitive()) {
+        } else if (rawType.isArray() && ClassUtils.isPrimitiveOrWrapper(rawType.getComponentType())) {
             writeAccess = createPrimitiveArrayAccessWO(member);
         } else if (rawType.equals(String.class)) {
             @SuppressWarnings("unchecked")
@@ -87,13 +87,20 @@ class NodeSettingsWriteAccess extends AbstractStructAccess<MemberWriteAccess<?, 
                 (ValueWriteAccess<T, NodeSettingsWO>)new NodeSettingsStringAccessWO((Member<String>)member);
             writeAccess = casted;
         } else if (rawType.equals(String[].class)) {
-            writeAccess = createPrimitiveArrayAccessWO(member);
+            @SuppressWarnings("unchecked")
+            final ValueWriteAccess<T, NodeSettingsWO> casted =
+                (ValueWriteAccess<T, NodeSettingsWO>)createStringArrayAccessWO((Member<String[]>)member);
+            writeAccess = casted;
         } else if (rawType.isEnum()) {
             writeAccess = createEnumAccessWO(member);
         } else {
             writeAccess = createObjectAccessWO(member);
         }
         return new DefaultMemberWriteAccess<>(member, writeAccess);
+    }
+
+    private static ValueWriteAccess<String[], NodeSettingsWO> createStringArrayAccessWO(Member<String[]> member) {
+        return new NodeSettingsStringArrayAccessWO(member);
     }
 
     private static <T> ValueWriteAccess<T, NodeSettingsWO> createEnumAccessWO(Member<T> member) {

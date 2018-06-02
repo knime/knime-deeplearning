@@ -61,7 +61,6 @@ import org.knime.dl.python.util.DLPythonUtils;
 public interface DLKerasInitializer extends DLKerasUtilityObject {
     // marker interface
 
-    
     /**
      * Choices for {@link DLKerasInitializer}s to be used in layers.
      * 
@@ -73,13 +72,13 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
          */
         @SuppressWarnings("unchecked")
         public DLKerasInitializerChoices() {
-            super(new Class[]{DLKerasIdentityInitializer.class,
-                DLKerasZerosInitializer.class, DLKerasOnesInitializer.class, DLKerasConstantInitializer.class,
-                DLKerasRandomNormalInitializer.class, DLKerasRandomUniformInitializer.class,
-                DLKerasTruncatedNormalInitializer.class, DLKerasVarianceScalingInitializer.class,
-                DLKerasOrthogonalInitializer.class, DLKerasLeCunUniformInitializer.class,
-                DLKerasGlorotNormalInitializer.class, DLKerasGlorotUniformInitializer.class,
-                DLKerasHeNormalInitializer.class, DLKerasLeCunNormalInitializer.class, DLKerasHeUniformInitializer.class});
+            super(new Class[]{DLKerasIdentityInitializer.class, DLKerasZerosInitializer.class,
+                DLKerasOnesInitializer.class, DLKerasConstantInitializer.class, DLKerasRandomNormalInitializer.class,
+                DLKerasRandomUniformInitializer.class, DLKerasTruncatedNormalInitializer.class,
+                DLKerasVarianceScalingInitializer.class, DLKerasOrthogonalInitializer.class,
+                DLKerasLeCunUniformInitializer.class, DLKerasGlorotNormalInitializer.class,
+                DLKerasGlorotUniformInitializer.class, DLKerasHeNormalInitializer.class,
+                DLKerasLeCunNormalInitializer.class, DLKerasHeUniformInitializer.class});
         }
     }
 
@@ -182,7 +181,7 @@ public interface DLKerasInitializer extends DLKerasUtilityObject {
     /**
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
+    public static abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
 
         // TODO make component for seed
         @Parameter(label = "Seed", required = false)

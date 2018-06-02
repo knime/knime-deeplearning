@@ -71,10 +71,10 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
          */
         @SuppressWarnings("unchecked")
         public DLKerasConstraintChoices() {
-            super(new Class[]{DLKerasMaxNormConstraint.class,
-                DLKerasNonNegativeConstraint.class, DLKerasUnitNormConstraint.class, DLKerasMinMaxNormConstraint.class});
+            super(new Class[]{DLKerasMaxNormConstraint.class, DLKerasNonNegativeConstraint.class,
+                DLKerasUnitNormConstraint.class, DLKerasMinMaxNormConstraint.class});
         }
-        
+
     }
 
     /**
@@ -109,7 +109,7 @@ public interface DLKerasConstraint extends DLKerasUtilityObject {
 
         // how should axis be declared?
         @Parameter(label = "Axis")
-        private int[] m_axis = {0};
+        private String m_axis = "0";
 
         /**
          * @param kerasIdentifier

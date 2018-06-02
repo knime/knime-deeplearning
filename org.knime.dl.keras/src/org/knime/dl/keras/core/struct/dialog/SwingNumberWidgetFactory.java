@@ -64,13 +64,13 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
-import org.scijava.util.ClassUtils;
-import org.scijava.util.NumberUtils;
+import org.scijava.util.Types;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -86,7 +86,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
     @Override
     public boolean supports(final Member<?> model) {
         // TODO we need to generalize later or make one for double etc
-        return ClassUtils.isNumber(model.getRawType()) && ((ParameterMember<?>)model).isRequired();
+        return org.scijava.util.ClassUtils.isNumber(model.getRawType()) && ((ParameterMember<?>)model).isRequired();
     }
 
     @Override
@@ -110,6 +110,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
         public Widget(final Member<Number> member) {
             super(member);
+            getComponent();
         }
 
         @Override
@@ -121,9 +122,18 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
             panel.setLayout(layout);
 
-            final Number min = toNumber(SwingWidgets.minimum(this), Integer.MIN_VALUE);
-            final Number max = toNumber(SwingWidgets.maximum(this), Integer.MAX_VALUE);
-            final Number stepSize = toNumber(SwingWidgets.stepSize(this), 1);
+            Number min = toNumber(SwingWidgets.minimum(this));
+            if (min == null) {
+                min = org.scijava.util.NumberUtils.getMinimumNumber(member().getRawType());
+            }
+            Number max = toNumber(SwingWidgets.maximum(this));
+            if (max == null) {
+                max = org.scijava.util.NumberUtils.getMaximumNumber(member().getRawType());
+            }
+            Number stepSize = toNumber(SwingWidgets.stepSize(this));
+            if (stepSize == null) {
+                stepSize = 1;
+            }
 
             if (SwingWidgets.isStyle(this, SLIDER_STYLE)) {
                 slider = new JSlider();
@@ -137,7 +147,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             // add spinner widget
             final Class<?> type = member().getRawType();
             final Number v = modelValue();
-            final Number value = v == null ? 0 : v;
+            final Number value = v == null ? getDefaultValue(type) : v;
             final SpinnerNumberModel spinnerModel =
                 new SpinnerNumberModelFactory().createModel(value, min, max, stepSize);
             spinner = new JSpinner(spinnerModel);
@@ -152,9 +162,28 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             return panel;
         }
 
-        private Number toNumber(Object minimum, Integer def) {
-            final String casted = (String)minimum;
-            return casted == null || casted.isEmpty() ? def : Integer.valueOf(casted);
+        private Number getDefaultValue(Class<?> type) {
+            if (Types.isByte(type))
+                return (byte)0;
+            if (Types.isShort(type))
+                return (short)0;
+            if (Types.isInteger(type))
+                return 0;
+            if (Types.isLong(type))
+                return 0l;
+            if (Types.isFloat(type))
+                return 0f;
+            if (Types.isDouble(type))
+                return 0d;
+            return null;
+        }
+
+        private Number toNumber(Object minimum) {
+            try {
+                return NumberUtils.createNumber((String)minimum);
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
 
         // -- AdjustmentListener methods --
@@ -293,8 +322,14 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             @SuppressWarnings("unchecked")
             final Comparable<Number> cMax = (Comparable<Number>)max;
 
-            final Number clampedValue = NumberUtils.clampToRange(value.getClass(), value, min, max);
-            return new SpinnerNumberModel(clampedValue, cMin, cMax, stepSize);
+            Number res = value;
+            final Comparable<Number> cValue = (Comparable<Number>)value;
+            if (min != null && cValue.compareTo(min) < 0)
+                res = min;
+            if (max != null && cValue.compareTo(max) > 0)
+                res = max;
+
+            return new SpinnerNumberModel(res, cMin, cMax, stepSize);
         }
 
         class SpinnerBigIntegerModel extends SpinnerTypedNumberModel<BigInteger> {

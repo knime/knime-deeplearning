@@ -44,46 +44,23 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.param;
+package org.knime.dl.keras.core.struct.nodesettings;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.Struct;
-import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
-import org.knime.dl.keras.core.struct.access.DefaultMemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.StructReadWriteAccess;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-class ParameterStructAccess<S> extends AbstractStructAccess<MemberReadWriteAccess<?, S>>
-    implements StructReadWriteAccess<S, MemberReadWriteAccess<?, S>> {
+class NodeSettingsStringArrayAccessRO extends AbstractNodeSettingsReadAccess<String[]> {
 
-    public ParameterStructAccess(final Struct struct, final Class<S> type) throws ValidityException {
-        // TODO we can check if type is compatible with struct, e.g. by checking the params...
-        super(struct);
-        for (final Member<?> member : struct.members()) {
-            final String key = member.getKey();
-            final Class<?> rawType = member.getRawType();
-            final Field field = FieldUtils.getField(type, key, true);
-            if (!isEqual(field.getType(), rawType)) {
-                throw new ValidityException("Field type " + field + "  incompatible  member type " + rawType + ".");
-            }
-            addMemberInstance(createFieldAccess(member, field));
-        }
+    public NodeSettingsStringArrayAccessRO(Member<String[]> member) {
+        super(member);
     }
 
-    private static <T, S> MemberReadWriteAccess<T, S> createFieldAccess(Member<T> member, Field field) {
-        return new DefaultMemberReadWriteAccess<>(member, new FieldValueAccess<>(field));
-    }
-
-    private static boolean isEqual(Type type, Class<?> rawType) {
-        if (!(type instanceof Class))
-            return false;
-        return rawType.equals(type);
+    @Override
+    public String[] get(NodeSettingsRO storage, String key) throws InvalidSettingsException {
+        return storage.getStringArray(key);
     }
 }

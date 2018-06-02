@@ -7,7 +7,7 @@ Bundle-ClassPath: knime-dl-keras.jar,
  libs/eventbus-1.4.jar,
  libs/gentyref-1.2.0.jar,
  libs/miglayout-3.7.4.jar,
- libs/scijava-common-2.69.1-SNAPSHOT.jar
+ libs/scijava-common-2.73.1.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.keras.core,
  org.knime.dl.keras.tensorflow.core,

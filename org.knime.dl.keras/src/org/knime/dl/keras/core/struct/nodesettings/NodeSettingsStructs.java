@@ -82,7 +82,7 @@ public final class NodeSettingsStructs {
      */
     public static StructInstance<MemberWriteInstance<?>, NodeSettingsWO>
         createNodeSettingsInstance(NodeSettingsWO settings, Struct struct) {
-        return StructInstances.createWriteInstance(settings, new NodeSettingsWriteAccess(struct));
+        return StructInstances.createWriteInstance(settings, new NodeSettingsAccessWO(struct));
     }
 
     /**
@@ -93,7 +93,7 @@ public final class NodeSettingsStructs {
      */
     public static StructInstance<MemberReadInstance<?>, NodeSettingsRO>
         createNodeSettingsInstance(NodeSettingsRO settings, Struct struct) {
-        return StructInstances.createReadInstance(settings, new NodeSettingsReadAccess(struct));
+        return StructInstances.createReadInstance(settings, new NodeSettingsAccessRO(struct));
     }
 
     /**
@@ -104,7 +104,7 @@ public final class NodeSettingsStructs {
      * @return {@link StructAccess} on {@link NodeSettingsWO}.
      */
     public static StructAccess<MemberWriteAccess<?, NodeSettingsWO>> createStructWOAccess(Struct struct) {
-        return new NodeSettingsWriteAccess(struct);
+        return new NodeSettingsAccessWO(struct);
     }
 
     /**
@@ -113,7 +113,7 @@ public final class NodeSettingsStructs {
      * @return {@link StructAccess} on {@link NodeSettingsRO}.
      */
     public static StructAccess<MemberReadAccess<?, NodeSettingsRO>> createStructROAccess(Struct struct) {
-        return new NodeSettingsReadAccess(struct);
+        return new NodeSettingsAccessRO(struct);
     }
 
 }
