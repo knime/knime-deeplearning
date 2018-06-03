@@ -84,7 +84,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
     public boolean supports(final Member<?> member) {
         if (member instanceof ParameterMember) {
             final ParameterMember<?> casted = (ParameterMember<?>)member;
-            return casted.choices() != null;
+            return casted.choices() != null && casted.isRequired();
         }
         return false;
     }
@@ -243,6 +243,10 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
         public void setEnabled(boolean enabled) {
             if (m_currentSwingWidgetPanel != null)
                 m_currentSwingWidgetPanel.setEnabled(enabled);
+
+            if (enabled) {
+                refreshSubPanels();
+            }
 
             m_comboBox.setEnabled(enabled);
         }
