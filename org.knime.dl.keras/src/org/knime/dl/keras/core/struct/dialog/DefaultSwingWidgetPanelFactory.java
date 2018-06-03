@@ -80,20 +80,20 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
 
         private final Map<String, ? extends SwingWidget<?>> m_widgets;
 
-        private JPanel panel;
+        private JPanel m_panel;
 
         public DefaultSwingWidgetPanel(final Map<String, ? extends SwingWidget<?>> widgets) {
-            this.m_widgets = widgets;
+            m_widgets = widgets;
         }
 
         @Override
         public JPanel getComponent() {
-            if (panel != null)
-                return panel;
+            if (m_panel != null)
+                return m_panel;
 
-            panel = new JPanel();
+            m_panel = new JPanel();
             final MigLayout layout = new MigLayout("fillx,wrap 2", "[right]10[fill,grow]");
-            panel.setLayout(layout);
+            m_panel.setLayout(layout);
 
             for (final SwingWidget<?> widget : m_widgets.values()) {
                 // add widget to panel
@@ -101,15 +101,15 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
                 if (label != null) {
                     // widget is prefixed by a label
                     final JLabel l = new JLabel(label);
-                    panel.add(l);
-                    panel.add(widget.getComponent());
+                    m_panel.add(l);
+                    m_panel.add(widget.getComponent());
                 } else {
                     // widget occupies entire row
                     getComponent().add(widget.getComponent(), "span");
                 }
             }
 
-            return panel;
+            return m_panel;
         }
 
         @Override
