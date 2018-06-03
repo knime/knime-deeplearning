@@ -47,7 +47,7 @@
 package org.knime.dl.keras.core.struct.dialog;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +94,7 @@ class SwingWidgetRegistry {
      * @return {@link Map} of {@link SwingWidget}s.
      */
     public Map<String, SwingWidget<?>> createWidgets(final Struct struct) {
-        final Map<String, SwingWidget<?>> widgets = new HashMap<>();
+        final Map<String, SwingWidget<?>> widgets = new LinkedHashMap<>();
 
         for (final Member<?> model : struct) {
             final SwingWidget<?> widget = createWidget(model);
