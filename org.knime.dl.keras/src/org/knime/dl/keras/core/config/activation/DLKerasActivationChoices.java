@@ -67,7 +67,7 @@ public class DLKerasActivationChoices extends DLKerasAbstractConfigObjectChoices
             new ParameterObjectChoice<>("Hard Sigmoid", DLKerasHardSigmoidActivation.class),
             new ParameterObjectChoice<>("Linear", DLKerasLinearActivation.class)};
 
-    DLKerasActivationChoices() {
+    public DLKerasActivationChoices() {
         super(CHOICES);
     }
 }

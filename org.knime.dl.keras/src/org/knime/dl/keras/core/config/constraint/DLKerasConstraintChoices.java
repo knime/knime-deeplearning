@@ -61,7 +61,7 @@ public class DLKerasConstraintChoices extends DLKerasAbstractConfigObjectChoices
             new ParameterObjectChoice<>("Non Negative", DLKerasNonNegativeConstraint.class),
             new ParameterObjectChoice<>("Unit Norm", DLKerasUnitNormConstraint.class)};
 
-    DLKerasConstraintChoices() {
+    public DLKerasConstraintChoices() {
         super(CHOICES);
     }
 }
