@@ -79,7 +79,5 @@ public @interface Parameter {
     /** Defines the step size to use (numeric parameters only). */
     String stepSize() default "";
 
-    /** Defines the list of possible values. */
-    @SuppressWarnings("rawtypes")
     Class<? extends ParameterChoices> choices() default ParameterChoices.class;
 }

@@ -44,21 +44,45 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+abstract class DLKerasAbstractNormalInitializer extends DLKerasAbstractSeededInitializer {
+
+    @Parameter(label = "Mean", min = "0.0000001")
+    private float m_mean = 0.0f;
+
+    @Parameter(label = "Standard deviation", min = "0.0000001")
+    private float m_stddev = 0.05f;
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier
      */
-    String label();
+    public DLKerasAbstractNormalInitializer(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    @Override
+    protected final void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("mean", DLPythonUtils.toPython(m_mean));
+        namedParams.put("stddev", DLPythonUtils.toPython(m_stddev));
+        super.populateParameters(positionalParams, namedParams);
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        if (m_stddev <= 0.0) {
+            throw new InvalidSettingsException("The standard deviation must be positive.");
+        }
+    }
 
 }

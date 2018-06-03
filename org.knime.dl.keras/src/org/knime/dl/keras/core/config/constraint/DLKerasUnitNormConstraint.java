@@ -44,21 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasUnitNormConstraint extends DLKerasAbstractAxisConstraint {
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasUnitNormConstraint() {
+        super("keras.constraints.UnitNorm");
+    }
 
 }

@@ -44,21 +44,34 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.activation;
 
-/**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- */
-public interface DLKerasEnum<T> {
-    
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObject;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
+
+public final class DLKerasSoftmaxActivation extends DLKerasAbstractConfigObject implements DLKerasActivation {
+
+    @Parameter(label = "Axis")
+    private int m_axis = -1;
+
     /**
-     * @return the value
      */
-    T value();
+    public DLKerasSoftmaxActivation() {
+        super("keras.activations.softmax");
+    }
 
-    /**
-     * @return a human readable label
-     */
-    String label();
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // TODO validation can only be done if input spec is available
+    }
 
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
+    }
 }

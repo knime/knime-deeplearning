@@ -44,19 +44,42 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+
+package org.knime.dl.keras.core.config.activation;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObject;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * Utility objects include initializers, regularizers, constraints and activations.
- * 
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasUtilityObject extends DLKerasObject {
+abstract class DLKerasAbstractLinearActivation extends DLKerasAbstractConfigObject implements DLKerasActivation {
 
-    String getBackendRepresentation();
-    
+    @Parameter(label = "Alpha")
+    private float m_alpha;
+
     /**
-     * @return a human readable name
+     * @param kerasIdentifier
+     * @param defaultAlpha
      */
-    String getName();
+    public DLKerasAbstractLinearActivation(String kerasIdentifier, float defaultAlpha) {
+        super(kerasIdentifier);
+        m_alpha = defaultAlpha;
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // TODO Keras doesn't make any assumptions but we might want to prevent non-sense (would first have to figure out what non-sense is though)
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("alpha", DLPythonUtils.toPython(m_alpha));
+    }
+
 }

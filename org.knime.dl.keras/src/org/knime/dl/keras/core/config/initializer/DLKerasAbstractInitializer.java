@@ -44,45 +44,35 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
+import java.util.Map;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.stream.Collectors;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObject;
 
 /**
+ * Declares parameter validation and population to reduce boilerplate in deriving classes.
+ * 
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractUtilityObject extends DLKerasAbstractObject implements DLKerasUtilityObject {
-    
-    private final String m_name;
+abstract class DLKerasAbstractInitializer extends DLKerasAbstractConfigObject implements DLKerasInitializer {
 
     /**
-     * @param kerasIdentifier the identifier in Keras
-     * @param name human readable
+     * @param kerasIdentifier
      */
-    public DLKerasAbstractUtilityObject(String kerasIdentifier, String name) {
+    public DLKerasAbstractInitializer(String kerasIdentifier) {
         super(kerasIdentifier);
-        m_name = checkNotNull(name);
     }
 
     @Override
-    public String getBackendRepresentation() {
-        final ArrayList<String> positionalParams = new ArrayList<>();
-        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
-        populateParameters(positionalParams, namedParams);
-        return getKerasIdentifier() + "(" //
-            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
-            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
-                .collect(Collectors.joining(", ")) //
-            + ")";
-    }
-    
-    @Override
-    public String getName() {
-        return m_name;
+    public void validateParameters() throws InvalidSettingsException {
+        // nothing to validate
     }
 
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        // nothing to populate
+    }
 }

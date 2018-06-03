@@ -44,21 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config;
+
+import org.knime.dl.keras.core.layers.DLKerasObject;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * Utility objects include initializers, regularizers, constraints and activations.
+ * 
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public interface DLKerasConfigObject extends DLKerasObject {
 
     /**
-     * @return a human readable label
+     * @return representation consumed by backend
      */
-    String label();
-
+    String getBackendRepresentation();
 }

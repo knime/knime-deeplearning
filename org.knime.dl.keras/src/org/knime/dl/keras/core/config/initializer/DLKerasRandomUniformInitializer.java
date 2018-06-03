@@ -44,21 +44,46 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasRandomUniformInitializer extends DLKerasAbstractSeededInitializer {
+
+    @Parameter(label = "Minimum value")
+    private float m_minVal = -0.05f;
+
+    @Parameter(label = "Maximum value")
+    private float m_maxVal = 0.05f;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasRandomUniformInitializer() {
+        super("keras.initializers.RandomUniform");
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
+        if (m_minVal >= m_maxVal) {
+            throw new InvalidSettingsException(
+                "The minimum value (" + m_minVal + ") must be smaller than the maximum value(" + m_maxVal + ".");
+        }
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("minval", DLPythonUtils.toPython(m_minVal));
+        namedParams.put("maxval", DLPythonUtils.toPython(m_maxVal));
+        super.populateParameters(positionalParams, namedParams);
+    }
 
 }

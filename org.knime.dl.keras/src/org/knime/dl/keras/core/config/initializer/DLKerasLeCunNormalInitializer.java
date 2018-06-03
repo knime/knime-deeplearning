@@ -44,21 +44,16 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasLeCunNormalInitializer extends DLKerasAbstractPlainSeededInitializer {
 
     /**
-     * @return a human readable label
      */
-    String label();
-
+    public DLKerasLeCunNormalInitializer() {
+        super("keras.initializers.lecun_normal");
+    }
 }

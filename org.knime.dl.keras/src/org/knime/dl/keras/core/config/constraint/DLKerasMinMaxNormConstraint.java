@@ -44,21 +44,55 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public class DLKerasMinMaxNormConstraint extends DLKerasAbstractAxisConstraint {
+
+    @Parameter(label = "Minimum norm", min = "0.0")
+    private float m_minValue = 0.0f;
+
+    @Parameter(label = "Maximum norm", min = "0.0000001")
+    private float m_maxValue = 1.0f;
+
+    @Parameter(label = "Rate", min = "0.0", max = "1.0")
+    private float m_rate = 1.0f;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasMinMaxNormConstraint() {
+        super("keras.constraints.MinMaxNorm");
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
+        if (m_maxValue <= 0) {
+            throw new InvalidSettingsException("The maximum norm must be positive.");
+        }
+        if (m_minValue < 0) {
+            throw new InvalidSettingsException("The minimum norm must be non-negative.");
+        }
+        if (m_rate < 0 || m_rate > 1) {
+            throw new InvalidSettingsException("The rate must be in the [0, 1] interval.");
+        }
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("min_value", DLPythonUtils.toPython(m_minValue));
+        namedParams.put("max_value", DLPythonUtils.toPython(m_maxValue));
+        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
+        super.populateParameters(positionalParams, namedParams);
+    }
 
 }

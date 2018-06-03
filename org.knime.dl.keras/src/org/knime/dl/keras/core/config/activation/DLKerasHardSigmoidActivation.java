@@ -44,26 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
-
-import org.knime.dl.python.util.DLPythonUtils;
+package org.knime.dl.keras.core.config.activation;
 
 /**
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtiltiyObjectUtils {
-
-    private DLKerasUtiltiyObjectUtils() {
-        // Utility class
-    }
+public final class DLKerasHardSigmoidActivation extends DLKerasAbstractParamFreeActivation {
 
     /**
-     * Gives a python representation of the utility object. If it is null the python representation is "None".
-     *
-     * @param obj the utility object
-     * @return the python representation.
      */
-    public static String toPython(final DLKerasUtilityObject obj) {
-        return obj != null ? obj.getBackendRepresentation() : DLPythonUtils.NONE;
+    public DLKerasHardSigmoidActivation() {
+        super("keras.activations.hard_sigmoid");
     }
+
 }

@@ -44,21 +44,41 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.activation;
+
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasReLuActivation extends DLKerasAbstractLinearActivation {
+
+    private static final float DEFAULT_ALPHA = 0.0f;
+
+    @Parameter(label = "Max value", required = false)
+    private OptionalDouble m_maxValue = OptionalDouble.empty();
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasReLuActivation() {
+        super("keras.activations.relu", DEFAULT_ALPHA);
+    }
 
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // TODO Keras doesn't make any assumptions but we might want to prevent non-sense
+        super.validateParameters();
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        super.populateParameters(positionalParams, namedParams);
+        namedParams.put("max_value", DLPythonUtils.toPython(m_maxValue));
+    }
 }

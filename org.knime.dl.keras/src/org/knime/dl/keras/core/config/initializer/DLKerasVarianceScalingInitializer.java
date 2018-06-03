@@ -1,3 +1,4 @@
+
 /*
  * ------------------------------------------------------------------------
  *
@@ -44,21 +45,50 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLKerasDistribution;
+import org.knime.dl.keras.core.layers.DLKerasMode;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasVarianceScalingInitializer extends DLKerasAbstractSeededInitializer {
+
+    @Parameter(label = "Scale")
+    private float m_scale = 1.0f;
+
+    @Parameter(label = "Mode")
+    private DLKerasMode m_mode = DLKerasMode.FAN_IN;
+
+    @Parameter(label = "Distribution")
+    private DLKerasDistribution m_distribution = DLKerasDistribution.NORMAL;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasVarianceScalingInitializer() {
+        super("keras.initializers.VarianceScaling");
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("scale", DLPythonUtils.toPython(m_scale));
+        namedParams.put("mode", DLPythonUtils.toPython(m_mode.value()));
+        namedParams.put("distribution", DLPythonUtils.toPython(m_distribution.value()));
+        super.populateParameters(positionalParams, namedParams);
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        if (m_scale <= 0.0) {
+            throw new InvalidSettingsException("Scale must be positive.");
+        }
+    }
 
 }

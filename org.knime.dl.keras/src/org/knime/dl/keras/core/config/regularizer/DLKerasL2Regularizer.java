@@ -44,21 +44,40 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.regularizer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObject;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasL2Regularizer extends DLKerasAbstractConfigObject implements DLKerasRegularizer {
+
+    @Parameter(label = "L2 regularization factor", min = "0.0000001")
+    private float m_l2;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasL2Regularizer() {
+        super("keras.regularizers.l2");
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        if (m_l2 < 0) {
+            throw new InvalidSettingsException("The l2 regularization factor must be non-negative.");
+        }
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("l2", DLPythonUtils.toPython(m_l2));
+    }
 
 }

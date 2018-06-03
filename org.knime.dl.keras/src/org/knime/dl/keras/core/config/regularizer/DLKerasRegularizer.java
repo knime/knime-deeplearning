@@ -44,22 +44,13 @@
  * ---------------------------------------------------------------------
  *
  */
+package org.knime.dl.keras.core.config.regularizer;
 
-package org.knime.dl.keras.core.struct.param;
+import org.knime.dl.keras.core.config.DLKerasConfigObject;
 
 /**
- * Represents a String[] from which a particular String value can be selected e.g. in a dialog.
- * 
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DefaultParameterStringChoices extends AbstractParameterStringChoices {
-
-    /**
-     * @param choices the available String choices.
-     */
-    public DefaultParameterStringChoices(String[] choices) {
-        for (int i = 0; i < choices.length; i++) {
-            add(choices[i], choices[i]);
-        }
-    }
+public interface DLKerasRegularizer extends DLKerasConfigObject {
+    // NB: Marker interface
 }

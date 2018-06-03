@@ -44,21 +44,33 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
+
+    // TODO make component for seed
+    @Parameter(label = "Seed", required = false)
+    private Long m_seed = null;
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier
      */
-    String label();
+    public DLKerasAbstractSeededInitializer(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+    }
 
 }

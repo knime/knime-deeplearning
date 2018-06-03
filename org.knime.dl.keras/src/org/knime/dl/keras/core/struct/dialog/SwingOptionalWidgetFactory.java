@@ -59,8 +59,6 @@ import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
-import net.miginfocom.swing.MigLayout;
-
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */

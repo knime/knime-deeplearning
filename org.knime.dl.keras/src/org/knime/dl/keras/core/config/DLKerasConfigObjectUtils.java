@@ -44,21 +44,27 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config;
+
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasConfigObjectUtils {
+
+    private DLKerasConfigObjectUtils() {
+        // Utility class
+    }
 
     /**
-     * @return a human readable label
+     * Gives a python representation of the utility object. If it is null the python representation is "None".
+     *
+     * @param obj the utility object
+     * @return the python representation.
      */
-    String label();
-
+    public static String toPython(final DLKerasConfigObject obj) {
+        return obj != null ? obj.getBackendRepresentation() : DLPythonUtils.NONE;
+    }
 }

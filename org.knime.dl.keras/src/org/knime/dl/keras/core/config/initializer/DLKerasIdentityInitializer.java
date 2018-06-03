@@ -44,21 +44,32 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasIdentityInitializer extends DLKerasAbstractInitializer {
+
+    @Parameter(label = "Gain")
+    private float m_gain = 1.0f;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasIdentityInitializer() {
+        super("keras.initializers.Identity");
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("gain", DLPythonUtils.toPython(m_gain));
+        super.populateParameters(positionalParams, namedParams);
+    }
 
 }

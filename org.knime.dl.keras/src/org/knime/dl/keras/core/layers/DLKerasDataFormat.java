@@ -51,7 +51,7 @@ package org.knime.dl.keras.core.layers;
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasDataFormat implements DLKerasEnum {
+public enum DLKerasDataFormat implements DLKerasEnum<String> {
 
         CHANNEL_FIRST("Channel First", "channels_first"), CHANNEL_LAST("Channel Last", "channels_last");
 

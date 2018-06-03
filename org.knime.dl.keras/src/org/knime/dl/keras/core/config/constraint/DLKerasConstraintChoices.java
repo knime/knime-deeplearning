@@ -44,21 +44,24 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
+
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObjectChoices;
+import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public class DLKerasConstraintChoices extends DLKerasAbstractConfigObjectChoices<DLKerasConstraint> {
 
-    /**
-     * @return a human readable label
-     */
-    String label();
+    @SuppressWarnings("unchecked")
+    private final static ParameterObjectChoice<DLKerasConstraint>[] CHOICES =
+        new ParameterObjectChoice[]{new ParameterObjectChoice<>("Max Norm", DLKerasMaxNormConstraint.class),
+            new ParameterObjectChoice<>("Min Max Norm", DLKerasMinMaxNormConstraint.class),
+            new ParameterObjectChoice<>("Non Negative", DLKerasNonNegativeConstraint.class),
+            new ParameterObjectChoice<>("Unit Norm", DLKerasUnitNormConstraint.class)};
 
+    DLKerasConstraintChoices() {
+        super(CHOICES);
+    }
 }

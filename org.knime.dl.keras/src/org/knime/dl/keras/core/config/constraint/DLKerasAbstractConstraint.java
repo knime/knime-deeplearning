@@ -44,21 +44,34 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObject;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+abstract class DLKerasAbstractConstraint extends DLKerasAbstractConfigObject implements DLKerasConstraint {
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier
      */
-    String label();
+    public DLKerasAbstractConstraint(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        // nothing to populate
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // nothing to validate
+    }
 
 }

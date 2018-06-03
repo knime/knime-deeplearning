@@ -44,21 +44,40 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasMaxNormConstraint extends DLKerasAbstractAxisConstraint {
+
+    @Parameter(label = "Maximum norm", min = "0.0000001")
+    private float m_maxValue = 2.0f;
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasMaxNormConstraint() {
+        super("keras.constraints.MaxNorm");
+    }
 
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
+        if (m_maxValue <= 0) {
+            throw new InvalidSettingsException("The maximum norm must be positive.");
+        }
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("max_value", DLPythonUtils.toPython(m_maxValue));
+        super.populateParameters(positionalParams, namedParams);
+    }
 }

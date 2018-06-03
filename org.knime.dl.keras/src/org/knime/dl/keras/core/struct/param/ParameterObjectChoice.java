@@ -56,7 +56,7 @@ import org.knime.dl.keras.core.struct.access.StructAccess;
  * 
  * @param <T> most specific type of the choices.
  */
-public final class ParameterObjectChoice<T> implements ParameterNestedStructChoice<T> {
+public class ParameterObjectChoice<T> implements ParameterNestedStructChoice<T> {
 
     private StructAccess<MemberReadWriteAccess<?, T>> m_access;
 

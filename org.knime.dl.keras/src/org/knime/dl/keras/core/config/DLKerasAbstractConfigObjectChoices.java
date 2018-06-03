@@ -44,8 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
-
+package org.knime.dl.keras.core.config;
 
 import org.knime.dl.keras.core.struct.param.ParameterChoice;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
@@ -53,31 +52,19 @@ import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> 
+ * @param <T>
  */
-public abstract class DLKerasAbstractUtilityObjectChoices<T extends DLKerasUtilityObject> implements ParameterChoices<T> {
+public abstract class DLKerasAbstractConfigObjectChoices<T extends DLKerasConfigObject> implements ParameterChoices<T> {
 
     private final ParameterObjectChoice<T>[] m_choices;
-    
-    
+
     /**
-     * @param classes
+     * @param choices managed by this instance.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public DLKerasAbstractUtilityObjectChoices(Class<? extends T>[] classes) {
-        m_choices = new ParameterObjectChoice[classes.length];
-        for (int i = 0; i < classes.length; i++) {
-            Class<? extends T> c = classes[i];
-            try {
-                m_choices[i] = new ParameterObjectChoice(c.newInstance().getName(), c);
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalArgumentException(
-                    "Cannot instantiate object from type " + c + ". Most likely the empty constructor is missing.",
-                    e);
-            }
-        }
+    public DLKerasAbstractConfigObjectChoices(@SuppressWarnings("unchecked") ParameterObjectChoice<T>... choices) {
+        m_choices = choices;
     }
-    
+
     @Override
     public ParameterChoice<? extends T> fromKey(String key) {
         for (ParameterObjectChoice<T> choice : m_choices) {

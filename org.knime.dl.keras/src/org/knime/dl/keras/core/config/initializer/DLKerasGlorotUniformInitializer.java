@@ -44,21 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasGlorotUniformInitializer extends DLKerasAbstractPlainSeededInitializer {
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasGlorotUniformInitializer() {
+        super("keras.initializers.glorot_uniform");
+    }
 
 }

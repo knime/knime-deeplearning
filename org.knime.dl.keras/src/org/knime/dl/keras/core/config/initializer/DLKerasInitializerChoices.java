@@ -44,21 +44,37 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObjectChoices;
+import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public class DLKerasInitializerChoices extends DLKerasAbstractConfigObjectChoices<DLKerasInitializer> {
+
+    @SuppressWarnings("unchecked")
+    private final static ParameterObjectChoice<DLKerasInitializer>[] CHOICES =
+        new ParameterObjectChoice[]{new ParameterObjectChoice<>("Constant", DLKerasConstantInitializer.class),
+            new ParameterObjectChoice<>("Glorot Normalizer", DLKerasGlorotNormalInitializer.class),
+            new ParameterObjectChoice<>("Glorot Uniform Normalizer", DLKerasGlorotUniformInitializer.class),
+            new ParameterObjectChoice<>("He Normal", DLKerasHeNormalInitializer.class),
+            new ParameterObjectChoice<>("He Uniform", DLKerasHeUniformInitializer.class),
+            new ParameterObjectChoice<>("Identity", DLKerasIdentityInitializer.class),
+            new ParameterObjectChoice<>("Le Cun Normal", DLKerasLeCunNormalInitializer.class),
+            new ParameterObjectChoice<>("Le Cun Uniform", DLKerasLeCunUniformInitializer.class),
+            new ParameterObjectChoice<>("Ones", DLKerasOnesInitializer.class),
+            new ParameterObjectChoice<>("Orthogonal", DLKerasOrthogonalInitializer.class),
+            new ParameterObjectChoice<>("Random Normal", DLKerasRandomNormalInitializer.class),
+            new ParameterObjectChoice<>("Random Uniform", DLKerasRandomUniformInitializer.class),
+            new ParameterObjectChoice<>("Truncated Normal", DLKerasTruncatedNormalInitializer.class),
+            new ParameterObjectChoice<>("Variance Scaling", DLKerasVarianceScalingInitializer.class),
+            new ParameterObjectChoice<>("Zeros", DLKerasZerosInitializer.class)};
 
     /**
-     * @return a human readable label
      */
-    String label();
-
+    public DLKerasInitializerChoices() {
+        super(CHOICES);
+    }
 }

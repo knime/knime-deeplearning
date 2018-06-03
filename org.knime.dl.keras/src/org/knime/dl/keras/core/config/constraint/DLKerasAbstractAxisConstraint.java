@@ -44,21 +44,40 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.constraint;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+abstract class DLKerasAbstractAxisConstraint extends DLKerasAbstractConstraint {
+
+    // how should axis be declared?
+    @Parameter(label = "Axis")
+    private String m_axis = "0";
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier
      */
-    String label();
+    public DLKerasAbstractAxisConstraint(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
 
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // TODO do we support python style negative indexing?
+        super.validateParameters();
+    }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
+        super.populateParameters(positionalParams, namedParams);
+    }
 }

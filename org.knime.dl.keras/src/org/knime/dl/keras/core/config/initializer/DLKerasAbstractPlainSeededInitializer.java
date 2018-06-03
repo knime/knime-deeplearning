@@ -44,21 +44,25 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.initializer;
+
+import org.knime.core.node.InvalidSettingsException;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+abstract class DLKerasAbstractPlainSeededInitializer extends DLKerasAbstractSeededInitializer {
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier
      */
-    String label();
+    public DLKerasAbstractPlainSeededInitializer(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    @Override
+    public final void validateParameters() throws InvalidSettingsException {
+        // nothing to validate
+    }
 
 }

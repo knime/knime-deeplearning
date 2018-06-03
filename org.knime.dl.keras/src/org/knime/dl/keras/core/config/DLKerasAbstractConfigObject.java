@@ -44,21 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
+
+import org.knime.dl.keras.core.layers.DLKerasAbstractObject;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public abstract class DLKerasAbstractConfigObject extends DLKerasAbstractObject implements DLKerasConfigObject {
 
     /**
-     * @return a human readable label
+     * @param kerasIdentifier the identifier in Keras
      */
-    String label();
+    public DLKerasAbstractConfigObject(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    @Override
+    public String getBackendRepresentation() {
+        final ArrayList<String> positionalParams = new ArrayList<>();
+        final LinkedHashMap<String, String> namedParams = new LinkedHashMap<>();
+        populateParameters(positionalParams, namedParams);
+        return getKerasIdentifier() + "(" //
+            + String.join(", ", positionalParams) + (positionalParams.isEmpty() ? "" : ", ")
+            + namedParams.entrySet().stream().map(np -> np.getKey() + "=" + np.getValue())
+                .collect(Collectors.joining(", ")) //
+            + ")";
+    }
 
 }

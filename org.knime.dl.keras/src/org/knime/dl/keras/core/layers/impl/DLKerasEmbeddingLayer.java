@@ -52,12 +52,16 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
+import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
+import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
+import org.knime.dl.keras.core.config.initializer.DLKerasInitializer;
+import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
+import org.knime.dl.keras.core.config.initializer.DLKerasRandomUniformInitializer;
+import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
+import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasConstraint;
-import org.knime.dl.keras.core.layers.DLKerasInitializer;
-import org.knime.dl.keras.core.layers.DLKerasRegularizer;
-import org.knime.dl.keras.core.layers.DLKerasUtiltiyObjectUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -74,13 +78,13 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
     private int m_outputDim;
 
-    @Parameter(label = "Initializer", choices = DLKerasInitializer.DLKerasInitializerChoices.class)
-    private DLKerasInitializer m_initializer = new DLKerasInitializer.DLKerasRandomUniformInitializer();
+    @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
 
-    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizer.DLKerasRegularizerChoices.class)
+    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizerChoices.class)
     private DLKerasRegularizer m_embeddingRegularizer = null;
-    
-    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraint.DLKerasConstraintChoices.class)
+
+    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraintChoices.class)
     private DLKerasConstraint m_constraint = null;
 
     @Parameter(label = "Mask zero")
@@ -104,17 +108,17 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         if (m_outputDim < 1 || m_outputDim > 1000000) {
             throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
         }
-        
+
         m_initializer.validateParameters();
-        
+
         if (m_embeddingRegularizer != null) {
             m_embeddingRegularizer.validateParameters();
         }
-        
+
         if (m_constraint != null) {
             m_constraint.validateParameters();
         }
-        
+
         if (hasInputLength()) {
             Long[] inputLength;
             try {
@@ -195,10 +199,11 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_inputDim));
         positionalParams.add(DLPythonUtils.toPython(m_outputDim));
-        namedParams.put("embeddings_initializer", DLKerasUtiltiyObjectUtils.toPython(m_initializer));
-        namedParams.put("embeddings_regularizer", DLKerasUtiltiyObjectUtils.toPython(m_embeddingRegularizer));
-        namedParams.put("embeddings_constraint", DLKerasUtiltiyObjectUtils.toPython(m_constraint));
+        namedParams.put("embeddings_initializer", DLKerasConfigObjectUtils.toPython(m_initializer));
+        namedParams.put("embeddings_regularizer", DLKerasConfigObjectUtils.toPython(m_embeddingRegularizer));
+        namedParams.put("embeddings_constraint", DLKerasConfigObjectUtils.toPython(m_constraint));
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
-        namedParams.put("input_length", hasInputLength() ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseInputLength()));
+        namedParams.put("input_length",
+            hasInputLength() ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseInputLength()));
     }
 }

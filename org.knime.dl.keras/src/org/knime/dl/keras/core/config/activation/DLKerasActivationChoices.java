@@ -44,21 +44,30 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.activation;
+
+import org.knime.dl.keras.core.config.DLKerasAbstractConfigObjectChoices;
+import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public class DLKerasActivationChoices extends DLKerasAbstractConfigObjectChoices<DLKerasActivation> {
 
-    /**
-     * @return a human readable label
-     */
-    String label();
+    @SuppressWarnings("unchecked")
+    private final static ParameterObjectChoice<DLKerasActivation>[] CHOICES =
+        new ParameterObjectChoice[]{new ParameterObjectChoice<>("Softmax", DLKerasSoftmaxActivation.class),
+            new ParameterObjectChoice<>("ELU", DLKerasELUActivation.class),
+            new ParameterObjectChoice<>("SELU", DLKerasSELUActivation.class),
+            new ParameterObjectChoice<>("Softplus", DLKerasSoftPlusActivation.class),
+            new ParameterObjectChoice<>("Softsign", DLKerasSoftSignActivation.class),
+            new ParameterObjectChoice<>("RELU", DLKerasReLuActivation.class),
+            new ParameterObjectChoice<>("Tanh", DLKerasTanhActivation.class),
+            new ParameterObjectChoice<>("Sigmoid", DLKerasSigmoidActivation.class),
+            new ParameterObjectChoice<>("Hard Sigmoid", DLKerasHardSigmoidActivation.class),
+            new ParameterObjectChoice<>("Linear", DLKerasLinearActivation.class)};
 
+    DLKerasActivationChoices() {
+        super(CHOICES);
+    }
 }

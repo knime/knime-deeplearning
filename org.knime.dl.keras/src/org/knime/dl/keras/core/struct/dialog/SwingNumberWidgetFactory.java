@@ -86,7 +86,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
     @Override
     public boolean supports(final Member<?> model) {
         // TODO we need to generalize later or make one for double etc
-        return org.scijava.util.ClassUtils.isNumber(model.getRawType()) && ((ParameterMember<?>)model).isRequired();
+        return Types.isNumber(model.getRawType()) && ((ParameterMember<?>)model).isRequired();
     }
 
     @Override

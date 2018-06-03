@@ -44,21 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers;
+package org.knime.dl.keras.core.config.activation;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasEnum<T> {
-    
-    /**
-     * @return the value
-     */
-    T value();
+public final class DLKerasLinearActivation extends DLKerasAbstractParamFreeActivation {
 
     /**
-     * @return a human readable label
      */
-    String label();
+    public DLKerasLinearActivation() {
+        super("keras.activations.linear");
+    }
 
 }
