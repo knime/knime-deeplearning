@@ -13,6 +13,7 @@
 		<a href="https://keras.io/layers/core/#dense">Keras Dense Layer</a>
 		to an existing deep learning network.
 		</intro>
+		<tab name="Options">
 		<option name="Units">
 			Dimensionality of the output space.
 		</option>
@@ -45,6 +46,7 @@
 		<option name="Bias Constraint">
 			Constraint function applied to the bias vector.
 		</option>
+		</tab>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">

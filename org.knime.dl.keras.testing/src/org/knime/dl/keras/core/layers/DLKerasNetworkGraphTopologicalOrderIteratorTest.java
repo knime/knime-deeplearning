@@ -56,7 +56,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
-import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
 import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
 import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
 

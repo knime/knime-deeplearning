@@ -47,7 +47,7 @@
 package org.knime.dl.keras.base.nodes.layers.core.input;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractInputLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

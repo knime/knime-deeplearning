@@ -9,27 +9,28 @@
 
 	<fullDescription>
 		<intro>
-			A dropout layer. Corresponds to the
-			<a href="https://keras.io/layers/core/#dropout">Dropout Keras layer</a>
-			.
+		This node adds a
+		<a href="https://keras.io/layers/core/#dropout">Keras Dropout Layer</a>
+		to an existing deep learning network.
 		</intro>
+		<tab name="Options">
 		<option name="Drop rate">
 			Fraction of the input units to drop.
+		</option>
+		<option name="Noise Shape">
+			The shape of the binary dropout mask that will be multiplied with the input.
 		</option>
 		<option name="Random seed">
 			Random seed to use for the dropping.
 		</option>
+		</tab>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The Keras deep learning network to which to add a
-			<tt>Dropout</tt>
-			layer.
+			The network to append the layer to.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The Keras deep learning network with an added
-			<tt>Dropout</tt>
-			layer.
+			The network with appended layer.
 		</outPort>
 	</ports>
 </knimeNode>

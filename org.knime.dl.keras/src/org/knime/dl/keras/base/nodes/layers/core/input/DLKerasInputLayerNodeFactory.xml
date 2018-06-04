@@ -4,15 +4,30 @@
 	<name>Keras Input Layer</name>
 
 	<shortDescription>
+		An input layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
+		This node adds a
+		<a href="https://keras.io/layers/core/#input">Keras Input Layer</a>
+		to an existing deep learning network.
 		</intro>
+		<tab name="Options">
+			<option name="Shape">
+				Tuple of integers defining the input shape.
+			</option>
+			<option name="Batch Size">
+				The batch size to use.
+			</option>
+			<option name="Data Type">
+				The data type of the input.
+			</option>
+		</tab>
 	</fullDescription>
 	<ports>
 		<outPort index="0" name="Deep Learning Network">
-			TODO
+			Newly created network with specified input shape.
 		</outPort>
 	</ports>
 </knimeNode>

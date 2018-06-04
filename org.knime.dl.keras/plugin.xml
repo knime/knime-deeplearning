@@ -140,6 +140,11 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.core.dropout.DLKerasDropoutLayerNodeFactory">
       </node>
       <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.activation.DLKerasActivationLayerNodeFactory">
+      </node>
+      <node
             category-path="/labs/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.concatenate.DLKerasConcatenateLayerNodeFactory">
@@ -278,6 +283,36 @@
             category-path="/labs/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.DLKerasAveragePooling3DLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.reshape.DLKerasReshapeLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.masking.DLKerasMaskingLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.activityregularization.DLKerasActivityRegularizationLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.repeat.DLKerasRepeatLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.repeat.DLKerasRepeatLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.permute.DLKerasPermuteLayerNodeFactory">
       </node>
   </extension>
    <extension

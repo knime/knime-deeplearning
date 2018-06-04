@@ -52,7 +52,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -60,43 +60,35 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasRepeatLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
-    private float m_rate;
-
-    @Parameter(label = "Noise Shape", required = false)
-    private String m_noiseShape = null;
-
-    @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
+    @Parameter(label = "N", min = "0")
+    private int m_n = 0;
 
     /**
      * Constructor
      */
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
+    public DLKerasRepeatLayer() {
+        super("keras.layers.RepeatVector");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_noiseShape, false);
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
+        checkInputSpec(inputShape.length == 1, "Input shape must be one-dimensional.");
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape.clone();
+        return new Long[]{(long)m_n, inputShape[0]};
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", DLPythonUtils.toPythonTuple(m_noiseShape));
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+        namedParams.put("n", DLPythonUtils.toPython(m_n));
     }
 }

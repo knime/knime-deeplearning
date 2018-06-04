@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasflattenlayer.png" type="Other">
-	<name>Keras Flatten Layer</name>
+	<name>Keras Permute Layer</name>
 
 	<shortDescription>
-		A flatten layer.
+		A reshape layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/core/#flatten">Keras Flatten Layer</a>
+			<a href="https://keras.io/layers/core/#permute">Keras Permute Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
-			<option name="Data Format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (...,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						...)
-					</li>
-				</ul>
+			<option name="Permutation">
+				Tuple of integers defining the permutation. Each integer refers to the dimension index. Indexing starts with 1.
+				For instance, the permutation '2, 1' with input shape (64, 32) will result in shape (32, 64).
 			</option>
 		</tab>
 	</fullDescription>

@@ -52,12 +52,19 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
+import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
+
+    @Parameter(label = "Data Format")
+    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -68,22 +75,22 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        // no op
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        checkInputSpec(inputShape.length >= 2, "Input shape must be at least two-dimensional.");
+        checkInputSpec(DLLayerUtils.isShapeFullyDefined(inputShape), "The input shape must be fully defined.");
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
+        return new Long[]{DLLayerUtils.numberOfElements(inputShape)};
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        // no-op
+        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }
 }

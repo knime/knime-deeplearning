@@ -82,7 +82,7 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape;
+        return inputShape.clone();
     }
 
     @Override

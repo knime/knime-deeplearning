@@ -1,30 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasflattenlayer.png" type="Other">
-	<name>Keras Flatten Layer</name>
+	<name>Keras Activity Regularization Layer</name>
 
 	<shortDescription>
-		A flatten layer.
+		A activity regularization layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/core/#flatten">Keras Flatten Layer</a>
+			<a href="https://keras.io/layers/core/#activityregularization">Keras Activity Regularization Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
-			<option name="Data Format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (...,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						...)
-					</li>
-				</ul>
+			<option name="L1">
+				The L1 regularization factor.
+			</option>
+			<option name="L2">
+				The L2 regularization factor.
 			</option>
 		</tab>
 	</fullDescription>

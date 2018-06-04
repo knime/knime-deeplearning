@@ -62,7 +62,7 @@ import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
 import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
 import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;

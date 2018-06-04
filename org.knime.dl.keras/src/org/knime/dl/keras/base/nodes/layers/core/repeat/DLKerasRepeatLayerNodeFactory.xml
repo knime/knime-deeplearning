@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasflattenlayer.png" type="Other">
-	<name>Keras Flatten Layer</name>
+	<name>Keras Repeat Layer</name>
 
 	<shortDescription>
-		A flatten layer.
+		A repeat vector layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/core/#flatten">Keras Flatten Layer</a>
+			<a href="https://keras.io/layers/core/#repeatvector">Keras Repeat Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
-			<option name="Data Format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (...,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						...)
-					</li>
-				</ul>
+			<option name="N">
+				The number of times the input should be repeated.
+				For instance the input shape (32) will result in (3, 32) for N = 3.
 			</option>
 		</tab>
 	</fullDescription>

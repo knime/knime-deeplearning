@@ -46,57 +46,86 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.core.DLDefaultDimensionOrder;
+import org.knime.dl.core.DLDefaultTensorId;
+import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
+import org.knime.dl.keras.core.layers.DLKerasDataType;
+import org.knime.dl.keras.core.layers.DLKerasInputLayer;
+import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer implements DLKerasInputLayer {
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
-    private float m_rate;
+    @Parameter(label = "Shape")
+    private String m_shape = "1";
 
-    @Parameter(label = "Noise Shape", required = false)
-    private String m_noiseShape = null;
+    @Parameter(label = "Batch Size", min = "0", max = "1000000", stepSize = "1", required = false)
+    private Integer m_batchSize = 32;
 
-    @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
+    // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
+    @Parameter(label = "Data Type")
+    private DLKerasDataType m_dataType = DLKerasDataType.FLOAT_32;
 
     /**
      * Constructor
      */
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
+    public DLKerasDefaultInputLayer() {
+        super("keras.layers.Input");
+    }
+
+    @Override
+    public List<DLTensorSpec> getOutputSpecs() {
+        final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
+        final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
+        final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
+        // TODO: check if batch size is enabled as soon as available
+        return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy",
+            m_batchSize == null ? 32 : m_batchSize, shape, elementType, dimensionOrder));
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_noiseShape, false);
+        DLParameterValidationUtils.checkTupleString(m_shape, false);
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape.clone();
+    public boolean equalsIgnoreName(final DLKerasTensorSpecsOutput other) {
+        if (other == this) {
+            return true;
+        }
+        if (other == null || other.getClass() != getClass()) {
+            return false;
+        }
+        final DLKerasDefaultInputLayer otherInputLayer = (DLKerasDefaultInputLayer)other;
+        return otherInputLayer.getBackendRepresentation(null).equals(getBackendRepresentation(null));
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", DLPythonUtils.toPythonTuple(m_noiseShape));
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+        final String[] shape = Arrays.stream(getShape())
+            .map(l -> l != null ? DLPythonUtils.toPython(l) : DLPythonUtils.NONE).toArray(l -> new String[l]);
+        namedParams.put("batch_shape",
+            "(" + DLPythonUtils.toPython(m_batchSize == null ? 32 : m_batchSize) + "," + String.join(",", shape) + ")");
+        namedParams.put("dtype", DLPythonUtils.toPython(m_dataType.value()));
+    }
+
+    private Long[] getShape() {
+        return DLPythonUtils.parseShape(m_shape);
     }
 }

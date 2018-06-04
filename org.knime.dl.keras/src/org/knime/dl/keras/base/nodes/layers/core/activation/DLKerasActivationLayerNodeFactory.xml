@@ -13,9 +13,11 @@
 		<a href="https://keras.io/layers/core/#activation">Keras Activation Layer</a>
 		to an existing deep learning network.
 		</intro>
+		<tab name="Options">
 		<option name="Activation function">
 			The activation function to use.
 		</option>
+		</tab>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">

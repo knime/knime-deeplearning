@@ -60,43 +60,43 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
-    private float m_rate;
-
-    @Parameter(label = "Noise Shape", required = false)
-    private String m_noiseShape = null;
-
-    @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
+    @Parameter(label = "Permutation")
+    private String m_dims = "";
 
     /**
      * Constructor
      */
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
+    public DLKerasPermuteLayer() {
+        super("keras.layers.Permute");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_noiseShape, false);
+        DLParameterValidationUtils.checkTupleString(m_dims, false);
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+        Long[] dims = DLPythonUtils.parseShape(m_dims);
+        checkInputSpec(dims.length == inputShape.length,
+                "Permutation is not specified for each dimension.");
+        
     }
 
     @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape.clone();
+    protected Long[] inferOutputShape(Long[] inputShape) {
+        Long[] dims = DLPythonUtils.parseShape(m_dims);
+        Long[] permuted = inputShape.clone();
+        for (int i = 0; i < dims.length; i++) {
+            permuted[i] = inputShape[dims[i].intValue() - 1];
+        }
+        return permuted;
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", DLPythonUtils.toPythonTuple(m_noiseShape));
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+        namedParams.put("dims", DLPythonUtils.toPythonTuple(m_dims));
     }
 }

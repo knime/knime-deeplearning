@@ -52,6 +52,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -60,43 +61,40 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
-    private float m_rate;
-
-    @Parameter(label = "Noise Shape", required = false)
-    private String m_noiseShape = null;
-
-    @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
+    @Parameter(label = "Target Shape")
+    private String m_shape = "";
 
     /**
      * Constructor
      */
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
+    public DLKerasReshapeLayer() {
+        super("keras.layers.Reshape");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_noiseShape, false);
+        DLParameterValidationUtils.checkTupleString(m_shape, true);
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+        //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension ad still check
+        Long[] target = DLPythonUtils.parseShape(m_shape);
+        if (DLLayerUtils.isShapeFullyDefined(target) && DLLayerUtils.isShapeFullyDefined(inputShape)) {
+            checkInputSpec(DLLayerUtils.numberOfElements(inputShape).equals(DLLayerUtils.numberOfElements(target)),
+                "The input shape does not have the same number of elements as the target shape.");
+        }
     }
 
     @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape.clone();
+    protected Long[] inferOutputShape(Long[] inputShape) {
+        return DLPythonUtils.parseShape(m_shape);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", DLPythonUtils.toPythonTuple(m_noiseShape));
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+        namedParams.put("target_shape", DLPythonUtils.toPythonTuple(m_shape));
     }
 }

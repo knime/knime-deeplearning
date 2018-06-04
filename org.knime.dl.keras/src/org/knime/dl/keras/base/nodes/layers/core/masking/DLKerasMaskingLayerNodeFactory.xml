@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasflattenlayer.png" type="Other">
-	<name>Keras Flatten Layer</name>
+	<name>Keras Masking Layer</name>
 
 	<shortDescription>
-		A flatten layer.
+		A masking layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
 			This node adds a
-			<a href="https://keras.io/layers/core/#flatten">Keras Flatten Layer</a>
+			<a href="https://keras.io/layers/core/#masking">Keras Masking Layer</a>
 			to an existing deep learning network.
 		</intro>
 		<tab name="Options">
-			<option name="Data Format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (...,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						...)
-					</li>
-				</ul>
+			<option name="Mask Value">
+				For each timestep in the input tensor (first dimension), if 
+				all values in the input tensor at that timestep are equal to mask_value, then 
+				the timestep will be masked (skipped) in all downstream layers (as long as they support masking).
 			</option>
 		</tab>
 	</fullDescription>
