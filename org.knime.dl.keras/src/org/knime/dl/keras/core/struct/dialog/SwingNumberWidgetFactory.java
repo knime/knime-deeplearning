@@ -122,15 +122,15 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
             panel.setLayout(layout);
 
-            Number min = toNumber(SwingWidgets.minimum(this));
+            Number min = toNumber(SwingWidgets.minimum(this), member().getRawType());
             if (min == null) {
                 min = org.scijava.util.NumberUtils.getMinimumNumber(member().getRawType());
             }
-            Number max = toNumber(SwingWidgets.maximum(this));
+            Number max = toNumber(SwingWidgets.maximum(this), member().getRawType());
             if (max == null) {
                 max = org.scijava.util.NumberUtils.getMaximumNumber(member().getRawType());
             }
-            Number stepSize = toNumber(SwingWidgets.stepSize(this));
+            Number stepSize = toNumber(SwingWidgets.stepSize(this), member().getRawType());
             if (stepSize == null) {
                 stepSize = 1;
             }
@@ -178,9 +178,22 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             return null;
         }
 
-        private Number toNumber(Object minimum) {
+        private Number toNumber(Object minimum, Class<?> rawType) {
+            final String casted = (String)minimum;
             try {
-                return NumberUtils.createNumber((String)minimum);
+                if (Types.isByte(rawType))
+                    return NumberUtils.toByte(casted);
+                if (Types.isShort(rawType))
+                    return NumberUtils.toShort(casted);
+                if (Types.isInteger(rawType))
+                    return NumberUtils.toInt(casted);
+                if (Types.isLong(rawType))
+                    return NumberUtils.toLong(casted);
+                if (Types.isFloat(rawType))
+                    return NumberUtils.toFloat(casted);
+                if (Types.isDouble(rawType))
+                    return NumberUtils.toDouble(casted);
+                return null;
             } catch (NumberFormatException e) {
                 return null;
             }
