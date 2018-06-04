@@ -64,10 +64,10 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Pool Size")
-    private String m_poolSize = "2";
+    private long m_poolSize = 2;
 
     @Parameter(label = "Strides")
-    private String m_strides = "1";
+    private long m_strides = 1;
 
     /**
      * This is hard-coded to "channels_last" in Keras
@@ -86,8 +86,6 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
-            new String[]{"Pool size", "Strides"}, 1, false);
     }
 
     @Override
@@ -98,9 +96,7 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
-        Long[] strides = DLPythonUtils.parseShape(m_strides);
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, new Long[]{m_poolSize}, new Long[]{m_strides},
             DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
     }
 
