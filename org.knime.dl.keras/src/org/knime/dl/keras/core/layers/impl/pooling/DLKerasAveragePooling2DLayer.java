@@ -107,8 +107,8 @@ public final class DLKerasAveragePooling2DLayer extends DLKerasAbstractUnaryLaye
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
-        namedParams.put("strides", DLPythonUtils.toPython(m_strides));
+        namedParams.put("pool_size", DLPythonUtils.toPythonTuple(m_poolSize));
+        namedParams.put("strides", DLPythonUtils.toPythonTuple(m_strides));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
     }

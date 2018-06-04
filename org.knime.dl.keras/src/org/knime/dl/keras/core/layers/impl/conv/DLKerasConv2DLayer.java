@@ -155,11 +155,11 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("filters", DLPythonUtils.toPython(m_filters));
-        namedParams.put("kernel_size", DLPythonUtils.toPython(m_kernelSize));
-        namedParams.put("strides", DLPythonUtils.toPython(m_strides));
+        namedParams.put("kernel_size", DLPythonUtils.toPythonTuple(m_kernelSize));
+        namedParams.put("strides", DLPythonUtils.toPythonTuple(m_strides));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
-        namedParams.put("dilation_rate", DLPythonUtils.toPython(m_dilationRate));
+        namedParams.put("dilation_rate", DLPythonUtils.toPythonTuple(m_dilationRate));
         namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));
