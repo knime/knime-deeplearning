@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.DLKerasEmbeddingLayer;
 public final class DLKerasEmbeddingLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasEmbeddingLayer> {
 
+    /**
+     */
     public DLKerasEmbeddingLayerNodeFactory() {
         super(DLKerasEmbeddingLayer.class);
     }

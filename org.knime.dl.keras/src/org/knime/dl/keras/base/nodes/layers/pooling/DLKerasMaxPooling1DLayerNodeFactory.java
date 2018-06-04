@@ -56,6 +56,8 @@ import org.knime.dl.keras.core.layers.impl.pooling.DLKerasMaxPooling1DLayer;
 public final class DLKerasMaxPooling1DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasMaxPooling1DLayer> {
 
+    /**
+     */
     public DLKerasMaxPooling1DLayerNodeFactory() {
         super(DLKerasMaxPooling1DLayer.class);
     }

@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasSeparableConv2DLayer;
 public final class DLKerasSeparableConv2DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasSeparableConv2DLayer> {
 
+    /**
+     */
     public DLKerasSeparableConv2DLayerNodeFactory() {
         super(DLKerasSeparableConv2DLayer.class);
     }

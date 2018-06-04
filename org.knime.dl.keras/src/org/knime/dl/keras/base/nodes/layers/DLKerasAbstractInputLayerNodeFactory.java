@@ -72,12 +72,16 @@ import org.knime.dl.keras.core.struct.param.ValidityException;
  * 
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @param <T>
  */
 public abstract class DLKerasAbstractInputLayerNodeFactory<T extends DLKerasInputLayer>
     extends NodeFactory<DLKerasInputLayerNodeModel<T>> {
 
     private Class<T> m_layerType;
 
+    /**
+     * @param layer
+     */
     public DLKerasAbstractInputLayerNodeFactory(final Class<T> layer) {
         m_layerType = layer;
     }

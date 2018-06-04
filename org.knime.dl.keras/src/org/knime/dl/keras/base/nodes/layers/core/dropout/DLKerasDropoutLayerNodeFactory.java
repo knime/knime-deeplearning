@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasDropoutLayer;
  */
 public final class DLKerasDropoutLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDropoutLayer> {
 
+    /**
+     */
     public DLKerasDropoutLayerNodeFactory() {
         super(DLKerasDropoutLayer.class);
     }

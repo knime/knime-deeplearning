@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
  */
 public final class DLKerasDenseLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDenseLayer> {
 
+    /**
+     */
     public DLKerasDenseLayerNodeFactory() {
         super(DLKerasDenseLayer.class);
     }

@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasActivityRegularizationLay
  */
 public final class DLKerasActivityRegularizationLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasActivityRegularizationLayer> {
 
+    /**
+     */
     public DLKerasActivityRegularizationLayerNodeFactory() {
         super(DLKerasActivityRegularizationLayer.class);
     }

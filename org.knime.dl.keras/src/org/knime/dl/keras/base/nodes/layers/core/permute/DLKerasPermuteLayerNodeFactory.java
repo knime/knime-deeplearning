@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasPermuteLayer;
  */
 public final class DLKerasPermuteLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasPermuteLayer> {
 
+    /**
+     */
     public DLKerasPermuteLayerNodeFactory() {
         super(DLKerasPermuteLayer.class);
     }

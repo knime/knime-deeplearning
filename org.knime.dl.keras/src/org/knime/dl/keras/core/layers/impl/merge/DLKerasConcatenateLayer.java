@@ -65,6 +65,8 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
     @Parameter(label = "Axis")
     private int m_axis = -1;
 
+    /**
+     */
     public DLKerasConcatenateLayer() {
         super("keras.layers.Concatenate");
     }

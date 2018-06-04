@@ -56,6 +56,8 @@ import org.knime.dl.keras.core.layers.impl.merge.DLKerasConcatenateLayer;
 public final class DLKerasConcatenateLayerNodeFactory
     extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasConcatenateLayer> {
 
+    /**
+     */
     public DLKerasConcatenateLayerNodeFactory() {
         super(DLKerasConcatenateLayer.class);
     }

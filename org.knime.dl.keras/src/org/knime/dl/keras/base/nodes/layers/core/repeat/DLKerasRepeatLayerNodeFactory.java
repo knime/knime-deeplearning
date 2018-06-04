@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasRepeatLayer;
  */
 public final class DLKerasRepeatLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasRepeatLayer> {
 
+    /**
+     */
     public DLKerasRepeatLayerNodeFactory() {
         super(DLKerasRepeatLayer.class);
     }

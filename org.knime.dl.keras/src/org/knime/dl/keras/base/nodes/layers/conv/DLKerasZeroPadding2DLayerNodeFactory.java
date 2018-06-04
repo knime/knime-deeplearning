@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasZeroPadding2DLayer;
 public final class DLKerasZeroPadding2DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasZeroPadding2DLayer> {
 
+    /**
+     */
     public DLKerasZeroPadding2DLayerNodeFactory() {
         super(DLKerasZeroPadding2DLayer.class);
     }

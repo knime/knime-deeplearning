@@ -59,63 +59,67 @@ import java.util.Iterator;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @param <S> 
  */
 public final class DLDefaultLinePlotViewDataCollection<S extends DLLinePlotViewSpec>
-		implements DLLinePlotViewDataCollection {
+    implements DLLinePlotViewDataCollection {
 
-	private final S m_spec;
+    private final S m_spec;
 
-	private DLLinePlotViewData[] m_viewData;
+    private DLLinePlotViewData[] m_viewData;
 
-	/**
-	 * @param viewData current limitation: array can only contain elements of types {@link DLDenseLinePlotViewData} and
-	 *            {@link DLSparseLinePlotViewData}
-	 */
-	public DLDefaultLinePlotViewDataCollection(final S spec, final DLLinePlotViewData... viewData) {
-		checkArgument(checkNotNull(spec).numPlots() == checkNotNull(viewData).length);
-		m_spec = spec;
-		m_viewData = viewData;
-	}
+    /**
+     * @param spec
+     * @param viewData current limitation: array can only contain elements of types {@link DLDenseLinePlotViewData} and
+     *            {@link DLSparseLinePlotViewData}
+     */
+    public DLDefaultLinePlotViewDataCollection(final S spec, final DLLinePlotViewData... viewData) {
+        checkArgument(checkNotNull(spec).numPlots() == checkNotNull(viewData).length);
+        m_spec = spec;
+        m_viewData = viewData;
+    }
 
-	/**
-	 * Deserialization constructor. Must not be used for other purposes.
-	 */
-	public DLDefaultLinePlotViewDataCollection(final S spec) {
-		m_spec = spec;
-	}
+    /**
+     * Deserialization constructor. Must not be used for other purposes.
+     * 
+     * @param spec
+     */
+    public DLDefaultLinePlotViewDataCollection(final S spec) {
+        m_spec = spec;
+    }
 
-	@Override
-	public S getSpec() {
-		return m_spec;
-	}
+    @Override
+    public S getSpec() {
+        return m_spec;
+    }
 
-	@Override
-	public DLLinePlotViewData get(final int index) {
-		return m_viewData[index];
-	}
+    @Override
+    public DLLinePlotViewData get(final int index) {
+        return m_viewData[index];
+    }
 
-	@Override
-	public Iterator<DLLinePlotViewData> iterator() {
-		return Arrays.stream(m_viewData).iterator();
-	}
+    @Override
+    public Iterator<DLLinePlotViewData> iterator() {
+        return Arrays.stream(m_viewData).iterator();
+    }
 
-	@Override
-	public void writeExternal(final ObjectOutput objOut) throws IOException {
-		objOut.writeInt(m_viewData.length);
-		for (int i = 0; i < m_viewData.length; i++) {
-			objOut.writeBoolean(m_viewData[i].getClass() == DLDenseLinePlotViewData.class);
-			m_viewData[i].writeExternal(objOut);
-		}
-	}
+    @Override
+    public void writeExternal(final ObjectOutput objOut) throws IOException {
+        objOut.writeInt(m_viewData.length);
+        for (int i = 0; i < m_viewData.length; i++) {
+            objOut.writeBoolean(m_viewData[i].getClass() == DLDenseLinePlotViewData.class);
+            m_viewData[i].writeExternal(objOut);
+        }
+    }
 
-	@Override
-	public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
-		m_viewData = new DLLinePlotViewData[objIn.readInt()];
-		for (int i = 0; i < m_viewData.length; i++) {
-			final DLLinePlotViewData viewData = objIn.readBoolean() ? new DLDenseLinePlotViewData()
-					: new DLSparseLinePlotViewData();
-			viewData.readExternal(objIn);
-			m_viewData[i] = viewData;
-		}
-	}
+    @Override
+    public void readExternal(final ObjectInput objIn) throws IOException, ClassNotFoundException {
+        m_viewData = new DLLinePlotViewData[objIn.readInt()];
+        for (int i = 0; i < m_viewData.length; i++) {
+            final DLLinePlotViewData viewData =
+                objIn.readBoolean() ? new DLDenseLinePlotViewData() : new DLSparseLinePlotViewData();
+            viewData.readExternal(objIn);
+            m_viewData[i] = viewData;
+        }
+    }
 }

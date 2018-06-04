@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasUpSampling3DLayer;
 public final class DLKerasUpSampling3DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasUpSampling3DLayer> {
 
+    /**
+     */
     public DLKerasUpSampling3DLayerNodeFactory() {
         super(DLKerasUpSampling3DLayer.class);
     }

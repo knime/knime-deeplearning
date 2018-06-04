@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
  */
 public final class DLKerasInputLayerNodeFactory extends DLKerasAbstractInputLayerNodeFactory<DLKerasDefaultInputLayer> {
 
+    /**
+     */
     public DLKerasInputLayerNodeFactory() {
         super(DLKerasDefaultInputLayer.class);
     }

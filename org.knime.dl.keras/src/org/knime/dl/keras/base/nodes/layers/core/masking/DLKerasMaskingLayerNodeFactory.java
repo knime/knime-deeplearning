@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasMaskingLayer;
  */
 public final class DLKerasMaskingLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasMaskingLayer> {
 
+    /**
+     */
     public DLKerasMaskingLayerNodeFactory() {
         super(DLKerasMaskingLayer.class);
     }

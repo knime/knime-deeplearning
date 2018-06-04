@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasFlattenLayer;
  */
 public final class DLKerasFlattenLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasFlattenLayer> {
 
+    /**
+     */
     public DLKerasFlattenLayerNodeFactory() {
         super(DLKerasFlattenLayer.class);
     }

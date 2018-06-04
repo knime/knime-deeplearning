@@ -56,6 +56,8 @@ import org.knime.dl.keras.core.layers.impl.pooling.DLKerasAveragePooling2DLayer;
 public final class DLKerasAveragePooling2DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasAveragePooling2DLayer> {
 
+    /**
+     */
     public DLKerasAveragePooling2DLayerNodeFactory() {
         super(DLKerasAveragePooling2DLayer.class);
     }

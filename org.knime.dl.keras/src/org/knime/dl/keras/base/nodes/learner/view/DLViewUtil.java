@@ -51,9 +51,6 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 
-import org.apache.commons.lang3.Range;
-//import javafx.stage.Screen;
-
 /**
  * @author Knime, KNIME GmbH, Konstanz, Germany
  */

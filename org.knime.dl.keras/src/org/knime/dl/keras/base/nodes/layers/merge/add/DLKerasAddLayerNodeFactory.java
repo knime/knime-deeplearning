@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
  */
 public final class DLKerasAddLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasAddLayer> {
 
+    /**
+     */
     public DLKerasAddLayerNodeFactory() {
         super(DLKerasAddLayer.class);
     }

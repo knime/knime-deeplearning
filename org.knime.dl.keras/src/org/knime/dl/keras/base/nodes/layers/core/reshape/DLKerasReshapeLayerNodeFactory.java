@@ -55,6 +55,8 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasReshapeLayer;
  */
 public final class DLKerasReshapeLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasReshapeLayer> {
 
+    /**
+     */
     public DLKerasReshapeLayerNodeFactory() {
         super(DLKerasReshapeLayer.class);
     }

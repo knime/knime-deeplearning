@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasCropping3DLayer;
 public final class DLKerasCropping3DLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasCropping3DLayer> {
 
+    /**
+     */
     public DLKerasCropping3DLayerNodeFactory() {
         super(DLKerasCropping3DLayer.class);
     }

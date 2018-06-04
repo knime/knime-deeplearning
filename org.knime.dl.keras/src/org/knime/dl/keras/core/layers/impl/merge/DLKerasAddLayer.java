@@ -59,6 +59,8 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
  */
 public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
 
+    /**
+     */
     public DLKerasAddLayer() {
         super("keras.layers.Add");
     }

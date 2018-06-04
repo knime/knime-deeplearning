@@ -57,6 +57,8 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasConv2DTransposeLayer;
 public final class DLKerasConv2DTransposeLayerNodeFactory
     extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasConv2DTransposeLayer> {
 
+    /**
+     */
     public DLKerasConv2DTransposeLayerNodeFactory() {
         super(DLKerasConv2DTransposeLayer.class);
     }

@@ -55,6 +55,9 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasActivationLayer;
  */
 public final class DLKerasActivationLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasActivationLayer> {
 
+
+    /**
+     */
     public DLKerasActivationLayerNodeFactory() {
         super(DLKerasActivationLayer.class);
     }

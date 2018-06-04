@@ -56,6 +56,9 @@ import org.knime.dl.keras.core.layers.impl.conv.DLKerasConv1DLayer;
  */
 public final class DLKerasConv1DLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasConv1DLayer> {
 
+
+    /**
+     */
     public DLKerasConv1DLayerNodeFactory() {
         super(DLKerasConv1DLayer.class);
     }
