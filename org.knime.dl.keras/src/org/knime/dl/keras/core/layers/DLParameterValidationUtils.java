@@ -129,7 +129,7 @@ public final class DLParameterValidationUtils {
     }
 
     /**
-     * Checks if the specified string representation of a tuple an be parsed to a shape array and throws an exception if
+     * Checks if the specified string representation of a tuple can be parsed to a shape array and throws an exception if
      * not.
      * 
      * @param tuple the tuple to check
@@ -141,12 +141,12 @@ public final class DLParameterValidationUtils {
         if (partialAllowed) {
             if (!tuple.matches(PARTIAL_SHAPE_PATTERN)) {
                 throw new InvalidSettingsException(
-                    "Invalid tuple format: " + tuple + ". Must be digits or a question mark separated by a comma.");
+                    "Invalid tuple format: '" + tuple + "' Must be digits or a question mark separated by a comma.");
             }
         } else {
             if (!tuple.matches(SHAPE_PATTERN)) {
                 throw new InvalidSettingsException(
-                    "Invalid tuple format: " + tuple + ". Must be digits separated by a comma.");
+                    "Invalid tuple format: '" + tuple + "' Must be digits separated by a comma.");
             }
         }
 

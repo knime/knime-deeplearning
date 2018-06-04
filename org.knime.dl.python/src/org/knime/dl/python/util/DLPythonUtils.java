@@ -126,6 +126,18 @@ public final class DLPythonUtils {
 		return String.valueOf(l);
 	}
 
+    public static String toPython(final Long l) {
+        return l == null ? NONE : toPython(l.longValue());
+    }
+	
+	public static String toPython(final Float f) {
+        return f == null ? NONE : toPython(f.floatValue());
+    }
+	
+	public static String toPython(final Double d) {
+	    return d == null ? NONE : toPython(d.doubleValue());
+	}
+	
 	public static String toPython(final String s) {
 		// TODO: check if already in quotes etc.
 		return QUOTE + s + QUOTE;
@@ -234,8 +246,16 @@ public final class DLPythonUtils {
 	}
 
 	private static String toPythonList(final String[] elements) {
-		return "[" + String.join(",", elements) + "]";
+		return elements == null ? NONE : "[" + String.join(",", elements) + "]";
 	}
+	
+	public static String toPythonTuple(final String[] elements) {
+        return elements == null ? NONE : "(" + String.join(",", elements) + ")";
+    }
+	
+	public static String toPythonTuple(final String elements) {
+        return elements == null ? NONE : "(" + elements + ")";
+    }
 	
 	public static Long[] parseShape(String shapeString) {
 	    return Arrays.stream(shapeString.split(",")) //
