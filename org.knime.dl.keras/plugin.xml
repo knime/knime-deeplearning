@@ -94,6 +94,13 @@
             name="Pooling"
             path="/labs/deeplearning/keras/layers">
       </category>
+      <category
+            icon="icons/keras-layers.gif"
+            level-id="merge"
+            locked="true"
+            name="Merge"
+            path="/labs/deeplearning/keras/layers">
+      </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
@@ -118,7 +125,7 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.lstm.DLKerasLSTMLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers"
+            category-path="/labs/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.add.DLKerasAddLayerNodeFactory">
       </node>
@@ -133,7 +140,7 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.core.dropout.DLKerasDropoutLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers"
+            category-path="/labs/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.concatenate.DLKerasConcatenateLayerNodeFactory">
       </node>
