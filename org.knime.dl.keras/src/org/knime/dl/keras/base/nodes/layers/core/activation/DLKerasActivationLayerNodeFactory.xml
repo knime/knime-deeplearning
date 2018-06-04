@@ -1,38 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="dlkerasdenselayer.png" type="Other">
-	<name>Keras Dense Layer</name>
+	<name>Keras Activation Layer</name>
 
 	<shortDescription>
-		A densely connected network layer.
+		Applies an activation function to an output.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			A densely connected network layer. Corresponds to the
-			<a href="https://keras.io/layers/core/#dense">Dense Keras layer</a>
-			.
+		This node adds a
+		<a href="https://keras.io/layers/core/#activation">Keras Activation Layer</a>
+		to an existing deep learning network.
 		</intro>
-		<option name="Units">
-			Dimensionality of the output space.
-		</option>
 		<option name="Activation function">
 			The activation function to use.
-		</option>
-		<option name="Use bias?">
-			If checked, a bias vector will be used.
 		</option>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The Keras deep learning network to which to add a
-			<tt>Dense</tt>
-			layer.
+			The network to append the layer to.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The Keras deep learning network with an added
-			<tt>Dense</tt>
-			layer.
+			The network with appended layer.
 		</outPort>
 	</ports>
 </knimeNode>

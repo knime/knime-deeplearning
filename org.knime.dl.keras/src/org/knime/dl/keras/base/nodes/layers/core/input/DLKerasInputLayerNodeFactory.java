@@ -44,19 +44,18 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers.concatenate;
+package org.knime.dl.keras.base.nodes.layers.core.input;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasConcatenateLayer;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractInputLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConcatenateLayerNodeFactory
-    extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasConcatenateLayer> {
+public final class DLKerasInputLayerNodeFactory extends DLKerasAbstractInputLayerNodeFactory<DLKerasDefaultInputLayer> {
 
-    public DLKerasConcatenateLayerNodeFactory() {
-        super(DLKerasConcatenateLayer.class);
+    public DLKerasInputLayerNodeFactory() {
+        super(DLKerasDefaultInputLayer.class);
     }
 }

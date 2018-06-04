@@ -44,19 +44,44 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers.dense;
+package org.knime.dl.keras.core.layers.impl.merge;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasDenseLayer;
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
+import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDenseLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDenseLayer> {
+public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
 
-    public DLKerasDenseLayerNodeFactory() {
-        super(DLKerasDenseLayer.class);
+    public DLKerasAddLayer() {
+        super("keras.layers.Add");
     }
 
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // no op
+    }
+
+    @Override
+    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
+        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
+        // TODO
+    }
+
+    @Override
+    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
+        // TODO
+        return firstInputShape;
+    }
+
+    @Override
+    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
+        // no op
+    }
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasdenselayer.png" type="Other">
+	<name>Keras Dense Layer</name>
+
+	<shortDescription>
+		A densely connected network layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+		This node adds a
+		<a href="https://keras.io/layers/core/#dense">Keras Dense Layer</a>
+		to an existing deep learning network.
+		</intro>
+		<option name="Units">
+			Dimensionality of the output space.
+		</option>
+		<option name="Activation function">
+			The activation function to use.
+		</option>
+		<option name="Use bias?">
+			If checked, a bias vector will be used.
+		</option>
+		<option name="Kernel Initializer">
+			Initializer for the kernel weights matrix.
+		</option>
+		<option name="Bias Initializer">
+			Initializer for the bias vector.
+		</option>
+		<option name="Kernel Regularizer">
+			Regularizer function applied to the kernel
+			weights matrix.
+		</option>
+		<option name="Bias Regulatrizer">
+			Regularizer function applied to the bias vector.
+		</option>
+		<option name="Activation Regulatrizer">
+			Regularizer function applied to the output of the
+			layer (its "activation").
+		</option>
+		<option name="Kernel Constraint">
+			Constraint function applied to the kernel matrix.
+		</option>
+		<option name="Bias Constraint">
+			Constraint function applied to the bias vector.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>

@@ -64,7 +64,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasAveragePooling1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Pool Size")
+    @Parameter(label = "Pool Size", min = "1", max = "1000000", stepSize = "1")
     private long m_poolSize = 2;
 
     @Parameter(label = "Strides")

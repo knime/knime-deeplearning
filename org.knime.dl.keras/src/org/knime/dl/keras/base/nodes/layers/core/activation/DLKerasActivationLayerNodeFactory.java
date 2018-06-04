@@ -44,68 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl.pooling;
+package org.knime.dl.keras.base.nodes.layers.core.activation;
 
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
-import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
-import org.knime.dl.keras.core.layers.DLKerasPadding;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasActivationLayer;
 
 /**
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasActivationLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasActivationLayer> {
 
-    @Parameter(label = "Pool Size", min = "1", max = "1000000", stepSize = "1")
-    private long m_poolSize = 2;
-
-    @Parameter(label = "Strides")
-    private long m_strides = 1;
-
-    /**
-     * This is hard-coded to "channels_last" in Keras
-     */
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
-    @Parameter(label = "Padding")
-    private DLKerasPadding m_padding = DLKerasPadding.VALID;
-
-    /**
-     * Constructor
-     */
-    public DLKerasMaxPooling1DLayer() {
-        super("keras.layers.MaxPooling1D");
+    public DLKerasActivationLayerNodeFactory() {
+        super(DLKerasActivationLayer.class);
     }
 
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
-        DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, new Long[]{m_poolSize}, new Long[]{m_strides},
-            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
-        namedParams.put("strides", DLPythonUtils.toPython(m_strides));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
-        namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-    }
 }

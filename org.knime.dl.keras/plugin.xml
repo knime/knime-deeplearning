@@ -120,32 +120,32 @@
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.add.DLKerasAddLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.add.DLKerasAddLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.dense.DLKerasDenseLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.dense.DLKerasDenseLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.dropout.DLKerasDropoutLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.dropout.DLKerasDropoutLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.concatenate.DLKerasConcatenateLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.concatenate.DLKerasConcatenateLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.flatten.DLKerasFlattenLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.flatten.DLKerasFlattenLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"   
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.input.DLKerasInputLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.input.DLKerasInputLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers/conv"

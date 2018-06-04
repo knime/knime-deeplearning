@@ -56,9 +56,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
-import org.knime.dl.keras.core.layers.impl.DLKerasAddLayer;
 import org.knime.dl.keras.core.layers.impl.DLKerasDefaultInputLayer;
-import org.knime.dl.keras.core.layers.impl.DLKerasDenseLayer;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
+import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
 
 /**
  * Also see {@link DLKerasNetworkGraphDepthFirstIteratorTest}. Test cases should be kept in sync.

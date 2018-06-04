@@ -44,52 +44,18 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.base.nodes.layers.core.dropout;
 
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDropoutLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public final class DLKerasDropoutLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDropoutLayer> {
 
-    @Parameter(label = "Drop rate")
-    private float m_rate;
-
-    // TODO use Seed component
-    @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
-
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
-    }
-
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        positionalParams.add(DLPythonUtils.toPython(m_rate));
+    public DLKerasDropoutLayerNodeFactory() {
+        super(DLKerasDropoutLayer.class);
     }
 }

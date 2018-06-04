@@ -44,18 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers.dropout;
+package org.knime.dl.keras.base.nodes.layers.core.dense;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasDropoutLayer;
+import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDropoutLayer> {
+public final class DLKerasDenseLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasDenseLayer> {
 
-    public DLKerasDropoutLayerNodeFactory() {
-        super(DLKerasDropoutLayer.class);
+    public DLKerasDenseLayerNodeFactory() {
+        super(DLKerasDenseLayer.class);
     }
+
 }

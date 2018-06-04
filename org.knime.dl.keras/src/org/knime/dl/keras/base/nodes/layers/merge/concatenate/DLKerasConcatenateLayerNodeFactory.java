@@ -44,49 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl;
+package org.knime.dl.keras.base.nodes.layers.merge.concatenate;
 
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.merge.DLKerasConcatenateLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLayer {
+public final class DLKerasConcatenateLayerNodeFactory
+    extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasConcatenateLayer> {
 
-    // TODO is -1 correct?
-    @Parameter(label = "Axis")
-    private int m_axis = -1;
-
-    public DLKerasConcatenateLayer() {
-        super("keras.layers.Concatenate");
-    }
-
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        throw new RuntimeException("not yet implemented"); // TODO: NYI
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
+    public DLKerasConcatenateLayerNodeFactory() {
+        super(DLKerasConcatenateLayer.class);
     }
 }

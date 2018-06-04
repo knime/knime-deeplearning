@@ -44,18 +44,18 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers.flatten;
+package org.knime.dl.keras.base.nodes.layers.merge.add;
 
-import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasFlattenLayer;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasFlattenLayerNodeFactory extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasFlattenLayer> {
+public final class DLKerasAddLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasAddLayer> {
 
-    public DLKerasFlattenLayerNodeFactory() {
-        super(DLKerasFlattenLayer.class);
+    public DLKerasAddLayerNodeFactory() {
+        super(DLKerasAddLayer.class);
     }
 }
