@@ -180,6 +180,9 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
         private Number toNumber(Object minimum, Class<?> rawType) {
             final String casted = (String)minimum;
+            if (casted.isEmpty()) {
+                return null;
+            }
             try {
                 if (Types.isByte(rawType))
                     return NumberUtils.toByte(casted);
