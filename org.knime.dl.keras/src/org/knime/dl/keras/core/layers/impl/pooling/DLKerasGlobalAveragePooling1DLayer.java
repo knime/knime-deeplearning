@@ -79,7 +79,7 @@ public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUna
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // nothing to do here
+        DLConvolutionLayerUtils.validateInputRank(inputShape, 2);
     }
 
     @Override

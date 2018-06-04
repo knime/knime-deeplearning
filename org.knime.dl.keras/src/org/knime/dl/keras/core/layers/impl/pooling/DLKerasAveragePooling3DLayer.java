@@ -93,7 +93,7 @@ public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLaye
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // nothing to do here
+        DLConvolutionLayerUtils.validateInputRank(inputShape, 4);
     }
 
     @Override

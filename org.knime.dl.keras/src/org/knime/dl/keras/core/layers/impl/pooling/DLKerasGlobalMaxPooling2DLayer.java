@@ -82,7 +82,7 @@ public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLa
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        // NB: Nothing to do here
+        DLConvolutionLayerUtils.validateInputRank(inputShape, 3);
     }
 
     @Override
