@@ -51,6 +51,7 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
+import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
@@ -85,7 +86,7 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        DLConvolutionLayerUtils.validateInputRank(inputShape, 2);
+        DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
     }
 
     @Override

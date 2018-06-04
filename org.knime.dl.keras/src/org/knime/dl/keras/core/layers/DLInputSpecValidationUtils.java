@@ -44,61 +44,29 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl.conv;
-
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
-import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
+package org.knime.dl.keras.core.layers;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
+public final class DLInputSpecValidationUtils {
 
-    @Parameter(label = "Size")
-    private String m_size = "2, 2";
-
-    @Parameter(label = "Data Format")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
+    private DLInputSpecValidationUtils() {
+        // static utility class
+    }
 
     /**
-     * Constructor
+     * Validates that the input has the expected rank.
+     *
+     * @param inputShape the shape of the input
+     * @param expectedRank the expected rank
+     * @throws DLInvalidTensorSpecException if the input doesn't have the expected rank
      */
-    public DLKerasUpSampling2DLayer() {
-        super("keras.layers.UpSampling2D");
-    }
-
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_size}, new String[]{"Size"}, 2, false);
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    public static void validateInputRank(final Long[] inputShape, final int expectedRank)
         throws DLInvalidTensorSpecException {
-        DLInputSpecValidationUtils.validateInputRank(inputShape, 3);
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[] size = DLPythonUtils.parseShape(m_size);
-        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, size, m_dataFormat);
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[] size = DLPythonUtils.parseShape(m_size);
-        namedParams.put("size", DLPythonUtils.toPython(size));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        if (inputShape.length != expectedRank) {
+            throw new DLInvalidTensorSpecException(
+                "The input must be of rank " + expectedRank + " but has rank " + inputShape.length + ".");
+        }
     }
 }

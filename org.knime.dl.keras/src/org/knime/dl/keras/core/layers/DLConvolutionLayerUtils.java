@@ -122,22 +122,7 @@ public final class DLConvolutionLayerUtils {
     }
 
     /**
-     * Validates that the input has the expected rank.
-     *
-     * @param inputShape the shape of the input
-     * @param expectedRank the expected rank
-     * @throws DLInvalidTensorSpecException if the input doesn't have the expected rank
-     */
-    public static void validateInputRank(final Long[] inputShape, final int expectedRank)
-        throws DLInvalidTensorSpecException {
-        if (inputShape.length != expectedRank) {
-            throw new DLInvalidTensorSpecException(
-                "The input must be of rank " + expectedRank + " but has rank " + inputShape.length + ".");
-        }
-    }
-
-    /**
-     * Computes the output shape for convolution like layers. The dilation rate is hardcoded to 1.
+     * Computes the output shape for convolution like layers.
      * 
      * @param inputShape the 1-D, 2-D or 3-D input shape + channel, also works for n-D
      * @param filterSize the filter in each spatial dimension

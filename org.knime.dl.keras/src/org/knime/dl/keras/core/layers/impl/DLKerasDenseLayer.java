@@ -50,6 +50,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
+import org.knime.dl.keras.core.config.activation.DLKerasActivation;
+import org.knime.dl.keras.core.config.activation.DLKerasActivationChoices;
+import org.knime.dl.keras.core.config.activation.DLKerasLinearActivation;
+import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
+import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
+import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
+import org.knime.dl.keras.core.config.initializer.DLKerasInitializer;
+import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
+import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
+import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
+import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -58,19 +70,39 @@ import org.knime.dl.python.util.DLPythonUtils;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Units", min = "1", max = "1000000", stepSize = "1")
     private long m_units = 1;
 
-    // TODO create layers and add choices
-    //    @Parameter(label = "Activation function", strings = {"elu", "hard_sigmoid", "linear", "relu", "selu", "sigmoid",
-    //        "softmax", "softplus", "softsign", "tanh"})
-    private String m_activation = "linear";
+    @Parameter(label = "Activation function", choices = DLKerasActivationChoices.class)
+    private DLKerasActivation m_activation = new DLKerasLinearActivation();
 
     @Parameter(label = "Use bias?")
-    private boolean m_useBias = true;
+    boolean m_useBias = true;
+
+    @Parameter(label = "Kernel Initializer", choices = DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
+
+    @Parameter(label = "Bias Initializer", choices = DLKerasInitializerChoices.class)
+    private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
+
+    @Parameter(label = "Kernel Regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_kernelRegularizer = null;
+
+    @Parameter(label = "Bias Regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_biasRegularizer = null;
+
+    @Parameter(label = "Activity Regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    private DLKerasRegularizer m_activityRegularizer = null;
+
+    @Parameter(label = "Kernel Constraint", required = false, choices = DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_kernelConstraint = null;
+
+    @Parameter(label = "Bias Constraint", required = false, choices = DLKerasConstraintChoices.class)
+    private DLKerasConstraint m_biasConstraint = null;
 
     /**
      * Constructor
@@ -81,7 +113,6 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        // TODO
     }
 
     @Override
@@ -89,7 +120,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
         throws DLInvalidTensorSpecException {
         checkInputSpec(inputShape.length >= 1, "Input shape must be at least one-dimensional.");
         checkInputSpec(inputShape[inputShape.length - 1] != null,
-            "Last dimension of input shape must be defined two-dimensional.");
+            "Last dimension of input shape must be defined.");
     }
 
     @Override
@@ -102,8 +133,14 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(m_units));
-        // TODO replace with layers
-        namedParams.put("activation", DLPythonUtils.toPython(m_activation));
+        namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
+        namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));
+        namedParams.put("bias_initializer", DLKerasConfigObjectUtils.toPython(m_biasInitializer));
+        namedParams.put("kernel_regularizer", DLKerasConfigObjectUtils.toPython(m_kernelRegularizer));
+        namedParams.put("bias_regularizer", DLKerasConfigObjectUtils.toPython(m_biasRegularizer));
+        namedParams.put("activity_regularizer", DLKerasConfigObjectUtils.toPython(m_activityRegularizer));
+        namedParams.put("kernel_contraint", DLKerasConfigObjectUtils.toPython(m_kernelConstraint));
+        namedParams.put("bias_contraint", DLKerasConfigObjectUtils.toPython(m_biasConstraint));
     }
 }

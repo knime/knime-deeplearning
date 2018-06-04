@@ -63,6 +63,7 @@ import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
+import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
@@ -139,7 +140,7 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        DLConvolutionLayerUtils.validateInputRank(inputShape, 4);
+        DLInputSpecValidationUtils.validateInputRank(inputShape, 4);
     }
 
     @Override
