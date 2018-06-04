@@ -53,6 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
@@ -62,7 +63,7 @@ public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUna
     /**
      * This is hardcoded to "channels_last" in Keras
      */
-    private String m_dataFormat = "channels_last";
+    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -84,7 +85,7 @@ public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUna
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat);
+        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat.value());
     }
 
     @Override
