@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerassoftmaxlayer.png" type="Other">
+	<name>Keras Softmax Layer</name>
+
+	<shortDescription>
+		A softmax layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			The softmax function is commonly used as the last layer in a classification network.
+			It transforms an unconstrained n-dimensional vector into a valid probability distribution.
+			Note that the input to a softmax must have at least one dimension in addition to the batch dimension.
+		</intro>
+		<option name="Axis">
+			The axis along which to apply the softmax normalization.
+			Python-style negative indexing is supported i.e. -1 corresponds to the last axis,
+			-2 to the second last and so on.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Softmax</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Softmax</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

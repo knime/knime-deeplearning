@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerastrelulayer.png" type="Other">
+	<name>Keras Thresholded ReLU Layer</name>
+
+	<shortDescription>
+		A thresholded rectified linear unit.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Similar to ordinary ReLUs but shifted by theta.
+			f(x) = x for x &gt theta, f(x) = 0 otherwise.
+		</intro>
+		<option name="Theta">
+			Threshold location of activation.
+			A theta of 0 corresponds to an ordinary ReLU.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Thresholded ReLU</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Thresholded ReLU</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.layers.embedding;
+package org.knime.dl.keras.base.nodes.layers.advancedactivation.trelu;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
 import org.knime.dl.keras.core.layers.impl.DLKerasEmbeddingLayer;

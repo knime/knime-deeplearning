@@ -44,49 +44,23 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.util;
+package org.knime.dl.keras.base.nodes.layers.advancedactivation.softmax;
 
-import org.knime.dl.keras.core.config.DLKerasConfigObject;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
+import org.knime.dl.keras.core.layers.impl.advancedactivation.DLKerasSoftmaxLayer;
 
 /**
- * Various Keras specific utility methods and classes.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtils {
+public final class DLKerasSoftmaxLayerNodeFactory
+    extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasSoftmaxLayer> {
 
-    private DLKerasUtils() {
-    }
-    
-    public static final class Layers {
-        /**
-         * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
-         * or returns the None representation if <b>obj</b> is null.
-         * 
-         * @param obj a {@link DLKerasConfigObject}, may be null
-         * @return the backend representation of <b>obj</b> or None if <b>obj</b> is null
-         */
-        public static String toPython(DLKerasConfigObject obj) {
-            return obj == null ? DLPythonUtils.NONE : obj.getBackendRepresentation();
-        }
+    /**
+     */
+    public DLKerasSoftmaxLayerNodeFactory() {
+        super(DLKerasSoftmaxLayer.class);
     }
 
-    public static final class Tensors {
-
-        private Tensors() {
-        }
-
-        /**
-         * @param layerName the full layer name of the form <tt>prefix_index</tt>
-         * @param nodeIndex the node index
-         * @param layerIndex the layerIndex
-         * @return the created tensor name
-         */
-        public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
-            // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
-            return layerName + "_" + nodeIndex + ":" + layerIndex;
-        }
-    }
 }

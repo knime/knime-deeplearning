@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasprelulayer.png" type="Other">
+	<name>Keras PReLU Layer</name>
+
+	<shortDescription>
+		A parametric rectified linear unit.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Like the leaky ReLU, the parametric ReLU introduces a slope in the negative part
+			of the input space to improve learning dynamics compared to ordinary ReLUs.
+			The difference to leaky ReLUs is that here the slope alpha is treated as a parameter that
+			is trained alongside the rest of the networks weights.
+			Alpha is usually a vector containing a dedicated slope for each feature of the input.
+			(See also the Shared axes option).
+		</intro>
+		<option name="Alpha initializer">
+			The initializer for alpha, usually zero or a small negative number.
+		</option>
+		<option name="Alpha regularizer">
+			An optional regularizer for alpha.
+		</option>
+		<option name="Alpha constraint">
+			An optional constraint on alpha.
+		</option>
+		<option name="Shared axes">
+			Optional list of axes along which to share alpha.
+			For example, in a 2D convolution with input shape (batch, height, width, channels) it is
+			common to have an alpha per channel and share the alpha across spatial dimensions.
+			In this case one would set the shared axes to "1, 2".
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>PReLU</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>PReLU</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

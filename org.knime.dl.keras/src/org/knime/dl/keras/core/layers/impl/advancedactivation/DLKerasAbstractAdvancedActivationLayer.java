@@ -44,49 +44,41 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.util;
+package org.knime.dl.keras.core.layers.impl.advancedactivation;
 
-import org.knime.dl.keras.core.config.DLKerasConfigObject;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
+import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
- * Various Keras specific utility methods and classes.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtils {
+abstract class DLKerasAbstractAdvancedActivationLayer extends DLKerasAbstractUnaryLayer {
 
-    private DLKerasUtils() {
+    /**
+     * @param kerasIdentifier
+     */
+    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier) {
+        super(kerasIdentifier);
+    }
+
+    /**
+     * @param kerasIdentifier
+     * @param parent
+     */
+    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier, DLKerasLayer parent) {
+        super(kerasIdentifier, parent);
+    }
+
+
+    @Override
+    protected Long[] inferOutputShape(Long[] inputShape) {
+        return inputShape.clone();
     }
     
-    public static final class Layers {
-        /**
-         * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
-         * or returns the None representation if <b>obj</b> is null.
-         * 
-         * @param obj a {@link DLKerasConfigObject}, may be null
-         * @return the backend representation of <b>obj</b> or None if <b>obj</b> is null
-         */
-        public static String toPython(DLKerasConfigObject obj) {
-            return obj == null ? DLPythonUtils.NONE : obj.getBackendRepresentation();
-        }
+    @Override
+    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+        // nothing to validate
     }
 
-    public static final class Tensors {
-
-        private Tensors() {
-        }
-
-        /**
-         * @param layerName the full layer name of the form <tt>prefix_index</tt>
-         * @param nodeIndex the node index
-         * @param layerIndex the layerIndex
-         * @return the created tensor name
-         */
-        public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
-            // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
-            return layerName + "_" + nodeIndex + ":" + layerIndex;
-        }
-    }
 }

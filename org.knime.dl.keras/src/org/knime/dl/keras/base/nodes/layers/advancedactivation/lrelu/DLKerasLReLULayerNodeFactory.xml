@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkeraslrelulayer.png" type="Other">
+	<name>Keras Leaky ReLU Layer</name>
+
+	<shortDescription>
+		A leaky ReLU layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			A leaky ReLU is a rectified linear unit (ReLU) with a slope in the negative part of 
+			its input space.
+			The motivation for leaky ReLUs is that vanilla ReLUs have a gradient of zero in the negative
+			part of their input space which can harm learning.
+		</intro>
+		<option name="Alpha">
+			Slope in the negative part of the input space.
+			Usually a small positive value.
+			Setting alpha to 0.0 corresponds to a ReLU, setting alpha to 1.0 corresponds to the identity
+			function.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Leaky ReLU</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Leaky ReLU</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

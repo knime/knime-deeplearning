@@ -44,49 +44,63 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.util;
+package org.knime.dl.keras.core.layers.impl.advancedactivation;
 
-import org.knime.dl.keras.core.config.DLKerasConfigObject;
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
+import org.knime.dl.keras.core.layers.DLKerasLayer;
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * Various Keras specific utility methods and classes.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtils {
+public final class DLKerasSoftmaxLayer extends DLKerasAbstractAdvancedActivationLayer {
 
-    private DLKerasUtils() {
+    @Parameter(label = "Axis")
+    private int m_axis = -1;
+
+    /**
+     * @param kerasIdentifier
+     */
+    public DLKerasSoftmaxLayer(String kerasIdentifier) {
+        super(kerasIdentifier);
     }
-    
-    public static final class Layers {
-        /**
-         * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
-         * or returns the None representation if <b>obj</b> is null.
-         * 
-         * @param obj a {@link DLKerasConfigObject}, may be null
-         * @return the backend representation of <b>obj</b> or None if <b>obj</b> is null
-         */
-        public static String toPython(DLKerasConfigObject obj) {
-            return obj == null ? DLPythonUtils.NONE : obj.getBackendRepresentation();
+
+    /**
+     * @param kerasIdentifier
+     * @param parent
+     */
+    public DLKerasSoftmaxLayer(String kerasIdentifier, DLKerasLayer parent) {
+        super(kerasIdentifier, parent);
+    }
+
+    @Override
+    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+        super.validateInputSpec(inputElementType, inputShape);
+        int inLength = inputShape.length;
+        if (inLength == 0) {
+            // inputShape excludes the batch dimension hence the tensor that keras is operating on is
+            // actually 1D.
+            throw new DLInvalidTensorSpecException("Cannot apply softmax to a tensor that is 1D.");
+        }
+        if (Math.abs(m_axis) > inLength) {
+            throw new DLInvalidTensorSpecException(
+                "Invalid indexing. The absolute value of axis may not exceed the size of the input tensor.");
         }
     }
 
-    public static final class Tensors {
-
-        private Tensors() {
-        }
-
-        /**
-         * @param layerName the full layer name of the form <tt>prefix_index</tt>
-         * @param nodeIndex the node index
-         * @param layerIndex the layerIndex
-         * @return the created tensor name
-         */
-        public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
-            // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
-            return layerName + "_" + nodeIndex + ":" + layerIndex;
-        }
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        // nothing to validate
     }
+
+    @Override
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
+    }
+
 }
