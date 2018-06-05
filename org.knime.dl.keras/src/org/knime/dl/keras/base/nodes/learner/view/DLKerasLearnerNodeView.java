@@ -52,6 +52,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -160,8 +161,10 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
 
         public DLKerasLearnerNodeViewNoDataOverlay() {
             m_component = new JLabel("<html><center>No data to display</center></html>", SwingConstants.CENTER);
-            m_component.setPreferredSize(new Dimension(1200, 1000));
-            m_component.setMinimumSize(new Dimension(1200, 1000));
+
+            Dimension size = DLKerasLearnerNodeViewContentPanel.getSensibleDisplayArea();
+            m_component.setPreferredSize(size);
+            m_component.setMinimumSize(size);
         }
 
         public Component getComponent() {
@@ -294,6 +297,20 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
             });
             gbc.insets = new Insets(10, 15, 10, 0);
             m_component.add(m_stopButton, gbc);
+
+            Dimension size = getSensibleDisplayArea();
+            m_component.setPreferredSize(size);
+            m_component.setMinimumSize(size);
+        }
+
+        /**
+         * Return the current screen resolution times 2/3.
+         */
+        private static Dimension getSensibleDisplayArea() {
+            Dimension pdr = Toolkit.getDefaultToolkit().getScreenSize();
+            int newWidth = (int)Math.rint(pdr.getWidth() * (2.0 / 3.0));
+            int newHeight = (int)Math.rint(pdr.getHeight() * (2.0 / 3.0));
+            return new Dimension(newWidth, newHeight);
         }
 
         public Component getComponent() {
