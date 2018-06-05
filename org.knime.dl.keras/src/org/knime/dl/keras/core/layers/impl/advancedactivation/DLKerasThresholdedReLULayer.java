@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -63,18 +62,9 @@ public final class DLKerasThresholdedReLULayer extends DLKerasAbstractAdvancedAc
     private float m_theta = 1.0f;
     
     /**
-     * @param kerasIdentifier
      */
-    public DLKerasThresholdedReLULayer(String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
-
-    /**
-     * @param kerasIdentifier
-     * @param parent
-     */
-    public DLKerasThresholdedReLULayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
+    public DLKerasThresholdedReLULayer() {
+        super("keras.layers.ThresholdedReLU");
     }
 
     @Override

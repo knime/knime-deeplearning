@@ -51,7 +51,6 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -64,18 +63,9 @@ public final class DLKerasSoftmaxLayer extends DLKerasAbstractAdvancedActivation
     private int m_axis = -1;
 
     /**
-     * @param kerasIdentifier
      */
-    public DLKerasSoftmaxLayer(String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
-
-    /**
-     * @param kerasIdentifier
-     * @param parent
-     */
-    public DLKerasSoftmaxLayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
+    public DLKerasSoftmaxLayer() {
+        super("keras.layers.Softmax");
     }
 
     @Override

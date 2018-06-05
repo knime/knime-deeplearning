@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -63,19 +62,11 @@ public class DLKerasLeakyReLULayer extends DLKerasAbstractAdvancedActivationLaye
     private float m_alpha = 0.3f;
     
     /**
-     * @param kerasIdentifier
      */
-    public DLKerasLeakyReLULayer(String kerasIdentifier) {
-        super(kerasIdentifier);
+    public DLKerasLeakyReLULayer() {
+        super("keras.layers.LeakyReLU");
     }
 
-    /**
-     * @param kerasIdentifier
-     * @param parent
-     */
-    public DLKerasLeakyReLULayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
-    }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {

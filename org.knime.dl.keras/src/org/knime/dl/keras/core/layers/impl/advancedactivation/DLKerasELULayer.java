@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -63,19 +62,11 @@ public final class DLKerasELULayer extends DLKerasAbstractAdvancedActivationLaye
     private float m_alpha = 1.0f;
     
     /**
-     * @param kerasIdentifier
      */
-    public DLKerasELULayer(String kerasIdentifier) {
-        super(kerasIdentifier);
+    public DLKerasELULayer() {
+        super("keras.layers.ELU");
     }
 
-    /**
-     * @param kerasIdentifier
-     * @param parent
-     */
-    public DLKerasELULayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
-    }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {

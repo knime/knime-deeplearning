@@ -58,7 +58,6 @@ import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
-import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -81,18 +80,9 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     private String m_sharedAxes = null;
 
     /**
-     * @param kerasIdentifier
      */
-    public DLKerasPReLULayer(String kerasIdentifier) {
-        super(kerasIdentifier);
-    }
-
-    /**
-     * @param kerasIdentifier
-     * @param parent
-     */
-    public DLKerasPReLULayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
+    public DLKerasPReLULayer() {
+        super("keras.layers.PReLU");
     }
 
     @Override
