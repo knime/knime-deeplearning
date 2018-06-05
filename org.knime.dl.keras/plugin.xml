@@ -363,7 +363,7 @@
       <node
             category-path="/labs/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasTReLULayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.trelu.DLKerasTReLULayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers/advancedactivations"

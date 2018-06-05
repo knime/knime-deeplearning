@@ -47,20 +47,20 @@
 package org.knime.dl.keras.base.nodes.layers.advancedactivation.trelu;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractUnaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.DLKerasEmbeddingLayer;
+import org.knime.dl.keras.core.layers.impl.advancedactivation.DLKerasThresholdedReLULayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasEmbeddingLayerNodeFactory
-    extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasEmbeddingLayer> {
+public final class DLKerasTReLULayerNodeFactory
+    extends DLKerasAbstractUnaryLayerNodeFactory<DLKerasThresholdedReLULayer> {
 
     /**
      */
-    public DLKerasEmbeddingLayerNodeFactory() {
-        super(DLKerasEmbeddingLayer.class);
+    public DLKerasTReLULayerNodeFactory() {
+        super(DLKerasThresholdedReLULayer.class);
     }
 
 }
