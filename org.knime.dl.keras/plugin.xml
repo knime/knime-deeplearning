@@ -375,6 +375,11 @@
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.softmax.DLKerasSoftmaxLayerNodeFactory">
       </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasEmbeddingLayerNodeFactory">
+      </node>
   </extension>
    <extension
          point="org.knime.dl.DLNetworkExporter">
