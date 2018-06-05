@@ -13,8 +13,8 @@
 			ReLU and LeakyReLU units, namely to push the mean activation closer to zero while
 			still saturating to a negative value which increases robustness against noise if the unit is
 			in an off state (i.e. the input is very negative).
-			The formula is f(x) = alpha * (exp(x) - 1) for x &lt 0 and f(x) = x for x &gt= 0.
-			For the exact details see the corresponding <a href=https://arxiv.org/abs/1511.07289v1>paper</a>.
+			The formula is f(x) = alpha * (exp(x) - 1) for x &lt; 0 and f(x) = x for x >= 0.
+			For the exact details see the corresponding <a href="https://arxiv.org/abs/1511.07289v1">paper</a>.
 		</intro>
 		<option name="Alpha">
 			Scale for the negative factor of the exponential linear unit.
