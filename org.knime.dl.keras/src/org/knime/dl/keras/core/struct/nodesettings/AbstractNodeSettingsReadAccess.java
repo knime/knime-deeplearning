@@ -50,6 +50,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
+import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -67,9 +68,10 @@ abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAccess<T, N
         final String key = m_member.getKey();
         if (settings.containsKey(key)) {
             return get(settings, m_member.getKey());
-        } else {
-            return null;
+        } else if (m_member instanceof FieldParameterMember) {
+            return ((FieldParameterMember<T>)m_member).getDefault();
         }
+        return null;
     }
 
     protected abstract T get(NodeSettingsRO settings, String key) throws InvalidSettingsException;

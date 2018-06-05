@@ -174,6 +174,13 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
 
                     m_subPanelsSwitch.add(m_currentSwingWidgetPanel.getComponent(), choice.getKey());
                     m_subPanelSwitchLayout.show(m_subPanelsSwitch, choice.getKey());
+
+                    try {
+                        m_currentSwingWidgetPanel
+                            .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
+                    } catch (InvalidSettingsException e) {
+                        // Can't load defaults.
+                    }
                 }
             } else {
                 createEmpty();

@@ -65,6 +65,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.jdesktop.swingx.table.NumberEditorExt;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
@@ -132,7 +133,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             }
             Number stepSize = toNumber(SwingWidgets.stepSize(this), member().getRawType());
             if (stepSize == null) {
-                stepSize = 1;
+                stepSize = toNumber("1", member().getRawType());
             }
 
             if (SwingWidgets.isStyle(this, SLIDER_STYLE)) {

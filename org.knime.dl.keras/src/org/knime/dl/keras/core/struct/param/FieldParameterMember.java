@@ -62,14 +62,17 @@ import com.googlecode.gentyref.GenericTypeReflector;
  *
  * @param <T>
  */
-class FieldParameterMember<T> extends DefaultParameterMember<T> {
+public class FieldParameterMember<T> extends DefaultParameterMember<T> {
 
     private final Field m_field;
+
+    private Class<?> m_structType;
 
     FieldParameterMember(final Field field, final Class<?> structType) {
         super(fieldType(field, structType), //
             field.getAnnotation(Parameter.class));
-        this.m_field = field;
+        m_field = field;
+        m_structType = structType;
     }
 
     // -- Member methods --
@@ -77,6 +80,21 @@ class FieldParameterMember<T> extends DefaultParameterMember<T> {
     public String getKey() {
         final String key = getAnnotation().key();
         return key == null || key.isEmpty() ? m_field.getName() : key;
+    }
+
+    /**
+     * @return default value set in field. Returns null if field not initialized
+     */
+    public T getDefault() {
+        try {
+            m_field.setAccessible(true);
+            final Object obj = m_structType.newInstance();
+            @SuppressWarnings("unchecked")
+            T casted = (T)m_field.get(obj);
+            return casted;
+        } catch (InstantiationException | IllegalAccessException e) {
+            return null;
+        }
     }
 
     private static Type fieldType(final Field field, final Class<?> type) {
