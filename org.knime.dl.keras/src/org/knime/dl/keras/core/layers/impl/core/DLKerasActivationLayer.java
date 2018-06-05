@@ -74,10 +74,12 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        m_activation.validateParameters();
     }
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape) {
+        // nothing to validate
     }
 
     @Override
