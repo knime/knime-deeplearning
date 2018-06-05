@@ -101,6 +101,13 @@
             name="Merge"
             path="/labs/deeplearning/keras/layers">
       </category>
+      <category
+            icon="icons/keras-layers.gif"
+            level-id="noise"
+            locked="true"
+            name="Noise"
+            path="/labs/deeplearning/keras/layers">
+      </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
@@ -302,12 +309,22 @@
       <node
             category-path="/labs/deeplearning/keras/layers"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.core.repeat.DLKerasRepeatLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.core.permute.DLKerasPermuteLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers"
+            category-path="/labs/deeplearning/keras/layers/noise"
             deprecated="false"
-            factory-class="org.knime.dl.keras.base.nodes.layers.core.permute.DLKerasPermuteLayerNodeFactory">
+            factory-class="org.knime.dl.keras.base.nodes.layers.noise.gaussiannoise.DLKerasGaussianNoiseLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/noise"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.noise.gaussiandropout.DLKerasGaussianDropoutLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/noise"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.noise.alphadropout.DLKerasAlphaDropoutLayerNodeFactory">
       </node>
   </extension>
    <extension

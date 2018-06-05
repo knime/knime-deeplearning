@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasdropoutlayer.png" type="Other">
+	<name>Keras Alpha Dropout Layer</name>
+
+	<shortDescription>
+		A alpha dropout layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+		This node adds a
+		<a href="https://keras.io/layers/noise/#alphadropout">Keras Alpha Dropout Layer</a>
+		to an existing deep learning network.
+		</intro>
+		<tab name="Options">
+		<option name="Drop Rate">
+			The drop probability (as with <a href="https://keras.io/layers/noise/#dropout">Dropout</a>). 
+			The multiplicative noise will have standard deviation sqrt(rate / (1 - rate)).
+		</option>
+		<option name="Noise Shape">
+			The shape of the binary dropout mask that will be multiplied with the input.
+		</option>
+		<option name="Random seed">
+			Random seed to use for the dropping.
+		</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>
