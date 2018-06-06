@@ -12,9 +12,9 @@
 			Like the leaky ReLU, the parametric ReLU introduces a slope in the negative part
 			of the input space to improve learning dynamics compared to ordinary ReLUs.
 			The difference to leaky ReLUs is that here the slope alpha is treated as a parameter that
-			is trained alongside the rest of the networks weights.
+			is trained alongside the rest of the network's weights.
 			Alpha is usually a vector containing a dedicated slope for each feature of the input.
-			(See also the Shared axes option).
+			(also see the Shared axes option).
 		</intro>
 		<option name="Alpha initializer">
 			The initializer for alpha, usually zero or a small negative number.
