@@ -61,8 +61,8 @@ public final class DLKerasReLuActivation extends DLKerasAbstractLinearActivation
 
     private static final float DEFAULT_ALPHA = 0.0f;
 
-    @Parameter(label = "Max value", required = false)
-    private OptionalDouble m_maxValue = OptionalDouble.empty();
+    @Parameter(label = "Max value", required = false, min = "0.001")
+    private Double m_maxValue = null;
 
     /**
      */

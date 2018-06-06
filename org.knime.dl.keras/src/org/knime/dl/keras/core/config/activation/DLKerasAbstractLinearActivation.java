@@ -60,7 +60,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 abstract class DLKerasAbstractLinearActivation extends DLKerasAbstractConfigObject implements DLKerasActivation {
 
-    @Parameter(label = "Alpha")
+    @Parameter(label = "Alpha", stepSize = "0.1", min = "0.0")
     private float m_alpha;
 
     /**
