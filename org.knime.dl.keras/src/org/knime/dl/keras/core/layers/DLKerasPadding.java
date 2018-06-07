@@ -53,7 +53,7 @@ package org.knime.dl.keras.core.layers;
  */
 public enum DLKerasPadding implements DLKerasEnum {
 
-        VALID("Valid", "valid"), SAME("Same", "same"), FULL("Full", "full");
+        VALID("Valid", "valid"), SAME("Same", "same");
 
     private String m_label;
 
