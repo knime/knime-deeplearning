@@ -64,6 +64,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jdesktop.swingx.table.NumberEditorExt;
 import org.knime.core.node.InvalidSettingsException;
@@ -157,10 +158,46 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             limitWidth(200);
             spinner.addChangeListener(this);
 
+            String format = findDecimalFormat((String)SwingWidgets.stepSize(this), (String)SwingWidgets.maximum(this),
+                (String)SwingWidgets.minimum(this));
+            spinner.setEditor(new JSpinner.NumberEditor(spinner, format));
+
             spinner.setValue(modelValue());
             syncSliders();
 
             return panel;
+        }
+
+        private int getNumberOfDecimalPlaces(final String num) {
+            if (num == null) {
+                return 0;
+            }
+            if (num.contains("E")) {
+                return Math.abs(Integer.parseInt(num.split("E")[1]));
+            } else if (num.contains(".")) {
+                return num.split("\\.")[1].length();
+            } else {
+                return 0;
+            }
+        }
+
+        private String constructDecimalFormat(final int num) {
+            return "#" + (num > 0 ? "." : "") + StringUtils.repeat("#", num);
+        }
+
+        private String findDecimalFormat(String... nums) {
+            int maxNumdecimalPlaces = 0;
+            for (String num : nums) {
+                int curr = getNumberOfDecimalPlaces(num);
+                if (curr > maxNumdecimalPlaces) {
+                    maxNumdecimalPlaces = curr;
+                }
+            }
+            return constructDecimalFormat(maxNumdecimalPlaces);
+        }
+
+        private String findDecimalFormat(Number num) {
+            return findDecimalFormat(num + "");
         }
 
         private Number getDefaultValue(Class<?> type) {
@@ -305,7 +342,15 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
         @Override
         public void loadFrom(MemberReadInstance<Number> instance) throws InvalidSettingsException {
-            spinner.setValue(instance.get());
+            Number value = instance.get();
+
+            String oldFormat = findDecimalFormat((String)SwingWidgets.stepSize(this),
+                (String)SwingWidgets.maximum(this), (String)SwingWidgets.minimum(this));
+            String newFormat = findDecimalFormat(value);
+
+            spinner.setEditor(
+                new JSpinner.NumberEditor(spinner, oldFormat.length() > newFormat.length() ? oldFormat : newFormat));
+            spinner.setValue(value);
         }
 
         @Override
