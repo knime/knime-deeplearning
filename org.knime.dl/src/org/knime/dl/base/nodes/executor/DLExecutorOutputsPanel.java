@@ -167,7 +167,7 @@ final class DLExecutorOutputsPanel {
     private void addToAvailableOutputs(final ArrayList<String> availableOutputs,
         final HashMap<String, DLTensorSpec> availableOutputsMap, final DLTensorSpec outputSpec, final String nameSuffix) {
         final String outputName = outputSpec.getName() + nameSuffix;
-        if (!m_outputPanels.containsKey(outputName)) {
+        if (!m_outputPanels.containsKey(outputSpec.getName())) {
             availableOutputs.add(outputName);
             availableOutputsMap.put(outputName, outputSpec);
         }
