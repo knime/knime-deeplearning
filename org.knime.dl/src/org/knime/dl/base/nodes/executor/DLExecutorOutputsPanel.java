@@ -79,6 +79,10 @@ final class DLExecutorOutputsPanel {
     
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
+    private static final String OUTPUT_SUFFIX = "";
+
+    private static final String HIDDEN_SUFFIX = " (hidden)";
+
     private LinkedHashMap<String, DLExecutorOutputPanel> m_outputPanels = new LinkedHashMap<>();
     
     private JButton m_addOutputButton = new JButton("add output");
@@ -158,11 +162,11 @@ final class DLExecutorOutputsPanel {
     private void fillAvailableOutputs(final DLNetworkSpec networkSpec, final ArrayList<String> availableOutputs,
         final HashMap<String, DLTensorSpec> availableOutputsMap, final HashMap<String, String> availableOutputsSuffixMap) {
         for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
-            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, outputSpec, "");
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, outputSpec, OUTPUT_SUFFIX);
         }
         for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
             final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
-            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, intermediateSpec, " (hidden)");
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, intermediateSpec, HIDDEN_SUFFIX);
         }
     }
 
@@ -253,11 +257,11 @@ final class DLExecutorOutputsPanel {
             }
             for (final String layerName : orderedOutputs) {
                 if (!m_outputPanels.containsKey(layerName)) {
-                    String suffix = "";
+                    String suffix = OUTPUT_SUFFIX;
                     Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getOutputSpecs());
                     if (!spec.isPresent()) {
                         spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getHiddenOutputSpecs());
-                        suffix = " (hidden)";
+                        suffix = HIDDEN_SUFFIX;
                     }
                     if (spec.isPresent()) {
                         addOutputPanel(spec.get(), m_generalCfg, suffix);
