@@ -128,7 +128,8 @@ final class DLExecutorOutputsPanel {
         // available outputs
         final ArrayList<String> availableOutputs = new ArrayList<>(m_numPossibleOutputs - m_outputPanels.size());
         final HashMap<String, DLTensorSpec> availableOutputsMap = new HashMap<>(availableOutputs.size());
-        fillAvailableOutputs(m_networkSpec, availableOutputs, availableOutputsMap);
+        final HashMap<String, String> availableOutputsSuffixMap = new HashMap<>(availableOutputs.size());
+        fillAvailableOutputs(m_networkSpec, availableOutputs, availableOutputsMap, availableOutputsSuffixMap);
         // output selection
         final SettingsModelString smOutput = new SettingsModelString("output", availableOutputs.get(0));
         final DialogComponentStringSelection dcOutput = new DialogComponentStringSelection(smOutput, "Output",
@@ -138,6 +139,7 @@ final class DLExecutorOutputsPanel {
                 outputsAddDlg, "Add output...", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (selectedOption == JOptionPane.OK_OPTION) {
             final DLTensorSpec outputTensorSpec = availableOutputsMap.get(smOutput.getStringValue());
+            final String suffix = availableOutputsSuffixMap.get(smOutput.getStringValue());
             if (!DLUtils.Shapes.isKnown(outputTensorSpec.getShape())) {
                 final String msg = "Output '" + outputTensorSpec.getName()
                         + "' has an unknown shape. This is not supported.";
@@ -145,7 +147,7 @@ final class DLExecutorOutputsPanel {
                 throw new IllegalStateException(msg);
             }
             try {
-                addOutputPanel(outputTensorSpec, generalCfg);
+                addOutputPanel(outputTensorSpec, generalCfg, suffix);
             } catch (final Exception ex) {
                 LOGGER.error(ex.getMessage());
                 throw new IllegalStateException(ex.getMessage(), ex);
@@ -154,22 +156,24 @@ final class DLExecutorOutputsPanel {
     }
 
     private void fillAvailableOutputs(final DLNetworkSpec networkSpec, final ArrayList<String> availableOutputs,
-        final HashMap<String, DLTensorSpec> availableOutputsMap) {
+        final HashMap<String, DLTensorSpec> availableOutputsMap, final HashMap<String, String> availableOutputsSuffixMap) {
         for (final DLTensorSpec outputSpec : networkSpec.getOutputSpecs()) {
-            addToAvailableOutputs(availableOutputs, availableOutputsMap, outputSpec, "");
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, outputSpec, "");
         }
         for (int i = networkSpec.getHiddenOutputSpecs().length - 1; i >= 0; i--) {
             final DLTensorSpec intermediateSpec = networkSpec.getHiddenOutputSpecs()[i];
-            addToAvailableOutputs(availableOutputs, availableOutputsMap, intermediateSpec, " (hidden)");
+            addToAvailableOutputs(availableOutputs, availableOutputsMap, availableOutputsSuffixMap, intermediateSpec, " (hidden)");
         }
     }
 
     private void addToAvailableOutputs(final ArrayList<String> availableOutputs,
-        final HashMap<String, DLTensorSpec> availableOutputsMap, final DLTensorSpec outputSpec, final String nameSuffix) {
+        final HashMap<String, DLTensorSpec> availableOutputsMap, final HashMap<String, String> availableOutputsSuffixMap,
+        final DLTensorSpec outputSpec, final String nameSuffix) {
         final String outputName = outputSpec.getName() + nameSuffix;
         if (!m_outputPanels.containsKey(outputSpec.getName())) {
             availableOutputs.add(outputName);
             availableOutputsMap.put(outputName, outputSpec);
+            availableOutputsSuffixMap.put(outputName, nameSuffix);
         }
     }
     
@@ -198,13 +202,13 @@ final class DLExecutorOutputsPanel {
         return rootConstr;
     }
     
-    private void addOutputPanel(final DLTensorSpec outputTensorSpec, final DLExecutorGeneralConfig generalCfg)
+    private void addOutputPanel(final DLTensorSpec outputTensorSpec, final DLExecutorGeneralConfig generalCfg, final String suffix)
             throws NotConfigurableException {
         final String outputName = outputTensorSpec.getName();
         if (!m_outputPanels.containsKey(outputName)) {
             final DLExecutorOutputConfig outputCfg = DLExecutorNodeModel.createOutputTensorModelConfig(outputName,
                     generalCfg);
-            final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputTensorSpec);
+            final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputTensorSpec, suffix);
             outputPanel.addRemoveListener(e -> removeOutputPanel(outputName, outputPanel));
             // add output panel to dialog
             m_outputPanels.put(outputName, outputPanel);
@@ -249,10 +253,14 @@ final class DLExecutorOutputsPanel {
             }
             for (final String layerName : orderedOutputs) {
                 if (!m_outputPanels.containsKey(layerName)) {
-                    final Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName,
-                            m_networkSpec.getOutputSpecs(), m_networkSpec.getHiddenOutputSpecs());
+                    String suffix = "";
+                    Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getOutputSpecs());
+                    if (!spec.isPresent()) {
+                        spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getHiddenOutputSpecs());
+                        suffix = " (hidden)";
+                    }
                     if (spec.isPresent()) {
-                        addOutputPanel(spec.get(), m_generalCfg);
+                        addOutputPanel(spec.get(), m_generalCfg, suffix);
                     }
                 }
             }

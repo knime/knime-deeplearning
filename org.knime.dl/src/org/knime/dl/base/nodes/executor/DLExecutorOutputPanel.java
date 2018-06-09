@@ -97,7 +97,7 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private final CopyOnWriteArrayList<ChangeListener> m_removeListeners;
 
-	DLExecutorOutputPanel(final DLExecutorOutputConfig cfg, final DLTensorSpec outputDataSpec)
+	DLExecutorOutputPanel(final DLExecutorOutputConfig cfg, final DLTensorSpec outputDataSpec, final String suffix)
 			throws NotConfigurableException {
 		super(new GridBagLayout());
 		m_cfg = cfg;
@@ -106,7 +106,7 @@ final class DLExecutorOutputPanel extends JPanel {
 
 		// construct panel:
 
-		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputTensorSpec.getName()));
+		setBorder(BorderFactory.createTitledBorder("Output: " + m_outputTensorSpec.getName() + suffix));
 		final GridBagConstraints constr = new GridBagConstraints();
 		constr.gridx = 0;
 		constr.gridy = 0;
