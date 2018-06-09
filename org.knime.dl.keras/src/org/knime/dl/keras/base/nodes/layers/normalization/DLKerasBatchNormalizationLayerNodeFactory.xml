@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasnormalizationlayer.png" type="Other">
+	<name>Keras Batch Normalization Layer</name>
+
+	<shortDescription>
+		Keras Batch Normalization Layer
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node adds a
+			<a href="https://keras.io/layers/normalization/#batchnormalization">Keras Batch Normalization Layer</a>
+			to an existing deep learning network.
+		</intro>
+		<tab name="Options">
+			<option name="Axis">
+				The axis that should be normalized (typically the
+				features axis). For
+				instance, after a Conv2D layer with
+				<code>data_format="channels_first"</code>
+				, set
+				<code>axis=1</code>
+				in BatchNormalization.
+			</option>
+			<option name="Momentum">
+				Momentum for the moving mean and the moving
+				variance.
+			</option>
+			<option name="Epsilon">
+				Small number added to variance to avoid dividing
+				by zero.
+			</option>
+			<option name="Center">
+				If selected, add offset of beta to normalized
+				tensor. If not selected, beta is ignored.
+			</option>
+			<option name="Scale">
+				If selected, multiply by gamma. If not selected, gamma is
+				not used. When the next layer is linear (also e.g. nn.relu), this
+				can be disabled since the scaling will be done by the next layer.
+			</option>
+			<option name="Beta Initializer">
+				Initializer for the beta weight.
+			</option>
+			<option name="Gamma Initializer">
+				Initializer for the gamma weight.
+			</option>
+			<option name="Moving Mean Initializer">
+				Initializer for the moving mean.
+			</option>
+			<option name="Moving Variance Initializer">
+				Initializer for the moving variance.
+			</option>
+			<option name="Beta Regularizer">
+				Optional regularizer for the beta weight.
+			</option>
+			<option name="Gamma Regulatrizer">
+				Optional regularizer for the gamma weight.
+			</option>
+			<option name="Beta Constraint">
+				Optional constraint for the beta weight.
+			</option>
+			<option name="Gamma Constraint">
+				Optional constraint for the gamma weight.
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>

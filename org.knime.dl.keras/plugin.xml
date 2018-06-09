@@ -122,6 +122,13 @@
             name="Advanced Activations"
             path="/labs/deeplearning/keras/layers">
       </category>
+      <category
+            icon="icons/keras-layers.gif"
+            level-id="normalization"
+            locked="true"
+            name="Normalization"
+            path="/labs/deeplearning/keras/layers">
+      </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
@@ -374,6 +381,11 @@
             category-path="/labs/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.softmax.DLKerasSoftmaxLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/normalization"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.normalization.DLKerasBatchNormalizationLayerNodeFactory">
       </node>
       <node
             category-path="/labs/deeplearning/keras/layers"
