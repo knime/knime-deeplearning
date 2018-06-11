@@ -51,6 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.dl.keras.core.layers.dialog.SwingDLKerasSeedWidgetFactory;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 
@@ -75,6 +76,9 @@ class SwingWidgetRegistry {
         m_factories.add(new SwingObjectChoiceWidgetFactory<>());
         m_factories.add(new SwingCheckboxWidgetFactory());
         m_factories.add(new SwingOptionalWidgetFactory<>());
+
+        // factories for custom types
+        m_factories.add(new SwingDLKerasSeedWidgetFactory());
     }
 
     /**

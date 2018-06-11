@@ -53,7 +53,7 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /** Utility class for working with {@link SwingWidget}s. */
-final class SwingWidgets {
+public final class SwingWidgets {
 
     private SwingWidgets() {
         // NB: Prevent instantiation of utility class.

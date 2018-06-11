@@ -51,7 +51,7 @@ import org.knime.dl.keras.core.struct.Member;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-abstract class AbstractSwingWidget<T> implements SwingWidget<T> {
+public abstract class AbstractSwingWidget<T> implements SwingWidget<T> {
 
     private final Member<T> m_member;
 

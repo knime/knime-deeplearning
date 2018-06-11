@@ -44,34 +44,39 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.config.initializer;
-
-import java.util.List;
-import java.util.Map;
-
-import org.knime.dl.keras.core.layers.dialog.DLKerasSeed;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
+package org.knime.dl.keras.core.layers.dialog;
 
 /**
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * Class representing a random seed.
+ * 
+ * @author Knime, KNIME GmbH, Konstanz, Germany
  */
-abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
+public class DLKerasSeed {
 
-    // TODO make component for seed
-    @Parameter(label = "Seed", required = false)
-    private DLKerasSeed m_seed = new DLKerasSeed();
+    private static final long DEFAULT_SEED = 123456789L;
+
+    private long m_seed;
 
     /**
-     * @param kerasIdentifier
+     * Constructor
+     * 
+     * @param seed the initial seed
      */
-    public DLKerasAbstractSeededInitializer(String kerasIdentifier) {
-        super(kerasIdentifier);
+    public DLKerasSeed(final long seed) {
+        m_seed = seed;
     }
 
-    @Override
-    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed.getSeed()));
+    /**
+     * Constructor using the default seed 123456789.
+     */
+    public DLKerasSeed() {
+        m_seed = DEFAULT_SEED;
     }
 
+    /**
+     * @return the seed value
+     */
+    public long getSeed() {
+        return m_seed;
+    }
 }
