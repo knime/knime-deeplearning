@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -66,9 +67,11 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkHandleTableCreatorFactory;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
+import org.knime.dl.python.core.SingleValueTableCreator;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
 import org.knime.python2.kernel.Messages;
 import org.knime.python2.kernel.PythonToJavaMessage;
@@ -79,6 +82,8 @@ import org.knime.python2.kernel.PythonToJavaMessageHandler;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
+
+    private static final String KERAS_VERSION_NAME = "keras_version";
 
 	protected DLKerasAbstractCommands() {
 	}
@@ -213,6 +218,26 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
         return (DLTensorSpec[])getContext(cancelable).getDataFromKernel(specName,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
+    }
+
+    /**
+     * @param cancelable to check if the execution has been canceled
+     * @return the keras version
+     * @throws DLCanceledExecutionException if the execution has been canceled
+     * @throws DLInvalidEnvironmentException if failed to properly setup the Python context
+     * @throws IOException if getting the data from python failed
+     */
+    protected Version getKerasVersion(final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import keras") //
+            .n("import pandas as pd") //
+            .n("global ").a(KERAS_VERSION_NAME) //
+            .n(KERAS_VERSION_NAME).a(" = pd.DataFrame([keras.__version__])"); //
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        final String kerasVersion = (String)getContext(cancelable).getDataFromKernel(KERAS_VERSION_NAME,
+            (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
+        return new Version(kerasVersion);
     }
 
     protected abstract static class DLKerasAbstractNetworkReaderCommands extends DLPythonAbstractNetworkReaderCommands {

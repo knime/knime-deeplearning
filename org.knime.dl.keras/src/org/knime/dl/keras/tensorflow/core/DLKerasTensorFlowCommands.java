@@ -82,9 +82,8 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 
         // Get the python version
         final Version pythonVersion = getPythonVersion(cancelable);
-
-        // TODO Get the keras version from python
-        final Version kerasVersion = null;
+        // Get the keras version
+        final Version kerasVersion = getKerasVersion(cancelable);
 
         return new DLKerasTensorFlowNetworkSpec(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs,
             outputSpecs);
