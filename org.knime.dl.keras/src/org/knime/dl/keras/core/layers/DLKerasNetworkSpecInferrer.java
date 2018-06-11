@@ -159,8 +159,7 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 
-        return new DLKerasGenericNetworkSpec(inputSpecs,
-            new DLTensorSpec[0] /* TODO: uncomment once hidden specs are supported: hiddenSpecs */, outputSpecs);
+        return new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
     }
 
     private List<DLTensorSpec> inferTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
