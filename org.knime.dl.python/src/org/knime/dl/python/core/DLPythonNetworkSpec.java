@@ -44,37 +44,18 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core;
+package org.knime.dl.python.core;
 
 import org.knime.core.util.Version;
-import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.python.core.DLPythonNetworkSpec;
-import org.knime.dl.util.DLUtils;
+import org.knime.dl.core.DLNetworkSpec;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
-    
-    /**
-     * Must only be called by implementing classes that are in the same bundle as {@link DLKerasAbstractNetworkSpec}.
-     *
-     * @return the version of the KNIME Deep Learning Keras bundle
-     */
-    public static Version getKerasBundleVersion() {
-        return DLUtils.Misc.getVersionOfSameBundle(DLKerasNetworkSpec.class);
-    }
+public interface DLPythonNetworkSpec extends DLNetworkSpec {
 
     /**
-     * @return the version of the Keras library this network has been created with
+     * @return the version of the Python executable this network has been created with
      */
-    Version getKerasVersion();
-
-	/**
-     * Creates a network whose {@link DLNetwork#getSpec()} returns this spec.
-     */
-    DLKerasNetwork create(DLNetworkLocation source) throws DLInvalidSourceException;
+    Version getPythonVersion();
 }
