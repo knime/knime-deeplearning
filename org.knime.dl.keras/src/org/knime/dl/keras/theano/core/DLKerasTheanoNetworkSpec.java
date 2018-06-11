@@ -53,7 +53,6 @@ import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
-import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
@@ -66,13 +65,12 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec {
 
 	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
-        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
 	public DLKerasTheanoNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs,
-            trainingConfig);
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
 	}
 
 	@Override

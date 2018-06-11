@@ -46,7 +46,6 @@
  */
 package org.knime.dl.keras.core;
 
-import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
@@ -60,15 +59,15 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
 
 	private static final long serialVersionUID = 1L;
 
-    protected DLKerasAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
         final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs) {
-        super(bundleVersion, inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
 	}
 
-    protected DLKerasAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
+    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
         final DLTensorSpec[] hiddenOutputSpecs,
 			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-        super(bundleVersion, inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
 	}
 }
