@@ -117,8 +117,8 @@ class SwingCheckboxWidgetFactory implements SwingWidgetFactory<Boolean> {
         // -- Model change event listener --
 
         @Override
-        public void loadFrom(MemberReadInstance<Boolean> instance) {
-            m_checkBox.setSelected(m_value);
+        public void loadFrom(MemberReadInstance<Boolean> instance) throws InvalidSettingsException {
+            m_checkBox.setSelected(instance.get());
         }
 
         @Override
