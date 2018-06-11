@@ -54,6 +54,7 @@ import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCustomLoss;
@@ -63,6 +64,8 @@ import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkHandleTableCreatorFactory;
+import org.knime.dl.python.core.DLPythonNumPyTypeMap;
+import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -195,6 +198,22 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 			}
 		}
 	}
+
+    /**
+     * Extracts the tensor spec from a pandas DataFrame.
+     *
+     * @param specName the name of the pandas DataFrame
+     * @param cancelable to check if the execution has been canceled
+     * @return the tensor spec in the DataFrame
+     * @throws DLCanceledExecutionException if the execution has been canceled
+     * @throws DLInvalidEnvironmentException if failed to properly setup the Python context
+     * @throws IOException if getting the data from python failed
+     */
+    protected DLTensorSpec[] extractTensorSpec(final String specName, final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        return (DLTensorSpec[])getContext(cancelable).getDataFromKernel(specName,
+            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
+    }
 
     protected abstract static class DLKerasAbstractNetworkReaderCommands extends DLPythonAbstractNetworkReaderCommands {
 

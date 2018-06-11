@@ -57,8 +57,6 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNumPyTypeMap;
-import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
 import org.knime.dl.python.core.SingleValueTableCreator;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
@@ -80,13 +78,9 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
     public DLKerasTheanoNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
         final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         getContext(cancelable).executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
-        final DLTensorSpec[] inputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(INPUT_SPECS_NAME,
-            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
-        final DLTensorSpec[] hiddenOutputSpecs =
-            (DLTensorSpec[])getContext(cancelable).getDataFromKernel(HIDDEN_OUTPUT_SPECS_NAME,
-                new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
-        final DLTensorSpec[] outputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(OUTPUT_SPECS_NAME,
-            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
+        final DLTensorSpec[] inputSpecs = extractTensorSpec(INPUT_SPECS_NAME, cancelable);
+        final DLTensorSpec[] hiddenOutputSpecs = extractTensorSpec(HIDDEN_OUTPUT_SPECS_NAME, cancelable);
+        final DLTensorSpec[] outputSpecs = extractTensorSpec(OUTPUT_SPECS_NAME, cancelable);
 
         // Get the python version
         getContext(cancelable).executeInKernel(getExtractPythonVersionCode(), cancelable);
