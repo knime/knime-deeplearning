@@ -47,10 +47,39 @@
 package org.knime.dl.keras.core.config.activation;
 
 import org.knime.dl.keras.core.config.DLKerasConfigObject;
+import org.knime.dl.keras.core.layers.DLKerasEnum;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasActivation extends DLKerasConfigObject {
-    // NB: Marker interface
+public enum DLKerasActivation implements DLKerasEnum<String> {
+    SOFTMAX("Softmax", "softmax"),
+    ELU("ELU", "elu"),
+    SELU("SELU", "selu"),
+    SOFTPLUS("Softplus", "softplus"),
+    SOFTSIGN("Softsign", "softsign"),
+    RELU("ReLU", "relu"),
+    TANH("Tanh", "tanh"),
+    SIGMOID("Sigmoid", "sigmoid"),
+    HARD_SIGMOID("Hard sigmoid", "hard_sigmoid"),
+    LINEAR("Linear", "linear");
+    
+    private String m_label;
+
+    private String m_value;
+
+    DLKerasActivation(String label, String value) {
+        m_label = label;
+        m_value = value;
+    }
+
+    @Override
+    public String value() {
+        return m_value;
+    }
+
+    @Override
+    public String label() {
+        return m_label;
+    }
 }

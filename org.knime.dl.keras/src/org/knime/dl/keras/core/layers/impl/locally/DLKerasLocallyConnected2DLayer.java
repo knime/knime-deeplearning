@@ -52,8 +52,6 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.config.activation.DLKerasActivationChoices;
-import org.knime.dl.keras.core.config.activation.DLKerasLinearActivation;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
@@ -96,8 +94,8 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
     @Parameter(label = "Data Format")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
-    @Parameter(label = "Activation function", choices = DLKerasActivationChoices.class)
-    private DLKerasActivation m_activation = new DLKerasLinearActivation();
+    @Parameter(label = "Activation function")
+    private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
     @Parameter(label = "Use bias?")
     boolean m_useBias = true;
@@ -157,7 +155,7 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
         namedParams.put("strides", DLPythonUtils.toPythonTuple(m_strides));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
-        namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
+        namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));
         namedParams.put("bias_initializer", DLKerasConfigObjectUtils.toPython(m_biasInitializer));

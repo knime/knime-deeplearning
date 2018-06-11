@@ -50,20 +50,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.config.activation.DLKerasActivationChoices;
-import org.knime.dl.keras.core.config.activation.DLKerasLinearActivation;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Activation function", choices = DLKerasActivationChoices.class)
-    private DLKerasActivation m_activation = new DLKerasLinearActivation();
+    @Parameter(label = "Activation function")
+    private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
     /**
      * Constructor
@@ -74,8 +73,9 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        m_activation.validateParameters();
+        // nothing to validate
     }
+    
 
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape) {
@@ -89,6 +89,6 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
+        namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
     }
 }

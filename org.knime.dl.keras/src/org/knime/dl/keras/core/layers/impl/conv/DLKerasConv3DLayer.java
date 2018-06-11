@@ -52,8 +52,6 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.config.activation.DLKerasActivationChoices;
-import org.knime.dl.keras.core.config.activation.DLKerasLinearActivation;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
@@ -97,8 +95,8 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Dilation Rate")
     private String m_dilationRate = "1, 1, 1";
 
-    @Parameter(label = "Activation function", choices = DLKerasActivationChoices.class)
-    private DLKerasActivation m_activation = new DLKerasLinearActivation();
+    @Parameter(label = "Activation function")
+    private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
     @Parameter(label = "Kernel Initializer", choices = DLKerasInitializerChoices.class)
     private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
@@ -160,7 +158,7 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("dilation_rate", DLPythonUtils.toPythonTuple(m_dilationRate));
-        namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
+        namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));
         namedParams.put("bias_initializer", DLKerasConfigObjectUtils.toPython(m_biasInitializer));

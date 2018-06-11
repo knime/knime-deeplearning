@@ -52,8 +52,6 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.config.activation.DLKerasActivationChoices;
-import org.knime.dl.keras.core.config.activation.DLKerasLinearActivation;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
@@ -100,8 +98,8 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Depth Multiplier", min = "1", max = "1000000", stepSize = "1")
     private int m_depthMultiplier = 1;
 
-    @Parameter(label = "Activation function", choices = DLKerasActivationChoices.class)
-    private DLKerasActivation m_activation = new DLKerasLinearActivation();
+    @Parameter(label = "Activation function")
+    private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
     @Parameter(label = "Use bias?")
     boolean m_useBias = true;
@@ -173,7 +171,7 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("dilation_rate", DLPythonUtils.toPythonTuple(m_dilationRate));
         namedParams.put("depth_multipier", DLPythonUtils.toPython(m_depthMultiplier));
-        namedParams.put("activation", DLKerasConfigObjectUtils.toPython(m_activation));
+        namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("depthwise_initializer", DLKerasConfigObjectUtils.toPython(m_depthwiseInitializer));
         namedParams.put("pointwise_initializer", DLKerasConfigObjectUtils.toPython(m_pointwiseInitializer));
