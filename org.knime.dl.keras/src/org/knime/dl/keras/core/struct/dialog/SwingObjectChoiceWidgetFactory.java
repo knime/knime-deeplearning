@@ -180,12 +180,11 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                             .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
                     } catch (InvalidSettingsException e) {
                         // Can't load defaults.
-                    }
-                }
-            } else {
-                createEmpty();
-                return;
-            }
+                    } 
+                    return;
+                } 
+            } 
+            createEmpty();
         }
 
         /**
