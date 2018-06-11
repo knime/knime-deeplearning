@@ -57,9 +57,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.SingleValueTableCreator;
 import org.knime.dl.util.DLUtils;
-import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -83,14 +81,12 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
         final DLTensorSpec[] outputSpecs = extractTensorSpec(OUTPUT_SPECS_NAME, cancelable);
 
         // Get the python version
-        getContext(cancelable).executeInKernel(getExtractPythonVersionCode(), cancelable);
-        final String pythonVersion = (String)getContext(cancelable).getDataFromKernel(PYTHON_VERSION_NAME,
-            (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
+        final Version pythonVersion = getPythonVersion(cancelable);
 
         // TODO Get the keras version from python
         final Version kerasVersion = null;
 
-        return new DLKerasTensorFlowNetworkSpec(new Version(pythonVersion), kerasVersion, inputSpecs, hiddenOutputSpecs,
+        return new DLKerasTensorFlowNetworkSpec(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs,
             outputSpecs);
     }
 
