@@ -117,7 +117,8 @@ public class DLPythonTensorSpecTableCreatorFactory implements TableCreatorFactor
 																			 * and force Python to comply 
 																			 */) //
 					&& (colTypes[SHAPE_IDX].equals(Type.LONG_LIST) //
-							|| colTypes[SHAPE_IDX].equals(Type.INTEGER_LIST)) //
+							|| colTypes[SHAPE_IDX].equals(Type.INTEGER_LIST) //
+							|| colTypes[SHAPE_IDX].equals(Type.STRING)) //
 					&& colTypes[TYPE_IDX].equals(Type.STRING)
 					&& colTypes[DIMENSION_ORDER_IDX].equals(Type.STRING);
 		}
@@ -203,7 +204,10 @@ public class DLPythonTensorSpecTableCreatorFactory implements TableCreatorFactor
 				} else if (row.getCell(SHAPE_IDX).getColumnType().equals(Type.INTEGER_LIST)) {
 					final int[] tensorShapeInt = row.getCell(SHAPE_IDX).getIntegerArrayValue();
 					tensorShape = createShape(Arrays.stream(tensorShapeInt).mapToLong(i -> i).toArray());
-				}
+                } else if (row.getCell(SHAPE_IDX).getColumnType().equals(Type.STRING)) {
+                    throw new IllegalStateException(
+                        "Python side sent a tensor shape table of type string. This is not supported.");
+                }
 			}
 			return tensorShape;
 		}
