@@ -59,6 +59,8 @@ import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
+import net.miginfocom.swing.MigLayout;
+
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
@@ -94,7 +96,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             if (m_panel != null)
                 return m_panel;
 
-            m_panel = new JPanel();
+            m_panel = new JPanel(new MigLayout("", "[][grow]", ""));
 
             // TODO wrapper
             m_widget = SwingWidgetRegistry.getInstance().createWidget(new ParameterMember<T>() {
@@ -125,7 +127,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
                 m_widget.setEnabled(m_activateBox.isSelected());
             });
             m_panel.add(m_activateBox);
-            m_panel.add(m_widget.getComponent());
+            m_panel.add(m_widget.getComponent(), "growx");
 
             return m_panel;
         }
