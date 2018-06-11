@@ -59,7 +59,9 @@ import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.core.DLPythonTensorSpecTableCreatorFactory;
+import org.knime.dl.python.core.SingleValueTableCreator;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -75,8 +77,8 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
 	}
 
     @Override
-    public DLKerasCNTKNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle,
-        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+    public DLKerasCNTKNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle handle, final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         getContext(cancelable).executeInKernel(getExtractNetworkSpecsCode(handle), cancelable);
         final DLTensorSpec[] inputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(INPUT_SPECS_NAME,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
@@ -86,11 +88,16 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
         final DLTensorSpec[] outputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(OUTPUT_SPECS_NAME,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
 
-        // TODO Get the versions from python
-        final Version pythonVersion = null;
+        // Get the python version
+        getContext(cancelable).executeInKernel(getExtractPythonVersionCode(), cancelable);
+        final String pythonVersion = (String)getContext(cancelable).getDataFromKernel(PYTHON_VERSION_NAME,
+            (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
+
+        // TODO Get the keras version from python
         final Version kerasVersion = null;
 
-        return new DLKerasCNTKNetworkSpec(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs, outputSpecs);
+        return new DLKerasCNTKNetworkSpec(new Version(pythonVersion), kerasVersion, inputSpecs, hiddenOutputSpecs,
+            outputSpecs);
     }
 
 	@Override

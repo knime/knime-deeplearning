@@ -138,6 +138,9 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
 	public static final String OUTPUT_SHAPES_NAME = "output_shapes";
 
+	/** Name of the 'python version' DataFrame in python */
+	public static final String PYTHON_VERSION_NAME = "python_version";
+
 	private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
 
 	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
@@ -670,6 +673,20 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             "DLPythonNetworkSpecToDataFrameConverter.get_layer_data_specs_as_data_frames('" + network.getIdentifier()
             + "')";
 	}
+
+    /**
+     * @return code which writes the python version into a pandas DataFrame with the variable name
+     *         {@link #PYTHON_VERSION_NAME}.
+     */
+    protected String getExtractPythonVersionCode() {
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import sys") //
+            .n("import pandas as pd") //
+            .n("global ").a(PYTHON_VERSION_NAME) //
+            .n(PYTHON_VERSION_NAME).a(" = pd.DataFrame(['{}.{}.{}'.format(*sys.version_info[:3])])") //
+            .n("print(").a(PYTHON_VERSION_NAME).a(")");
+        return b.toString();
+    }
 
     private TableChunker createSingleTensorTableChunker(final DLTensorId tensorId, final DLTensor<? extends DLWritableBuffer> tensor)
         throws IOException {
