@@ -46,8 +46,10 @@
  */
 package org.knime.dl.keras.core.layers.impl.normalization;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.DLKerasConfigObjectUtils;
@@ -120,10 +122,18 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        if (m_epsilon <= 0) {
-            throw new InvalidSettingsException("Epsilon must be larger than 0");
+        final List<String> errors = new ArrayList<>();
+        if (m_momentum == 1) {
+            // Note that with a momentum of 1 the moving average will never change
+            // TODO or is the user responsible?
+            errors.add("Momentum must be smaller than 1.");
         }
-        // TODO what are allowed values for the momentum?
+        if (m_epsilon <= 0) {
+            errors.add("Epsilon must be larger than 0.");
+        }
+        if (!errors.isEmpty()) {
+            throw new InvalidSettingsException(errors.stream().collect(Collectors.joining("\n")));
+        }
     }
 
     @Override
