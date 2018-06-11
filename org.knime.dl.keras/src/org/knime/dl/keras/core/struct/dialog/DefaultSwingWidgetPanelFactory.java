@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.core.struct.dialog;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JLabel;
@@ -70,6 +73,9 @@ import net.miginfocom.swing.MigLayout;
  */
 public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
 
+    /** The default tab name to use if no name is explicitly specified. */
+    private static String DEFAULT_TAB = "Options";
+
     @Override
     public SwingWidgetPanel createPanel(Struct instance) {
         return new DefaultSwingWidgetPanel(SwingWidgetRegistry.getInstance().createWidgets(instance));
@@ -80,36 +86,44 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
 
         private final Map<String, ? extends SwingWidget<?>> m_widgets;
 
-        private JPanel m_panel;
+        /** Maps from tab name to the corresponding JPanel */
+        private HashMap<String, JPanel> m_panels;
 
         public DefaultSwingWidgetPanel(final Map<String, ? extends SwingWidget<?>> widgets) {
             m_widgets = widgets;
         }
 
         @Override
-        public JPanel getComponent() {
-            if (m_panel != null)
-                return m_panel;
+        public HashMap<String, JPanel> getComponents() {
+            if (m_panels != null)
+                return m_panels;
 
-            m_panel = new JPanel();
-            final MigLayout layout = new MigLayout("fillx,wrap 2", "[right]10[fill,grow]");
-            m_panel.setLayout(layout);
+            m_panels = new HashMap<>();
 
             for (final SwingWidget<?> widget : m_widgets.values()) {
+                String currentTab = SwingWidgets.tab(widget);
+                JPanel currentPanel = m_panels
+                    .computeIfAbsent(currentTab == null || currentTab.isEmpty() ? DEFAULT_TAB : currentTab, t -> {
+                        JPanel panel = new JPanel();
+                        final MigLayout layout = new MigLayout("fillx,wrap 2", "[right]10[fill,grow]");
+                        panel.setLayout(layout);
+                        return panel;
+                    });
+
                 // add widget to panel
                 final String label = SwingWidgets.label(widget);
                 if (label != null) {
                     // widget is prefixed by a label
                     final JLabel l = new JLabel(label);
-                    m_panel.add(l);
-                    m_panel.add(widget.getComponent());
+                    currentPanel.add(l);
+                    currentPanel.add(widget.getComponent());
                 } else {
                     // widget occupies entire row
-                    getComponent().add(widget.getComponent(), "span");
+                    currentPanel.add(widget.getComponent(), "span");
                 }
             }
 
-            return m_panel;
+            return m_panels;
         }
 
         @Override

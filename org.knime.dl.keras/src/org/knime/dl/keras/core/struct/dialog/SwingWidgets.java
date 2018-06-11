@@ -83,6 +83,10 @@ final class SwingWidgets {
         return param(swingWidget) == null ? null : param(swingWidget).getWidgetStyle();
     }
 
+    public static String tab(final SwingWidget<?> swingWidget) {
+        return param(swingWidget) == null ? null : param(swingWidget).getTab();
+    }
+
     public static boolean isStyle(final SwingWidget<?> swingWidget, final String style) {
         final String SwingWidgetStyle = style(swingWidget);
         if (SwingWidgetStyle == null)

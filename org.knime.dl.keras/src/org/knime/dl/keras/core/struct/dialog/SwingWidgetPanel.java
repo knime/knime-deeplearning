@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.struct.dialog;
 
+import java.util.Map;
+
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -60,9 +62,9 @@ import org.knime.dl.keras.core.struct.instance.StructInstance;
  */
 public interface SwingWidgetPanel {
     /**
-     * @return the underlying {@link JPanel}.
+     * @return a mapping for each tab to its underlying {@link JPanel}.
      */
-    JPanel getComponent();
+    Map<String, JPanel> getComponents();
 
     /**
      * @param enabled if <code>true</code> all contained {@link SwingWidget}s are enabled, disabled otherwise.

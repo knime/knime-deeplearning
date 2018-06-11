@@ -78,6 +78,9 @@ public @interface Parameter {
 
     /** Defines the step size to use (numeric parameters only). */
     String stepSize() default "";
+    
+    /** Defines the tab this parameters should be displayed in. */
+    String tab() default "";
 
     Class<? extends ParameterChoices> choices() default ParameterChoices.class;
 }

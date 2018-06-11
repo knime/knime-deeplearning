@@ -118,7 +118,10 @@ class SwingStructWidgetFactory<T> implements SwingWidgetFactory<T> {
             gbc.weightx = 1;
             gbc.fill = GridBagConstraints.BOTH;
             m_structPanel = new DefaultSwingWidgetPanelFactory().createPanel(m_access.struct());
-            m_panel.add(m_structPanel.getComponent());
+            //ignore tabs for nested dialogs
+            for (JPanel panel : m_structPanel.getComponents().values()) {
+                m_panel.add(panel);
+            }
             return m_panel;
         }
 

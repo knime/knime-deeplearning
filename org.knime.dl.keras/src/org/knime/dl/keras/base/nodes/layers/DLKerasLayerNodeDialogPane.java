@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import java.util.Map.Entry;
+
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -86,11 +88,14 @@ final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialo
         final Struct struct = ParameterStructs.structOf(layerType);
         m_settingsRO = NodeSettingsStructs.createStructROAccess(struct);
         m_settingsWO = NodeSettingsStructs.createStructWOAccess(struct);
-        final JPanel nodeDialogPanel = new JPanel(new MigLayout("", "[grow]", ""));
         final DefaultSwingWidgetPanelFactory factory = new DefaultSwingWidgetPanelFactory();
         m_panel = factory.createPanel(struct);
-        nodeDialogPanel.add(m_panel.getComponent(), "growx");
-        addTab("Options", nodeDialogPanel);
+        for(Entry<String, JPanel> e : m_panel.getComponents().entrySet()) {
+            final JPanel nodeDialogPanel = new JPanel(new MigLayout("", "[grow]", ""));
+            nodeDialogPanel.add(e.getValue(), "growx");
+            addTab(e.getKey(), nodeDialogPanel);
+        }
+        
     }
 
     @Override

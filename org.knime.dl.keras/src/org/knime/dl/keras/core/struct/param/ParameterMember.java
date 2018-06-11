@@ -118,4 +118,13 @@ public interface ParameterMember<T> extends Member<T> {
     default String getLabel() {
         return getKey();
     }
+    
+    /**
+     * Gets the tab of this parameter.
+     * 
+     * @return the tab name
+     */
+    default String getTab() {
+        return null;
+    }
 }

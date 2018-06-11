@@ -136,6 +136,11 @@ abstract class DefaultParameterMember<T> implements ParameterMember<T> {
     public String getLabel() {
         return getAnnotation().label();
     }
+    
+    @Override
+    public String getTab() {
+        return getAnnotation().tab();
+    }
 
     // -- Member methods --
     @Override

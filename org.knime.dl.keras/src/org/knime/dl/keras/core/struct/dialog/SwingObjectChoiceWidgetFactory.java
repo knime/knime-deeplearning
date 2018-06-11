@@ -169,10 +169,10 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                         t -> new DefaultSwingWidgetPanelFactory().createPanel(casted.access().struct()));
 
                     if (m_subPanelsSwitch.getComponentCount() < m_subPanels.size()) {
-                        m_subPanelsSwitch.add(m_currentSwingWidgetPanel.getComponent(), choice.getKey());
+                        m_subPanelsSwitch.add(getMergedComponents(), choice.getKey());
                     }
 
-                    m_subPanelsSwitch.add(m_currentSwingWidgetPanel.getComponent(), choice.getKey());
+                    m_subPanelsSwitch.add(getMergedComponents(), choice.getKey());
                     m_subPanelSwitchLayout.show(m_subPanelsSwitch, choice.getKey());
 
                     try {
@@ -186,6 +186,20 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                 createEmpty();
                 return;
             }
+        }
+
+        /**
+         * Merges the components of each tab returned from the SwingWidgetPanel into one panel, because we ignore tabs
+         * for nested panels.
+         * 
+         * @return the JPanels for all tabs merged into one JPanel
+         */
+        private JPanel getMergedComponents() {
+            JPanel merged = new JPanel();
+            for (JPanel panel : m_currentSwingWidgetPanel.getComponents().values()) {
+                merged.add(panel);
+            }
+            return merged;
         }
 
         private void createEmpty() {
