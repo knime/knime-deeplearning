@@ -676,20 +676,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
     /**
-     * @return code which writes the python version into a pandas DataFrame with the variable name
-     *         {@link #PYTHON_VERSION_NAME}.
-     */
-    private String getExtractPythonVersionCode() {
-        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-            .a("import sys") //
-            .n("import pandas as pd") //
-            .n("global ").a(PYTHON_VERSION_NAME) //
-            .n(PYTHON_VERSION_NAME).a(" = pd.DataFrame(['{}.{}.{}'.format(*sys.version_info[:3])])") //
-            .n("print(").a(PYTHON_VERSION_NAME).a(")");
-        return b.toString();
-    }
-
-    /**
      * @param cancelable to check if the execution has been canceled
      * @return the python version
      * @throws DLCanceledExecutionException if the execution has been canceled
@@ -698,7 +684,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
      */
     protected Version getPythonVersion(final DLCancelable cancelable)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
-        getContext(cancelable).executeInKernel(getExtractPythonVersionCode(), cancelable);
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("import sys") //
+                .n("import pandas as pd") //
+                .n("global ").a(PYTHON_VERSION_NAME) //
+                .n(PYTHON_VERSION_NAME).a(" = pd.DataFrame(['{}.{}.{}'.format(*sys.version_info[:3])])");
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
         final String pythonVersion = (String)getContext(cancelable).getDataFromKernel(PYTHON_VERSION_NAME,
             (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
         return new Version(pythonVersion);
