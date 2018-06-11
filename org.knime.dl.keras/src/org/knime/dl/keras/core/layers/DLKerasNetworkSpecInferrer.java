@@ -52,6 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensorSpec;
@@ -159,7 +160,11 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 
-        return new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
+        // TODO does a generic network have a python and keras version?
+        final Version pythonVersion = null;
+        final Version kerasVersion = null;
+
+        return new DLKerasGenericNetworkSpec(pythonVersion, kerasVersion, inputSpecs, hiddenSpecs, outputSpecs);
     }
 
     private List<DLTensorSpec> inferTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,

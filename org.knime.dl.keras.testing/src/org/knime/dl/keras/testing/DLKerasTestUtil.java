@@ -51,6 +51,7 @@ import static org.knime.dl.testing.DLTestUtil.randomTensorSpec;
 
 import java.util.Random;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
@@ -92,6 +93,8 @@ public final class DLKerasTestUtil {
 		for (int i = 0; i < numOutputs; i++) {
 			outputs[i] = randomTensorSpec(random);
 		}
-		return new DLKerasTensorFlowNetworkSpec(inputs, hidden, outputs);
+        final Version pythonVersion = new Version(random.nextInt(), random.nextInt(), random.nextInt());
+        final Version kerasVersion = new Version(random.nextInt(), random.nextInt(), random.nextInt());
+        return new DLKerasTensorFlowNetworkSpec(pythonVersion, kerasVersion, inputs, hidden, outputs);
 	}
 }

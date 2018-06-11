@@ -68,6 +68,18 @@ public interface DLKerasNetworkSpec extends DLNetworkSpec {
         return DLUtils.Misc.getVersionOfSameBundle(DLKerasNetworkSpec.class);
     }
 
+    /**
+     * TODO move to DLPythonNetworkSpec?
+     *
+     * @return the version of the Python executable this network has been created with
+     */
+    Version getPythonVersion();
+
+    /**
+     * @return the version of the Keras library this network has been created with
+     */
+    Version getKerasVersion();
+
 	/**
      * Creates a network whose {@link DLNetwork#getSpec()} returns this spec.
      */

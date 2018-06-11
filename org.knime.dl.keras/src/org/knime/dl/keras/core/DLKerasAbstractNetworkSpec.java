@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
@@ -59,15 +60,34 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
 
 	private static final long serialVersionUID = 1L;
 
-    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
-        final DLTensorSpec[] hiddenOutputSpecs,
-			final DLTensorSpec[] outputSpecs) {
-        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
-	}
+    private final Version m_pythonVersion;
 
-    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs,
-        final DLTensorSpec[] hiddenOutputSpecs,
-			final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
+    private final Version m_kerasVersion;
+
+    protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
+        final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
+        // TODO check not null?
+        m_pythonVersion = pythonVersion;
+        m_kerasVersion = kerasVersion;
+    }
+
+    protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
+        final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs,
+        final DLKerasTrainingConfig trainingConfig) {
         super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
-	}
+        // TODO check not null?
+        m_pythonVersion = pythonVersion;
+        m_kerasVersion = kerasVersion;
+    }
+
+    @Override
+    public Version getPythonVersion() {
+        return m_pythonVersion;
+    }
+
+    @Override
+    public Version getKerasVersion() {
+        return m_kerasVersion;
+    }
 }

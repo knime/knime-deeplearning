@@ -49,6 +49,7 @@ package org.knime.dl.keras.theano.core;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -85,7 +86,11 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
         final DLTensorSpec[] outputSpecs = (DLTensorSpec[])getContext(cancelable).getDataFromKernel(OUTPUT_SPECS_NAME,
             new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
 
-        return new DLKerasTheanoNetworkSpec(inputSpecs, hiddenOutputSpecs, outputSpecs);
+        // TODO Get the versions from python
+        final Version pythonVersion = null;
+        final Version kerasVersion = null;
+
+        return new DLKerasTheanoNetworkSpec(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs, outputSpecs);
     }
 
 	@Override
