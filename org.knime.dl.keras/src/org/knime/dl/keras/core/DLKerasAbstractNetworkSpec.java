@@ -67,7 +67,6 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
     protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
         final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
         super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
-        // TODO check not null?
         m_pythonVersion = pythonVersion;
         m_kerasVersion = kerasVersion;
     }
@@ -76,9 +75,18 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
         final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs,
         final DLKerasTrainingConfig trainingConfig) {
         super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
-        // TODO check not null?
         m_pythonVersion = pythonVersion;
         m_kerasVersion = kerasVersion;
+    }
+
+    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs) {
+        this(null, null, inputSpecs, hiddenOutputSpecs, outputSpecs);
+    }
+
+    protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
+        this(null, null, inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
     }
 
     @Override

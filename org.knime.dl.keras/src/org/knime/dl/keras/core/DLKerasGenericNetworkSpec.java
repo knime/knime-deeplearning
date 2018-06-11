@@ -47,7 +47,6 @@
 package org.knime.dl.keras.core;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.core.util.Version;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkSpec;
@@ -60,15 +59,14 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
  */
 public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
 
-    public DLKerasGenericNetworkSpec(final Version pythonVersion, final Version kerasVersion,
-        final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
-        super(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs, outputSpecs);
+    public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs) {
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs);
     }
 
-    public DLKerasGenericNetworkSpec(final Version pythonVersion, final Version kerasVersion,
-        final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs,
-        final DLKerasTrainingConfig trainingConfig) {
-        super(pythonVersion, kerasVersion, inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+    public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
+        final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
+        super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
     }
 
     private static final long serialVersionUID = 1L;
