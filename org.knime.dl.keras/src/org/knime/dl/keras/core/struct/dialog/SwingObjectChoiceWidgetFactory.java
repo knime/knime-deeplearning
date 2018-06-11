@@ -47,19 +47,18 @@
 
 package org.knime.dl.keras.core.struct.dialog;
 
-import java.awt.CardLayout;
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
@@ -102,9 +101,8 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
 
         private final Map<String, SwingWidgetPanel> m_subPanels = new HashMap<>();
 
-        private JPanel m_subPanelsSwitch;
-
-        private CardLayout m_subPanelSwitchLayout;
+        /** Wrap each sub panel in a JXCollapsiblePane. These will always resize to its contents. */
+        private final Map<String, JXCollapsiblePane> m_subPanelCollapsibles = new HashMap<>();
 
         private JComboBox<ParameterChoice<?>> m_comboBox;
 
@@ -150,10 +148,9 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
             });
             m_panel.add(m_comboBox, "grow, wrap");
 
-            m_subPanelSwitchLayout = new CardLayout();
-            m_subPanelsSwitch = new JPanel(m_subPanelSwitchLayout);
-            m_subPanelsSwitch.add(EMPTY_PLACEHOLDER_KEY, new Box(1));
-            m_panel.add(m_subPanelsSwitch, "grow");
+            JXCollapsiblePane emptyPanel = new JXCollapsiblePane();
+            m_subPanelCollapsibles.put(EMPTY_PLACEHOLDER_KEY, emptyPanel);
+            m_panel.add(emptyPanel, "grow, wrap");
 
             return m_panel;
         }
@@ -165,44 +162,63 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                 final ParameterNestedStructChoice<T> casted = (ParameterNestedStructChoice<T>)choice;
                 // remove all old listeners...
                 if (!casted.access().members().isEmpty()) {
+                    // create the SwingWidgetPanel if absent
                     m_currentSwingWidgetPanel = m_subPanels.computeIfAbsent(choice.getKey(),
                         t -> new DefaultSwingWidgetPanelFactory().createPanel(casted.access().struct()));
+                    // create and wrap the corresponding sub panel
+                    JXCollapsiblePane currentCollapsible =
+                        m_subPanelCollapsibles.computeIfAbsent(choice.getKey(), t -> {
+                            JPanel merged = getMergedComponents(m_currentSwingWidgetPanel);
+                            JXCollapsiblePane collapsible = new JXCollapsiblePane();
+                            collapsible.add(merged);
+                            collapsible.setAnimated(false);
+                            m_panel.add(collapsible, "grow, wrap");
+                            return collapsible;
+                        });
 
-                    if (m_subPanelsSwitch.getComponentCount() < m_subPanels.size()) {
-                        m_subPanelsSwitch.add(getMergedComponents(), choice.getKey());
-                    }
-
-                    m_subPanelsSwitch.add(getMergedComponents(), choice.getKey());
-                    m_subPanelSwitchLayout.show(m_subPanelsSwitch, choice.getKey());
+                    collapseAll();
+                    currentCollapsible.setCollapsed(false);
 
                     try {
                         m_currentSwingWidgetPanel
                             .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
                     } catch (InvalidSettingsException e) {
                         // Can't load defaults.
-                    } 
+                    }
                     return;
-                } 
-            } 
-            createEmpty();
+                }
+            }
+            showEmpty();
         }
 
         /**
-         * Merges the components of each tab returned from the SwingWidgetPanel into one panel, because we ignore tabs
-         * for nested panels.
+         * Collapses all panels.
+         */
+        private void collapseAll() {
+            for (JXCollapsiblePane pane : m_subPanelCollapsibles.values()) {
+                pane.setCollapsed(true);
+            }
+        }
+
+        /**
+         * Because we ignore tabs for nested panels, merges the components of each tab returned by the specified
+         * SwingWidgetPanel into one panel.
+         * 
+         * @param swp the panel to get the tabs from
          * 
          * @return the JPanels for all tabs merged into one JPanel
          */
-        private JPanel getMergedComponents() {
+        private JPanel getMergedComponents(final SwingWidgetPanel swp) {
             JPanel merged = new JPanel();
-            for (JPanel panel : m_currentSwingWidgetPanel.getComponents().values()) {
+            for (JPanel panel : swp.getComponents().values()) {
                 merged.add(panel);
             }
             return merged;
         }
 
-        private void createEmpty() {
-            m_subPanelSwitchLayout.show(m_subPanelsSwitch, EMPTY_PLACEHOLDER_KEY);
+        private void showEmpty() {
+            collapseAll();
+            m_subPanelCollapsibles.get(EMPTY_PLACEHOLDER_KEY).setCollapsed(false);
         }
 
         private void initChoices() {
@@ -266,6 +282,8 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
 
             if (enabled) {
                 refreshSubPanels();
+            } else {
+                showEmpty();
             }
 
             m_comboBox.setEnabled(enabled);
