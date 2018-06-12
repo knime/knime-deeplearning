@@ -162,6 +162,11 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                 final ParameterNestedStructChoice<T> casted = (ParameterNestedStructChoice<T>)choice;
                 // remove all old listeners...
                 if (!casted.access().members().isEmpty()) {
+                    // If we did not yet compute the value for the choice key, then there can't be any settings yet.
+                    // Otherwise, the SwingWidgetPanel will be initialized with already saved settings. Hence, we 
+                    // need to load the defaults below. 
+                    boolean defaultsLoaded = m_subPanels.containsKey(choice.getKey());
+
                     // create the SwingWidgetPanel if absent
                     m_currentSwingWidgetPanel = m_subPanels.computeIfAbsent(choice.getKey(),
                         t -> new DefaultSwingWidgetPanelFactory().createPanel(casted.access().struct()));
@@ -179,11 +184,15 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                     collapseAll();
                     currentCollapsible.setCollapsed(false);
 
-                    try {
-                        m_currentSwingWidgetPanel
-                            .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
-                    } catch (InvalidSettingsException e) {
-                        // Can't load defaults.
+                    if (!defaultsLoaded) {
+                        try {
+                            m_currentSwingWidgetPanel
+                                .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
+                        } catch (InvalidSettingsException e) {
+                            // Can't load defaults.
+                        } finally {
+                            defaultsLoaded = true;
+                        }
                     }
                     return;
                 }
