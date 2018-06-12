@@ -46,28 +46,28 @@
  */
 package org.knime.dl.keras.core.struct.nodesettings;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * Factory that creates {@link AbstractNodeSettingsWriteAccess}es.
+ * 
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * 
+ * @param <C> type of {@link AbstractNodeSettingsWriteAccess}
+ * @param <T> type of stored object
  */
-public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAccess<T, NodeSettingsWO> {
+public interface NodeSettingsWriteAccessFactory<C extends AbstractNodeSettingsWriteAccess<T>, T> {
 
-    protected Member<T> m_member;
+    /**
+     * @return the type of the stored object
+     */
+    Class<T> getType();
+    
+    /**
+     * @param member the member to create the access for
+     * 
+     * @return write access of the member
+     */
+    C create(Member<T> member);
 
-    public AbstractNodeSettingsWriteAccess(Member<T> member) {
-        m_member = member;
-    }
-
-    @Override
-    public void set(NodeSettingsWO storage, T value) throws InvalidSettingsException {
-        if (value != null) {
-            set(storage, value, m_member.getKey());
-        }
-    }
-
-    protected abstract void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException;
 }

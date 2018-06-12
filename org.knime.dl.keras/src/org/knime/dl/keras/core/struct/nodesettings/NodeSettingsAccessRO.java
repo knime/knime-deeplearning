@@ -75,6 +75,8 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
     }
 
     private static <T> MemberReadAccess<T, NodeSettingsRO> createMemberInstancesRO(Member<T> member) {
+        NodeSettingsAccessFactoryRegistry registry = NodeSettingsAccessFactoryRegistry.getInstance();
+        
         final Class<T> rawType = member.getRawType();
         final ValueReadAccess<T, NodeSettingsRO> readAccess;
         if (ClassUtils.isPrimitiveOrWrapper(rawType)) {
@@ -93,6 +95,8 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
             readAccess = casted;
         } else if (rawType.isEnum()) {
             readAccess = createEnumAccessRO(member);
+        } else if (registry.hasReadAccessFactoryFor(rawType)) {
+            readAccess = registry.getReadAccessFactoryFor(rawType).create(member);
         } else {
             readAccess = createObjectAccessRO(member);
         }

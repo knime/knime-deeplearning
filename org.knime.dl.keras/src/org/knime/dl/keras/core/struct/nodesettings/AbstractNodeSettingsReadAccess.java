@@ -55,11 +55,11 @@ import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAccess<T, NodeSettingsRO> {
+public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAccess<T, NodeSettingsRO> {
 
     protected Member<T> m_member;
 
-    AbstractNodeSettingsReadAccess(Member<T> member) {
+    protected AbstractNodeSettingsReadAccess(Member<T> member) {
         m_member = member;
     }
 

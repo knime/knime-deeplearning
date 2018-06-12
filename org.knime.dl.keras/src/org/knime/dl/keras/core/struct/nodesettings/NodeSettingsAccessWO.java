@@ -75,6 +75,8 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
     }
 
     private static <T> MemberWriteAccess<T, NodeSettingsWO> createMemberWriteAccess(Member<T> member) {
+        NodeSettingsAccessFactoryRegistry registry = NodeSettingsAccessFactoryRegistry.getInstance();
+        
         final Class<T> rawType = member.getRawType();
         final ValueWriteAccess<T, NodeSettingsWO> writeAccess;
         if (ClassUtils.isPrimitiveOrWrapper(rawType) && !rawType.isArray()) {
@@ -93,6 +95,8 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
             writeAccess = casted;
         } else if (rawType.isEnum()) {
             writeAccess = createEnumAccessWO(member);
+        } else if (registry.hasWriteAccessFactoryFor(rawType)) {
+            writeAccess = registry.getWriteAccessFactoryFor(rawType).create(member);
         } else {
             writeAccess = createObjectAccessWO(member);
         }
