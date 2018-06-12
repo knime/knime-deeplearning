@@ -778,6 +778,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
 			final DLKerasLossFunction lossFunction;
 			DLKerasLearnerTargetConfig cfg = m_targetCfgs.get(targetSpec.getName());
+			if (cfg == null) {
+			    cfg = m_targetCfgs.get(targetSpec.getIdentifier().getIdentifierString());
+			}
 			ConfigEntry<DLKerasLossFunction> lossEntry = cfg.getLossFunctionEntry();
 			if (cfg.getUseCustomLossEntry().getValue()) {
 			    lossFunction = cfg.getCustomLossFunctionEntry().getValue();
