@@ -46,9 +46,8 @@
  */
 package org.knime.dl.keras.core.struct.dialog;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.swing.JLabel;
@@ -98,7 +97,7 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
             if (m_panels != null)
                 return m_panels;
 
-            m_panels = new HashMap<>();
+            m_panels = new LinkedHashMap<>();
 
             for (final SwingWidget<?> widget : m_widgets.values()) {
                 String currentTab = SwingWidgets.tab(widget);
