@@ -76,7 +76,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     private String m_shape = "1";
 
     @Parameter(label = "Batch Size", min = "0", max = "1000000", stepSize = "1", required = false)
-    private Integer m_batchSize = 32;
+    private Integer m_batchSize = null;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
     @Parameter(label = "Data Type")
@@ -91,17 +91,24 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
 
     @Override
     public List<DLTensorSpec> getOutputSpecs() {
+        return Arrays.asList(createTensorSpec());
+    }
+    
+    private DLDefaultTensorSpec createTensorSpec() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
         final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
-        // TODO: check if batch size is enabled as soon as available
-        return Arrays.asList(new DLDefaultTensorSpec(new DLDefaultTensorId("dummy"), "dummy",
-            m_batchSize == null ? 32 : m_batchSize, shape, elementType, dimensionOrder));
+        String name = "dummy";
+        DLDefaultTensorId id = new DLDefaultTensorId(name);
+        if (m_batchSize == null) {
+            return new DLDefaultTensorSpec(id, name, shape, elementType, dimensionOrder);
+        }
+        return new DLDefaultTensorSpec(id, name, m_batchSize, shape, elementType, dimensionOrder);
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_shape, false);
+        DLParameterValidationUtils.checkTupleString(m_shape, true);
     }
 
     @Override

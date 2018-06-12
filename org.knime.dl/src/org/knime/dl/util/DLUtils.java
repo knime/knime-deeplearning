@@ -301,8 +301,8 @@ public final class DLUtils {
                     .toArray(l -> new Long[l]);
             }
             if (isPartial(shape)) {
-                Arrays.stream(((DLPartialTensorShape)shape).getShape())
-                    .map(opt -> opt.isPresent() ? opt.getAsLong() : null);
+                return Arrays.stream(((DLPartialTensorShape)shape).getShape())
+                    .map(opt -> opt.isPresent() ? opt.getAsLong() : null).toArray(Long[]::new);
             }
             throw new UnsupportedOperationException("Tensor shape type '" + shape.getClass().getSimpleName()
                 + "' is not supported yet. This is an implementation error.");
