@@ -380,6 +380,31 @@
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasEmbeddingLayerNodeFactory">
       </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/merge"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.dot.DLKerasDotLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/merge"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.multiply.DLKerasMultiplyLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/merge"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.maximum.DLKerasMaximumLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/merge"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.average.DLKerasAverageLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/merge"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.merge.subtract.DLKerasSubtractLayerNodeFactory">
+      </node>
   </extension>
    <extension
          point="org.knime.dl.DLNetworkExporter">
