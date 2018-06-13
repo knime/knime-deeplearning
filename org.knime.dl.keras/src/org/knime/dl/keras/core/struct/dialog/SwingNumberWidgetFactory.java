@@ -121,7 +121,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
                 return panel;
 
             panel = new JPanel();
-            final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow|pref]");
+            final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow]");
             panel.setLayout(layout);
 
             Number min = toNumber(SwingWidgets.minimum(this), member().getRawType());

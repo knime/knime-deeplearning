@@ -96,7 +96,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             if (m_panel != null)
                 return m_panel;
 
-            m_panel = new JPanel(new MigLayout("", "[][grow]", ""));
+            m_panel = new JPanel(new MigLayout("ins 0 0 0 0", "[][fill,grow]"));
 
             // TODO wrapper
             m_widget = SwingWidgetRegistry.getInstance().createWidget(new ParameterMember<T>() {
