@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerasdotlayer.png" type="Other">
+	<name>Keras Dot Layer</name>
+
+	<shortDescription>
+		A layer that computes a dot product between samples in two inputs.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			A layer that computes a dot product between samples in two inputs.
+			Corresponds to the
+			<a href="https://keras.io/layers/merge/#dot">Dot Keras layer</a>
+			. The axis along which to calculate the dot product must be of the same size for both inputs.
+		</intro>
+		<option name="Axes">
+			A single integer or a comma separated pair of integers that specifies along which axis to compute the dot product.
+			In case of a single integer, this axis is used for both inputs.
+			Note that axis 0 does not correspond to the batch dimension but to the first example dimension.
+		</option>
+		<option name="Normalize">
+			Whether to L2-normalize samples along the dot product axis before taking the dot product.
+			If selected, then the output of the dot product is the cosine proximity between the two samples.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network that is the first input of this
+			<tt>Dot</tt>
+			layer.
+		</inPort>
+		<inPort index="1" name="Deep Learning Network">
+			The Keras deep learning network that is the second input of this
+			<tt>Dot</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The two input Keras deep learning networks merged into one by the added
+			<tt>Dot</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>
