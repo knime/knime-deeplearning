@@ -53,6 +53,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DocumentAdapter;
@@ -113,7 +114,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         @Override
         public void loadFrom(MemberReadInstance<DLKerasTuple> instance) throws InvalidSettingsException {
             m_lastTuple = instance.get();
-            m_textField.setIsPartialAllowed(m_lastTuple.isPartialAllowed());
+            m_textField.setReferenceTuple(m_lastTuple);
             m_textField.setTuple(instance.get().getTuple());
         }
 
@@ -136,7 +137,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
 
         private static final long serialVersionUID = 1L;
 
-        private boolean m_isPartialAllowed;
+        private DLKerasTuple m_refernceTuple;
 
         private JTextField m_tuple = new JTextField();
 
@@ -145,7 +146,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         JXCollapsiblePane m_errorPanel = new JXCollapsiblePane();
 
         public TupleTextField() {
-            m_tuple.getDocument().addDocumentListener((DocumentAdapter)e -> checkText());
+            m_tuple.getDocument().addDocumentListener((DocumentAdapter)e -> updateStatus());
             this.setLayout(new MigLayout("fillx,ins 0 0 0 0", "[fill,grow]"));
             this.add(m_tuple, "wrap, growx");
 
@@ -156,52 +157,70 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
             this.add(m_errorPanel, "growx");
         }
 
-        private void updateErrorStatus() {
-            m_errorPanel.setCollapsed(false);
-            m_errorMessage.setText(getErrorMessage());
-        }
-
-        private void checkText() {
+        private boolean checkText() {
             final String text = m_tuple.getText();
-
-            if (m_isPartialAllowed) {
-                if (!text.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN) || text.isEmpty()) {
-                    m_tuple.setForeground(Color.RED);
-                    updateErrorStatus();
-                    return;
+            final String stripepd = text.replaceAll("\\s+","");
+            if (m_refernceTuple.isPartialAllowed()) {
+                if (!stripepd.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN) || text.isEmpty()) {
+                    m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
+                        + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "") + " separated by a comma.");
+                    return false;
                 }
             } else {
-                if ((!text.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
-                    m_tuple.setForeground(Color.RED);
-                    updateErrorStatus();
-                    return;
+                if ((!stripepd.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
+                    m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits separated by a comma.");
+                    return false;
                 }
             }
-            // TextField content is valid, hence reset color to default
-            m_tuple.setForeground(null);
-            // Hide the error message
-            m_errorPanel.setCollapsed(true);
+            Long[] testTuple = DLKerasTuple.stringToTuple(text);
+            if (testTuple.length < m_refernceTuple.getMinLength()
+                || testTuple.length > m_refernceTuple.getMaxLength()) {
+                m_errorMessage.setText("Invalid tuple length: '" + testTuple.length + "'. Length must be in between "
+                    + m_refernceTuple.getMinLength() + "-" + m_refernceTuple.getMaxLength() + ".");
+                return false;
+            }
+            if (checkTupleZeroOrNegative(testTuple)) {
+                m_errorMessage.setText("Tuple must not contain zero or negative values.");
+                return false;
+            }
 
+            return true;
         }
 
-        public void setIsPartialAllowed(final boolean allowed) {
-            m_isPartialAllowed = allowed;
+        private boolean checkTupleZeroOrNegative(Long[] tuple) {
+            for (Long l : tuple) {
+                if (l != null && l <= 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void updateStatus() {
+            if (!checkText()) {
+                m_tuple.setForeground(Color.RED);
+                m_errorPanel.setCollapsed(false);
+            } else {
+                // TextField content is valid, hence reset color to default
+                m_tuple.setForeground(null);
+                // Hide the error message
+                m_errorPanel.setCollapsed(true);
+            }
+        }
+
+        public void setReferenceTuple(final DLKerasTuple ref) {
+            m_refernceTuple = ref;
         }
 
         public void setTuple(final Long[] tuple) {
             m_tuple.setText(DLKerasTuple.tupleToString(tuple));
         }
 
-        private String getErrorMessage() {
-            return "Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
-                + (m_isPartialAllowed ? "or a question mark" : "") + " separated by a comma.";
-        }
-
         public Long[] getTuple() throws InvalidSettingsException {
-            try {
+            if (checkText()) {
                 return DLKerasTuple.stringToTuple(m_tuple.getText());
-            } catch (final NumberFormatException e) {
-                throw new InvalidSettingsException(getErrorMessage());
+            } else {
+                throw new InvalidSettingsException(m_errorMessage.getText());
             }
         }
     }

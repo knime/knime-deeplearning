@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
@@ -56,9 +57,9 @@ import org.knime.core.node.InvalidSettingsException;
  */
 public final class DLParameterValidationUtils {
 
-    public final static String PARTIAL_SHAPE_PATTERN = "(\\d+|\\?)(,\\s*(\\d+|\\?)\\s*)*";
+    public final static String PARTIAL_SHAPE_PATTERN = "(\\d+|\\?)(,(\\d+|\\?))*";
 
-    public final static String SHAPE_PATTERN = "\\d+(,\\s*\\d+\\s*)*";
+    public final static String SHAPE_PATTERN = "\\d+(,\\d+)*";
 
     private DLParameterValidationUtils() {
         // static utility class
@@ -138,13 +139,14 @@ public final class DLParameterValidationUtils {
      */
     public static void checkTupleString(final String tuple, final boolean partialAllowed)
         throws InvalidSettingsException {
+        String striped = tuple.replaceAll("\\s+","");
         if (partialAllowed) {
-            if (!tuple.matches(PARTIAL_SHAPE_PATTERN)) {
+            if (!striped.matches(PARTIAL_SHAPE_PATTERN)) {
                 throw new InvalidSettingsException(
                     "Invalid tuple format: '" + tuple + "' Must be digits or a question mark separated by a comma.");
             }
         } else {
-            if (!tuple.matches(SHAPE_PATTERN)) {
+            if (!striped.matches(SHAPE_PATTERN)) {
                 throw new InvalidSettingsException(
                     "Invalid tuple format: '" + tuple + "' Must be digits separated by a comma.");
             }

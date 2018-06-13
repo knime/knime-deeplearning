@@ -48,7 +48,6 @@ package org.knime.dl.keras.core.layers.dialog.tuple;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -105,16 +104,6 @@ public class DLKerasTuple {
     }
 
     /**
-     * Convenience constructor for unboxed version of the tuple. Equivalent to
-     * {@code new DLKerasTupel(ArrayUtils.toObject(tuple))}.
-     * 
-     * @param tuple
-     */
-    public DLKerasTuple(final long[] tuple) {
-        this(ArrayUtils.toObject(tuple));
-    }
-
-    /**
      * Constructor specifying the tuple, the minimum and maximum allowed tuple length, and if partial tuples (may
      * contain a question mark) are allowed.
      * 
@@ -131,8 +120,8 @@ public class DLKerasTuple {
         m_maxLength = maxLength;
 
         if (tuple.length > maxLength || tuple.length < minLength) {
-            throw new IllegalArgumentException(
-                "Can't initialize tuple with length that is not in between the specified bounds.");
+            throw new IllegalArgumentException("Specified tuple is not within the allowed bounds. Minimum length: "
+                + m_minLength + " Maximum length: " + m_maxLength);
         }
         m_tuple = tuple;
 
@@ -153,30 +142,10 @@ public class DLKerasTuple {
     }
 
     /**
-     * Convenience constructor for unboxed version of the tuple. Equivalent to
-     * {@code new DLKerasTupel(ArrayUtils.toObject(tuple), minLength, maxLength, isPartialAllowed)}.
-     * 
-     * @param tuple
-     * @param minLength
-     * @param maxLength
-     * @param isPartialAllowed
-     */
-    public DLKerasTuple(final long[] tuple, final int minLength, final int maxLength, final boolean isPartialAllowed) {
-        this(ArrayUtils.toObject(tuple), minLength, maxLength, isPartialAllowed);
-    }
-
-    /**
      * @return the tuple as a Long array
      */
     public Long[] getTuple() {
         return m_tuple;
-    }
-
-    /**
-     * @return the tuple as a long array
-     */
-    public long[] getTuplePrimitive() {
-        return ArrayUtils.toPrimitive(m_tuple);
     }
 
     /**
@@ -215,7 +184,8 @@ public class DLKerasTuple {
      * @return String representation of the tuple
      */
     public static String tupleToString(final Long[] tuple) {
-        return String.join(", ", Arrays.stream(tuple).map(l -> String.valueOf(l)).toArray(String[]::new));
+        return String.join(", ",
+            Arrays.stream(tuple).map(l -> l == null ? "?" : String.valueOf(l)).toArray(String[]::new));
     }
 
     /**
@@ -236,7 +206,7 @@ public class DLKerasTuple {
      * @param settings the settings to write to
      */
     public static void saveTo(DLKerasTuple tuple, NodeSettingsWO settings) {
-        settings.addLongArray(SETTINGS_KEY_TUPLE, tuple.getTuplePrimitive());
+        settings.addString(SETTINGS_KEY_TUPLE, tupleToString(tuple.getTuple()));
         settings.addInt(SETTINGS_KEY_MIN, tuple.getMinLength());
         settings.addInt(SETTINGS_KEY_MAX, tuple.getMaxLength());
         settings.addBoolean(SETTINGS_KEY_PARTIAL, tuple.isPartialAllowed());
@@ -252,7 +222,7 @@ public class DLKerasTuple {
     public static DLKerasTuple loadFrom(NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(SETTINGS_KEY_MAX) && settings.containsKey(SETTINGS_KEY_MIN)
             && settings.containsKey(SETTINGS_KEY_TUPLE) && settings.containsKey(SETTINGS_KEY_PARTIAL)) {
-            return new DLKerasTuple(settings.getLongArray(SETTINGS_KEY_TUPLE), settings.getInt(SETTINGS_KEY_MIN),
+            return new DLKerasTuple(settings.getString(SETTINGS_KEY_TUPLE), settings.getInt(SETTINGS_KEY_MIN),
                 settings.getInt(SETTINGS_KEY_MAX), settings.getBoolean(SETTINGS_KEY_PARTIAL));
         } else {
             return null;
