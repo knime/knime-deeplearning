@@ -56,9 +56,9 @@ import org.knime.core.node.InvalidSettingsException;
  */
 public final class DLParameterValidationUtils {
 
-    public final static String PARTIAL_SHAPE_PATTERN = "(\\d+|\\?)(,\\s*(\\d+|\\?))*";
+    public final static String PARTIAL_SHAPE_PATTERN = "(\\d+|\\?)(,\\s*(\\d+|\\?)\\s*)*";
 
-    public final static String SHAPE_PATTERN = "\\d+(,\\s*\\d+)*";
+    public final static String SHAPE_PATTERN = "\\d+(,\\s*\\d+\\s*)*";
 
     private DLParameterValidationUtils() {
         // static utility class
