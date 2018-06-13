@@ -196,6 +196,9 @@ public class DLKerasTuple {
      * @return the tuple as Long array
      */
     public static Long[] stringToTuple(final String tuple) {
+        if(tuple == null || tuple.isEmpty()) {
+            throw new IllegalArgumentException("String representation of the tuple must not be null or empty.");
+        }
         return DLPythonUtils.parseShape(tuple);
     }
 
