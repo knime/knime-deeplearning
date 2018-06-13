@@ -49,11 +49,11 @@ package org.knime.dl.keras.core.layers.dialog.seed;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsReadAccessFactory;
 import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsReadAccess;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsReadAccessFactory;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasSeedNodeSettingsAccessROFactory
     implements NodeSettingsReadAccessFactory<AbstractNodeSettingsReadAccess<DLKerasSeed>, DLKerasSeed> {
