@@ -119,7 +119,7 @@ public class DLKerasTuple {
         m_minLength = minLength;
         m_maxLength = maxLength;
 
-        if (tuple.length > maxLength || tuple.length < minLength) {
+        if (tuple != null && (tuple.length > maxLength || tuple.length < minLength)) {
             throw new IllegalArgumentException("Specified tuple is not within the allowed bounds. Minimum length: "
                 + m_minLength + " Maximum length: " + m_maxLength);
         }
@@ -173,6 +173,9 @@ public class DLKerasTuple {
      * @return the Python representation of this tuple
      */
     public String toPytonTuple() {
+        if (m_tuple == null) {
+            return DLPythonUtils.NONE;
+        }
         return DLPythonUtils.toPythonTuple(Arrays.stream(m_tuple).map(l -> String.valueOf(l)).toArray(String[]::new));
     }
 
@@ -184,6 +187,9 @@ public class DLKerasTuple {
      * @return String representation of the tuple
      */
     public static String tupleToString(final Long[] tuple) {
+        if (tuple == null) {
+            return null;
+        }
         return String.join(", ",
             Arrays.stream(tuple).map(l -> l == null ? "?" : String.valueOf(l)).toArray(String[]::new));
     }
@@ -196,8 +202,8 @@ public class DLKerasTuple {
      * @return the tuple as Long array
      */
     public static Long[] stringToTuple(final String tuple) {
-        if(tuple == null || tuple.isEmpty()) {
-            throw new IllegalArgumentException("String representation of the tuple must not be null or empty.");
+        if (tuple == null || tuple.isEmpty()) {
+            return null;
         }
         return DLPythonUtils.parseShape(tuple);
     }

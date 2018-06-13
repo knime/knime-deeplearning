@@ -53,7 +53,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DocumentAdapter;
@@ -159,15 +158,18 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
 
         private boolean checkText() {
             final String text = m_tuple.getText();
-            final String stripepd = text.replaceAll("\\s+","");
+            final String stripped = text.replaceAll("\\s+","");
+            if(stripped.isEmpty()) {
+                return true;
+            }
             if (m_refernceTuple.isPartialAllowed()) {
-                if (!stripepd.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN) || text.isEmpty()) {
+                if (!stripped.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN) || text.isEmpty()) {
                     m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
                         + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "") + " separated by a comma.");
                     return false;
                 }
             } else {
-                if ((!stripepd.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
+                if ((!stripped.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
                     m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits separated by a comma.");
                     return false;
                 }
