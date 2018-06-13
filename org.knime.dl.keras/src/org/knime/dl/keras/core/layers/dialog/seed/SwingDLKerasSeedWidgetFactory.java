@@ -45,7 +45,7 @@
  *
  */
 
-package org.knime.dl.keras.core.layers.dialog;
+package org.knime.dl.keras.core.layers.dialog.seed;
 
 import java.util.Random;
 

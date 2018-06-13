@@ -44,19 +44,19 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.dialog;
+package org.knime.dl.keras.core.layers.dialog.seed;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsReadAccessFactory;
-import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsReadAccess;
+import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsWriteAccess;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactory;
 
 /**
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasSeedNodeSettingsAccessROFactory
-    implements NodeSettingsReadAccessFactory<AbstractNodeSettingsReadAccess<DLKerasSeed>, DLKerasSeed> {
+public class DLKerasSeedNodeSettingsAccessWOFactory
+    implements NodeSettingsWriteAccessFactory<AbstractNodeSettingsWriteAccess<DLKerasSeed>, DLKerasSeed> {
 
     @Override
     public Class<DLKerasSeed> getType() {
@@ -64,27 +64,21 @@ public class DLKerasSeedNodeSettingsAccessROFactory
     }
 
     @Override
-    public AbstractNodeSettingsReadAccess<DLKerasSeed> create(Member<DLKerasSeed> member) {
-        return new DLKerasSeedNodeSettingsReadAccess(member);
+    public AbstractNodeSettingsWriteAccess<DLKerasSeed> create(Member<DLKerasSeed> member) {
+        return new DLKerasSeedNodeSettingsWriteAccess(member);
     }
 
-    private class DLKerasSeedNodeSettingsReadAccess extends AbstractNodeSettingsReadAccess<DLKerasSeed> {
+    private class DLKerasSeedNodeSettingsWriteAccess extends AbstractNodeSettingsWriteAccess<DLKerasSeed> {
 
-        /**
-         * @param member
-         */
-        protected DLKerasSeedNodeSettingsReadAccess(Member<DLKerasSeed> member) {
+        DLKerasSeedNodeSettingsWriteAccess(Member<DLKerasSeed> member) {
             super(member);
         }
 
         @Override
-        protected DLKerasSeed get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
-            if (settings.containsKey(key)) {
-                return new DLKerasSeed(settings.getLong(key));
-            } else {
-                return null;
+        protected void set(NodeSettingsWO settings, DLKerasSeed value, String key) throws InvalidSettingsException {
+            if (value != null) {
+                settings.addLong(key, value.getSeed());
             }
         }
     }
-
 }

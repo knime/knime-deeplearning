@@ -51,7 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.dl.keras.core.layers.dialog.SwingDLKerasSeedWidgetFactory;
+import org.knime.dl.keras.core.layers.dialog.seed.SwingDLKerasSeedWidgetFactory;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 

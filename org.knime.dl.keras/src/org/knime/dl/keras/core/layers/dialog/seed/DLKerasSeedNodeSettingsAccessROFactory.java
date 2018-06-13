@@ -44,39 +44,47 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.dialog;
+package org.knime.dl.keras.core.layers.dialog.seed;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsReadAccessFactory;
+import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsReadAccess;
 
 /**
- * Class representing a random seed.
- * 
- * @author Knime, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasSeed {
+public class DLKerasSeedNodeSettingsAccessROFactory
+    implements NodeSettingsReadAccessFactory<AbstractNodeSettingsReadAccess<DLKerasSeed>, DLKerasSeed> {
 
-    private static final long DEFAULT_SEED = 123456789L;
-
-    private long m_seed;
-
-    /**
-     * Constructor
-     * 
-     * @param seed the initial seed
-     */
-    public DLKerasSeed(final long seed) {
-        m_seed = seed;
+    @Override
+    public Class<DLKerasSeed> getType() {
+        return DLKerasSeed.class;
     }
 
-    /**
-     * Constructor using the default seed 123456789.
-     */
-    public DLKerasSeed() {
-        m_seed = DEFAULT_SEED;
+    @Override
+    public AbstractNodeSettingsReadAccess<DLKerasSeed> create(Member<DLKerasSeed> member) {
+        return new DLKerasSeedNodeSettingsReadAccess(member);
     }
 
-    /**
-     * @return the seed value
-     */
-    public long getSeed() {
-        return m_seed;
+    private class DLKerasSeedNodeSettingsReadAccess extends AbstractNodeSettingsReadAccess<DLKerasSeed> {
+
+        /**
+         * @param member
+         */
+        protected DLKerasSeedNodeSettingsReadAccess(Member<DLKerasSeed> member) {
+            super(member);
+        }
+
+        @Override
+        protected DLKerasSeed get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
+            if (settings.containsKey(key)) {
+                return new DLKerasSeed(settings.getLong(key));
+            } else {
+                return null;
+            }
+        }
     }
+
 }

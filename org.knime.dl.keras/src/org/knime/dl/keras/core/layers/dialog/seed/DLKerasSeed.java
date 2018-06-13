@@ -44,41 +44,39 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.dialog;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsWriteAccess;
-import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactory;
+package org.knime.dl.keras.core.layers.dialog.seed;
 
 /**
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * Class representing a random seed.
+ * 
+ * @author Knime, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasSeedNodeSettingsAccessWOFactory
-    implements NodeSettingsWriteAccessFactory<AbstractNodeSettingsWriteAccess<DLKerasSeed>, DLKerasSeed> {
+public class DLKerasSeed {
 
-    @Override
-    public Class<DLKerasSeed> getType() {
-        return DLKerasSeed.class;
+    private static final long DEFAULT_SEED = 123456789L;
+
+    private long m_seed;
+
+    /**
+     * Constructor
+     * 
+     * @param seed the initial seed
+     */
+    public DLKerasSeed(final long seed) {
+        m_seed = seed;
     }
 
-    @Override
-    public AbstractNodeSettingsWriteAccess<DLKerasSeed> create(Member<DLKerasSeed> member) {
-        return new DLKerasSeedNodeSettingsWriteAccess(member);
+    /**
+     * Constructor using the default seed 123456789.
+     */
+    public DLKerasSeed() {
+        m_seed = DEFAULT_SEED;
     }
 
-    private class DLKerasSeedNodeSettingsWriteAccess extends AbstractNodeSettingsWriteAccess<DLKerasSeed> {
-
-        DLKerasSeedNodeSettingsWriteAccess(Member<DLKerasSeed> member) {
-            super(member);
-        }
-
-        @Override
-        protected void set(NodeSettingsWO settings, DLKerasSeed value, String key) throws InvalidSettingsException {
-            if (value != null) {
-                settings.addLong(key, value.getSeed());
-            }
-        }
+    /**
+     * @return the seed value
+     */
+    public long getSeed() {
+        return m_seed;
     }
 }

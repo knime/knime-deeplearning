@@ -50,8 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.knime.dl.keras.core.layers.dialog.DLKerasSeedNodeSettingsAccessROFactory;
-import org.knime.dl.keras.core.layers.dialog.DLKerasSeedNodeSettingsAccessWOFactory;
+import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeedNodeSettingsAccessROFactory;
+import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeedNodeSettingsAccessWOFactory;
 
 /**
  * Registry for {@link NodeSettingsReadAccessFactory}s.

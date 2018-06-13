@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.config.initializer;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.dl.keras.core.layers.dialog.DLKerasSeed;
+import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
