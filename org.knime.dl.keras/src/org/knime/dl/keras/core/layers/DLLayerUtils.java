@@ -57,7 +57,7 @@ public final class DLLayerUtils {
 
     public static Long numberOfElements(final Long[] shape) {
         Long numElems = 1l;
-        for (Long l : shape ) {
+        for (Long l : shape) {
             numElems *= l;
         }
         return numElems;
@@ -70,5 +70,40 @@ public final class DLLayerUtils {
             }
         }
         return true;
+    }
+
+    /**
+     * @param axis the axis index possibly negative similar to Python style negative indexing
+     * @param rank the rank of the input tensor
+     * @return the actual axis index
+     * @throws IllegalArgumentException if <b>axis</b> is not compatible with rank e.g. too in magnitude
+     * 
+     */
+    public static int getAxisIndex(int axis, int rank) {
+        if (axis >= 0) {
+            if (axis >= rank) {
+                throw new IllegalArgumentException(
+                    "The specified concatenation axis exceeds the rank of the input tensor.");
+            }
+            return axis;
+        } else {
+            int posAxis = rank + axis;
+            if (posAxis < 0) {
+                throw new IllegalArgumentException(
+                    "The specified concatenation axis exceeds the rank of the input tensor.");
+            }
+            return posAxis;
+        }
+    }
+
+    /**
+     * Translates the index into an example shape i.e. a shape without batch dimension into an index into a shape
+     * including the batch dimension.
+     * 
+     * @param index the index into an example shape
+     * @return the corresponding index in batch shape
+     */
+    public static int exampleShapeIndexToBatchShapeIndex(int index) {
+        return index >= 0 ? index + 1 : index;
     }
 }

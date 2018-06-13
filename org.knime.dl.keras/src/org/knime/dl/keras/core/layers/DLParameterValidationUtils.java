@@ -151,5 +151,19 @@ public final class DLParameterValidationUtils {
         }
 
     }
+    
+    /**
+     * @param d1 first dimension to check
+     * @param d2 second dimension to check
+     * @return true if <b>d1</b> and <b>d2</b> are either both undefined or equal
+     */
+    public static boolean dimensionsMatch(Long d1, Long d2) {
+        boolean bothUndefined = d1 == null && d2 == null;
+        boolean definedAndMatch = false;
+        if (d1 != null) {
+            definedAndMatch = d1.equals(d2);
+        }
+        return bothUndefined || definedAndMatch;
+    }
 
 }
