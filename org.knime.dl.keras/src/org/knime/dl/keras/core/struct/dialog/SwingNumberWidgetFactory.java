@@ -114,6 +114,22 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             super(member);
             getComponent();
         }
+        
+        private Number getMin() {
+            Number min = toNumber(SwingWidgets.minimum(this), member().getRawType());
+            if (min == null) {
+                min = org.scijava.util.NumberUtils.getMinimumNumber(member().getRawType());
+            }
+            return min;
+        }
+        
+        private Number getMax() {
+            Number max = toNumber(SwingWidgets.maximum(this), member().getRawType());
+            if (max == null) {
+                max = org.scijava.util.NumberUtils.getMaximumNumber(member().getRawType());
+            }
+            return max;
+        }
 
         @Override
         public JPanel getComponent() {
@@ -124,14 +140,9 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             final MigLayout layout = new MigLayout("fillx,ins 3 0 3 0", "[fill,grow]");
             panel.setLayout(layout);
 
-            Number min = toNumber(SwingWidgets.minimum(this), member().getRawType());
-            if (min == null) {
-                min = org.scijava.util.NumberUtils.getMinimumNumber(member().getRawType());
-            }
-            Number max = toNumber(SwingWidgets.maximum(this), member().getRawType());
-            if (max == null) {
-                max = org.scijava.util.NumberUtils.getMaximumNumber(member().getRawType());
-            }
+            Number min = getMin();
+            Number max = getMax();
+            
             Number stepSize = toNumber(SwingWidgets.stepSize(this), member().getRawType());
             if (stepSize == null) {
                 stepSize = toNumber("1", member().getRawType());
@@ -350,7 +361,11 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
             spinner.setEditor(
                 new JSpinner.NumberEditor(spinner, oldFormat.length() > newFormat.length() ? oldFormat : newFormat));
-            spinner.setValue(value);
+            
+            // Only set the value if it is in bounds, hence ignore defaults that are not in bounds
+            if(value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue()) {
+                spinner.setValue(value);
+            }
         }
 
         @Override
