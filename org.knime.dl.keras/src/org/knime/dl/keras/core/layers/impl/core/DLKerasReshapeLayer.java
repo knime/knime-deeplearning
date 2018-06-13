@@ -80,7 +80,7 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
-        //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension ad still check
+        //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension and still check
         Long[] target = DLPythonUtils.parseShape(m_shape);
         if (DLLayerUtils.isShapeFullyDefined(target) && DLLayerUtils.isShapeFullyDefined(inputShape)) {
             checkInputSpec(DLLayerUtils.numberOfElements(inputShape).equals(DLLayerUtils.numberOfElements(target)),

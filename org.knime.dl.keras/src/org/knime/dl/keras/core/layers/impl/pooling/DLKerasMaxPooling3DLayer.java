@@ -72,7 +72,7 @@ public final class DLKerasMaxPooling3DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Strides")
     private String m_strides = "1, 1, 1";
 
-    @Parameter(label = "Data Format")
+    @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Padding")

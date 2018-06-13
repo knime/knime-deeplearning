@@ -71,7 +71,7 @@ public final class DLKerasCropping2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Cropping Dimension 2")
     private String m_croppingDim2 = "0, 0";
 
-    @Parameter(label = "Data Format")
+    @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**

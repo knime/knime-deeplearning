@@ -78,13 +78,13 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
     private int m_outputDim;
 
-    @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class)
+    @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
 
-    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_embeddingRegularizer = null;
 
-    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraintChoices.class)
+    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_constraint = null;
 
     @Parameter(label = "Mask zero")

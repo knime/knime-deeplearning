@@ -68,7 +68,7 @@ public final class DLKerasUpSampling3DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Size")
     private String m_size = "2, 2, 2";
 
-    @Parameter(label = "Data Format")
+    @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**

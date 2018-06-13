@@ -70,10 +70,10 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     @Parameter(label = "Alpha initializer", choices = DLKerasInitializerChoices.class)
     private DLKerasInitializer m_alphaInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Alpha regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    @Parameter(label = "Alpha regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_alphaRegularizer = null;
 
-    @Parameter(label = "Alpha constraint", required = false, choices = DLKerasConstraintChoices.class)
+    @Parameter(label = "Alpha constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_alphaConstraint = null;
 
     @Parameter(label = "Shared axes", required = false)

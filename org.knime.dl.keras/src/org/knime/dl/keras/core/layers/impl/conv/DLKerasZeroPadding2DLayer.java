@@ -71,7 +71,7 @@ public final class DLKerasZeroPadding2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Padding Dimension 2")
     private String m_paddingDim2 = "0, 0";
 
-    @Parameter(label = "Data Format")
+    @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
