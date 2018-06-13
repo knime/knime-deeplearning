@@ -46,45 +46,48 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLKerasMergeLayer;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
+public abstract class DLKerasAbstractParameterFreeMergeLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
     /**
+     * @param kerasIdentifier
      */
-    public DLKerasAddLayer() {
-        super("keras.layers.Add");
+    public DLKerasAbstractParameterFreeMergeLayer(String kerasIdentifier) {
+        super(kerasIdentifier);
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        // no op
+        // no parameters to validate
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        // TODO
+    protected void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
+        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException {
+        checkInputSpec(Arrays.deepEquals(firstInputShape, secondInputShape),
+            "The input shapes must be of the same shape but were of shape " + Arrays.deepToString(firstInputShape)
+                + " and " + Arrays.deepToString(secondInputShape) + " respectively.");
     }
 
     @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        // TODO
-        return firstInputShape;
+    protected Long[] inferOutputShape(Long[] firstInputShape, Long[] secondInputShape) {
+        return firstInputShape.clone();
     }
 
     @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        // no op
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        // no parameters to populate
     }
+
 }

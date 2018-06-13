@@ -46,9 +46,12 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
@@ -60,63 +63,74 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * Layer that concatenates two inputs.
+ * Layer that computes a dot product between samples in two tensors.
  * 
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
+public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
-    @Parameter(label = "Axis")
-    private int m_axis = -1;
+    @Parameter(label = "Axes")
+    private String m_axes = "-1";
+
+    @Parameter(label = "Normalize")
+    private boolean m_normalize = false;
 
     /**
      */
-    public DLKerasConcatenateLayer() {
-        super("keras.layers.Concatenate");
+    public DLKerasDotLayer() {
+        super("keras.layers.Dot");
     }
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        // the correctness of axis depends on the input
+        if (Arrays.stream(DLPythonUtils.parseShape(m_axes)).anyMatch(a -> a == null)) {
+            throw new InvalidSettingsException("Axex may not contain partial dimensions.");
+        }
+        if (DLPythonUtils.parseShape(m_axes).length > 2) {
+            throw new InvalidSettingsException("Axes may be either a single integer or a tuple of two integers.");
+        }
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        final int rank = firstInputShape.length;
-        checkInputSpec(rank == secondInputShape.length, "The two tensors to concatenate must have the same rank.");
-        int concatenationAxis;
-        try {
-            concatenationAxis = getConcatenationAxisIndex(rank);
-        } catch (IllegalArgumentException e) {
-            throw new DLInvalidTensorSpecException(e.getMessage());
-        }
+    protected void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
+        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException {
+        int[] actualAxes = getAxes(firstInputShape.length, secondInputShape.length);
         checkInputSpec(
-            IntStream.range(0, rank).filter(i -> i != concatenationAxis)
-                .allMatch(i -> DLParameterValidationUtils.dimensionsMatch(firstInputShape[i], secondInputShape[i])),
-            "All dimensions except for the concatenation dimension must match.");
+            DLParameterValidationUtils.dimensionsMatch(firstInputShape[actualAxes[0]], secondInputShape[actualAxes[1]]),
+            "The axes along which to calculate the dot product must match.");
     }
 
-    private int getConcatenationAxisIndex(int rank) {
-        return DLLayerUtils.getAxisIndex(m_axis, rank);
+    private int[] getAxes(int rank1, int rank2) {
+        int[] actualAxes = new int[2];
+        Long[] axes = DLPythonUtils.parseShape(m_axes);
+        actualAxes[0] = axes[0].intValue();
+        actualAxes[1] = axes.length == 2 ? axes[1].intValue() : actualAxes[0];
+        actualAxes[0] = DLLayerUtils.getAxisIndex(actualAxes[0], rank1);
+        actualAxes[1] = DLLayerUtils.getAxisIndex(actualAxes[1], rank2);
+        return actualAxes;
     }
 
     @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        int concatenationAxis = getConcatenationAxisIndex(firstInputShape.length);
-        Long[] outputShape = firstInputShape.clone();
-        if (outputShape[concatenationAxis] == null || secondInputShape[concatenationAxis] == null) {
-            outputShape[concatenationAxis] = null;
-        } else {
-            outputShape[concatenationAxis] = outputShape[concatenationAxis] + secondInputShape[concatenationAxis];
+    protected Long[] inferOutputShape(Long[] firstInputShape, Long[] secondInputShape) {
+        int[] axes = getAxes(firstInputShape.length, secondInputShape.length);
+        List<Long> outShape =
+            Stream.concat(filterDimension(axes[0], firstInputShape), filterDimension(axes[1], secondInputShape))
+                .collect(Collectors.toList());
+        if (outShape.isEmpty()) {
+            outShape.add(1L);
         }
-        return outputShape;
+        return outShape.toArray(new Long[outShape.size()]);
+    }
+
+    private static Stream<Long> filterDimension(int filterIndex, Long[] shape) {
+        return IntStream.range(0, shape.length).sequential().filter(i -> i != filterIndex).mapToObj(i -> shape[i]);
     }
 
     @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("axis", DLPythonUtils.toPython(DLLayerUtils.exampleShapeIndexToBatchShapeIndex(m_axis)));
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        positionalParams.add(DLPythonUtils.toPython(Arrays.stream(DLPythonUtils.parseShape(m_axes))
+            .mapToInt(d -> DLLayerUtils.exampleShapeIndexToBatchShapeIndex(d.intValue())).toArray()));
+        namedParams.put("normalize", DLPythonUtils.toPython(m_normalize));
     }
+
 }

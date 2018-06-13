@@ -46,45 +46,17 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
-
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * Layer that subtracts two inputs.
+ * 
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
+public final class DLKerasSubtractLayer extends DLKerasAbstractParameterFreeMergeLayer {
 
     /**
      */
-    public DLKerasAddLayer() {
-        super("keras.layers.Add");
+    public DLKerasSubtractLayer() {
+        super("keras.layers.Subtract");
     }
 
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        // no op
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        // TODO
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        // TODO
-        return firstInputShape;
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        // no op
-    }
 }

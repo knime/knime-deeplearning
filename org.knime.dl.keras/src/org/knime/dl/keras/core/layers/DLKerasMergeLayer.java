@@ -44,47 +44,11 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl.merge;
-
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
+package org.knime.dl.keras.core.layers;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
-
-    /**
-     */
-    public DLKerasAddLayer() {
-        super("keras.layers.Add");
-    }
-
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        // no op
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        // TODO
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        // TODO
-        return firstInputShape;
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        // no op
-    }
+public interface DLKerasMergeLayer extends DLKerasBinaryLayer {
+    // NB: Marker interface.
 }
