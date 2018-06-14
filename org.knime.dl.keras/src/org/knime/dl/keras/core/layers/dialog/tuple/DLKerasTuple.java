@@ -46,7 +46,10 @@
  */
 package org.knime.dl.keras.core.layers.dialog.tuple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -69,16 +72,13 @@ public class DLKerasTuple {
     /** */
     public static final String SETTINGS_KEY_TUPLE = "DLKerasTuple.Tuple";
 
-    /** */
-    public static final String SETTINGS_KEY_PARTIAL = "DLKerasTuple.Partial";
-
     private Long[] m_tuple;
 
     private int m_maxLength;
 
     private int m_minLength;
 
-    private boolean m_isPartialAllowed;
+    private EnumSet<Constraint> m_constraints;
 
     /**
      * Constructor specifying the tuple. Its assumed that only tuples of the length of the specified array are allowed.
@@ -90,7 +90,8 @@ public class DLKerasTuple {
         m_tuple = tuple;
         m_maxLength = tuple.length;
         m_minLength = tuple.length;
-        m_isPartialAllowed = false;
+
+        m_constraints = EnumSet.noneOf(Constraint.class);
     }
 
     /**
@@ -110,22 +111,48 @@ public class DLKerasTuple {
      * @param tuple
      * @param minLength
      * @param maxLength
-     * @param isPartialAllowed
+     * @param constraints
      */
-    public DLKerasTuple(final Long[] tuple, final int minLength, final int maxLength, final boolean isPartialAllowed) {
+    public DLKerasTuple(final Long[] tuple, final int minLength, final int maxLength,
+        final EnumSet<Constraint> constraints) {
         if (maxLength < minLength) {
             throw new IllegalArgumentException("The maximum length must be bigger than the minimum length.");
         }
         m_minLength = minLength;
         m_maxLength = maxLength;
 
-        if (tuple != null && (tuple.length > maxLength || tuple.length < minLength)) {
-            throw new IllegalArgumentException("Specified tuple is not within the allowed bounds. Minimum length: "
-                + m_minLength + " Maximum length: " + m_maxLength);
+        if (tuple != null && (tuple.length > m_maxLength || tuple.length < m_minLength)) {
+            throw new IllegalArgumentException(
+                "Specified tuple length: " + tuple.length + " is not within the allowed bounds. Minimum length: "
+                    + m_minLength + " Maximum length: " + m_maxLength);
         }
         m_tuple = tuple;
 
-        m_isPartialAllowed = isPartialAllowed;
+        m_constraints = constraints;
+
+        if (!constraints.contains(Constraint.EMPTY)) {
+            if (tuple == null) {
+                throw new IllegalArgumentException("Specified tuple must not be empty.");
+            }
+        }
+
+        if (!constraints.contains(Constraint.ZERO)) {
+            if (containsZero(tuple)) {
+                throw new IllegalArgumentException("Specified tuple must not contain zero values.");
+            }
+        }
+
+        if (!constraints.contains(Constraint.NEGATIVE)) {
+            if (containsNegatve(tuple)) {
+                throw new IllegalArgumentException("Specified tuple must not contain negative values.");
+            }
+        }
+
+        if (!constraints.contains(Constraint.PARTIAL)) {
+            if (containsPartial(tuple)) {
+                throw new IllegalArgumentException("Specified tuple must not contain partial values.");
+            }
+        }
     }
 
     /**
@@ -135,10 +162,11 @@ public class DLKerasTuple {
      * @param tuple
      * @param minLength
      * @param maxLength
-     * @param isPartialAllowed
+     * @param constraints
      */
-    public DLKerasTuple(final String tuple, final int minLength, final int maxLength, final boolean isPartialAllowed) {
-        this(stringToTuple(tuple), minLength, maxLength, isPartialAllowed);
+    public DLKerasTuple(final String tuple, final int minLength, final int maxLength,
+        final EnumSet<Constraint> constraints) {
+        this(stringToTuple(tuple), minLength, maxLength, constraints);
     }
 
     /**
@@ -163,20 +191,102 @@ public class DLKerasTuple {
     }
 
     /**
+     * @return the constraints for this tuple. See {@link Constraint}.
+     */
+    public EnumSet<Constraint> getConstraints() {
+        return m_constraints;
+    }
+
+    /**
      * @return whether partial tuples are allowed
      */
     public boolean isPartialAllowed() {
-        return m_isPartialAllowed;
+        return m_constraints.contains(Constraint.PARTIAL);
+    }
+
+    /**
+     * @return whether the zero values are allowed for this tuple
+     */
+    public boolean isZeroAllowed() {
+        return m_constraints.contains(Constraint.ZERO);
+    }
+
+    /**
+     * @return whether the negative values are allowed for this tuple
+     */
+    public boolean isNegativeAllowed() {
+        return m_constraints.contains(Constraint.NEGATIVE);
+    }
+
+    /**
+     * @return whether the empty value is allowed for this tuple
+     */
+    public boolean isEmptyAllowed() {
+        return m_constraints.contains(Constraint.EMPTY);
+    }
+
+    /**
+     * @param tuple
+     * @return whether the specified tuple contains zero values
+     */
+    public static boolean containsZero(final Long[] tuple) {
+        for (Long l : tuple) {
+            if (l != null && l == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param tuple
+     * @return whether the specified tuple contains negative values
+     */
+    public static boolean containsNegatve(final Long[] tuple) {
+        for (Long l : tuple) {
+            if (l != null && l < 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param tuple
+     * @return whether the specified tuple contains partial (null) values
+     */
+    public static boolean containsPartial(final Long[] tuple) {
+        for (Long l : tuple) {
+            if (l == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * @return the Python representation of this tuple
      */
     public String toPytonTuple() {
+        return toPytonTuple(false);
+    }
+
+    /**
+     * @param increment whether to add plus one to each value before converting to string
+     * 
+     * @return the Python representation of this tuple
+     */
+    public String toPytonTuple(final boolean increment) {
         if (m_tuple == null) {
             return DLPythonUtils.NONE;
         }
-        return DLPythonUtils.toPythonTuple(Arrays.stream(m_tuple).map(l -> String.valueOf(l)).toArray(String[]::new));
+        if (increment) {
+            return DLPythonUtils.toPythonTuple(
+                Arrays.stream(m_tuple).map(l -> l + 1).map(l -> String.valueOf(l)).toArray(String[]::new));
+        } else {
+            return DLPythonUtils
+                .toPythonTuple(Arrays.stream(m_tuple).map(l -> String.valueOf(l)).toArray(String[]::new));
+        }
     }
 
     /**
@@ -184,7 +294,7 @@ public class DLKerasTuple {
      * 
      * @param tuple the tuple to convert to String
      * 
-     * @return String representation of the tuple
+     * @return String representation of the tuple or null if the specified tuple is null
      */
     public static String tupleToString(final Long[] tuple) {
         if (tuple == null) {
@@ -199,7 +309,7 @@ public class DLKerasTuple {
      * 
      * @param tuple the String representation of the tuple
      * 
-     * @return the tuple as Long array
+     * @return the tuple as Long array or null if the specified tuple is null or empty
      */
     public static Long[] stringToTuple(final String tuple) {
         if (tuple == null || tuple.isEmpty()) {
@@ -218,7 +328,10 @@ public class DLKerasTuple {
         settings.addString(SETTINGS_KEY_TUPLE, tupleToString(tuple.getTuple()));
         settings.addInt(SETTINGS_KEY_MIN, tuple.getMinLength());
         settings.addInt(SETTINGS_KEY_MAX, tuple.getMaxLength());
-        settings.addBoolean(SETTINGS_KEY_PARTIAL, tuple.isPartialAllowed());
+
+        for (Constraint c : tuple.getConstraints()) {
+            settings.addString(c.getKey(), c.name());
+        }
     }
 
     /**
@@ -230,11 +343,47 @@ public class DLKerasTuple {
      */
     public static DLKerasTuple loadFrom(NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(SETTINGS_KEY_MAX) && settings.containsKey(SETTINGS_KEY_MIN)
-            && settings.containsKey(SETTINGS_KEY_TUPLE) && settings.containsKey(SETTINGS_KEY_PARTIAL)) {
+            && settings.containsKey(SETTINGS_KEY_TUPLE)) {
+
+            List<Constraint> cs = new ArrayList<>();
+            for (Constraint c : Constraint.values()) {
+                if (settings.containsKey(c.getKey())) {
+                    cs.add(c);
+                }
+            }
+
             return new DLKerasTuple(settings.getString(SETTINGS_KEY_TUPLE), settings.getInt(SETTINGS_KEY_MIN),
-                settings.getInt(SETTINGS_KEY_MAX), settings.getBoolean(SETTINGS_KEY_PARTIAL));
+                settings.getInt(SETTINGS_KEY_MAX), EnumSet.copyOf(cs));
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Constraints for tuples.
+     */
+    public enum Constraint {
+
+            /** Set this constraint if zero values are allowed. */
+            ZERO("DLKerasTuple.Constraint.ZERO"),
+            /** Set this constraint if negative values are allowed. */
+            NEGATIVE("DLKerasTuple.Constraint.NEGATIVE"),
+            /** Set this constraint if an empty input is allowed. */
+            EMPTY("DLKerasTuple.Constraint.EMPTY"),
+            /** Set this constraint if question marks are allowed. */
+            PARTIAL("DLKerasTuple.Constraint.PARTIAL");
+
+        private final String m_key;
+
+        Constraint(String settingsKey) {
+            m_key = settingsKey;
+        }
+
+        /**
+         * @return the settings key for this constraint
+         */
+        public String getKey() {
+            return m_key;
         }
     }
 }

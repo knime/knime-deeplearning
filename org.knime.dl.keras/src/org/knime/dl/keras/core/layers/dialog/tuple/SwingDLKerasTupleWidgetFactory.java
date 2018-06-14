@@ -120,7 +120,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         @Override
         public void saveTo(MemberWriteInstance<DLKerasTuple> instance) throws InvalidSettingsException {
             instance.set(new DLKerasTuple(m_textField.getTuple(), m_lastTuple.getMinLength(),
-                m_lastTuple.getMaxLength(), m_lastTuple.isPartialAllowed()));
+                m_lastTuple.getMaxLength(), m_lastTuple.getConstraints()));
         }
 
         @Override
@@ -158,44 +158,35 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
 
         private boolean checkText() {
             final String text = m_tuple.getText();
-            final String stripped = text.replaceAll("\\s+","");
-            if(stripped.isEmpty()) {
-                return true;
-            }
-            if (m_refernceTuple.isPartialAllowed()) {
-                if (!stripped.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN) || text.isEmpty()) {
-                    m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
-                        + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "") + " separated by a comma.");
-                    return false;
+            final String stripped = text.replaceAll("\\s+", "");
+
+            if (!stripped.isEmpty()) {
+                if (m_refernceTuple.isPartialAllowed()) {
+                    if (!stripped.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN)) {
+                        m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
+                                + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "") + " separated by a comma.");
+                        return false;
+                    }
+                } else {
+                    if ((!stripped.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
+                        m_errorMessage.setText(
+                            "Invalid tuple format: '" + m_tuple.getText() + "' Must be digits separated by a comma.");
+                        return false;
+                    }
                 }
-            } else {
-                if ((!stripped.matches(DLParameterValidationUtils.SHAPE_PATTERN))) {
-                    m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits separated by a comma.");
-                    return false;
-                }
             }
-            Long[] testTuple = DLKerasTuple.stringToTuple(text);
-            if (testTuple.length < m_refernceTuple.getMinLength()
-                || testTuple.length > m_refernceTuple.getMaxLength()) {
-                m_errorMessage.setText("Invalid tuple length: '" + testTuple.length + "'. Length must be in between "
-                    + m_refernceTuple.getMinLength() + "-" + m_refernceTuple.getMaxLength() + ".");
-                return false;
-            }
-            if (checkTupleZeroOrNegative(testTuple)) {
-                m_errorMessage.setText("Tuple must not contain zero or negative values.");
+
+            try {
+                // just allocate for error checking
+                @SuppressWarnings("unused")
+                DLKerasTuple testTuple = new DLKerasTuple(stripped, m_refernceTuple.getMinLength(),
+                    m_refernceTuple.getMaxLength(), m_refernceTuple.getConstraints());
+            } catch (IllegalArgumentException e) {
+                m_errorMessage.setText(e.getMessage());
                 return false;
             }
 
             return true;
-        }
-
-        private boolean checkTupleZeroOrNegative(Long[] tuple) {
-            for (Long l : tuple) {
-                if (l != null && l <= 0) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void updateStatus() {
