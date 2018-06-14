@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.layers.impl.core;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,8 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataType;
 import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -73,7 +75,7 @@ import org.knime.dl.util.DLUtils;
 public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer implements DLKerasInputLayer {
 
     @Parameter(label = "Shape")
-    private String m_shape = "1";
+    private DLKerasTuple m_shape = new DLKerasTuple("1", 1, Integer.MAX_VALUE, EnumSet.of(Constraint.PARTIAL));
 
     @Parameter(label = "Batch Size", min = "0", required = false)
     private Integer m_batchSize = null;
@@ -93,7 +95,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     public List<DLTensorSpec> getOutputSpecs() {
         return Arrays.asList(createTensorSpec());
     }
-    
+
     private DLDefaultTensorSpec createTensorSpec() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
@@ -108,7 +110,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_shape, true);
+        // NB: Nothing to do
     }
 
     @Override
@@ -133,6 +135,6 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     }
 
     private Long[] getShape() {
-        return DLPythonUtils.parseShape(m_shape);
+        return m_shape.getTuple();
     }
 }
