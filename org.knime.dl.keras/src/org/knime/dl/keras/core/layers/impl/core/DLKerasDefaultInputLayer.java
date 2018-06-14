@@ -51,9 +51,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
@@ -97,7 +97,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     private DLDefaultTensorSpec createTensorSpec() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
-        final DLDefaultDimensionOrder dimensionOrder = DLDefaultDimensionOrder.TDHWC;
+        final DLDimensionOrder dimensionOrder = DLDimensionOrder.TDHWC;
         String name = "dummy";
         DLDefaultTensorId id = new DLDefaultTensorId(name);
         if (m_batchSize == null) {

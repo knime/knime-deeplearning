@@ -46,7 +46,8 @@
  */
 package org.knime.dl.core.data.convert;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,12 +61,12 @@ import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
@@ -104,12 +105,12 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactoryTest {
 							shapeStream.map(s -> s.equals("?") ? OptionalLong.empty() 
 									: OptionalLong.of(Long.parseLong(s)))
 							.toArray(i -> new OptionalLong[i])),
-					float.class, DLDefaultDimensionOrder.TDHWC);
+					float.class, DLDimensionOrder.TDHWC);
 		}
 		return new DLDefaultTensorSpec(new DLDefaultTensorId("id"), "tensor",
 				new DLDefaultFixedTensorShape(
 						shapeStream.mapToLong(s -> Long.parseLong(s)).toArray()),
-				float.class, DLDefaultDimensionOrder.TDHWC);
+				float.class, DLDimensionOrder.TDHWC);
 	}
 
 	@Test

@@ -53,10 +53,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.knime.core.data.DataCell;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
@@ -103,7 +103,7 @@ public class DLTensorToDataCellConverterRegistryTest {
 	private void testForSource(final Class<? extends DLReadableBuffer> source) {
 		final DLTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", 1,
 				new DLDefaultFixedTensorShape(new long[] { 2l }), DLTestUtil.TENSOR_FACTORY.getElementType(source),
-				DLDefaultDimensionOrder.TCDHW);
+				DLDimensionOrder.TCDHW);
 
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = REGISTRY
 				.getFactoriesForSourceType(source, spec);

@@ -7,10 +7,10 @@ import static org.knime.dl.testing.DLTestUtil.createTensor;
 import org.junit.Test;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
@@ -50,7 +50,7 @@ public class DLLongTensorToLongCellConverterFactoryTest {
 		final DLLongTensorToLongCellConverterFactory factory = new DLLongTensorToLongCellConverterFactory();
 		final long[] shape = { 3 };
 		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("1"), "Tspec", 1,
-				new DLDefaultFixedTensorShape(shape), Long.class, DLDefaultDimensionOrder.TCDHW);
+				new DLDefaultFixedTensorShape(shape), Long.class, DLDimensionOrder.TCDHW);
 
 		assertTrue(factory.getDestCount(spec).isPresent());
 		assertEquals(3l, factory.getDestCount(spec).getAsLong());

@@ -48,10 +48,10 @@ package org.knime.dl.testing;
 
 import java.util.function.Supplier;
 
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensor;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
@@ -126,7 +126,7 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 	@Override
 	public DLTensorSpec createExecutionTensorSpec(final DLTensorSpec spec, final long batchSize, final long[] shape) {
 		return new DLDefaultTensorSpec(spec.getIdentifier(), spec.getName(), batchSize,
-				new DLDefaultFixedTensorShape(shape), spec.getElementType(), DLDefaultDimensionOrder.TDHWC);
+				new DLDefaultFixedTensorShape(shape), spec.getElementType(), DLDimensionOrder.TDHWC);
 	}
 
 	@Override

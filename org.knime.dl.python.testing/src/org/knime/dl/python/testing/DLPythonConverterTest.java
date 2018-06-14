@@ -62,10 +62,10 @@ import org.junit.Test;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.dl.core.DLCanceledExecutionException;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLInvalidNetworkOutputException;
 import org.knime.dl.core.DLNetworkInputPreparer;
@@ -109,12 +109,12 @@ public class DLPythonConverterTest {
 
         final DLTensorSpec[] inputSpecs = new DLTensorSpec[1];
         inputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("in0"), "in0", 1,
-            new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class, DLDefaultDimensionOrder.TDHWC);
+            new DLDefaultFixedTensorShape(new long[] { 10, 10 }), float.class, DLDimensionOrder.TDHWC);
         // intermediate outputs stay empty
         final DLTensorSpec[] intermediateOutputSpecs = new DLTensorSpec[0];
         final DLTensorSpec[] outputSpecs = new DLTensorSpec[1];
         outputSpecs[0] = new DLDefaultTensorSpec(new DLDefaultTensorId("out0"), "out0", 1,
-            new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class, DLDefaultDimensionOrder.TDHWC);
+            new DLDefaultFixedTensorShape(new long[] { 10, 10 }), double.class, DLDimensionOrder.TDHWC);
         final DLTestingBackendNetworkSpec networkSpec =
                 new DLTestingBackendNetworkSpec(inputSpecs, intermediateOutputSpecs, outputSpecs);
         final DLTestingBackendNetwork network = new DLTestingBackendNetwork(networkSpec);

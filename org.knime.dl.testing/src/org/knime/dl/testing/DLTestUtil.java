@@ -51,7 +51,6 @@ import java.util.OptionalLong;
 import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
@@ -87,7 +86,7 @@ public final class DLTestUtil {
 			String.class //
 	};
 
-	private static final DLDimensionOrder[] DIMENSION_ORDERS = DLDefaultDimensionOrder.values();
+	private static final DLDimensionOrder[] DIMENSION_ORDERS = DLDimensionOrder.values();
 
 	private static final int MAX_SHAPE_DIMENSIONALITY = 5;
 	private static final int MAX_SHAPE_DIMENSION = 2000;
@@ -278,7 +277,7 @@ public final class DLTestUtil {
 
 	public static DLTensor<?> createTensor(final Class<?> elementType, final long batchSize, final long... shape) {
 		final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(new DLDefaultTensorId("input"), "input", batchSize,
-				new DLDefaultFixedTensorShape(shape), elementType, DLDefaultDimensionOrder.TCDHW);
+				new DLDefaultFixedTensorShape(shape), elementType, DLDimensionOrder.TCDHW);
 		return TENSOR_FACTORY.createWritableTensor(spec);
 	}
 

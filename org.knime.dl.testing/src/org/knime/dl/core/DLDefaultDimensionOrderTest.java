@@ -81,7 +81,7 @@ public class DLDefaultDimensionOrderTest {
 
 	@Test
 	public void testInferMappingTDHWC() throws Exception {
-		final DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TDHWC;
+		final DLDimensionOrder dimOrder = DLDimensionOrder.TDHWC;
 		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
 				dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
 		assertArrayEquals(new int[] { 0, 2, 3, 4, 1 },
@@ -93,7 +93,7 @@ public class DLDefaultDimensionOrderTest {
 
 	@Test
 	public void testInferMappingTCDHW() throws Exception {
-		final DLDimensionOrder dimOrder = DLDefaultDimensionOrder.TCDHW;
+		final DLDimensionOrder dimOrder = DLDimensionOrder.TCDHW;
 		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
 				dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
 		assertArrayEquals(new int[] { 0, 4, 1, 2, 3 },

@@ -46,23 +46,93 @@
  */
 package org.knime.dl.core;
 
+import java.util.Arrays;
+import java.util.EnumMap;
+
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLDimensionOrder {
+public enum DLDimensionOrder {
 
-	/**
-	 * @return array representing the dimension order
-	 */
-	DLDimension[] getDimensions();
+        /**
+         * Stands for Time-Depth-Height-Width-Channel ordering, corresponds to channels_last in Keras (default)
+         */
+        TDHWC(new DLDimension[]{DLDimension.Time, DLDimension.Depth, DLDimension.Height, DLDimension.Width,
+            DLDimension.Channel}),
+        /**
+         * Stands for Time-Channel-Depth-Height-Width ordering, corresponds to channels_first in Keras. This is the
+         * default ordering used in KNIP.
+         */
+        TCDHW(new DLDimension[]{DLDimension.Time, DLDimension.Channel, DLDimension.Depth, DLDimension.Height,
+            DLDimension.Width}),
+        /**
+         * In case the dimension order is unknown. This is a special case and has to be handled separately.
+         */
+        Unknown(null);
 
-	/**
-	 * Calculates the mapping that permutes <b>dimensions</b> s.t. the mapped dimensions
-	 * are in this dimension order. The returned mapping ensures that mappedDimension[i] = dimensions[mapping[i]].
-	 * 
-	 * @param dimensions dimension order that should be mapped to this dimension order
-	 * @return mapping for <b>dimensions</b> s.t. mappedDimensions[i] = dimensions[mapping[i]]
-	 */
-	int[] inferMappingFor(DLDimension[] dimensions);
+    private final DLDimension[] m_dimensionOrder;
+
+    private final EnumMap<DLDimension, Integer> m_dimensionMap;
+
+    DLDimensionOrder(final DLDimension[] dimensionOrder) {
+        if (dimensionOrder != null) {
+            m_dimensionOrder = dimensionOrder;
+            m_dimensionMap = createDimensionMap(m_dimensionOrder);
+        } else {
+            m_dimensionOrder = null;
+            m_dimensionMap = null;
+        }
+    }
+
+    private EnumMap<DLDimension, Integer> createDimensionMap(DLDimension[] dimensionOrder) {
+        EnumMap<DLDimension, Integer> dimensionMap = new EnumMap<>(DLDimension.class);
+        for (int i = 0; i < dimensionOrder.length; i++) {
+            dimensionMap.put(dimensionOrder[i], i);
+        }
+        return dimensionMap;
+    }
+
+    public DLDimension[] getDimensions() {
+        if (this == Unknown) {
+            throw new UnsupportedOperationException("The dimension order is unknown.");
+        }
+        return m_dimensionOrder.clone();
+    }
+
+    public int[] inferMappingFor(DLDimension[] dimensions) {
+        if (this == Unknown) {
+            throw new UnsupportedOperationException("Can't infer mapping from unknown dimension.");
+        }
+        int[] holeyMapping = inferHoleyMapping(dimensions);
+        return compressHoleyMapping(holeyMapping, dimensions.length);
+
+    }
+
+    private int[] inferHoleyMapping(DLDimension[] dimensions) {
+        int[] holeyMapping = new int[m_dimensionOrder.length];
+        Arrays.fill(holeyMapping, -1);
+        for (int i = 0; i < dimensions.length; i++) {
+            Integer newIdx = m_dimensionMap.get(dimensions[i]);
+            if (newIdx == null) {
+                // can only happen if the DLDimension enum is extended without extending the arrays in this enum
+                throw new IllegalArgumentException(
+                    "The provided dimension array contains the incompatible dimension '" + dimensions[i] + "'.");
+            }
+            holeyMapping[newIdx] = i;
+        }
+        return holeyMapping;
+    }
+
+    private int[] compressHoleyMapping(int[] holeyMapping, int numDimensions) {
+        int[] mapping = new int[numDimensions];
+        int counter = 0;
+        for (int i = 0; i < holeyMapping.length; i++) {
+            if (holeyMapping[i] == -1) {
+                continue;
+            }
+            mapping[counter++] = holeyMapping[i];
+        }
+        return mapping;
+    }
 
 }

@@ -51,7 +51,6 @@ package org.knime.dl.python.core;
 import java.util.Arrays;
 import java.util.OptionalLong;
 
-import org.knime.dl.core.DLDefaultDimensionOrder;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
 import org.knime.dl.core.DLDefaultPartialTensorShape;
 import org.knime.dl.core.DLDefaultTensorId;
@@ -151,7 +150,7 @@ public class DLPythonTensorSpecTableCreatorFactory implements TableCreatorFactor
 			final DLTensorId id = new DLDefaultTensorId(row.getCell(ID_IDX).getStringValue());
 			final String name = row.getCell(NAME_IDX).getStringValue();
 			final Class<?> type = m_typeMap.getPreferredInternalType(row.getCell(TYPE_IDX).getStringValue());
-			final DLDimensionOrder dimensionOrder = DLDefaultDimensionOrder.valueOf(
+			final DLDimensionOrder dimensionOrder = DLDimensionOrder.valueOf(
 					row.getCell(DIMENSION_ORDER_IDX).getStringValue());
 			long batchSize = getBatchSize(row);
 			DLTensorShape shape = getTensorShape(row);
