@@ -50,6 +50,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.knime.dl.core.DLDefaultTensorId;
@@ -82,7 +83,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         super(kerasIdentifier);
         m_parents = checkNotNull(parents);
     }
-
+    
     // Convenience methods:
 
     protected abstract void validateInputSpecs(List<Class<?>> inputElementTypes, List<Long[]> inputShapes)
@@ -95,7 +96,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
 
     @Override
     public int getNumParents() {
-        return m_parents.length;
+        return (int)Arrays.stream(m_parents).filter(p -> p != null).count();
     }
 
     @Override
@@ -159,26 +160,28 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         final List<Class<?>> inputElementTypes = new ArrayList<>(m_parents.length);
         DLDimensionOrder inputDimensionOrder = null;
         for (final DLKerasTensorSpecsOutput parent : m_parents) {
-            final List<DLTensorSpec> parentOutputSpecs = parent.getOutputSpecs();
-            for (final DLTensorSpec parentOutputSpec : parentOutputSpecs) {
-                if (parentOutputSpec.getBatchSize().isPresent()) {
-                    final long parentBatchSize = parentOutputSpec.getBatchSize().getAsLong();
-                    if (inputBatchSize == null) {
-                        inputBatchSize = parentBatchSize;
-                    } else {
-                        checkInputSpec(inputBatchSize == parentBatchSize,
-                            "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
+            if (parent != null) {
+                final List<DLTensorSpec> parentOutputSpecs = parent.getOutputSpecs();
+                for (final DLTensorSpec parentOutputSpec : parentOutputSpecs) {
+                    if (parentOutputSpec.getBatchSize().isPresent()) {
+                        final long parentBatchSize = parentOutputSpec.getBatchSize().getAsLong();
+                        if (inputBatchSize == null) {
+                            inputBatchSize = parentBatchSize;
+                        } else {
+                            checkInputSpec(inputBatchSize == parentBatchSize,
+                                    "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
+                        }
                     }
-                }
-                inputShapes.add(DLUtils.Shapes.shapeToLongArray(parentOutputSpec.getShape()));
-                inputElementTypes.add(parentOutputSpec.getElementType());
-                final DLDimensionOrder parentDimensionOrder = parentOutputSpec.getDimensionOrder();
-                if (inputDimensionOrder == null) {
-                    inputDimensionOrder = parentDimensionOrder;
-                } else {
-                    // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
-                    checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
-                        "Dimension orders differ: " + inputDimensionOrder + " vs. " + parentDimensionOrder + ".");
+                    inputShapes.add(DLUtils.Shapes.shapeToLongArray(parentOutputSpec.getShape()));
+                    inputElementTypes.add(parentOutputSpec.getElementType());
+                    final DLDimensionOrder parentDimensionOrder = parentOutputSpec.getDimensionOrder();
+                    if (inputDimensionOrder == null) {
+                        inputDimensionOrder = parentDimensionOrder;
+                    } else {
+                        // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
+                        checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
+                            "Dimension orders differ: " + inputDimensionOrder + " vs. " + parentDimensionOrder + ".");
+                    }
                 }
             }
         }
