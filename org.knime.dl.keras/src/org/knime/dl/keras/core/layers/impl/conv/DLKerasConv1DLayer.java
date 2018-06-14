@@ -77,13 +77,13 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Filters", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Filters", min = "1")
     private int m_filters = 1;
 
-    @Parameter(label = "Kernel size", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Kernel size", min = "1")
     private int m_kernelSize = 1;
 
-    @Parameter(label = "Strides", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Strides", min = "1")
     private int m_strides = 1;
 
     @Parameter(label = "Padding")
@@ -92,7 +92,7 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
-    @Parameter(label = "Dilation Rate", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Dilation Rate", min = "1")
     private int m_dilationRate = 1;
 
     @Parameter(label = "Activation function")

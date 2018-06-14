@@ -77,13 +77,13 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Filters", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Filters", min = "1")
     private int m_filters = 1;
 
-    @Parameter(label = "Kernel size", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Kernel size", min = "1")
     private int m_kernelSize = 1;
 
-    @Parameter(label = "Strides", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Strides", min = "1")
     private int m_strides = 1;
 
     /**

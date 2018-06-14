@@ -72,7 +72,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Units", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Units", min = "1")
     private long m_units = 1;
 
     @Parameter(label = "Activation function")

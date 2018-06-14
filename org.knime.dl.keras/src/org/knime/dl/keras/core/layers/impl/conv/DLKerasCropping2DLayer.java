@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.conv;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,8 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -66,10 +69,10 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasCropping2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Cropping Dimension 1")
-    private String m_croppingDim1 = "0, 0";
+    private DLKerasTuple m_croppingDim1 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
     @Parameter(label = "Cropping Dimension 2")
-    private String m_croppingDim2 = "0, 0";
+    private DLKerasTuple m_croppingDim2 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
     @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
@@ -83,8 +86,6 @@ public final class DLKerasCropping2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_croppingDim1, m_croppingDim2},
-            new String[]{"Cropping Dimension 1", "Cropping Dimension 2"}, 2, true);
     }
 
     @Override
@@ -95,13 +96,13 @@ public final class DLKerasCropping2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2);
+        final Long[][] cropping = new Long[][]{m_croppingDim1.getTuple(), m_croppingDim2.getTuple()};
         return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_croppingDim1, m_croppingDim2);
+        final Long[][] cropping = new Long[][]{m_croppingDim1.getTuple(), m_croppingDim2.getTuple()};
         namedParams.put("cropping", DLPythonUtils.toPython(cropping));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }

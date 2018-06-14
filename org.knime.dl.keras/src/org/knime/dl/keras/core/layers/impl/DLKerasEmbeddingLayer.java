@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.layers.impl;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -62,6 +63,8 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -72,11 +75,11 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Input dimension", min = "1", max = "1000000", stepSize = "1")
-    private int m_inputDim;
+    @Parameter(label = "Input dimension", min = "1")
+    private int m_inputDim = 1;
 
-    @Parameter(label = "Output dimension", min = "0", max = "1000000", stepSize = "1")
-    private int m_outputDim;
+    @Parameter(label = "Output dimension", min = "1")
+    private int m_outputDim = 1;
 
     @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
@@ -91,7 +94,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     private boolean m_maskZero = false;
 
     @Parameter(label = "Input length", required = false)
-    private String m_inputLength = null;
+    private DLKerasTuple m_inputLength = new DLKerasTuple("", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL)));
 
     /**
      * Constructor for embedding layers.
@@ -102,13 +105,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        if (m_inputDim < 1 || m_inputDim > 1000000) {
-            throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
-        }
-        if (m_outputDim < 1 || m_outputDim > 1000000) {
-            throw new InvalidSettingsException("Invalid input dimension: " + m_inputDim);
-        }
-
         m_initializer.validateParameters();
 
         if (m_embeddingRegularizer != null) {
@@ -122,7 +118,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         if (hasInputLength()) {
             Long[] inputLength;
             try {
-                inputLength = parseInputLength();
+                inputLength = m_inputLength.getTuple();
             } catch (NumberFormatException e) {
                 throw new InvalidSettingsException("The provided input length is invalid.", e);
             }
@@ -141,14 +137,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         return m_inputLength != null;
     }
 
-    private Long[] parseInputLength() {
-        if (hasInputLength()) {
-            return DLPythonUtils.parseShape(m_inputLength);
-        } else {
-            throw new IllegalStateException("The input length parameter is not provided.");
-        }
-    }
-
     @Override
     protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
         throws DLInvalidTensorSpecException {
@@ -161,7 +149,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     private void checkInputLength(Long[] inputShape) throws DLInvalidTensorSpecException {
-        Long[] inputLength = parseInputLength();
+        Long[] inputLength = m_inputLength.getTuple();
         if (inputLength.length != inputShape.length - 1) {
             throw createInvalidInputShapeException(inputLength, inputShape);
         }
@@ -185,7 +173,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         if (!hasInputLength()) {
             return Stream.concat(Arrays.stream(inputShape), Stream.of(m_outputDim)).toArray(Long[]::new);
         }
-        Long[] inLength = parseInputLength();
+        Long[] inLength = m_inputLength.getTuple();
         for (int i = 0; i < inLength.length; i++) {
             if (inLength[i] == 0) {
                 inLength[i] = inputShape[i + 1];
@@ -203,7 +191,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("embeddings_regularizer", DLKerasConfigObjectUtils.toPython(m_embeddingRegularizer));
         namedParams.put("embeddings_constraint", DLKerasConfigObjectUtils.toPython(m_constraint));
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
-        namedParams.put("input_length",
-            hasInputLength() ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseInputLength()));
+        namedParams.put("input_length", m_inputLength.toPytonTuple());
     }
 }

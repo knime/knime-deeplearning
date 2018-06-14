@@ -55,6 +55,7 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -66,7 +67,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Size")
-    private String m_size = "2, 2";
+    private DLKerasTuple m_size = new DLKerasTuple("2, 2");
 
     @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
@@ -80,7 +81,6 @@ public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_size}, new String[]{"Size"}, 2, false);
     }
 
     @Override
@@ -91,14 +91,12 @@ public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[] size = DLPythonUtils.parseShape(m_size);
-        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, size, m_dataFormat);
+        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, m_size.getTuple(), m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[] size = DLPythonUtils.parseShape(m_size);
-        namedParams.put("size", DLPythonUtils.toPython(size));
+        namedParams.put("size", m_size.toPytonTuple());
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
     }
 }

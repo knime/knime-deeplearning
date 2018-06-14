@@ -58,10 +58,10 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasRandomUniformInitializer extends DLKerasAbstractSeededInitializer {
 
-    @Parameter(label = "Minimum value")
+    @Parameter(label = "Minimum value", stepSize = "0.05")
     private float m_minVal = -0.05f;
 
-    @Parameter(label = "Maximum value")
+    @Parameter(label = "Maximum value", stepSize = "0.05")
     private float m_maxVal = 0.05f;
 
     /**

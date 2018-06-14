@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.conv;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -55,8 +56,10 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -66,7 +69,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Cropping")
-    private String m_cropping = "0, 0";
+    private DLKerasTuple m_cropping = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
     // Data format is always "channel_last"
     private final DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
@@ -80,7 +83,6 @@ public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_cropping}, new String[]{"Cropping"}, 2, true);
     }
 
     @Override
@@ -91,13 +93,12 @@ public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[][] cropping = DLConvolutionLayerUtils.parseCroppingOrPadding(m_cropping);
+        final Long[][] cropping = new Long[][]{m_cropping.getTuple()};
         return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat);
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[] cropping = DLPythonUtils.parseShape(m_cropping);
-        namedParams.put("cropping", DLPythonUtils.toPython(cropping));
+        namedParams.put("cropping", DLPythonUtils.toPython(m_cropping.toPytonTuple()));
     }
 }

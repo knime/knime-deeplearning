@@ -62,7 +62,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasRepeatLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "N", min = "0")
-    private int m_n = 0;
+    private int m_n = 1;
 
     /**
      * Constructor

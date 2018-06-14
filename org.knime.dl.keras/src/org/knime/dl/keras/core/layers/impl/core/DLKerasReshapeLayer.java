@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +54,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -64,7 +65,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Target Shape")
-    private String m_shape = "";
+    private DLKerasTuple m_shape = new DLKerasTuple("", 1, 1000, EnumSet.of(Constraint.EMPTY, Constraint.PARTIAL));
 
     /**
      * Constructor
@@ -75,13 +76,12 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_shape, true);
     }
 
     @Override
     protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
         //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension and still check
-        Long[] target = DLPythonUtils.parseShape(m_shape);
+        Long[] target = m_shape.getTuple();
         if (DLLayerUtils.isShapeFullyDefined(target) && DLLayerUtils.isShapeFullyDefined(inputShape)) {
             checkInputSpec(DLLayerUtils.numberOfElements(inputShape).equals(DLLayerUtils.numberOfElements(target)),
                 "The input shape does not have the same number of elements as the target shape.");
@@ -90,11 +90,11 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(Long[] inputShape) {
-        return DLPythonUtils.parseShape(m_shape);
+        return m_shape.getTuple();
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("target_shape", DLPythonUtils.toPythonTuple(m_shape));
+        namedParams.put("target_shape", m_shape.toPytonTuple());
     }
 }

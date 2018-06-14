@@ -58,7 +58,6 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
 
-    // TODO make component for seed
     @Parameter(label = "Seed", required = false)
     private DLKerasSeed m_seed = new DLKerasSeed();
 

@@ -46,7 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.advancedactivation;
 
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -58,9 +58,10 @@ import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.keras.util.DLKerasUtils;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -70,14 +71,15 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     @Parameter(label = "Alpha initializer", choices = DLKerasInitializerChoices.class)
     private DLKerasInitializer m_alphaInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Alpha regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Alpha regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+        tab = "Advanced")
     private DLKerasRegularizer m_alphaRegularizer = null;
 
     @Parameter(label = "Alpha constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_alphaConstraint = null;
 
     @Parameter(label = "Shared axes", required = false)
-    private String m_sharedAxes = null;
+    private DLKerasTuple m_sharedAxes = new DLKerasTuple("", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL)));
 
     /**
      */
@@ -94,19 +96,6 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
         if (m_alphaConstraint != null) {
             m_alphaConstraint.validateParameters();
         }
-        if (m_sharedAxes != null) {
-            try {
-                parseSharedAxes(m_sharedAxes);
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException(
-                    "Shared axes may only be a single number or a comma separated list of numbers but was: '"
-                        + m_sharedAxes + "'.");
-            }
-        }
-    }
-
-    private static int[] parseSharedAxes(String sharedAxesString) {
-        return Arrays.stream(sharedAxesString.split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray();
     }
 
     @Override
@@ -114,8 +103,7 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
         namedParams.put("alpha_initializer", m_alphaInitializer.getBackendRepresentation());
         namedParams.put("alpha_regularizer", DLKerasUtils.Layers.toPython(m_alphaRegularizer));
         namedParams.put("alpha_constraint", DLKerasUtils.Layers.toPython(m_alphaConstraint));
-        namedParams.put("shared_axes",
-            m_sharedAxes == null ? DLPythonUtils.NONE : DLPythonUtils.toPython(parseSharedAxes(m_sharedAxes)));
+        namedParams.put("shared_axes", m_sharedAxes.toPytonTuple());
     }
 
 }

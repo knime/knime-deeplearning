@@ -65,7 +65,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasUpSampling1DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Size", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Size", min = "1")
     private int m_size = 2;
 
     // Data format is always "channel_last"

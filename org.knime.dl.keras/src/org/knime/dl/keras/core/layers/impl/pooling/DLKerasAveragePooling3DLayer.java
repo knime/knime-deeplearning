@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -67,10 +68,10 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Pool Size")
-    private String m_poolSize = "2, 2, 2";
+    private DLKerasTuple m_poolSize = new DLKerasTuple("2, 2, 2");
 
     @Parameter(label = "Strides")
-    private String m_strides = "1, 1, 1";
+    private DLKerasTuple m_strides = new DLKerasTuple("1, 1, 1");
 
     @Parameter(label = "Data Format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
@@ -87,8 +88,6 @@ public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLaye
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_poolSize, m_strides},
-            new String[]{"Pool size", "Strides"}, 3, false);
     }
 
     @Override
@@ -99,16 +98,14 @@ public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLaye
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        Long[] poolSize = DLPythonUtils.parseShape(m_poolSize);
-        Long[] strides = DLPythonUtils.parseShape(m_strides);
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, poolSize, strides,
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_poolSize.getTuple(), m_strides.getTuple(),
             DLConvolutionLayerUtils.DEFAULT_3D_DILATION, m_padding.value(), m_dataFormat.value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("pool_size", DLPythonUtils.toPythonTuple(m_poolSize));
-        namedParams.put("strides", DLPythonUtils.toPythonTuple(m_strides));
+        namedParams.put("pool_size", m_poolSize.toPytonTuple());
+        namedParams.put("strides", m_strides.toPytonTuple());
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
     }

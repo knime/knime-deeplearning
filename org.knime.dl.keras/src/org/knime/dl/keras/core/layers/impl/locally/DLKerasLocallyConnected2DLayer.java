@@ -66,6 +66,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -77,14 +78,14 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Filters", min = "1", max = "1000000", stepSize = "1")
+    @Parameter(label = "Filters", min = "1")
     private int m_filters = 1;
 
     @Parameter(label = "Kernel size")
-    private String m_kernelSize = "1, 1";
+    private DLKerasTuple m_kernelSize = new DLKerasTuple("1, 1");
 
     @Parameter(label = "Strides")
-    private String m_strides = "1, 1";
+    private DLKerasTuple m_strides = new DLKerasTuple("1, 1");
 
     /**
      * Only "valid" is allowed for Locally Connected in Keras
@@ -130,8 +131,6 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLConvolutionLayerUtils.validateTupleStrings(new String[]{m_kernelSize, m_strides},
-            new String[]{"Kernel size", "Strides"}, 2, false);
     }
 
     @Override
@@ -142,17 +141,15 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        final Long[] kernelSize = DLPythonUtils.parseShape(m_kernelSize);
-        final Long[] strides = DLPythonUtils.parseShape(m_strides);
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, kernelSize, strides,
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_kernelSize.getTuple(), m_strides.getTuple(),
             DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding.value(), m_dataFormat.value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("filters", DLPythonUtils.toPython(m_filters));
-        namedParams.put("kernel_size", DLPythonUtils.toPythonTuple(m_kernelSize));
-        namedParams.put("strides", DLPythonUtils.toPythonTuple(m_strides));
+        namedParams.put("kernel_size", m_kernelSize.toPytonTuple());
+        namedParams.put("strides", m_strides.toPytonTuple());
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));

@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.layers.impl.merge;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,6 +60,8 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasMergeLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -70,7 +73,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
     @Parameter(label = "Axes")
-    private String m_axes = "-1";
+    private DLKerasTuple m_axes = new DLKerasTuple("-1", 1, 2, EnumSet.of(Constraint.NEGATIVE, Constraint.ZERO));
 
     @Parameter(label = "Normalize")
     private boolean m_normalize = false;
@@ -83,12 +86,6 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        if (Arrays.stream(DLPythonUtils.parseShape(m_axes)).anyMatch(a -> a == null)) {
-            throw new InvalidSettingsException("Axex may not contain partial dimensions.");
-        }
-        if (DLPythonUtils.parseShape(m_axes).length > 2) {
-            throw new InvalidSettingsException("Axes may be either a single integer or a tuple of two integers.");
-        }
     }
 
     @Override
@@ -102,7 +99,7 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     private int[] getAxes(int rank1, int rank2) {
         int[] actualAxes = new int[2];
-        Long[] axes = DLPythonUtils.parseShape(m_axes);
+        Long[] axes = m_axes.getTuple();
         actualAxes[0] = axes[0].intValue();
         actualAxes[1] = axes.length == 2 ? axes[1].intValue() : actualAxes[0];
         actualAxes[0] = DLLayerUtils.getAxisIndex(actualAxes[0], rank1);
@@ -128,7 +125,7 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        positionalParams.add(DLPythonUtils.toPython(Arrays.stream(DLPythonUtils.parseShape(m_axes))
+        positionalParams.add(DLPythonUtils.toPython(Arrays.stream(m_axes.getTuple())
             .mapToInt(d -> DLLayerUtils.exampleShapeIndexToBatchShapeIndex(d.intValue())).toArray()));
         namedParams.put("normalize", DLPythonUtils.toPython(m_normalize));
     }

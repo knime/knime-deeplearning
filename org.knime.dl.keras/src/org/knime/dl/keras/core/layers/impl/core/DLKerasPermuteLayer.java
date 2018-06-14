@@ -46,15 +46,16 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -63,7 +64,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Permutation")
-    private String m_dims = "";
+    private DLKerasTuple m_dims = new DLKerasTuple("", 1, 1000, EnumSet.of(Constraint.EMPTY));
 
     /**
      * Constructor
@@ -74,20 +75,18 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_dims, false);
     }
 
     @Override
     protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
-        Long[] dims = DLPythonUtils.parseShape(m_dims);
-        checkInputSpec(dims.length == inputShape.length,
+        checkInputSpec(m_dims.getTuple().length == inputShape.length,
                 "Permutation is not specified for each dimension.");
         
     }
 
     @Override
     protected Long[] inferOutputShape(Long[] inputShape) {
-        Long[] dims = DLPythonUtils.parseShape(m_dims);
+        Long[] dims = m_dims.getTuple().clone();
         Long[] permuted = inputShape.clone();
         for (int i = 0; i < dims.length; i++) {
             permuted[i] = inputShape[dims[i].intValue() - 1];
@@ -97,6 +96,6 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("dims", DLPythonUtils.toPythonTuple(m_dims));
+        namedParams.put("dims", m_dims.toPytonTuple());
     }
 }

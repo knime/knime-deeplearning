@@ -75,7 +75,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Parameter(label = "Shape")
     private String m_shape = "1";
 
-    @Parameter(label = "Batch Size", min = "0", max = "1000000", stepSize = "1", required = false)
+    @Parameter(label = "Batch Size", min = "0", required = false)
     private Integer m_batchSize = null;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.

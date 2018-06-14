@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -62,14 +66,14 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
+    @Parameter(label = "Drop rate", min = "0.0", max = "1.0", stepSize = "0.1")
     private float m_rate;
 
     @Parameter(label = "Noise Shape", required = false)
-    private String m_noiseShape = null;
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("", 1, 1000, EnumSet.allOf(Constraint.class));
 
     @Parameter(label = "Random seed", required = false)
-    private Long m_seed = null;
+    private DLKerasSeed m_seed = new DLKerasSeed();
 
     /**
      * Constructor
@@ -80,7 +84,6 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        DLParameterValidationUtils.checkTupleString(m_noiseShape, false);
     }
 
     @Override
@@ -96,7 +99,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", DLPythonUtils.toPythonTuple(m_noiseShape));
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed));
+        namedParams.put("noise_shape", m_noiseShape.toPytonTuple());
+        namedParams.put("seed", DLPythonUtils.toPython(m_seed.getSeed()));
     }
 }
