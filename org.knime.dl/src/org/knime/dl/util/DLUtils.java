@@ -60,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.stream.IntStream;
 
@@ -157,6 +158,18 @@ public final class DLUtils {
             checkNotNullOrEmpty(name);
             checkNotNull(specs);
             return Arrays.stream(specs).flatMap(Arrays::stream).filter(s -> s.getName().equals(name)).findFirst();
+        }
+
+        public static OptionalInt findTensorSpecIndex(DLTensorSpec spec, final DLTensorSpec... specs) {
+            checkNotNull(spec);
+            checkNotNull(specs);
+
+            for (int i = 0; i < specs.length; i++) {
+                if (spec.equals(specs[i])) {
+                    return OptionalInt.of(i);
+                }
+            }
+            return OptionalInt.empty();
         }
     }
 

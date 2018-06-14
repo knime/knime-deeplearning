@@ -104,7 +104,7 @@ final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialo
         try {
             m_panel.loadFrom(StructInstances.createReadInstance(settings, m_settingsRO), specs);
         } catch (InvalidSettingsException e) {
-            throw new NotConfigurableException("Can't load settings. No settings available, yet.", e);
+            throw new NotConfigurableException(e.getMessage(), e);
         }
     }
 

@@ -51,6 +51,5 @@ package org.knime.dl.keras.core.layers;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasBinaryLayer extends DLKerasInnerLayer {
-
-    // NB: Marker interface.
+    // NB: Marker interface
 }

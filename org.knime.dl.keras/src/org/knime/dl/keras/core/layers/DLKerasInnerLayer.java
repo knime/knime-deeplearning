@@ -46,13 +46,25 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import org.knime.dl.core.DLTensorSpec;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasInnerLayer extends DLKerasLayer {
 
+    /**
+     * @return number of parents (=input tensors)
+     */
     int getNumParents();
+
+    /**
+     * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to
+     *             {@link #getNumParents()}
+     * @return may be <code>null</code> if the parent at the given index is not yet set
+     */
+    DLTensorSpec getInputTensorSpec(int index);
 
     /**
      * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to

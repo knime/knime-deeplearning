@@ -52,6 +52,8 @@ import java.util.NoSuchElementException;
 
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeedNodeSettingsAccessROFactory;
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeedNodeSettingsAccessWOFactory;
+import org.knime.dl.keras.core.layers.dialog.spec.DLTensorSpecNodeSettingsAccessROFactory;
+import org.knime.dl.keras.core.layers.dialog.spec.DLTensorSpecNodeSettingsAccessWOFactory;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTupleNodeSettingsAccessROFactory;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTupleNodeSettingsAccessWOFactory;
 
@@ -72,9 +74,12 @@ class NodeSettingsAccessFactoryRegistry {
         // read accesses
         m_readAccesses.add(new DLKerasSeedNodeSettingsAccessROFactory());
         m_readAccesses.add(new DLKerasTupleNodeSettingsAccessROFactory());
+        m_readAccesses.add(new DLTensorSpecNodeSettingsAccessROFactory());
+
         // write accesses
         m_writeAccesses.add(new DLKerasSeedNodeSettingsAccessWOFactory());
         m_writeAccesses.add(new DLKerasTupleNodeSettingsAccessWOFactory());
+        m_writeAccesses.add(new DLTensorSpecNodeSettingsAccessWOFactory());
     }
 
     /**

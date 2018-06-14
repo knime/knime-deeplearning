@@ -49,6 +49,7 @@ package org.knime.dl.keras.core.layers.dialog.tuple;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsWriteAccess;
 import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactory;
 
@@ -56,7 +57,7 @@ import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactor
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasTupleNodeSettingsAccessWOFactory
-    implements NodeSettingsWriteAccessFactory<AbstractNodeSettingsWriteAccess<DLKerasTuple>, DLKerasTuple> {
+    implements NodeSettingsWriteAccessFactory<ValueWriteAccess<DLKerasTuple, NodeSettingsWO>, DLKerasTuple> {
 
     @Override
     public Class<DLKerasTuple> getType() {
@@ -64,12 +65,12 @@ public class DLKerasTupleNodeSettingsAccessWOFactory
     }
 
     @Override
-    public AbstractNodeSettingsWriteAccess<DLKerasTuple> create(Member<DLKerasTuple> member) {
+    public ValueWriteAccess<DLKerasTuple, NodeSettingsWO> create(Member<DLKerasTuple> member) {
         return new DLKerasTupleNodeSettingsWriteAccess(member);
     }
 
-    private static class DLKerasTupleNodeSettingsWriteAccess extends AbstractNodeSettingsWriteAccess<DLKerasTuple> {
-        
+    private class DLKerasTupleNodeSettingsWriteAccess extends AbstractNodeSettingsWriteAccess<DLKerasTuple> {
+
         DLKerasTupleNodeSettingsWriteAccess(Member<DLKerasTuple> member) {
             super(member);
         }

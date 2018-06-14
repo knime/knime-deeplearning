@@ -58,8 +58,9 @@ import org.knime.dl.keras.core.struct.param.Parameter;
  */
 public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLayer implements DLKerasUnaryLayer {
 
-    @Parameter(label = "Input")
-    private DLTensorSpec spec = null;
+    // Don't ask 
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_spec = null;
 
     public DLKerasAbstractUnaryLayer(final String kerasIdentifier) {
         super(kerasIdentifier, 1);
@@ -69,8 +70,15 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
         super(kerasIdentifier, new DLKerasLayer[]{parent});
     }
 
-    // Convenience methods:
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index != 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        return m_spec;
+    }
 
+    // Convenience methods:
     protected abstract void validateInputSpec(Class<?> inputElementType, Long[] inputShape)
         throws DLInvalidTensorSpecException;
 

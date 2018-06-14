@@ -67,7 +67,7 @@ import org.scijava.util.ClassUtils;
 import net.miginfocom.swing.MigLayout;
 
 /**
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKerasSeed> {
 

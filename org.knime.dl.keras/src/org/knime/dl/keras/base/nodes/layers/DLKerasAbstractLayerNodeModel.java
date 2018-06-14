@@ -49,6 +49,7 @@ package org.knime.dl.keras.base.nodes.layers;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.OptionalInt;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
@@ -58,6 +59,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
@@ -76,6 +78,7 @@ import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
 import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsStructs;
 import org.knime.dl.keras.core.struct.param.ParameterStructs;
+import org.knime.dl.util.DLUtils;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -137,12 +140,15 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         final DLKerasInnerLayer innerLayer = layer;
         if (parentPortObjectSpec instanceof DLKerasNetworkPortObjectSpec) {
             // Append to existing network.
-            if (parentPortObjectSpec.getNetworkSpec().getOutputSpecs().length > 1) {
-                throw new InvalidSettingsException(
-                    "Appending a layer to a network with multiple outputs is not yet supported.");
+            DLTensorSpec tSpec = layer.getInputTensorSpec(index);
+            OptionalInt tensorInt =
+                DLUtils.Networks.findTensorSpecIndex(tSpec, parentPortObjectSpec.getNetworkSpec().getOutputSpecs());
+            if (!tensorInt.isPresent()) {
+                throw new InvalidSettingsException("Can't find index for tensor input " + tSpec + ".");
             }
             final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
-                new DLKerasDefaultBaseNetworkTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(), 0);
+                new DLKerasDefaultBaseNetworkTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(),
+                    tensorInt.getAsInt());
             innerLayer.setParent(index, baseNetworkOutput);
         } else if (parentPortObjectSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec) {
             // Append to layer.

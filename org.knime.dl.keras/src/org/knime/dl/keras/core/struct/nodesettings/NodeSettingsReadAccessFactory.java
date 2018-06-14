@@ -46,7 +46,9 @@
  */
 package org.knime.dl.keras.core.struct.nodesettings;
 
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.access.ValueReadAccess;
 
 /**
  * Factory that creates {@link AbstractNodeSettingsReadAccess}es.
@@ -56,8 +58,8 @@ import org.knime.dl.keras.core.struct.Member;
  * @param <C> type of {@link AbstractNodeSettingsReadAccess}
  * @param <T> type of stored object
  */
-public interface NodeSettingsReadAccessFactory<C extends AbstractNodeSettingsReadAccess<T>, T> {
-    
+public interface NodeSettingsReadAccessFactory<C extends ValueReadAccess<T, NodeSettingsRO>, T> {
+
     /**
      * @return the type of the stored object
      */

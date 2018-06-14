@@ -44,32 +44,64 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.nodesettings;
+package org.knime.dl.keras.core.layers.dialog.spec;
 
-import org.knime.core.node.NodeSettingsWO;
+import org.apache.commons.lang3.ClassUtils;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.dl.core.DLDefaultTensorId;
+import org.knime.dl.core.DLDefaultTensorSpec;
+import org.knime.dl.core.DLDimensionOrder;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.struct.Member;
-import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
+import org.knime.dl.keras.core.struct.access.ValueReadAccess;
+import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsReadAccess;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsReadAccessFactory;
 
 /**
- * Factory that creates {@link AbstractNodeSettingsWriteAccess}es.
- * 
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
- * 
- * @param <C> type of {@link AbstractNodeSettingsWriteAccess}
- * @param <T> type of stored object
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface NodeSettingsWriteAccessFactory<C extends ValueWriteAccess<T, NodeSettingsWO>, T> {
+public class DLTensorSpecNodeSettingsAccessROFactory
+    implements NodeSettingsReadAccessFactory<ValueReadAccess<DLTensorSpec, NodeSettingsRO>, DLTensorSpec> {
+
+    @Override
+    public Class<DLTensorSpec> getType() {
+        return DLTensorSpec.class;
+    }
+
+    @Override
+    public ValueReadAccess<DLTensorSpec, NodeSettingsRO> create(Member<DLTensorSpec> member) {
+        return new DLTensorSpecNodeSettingsReadAccess(member);
+    }
 
     /**
-     * @return the type of the stored object
+     * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
      */
-    Class<T> getType();
+    private class DLTensorSpecNodeSettingsReadAccess extends AbstractNodeSettingsReadAccess<DLTensorSpec> {
 
-    /**
-     * @param member the member to create the access for
-     * 
-     * @return write access of the member
-     */
-    C create(Member<T> member);
+        /**
+         * @param member
+         */
+        protected DLTensorSpecNodeSettingsReadAccess(Member<DLTensorSpec> member) {
+            super(member);
+        }
+
+        @Override
+        protected DLTensorSpec get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
+            final NodeSettingsRO subSettings = settings.getNodeSettings(key);
+            final String typeAsString =
+                subSettings.getString(DLTensorSpecNodeSettingsAccessWOFactory.KEY_TENSOR_ELEMENT_TYPE);
+            try {
+                final Class<?> elementType = ClassUtils.getClass(typeAsString);
+                return new DLDefaultTensorSpec(
+                    new DLDefaultTensorId(subSettings.getString(DLTensorSpecNodeSettingsAccessWOFactory.KEY_TENSOR_ID)),
+                    subSettings.getString(DLTensorSpecNodeSettingsAccessWOFactory.KEY_TENSOR_NAME), elementType,
+                    DLDimensionOrder.values()[subSettings
+                        .getInt(DLTensorSpecNodeSettingsAccessWOFactory.KEY_TENSOR_DIMENSION_ORDER)]);
+            } catch (ClassNotFoundException e) {
+                throw new InvalidSettingsException("Can't create type for " + typeAsString + "!", e);
+            }
+        }
+    }
 
 }

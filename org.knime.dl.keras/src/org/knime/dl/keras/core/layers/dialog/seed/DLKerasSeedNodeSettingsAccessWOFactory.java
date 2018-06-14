@@ -53,7 +53,7 @@ import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsWriteAcce
 import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactory;
 
 /**
- * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasSeedNodeSettingsAccessWOFactory
     implements NodeSettingsWriteAccessFactory<AbstractNodeSettingsWriteAccess<DLKerasSeed>, DLKerasSeed> {

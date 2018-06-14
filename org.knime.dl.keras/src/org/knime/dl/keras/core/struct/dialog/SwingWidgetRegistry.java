@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.dl.keras.core.layers.dialog.seed.SwingDLKerasSeedWidgetFactory;
+import org.knime.dl.keras.core.layers.dialog.spec.SwingDLTensorSpecWidgetFactory;
 import org.knime.dl.keras.core.layers.dialog.tuple.SwingDLKerasTupleWidgetFactory;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
@@ -77,6 +78,7 @@ class SwingWidgetRegistry {
         m_factories.add(new SwingObjectChoiceWidgetFactory<>());
         m_factories.add(new SwingCheckboxWidgetFactory());
         m_factories.add(new SwingOptionalWidgetFactory<>());
+        m_factories.add(new SwingDLTensorSpecWidgetFactory());
 
         // factories for custom types
         m_factories.add(new SwingDLKerasSeedWidgetFactory());

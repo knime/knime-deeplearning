@@ -44,32 +44,55 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.struct.nodesettings;
+package org.knime.dl.keras.core.layers.dialog.spec;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
+import org.knime.dl.keras.core.struct.nodesettings.AbstractNodeSettingsWriteAccess;
+import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsWriteAccessFactory;
 
 /**
- * Factory that creates {@link AbstractNodeSettingsWriteAccess}es.
- * 
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
- * 
- * @param <C> type of {@link AbstractNodeSettingsWriteAccess}
- * @param <T> type of stored object
  */
-public interface NodeSettingsWriteAccessFactory<C extends ValueWriteAccess<T, NodeSettingsWO>, T> {
+public class DLTensorSpecNodeSettingsAccessWOFactory
+    implements NodeSettingsWriteAccessFactory<ValueWriteAccess<DLTensorSpec, NodeSettingsWO>, DLTensorSpec> {
 
-    /**
-     * @return the type of the stored object
-     */
-    Class<T> getType();
+    static final String KEY_TENSOR_ELEMENT_TYPE = "tensor-element-type";
 
-    /**
-     * @param member the member to create the access for
-     * 
-     * @return write access of the member
-     */
-    C create(Member<T> member);
+    static final String KEY_TENSOR_ID = "tensor-id";
 
+    static final String KEY_TENSOR_NAME = "tensor-name";
+
+    static final String KEY_TENSOR_DIMENSION_ORDER = "tensor-dimension-order";
+
+    @Override
+    public Class<DLTensorSpec> getType() {
+        return DLTensorSpec.class;
+    }
+
+    @Override
+    public ValueWriteAccess<DLTensorSpec, NodeSettingsWO> create(Member<DLTensorSpec> member) {
+        return new DLTensorSpecNodeSettingsWriteAccess(member);
+    }
+
+    private class DLTensorSpecNodeSettingsWriteAccess extends AbstractNodeSettingsWriteAccess<DLTensorSpec> {
+
+        DLTensorSpecNodeSettingsWriteAccess(Member<DLTensorSpec> member) {
+            super(member);
+        }
+
+        @Override
+        protected void set(NodeSettingsWO settings, DLTensorSpec value, String key) throws InvalidSettingsException {
+            if (value != null) {
+                NodeSettingsWO subSettings = settings.addNodeSettings(key);
+                subSettings.addString(KEY_TENSOR_ELEMENT_TYPE, value.getElementType().getName());
+                subSettings.addString(KEY_TENSOR_ID, value.getIdentifier().getIdentifierString());
+                subSettings.addString(KEY_TENSOR_NAME, value.getName());
+                subSettings.addInt(KEY_TENSOR_DIMENSION_ORDER, value.getDimensionOrder().ordinal());
+            }
+        }
+    }
 }

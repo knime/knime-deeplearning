@@ -49,12 +49,22 @@ package org.knime.dl.keras.core.layers;
 import java.util.Collections;
 import java.util.List;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.struct.param.Parameter;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInnerLayer
-    implements DLKerasBinaryLayer {
+public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInnerLayer implements DLKerasBinaryLayer {
+
+    // Don't ask 
+    @Parameter(label = "First input tensor", min = "0")
+    private DLTensorSpec m_spec1 = null;
+
+    // Don't ask 
+    @Parameter(label = "Second input tensor", min = "1")
+    private DLTensorSpec m_spec2 = null;
 
     public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier) {
         super(kerasIdentifier, 2);
@@ -63,6 +73,16 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
     public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier, final DLKerasLayer firstParent,
         final DLKerasLayer secondParent) {
         super(kerasIdentifier, new DLKerasLayer[]{firstParent, secondParent});
+    }
+
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_spec1;
+        } else if (index == 1) {
+            return m_spec2;
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     // Convenience methods:
