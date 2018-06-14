@@ -52,12 +52,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.IOUtils;
-import org.knime.core.util.ThreadUtils;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -66,8 +63,9 @@ import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
+import org.knime.python2.kernel.PythonCanceledExecutionException;
+import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
-import org.knime.python2.kernel.PythonKernelException;
 import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
 
@@ -81,147 +79,138 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     private static final AtomicInteger THREAD_UNIQUE_ID = new AtomicInteger();
 
-	public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
-		try {
-			final PythonKernelOptions options = new PythonKernelOptions();
-			options.setPythonVersionOption(PythonVersionOption.PYTHON3);
-			return new PythonKernel(options);
-		} catch (final IOException e) {
-			final String msg = !Strings.isNullOrEmpty(e.getMessage())
-					? "An error occurred while trying to launch Python: " + e.getMessage()
-					: "An unknown error occurred while trying to launch Python. See log for details.";
-			throw new DLInvalidEnvironmentException(msg, e);
-		}
-	}
+    public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
+        try {
+            final PythonKernelOptions options = new PythonKernelOptions();
+            options.setPythonVersionOption(PythonVersionOption.PYTHON3);
+            return new PythonKernel(options);
+        } catch (final IOException e) {
+            final String msg = !Strings.isNullOrEmpty(e.getMessage())
+                ? "An error occurred while trying to launch Python: " + e.getMessage()
+                : "An unknown error occurred while trying to launch Python. See log for details.";
+            throw new DLInvalidEnvironmentException(msg, e);
+        }
+    }
 
-	private PythonKernel m_kernel;
+    private PythonKernel m_kernel;
 
-	public DLPythonDefaultContext() {
-		// kernel will be created on demand
-	}
+    public DLPythonDefaultContext() {
+        // kernel will be created on demand
+    }
 
-	public DLPythonDefaultContext(final PythonKernel kernel) {
-		m_kernel = checkNotNull(kernel);
-	}
+    public DLPythonDefaultContext(final PythonKernel kernel) {
+        m_kernel = checkNotNull(kernel);
+    }
 
-	@Override
-	public boolean isKernelOpen() {
-		return m_kernel != null;
-	}
+    @Override
+    public boolean isKernelOpen() {
+        return m_kernel != null;
+    }
 
-	@Override
-	public PythonKernel getKernel() throws DLInvalidEnvironmentException {
-		if (m_kernel == null) {
-			m_kernel = createKernel();
-		}
-		return m_kernel;
-	}
+    @Override
+    public PythonKernel getKernel() throws DLInvalidEnvironmentException {
+        if (m_kernel == null) {
+            m_kernel = createKernel();
+        }
+        return m_kernel;
+    }
 
-	@Override
-	public String[] execute(final DLCancelable cancelable, final File script, final String... args) throws IOException {
-		final String[] pbargs = new String[args.length + 2];
-		pbargs[0] = PythonPreferencePage.getPython3Path();
-		pbargs[1] = script.getAbsolutePath();
-		for (int i = 0; i < args.length; i++) {
-			pbargs[i + 2] = args[i];
-		}
-		final ProcessBuilder pb = new ProcessBuilder(pbargs);
-		// Add all python modules to PYTHONPATH variable
-		String existingPath = pb.environment().get("PYTHONPATH");
-		existingPath = existingPath == null ? "" : existingPath;
-		final String externalPythonPath = PythonModuleExtensions.getPythonPath();
-		if ((externalPythonPath != null) && !externalPythonPath.isEmpty()) {
-			if (existingPath.isEmpty()) {
-				existingPath = externalPythonPath;
-			} else {
-				existingPath = existingPath + File.pathSeparator + externalPythonPath;
-			}
-		}
-		existingPath = existingPath + File.pathSeparator;
-		pb.environment().put("PYTHONPATH", existingPath);
-		// TODO check if canceled!
-		final Process p = pb.start();
-		try {
-			final StringWriter stdout = new StringWriter();
-			IOUtils.copy(p.getInputStream(), stdout, StandardCharsets.UTF_8);
+    @Override
+    public String[] execute(final DLCancelable cancelable, final File script, final String... args) throws IOException {
+        final String[] pbargs = new String[args.length + 2];
+        pbargs[0] = PythonPreferencePage.getPython3Path();
+        pbargs[1] = script.getAbsolutePath();
+        for (int i = 0; i < args.length; i++) {
+            pbargs[i + 2] = args[i];
+        }
+        final ProcessBuilder pb = new ProcessBuilder(pbargs);
+        // Add all python modules to PYTHONPATH variable
+        String existingPath = pb.environment().get("PYTHONPATH");
+        existingPath = existingPath == null ? "" : existingPath;
+        final String externalPythonPath = PythonModuleExtensions.getPythonPath();
+        if ((externalPythonPath != null) && !externalPythonPath.isEmpty()) {
+            if (existingPath.isEmpty()) {
+                existingPath = externalPythonPath;
+            } else {
+                existingPath = existingPath + File.pathSeparator + externalPythonPath;
+            }
+        }
+        existingPath = existingPath + File.pathSeparator;
+        pb.environment().put("PYTHONPATH", existingPath);
+        // TODO check if canceled!
+        final Process p = pb.start();
+        try {
+            final StringWriter stdout = new StringWriter();
+            IOUtils.copy(p.getInputStream(), stdout, StandardCharsets.UTF_8);
 
-			final StringWriter stderr = new StringWriter();
-			IOUtils.copy(p.getErrorStream(), stderr, StandardCharsets.UTF_8);
+            final StringWriter stderr = new StringWriter();
+            IOUtils.copy(p.getErrorStream(), stderr, StandardCharsets.UTF_8);
 
-			return new String[] { stdout.toString(), stderr.toString() };
-		} finally {
-			p.destroyForcibly();
-			IOUtils.closeQuietly(p.getOutputStream());
-			IOUtils.closeQuietly(p.getInputStream());
-			IOUtils.closeQuietly(p.getErrorStream());
-		}
-	}
+            return new String[]{stdout.toString(), stderr.toString()};
+        } finally {
+            p.destroyForcibly();
+            IOUtils.closeQuietly(p.getOutputStream());
+            IOUtils.closeQuietly(p.getInputStream());
+            IOUtils.closeQuietly(p.getErrorStream());
+        }
+    }
 
     @Override
     public String[] executeInKernel(final String code, final DLCancelable cancelable)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
-        // Copied from PythonKernel
-        final AtomicBoolean done = new AtomicBoolean(false);
-        final AtomicReference<Exception> exception = new AtomicReference<Exception>(null);
-        final Thread nodeExecutionThread = Thread.currentThread();
-        final AtomicReference<String[]> output = new AtomicReference<String[]>();
-        // Thread running the execute
-        ThreadUtils.threadWithContext(new Runnable() {
-            @Override
-            public void run() {
-                String[] out;
+        try {
+            return getKernel().execute(code, () -> {
                 try {
-                    out = getKernel().execute(code);
-                    output.set(out);
-                    // If the error log has content throw it as exception
-                    if (!out[1].isEmpty()) {
-                        throw new DLInvalidEnvironmentException("An error occurred in Python: " + out[1]);
-                    }
-                } catch (final Exception e) {
-                    exception.set(e);
+                    cancelable.checkCanceled();
+                } catch (final DLCanceledExecutionException e) {
+                    throw new PythonCanceledExecutionException(e.getMessage());
                 }
-                done.set(true);
-                // Wake up waiting thread
-                nodeExecutionThread.interrupt();
-            }
-        }, "KNIME-DL-Python-Exec-" + THREAD_UNIQUE_ID.incrementAndGet()).start();
-        // Wait until execution is done
-        while (done.get() != true) {
-            try {
-                // Wake up once a second to check if execution has been canceled
-                Thread.sleep(1000);
-            } catch (final InterruptedException e) {
-                // Happens if python thread is done
-            }
-            cancelable.checkCanceled();
+            });
+        } catch (final Exception ex) {
+            narrowPythonException(ex);
         }
-        // If their was an exception in the execution thread throw it here
-        if (exception.get() != null) {
-            narrowPythonException(exception.get());
-        }
-        return output.get();
+        // This cannot happen.
+        return null;
     }
 
     @Override
-    public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk, final DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
-        // TODO check if canceled once KNIME python supports canceling the data transfer
+    public String[] executeAsyncInKernel(final String code, final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        try {
+            return getKernel().executeAsync(code, () -> {
+                try {
+                    cancelable.checkCanceled();
+                } catch (final DLCanceledExecutionException e) {
+                    throw new PythonCanceledExecutionException(e.getMessage());
+                }
+            });
+        } catch (final Exception ex) {
+            narrowPythonException(ex);
+        }
+        // This cannot happen.
+        return null;
+    }
+
+    @Override
+    public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk,
+        final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
+        // TODO: Check if canceled once KNIME python supports canceling the data transfer.
         getKernel().putData(name, tableChunker, rowsPerChunk);
     }
 
     @Override
-    public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf, final DLCancelable cancelable)
-        throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
-        // TODO check if canceled once KNIME python supports canceling the data transfer
+    public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf,
+        final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
+        // TODO: Check if canceled once KNIME python supports canceling the data transfer.
         return getKernel().getData(name, tcf);
     }
 
-	@Override
-	public void close() {
-		if (isKernelOpen()) {
-			m_kernel.close();
-		}
-	}
+    @Override
+    public void close() {
+        if (isKernelOpen()) {
+            m_kernel.close();
+        }
+    }
 
     private static void narrowPythonException(final Exception e)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
@@ -231,8 +220,9 @@ public final class DLPythonDefaultContext implements DLPythonContext {
             throw (DLInvalidEnvironmentException)e;
         } else if (e instanceof IOException) {
             throw (IOException)e;
-        } else if (e instanceof PythonKernelException) {
-            throw new DLInvalidEnvironmentException("An error occurred in Python:", e);
+        } else if (e instanceof PythonException) {
+            throw new DLInvalidEnvironmentException("An error occurred while interacting with Python."
+                + (e.getMessage() != null ? " Cause: " + e.getMessage() : ""), e);
         } else {
             throw new IOException(e);
         }

@@ -99,11 +99,6 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
 		return DLUtils.Files.getFileFromSameBundle(this, "py/DLKerasCNTKNetworkTester.py");
 	}
 
-	@Override
-	protected String getSetupBackendCode() {
-		return "";
-	}
-
     @Override
     protected DLKerasCNTKNetworkReaderCommands getNetworkReaderCommands() {
         return new DLKerasCNTKNetworkReaderCommands();

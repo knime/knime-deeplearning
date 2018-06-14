@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.training;
 
 import org.knime.core.node.ExecutionContext;
+import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.python.core.training.DLPythonNetworkTrainingSession;
 
@@ -58,4 +59,6 @@ public interface DLKerasNetworkTrainingSession extends DLPythonNetworkTrainingSe
 
 	// TODO: this should go somewhere else as it's "base" related rather than "core"
 	DLKerasNetworkPortObjectBase getTrainedNetwork(ExecutionContext exec) throws Exception;
+
+    void stopEarly() throws DLCanceledExecutionException, Exception;
 }

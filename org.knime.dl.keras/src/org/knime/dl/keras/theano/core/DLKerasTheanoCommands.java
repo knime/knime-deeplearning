@@ -99,11 +99,6 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 		return DLUtils.Files.getFileFromSameBundle(this, "py/DLKerasTheanoNetworkTester.py");
 	}
 
-	@Override
-	protected String getSetupBackendCode() {
-		return "";
-	}
-
     @Override
     protected DLKerasTheanoNetworkReaderCommands getNetworkReaderCommands() {
         return new DLKerasTheanoNetworkReaderCommands();

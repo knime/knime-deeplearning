@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # ------------------------------------------------------------------------
 #  Copyright by KNIME AG, Zurich, Switzerland
 #  Website: http://www.knime.com; Email: contact@knime.com
@@ -43,32 +42,56 @@
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
 
-'''
+"""
 @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
-'''
+"""
 
-import warnings
-
-try:
-    import threading
-except ImportError:
-    warnings.warn("Failed to import threading module. Using dummy_threading instead.")
-    import dummy_threading as threading
-
-# pseudo-singleton, will be populated on DL setup
-_instance = None
+import DLPythonKernelGateway
+from MainThreadExecutor import MainThreadExecutor
+from messaging.AbstractTaskHandler import AbstractTaskHandler
+from messaging.Message import Message
+from messaging.Message import PayloadEncoder
+from messaging.Task import Task
 
 
-def global_workspace():
-    return _instance.global_workspace
+class DLKerasTrainTask(Task):
+    def __init__(self, reply_to, network, training_data_supplier, validation_data_supplier=None):
+        self._kernel = DLPythonKernelGateway.global_workspace()['workspace']
+        self._commands = self._kernel._commands
+        self._messaging = self._commands._messaging
+        super(DLKerasTrainTask, self).__init__(None, None, self._messaging, self._messaging,
+                                               self._messaging.create_receive_queue(),
+                                               self._messaging.create_next_message_id,
+                                               self._kernel, MainThreadExecutor(self._kernel._monitor))
+        self._reply_to = str(reply_to)
+        self._network = network
+        training_data_supplier.request_from_java = self.request_from_java
+        self._training_data_supplier = training_data_supplier
+        if validation_data_supplier is not None:
+            validation_data_supplier.request_from_java = self.request_from_java
+        self._validation_data_supplier = validation_data_supplier
 
+    def send_to_java(self, message_category, payload=None):
+        message = self._create_message(message_category, payload)
+        self._messaging.send(message)
 
-class DLPythonKernelGateway(object):
-    def __init__(self, workspace):
-        assert workspace is not None
-        self._workspace = workspace
+    def request_from_java(self, message_category, payload=None):
+        message = self._create_message(message_category, payload)
+        self._commands.create_task(DLKerasTrainTask._RequestTaskHandler(), message).get()
+        return
 
-    @property
-    def global_workspace(self):
-        return self._workspace
+    def _create_message(self, message_category, payload=None):
+        payload = PayloadEncoder().put_string(str(payload)).payload if payload is not None else None
+        return Message(self._message_id_supplier(), self._reply_to, payload,
+                       {AbstractTaskHandler.FIELD_KEY_MESSAGE_TYPE: message_category})
+
+    def _run_internal(self):
+        history = self._network.train(self._training_data_supplier,
+                                      validation_data_supplier=self._validation_data_supplier,
+                                      send_to_java=self.send_to_java)
+        self._set_result(history)
+
+    class _RequestTaskHandler(AbstractTaskHandler):
+        def _handle_success_message(self, message):
+            return None

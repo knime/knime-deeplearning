@@ -48,6 +48,9 @@ package org.knime.dl.keras.core;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.util.Version;
@@ -55,6 +58,10 @@ import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
+import org.knime.dl.core.DLNotCancelable;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
 import org.knime.dl.keras.core.training.DLKerasLossFunction.DLKerasCustomLoss;
@@ -68,11 +75,11 @@ import org.knime.dl.python.core.SingleValueTableCreator;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.python2.extensions.serializationlibrary.interfaces.Cell;
-import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
-import org.knime.python2.kernel.Messages;
-import org.knime.python2.kernel.PythonToJavaMessage;
-import org.knime.python2.kernel.PythonToJavaMessageHandler;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.kernel.messaging.DefaultMessage.PayloadDecoder;
+import org.knime.python2.kernel.messaging.Message;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -91,6 +98,20 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
     @Override
     protected abstract DLKerasAbstractNetworkReaderCommands getNetworkReaderCommands();
+
+    @Override
+    protected String getSetupBackendCode() {
+        return "";
+    }
+
+    @Override
+    protected DLPythonNetworkTrainingTaskHandler createNetworkTrainingTaskHandler(final DLPythonContext context,
+        final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
+        final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
+        final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+        return new DLKerasNetworkTrainingTaskHandler(context, monitor, trainingInputProvider, validationInputProvider,
+            singleTensorTableChunkerCreator);
+    }
 
     @Override
     public abstract DLKerasNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network, DLCancelable cancelable)
@@ -132,12 +153,12 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 		        b.n().a(customLoss.getCustomCodeExecution());
 		    }
 		}
-		
+
 		b.n("config = DLKerasTrainingConfig()") //
 		.n("config.epochs = ").a(config.getEpochs()) //
 		.n("config.batch_size = ").a(config.getBatchSize()) //
 		.n("config.validation_batch_size = ").a(config.getValidationBatchSize()) //
-		// TODO: how to import dependencies (here: of optimizer and losses) in a generic way?
+		// TODO: How to import dependencies (here: of optimizer and losses) in a generic way?
 		.n("import keras") //
 		.n("config.optimizer = ").a(config.getOptimizer().getBackendRepresentation()) //
 		.n(config.getLosses().entrySet(),
@@ -151,55 +172,14 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 		getContext(cancelable).executeInKernel(b.toString(), cancelable);
 	}
 
-	private Collection<DLKerasCustomLoss> getCustomLosses(final Collection<DLKerasLossFunction> lossFunctions) {
-	    return lossFunctions.stream()
-	            .filter(l -> l instanceof DLKerasCustomLoss)
-	            .map(l -> (DLKerasCustomLoss)l)
-	            .collect(Collectors.toList());
-	}
-
-	@Override
-	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
-			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final Messages messages = getContext(monitor).getKernel().getMessages();
-
-		PythonToJavaMessageHandler terminateOnNaNHandler = null;
-		PythonToJavaMessageHandler earlyStoppingHandler = null;
-
-		try {
-			if (monitor.getTrainingStatus() instanceof DLKerasTrainingStatus) {
-				final DLKerasTrainingStatus status = (DLKerasTrainingStatus) monitor.getTrainingStatus();
-				terminateOnNaNHandler = new AbstractPythonToJavaMessageHandler("terminate_on_nan") {
-
-					@Override
-					protected void handle(final PythonToJavaMessage msg) throws Exception {
-						final long batch = Long.parseLong(msg.getValue());
-						status.terminatedOnNaNLoss().raise(batch);
-					}
-				};
-				messages.registerMessageHandler(terminateOnNaNHandler);
-
-				earlyStoppingHandler = new AbstractPythonToJavaMessageHandler("early_stopping") {
-
-					@Override
-					protected void handle(final PythonToJavaMessage msg) throws Exception {
-						final int epoch = Integer.parseInt(msg.getValue());
-						status.stoppedEarly().raise(epoch);
-					}
-				};
-				messages.registerMessageHandler(earlyStoppingHandler);
-			}
-			super.trainNetwork(network, trainingInputProvider, validationInputProvider, monitor);
-		} finally {
-			if (terminateOnNaNHandler != null) {
-				messages.unregisterMessageHandler(terminateOnNaNHandler);
-			}
-			if (earlyStoppingHandler != null) {
-				messages.unregisterMessageHandler(earlyStoppingHandler);
-			}
-		}
-	}
+    public void stopTrainNetworkEarly(final DLPythonNetworkHandle network)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import DLPythonNetwork") //
+            .n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+            .n("network.stop_early()");
+        getContext(DLNotCancelable.INSTANCE).executeAsyncInKernel(b.toString(), DLNotCancelable.INSTANCE);
+    }
 
     /**
      * @param cancelable to check if the execution has been canceled
@@ -220,6 +200,13 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
         return new Version(kerasVersion);
     }
+
+	private Collection<DLKerasCustomLoss> getCustomLosses(final Collection<DLKerasLossFunction> lossFunctions) {
+	    return lossFunctions.stream()
+	            .filter(l -> l instanceof DLKerasCustomLoss)
+	            .map(l -> (DLKerasCustomLoss)l)
+	            .collect(Collectors.toList());
+	}
 
     protected abstract static class DLKerasAbstractNetworkReaderCommands extends DLPythonAbstractNetworkReaderCommands {
 
@@ -245,6 +232,44 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
                 .a("readFromYaml(").asr(path).a(")");
             return b.toString();
+        }
+    }
+
+    private static class DLKerasNetworkTrainingTaskHandler extends DLPythonNetworkTrainingTaskHandler {
+
+        protected DLKerasNetworkTrainingTaskHandler(final DLPythonContext context,
+            final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
+            final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
+            final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+            super(context, monitor, trainingInputProvider, validationInputProvider, singleTensorTableChunkerCreator);
+        }
+
+        @Override
+        protected boolean handleCustomMessage(final Message message, final IntSupplier responseMessageIdSupplier,
+            final Consumer<Message> responseConsumer, final Consumer<Void> resultConsumer) throws ExecutionException {
+            final String messageType = message.getHeaderField(FIELD_KEY_MESSAGE_TYPE);
+            if (messageType.equals("terminate_on_nan")) {
+                handleTerminateOnNan(message);
+            } else if (messageType.equals("early_stopping")) {
+                handleEarlyStopping(message);
+            } else {
+                return super.handleCustomMessage(message, responseMessageIdSupplier, responseConsumer, resultConsumer);
+            }
+            return true;
+        }
+
+        private void handleTerminateOnNan(final Message message) {
+            final long batch = new PayloadDecoder(message.getPayload()).getNextLong();
+            if (m_status instanceof DLKerasTrainingStatus) {
+                ((DLKerasTrainingStatus)m_status).terminatedOnNaNLoss().raise(batch);
+            }
+        }
+
+        private void handleEarlyStopping(final Message message) {
+            final int batch = new PayloadDecoder(message.getPayload()).getNextInt();
+            if (m_status instanceof DLKerasTrainingStatus) {
+                ((DLKerasTrainingStatus)m_status).stoppedEarly().raise(batch);
+            }
         }
     }
 }

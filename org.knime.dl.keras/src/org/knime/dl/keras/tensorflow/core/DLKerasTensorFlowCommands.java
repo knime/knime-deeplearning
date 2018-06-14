@@ -100,11 +100,6 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 		return DLUtils.Files.getFileFromSameBundle(this, "py/DLKerasTensorFlowNetworkTester.py");
 	}
 
-	@Override
-	protected String getSetupBackendCode() {
-		return "";
-	}
-
     @Override
     protected DLKerasTensorFlowNetworkReaderCommands getNetworkReaderCommands() {
         return new DLKerasTensorFlowNetworkReaderCommands();

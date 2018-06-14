@@ -48,6 +48,7 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
+import abc
 import sys
 
 from keras.callbacks import Callback
@@ -55,11 +56,23 @@ from keras.callbacks import EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.callbacks import TerminateOnNaN
 
-from DLPythonKernelGateway import send_to_java
-from PythonToJavaMessage import PythonToJavaMessage
+
+class DLKerasAbstractTrainingCallback(object):
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self):
+        self._send_to_java = None
+
+    @property
+    def send_to_java(self):
+        return self._send_to_java
+
+    @send_to_java.setter
+    def send_to_java(self, send_to_java):
+        self._send_to_java = send_to_java
 
 
-class DLKerasEarlyStopping(EarlyStopping):
+class DLKerasEarlyStopping(EarlyStopping, DLKerasAbstractTrainingCallback):
     def __init__(self, monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='auto'):
         super().__init__(monitor, min_delta, patience, verbose, mode)
 
@@ -67,10 +80,10 @@ class DLKerasEarlyStopping(EarlyStopping):
         super().on_train_end(logs)
         if self.stopped_epoch > 0:
             sys.stdout.flush()  # flush Keras info message
-            send_to_java(PythonToJavaMessage('early_stopping', self.stopped_epoch, False))
+            self.send_to_java('early_stopping', self.stopped_epoch)
 
 
-class DLKerasReduceLROnPlateau(ReduceLROnPlateau):
+class DLKerasReduceLROnPlateau(ReduceLROnPlateau, DLKerasAbstractTrainingCallback):
     def __init__(self, monitor='val_loss', factor=0.1, patience=10, verbose=0, mode='auto', epsilon=1e-4, cooldown=0,
                  min_lr=0):
         super().__init__(monitor, factor, patience, verbose, mode, epsilon, cooldown, min_lr)
@@ -81,7 +94,7 @@ class DLKerasReduceLROnPlateau(ReduceLROnPlateau):
         # NB: do nothing for the moment, this is a placeholder (forward compatibility)
 
 
-class DLKerasTerminateOnNaN(TerminateOnNaN):
+class DLKerasTerminateOnNaN(TerminateOnNaN, DLKerasAbstractTrainingCallback):
     def __init__(self):
         super().__init__()
 
@@ -90,18 +103,18 @@ class DLKerasTerminateOnNaN(TerminateOnNaN):
         super().on_batch_end(batch, logs)
         if self.model.stop_training and not already_stopped:
             sys.stdout.flush()  # flush Keras info message
-            send_to_java(PythonToJavaMessage('terminate_on_nan', batch, False))
+            self.send_to_java('terminate_on_nan', batch)
 
 
-class DLKerasTrainingMonitor(Callback):
+class DLKerasTrainingMonitor(Callback, DLKerasAbstractTrainingCallback):
     def __init__(self, network):
         super().__init__()
         self._network = network
         self._stop_training = False
-        self._on_epoch_begin_msg = PythonToJavaMessage('epoch_begin', None, False)
-        self._on_epoch_end_msg = PythonToJavaMessage('epoch_end', None, False)
-        self._on_batch_begin_msg = PythonToJavaMessage('batch_begin', None, False)
-        self._on_batch_end_request = DLKerasTrainingMonitor.DLOnBatchEndMessage()
+
+    def stop_early(self):
+        self._stop_training = True
+        self._network.model.stop_training = True
 
     def on_train_begin(self, logs=None):
         # metrics_names = self.params['metrics']
@@ -115,7 +128,7 @@ class DLKerasTrainingMonitor(Callback):
             print('Training was stopped by the user.')
 
     def on_epoch_begin(self, epoch, logs=None):
-        send_to_java(self._on_epoch_begin_msg)
+        self.send_to_java('epoch_begin')
 
     def on_epoch_end(self, epoch, logs=None):
         if logs:
@@ -130,11 +143,10 @@ class DLKerasTrainingMonitor(Callback):
                 if len_accs > 0:
                     acc = sum(accs) / len_accs
 
-            self._on_epoch_end_msg._val = str(acc) + ';' + str(loss)
-            send_to_java(self._on_epoch_end_msg)
+            self.send_to_java('epoch_end', str(acc) + ';' + str(loss))
 
     def on_batch_begin(self, batch, logs=None):
-        send_to_java(self._on_batch_begin_msg)
+        self.send_to_java('batch_begin')
 
     def on_batch_end(self, batch, logs=None):
         if logs:
@@ -147,14 +159,4 @@ class DLKerasTrainingMonitor(Callback):
                 accs = [v for k, v in logs.items() if k.endswith('_acc')]
                 acc = sum(accs) / len(accs)
 
-            self._on_batch_end_request._val = str(acc) + ';' + str(loss)
-            self._stop_training = send_to_java(self._on_batch_end_request)
-            if self._stop_training:
-                self._network.model.stop_training = True
-
-    class DLOnBatchEndMessage(PythonToJavaMessage):
-        def __init__(self):
-            super().__init__('batch_end', None, True)
-
-        def process_response(self, val):
-            return val == 's'
+            self.send_to_java('batch_end', str(acc) + ';' + str(loss))

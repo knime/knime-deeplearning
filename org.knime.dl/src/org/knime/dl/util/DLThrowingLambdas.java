@@ -52,11 +52,11 @@ package org.knime.dl.util;
  */
 public final class DLThrowingLambdas {
 
-	@FunctionalInterface
-	public interface DLThrowingConsumer<I, X extends Exception> {
+    @FunctionalInterface
+    public interface DLThrowingConsumer<I, X extends Exception> {
 
-		void accept(I in) throws X;
-	}
+        void accept(I in) throws X;
+    }
 
     @FunctionalInterface
     public interface DLThrowingBiConsumer<I1, I2, X extends Exception> {
@@ -64,15 +64,21 @@ public final class DLThrowingLambdas {
         void accept(I1 in1, I2 in2) throws X;
     }
 
-	@FunctionalInterface
-	public interface DLThrowingFunction<I, O, X extends Exception> {
+    @FunctionalInterface
+    public interface DLThrowingFunction<I, O, X extends Exception> {
 
-		O apply(I in) throws X;
-	}
+        O apply(I in) throws X;
+    }
 
-	@FunctionalInterface
-	public interface DLThrowingSupplier<O, X extends Exception> {
+    @FunctionalInterface
+    public interface DLThrowingBiFunction<I1, I2, O, X extends Exception> {
 
-		O get() throws X;
-	}
+        O apply(I1 in1, I2 in2) throws X;
+    }
+
+    @FunctionalInterface
+    public interface DLThrowingSupplier<O, X extends Exception> {
+
+        O get() throws X;
+    }
 }

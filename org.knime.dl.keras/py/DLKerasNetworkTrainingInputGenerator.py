@@ -48,28 +48,30 @@
 @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 '''
 
-from DLPythonKernelGateway import send_to_java, global_workspace
+from DLPythonKernelGateway import global_workspace
 from DLPythonNetworkTrainingInputGenerator import DLPythonNetworkTrainingInputGenerator
-from PythonToJavaMessage import PythonToJavaMessage
 
 
 class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator):
-    def __init__(self, network, steps, batch_size, request_command):
+    def __init__(self, network, steps, batch_size, message_category):
         assert network is not None
         input_names = [s.identifier for s in network.spec.input_specs]
         target_names = [s.identifier for s in network.spec.output_specs]
         super().__init__(input_names, target_names, steps, batch_size)
         self._network = network
-        self._request = DLKerasNetworkTrainingInputGenerator.DLKerasTrainingDataRequest(self, request_command)
+        self._message_category = message_category
+        self._request_from_java = None
+
+    @property
+    def request_from_java(self):
+        return self._request_from_java
+
+    @request_from_java.setter
+    def request_from_java(self, request_from_java):
+        self._request_from_java = request_from_java
 
     def _get_batch(self, batch_index):
-        self._request._val = str(batch_index)
-        (x, y) = send_to_java(self._request)
-        # TODO: move formatting logic from network to generator, remove dependency on network
-        return (self._network._format_input(x, self._batch_size),
-                self._network._format_target(y, self._batch_size))
-
-    def _process_reponse(self, val):
+        self._request_from_java(self._message_category, batch_index)
         # TODO: pre-allocate dictionaries
         training_data = {}
         for input_name in self._input_names:
@@ -77,12 +79,6 @@ class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator
         target_data = {}
         for target_name in self._target_names:
             target_data[target_name] = global_workspace()[target_name]
-        return training_data, target_data
-
-    class DLKerasTrainingDataRequest(PythonToJavaMessage):
-        def __init__(self, outer, request_command):
-            super().__init__(request_command, None, True)
-            self._outer = outer
-
-        def process_response(self, val):
-            return self._outer._process_reponse(val)
+        # TODO: move formatting logic from network to generator, remove dependency on network
+        return (self._network._format_input(training_data, self._batch_size),
+                self._network._format_target(target_data, self._batch_size))

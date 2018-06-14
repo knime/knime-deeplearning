@@ -201,6 +201,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	 */
 	private DLLinePlotViewDataCollection[] m_viewData;
 
+    /**
+     * <code>null</code> by default, only populated during execution of the node
+     */
+    private DLKerasNetworkTrainingSession m_session;
+
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObjectBase.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
 				new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
@@ -214,12 +219,16 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		return m_status;
 	}
 
-	@Override
-	public void stopLearning() {
-		if (m_status != null) {
-			m_status.setStatus(Status.STOPPED_EARLY);
-		}
-	}
+    @Override
+    public void stopLearning() {
+        if (m_session != null) {
+            try {
+                m_session.stopEarly();
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -608,21 +617,24 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), (int)trainingConfig.getValidationBatchSize(),
 								converterForTensorId)
 						: null;
-				final DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
+                DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
 						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
 								trainingConfig.getBatchSize(), columnsForTensorId, m_converters),
 						inputPreparer, validationPreparer);) {
+            m_session = session; // Needed for early stopping.
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			setupTrainingStatus(doValidation, trainingConfig, numTrainingBatchesPerEpoch, totalNumTrainingBatches,
                 monitor);
-			session.run(monitor);
+            session.run(monitor);
 			exec.setMessage("Saving trained Keras deep learning network...");
-			return session.getTrainedNetwork(exec);
+            return session.getTrainedNetwork(exec);
 		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
 			m_status.setStatus(Status.USER_INTERRUPTED);
 			throw e;
 		} catch (final Exception e) {
 			throw handleGeneralException(e);
+		} finally {
+		    m_session =null;
 		}
 	}
 
@@ -632,7 +644,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         	if (cause instanceof CanceledExecutionException) {
         		m_status.setStatus(Status.USER_INTERRUPTED);
         		throw (CanceledExecutionException) cause;
-        	} else if (cause instanceof DLCanceledExecutionException) {
+            } else if (cause instanceof DLCanceledExecutionException || cause instanceof InterruptedException) {
         		m_status.setStatus(Status.USER_INTERRUPTED);
         		throw new CanceledExecutionException(e.getMessage());
         	}

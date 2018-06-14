@@ -60,6 +60,7 @@ from keras.models import load_model
 from keras.models import model_from_json
 from keras.models import model_from_yaml
 
+import DLPythonKernelGateway
 from DLKerasTrainingCallbacks import DLKerasTrainingMonitor
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
@@ -113,6 +114,7 @@ class DLKerasNetwork(DLPythonNetwork):
 
     def __init__(self, model):
         super().__init__(DLKerasNetwork._convert_sequential_to_model(model))
+        self._training_monitor = None
 
     @abc.abstractmethod
     def _extract_model_spec(self):
@@ -131,10 +133,10 @@ class DLKerasNetwork(DLPythonNetwork):
         # Get the requested output tensors
         outputs = []
         for id in output_identifiers:
-            matchObj = re.match(r'^(.*)_(\d+):(\d+)$', id)
-            layer_name = matchObj.group(1)
-            node_idx = int(matchObj.group(2))
-            tensor_idx = int(matchObj.group(3))
+            matcher = re.match(r'^(.*)_(\d+):(\d+)$', id)
+            layer_name = matcher.group(1)
+            node_idx = int(matcher.group(2))
+            tensor_idx = int(matcher.group(3))
             output_tensors = model.get_layer(layer_name).get_output_at(node_idx)
             if not isinstance(output_tensors, list):
                 output_tensors = [output_tensors]
@@ -145,7 +147,7 @@ class DLKerasNetwork(DLPythonNetwork):
         Y = intermediate_model.predict(X, batch_size=batch_size, verbose=0)
         return self._format_output(Y, output_identifiers)
 
-    def train(self, training_data_supplier, validation_data_supplier=None):
+    def train(self, training_data_supplier, validation_data_supplier=None, send_to_java=None):
         assert training_data_supplier is not None
         config = self._spec.training_config
         if not config:
@@ -166,7 +168,12 @@ class DLKerasNetwork(DLPythonNetwork):
         self._model.compile(loss=loss, optimizer=config.optimizer, metrics=metrics)
 
         if not any(isinstance(c, DLKerasTrainingMonitor) for c in config.callbacks):
-            config.callbacks.append(DLKerasTrainingMonitor(self))
+            training_monitor = DLKerasTrainingMonitor(self)
+            config.callbacks.append(training_monitor)
+            self._training_monitor = training_monitor
+
+        for c in config.callbacks:
+            c.send_to_java = send_to_java
 
         if validation_data_supplier is not None:
             validation_data_generator = validation_data_supplier.get_generator()
@@ -185,6 +192,12 @@ class DLKerasNetwork(DLPythonNetwork):
                                             validation_steps=validation_steps,
                                             **{kw_max_queue: 1})
         return history.history
+
+    def stop_early(self):
+        if self._training_monitor is not None:
+            self._training_monitor.stop_early()
+        else:
+            raise RuntimeError("Cannot stop training. Training monitor is None.")
 
     def save(self, path):
         if not (self._model.layers or []):

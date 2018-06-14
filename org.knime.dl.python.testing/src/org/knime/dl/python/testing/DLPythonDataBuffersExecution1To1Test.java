@@ -66,6 +66,7 @@ import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLTensor;
@@ -78,13 +79,18 @@ import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
+import org.knime.dl.python.core.training.DLPythonTrainingStatus;
+import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -147,6 +153,15 @@ public class DLPythonDataBuffersExecution1To1Test {
             protected DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands() {
                 return null;
 			}
+
+            @Override
+            protected DLPythonNetworkTrainingTaskHandler createNetworkTrainingTaskHandler(final DLPythonContext context,
+                final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
+                final DLNetworkInputProvider trainingInputProvider,
+                final DLNetworkInputProvider validationInputProvider,
+                final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+                return null;
+            }
 		};
 		m_rng = new Random(543677);
 	}

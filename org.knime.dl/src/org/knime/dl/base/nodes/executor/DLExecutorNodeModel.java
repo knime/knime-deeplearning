@@ -590,7 +590,7 @@ final class DLExecutorNodeModel extends NodeModel {
         if (cause != null) {
         	if (cause instanceof CanceledExecutionException) {
         		throw (CanceledExecutionException) cause;
-        	} else if (cause instanceof DLCanceledExecutionException) {
+            } else if (cause instanceof DLCanceledExecutionException || cause instanceof InterruptedException) {
         		throw new CanceledExecutionException(e.getMessage());
         	}
         }

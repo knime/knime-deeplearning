@@ -57,7 +57,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RunnableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
@@ -73,7 +77,6 @@ import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLReportedMetric;
 import org.knime.dl.core.training.DLTrainingMonitor;
-import org.knime.dl.core.training.DLTrainingStatus.Status;
 import org.knime.dl.python.core.data.DLPythonDataBuffer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializer;
 import org.knime.dl.python.core.data.serde.DLPythonDeserializerFactory;
@@ -81,6 +84,7 @@ import org.knime.dl.python.core.data.serde.DLSerializerFactory;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.dl.util.DLUtils;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
@@ -98,12 +102,12 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
-import org.knime.python2.kernel.AbstractPythonToJavaMessageHandler;
-import org.knime.python2.kernel.DefaultJavaToPythonResponse;
-import org.knime.python2.kernel.Messages;
+import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonOutputListener;
-import org.knime.python2.kernel.PythonToJavaMessage;
-import org.knime.python2.kernel.PythonToJavaMessageHandler;
+import org.knime.python2.kernel.messaging.AbstractTaskHandler;
+import org.knime.python2.kernel.messaging.DefaultMessage;
+import org.knime.python2.kernel.messaging.DefaultMessage.PayloadDecoder;
+import org.knime.python2.kernel.messaging.Message;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedBytes;
@@ -188,6 +192,11 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
     protected abstract DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands();
 
+    protected abstract DLPythonNetworkTrainingTaskHandler createNetworkTrainingTaskHandler(DLPythonContext context,
+        DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor, DLNetworkInputProvider trainingInputProvider,
+        DLNetworkInputProvider validationInputProvider,
+        DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator);
+
 	@Override
 	public final synchronized DLPythonContext getContext(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
 		if (!m_contextSetup) {
@@ -196,7 +205,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				final String setupGatewayCode = DLPythonUtils.createSourceCodeBuilder() //
 						.a("import DLPythonKernelGateway") //
 						.n("DLPythonKernelGateway._instance = ")
-						/**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals(), request_from_java)").n()
+						/**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals())").n()
 						.toString();
 				final String error = m_context.executeInKernel(setupGatewayCode + getSetupEnvironmentCode(), cancelable)[1];
 				if (!error.isEmpty()) {
@@ -333,7 +342,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
 				.n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
 				.a("] = pd.DataFrame(output_shapes)");
-		getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
 	}
 
 	@Override
@@ -434,214 +443,91 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 		}
 	}
 
-	@Override
-	public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
-			final DLNetworkInputProvider validationInputProvider, final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final Messages messages = getContext(monitor).getKernel().getMessages();
+    @Override
+    public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
+        final DLNetworkInputProvider validationInputProvider,
+        final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final DLPythonContext context = getContext(monitor);
+        final DLPythonTrainingStatus status = monitor.getTrainingStatus();
 
-		PythonToJavaMessageHandler trainingDataRequestHandler = null;
-		PythonToJavaMessageHandler validationDataRequestHandler = null;
-		PythonToJavaMessageHandler onEpochBeginHandler = null;
-		PythonToJavaMessageHandler onEpochEndHandler = null;
-		PythonToJavaMessageHandler onBatchBeginHandler = null;
-		PythonToJavaMessageHandler onBatchEndHandler = null;
-        PythonOutputListener stdOutListener = null;
-        PythonOutputListener stdErrListener = null;
+        // Add log listeners.
+        final StringBuilder stdOut = new StringBuilder();
+        final StringBuilder stdErr = new StringBuilder();
+        final PythonOutputListener stdOutListener = new PythonOutputListener() {
 
-		try {
-			final DLPythonTrainingStatus status = monitor.getTrainingStatus();
+            private boolean m_silenced = false;
 
-			trainingDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_training_data") {
+            @Override
+            public void setSilenced(final boolean silenced) {
+                m_silenced = silenced;
+            }
 
-				@Override
-				protected void handle(final PythonToJavaMessage msg) throws Exception {
-					monitor.checkCanceled();
-					final long batchIndex = Long.parseLong(msg.getValue());
-					final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = trainingInputProvider
-							.get(batchIndex);
-					monitor.checkCanceled();
-					for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-						final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-						final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
-						try {
-							getContext(monitor).putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
-						} catch (final IOException ex) {
-							throw new IOException("Transmitting training data to Python failed.", ex);
-						} finally {
-							tensor.getBuffer().reset();
-						}
-					}
-					monitor.checkCanceled();
-					messages.answer(new DefaultJavaToPythonResponse(msg, ""));
-				}
-			};
-			messages.registerMessageHandler(trainingDataRequestHandler);
+            @Override
+            public void messageReceived(final String message) {
+                if (!m_silenced) {
+                    stdOut.append(message);
+                    stdOut.append("\n");
+                    status.setStdOutOutput(stdOut.toString());
+                }
+            }
+        };
+        final PythonOutputListener stdErrListener = new PythonOutputListener() {
 
-			if (validationInputProvider != null) {
-				validationDataRequestHandler = new AbstractPythonToJavaMessageHandler("request_validation_data") {
+            private boolean m_silenced = false;
 
-					@Override
-					protected void handle(final PythonToJavaMessage msg) throws Exception {
-						monitor.checkCanceled();
-						final long batchIndex = Long.parseLong(msg.getValue());
-						final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = validationInputProvider
-								.get(batchIndex);
-						monitor.checkCanceled();
-						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-							final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-							final TableChunker tableChunker = createSingleTensorTableChunker(entry.getKey(), tensor);
-							try {
-								// TODO: different identifiers for validation input? (pre-fetching on Python side...)
-								getContext(monitor).putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, monitor);
-							} catch (final IOException ex) {
-								throw new IOException("Transmitting validation data to Python failed.", ex);
-							} finally {
-								tensor.getBuffer().reset();
-							}
-						}
-						monitor.checkCanceled();
-						messages.answer(new DefaultJavaToPythonResponse(msg, ""));
-					}
-				};
-				messages.registerMessageHandler(validationDataRequestHandler);
-			}
+            @Override
+            public void setSilenced(final boolean silenced) {
+                m_silenced = silenced;
+            }
 
-			onEpochBeginHandler = new AbstractPythonToJavaMessageHandler("epoch_begin") {
+            @Override
+            public void messageReceived(final String message) {
+                if (!m_silenced) {
+                    stdErr.append(message);
+                    stdErr.append("\n");
+                    status.setStdErrOutput(stdErr.toString());
+                }
+            }
+        };
+        final PythonKernel kernel = context.getKernel();
+        kernel.addStdoutListener(stdOutListener);
+        kernel.addStderrorListener(stdErrListener);
 
-				@Override
-				protected void handle(final PythonToJavaMessage msg) throws Exception {
-					status.epochStarted().raise(null);
-				}
-			};
-			messages.registerMessageHandler(onEpochBeginHandler);
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import DLPythonNetwork") //
+            .n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+            .n("from DLKerasNetworkTrainingInputGenerator import DLKerasNetworkTrainingInputGenerator") //
+            .n("training_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
+            /**/ .a(trainingInputProvider.getNumBatches()).a(", network.spec.training_config.batch_size, ")
+            /**/ .as("request_training_data").a(")");
+        if (validationInputProvider != null) {
+            b.n("validation_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
+                .a(validationInputProvider.getNumBatches()).a(", network.spec.training_config.validation_batch_size, ")
+                .as("request_validation_data").a(")");
+        } else {
+            b.n("validation_data_supplier = None");
+        }
+        b.n("from DLKerasTrainTask import DLKerasTrainTask") //
+            .n("reply_to = locals()['python_messaging_initiating_message_id']")
+            .n("train_task = DLKerasTrainTask(reply_to, network, training_data_supplier, ") //
+            .a("validation_data_supplier=validation_data_supplier)") //
+            .n("train_task.get()");
 
-			final LinkedHashMap<String, DLReportedMetric> epochMetrics = new LinkedHashMap<>(4);
-			epochMetrics.put("val_accuracy", new DLReportedMetric("val_accuracy", 0f));
-			epochMetrics.put("val_loss", new DLReportedMetric("val_loss", 0f));
-
-			onEpochEndHandler = new AbstractPythonToJavaMessageHandler("epoch_end") {
-
-				@Override
-				protected void handle(final PythonToJavaMessage msg) throws Exception {
-					final String[] metricsStr = msg.getValue().split(";");
-					int i = 0;
-					for (final DLReportedMetric m : epochMetrics.values()) {
-						try {
-							m.setValue(Float.parseFloat(metricsStr[i]));
-						} catch (final NumberFormatException e) {
-							m.setValue(-1f);
-							LOGGER.debug(
-									"Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
-						}
-						i++;
-					}
-					status.epochEnded().raise(epochMetrics);
-				}
-			};
-			messages.registerMessageHandler(onEpochEndHandler);
-
-			onBatchBeginHandler = new AbstractPythonToJavaMessageHandler("batch_begin") {
-
-				@Override
-				protected void handle(final PythonToJavaMessage msg) throws Exception {
-					status.batchStarted().raise(null);
-				}
-			};
-			messages.registerMessageHandler(onBatchBeginHandler);
-
-			final LinkedHashMap<String, DLReportedMetric> batchMetrics = new LinkedHashMap<>(4);
-			batchMetrics.put("accuracy", new DLReportedMetric("accuracy", 0f));
-			batchMetrics.put("loss", new DLReportedMetric("loss", 0f));
-
-			onBatchEndHandler = new AbstractPythonToJavaMessageHandler("batch_end") {
-
-				@Override
-				protected void handle(final PythonToJavaMessage msg) throws Exception {
-					monitor.checkCanceled();
-					final String[] metricsStr = msg.getValue().split(";");
-					int i = 0;
-					for (final DLReportedMetric m : batchMetrics.values()) {
-						try {
-							m.setValue(Float.parseFloat(metricsStr[i]));
-						} catch (final NumberFormatException e) {
-							m.setValue(-1f);
-							LOGGER.debug(
-									"Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
-						}
-						i++;
-					}
-					messages.answer(
-							new DefaultJavaToPythonResponse(msg, status.getStatus() == Status.RUNNING ? "c" : "s"));
-					status.batchEnded().raise(batchMetrics);
-					// start validation phase if validation is enabled and we finished the last training batch of the
-					// epoch
-					if (validationInputProvider != null
-							&& status.getCurrentBatchInEpoch() == status.getNumBatchesPerEpoch() - 1) {
-						status.validationStarted().raise(null);
-					}
-				}
-			};
-			messages.registerMessageHandler(onBatchEndHandler);
-
-            // Add log listeners
-            final StringBuilder stdOut = new StringBuilder();
-            final StringBuilder stdErr = new StringBuilder();
-            stdOutListener = (msg) -> {
-                stdOut.append(msg);
-                stdOut.append("\n");
-                status.setStdOutOutput(stdOut.toString());
-            };
-            stdErrListener = (msg) -> {
-                stdErr.append(msg);
-                stdErr.append("\n");
-                status.setStdErrOutput(stdErr.toString());
-            };
-            getContext(monitor).getKernel().addStdoutListener(stdOutListener);
-            getContext(monitor).getKernel().addStderrorListener(stdErrListener);
-
-			final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-					.a("import DLPythonNetwork") //
-					.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-					.n("from DLKerasNetworkTrainingInputGenerator import DLKerasNetworkTrainingInputGenerator") //
-					.n("training_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
-					/**/ .a(trainingInputProvider.getNumBatches()).a(", network.spec.training_config.batch_size, ")
-					/**/ .as("request_training_data").a(")");
-			if (validationInputProvider != null) {
-				b.n("validation_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
-						.a(validationInputProvider.getNumBatches())
-						.a(", network.spec.training_config.validation_batch_size, ").as("request_validation_data")
-						.a(")");
-			} else {
-				b.n("validation_data_supplier = None");
-			}
-			b.n("network.train(training_data_supplier, validation_data_supplier=validation_data_supplier)");
-			getContext(monitor).executeInKernel(b.toString(), monitor);
-		} finally {
-			if (trainingDataRequestHandler != null) {
-				messages.unregisterMessageHandler(trainingDataRequestHandler);
-			}
-			if (validationDataRequestHandler != null) {
-				messages.unregisterMessageHandler(validationDataRequestHandler);
-			}
-			if (onEpochBeginHandler != null) {
-				messages.unregisterMessageHandler(onEpochBeginHandler);
-			}
-			if (onEpochEndHandler != null) {
-				messages.unregisterMessageHandler(onEpochEndHandler);
-			}
-			if (onBatchBeginHandler != null) {
-				messages.unregisterMessageHandler(onBatchBeginHandler);
-			}
-			if (onBatchEndHandler != null) {
-				messages.unregisterMessageHandler(onBatchEndHandler);
-			}
-
-            // Remove log listeners
-            getContext(monitor).getKernel().removeStderrorListener(stdOutListener);
-            getContext(monitor).getKernel().removeStderrorListener(stdErrListener);
-		}
-	}
+        try {
+            final DLPythonNetworkTrainingTaskHandler trainingTaskHandler = createNetworkTrainingTaskHandler(context,
+                monitor, trainingInputProvider, validationInputProvider, this::createSingleTensorTableChunker);
+            final RunnableFuture<Void> trainingTask = kernel.createExecutionTask(trainingTaskHandler, b.toString());
+            trainingTask.run();
+            trainingTask.get();
+        } catch (final ExecutionException | InterruptedException ex) {
+            throw new IOException(ex);
+        } finally {
+            // Remove log listeners.
+            kernel.removeStderrorListener(stdOutListener);
+            kernel.removeStderrorListener(stdErrListener);
+        }
+    }
 
 	/**
 	 * Closes the underlying {@link DLPythonContext Python context}.
@@ -732,7 +618,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
     private static final class DLPythonTableChunker implements TableChunker {
 
-        private final DLPythonResetableTableIterator m_iterator;
+        private final DLPythonResettableTableIterator m_iterator;
 
         private boolean m_hasNextChunk = true;
 
@@ -742,7 +628,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         private final Row m_row;
 
-        private DLPythonTableChunker(final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
+        private DLPythonTableChunker(final DLTensor<? extends DLWritableBuffer> tensor) {
             // Create the serializer
             final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
                 .filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
@@ -768,7 +654,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             // Create the row
             m_row = new RowImpl(identifier, 2);
             m_row.setCell(shapeCell, 1);
-            m_iterator = new DLPythonResetableTableIterator(m_tableSpec, m_row);
+            m_iterator = new DLPythonResettableTableIterator(m_tableSpec, m_row);
         }
 
         @Override
@@ -802,7 +688,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         }
     }
 
-    private static final class DLPythonResetableTableIterator implements TableIterator {
+    private static final class DLPythonResettableTableIterator implements TableIterator {
 
         private final TableSpec m_tableSpec;
 
@@ -810,7 +696,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         private boolean m_hasNext = true;
 
-        private DLPythonResetableTableIterator(final TableSpec tableSpec, final Row row) {
+        private DLPythonResettableTableIterator(final TableSpec tableSpec, final Row row) {
             m_tableSpec = tableSpec;
             m_row = row;
         }
@@ -861,6 +747,175 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         public String createReader() {
             return m_createReaderStatement;
+        }
+    }
+
+    protected static class DLPythonNetworkTrainingTaskHandler extends AbstractTaskHandler<Void> {
+
+        protected final DLPythonContext m_context;
+
+        protected final DLTrainingMonitor<? extends DLPythonTrainingStatus> m_monitor;
+
+        protected final DLPythonTrainingStatus m_status;
+
+        protected final DLNetworkInputProvider m_trainingInputProvider;
+
+        /**
+         * <code>null</code> iff no validation is performed.
+         */
+        protected final DLNetworkInputProvider m_validationInputProvider;
+
+        protected LinkedHashMap<String, DLReportedMetric> epochMetrics = new LinkedHashMap<>(4);
+
+        protected LinkedHashMap<String, DLReportedMetric> batchMetrics = new LinkedHashMap<>(4);
+
+        protected final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, //
+                IOException> m_singleTensorTableChunkerCreator;
+
+        protected DLPythonNetworkTrainingTaskHandler(final DLPythonContext context,
+            final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
+            final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
+            final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+            m_context = context;
+            m_monitor = monitor;
+            m_status = monitor.getTrainingStatus();
+            m_trainingInputProvider = trainingInputProvider;
+            m_validationInputProvider = validationInputProvider;
+            m_singleTensorTableChunkerCreator = singleTensorTableChunkerCreator;
+
+            // Default values.
+            epochMetrics.put("val_accuracy", new DLReportedMetric("val_accuracy", 0f));
+            epochMetrics.put("val_loss", new DLReportedMetric("val_loss", 0f));
+
+            batchMetrics.put("accuracy", new DLReportedMetric("accuracy", 0f));
+            batchMetrics.put("loss", new DLReportedMetric("loss", 0f));
+        }
+
+        @Override
+        protected boolean handleCustomMessage(final Message message, final IntSupplier responseMessageIdSupplier,
+            final Consumer<Message> responseConsumer, final Consumer<Void> resultConsumer) throws ExecutionException {
+            final String messageType = message.getHeaderField(FIELD_KEY_MESSAGE_TYPE);
+            try {
+                Message response = null;
+                switch (messageType) {
+                    case "request_training_data":
+                        response = handleTrainingDataRequest(message, responseMessageIdSupplier);
+                        break;
+                    case "request_validation_data":
+                        response = handleValidationDataRequest(message, responseMessageIdSupplier);
+                        break;
+                    case "epoch_begin":
+                        handleEpochBegin(message);
+                        break;
+                    case "epoch_end":
+                        handleEpochEnd(message);
+                        break;
+                    case "batch_begin":
+                        handleBatchBegin(message);
+                        break;
+                    case "batch_end":
+                        handleBatchEnd(message);
+                        break;
+                    default:
+                        return false;
+                }
+                if (response != null) {
+                    responseConsumer.accept(response);
+                }
+            } catch (final Exception ex) {
+                throw new ExecutionException(ex.getMessage(), ex);
+            }
+            return true;
+        }
+
+        private Message handleTrainingDataRequest(final Message message, final IntSupplier responseMessageIdSupplier)
+            throws Exception {
+            final long batchIndex = Long.parseLong(new PayloadDecoder(message.getPayload()).getNextString());
+            final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = m_trainingInputProvider.get(batchIndex);
+            for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+                final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+                final TableChunker tableChunker = m_singleTensorTableChunkerCreator.apply(entry.getKey(), tensor);
+                try {
+                    m_context.putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, m_monitor);
+                } catch (final IOException ex) {
+                    throw new IOException("Transmitting training data to Python failed.", ex);
+                } finally {
+                    tensor.getBuffer().reset();
+                }
+            }
+
+            final HashMap<String, String> options = new HashMap<>(1);
+            options.put(FIELD_KEY_MESSAGE_TYPE, MESSAGE_TYPE_SUCCESS);
+            return new DefaultMessage(responseMessageIdSupplier.getAsInt(), Integer.toString(message.getId()), null,
+                options);
+        }
+
+        private Message handleValidationDataRequest(final Message message, final IntSupplier responseMessageIdSupplier)
+            throws Exception {
+            final long batchIndex = Long.parseLong(new PayloadDecoder(message.getPayload()).getNextString());
+            final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input =
+                m_validationInputProvider.get(batchIndex);
+            for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+                final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+                final TableChunker tableChunker = m_singleTensorTableChunkerCreator.apply(entry.getKey(), tensor);
+                try {
+                    // TODO: Different identifiers for validation input (e.g. to allow pre-fetching on Python side...)?
+                    m_context.putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, m_monitor);
+                } catch (final IOException ex) {
+                    throw new IOException("Transmitting validation data to Python failed.", ex);
+                } finally {
+                    tensor.getBuffer().reset();
+                }
+            }
+
+            final HashMap<String, String> options = new HashMap<>(1);
+            options.put(FIELD_KEY_MESSAGE_TYPE, MESSAGE_TYPE_SUCCESS);
+            return new DefaultMessage(responseMessageIdSupplier.getAsInt(), Integer.toString(message.getId()), null,
+                options);
+        }
+
+        private void handleEpochBegin(final Message message) {
+            m_status.epochStarted().raise(null);
+        }
+
+        private void handleEpochEnd(final Message message) {
+            final String[] metricsStr = new PayloadDecoder(message.getPayload()).getNextString().split(";");
+            int i = 0;
+            for (final DLReportedMetric m : epochMetrics.values()) {
+                try {
+                    m.setValue(Float.parseFloat(metricsStr[i]));
+                } catch (final NumberFormatException e) {
+                    m.setValue(-1f);
+                    LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+                }
+                i++;
+            }
+            m_status.epochEnded().raise(epochMetrics);
+        }
+
+        private void handleBatchBegin(final Message message) {
+            m_status.batchStarted().raise(null);
+        }
+
+        private void handleBatchEnd(final Message message) {
+            final String[] metricsStr = new PayloadDecoder(message.getPayload()).getNextString().split(";");
+            int i = 0;
+            for (final DLReportedMetric m : batchMetrics.values()) {
+                try {
+                    m.setValue(Float.parseFloat(metricsStr[i]));
+                } catch (final NumberFormatException e) {
+                    m.setValue(-1f);
+                    LOGGER.debug("Received invalid value for metric '" + m.getName() + "': " + m.getValue() + ".");
+                }
+                i++;
+            }
+            m_status.batchEnded().raise(batchMetrics);
+            // Start validation phase if validation is enabled and we finished the last training batch of the
+            // epoch.
+            if (m_validationInputProvider != null
+                && m_status.getCurrentBatchInEpoch() == m_status.getNumBatchesPerEpoch() - 1) {
+                m_status.validationStarted().raise(null);
+            }
         }
     }
 }

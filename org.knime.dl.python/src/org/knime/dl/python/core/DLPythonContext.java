@@ -95,6 +95,9 @@ public interface DLPythonContext extends AutoCloseable {
 	String[] executeInKernel(final String code, DLCancelable cancelable)
 	        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
 
+    String[] executeAsyncInKernel(final String code, DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
+
     void putDataInKernel(String name, final TableChunker tableChunker, final int rowsPerChunk, DLCancelable cancelable)
         throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException;
 

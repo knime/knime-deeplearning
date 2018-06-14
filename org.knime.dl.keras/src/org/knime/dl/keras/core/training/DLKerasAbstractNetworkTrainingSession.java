@@ -143,4 +143,12 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
         return new DLKerasNetworkPortObject(
             loader.fetch(m_handle, new DLNetworkFileStoreLocation(fileStore), m_commands.getContext(cancelable), cancelable));
 	}
+
+    @Override
+    public void stopEarly() throws DLCanceledExecutionException, Exception {
+        if (m_commands == null) {
+            throw new IllegalStateException("Network was not trained, yet.");
+        }
+        m_commands.stopTrainNetworkEarly(m_handle);
+    }
 }
