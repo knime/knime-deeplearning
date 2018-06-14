@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerassimplernnlayer.png" type="Other">
+	<name>Keras Simple RNN Layer</name>
+
+	<shortDescription>
+		Simple RNN layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Fully-connected RNN where the output is to be fed back to input.
+			Corresponds to the
+			<a href="https://keras.io/layers/recurrent/#simplernn">SimpleRNN Keras layer</a>
+			.
+		</intro>
+		<tab name="Options">
+			<option name="Units">
+				Dimensionality of the output space.
+			</option>
+			<option name="Activation">
+				The activation function to use on the input transformations.
+			</option>
+			<option name="Use bias">
+				If checked, a bias vector will be used.
+			</option>
+			<option name="Return sequences">
+				Whether to return the last output in the output sequence or the full output sequence.
+				If selected the output will have shape [time, units] otherwise the output
+				will have shape [units].
+			</option>
+			<option name="Return state">
+				Whether to return the hidden state in addition to the layer output.
+				If selected the layer returns two tensors, the normal output and the hidden state of the layer.
+				If sequences are returned, this also applies to the hidden state.
+			</option>
+			<option name="Dropout">
+				Fraction of the units to drop for the linear transformation of the input.
+			</option>
+			<option name="Recurrent dropout">
+				Fraction of the units to drop for the linear transformation of the recurrent state.
+			</option>
+			<option name="Go backwards">
+				Whether to go backwards in time i.e. read the input sequence backwards.
+			</option>
+			<option name="Unroll">
+				Whether to unroll the network i.e. convert it in a feed-forward network that reuses the layer's weights for each timestep.
+				Unrolling can speed up an RNN but it's more memory-expensive and only suitable for short sequences.
+				If the layer is not unrolled, a symbolic loop is used.
+			</option>
+		</tab>
+		<tab name="Initializers">
+			<option name="Kernel initializer">
+				Initializer for the weight matrix used for the linear transformations of the input.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Recurrent initializer">
+				Initializer for the weight matrix used for the linear transformation of the recurrent connection.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Bias initializer">
+				Initializer for the bias vector (if a bias is used).
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+		</tab>
+		<tab name="Regularizers">
+			<option name="Kernel regularizer">
+				Regularizer function applied to the weight matrix.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Recurrent regularizer">
+				Regularizer function applied to the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Bias regularizer">
+				Regularizer function applied to the bias vector.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Activity regularizer">
+				Regularizer function applied to the output of the layer i.e. its activation.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+		</tab>
+		<tab name="Constraints">
+			<option name="Kernel constraint">
+				Constraint on the weight matrix for the input connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Recurrent constraint">
+				Constraint on the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Bias constraint">
+				Constraint on the bias vector.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Simple RNN</tt>
+			layer.
+		</inPort>
+		<inPort name="Deep Learning" index="1">
+			An optional Keras deep learning network that provides the initial state for this <tt>Simple RNN</tt> layer.
+			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Simple RNN</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>
