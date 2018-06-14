@@ -129,6 +129,13 @@
             name="Normalization"
             path="/labs/deeplearning/keras/layers">
       </category>
+	  <category
+            icon="icons/keras-layers.gif"
+            level-id="recurrent"
+            locked="true"
+            name="Recurrent"
+            path="/labs/deeplearning/keras/layers">
+      </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
@@ -416,6 +423,36 @@
             category-path="/labs/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.subtract.DLKerasSubtractLayerNodeFactory">
+      </node>
+	  <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.lstm.DLKerasLSTMLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.gru.DLKerasGRULayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.simplernn.DLKerasSimpleRNNLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnngru.DLKerasCuDNNGRULayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnnlstm.DLKerasCuDNNLSTMLayerNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/recurrent"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.convlstm2d.DLKerasConvLSTM2DLayerNodeFactory">
       </node>
   </extension>
    <extension
