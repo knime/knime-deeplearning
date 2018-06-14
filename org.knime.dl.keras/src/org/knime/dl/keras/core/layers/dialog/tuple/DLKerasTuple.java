@@ -123,8 +123,8 @@ public class DLKerasTuple {
 
         if (tuple != null && (tuple.length > m_maxLength || tuple.length < m_minLength)) {
             throw new IllegalArgumentException(
-                "Specified tuple length: " + tuple.length + " is not within the allowed bounds. Minimum length: "
-                    + m_minLength + " Maximum length: " + m_maxLength);
+                "Specified tuple length: " + tuple.length + " is not within the allowed bounds: ["
+                    + m_minLength + "-" + m_maxLength + "]");
         }
         m_tuple = tuple;
 
