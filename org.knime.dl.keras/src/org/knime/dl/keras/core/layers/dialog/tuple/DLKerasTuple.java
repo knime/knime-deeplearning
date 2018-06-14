@@ -353,7 +353,7 @@ public class DLKerasTuple {
             }
 
             return new DLKerasTuple(settings.getString(SETTINGS_KEY_TUPLE), settings.getInt(SETTINGS_KEY_MIN),
-                settings.getInt(SETTINGS_KEY_MAX), EnumSet.copyOf(cs));
+                settings.getInt(SETTINGS_KEY_MAX), cs.isEmpty() ? EnumSet.noneOf(Constraint.class): EnumSet.copyOf(cs));
         } else {
             return null;
         }
