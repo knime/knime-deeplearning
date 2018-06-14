@@ -137,19 +137,19 @@ public class DLKerasTuple {
         }
 
         if (!constraints.contains(Constraint.ZERO)) {
-            if (containsZero(tuple)) {
+            if (tuple != null && containsZero(tuple)) {
                 throw new IllegalArgumentException("Specified tuple must not contain zero values.");
             }
         }
 
         if (!constraints.contains(Constraint.NEGATIVE)) {
-            if (containsNegatve(tuple)) {
+            if (tuple != null && containsNegatve(tuple)) {
                 throw new IllegalArgumentException("Specified tuple must not contain negative values.");
             }
         }
 
         if (!constraints.contains(Constraint.PARTIAL)) {
-            if (containsPartial(tuple)) {
+            if (tuple != null && containsPartial(tuple)) {
                 throw new IllegalArgumentException("Specified tuple must not contain partial values.");
             }
         }
