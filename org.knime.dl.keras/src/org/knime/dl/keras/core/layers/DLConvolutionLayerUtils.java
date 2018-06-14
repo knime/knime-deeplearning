@@ -127,13 +127,13 @@ public final class DLConvolutionLayerUtils {
      * @param inputShape the 1-D, 2-D or 3-D input shape + channel, also works for n-D
      * @param filterSize the filter in each spatial dimension
      * @param stride the stride in each spatial dimension
-     * @param dialtion the dilation in each spatial dimension
+     * @param dilation the dilation in each spatial dimension
      * @param padding the padding mode to use
      * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
      * @return resulting output shape after convolution operation with specified parameters
      */
     public static Long[] computeOutputShape(final Long[] inputShape, final Long[] filterSize, final Long[] stride,
-        final Long[] dialtion, final String padding, final String dataFormat) {
+        final Long[] dilation, final String padding, final String dataFormat) {
 
         if ((inputShape.length - 1) != filterSize.length || filterSize.length != stride.length) {
             throw new RuntimeException("Convolutional parameters not specified for each dimension.");
@@ -141,16 +141,36 @@ public final class DLConvolutionLayerUtils {
 
         int channelIndex = findChannelIndex(inputShape, dataFormat);
         Long[] newDims = IntStream.range(0, inputShape.length).filter(i -> i != channelIndex)
-            .mapToLong(i -> inputShape[i]).boxed().toArray(Long[]::new);
+            .mapToObj(i -> inputShape[i]).toArray(Long[]::new);
 
         Stream<Long> outputShape = IntStream.range(0, newDims.length)
-            .mapToLong(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], dialtion[i], padding)).boxed();
+            .mapToObj(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], dilation[i], padding));
 
         if (dataFormat.equals("channels_first")) {
             return Stream.concat(Stream.of(inputShape[channelIndex]), outputShape).toArray(Long[]::new);
         } else {
             return Stream.concat(outputShape, Stream.of(inputShape[channelIndex])).toArray(Long[]::new);
         }
+    }
+    
+    /**
+     * Computes the output shape for convolution like layers.
+     * 
+     * @param inputShape the 1-D, 2-D or 3-D input shape + channel, also works for n-D
+     * @param filters the number of filters the convolution uses
+     * @param filterSize the filter in each spatial dimension
+     * @param stride the stride in each spatial dimension
+     * @param dilation the dilation in each spatial dimension
+     * @param padding the padding mode to use
+     * @param dataFormat the used data format, i.e. "channels_first" or "channels_last"
+     * @return resulting output shape after convolution operation with specified parameters
+     * 
+     */
+    public static Long[] computeOutputShape(final Long[] inputShape, final long filters, final Long[] filterSize,
+        final Long[] stride, final Long[] dilation, final String padding, final String dataFormat) {
+        Long[] outShape = computeOutputShape(inputShape, filterSize, stride, dilation, padding, dataFormat);
+        outShape[findChannelIndex(inputShape, dataFormat)] = filters;
+        return outShape;
     }
 
     private static int findChannelIndex(final Long[] inputShape, final String dataFormat) {
