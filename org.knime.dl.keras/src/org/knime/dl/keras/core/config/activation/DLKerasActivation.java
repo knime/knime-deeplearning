@@ -82,4 +82,9 @@ public enum DLKerasActivation implements DLKerasEnum<String> {
     public String label() {
         return m_label;
     }
+    
+    @Override
+    public String toString() {
+        return label();
+    }
 }
