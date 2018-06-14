@@ -266,6 +266,15 @@ public final class DLKerasNetworkMaterializer {
 
         @Override
         public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
+            final String[] parentVariables = extractParentVariables(innerLayer);
+            final String layerVariable = m_layerVariables.get(innerLayer);
+            m_codeLinesToGenerate.put(innerLayer, gen -> layerVariable + " = " // TODO check if recurrent layer
+                + innerLayer.getBackendRepresentation(gen.getNextLayerName(innerLayer)) //
+                + '(' + innerLayer.populateCall(parentVariables)
+                + ')');
+        }
+
+        private String[] extractParentVariables(final DLKerasInnerLayer innerLayer) {
             final String[] parentVariables = new String[innerLayer.getNumParents()];
             for (int i = 0; i < innerLayer.getNumParents(); i++) {
                 final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
@@ -276,13 +285,7 @@ public final class DLKerasNetworkMaterializer {
                 }
                 parentVariables[i] = parentVariable;
             }
-            final String layerVariable = m_layerVariables.get(innerLayer);
-            m_codeLinesToGenerate.put(innerLayer, gen -> layerVariable + " = " //
-                + innerLayer.getBackendRepresentation(gen.getNextLayerName(innerLayer)) //
-                + '(' + (parentVariables.length == 1 //
-                    ? parentVariables[0] //
-                    : "[" + String.join(",", parentVariables) + "]") //
-                + ')');
+            return parentVariables;
         }
 
         @Override

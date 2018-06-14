@@ -51,6 +51,7 @@ import org.knime.dl.core.DLTensorSpec;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasInnerLayer extends DLKerasLayer {
 
@@ -82,4 +83,14 @@ public interface DLKerasInnerLayer extends DLKerasLayer {
     void setParent(int index, DLKerasTensorSpecsOutput parent);
 
     void validateInputSpecs() throws DLInvalidTensorSpecException;
+    
+    /**
+     * Populates the parameters of the __call__ method of this layer.
+     * Important note: Do not surround the returned String with parenthesis unless the call function expects
+     * a tuple as input.
+     * 
+     * @param inputTensors the python variable names of the input tensors
+     * @return a String of python code providing the arguments for the __call__ method of this layer
+     */
+    String populateCall(String[] inputTensors);
 }

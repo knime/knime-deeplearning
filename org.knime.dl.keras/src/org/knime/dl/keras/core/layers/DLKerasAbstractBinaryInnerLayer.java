@@ -55,6 +55,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInnerLayer implements DLKerasBinaryLayer {
 
@@ -73,6 +74,14 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
     public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier, final DLKerasLayer firstParent,
         final DLKerasLayer secondParent) {
         super(kerasIdentifier, new DLKerasLayer[]{firstParent, secondParent});
+    }
+    
+    @Override
+    public String populateCall(String[] inputTensors) {
+        if (inputTensors.length != 2) {
+            throw new IllegalArgumentException("A binary layer expects two input tensors");
+        }
+        return "[" + String.join(",", inputTensors);
     }
 
     @Override

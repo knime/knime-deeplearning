@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import org.knime.dl.keras.core.struct.param.Parameter;
+
 /**
  * Deriving classes must expose a public nullary constructor that is used for deserialization. Parameters must be
  * non-final and annotated with {@link Parameter} to enable injection.
@@ -56,5 +58,5 @@ package org.knime.dl.keras.core.layers;
 public interface DLKerasLayer extends DLKerasTensorSpecsOutput, DLKerasObject {
 
     String getBackendRepresentation(String layerName);
-
+    
 }

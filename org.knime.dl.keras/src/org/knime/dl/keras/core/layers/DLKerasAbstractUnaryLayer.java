@@ -69,6 +69,14 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
     public DLKerasAbstractUnaryLayer(final String kerasIdentifier, final DLKerasLayer parent) {
         super(kerasIdentifier, new DLKerasLayer[]{parent});
     }
+    
+    @Override
+    public String populateCall(String[] parentTensors) {
+        if (parentTensors.length != 1) {
+            throw new IllegalArgumentException("An unary layer expects exactly one input tensor.");
+        }
+        return parentTensors[0];
+    }
 
     @Override
     public DLTensorSpec getInputTensorSpec(int index) {
