@@ -60,6 +60,7 @@ import javax.swing.JPanel;
 
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -111,6 +112,8 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
         private final Map<String, Integer> m_choiceKeyToIndex = new HashMap<>();
 
         private SwingWidgetPanel m_currentSwingWidgetPanel;
+
+        private PortObjectSpec[] m_lastSpec;
 
         public Widget(final Member<T> member) {
             super(member);
@@ -187,7 +190,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                     if (!defaultsLoaded) {
                         try {
                             m_currentSwingWidgetPanel
-                                .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()));
+                                .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()), m_lastSpec);
                         } catch (InvalidSettingsException e) {
                             // Can't load defaults.
                         } finally {
@@ -263,7 +266,8 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
         }
 
         @Override
-        public void loadFrom(MemberReadInstance<T> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
+            m_lastSpec = spec;
             T obj = instance.get();
             // init any if empty
             if (obj == null) {
@@ -280,7 +284,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
             refreshSubPanels();
             if (m_currentSwingWidgetPanel != null) {
                 m_currentSwingWidgetPanel.loadFrom(
-                    StructInstances.createReadWriteInstance(casted, ((ParameterNestedStructChoice<T>)choice).access()));
+                    StructInstances.createReadWriteInstance(casted, ((ParameterNestedStructChoice<T>)choice).access()), m_lastSpec);
             }
         }
 

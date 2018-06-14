@@ -55,6 +55,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -134,7 +135,8 @@ class SwingTextWidgetFactory implements SwingWidgetFactory<String> {
 
         // -- Model change event listener --
         @Override
-        public void loadFrom(MemberReadInstance<String> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<String> instance, final PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             textComponent.setText(instance.get());
         }
 

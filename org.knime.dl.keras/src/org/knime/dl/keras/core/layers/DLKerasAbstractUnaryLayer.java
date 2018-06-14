@@ -49,12 +49,17 @@ package org.knime.dl.keras.core.layers;
 import java.util.Collections;
 import java.util.List;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.struct.param.Parameter;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLayer
-    implements DLKerasUnaryLayer {
+public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLayer implements DLKerasUnaryLayer {
+
+    @Parameter(label = "Input")
+    private DLTensorSpec spec = null;
 
     public DLKerasAbstractUnaryLayer(final String kerasIdentifier) {
         super(kerasIdentifier, 1);

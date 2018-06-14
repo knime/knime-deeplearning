@@ -50,6 +50,7 @@ package org.knime.dl.keras.core.struct.dialog;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -83,9 +84,11 @@ public interface SwingWidget<T> {
      * Load and initialize dialog component.
      * 
      * @param instance the {@link MemberReadInstance} to initialize the settings from.
+     * @param specs the spec
+     * 
      * @throws InvalidSettingsException in case something goes wrong during loading.
      */
-    void loadFrom(MemberReadInstance<T> instance) throws InvalidSettingsException;
+    void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] specs) throws InvalidSettingsException;
 
     /**
      * Persist values of dialog component.

@@ -54,6 +54,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -89,8 +90,6 @@ class SwingCheckboxWidgetFactory implements SwingWidgetFactory<Boolean> {
 
         private JCheckBox m_checkBox;
 
-        private boolean m_value;
-
         public Widget(final Member<Boolean> model) {
             super(model);
         }
@@ -117,7 +116,8 @@ class SwingCheckboxWidgetFactory implements SwingWidgetFactory<Boolean> {
         // -- Model change event listener --
 
         @Override
-        public void loadFrom(MemberReadInstance<Boolean> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<Boolean> instance, PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             m_checkBox.setSelected(instance.get());
         }
 

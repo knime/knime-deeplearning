@@ -44,7 +44,6 @@
  * ---------------------------------------------------------------------
  *
  */
-
 package org.knime.dl.keras.core.layers.dialog.tuple;
 
 import java.awt.Color;
@@ -55,6 +54,7 @@ import javax.swing.JTextField;
 
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.base.nodes.learner.view.jfreechart.DocumentAdapter;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.struct.Member;
@@ -111,7 +111,8 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         }
 
         @Override
-        public void loadFrom(MemberReadInstance<DLKerasTuple> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<DLKerasTuple> instance, final PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             m_lastTuple = instance.get();
             m_textField.setReferenceTuple(m_lastTuple);
             m_textField.setTuple(instance.get().getTuple());
@@ -164,7 +165,8 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
                 if (m_refernceTuple.isPartialAllowed()) {
                     if (!stripped.matches(DLParameterValidationUtils.PARTIAL_SHAPE_PATTERN)) {
                         m_errorMessage.setText("Invalid tuple format: '" + m_tuple.getText() + "' Must be digits"
-                                + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "") + " separated by a comma.");
+                            + (m_refernceTuple.isPartialAllowed() ? " or a question mark" : "")
+                            + " separated by a comma.");
                         return false;
                     }
                 } else {

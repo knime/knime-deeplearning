@@ -54,6 +54,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.dialog.AbstractSwingWidget;
 import org.knime.dl.keras.core.struct.dialog.SwingWidget;
@@ -113,9 +114,10 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
 
             return panel;
         }
-        
+
         @Override
-        public void loadFrom(MemberReadInstance<DLKerasSeed> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<DLKerasSeed> instance, PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             m_textField.setText(instance.get().getSeed() + "");
         }
 
@@ -124,7 +126,7 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
             try {
                 instance.set(new DLKerasSeed(Long.parseLong(m_textField.getText())));
             } catch (NumberFormatException e) {
-               throw new InvalidSettingsException("Could not save seed value. Must be non floating point number");
+                throw new InvalidSettingsException("Could not save seed value. Must be non floating point number");
             }
         }
 

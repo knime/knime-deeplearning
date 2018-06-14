@@ -54,6 +54,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
@@ -126,8 +127,8 @@ class SwingStructWidgetFactory<T> implements SwingWidgetFactory<T> {
         }
 
         @Override
-        public void loadFrom(MemberReadInstance<T> instance) throws InvalidSettingsException {
-            m_structPanel.loadFrom(StructInstances.createReadInstance(instance.get(), m_access));
+        public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
+            m_structPanel.loadFrom(StructInstances.createReadInstance(instance.get(), m_access), spec);
         }
 
         @Override

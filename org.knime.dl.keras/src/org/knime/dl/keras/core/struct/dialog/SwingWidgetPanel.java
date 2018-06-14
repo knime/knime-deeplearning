@@ -51,6 +51,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstance;
@@ -73,9 +74,11 @@ public interface SwingWidgetPanel {
 
     /**
      * @param instance to load settings for this panel
+     * @param spec the current spec
      * @throws InvalidSettingsException
      */
-    void loadFrom(StructInstance<? extends MemberReadInstance<?>, ?> instance) throws InvalidSettingsException;
+    void loadFrom(StructInstance<? extends MemberReadInstance<?>, ?> instance, PortObjectSpec[] spec)
+        throws InvalidSettingsException;
 
     /**
      * @param instance to save panel to

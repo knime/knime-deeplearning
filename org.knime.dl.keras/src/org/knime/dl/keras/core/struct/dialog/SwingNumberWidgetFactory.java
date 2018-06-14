@@ -66,8 +66,8 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.jdesktop.swingx.table.NumberEditorExt;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -114,7 +114,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             super(member);
             getComponent();
         }
-        
+
         private Number getMin() {
             Number min = toNumber(SwingWidgets.minimum(this), member().getRawType());
             if (min == null) {
@@ -122,7 +122,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
             }
             return min;
         }
-        
+
         private Number getMax() {
             Number max = toNumber(SwingWidgets.maximum(this), member().getRawType());
             if (max == null) {
@@ -142,7 +142,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
             Number min = getMin();
             Number max = getMax();
-            
+
             Number stepSize = toNumber(SwingWidgets.stepSize(this), member().getRawType());
             if (stepSize == null) {
                 stepSize = toNumber("1", member().getRawType());
@@ -352,7 +352,8 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
         }
 
         @Override
-        public void loadFrom(MemberReadInstance<Number> instance) throws InvalidSettingsException {
+        public void loadFrom(MemberReadInstance<Number> instance, PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             Number value = instance.get();
 
             String oldFormat = findDecimalFormat((String)SwingWidgets.stepSize(this),
@@ -361,9 +362,9 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
 
             spinner.setEditor(
                 new JSpinner.NumberEditor(spinner, oldFormat.length() > newFormat.length() ? oldFormat : newFormat));
-            
+
             // Only set the value if it is in bounds, hence ignore defaults that are not in bounds
-            if(value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue()) {
+            if (value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue()) {
                 spinner.setValue(value);
             }
         }

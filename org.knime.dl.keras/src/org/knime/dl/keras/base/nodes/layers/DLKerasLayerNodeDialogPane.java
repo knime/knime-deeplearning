@@ -90,19 +90,19 @@ final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialo
         m_settingsWO = NodeSettingsStructs.createStructWOAccess(struct);
         final DefaultSwingWidgetPanelFactory factory = new DefaultSwingWidgetPanelFactory();
         m_panel = factory.createPanel(struct);
-        for(Entry<String, JPanel> e : m_panel.getComponents().entrySet()) {
+        for (Entry<String, JPanel> e : m_panel.getComponents().entrySet()) {
             final JPanel nodeDialogPanel = new JPanel(new MigLayout("", "[grow]", ""));
             nodeDialogPanel.add(e.getValue(), "growx");
             addTab(e.getKey(), nodeDialogPanel);
         }
-        
+
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
-            m_panel.loadFrom(StructInstances.createReadInstance(settings, m_settingsRO));
+            m_panel.loadFrom(StructInstances.createReadInstance(settings, m_settingsRO), specs);
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException("Can't load settings. No settings available, yet.", e);
         }

@@ -54,6 +54,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
@@ -126,10 +127,10 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
         }
 
         @Override
-        public void loadFrom(StructInstance<? extends MemberReadInstance<?>, ?> structInstance)
-            throws InvalidSettingsException {
+        public void loadFrom(StructInstance<? extends MemberReadInstance<?>, ?> structInstance,
+            final PortObjectSpec[] spec) throws InvalidSettingsException {
             for (MemberReadInstance<?> memberInstance : structInstance) {
-                load(memberInstance);
+                load(memberInstance, spec);
             }
         }
 
@@ -147,10 +148,11 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
             swingWidget.saveTo(memberInstance);
         }
 
-        private <T> void load(MemberReadInstance<T> memberInstance) throws InvalidSettingsException {
+        private <T> void load(MemberReadInstance<T> memberInstance, PortObjectSpec[] spec)
+            throws InvalidSettingsException {
             @SuppressWarnings("unchecked")
             final SwingWidget<T> swingWidget = (SwingWidget<T>)m_widgets.get(memberInstance.member().getKey());
-            swingWidget.loadFrom(memberInstance);
+            swingWidget.loadFrom(memberInstance, spec);
         }
 
         @Override
