@@ -48,8 +48,10 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.knime.dl.core.DLDefaultTensorId;
@@ -69,6 +71,8 @@ import gnu.trove.TIntHashSet;
 public final class DLKerasNetworkSpecInferrer {
 
     private final List<DLKerasLayer> m_outputLayers;
+    
+    private final Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> m_layerToTensorMap = new HashMap<>();
 
     /**
      * Creates a new instance of this class that allows to infer the specification of the Keras network graph specified
@@ -78,6 +82,10 @@ public final class DLKerasNetworkSpecInferrer {
      */
     public DLKerasNetworkSpecInferrer(final List<DLKerasLayer> outputLayers) {
         m_outputLayers = outputLayers;
+    }
+    
+    public Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> getLayerToTensorMap() {
+        return m_layerToTensorMap;
     }
 
     /**
@@ -170,10 +178,10 @@ public final class DLKerasNetworkSpecInferrer {
             throw new DLNetworkGraphTraversalException(e.getMessage(), e);
         }
         final List<DLTensorSpec> amendedTensorSpecs = new ArrayList<>(tensorSpecs.size());
+        final String layerName = layerNameGen.getNextLayerName(layer);
         for (int i = 0; i < tensorSpecs.size(); i++) {
             final DLTensorSpec tensorSpec = tensorSpecs.get(i);
             final DLTensorSpec amendedTensorSpec;
-            final String layerName = layerNameGen.getNextLayerName(layer);
             // We cannot represent Keras layer nodes via KNIME nodes (unless we introduce "layer define" and
             // "layer apply" nodes). Thus, the node index is always zero.
             final String tensorName = layerNameGen.getOutputTensorName(layerName, 0, i);
@@ -187,6 +195,7 @@ public final class DLKerasNetworkSpecInferrer {
             }
             amendedTensorSpecs.add(amendedTensorSpec);
         }
+        m_layerToTensorMap.put(layer, amendedTensorSpecs);
         return amendedTensorSpecs;
     }
 

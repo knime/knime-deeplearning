@@ -71,11 +71,11 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
     }
     
     @Override
-    public String populateCall(String[] parentTensors) {
-        if (parentTensors.length != 1) {
+    public String populateCall(List<String> parentTensors) {
+        if (parentTensors.size() != 1) {
             throw new IllegalArgumentException("An unary layer expects exactly one input tensor.");
         }
-        return parentTensors[0];
+        return parentTensors.get(0);
     }
 
     @Override

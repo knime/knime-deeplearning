@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.util.List;
+
 import org.knime.dl.core.DLTensorSpec;
 
 /**
@@ -92,5 +94,5 @@ public interface DLKerasInnerLayer extends DLKerasLayer {
      * @param inputTensors the python variable names of the input tensors
      * @return a String of python code providing the arguments for the __call__ method of this layer
      */
-    String populateCall(String[] inputTensors);
+    String populateCall(List<String> inputTensors);
 }
