@@ -18,6 +18,12 @@
 			.
 		</intro>
 		<tab name="Options">
+			<option name="Input tensor">
+				The tensor to use as input for the layer.
+			</option>
+			<option name="Hidden state tensor">
+				The tensor to use as initial hidden state in case the corresponding port is connected.
+			</option>
 			<option name="Units">
 				Dimensionality of the output space.
 			</option>
