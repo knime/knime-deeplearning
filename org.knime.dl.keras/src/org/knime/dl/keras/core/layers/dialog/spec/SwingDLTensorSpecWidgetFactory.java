@@ -48,6 +48,7 @@
 package org.knime.dl.keras.core.layers.dialog.spec;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JComboBox;
@@ -125,6 +126,12 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
 
                 // TODO WUHU WORKAROUND. WE HAVE TO REPLACE THIS WITH A PROPER FIELD IN PARAMETERS. :-)
                 int portIdx = Integer.valueOf((String)((ParameterMember<?>)member).getMinimumValue());
+                DLKerasNetworkPortObjectSpecBase poSpec =(DLKerasNetworkPortObjectSpecBase)specs[portIdx];
+                if (poSpec == null) {
+                    m_tensorSpecItems.setModel(new ListComboBoxModel<>(Collections.EMPTY_LIST));
+                    m_lastNSpecs = null;
+                    return;
+                }
                 final DLNetworkSpec nSpec = ((DLKerasNetworkPortObjectSpecBase)specs[portIdx]).getNetworkSpec();
                 if (!nSpec.equals(m_lastNSpecs)) {
                     m_lastNSpecs = nSpec;
@@ -159,7 +166,8 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
 
         @Override
         public void saveTo(MemberWriteInstance<DLTensorSpec> instance) throws InvalidSettingsException {
-            instance.set(((DLTensorSpecItem)m_tensorSpecItems.getSelectedItem()).m_spec);
+            DLTensorSpecItem selected = (DLTensorSpecItem)m_tensorSpecItems.getSelectedItem();
+            instance.set(selected == null ? null :selected.m_spec);
         }
 
         @Override

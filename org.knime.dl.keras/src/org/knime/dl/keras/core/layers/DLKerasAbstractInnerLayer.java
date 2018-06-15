@@ -159,29 +159,30 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         final List<Long[]> inputShapes = new ArrayList<>(m_parents.length);
         final List<Class<?>> inputElementTypes = new ArrayList<>(m_parents.length);
         DLDimensionOrder inputDimensionOrder = null;
-        for (final DLKerasTensorSpecsOutput parent : m_parents) {
+        for (int i = 0; i < m_parents.length; i++) {
+            DLKerasTensorSpecsOutput parent = m_parents[i];
+            DLTensorSpec selected = getInputTensorSpec(i);
             if (parent != null) {
                 final List<DLTensorSpec> parentOutputSpecs = parent.getOutputSpecs();
-                for (final DLTensorSpec parentOutputSpec : parentOutputSpecs) {
-                    if (parentOutputSpec.getBatchSize().isPresent()) {
-                        final long parentBatchSize = parentOutputSpec.getBatchSize().getAsLong();
-                        if (inputBatchSize == null) {
-                            inputBatchSize = parentBatchSize;
-                        } else {
-                            checkInputSpec(inputBatchSize == parentBatchSize,
-                                    "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
-                        }
-                    }
-                    inputShapes.add(DLUtils.Shapes.shapeToLongArray(parentOutputSpec.getShape()));
-                    inputElementTypes.add(parentOutputSpec.getElementType());
-                    final DLDimensionOrder parentDimensionOrder = parentOutputSpec.getDimensionOrder();
-                    if (inputDimensionOrder == null) {
-                        inputDimensionOrder = parentDimensionOrder;
+                DLTensorSpec parentOutputSpec = parentOutputSpecs.contains(selected) ? selected : parentOutputSpecs.get(0);
+                if (parentOutputSpec.getBatchSize().isPresent()) {
+                    final long parentBatchSize = parentOutputSpec.getBatchSize().getAsLong();
+                    if (inputBatchSize == null) {
+                        inputBatchSize = parentBatchSize;
                     } else {
-                        // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
-                        checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
-                            "Dimension orders differ: " + inputDimensionOrder + " vs. " + parentDimensionOrder + ".");
+                        checkInputSpec(inputBatchSize == parentBatchSize,
+                                "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
                     }
+                }
+                inputShapes.add(DLUtils.Shapes.shapeToLongArray(parentOutputSpec.getShape()));
+                inputElementTypes.add(parentOutputSpec.getElementType());
+                final DLDimensionOrder parentDimensionOrder = parentOutputSpec.getDimensionOrder();
+                if (inputDimensionOrder == null) {
+                    inputDimensionOrder = parentDimensionOrder;
+                } else {
+                    // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
+                    checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
+                        "Dimension orders differ: " + inputDimensionOrder + " vs. " + parentDimensionOrder + ".");
                 }
             }
         }
