@@ -59,6 +59,8 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
  */
 public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
 
+    private static final long serialVersionUID = 1L;
+
     public DLKerasGenericNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs) {
         super(inputSpecs, hiddenOutputSpecs, outputSpecs);
@@ -68,8 +70,6 @@ public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
         final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
         super(inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
     }
-
-    private static final long serialVersionUID = 1L;
 
     @Override
     public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {

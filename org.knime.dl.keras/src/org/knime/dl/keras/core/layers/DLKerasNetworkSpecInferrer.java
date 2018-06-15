@@ -155,7 +155,6 @@ public final class DLKerasNetworkSpecInferrer {
             DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs.keySet());
 
         final DLTensorSpec[] inputSpecs = collectTensorSpecs(layerNameGen, inputSpecsToInfer);
-        // Don't comment even if it's unused a.t.m., side effects!
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 

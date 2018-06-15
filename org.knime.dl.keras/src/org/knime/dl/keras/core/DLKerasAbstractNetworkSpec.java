@@ -46,9 +46,12 @@
  */
 package org.knime.dl.keras.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 
 /**
@@ -56,37 +59,75 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<DLKerasTrainingConfig>
-		implements DLKerasNetworkSpec {
+    implements DLKerasNetworkSpec {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private final Version m_pythonVersion;
 
     private final Version m_kerasVersion;
 
+    /**
+     * Creates a new instance of this network spec.
+     *
+     * @param pythonVersion the Python version of the network
+     * @param kerasVersion the Keras version of the network
+     * @param inputSpecs the input tensor specs, can be empty
+     * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+     * @param outputSpecs the output tensor specs, can be empty
+     */
     protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
         final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs) {
         super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
-        m_pythonVersion = pythonVersion;
-        m_kerasVersion = kerasVersion;
+        m_pythonVersion = checkNotNull(pythonVersion);
+        m_kerasVersion = checkNotNull(kerasVersion);
     }
 
+    /**
+     * Creates a new instance of this network spec.
+     *
+     * @param pythonVersion the Python version of the network
+     * @param kerasVersion the Keras version of the network
+     * @param inputSpecs the input tensor specs, can be empty
+     * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+     * @param outputSpecs the output tensor specs, can be empt
+     * @param trainingConfig the {@link DLTrainingConfig training configuration}y
+     */
     protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
         final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs,
         final DLKerasTrainingConfig trainingConfig) {
         super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
-        m_pythonVersion = pythonVersion;
-        m_kerasVersion = kerasVersion;
+        m_pythonVersion = checkNotNull(pythonVersion);
+        m_kerasVersion = checkNotNull(kerasVersion);
     }
 
+    /**
+     * Creates a new instance of this network spec. And sets the Python and Keras version to null.
+     *
+     * @param inputSpecs the input tensor specs, can be empty
+     * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+     * @param outputSpecs the output tensor specs, can be empty
+     */
     protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs) {
-        this(null, null, inputSpecs, hiddenOutputSpecs, outputSpecs);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs);
+        m_pythonVersion = null;
+        m_kerasVersion = null;
     }
 
+    /**
+     * Creates a new instance of this network spec. And sets the Python and Keras version to null.
+     *
+     * @param inputSpecs the input tensor specs, can be empty
+     * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
+     * @param outputSpecs the output tensor specs, can be empty
+     * @param trainingConfig the {@link DLTrainingConfig training configuration}y
+     */
     protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
-        this(null, null, inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+        super(DLKerasNetworkSpec.getKerasBundleVersion(), inputSpecs, hiddenOutputSpecs, outputSpecs, trainingConfig);
+        m_pythonVersion = null;
+        m_kerasVersion = null;
     }
 
     @Override
