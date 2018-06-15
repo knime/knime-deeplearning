@@ -130,7 +130,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
         final String[] shape = Arrays.stream(getShape())
             .map(l -> l != null ? DLPythonUtils.toPython(l) : DLPythonUtils.NONE).toArray(l -> new String[l]);
         namedParams.put("batch_shape",
-            "(" + DLPythonUtils.toPython(m_batchSize == null ? 32 : m_batchSize) + "," + String.join(",", shape) + ")");
+            "(" + (m_batchSize == null ? DLPythonUtils.NONE : DLPythonUtils.toPython(m_batchSize)) + "," + String.join(",", shape) + ")");
         namedParams.put("dtype", DLPythonUtils.toPython(m_dataType.value()));
     }
 
