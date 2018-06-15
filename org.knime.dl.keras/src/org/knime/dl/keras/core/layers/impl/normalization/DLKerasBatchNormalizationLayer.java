@@ -77,40 +77,37 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Momentum", min = "0", max = "1", stepSize = "0.01")
     private double m_momentum = 0.99;
 
-    // TODO smaller values get rounded to zero when the dialog opens
-    @Parameter(label = "Epsilon", min = "0", max = "1", stepSize = "0.001")
+    @Parameter(label = "Epsilon", min = "0", max = "1", stepSize = "0.001", tab = "Advanced")
     private double m_epsilon = 0.001;
 
-    // TODO default is not selected
     @Parameter(label = "Center")
     private boolean m_center = true;
 
-    // TODO default is not selected
     @Parameter(label = "Scale")
     private boolean m_scale = true;
 
-    @Parameter(label = "Beta Initializer", choices = DLKerasInitializerChoices.class)
+    @Parameter(label = "Beta Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_betaInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Gamma Initializer", choices = DLKerasInitializerChoices.class)
+    @Parameter(label = "Gamma Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_gammaInitializer = new DLKerasOnesInitializer();
 
-    @Parameter(label = "Moving Mean Initializer", choices = DLKerasInitializerChoices.class)
+    @Parameter(label = "Moving Mean Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_movingMeanInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Moving Variance Initializer", choices = DLKerasInitializerChoices.class)
+    @Parameter(label = "Moving Variance Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_movingVarianceInitializer = new DLKerasOnesInitializer();
 
-    @Parameter(label = "Beta Regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    @Parameter(label = "Beta Regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_betaRegularizer = null;
 
-    @Parameter(label = "Gamma Regularizer", required = false, choices = DLKerasRegularizerChoices.class)
+    @Parameter(label = "Gamma Regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_gammaRegularizer = null;
 
-    @Parameter(label = "Beta Constraint", required = false, choices = DLKerasConstraintChoices.class)
+    @Parameter(label = "Beta Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_betaConstraint = null;
 
-    @Parameter(label = "Gamma Constraint", required = false, choices = DLKerasConstraintChoices.class)
+    @Parameter(label = "Gamma Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_gammaConstraint = null;
 
     /**
