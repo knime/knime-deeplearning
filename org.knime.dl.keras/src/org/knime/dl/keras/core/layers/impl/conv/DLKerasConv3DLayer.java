@@ -142,7 +142,7 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_kernelSize.getTuple(), m_strides.getTuple(), m_dilationRate.getTuple(),
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, m_kernelSize.getTuple(), m_strides.getTuple(), m_dilationRate.getTuple(),
             m_padding.value(), m_dataFormat.value());
     }
 

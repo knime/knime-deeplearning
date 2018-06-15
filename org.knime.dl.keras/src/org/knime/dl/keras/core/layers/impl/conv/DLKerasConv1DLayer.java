@@ -145,7 +145,7 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
         final Long[] kernelSize = {new Long(m_kernelSize)};
         final Long[] strides = {new Long(m_strides)};
         final Long[] dilationRate = {new Long(m_dilationRate)};
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, kernelSize, strides, dilationRate,
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, kernelSize, strides, dilationRate,
             m_padding.value(), m_dataFormat.value());
     }
 
