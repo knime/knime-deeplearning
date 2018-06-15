@@ -49,91 +49,83 @@ package org.knime.dl.keras.core.layers.impl.recurrent;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasCuDNNLSTMLayer extends DLKerasAbstractFCRNNLayer {
+public abstract class DLKerasAbstractFCRNNLayer extends DLKerasAbstractRNNLayer {
 
     /**
      * 
      */
-    private static final int STATE_TWO = 2;
-
+    private static final int INPUT_RANK = 2;
+    
     /**
      * 
      */
-    private static final int STATE_ONE = 1;
+    protected static final int DEFAULT_UNITS = 100;
 
     /**
+     * Constructor for {@link DLKerasAbstractFCRNNLayer}s.
      * 
+     * @param kerasIdentifier the full python path to the layer constructor
+     * @param numHiddenStates the number of hidden states
      */
-    private static final int NUM_HIDDEN_STATES = 2;
-
-    @Parameter(label = "Input tensor", min = "0")
-    private DLTensorSpec m_inputTensor = null;
-    
-    @Parameter(label = "First hidden state tensor", min = "1")
-    private DLTensorSpec m_hiddenStateTensor1 = null;
-    
-    @Parameter(label = "Second hidden state tensor", min = "2")
-    private DLTensorSpec m_hiddenStateTensor2 = null;
-    
-    @Parameter(label = "Units", min = "1", stepSize = "1")
-    private int m_units = DEFAULT_UNITS;
-    
-    @Parameter(label = "Return sequences")
-    private boolean m_returnSequences = false;
-
-    @Parameter(label = "Return state")
-    private boolean m_returnState = false;
-    // TODO add parameter for stateful once we support stateful execution (and learning)
-    
-    @Parameter(label = "Unit forget bias", tab = "Initializers")
-    private boolean m_forgetBias = true;
-    
-    /**
-     * Constructor for {@link DLKerasCuDNNLSTMLayer}s.
-     */
-    public DLKerasCuDNNLSTMLayer() {
-        super("keras.layers.CuDNNLSTM", NUM_HIDDEN_STATES);
+    public DLKerasAbstractFCRNNLayer(String kerasIdentifier, int numHiddenStates) {
+        super(kerasIdentifier, numHiddenStates);
     }
     
     @Override
-    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        super.populateParameters(positionalParams, namedParams);
-        namedParams.put("unit_forget_bias", DLPythonUtils.toPython(m_forgetBias));
-    }
-    
-    @Override
-    public DLTensorSpec getInputTensorSpec(int index) {
-        if (index == 0) {
-            return m_inputTensor;
-        } else if (index == STATE_ONE) {
-            return m_hiddenStateTensor1;
-        } else if (index == STATE_TWO) {
-            return m_hiddenStateTensor2;
-        } else {
-            throw new IllegalArgumentException("This layer has only 3 possible input ports.");
+    protected void validateInputShapes(List<Long[]> inputShapes)
+        throws DLInvalidTensorSpecException {
+        validateInputShape(inputShapes.get(0));
+        int numStateInputs = inputShapes.size() - 1;
+        if (numStateInputs > 0) {
+            checkInputSpec(numStateInputs == getNumHiddenStates(),
+                "Expected " + getNumHiddenStates() + " state inputs but received " + numStateInputs + ".");
+            validateHiddenStateShapes(inputShapes.subList(1, inputShapes.size()));
         }
     }
-    
-    @Override
-    protected int getUnits() {
-        return m_units;
+
+    private static void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
+        checkInputSpec(inputShape.length == INPUT_RANK, "Expected an input with shape [time, input_dim].");
+        checkInputSpec(inputShape[1] != null, "The feature dimension of the input must be known.");
+    }
+
+    private void validateHiddenStateShapes(List<Long[]> stateShapes) throws DLInvalidTensorSpecException {
+        checkInputSpec(stateShapes.stream().allMatch(s -> s.length == 1), "Expected state input with shape [units].");
+        checkInputSpec(stateShapes.stream().allMatch(s -> s[0] == getUnits()),
+            "The feature dimension of the initial states must match the feature dimension of the internal state.");
     }
 
     @Override
-    protected boolean returnState() {
-        return m_returnState;
+    public void validateParameters() throws InvalidSettingsException {
+        if (getUnits() <= 0) {
+            throw new InvalidSettingsException("The number of units must be positive but was " + getUnits() + ".");
+        }
+    }
+
+    /**
+     * @return the number of units of this rnn layer i.e. the size of the feature dimension of its output
+     * 
+     */
+    protected abstract int getUnits();
+
+    @Override
+    protected Long[] getOutputShape(Long[] inputShape) {
+        if (returnState()) {
+            return new Long[]{inputShape[0], (long)getUnits()};
+        } else {
+            return new Long[]{(long)getUnits()};
+        }
     }
 
     @Override
-    protected boolean returnSequences() {
-        return m_returnSequences;
+    protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
+        positionalParams.add(DLPythonUtils.toPython(getUnits()));
     }
 
 }

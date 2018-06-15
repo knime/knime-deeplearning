@@ -51,7 +51,6 @@ import java.util.Map;
 
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
 import org.knime.dl.keras.core.layers.DLKerasEnum;
-import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -59,6 +58,11 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 abstract class DLKerasAbstractGatedRNNLayer extends DLKerasAbstractNativeRNNLayer {
     
+    /**
+     * Enum to represent different implementation types of Keras' GRU and LSTM layers.
+     * 
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
     public enum DLKerasGatedRNNImplementation implements DLKerasEnum<Integer> {
             ONE("1", 1), TWO("2", 2);
 
@@ -88,11 +92,16 @@ abstract class DLKerasAbstractGatedRNNLayer extends DLKerasAbstractNativeRNNLaye
         
     }
     
-    @Parameter(label = "Recurrent activation")
-    private DLKerasActivation m_recurrentActivation = DLKerasActivation.HARD_SIGMOID;
+    /**
+     * @return the recurrentActivation
+     */
+    protected abstract DLKerasActivation getRecurrentActivation();
+
+    /**
+     * @return the implementation
+     */
+    protected abstract DLKerasGatedRNNImplementation getImplementation();
     
-    @Parameter(label = "Implementation")
-    private DLKerasGatedRNNImplementation m_implementation = DLKerasGatedRNNImplementation.ONE;
 
     /**
      * @param kerasIdentifier
@@ -105,8 +114,8 @@ abstract class DLKerasAbstractGatedRNNLayer extends DLKerasAbstractNativeRNNLaye
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
         super.populateParameters(positionalParams, namedParams);
-        namedParams.put("recurrent_activation", DLPythonUtils.toPython(m_recurrentActivation.value()));
-        namedParams.put("implementation", DLPythonUtils.toPython(m_implementation.value()));
+        namedParams.put("recurrent_activation", DLPythonUtils.toPython(getRecurrentActivation().value()));
+        namedParams.put("implementation", DLPythonUtils.toPython(getImplementation().value()));
     }
 
 }

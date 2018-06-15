@@ -49,6 +49,8 @@ package org.knime.dl.keras.core.layers.impl.recurrent;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.config.activation.DLKerasActivation;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -57,10 +59,53 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasGRULayer extends DLKerasAbstractGatedRNNLayer {
     
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_inputTensor = null;
+    
+    @Parameter(label = "Hidden state tensor", min = "1")
+    private DLTensorSpec m_hiddenStateTensor = null;
+
+    @Parameter(label = "Units", min = "1", stepSize = "1")
+    private int m_units = DEFAULT_UNITS;
+    
+    @Parameter(label = "Activation")
+    private DLKerasActivation m_activation = DLKerasActivation.TANH;
+    
+    @Parameter(label = "Recurrent activation")
+    private DLKerasActivation m_recurrentActivation = DLKerasActivation.HARD_SIGMOID;
+
+    @Parameter(label = "Use bias")
+    private boolean m_useBias = true;
+
+    @Parameter(label = "Dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_dropout = 0.0f;
+
+    @Parameter(label = "Recurrent dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_recurrentDropout = 0.0f;
+    
+    @Parameter(label = "Implementation")
+    private DLKerasGatedRNNImplementation m_implementation = DLKerasGatedRNNImplementation.ONE;
+
+    @Parameter(label = "Return sequences")
+    private boolean m_returnSequences = false;
+    
+    @Parameter(label = "Return state")
+    private boolean m_returnState = false;
+    
+    @Parameter(label = "Go backwards")
+    private boolean m_goBackwards = false;
+
+    @Parameter(label = "Unroll")
+    private boolean m_unroll = false;
+    
+    // TODO add parameter for stateful once we support stateful execution (and learning)
+    
     @Parameter(label = "Reset after")
     private boolean m_resetAfter = false;
     
+    
     /**
+     * Constructor for {@link DLKerasGRULayer}s.
      */
     public DLKerasGRULayer() {
         super("keras.layers.recurrent.GRU", 1);
@@ -70,6 +115,72 @@ public final class DLKerasGRULayer extends DLKerasAbstractGatedRNNLayer {
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
         super.populateParameters(positionalParams, namedParams);
         namedParams.put("reset_after", DLPythonUtils.toPython(m_resetAfter));
+    }
+    
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_inputTensor;
+        } else if (index == 1) {
+            return m_hiddenStateTensor;
+        } else {
+            throw new IllegalArgumentException("This layer has only 2 possible input ports.");
+        }
+    }
+    
+    @Override
+    protected int getUnits() {
+        return m_units;
+    }
+
+    @Override
+    protected boolean returnState() {
+        return m_returnState;
+    }
+
+    @Override
+    protected boolean returnSequences() {
+        return m_returnSequences;
+    }
+
+    @Override
+    protected DLKerasActivation getActivation() {
+        return m_activation;
+    }
+
+    @Override
+    protected boolean isUseBias() {
+        return m_useBias;
+    }
+
+    @Override
+    protected float getDropout() {
+        return m_dropout;
+    }
+
+    @Override
+    protected float getRecurrentDropout() {
+        return m_recurrentDropout;
+    }
+
+    @Override
+    protected boolean isGoBackwards() {
+        return m_goBackwards;
+    }
+
+    @Override
+    protected boolean isUnroll() {
+        return m_unroll;
+    }
+
+    @Override
+    protected DLKerasActivation getRecurrentActivation() {
+        return m_recurrentActivation;
+    }
+
+    @Override
+    protected DLKerasGatedRNNImplementation getImplementation() {
+        return m_implementation;
     }
 
 }

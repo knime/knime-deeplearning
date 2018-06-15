@@ -49,6 +49,8 @@ package org.knime.dl.keras.core.layers.impl.recurrent;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.config.activation.DLKerasActivation;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -57,18 +59,144 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasLSTMLayer extends DLKerasAbstractGatedRNNLayer {
     
-    @Parameter(label = "Unit forget bias", tab = "Initializers")
-    private boolean m_unitForgetBias = true;
+    /**
+     * 
+     */
+    private static final int STATE_ONE = 1;
 
     /**
+     * 
+     */
+    private static final int STATE_TWO = 2;
+
+    /**
+     * 
+     */
+    private static final int NUM_HIDDEN_STATES = 2;
+
+    @Parameter(label = "Unit forget bias", tab = "Initializers")
+    private boolean m_unitForgetBias = true;
+    
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_inputTensor = null;
+    
+    @Parameter(label = "First hidden state tensor", min = "1")
+    private DLTensorSpec m_hiddenStateTensor1 = null;
+    
+    @Parameter(label = "Second hidden state tensor", min = "2")
+    private DLTensorSpec m_hiddenStateTensor2 = null;
+    
+    @Parameter(label = "Units", min = "1", stepSize = "1")
+    private int m_units = DEFAULT_UNITS;
+    
+    @Parameter(label = "Activation")
+    private DLKerasActivation m_activation = DLKerasActivation.TANH;
+    
+    @Parameter(label = "Recurrent activation")
+    private DLKerasActivation m_recurrentActivation = DLKerasActivation.HARD_SIGMOID;
+
+    @Parameter(label = "Use bias")
+    private boolean m_useBias = true;
+
+    @Parameter(label = "Dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_dropout = 0.0f;
+
+    @Parameter(label = "Recurrent dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_recurrentDropout = 0.0f;
+    
+    @Parameter(label = "Implementation")
+    private DLKerasGatedRNNImplementation m_implementation = DLKerasGatedRNNImplementation.ONE;
+    
+    @Parameter(label = "Return sequences")
+    private boolean m_returnSequences = false;
+    
+    @Parameter(label = "Return state")
+    private boolean m_returnState = false;
+
+    @Parameter(label = "Go backwards")
+    private boolean m_goBackwards = false;
+
+    @Parameter(label = "Unroll")
+    private boolean m_unroll = false;
+
+    /**
+     * Constructor for {@link DLKerasLSTMLayer}s.
      */
     public DLKerasLSTMLayer() {
-        super("keras.layers.recurrent.LSTM", 2);
+        super("keras.layers.recurrent.LSTM", NUM_HIDDEN_STATES);
     }
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
         super.populateParameters(positionalParams, namedParams);
         namedParams.put("unit_forget_bias", DLPythonUtils.toPython(m_unitForgetBias));
+    }
+    
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_inputTensor;
+        } else if (index == STATE_ONE) {
+            return m_hiddenStateTensor1;
+        } else if (index == STATE_TWO) {
+            return m_hiddenStateTensor2;
+        } else {
+            throw new IllegalArgumentException("This layer has only 3 possible input ports.");
+        }
+    }
+    
+    @Override
+    protected int getUnits() {
+        return m_units;
+    }
+
+    @Override
+    protected boolean returnState() {
+        return m_returnState;
+    }
+
+    @Override
+    protected boolean returnSequences() {
+        return m_returnSequences;
+    }
+
+    @Override
+    protected DLKerasActivation getActivation() {
+        return m_activation;
+    }
+
+    @Override
+    protected boolean isUseBias() {
+        return m_useBias;
+    }
+
+    @Override
+    protected float getDropout() {
+        return m_dropout;
+    }
+
+    @Override
+    protected float getRecurrentDropout() {
+        return m_recurrentDropout;
+    }
+
+    @Override
+    protected boolean isGoBackwards() {
+        return m_goBackwards;
+    }
+
+    @Override
+    protected boolean isUnroll() {
+        return m_unroll;
+    }
+    
+    @Override
+    protected DLKerasActivation getRecurrentActivation() {
+        return m_recurrentActivation;
+    }
+
+    @Override
+    protected DLKerasGatedRNNImplementation getImplementation() {
+        return m_implementation;
     }
 }

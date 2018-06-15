@@ -46,15 +46,61 @@
  */
 package org.knime.dl.keras.core.layers.impl.recurrent;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.struct.param.Parameter;
+
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasCuDNNGRULayer extends DLKerasAbstractRNNLayer {
+public final class DLKerasCuDNNGRULayer extends DLKerasAbstractFCRNNLayer {
+    
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_inputTensor = null;
+    
+    @Parameter(label = "Hidden state tensor", min = "1")
+    private DLTensorSpec m_hiddenStateTensor = null;
+    
+    @Parameter(label = "Units", min = "1", stepSize = "1")
+    private int m_units = DEFAULT_UNITS;
+    
+    @Parameter(label = "Return sequences")
+    private boolean m_returnSequences = false;
+
+    @Parameter(label = "Return state")
+    private boolean m_returnState = false;
+    // TODO add parameter for stateful once we support stateful execution (and learning)
 
     /**
+     * Constructor for {@link DLKerasCuDNNGRULayer}s.
      */
     public DLKerasCuDNNGRULayer() {
         super("keras.layers.CuDNNGRU", 1);
+    }
+    
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_inputTensor;
+        } else if (index == 1) {
+            return m_hiddenStateTensor;
+        } else {
+            throw new IllegalArgumentException("This layer has only 2 possible input ports.");
+        }
+    }
+
+    @Override
+    protected int getUnits() {
+        return m_units;
+    }
+
+    @Override
+    protected boolean returnState() {
+        return m_returnState;
+    }
+
+    @Override
+    protected boolean returnSequences() {
+        return m_returnSequences;
     }
 
 }

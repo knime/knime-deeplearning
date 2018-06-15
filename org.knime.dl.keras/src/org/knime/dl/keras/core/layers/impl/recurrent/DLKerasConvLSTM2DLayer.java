@@ -50,45 +50,69 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
-import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices;
-import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
-import org.knime.dl.keras.core.config.initializer.DLKerasInitializer;
-import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
-import org.knime.dl.keras.core.config.initializer.DLKerasOrthogonalInitializer;
-import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
-import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
-import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
-import org.knime.dl.keras.core.layers.DLKerasRNNLayer;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer implements DLKerasRNNLayer {
+public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
+
+    /**
+     * 
+     */
+    private static final int DEFAULT_FILTERS = 100;
+
+    /**
+     * 
+     */
+    private static final int INPUT_RANK = 4;
+
+    /**
+     * 
+     */
+    private static final int HIDDEN_STATE_RANK = 3;
+
+    /**
+     * 
+     */
+    private static final int SPATIAL_DIMENSIONS = 2;
+
+    /**
+     * 
+     */
+    private static final int NUM_HIDDEN_STATES = 2;
+
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_inputTensor = null;
+
+    @Parameter(label = "First hidden state tensor", min = "1")
+    private DLTensorSpec m_hiddenStateTensor1 = null;
+
+    @Parameter(label = "Second hidden state tensor", min = "2")
+    private DLTensorSpec m_hiddenStateTensor2 = null;
 
     @Parameter(label = "Filters", min = "1", stepSize = "1")
-    private int m_filters = 100;
+    private int m_filters = DEFAULT_FILTERS;
 
     @Parameter(label = "Kernel size")
-    private DLKerasTuple m_kernelSize = new DLKerasTuple("3, 3", 2, 2, EnumSet.noneOf(Constraint.class));
+    private DLKerasTuple m_kernelSize =
+        new DLKerasTuple("3, 3", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
 
     @Parameter(label = "Strides")
-    private DLKerasTuple m_strides = new DLKerasTuple("1, 1", 2, 2, EnumSet.noneOf(Constraint.class));
+    private DLKerasTuple m_strides =
+        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
 
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.SAME;
@@ -97,7 +121,8 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer impl
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Dilation rate")
-    private DLKerasTuple m_dilationRate = new DLKerasTuple("1, 1", 2, 2, EnumSet.noneOf(Constraint.class));
+    private DLKerasTuple m_dilationRate =
+        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
 
     @Parameter(label = "Activation")
     private DLKerasActivation m_activation = DLKerasActivation.TANH;
@@ -108,48 +133,8 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer impl
     @Parameter(label = "Use bias")
     private boolean m_useBias = true;
 
-    @Parameter(label = "Kernel initializer", choices = DLKerasInitializerChoices.class, tab = "Initializers")
-    private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
-
-    @Parameter(label = "Recurrent initializer", choices = DLKerasInitializerChoices.class, tab = "Initializers")
-    private DLKerasInitializer m_recurrentInitializer = new DLKerasOrthogonalInitializer();
-
-    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Initializers")
-    private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
-
     @Parameter(label = "Unit forget bias", tab = "Initializers")
     private boolean m_unitForgetBias = true;
-
-    @Parameter(label = "Kernel regularizer", required = false, choices = DLKerasRegularizerChoices.class,
-        tab = "Regularizers")
-    private DLKerasRegularizer m_kernelRegularizer = null;
-
-    @Parameter(label = "Recurrent regularizer", required = false, choices = DLKerasRegularizerChoices.class,
-        tab = "Regularizers")
-    private DLKerasRegularizer m_recurrentRegularizer = null;
-
-    @Parameter(label = "Bias regularizer", required = false, choices = DLKerasRegularizerChoices.class,
-        tab = "Regularizers")
-    private DLKerasRegularizer m_biasRegularizer = null;
-
-    @Parameter(label = "Activity regularizer", required = false, choices = DLKerasRegularizerChoices.class,
-        tab = "Regularizers")
-    private DLKerasRegularizer m_activityRegularizer = null;
-
-    @Parameter(label = "Kernel constraint", required = false, choices = DLKerasConstraintChoices.class,
-        tab = "Constraints")
-    private DLKerasConstraint m_kernelConstraint = null;
-
-    @Parameter(label = "Recurrent constraint", required = false, choices = DLKerasConstraintChoices.class,
-        tab = "Constraints")
-    private DLKerasConstraint m_recurrentConstraint = null;
-
-    @Parameter(label = "Bias constraint", required = false, choices = DLKerasConstraintChoices.class,
-        tab = "Constraints")
-    private DLKerasConstraint m_biasConstraint = null;
-
-    @Parameter(label = "Go backwards")
-    private boolean m_goBackwards = false;
 
     @Parameter(label = "Return sequences")
     private boolean m_returnSequences = false;
@@ -157,31 +142,22 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer impl
     @Parameter(label = "Return state")
     private boolean m_returnState = false;
     // TODO add parameter for stateful once we support stateful execution (and learning)
+    
+    @Parameter(label = "Go backwards")
+    private boolean m_goBackwards = false;
 
     @Parameter(label = "Dropout", min = "0.0", max = "1.0", stepSize = "0.1")
     private float m_dropout = 0.0f;
 
     @Parameter(label = "Recurrent dropout", min = "0.0", max = "1.0", stepSize = "0.1")
     private float m_recurrentDropout = 0.0f;
+    
 
     /**
+     * Constructor for {@link DLKerasConvLSTM2DLayer}s.
      */
     public DLKerasConvLSTM2DLayer() {
-        super("keras.layers.ConvLSTM2D", 3);
-    }
-
-    @Override
-    public String populateCall(String[] inputTensors) {
-        int maxInputs = 3;
-        if (inputTensors.length != 1 && inputTensors.length != maxInputs) {
-            throw new IllegalArgumentException("This recurrent layer expects either one input tensor or " + maxInputs
-                + " input tensors if initial states are provided.");
-        }
-        if (inputTensors.length == 1) {
-            return inputTensors[0];
-        }
-        return inputTensors[0] + ", initial_state="
-            + Arrays.stream(inputTensors).skip(1).collect(Collectors.joining(",", "[", "]"));
+        super("keras.layers.ConvLSTM2D", NUM_HIDDEN_STATES);
     }
 
     @Override
@@ -206,66 +182,53 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer impl
     }
 
     @Override
-    protected void validateInputSpecs(List<Class<?>> inputElementTypes, List<Long[]> inputShapes)
-        throws DLInvalidTensorSpecException {
-        checkInputSpec(inputElementTypes.stream().allMatch(t -> t.equals(float.class)),
-            "Inputs to recurrent layers have to be of type float.");
-
+    protected void validateInputShapes(List<Long[]> inputShapes) throws DLInvalidTensorSpecException {
         Long[] inputShape = inputShapes.get(0);
-        checkInputSpec(inputShape.length == 4, "Expected an input with shape " + getShapeString(true) + ".");
-        checkInputSpec(inputShape[3] != null, "The number of channels must be defined for the input.");
+        checkInputSpec(inputShape.length == INPUT_RANK, "Expected an input with shape " + getShapeString(true) + ".");
+        int channelIdx = m_dataFormat == DLKerasDataFormat.CHANNEL_FIRST ? 1 : INPUT_RANK - 1;
+        checkInputSpec(inputShape[channelIdx] != null, "The number of channels must be defined for the input.");
         if (m_padding == DLKerasPadding.VALID) {
-            checkInputSpec(Arrays.stream(getOutputShape(inputShape)).allMatch(d -> d == null || d > 0),
-                    "The kernel size may not exceed the height and width in case of valid padding.");
+            checkInputSpec(Arrays.stream(getSpatialOutputShape(inputShape)).allMatch(d -> d == null || d > 0),
+                "The kernel size may not exceed the height and width in case of valid padding.");
         }
         int numStateInputs = inputShapes.size() - 1;
         if (numStateInputs > 0) {
-            checkInputSpec(numStateInputs == 2, "Expected 2 state inputs but received " + numStateInputs + ".");
-            checkInputSpec(inputShapes.stream().skip(1).allMatch(s -> s.length == 3),
+            checkInputSpec(numStateInputs == SPATIAL_DIMENSIONS,
+                "Expected 2 state inputs but received " + numStateInputs + ".");
+            checkInputSpec(inputShapes.stream().skip(1).allMatch(s -> s.length == HIDDEN_STATE_RANK),
                 "Expected state input with shape " + getShapeString(false));
-            checkInputSpec(inputShapes.stream().skip(1).allMatch(s -> s[2] == m_filters),
+            checkInputSpec(inputShapes.stream().skip(1).allMatch(s -> s[channelIdx - 1] == m_filters),
                 "The channels of the initial shape must match the shape of the internal state.");
         }
     }
 
-    private Long[] getOutputShape(Long[] inputShape) {
-        Long[] convShape = Arrays.stream(inputShape).skip(1).toArray(Long[]::new);
-        return DLConvolutionLayerUtils.computeOutputShape(convShape, m_filters, m_kernelSize.getTuple(),
-            m_strides.getTuple(), m_dilationRate.getTuple(), m_padding.value(),
-            m_dataFormat.value());
-    }
-    
-
-    private String getShapeString(boolean withTime) {
-        String suffix = "channel, height, width]";
-        if (m_dataFormat == DLKerasDataFormat.CHANNEL_FIRST) {
-            return withTime ? "[time, " + suffix : "[" + suffix;
-        } else {
-            return withTime ? "[time, " + suffix : "[" + suffix;
-        }
-    }
-
     @Override
-    protected List<Class<?>> inferOutputElementTypes(List<Class<?>> inputElementTypes)
-        throws DLInvalidTensorSpecException {
-        Class<?> type = float.class;
-        int numOutputs = m_returnState ? 3 : 1;
-        return DLKerasAbstractRNNLayer.repeat(type, numOutputs);
-    }
-
-    @Override
-    protected List<Long[]> inferOutputShapes(List<Long[]> inputShape) {
-        Long[] inShape = inputShape.get(0);
-        Long[] convShape = getOutputShape(inShape);
+    protected Long[] getOutputShape(Long[] inputShape) {
+        Long[] convShape = getSpatialOutputShape(inputShape);
         Long[] outShape;
         if (m_returnSequences) {
-            outShape = new Long[inShape.length];
-            outShape[0] = inShape[0];
+            outShape = new Long[inputShape.length];
+            outShape[0] = inputShape[0];
             IntStream.range(1, outShape.length).forEach(i -> outShape[i] = convShape[i - 1]);
         } else {
             outShape = convShape;
         }
-        return DLKerasAbstractRNNLayer.repeat(outShape, m_returnState ? 3 : 1);
+        return outShape;
+    }
+
+    private Long[] getSpatialOutputShape(Long[] inputShape) {
+        Long[] convShape = Arrays.stream(inputShape).skip(1).toArray(Long[]::new);
+        return DLConvolutionLayerUtils.computeOutputShape(convShape, m_filters, m_kernelSize.getTuple(),
+            m_strides.getTuple(), m_dilationRate.getTuple(), m_padding.value(), m_dataFormat.value());
+    }
+
+    private String getShapeString(boolean withTime) {
+        String spatial = "height, width";
+        if (m_dataFormat == DLKerasDataFormat.CHANNEL_FIRST) {
+            return withTime ? "[time, channel, " + spatial + "]" : "[channel, " + spatial + "]";
+        } else {
+            return withTime ? "[time, " + spatial + ", channel]" : "[" + spatial + ", channel]";
+        }
     }
 
     @Override
@@ -279,21 +242,33 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractInnerLayer impl
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("recurrent_activation", DLPythonUtils.toPython(m_recurrentActivation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
-        namedParams.put("kernel_initializer", m_kernelInitializer.getBackendRepresentation());
-        namedParams.put("recurrent_initializer", m_recurrentInitializer.getBackendRepresentation());
-        namedParams.put("bias_initializer", m_biasInitializer.getBackendRepresentation());
         namedParams.put("unit_forget_bias", DLPythonUtils.toPython(m_unitForgetBias));
-        namedParams.put("kernel_regularizer", DLKerasUtils.Layers.toPython(m_kernelRegularizer));
-        namedParams.put("recurrent_regularizer", DLKerasUtils.Layers.toPython(m_recurrentRegularizer));
-        namedParams.put("bias_regularizer", DLKerasUtils.Layers.toPython(m_biasRegularizer));
-        namedParams.put("activity_regularizer", DLKerasUtils.Layers.toPython(m_activityRegularizer));
-        namedParams.put("kernel_constraint", DLKerasUtils.Layers.toPython(m_kernelConstraint));
-        namedParams.put("recurrent_constraint", DLKerasUtils.Layers.toPython(m_recurrentConstraint));
-        namedParams.put("bias_constraint", DLKerasUtils.Layers.toPython(m_biasConstraint));
-        namedParams.put("return_sequences", DLPythonUtils.toPython(m_returnSequences));
-        namedParams.put("return_state", DLPythonUtils.toPython(m_returnState));
         namedParams.put("go_backwards", DLPythonUtils.toPython(m_goBackwards));
         namedParams.put("dropout", DLPythonUtils.toPython(m_dropout));
         namedParams.put("recurrent_dropout", DLPythonUtils.toPython(m_recurrentDropout));
     }
+
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_inputTensor;
+        } else if (index == 1) {
+            return m_hiddenStateTensor1;
+        } else if (index == SPATIAL_DIMENSIONS) {
+            return m_hiddenStateTensor2;
+        } else {
+            throw new IllegalArgumentException("This layer has only 3 possible input ports.");
+        }
+    }
+
+    @Override
+    protected boolean returnState() {
+        return m_returnState;
+    }
+
+    @Override
+    protected boolean returnSequences() {
+        return m_returnSequences;
+    }
+
 }

@@ -51,31 +51,43 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
-import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-abstract class DLKerasAbstractNativeRNNLayer extends DLKerasAbstractRNNLayer {
+abstract class DLKerasAbstractNativeRNNLayer extends DLKerasAbstractFCRNNLayer {
 
-    @Parameter(label = "Activation")
-    private DLKerasActivation m_activation = DLKerasActivation.TANH;
 
-    @Parameter(label = "Use bias")
-    private boolean m_useBias = true;
+    /**
+     * @return the activation
+     */
+    protected abstract DLKerasActivation getActivation();
 
-    @Parameter(label = "Dropout", min = "0.0", max = "1.0", stepSize = "0.1")
-    private float m_dropout = 0.0f;
+    /**
+     * @return the useBias
+     */
+    protected abstract boolean isUseBias();
 
-    @Parameter(label = "Recurrent dropout", min = "0.0", max = "1.0", stepSize = "0.1")
-    private float m_recurrentDropout = 0.0f;
+    /**
+     * @return the dropout
+     */
+    protected abstract float getDropout();
 
-    @Parameter(label = "Go backwards")
-    private boolean m_goBackwards = false;
+    /**
+     * @return the recurrentDropout
+     */
+    protected abstract float getRecurrentDropout();
 
-    @Parameter(label = "Unroll")
-    private boolean m_unroll = false;
+    /**
+     * @return the goBackwards
+     */
+    protected abstract boolean isGoBackwards();
+
+    /**
+     * @return the unroll
+     */
+    protected abstract boolean isUnroll();
 
     /**
      * @param kerasIdentifier
@@ -88,8 +100,8 @@ abstract class DLKerasAbstractNativeRNNLayer extends DLKerasAbstractRNNLayer {
     @Override
     public void validateParameters() throws InvalidSettingsException {
         super.validateParameters();
-        checkDropout(m_dropout, "dropout");
-        checkDropout(m_recurrentDropout, "recurrent dropout");
+        checkDropout(getDropout(), "dropout");
+        checkDropout(getRecurrentDropout(), "recurrent dropout");
     }
 
     private static void checkDropout(float dropoutRate, String label) throws InvalidSettingsException {
@@ -101,13 +113,13 @@ abstract class DLKerasAbstractNativeRNNLayer extends DLKerasAbstractRNNLayer {
     
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
-        namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
-        namedParams.put("dropout", DLPythonUtils.toPython(m_dropout));
-        namedParams.put("recurrent_dropout", DLPythonUtils.toPython(m_recurrentDropout));
-        namedParams.put("go_backwards", DLPythonUtils.toPython(m_goBackwards));
-        namedParams.put("unroll", DLPythonUtils.toPython(m_unroll));
         super.populateParameters(positionalParams, namedParams);
+        namedParams.put("activation", DLPythonUtils.toPython(getActivation().value()));
+        namedParams.put("use_bias", DLPythonUtils.toPython(isUseBias()));
+        namedParams.put("dropout", DLPythonUtils.toPython(getDropout()));
+        namedParams.put("recurrent_dropout", DLPythonUtils.toPython(getRecurrentDropout()));
+        namedParams.put("go_backwards", DLPythonUtils.toPython(isGoBackwards()));
+        namedParams.put("unroll", DLPythonUtils.toPython(isUnroll()));
     }
 
 }

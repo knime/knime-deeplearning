@@ -46,15 +46,111 @@
  */
 package org.knime.dl.keras.core.layers.impl.recurrent;
 
+import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.core.config.activation.DLKerasActivation;
+import org.knime.dl.keras.core.struct.param.Parameter;
+
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasSimpleRNNLayer extends DLKerasAbstractNativeRNNLayer {
+    
+    @Parameter(label = "Input tensor", min = "0")
+    private DLTensorSpec m_inputTensor = null;
+    
+    @Parameter(label = "Hidden state tensor", min = "1")
+    private DLTensorSpec m_hiddenStateTensor = null;
+    
+    @Parameter(label = "Units", min = "1", stepSize = "1")
+    private int m_units = DEFAULT_UNITS;
+    
+    @Parameter(label = "Activation")
+    private DLKerasActivation m_activation = DLKerasActivation.TANH;
+
+    @Parameter(label = "Use bias")
+    private boolean m_useBias = true;
+
+    @Parameter(label = "Dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_dropout = 0.0f;
+
+    @Parameter(label = "Recurrent dropout", min = "0.0", max = "1.0", stepSize = "0.1")
+    private float m_recurrentDropout = 0.0f;
+
+    @Parameter(label = "Return sequences")
+    private boolean m_returnSequences = false;
+
+    @Parameter(label = "Return state")
+    private boolean m_returnState = false;
+    
+    @Parameter(label = "Go backwards")
+    private boolean m_goBackwards = false;
+
+    @Parameter(label = "Unroll")
+    private boolean m_unroll = false;
+    
+    // TODO add parameter for stateful once we support stateful execution (and learning)
 
     /**
+     * Constructor for {@link DLKerasSimpleRNNLayer}s.
      */
     public DLKerasSimpleRNNLayer() {
         super("keras.layers.recurrent.SimpleRNN", 1);
     }
+    
+    @Override
+    public DLTensorSpec getInputTensorSpec(int index) {
+        if (index == 0) {
+            return m_inputTensor;
+        } else if (index == 1) {
+            return m_hiddenStateTensor;
+        } else {
+            throw new IllegalArgumentException("This layer has only 2 possible input ports.");
+        }
+    }
 
+    @Override
+    protected int getUnits() {
+        return m_units;
+    }
+
+    @Override
+    protected boolean returnState() {
+        return m_returnState;
+    }
+
+    @Override
+    protected boolean returnSequences() {
+        return m_returnSequences;
+    }
+
+    @Override
+    protected DLKerasActivation getActivation() {
+        return m_activation;
+    }
+
+    @Override
+    protected boolean isUseBias() {
+        return m_useBias;
+    }
+
+    @Override
+    protected float getDropout() {
+        return m_dropout;
+    }
+
+    @Override
+    protected float getRecurrentDropout() {
+        return m_recurrentDropout;
+    }
+
+    @Override
+    protected boolean isGoBackwards() {
+        return m_goBackwards;
+    }
+
+    @Override
+    protected boolean isUnroll() {
+        return m_unroll;
+    }
+    
 }
