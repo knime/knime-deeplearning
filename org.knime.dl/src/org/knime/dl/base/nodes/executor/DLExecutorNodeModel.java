@@ -98,9 +98,12 @@ import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLExecutionSpecCreator;
+import org.knime.dl.core.DLInstallationTestTimeout;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLRowInputRowIterator;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
@@ -506,7 +509,15 @@ final class DLExecutorNodeModel extends NodeModel {
 			return;
 		}
 
-		final DLExecutionContext<N> ctx = (DLExecutionContext<N>) m_generalCfg.getContextEntry().getValue();
+        final DLExecutionContext<N> ctx = (DLExecutionContext<N>)m_generalCfg.getContextEntry().getValue();
+        try {
+            ctx.checkAvailability(false, DLInstallationTestTimeout.getInstallationTestTimeout(),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                | DLCanceledExecutionException e) {
+            throw new InvalidSettingsException("Selected back end '" + ctx.getName() + "' is not available anymore. "
+                + "Please check your local installation.\nDetails: " + e.getMessage());
+        }
 
 		final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
 		final boolean isPredefinedBatchSize = Arrays.stream(networkSpec.getInputSpecs())

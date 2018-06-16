@@ -90,9 +90,11 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDataTableRowIterator;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLExecutionSpecCreator;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLShuffleDataTableRowIterator;
 import org.knime.dl.core.DLTensorId;
@@ -124,6 +126,7 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
+import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -565,6 +568,14 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getContextEntry()
 				.getValue();
+        try {
+            ctx.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                | DLCanceledExecutionException e) {
+            throw new InvalidSettingsException("Selected Keras back end '" + ctx.getName()
+                + "' is not available anymore. " + "Please check your local installation.\nDetails: " + e.getMessage());
+        }
 
 		// training configuration
 		final DLKerasTrainingConfig trainingConfig = createTrainingConfig(inNetworkSpec);
