@@ -71,8 +71,10 @@ import gnu.trove.TIntHashSet;
 public final class DLKerasNetworkSpecInferrer {
 
     private final List<DLKerasLayer> m_outputLayers;
-    
+
     private final Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> m_layerToTensorMap = new HashMap<>();
+
+    private DLKerasNetworkSpec m_inferredSpec = null;
 
     /**
      * Creates a new instance of this class that allows to infer the specification of the Keras network graph specified
@@ -83,8 +85,11 @@ public final class DLKerasNetworkSpecInferrer {
     public DLKerasNetworkSpecInferrer(final List<DLKerasLayer> outputLayers) {
         m_outputLayers = outputLayers;
     }
-    
-    public Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> getLayerToTensorMap() {
+
+    Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> getLayerToTensorMap() {
+        if (m_inferredSpec == null) {
+            inferNetworkSpec();
+        }
         return m_layerToTensorMap;
     }
 
@@ -95,6 +100,10 @@ public final class DLKerasNetworkSpecInferrer {
      * @throws DLNetworkGraphTraversalException if traversing the network graph failed
      */
     public DLKerasNetworkSpec inferNetworkSpec() {
+        if (m_inferredSpec != null) {
+            return m_inferredSpec;
+        }
+
         final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> inputSpecsToInfer =
             new ArrayList<>(5);
         final List<Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>> hiddenSpecsToInfer =
@@ -151,10 +160,12 @@ public final class DLKerasNetworkSpecInferrer {
                     baseNetworkHelper = new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
                     baseNetworkSpecs.put(baseNetworkSpec, baseNetworkHelper);
                     inputSpecsToInfer.add(baseNetworkHelper::inferInputTensorSpecs);
+                    hiddenSpecsToInfer.add(baseNetworkHelper::inferHiddenTensorSpecs);
                     outputSpecsToInfer.add(baseNetworkHelper::inferOutputTensorSpecs);
                 }
                 final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
                 baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
+                // TODO: Support appending to hidden layers.
             }
         });
 
@@ -166,7 +177,8 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 
-        return new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
+        m_inferredSpec = new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
+        return m_inferredSpec;
     }
 
     private List<DLTensorSpec> inferTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
@@ -216,6 +228,21 @@ public final class DLKerasNetworkSpecInferrer {
 
         private List<DLTensorSpec> inferInputTensorSpecs(final DLKerasNetworkLayerNameGenerator generator) {
             return Arrays.asList(m_networkSpec.getInputSpecs());
+        }
+
+        private List<DLTensorSpec> inferHiddenTensorSpecs(final DLKerasNetworkLayerNameGenerator generator) {
+            final DLTensorSpec[] allHiddenTensorSpecs = m_networkSpec.getHiddenOutputSpecs();
+            final List<DLTensorSpec> hiddenTensorSpecs =
+                new ArrayList<>(allHiddenTensorSpecs.length + m_connectedOutputs.size());
+            hiddenTensorSpecs.addAll(Arrays.asList(allHiddenTensorSpecs));
+            final DLTensorSpec[] allOutTensorSpecs = m_networkSpec.getOutputSpecs();
+            for (int i = 0; i < allOutTensorSpecs.length; i++) {
+                // Connected output specs become hidden specs.
+                if (m_connectedOutputs.contains(i)) {
+                    hiddenTensorSpecs.add(allOutTensorSpecs[i]);
+                }
+            }
+            return hiddenTensorSpecs;
         }
 
         private List<DLTensorSpec> inferOutputTensorSpecs(final DLKerasNetworkLayerNameGenerator generator) {

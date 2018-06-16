@@ -635,7 +635,7 @@ class DLKerasLayerTestSetups {
         assert outputSpecs[0].equals(baseNetwork.getSpec().getOutputSpecs()[0]);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        // Would currently fail because of ignored hidden layer in base network. Pending (AP-7634).
+        // Would currently fail because order of network outputs is not yet as desired. Pending.
         NodeLogger.getLogger(DLKerasLayerTestSetups.class)
             .warn("DL Keras: Skipping some assertions that rely on pending work.");
         // assert outputSpec1.getName().equals("dense_7_0:0");

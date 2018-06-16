@@ -250,7 +250,7 @@ public final class DLKerasNetworkMaterializer {
     }
 
     private static class DLKerasNetworkMaterializerParser implements DLKerasLayerVisitor {
-        
+
         private final Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> m_layerToTensorSpecMap;
 
         private final List<Object> m_inputVariables = new ArrayList<>();
@@ -270,13 +270,13 @@ public final class DLKerasNetworkMaterializer {
             new HashMap<>();
 
         private Map<DLKerasTensorSpecsOutput, Integer> m_maxDepthsFromOutputs;
-        
+
         /**
-         * @param layerToTensorSpecMap 
-         * 
+         * @param layerToTensorSpecMap
+         *
          */
         public DLKerasNetworkMaterializerParser(
-            Map<DLKerasTensorSpecsOutput,List<DLTensorSpec>> layerToTensorSpecMap) {
+            final Map<DLKerasTensorSpecsOutput,List<DLTensorSpec>> layerToTensorSpecMap) {
             m_layerToTensorSpecMap = layerToTensorSpecMap;
         }
 
@@ -297,40 +297,40 @@ public final class DLKerasNetworkMaterializer {
                 + '(' + innerLayer.populateCall(parentVariables)
                 + ')');
         }
-        
-        private List<String> getTensorVariables(DLKerasTensorSpecsOutput tensorSpecsOutput) {
+
+        private List<String> getTensorVariables(final DLKerasTensorSpecsOutput tensorSpecsOutput) {
             return getTensorSpecs(tensorSpecsOutput).stream()
                     .map(s -> m_tensorVariables.get(s.getIdentifier())).collect(Collectors.toList());
         }
 
         private List<String> extractParentVariables(final DLKerasInnerLayer innerLayer) {
-            List<String> parentVariables = new ArrayList<>();
+            final List<String> parentVariables = new ArrayList<>();
             for (int i = 0; i < innerLayer.getNumParents(); i++) {
-                DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
-                DLTensorSpec inputSpec = innerLayer.getInputTensorSpec(i);
+                final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
+                final DLTensorSpec inputSpec = innerLayer.getInputTensorSpec(i);
                 String variable = m_tensorVariables.get(inputSpec.getIdentifier());
                 if (variable == null) {
                     addTensorVariables(parent);
                     variable = m_tensorVariables.get(inputSpec.getIdentifier());
                 }
                 if (variable  == null) {
-                    throw new IllegalStateException("Can't find variable for tensor " 
+                    throw new IllegalStateException("Can't find variable for tensor "
                             + inputSpec + " after adding all tensors of respective parent.");
                 }
                 parentVariables.add(variable);
             }
             return parentVariables;
         }
-        
-        private List<DLTensorSpec> getTensorSpecs(DLKerasTensorSpecsOutput tensorSpecOutput) {
+
+        private List<DLTensorSpec> getTensorSpecs(final DLKerasTensorSpecsOutput tensorSpecOutput) {
             return m_layerToTensorSpecMap.get(tensorSpecOutput);
         }
-        
-        private List<String> addTensorVariables(DLKerasTensorSpecsOutput tensorOutput) {
-            List<DLTensorSpec> tensorSpecs = getTensorSpecs(tensorOutput);
-            List<String> addedVariables = new ArrayList<>(tensorSpecs.size());
-            for (DLTensorSpec tensorSpec : tensorSpecs) {
-                String variable = getNextLayerVariable();
+
+        private List<String> addTensorVariables(final DLKerasTensorSpecsOutput tensorOutput) {
+            final List<DLTensorSpec> tensorSpecs = getTensorSpecs(tensorOutput);
+            final List<String> addedVariables = new ArrayList<>(tensorSpecs.size());
+            for (final DLTensorSpec tensorSpec : tensorSpecs) {
+                final String variable = getNextLayerVariable();
                 addedVariables.add(variable);
                 m_tensorVariables.put(tensorSpec.getIdentifier(), variable);
             }
@@ -342,13 +342,13 @@ public final class DLKerasNetworkMaterializer {
             final List<String> tensorVariable = getTensorVariables(inputLayer);
             m_inputVariables.addAll(tensorVariable);
             m_codeLinesToGenerate.put(inputLayer,
-                gen -> String.join(", ",tensorVariable) + " = " 
+                gen -> String.join(", ",tensorVariable) + " = "
                         + inputLayer.getBackendRepresentation(gen.getNextLayerName(inputLayer)));
         }
 
         @Override
         public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
-            List<String> variables = addTensorVariables(inputOutputLayer);
+            final List<String> variables = addTensorVariables(inputOutputLayer);
             m_inputVariables.addAll(variables);
             m_outputVariables.add(variables);
             m_codeLinesToGenerate.put(inputOutputLayer, gen -> String.join(", ", variables) + " = "
@@ -370,6 +370,7 @@ public final class DLKerasNetworkMaterializer {
             }
             final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
             baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
+            // TODO: Support appending to hidden layers.
             final List<String> tensorVariable = getTensorVariables(baseNetworkOutput);
             final String baseNetworkVariable = baseNetworkHelper.m_variable;
             m_codeLinesToGenerate.put(baseNetworkOutput,
