@@ -100,9 +100,6 @@ class DLKerasNetworkSpecExtractor(object):
 
         # training configuration:
         training_config = None
-        from keras.models import Sequential
-        if isinstance(model, Sequential):
-            model = model.model
         if hasattr(model, 'optimizer') and hasattr(model, 'loss') and hasattr(model, 'metrics'):
             # optimizer:
             optimizer = model.optimizer

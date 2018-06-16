@@ -55,6 +55,7 @@ import keras
 import numpy as np
 import pandas as pd
 from keras.models import Model
+from keras.models import Sequential
 from keras.models import load_model
 from keras.models import model_from_json
 from keras.models import model_from_yaml
@@ -90,23 +91,28 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
         return load_model(path, compile=compile)
 
     def _read_from_json_internal(self, path):
-        f = open(path, 'r')
-        model_json_string = f.read()
-        f.close()
+        with open(path, 'r') as f:
+            model_json_string = f.read()
         return model_from_json(model_json_string)
 
     def _read_from_yaml_internal(self, path):
-        f = open(path, 'r')
-        model_yaml_string = f.read()
-        f.close()
-        return model_from_yaml(model_yaml_string, )
+        with open(path, 'r') as f:
+            model_yaml_string = f.read()
+        return model_from_yaml(model_yaml_string)
 
 
 class DLKerasNetwork(DLPythonNetwork):
     __metaclass__ = abc.ABCMeta
 
+    @staticmethod
+    def _convert_sequential_to_model(model):
+        if isinstance(model, Sequential):
+            return Model(inputs=model.inputs, outputs=model.outputs)
+        else:
+            return model
+
     def __init__(self, model):
-        super().__init__(model)
+        super().__init__(DLKerasNetwork._convert_sequential_to_model(model))
 
     @abc.abstractmethod
     def _extract_model_spec(self):
