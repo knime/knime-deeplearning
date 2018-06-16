@@ -48,12 +48,17 @@ package org.knime.dl.keras.tensorflow.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
+import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -67,6 +72,12 @@ public final class DLKerasTensorFlowDefaultExecutionContext
 	public DLKerasTensorFlowDefaultExecutionContext() {
 		super(DLKerasTensorFlowNetwork.class, EXECUTION_CONTEXT_NAME);
 	}
+
+    @Override
+    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
+        new DLKerasTensorFlowNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+    }
 
 	@Override
 	public DLKerasTensorFlowNetworkExecutionSession createExecutionSession(final DLKerasTensorFlowNetwork network,

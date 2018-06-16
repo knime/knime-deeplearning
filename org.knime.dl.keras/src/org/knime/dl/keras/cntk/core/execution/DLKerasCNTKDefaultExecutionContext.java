@@ -48,11 +48,16 @@ package org.knime.dl.keras.cntk.core.execution;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
+import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
+import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 
 /**
@@ -68,6 +73,12 @@ public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExe
 	}
 
 	@Override
+    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
+        new DLKerasCNTKNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+    }
+
+    @Override
 	public DLKerasCNTKNetworkExecutionSession createExecutionSession(final DLKerasCNTKNetwork network,
 			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
 			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {

@@ -51,7 +51,7 @@ package org.knime.dl.core;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <N> the {@link DLNetwork network} type
  */
-public interface DLContext<N extends DLNetwork> {
+public interface DLContext<N extends DLNetwork> extends DLInstallationTestable {
 
     /**
      * @return the network type that's associated with this context

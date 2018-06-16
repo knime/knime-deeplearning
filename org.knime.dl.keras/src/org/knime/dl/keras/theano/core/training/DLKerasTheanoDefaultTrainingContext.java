@@ -48,11 +48,16 @@ package org.knime.dl.keras.theano.core.training;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
+import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
 
 /**
  * The Keras (Theano) training back end.
@@ -70,6 +75,12 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 	public DLKerasTheanoDefaultTrainingContext() {
 		super(DLKerasTheanoNetwork.class, TRAINING_CONTEXT_NAME);
 	}
+
+    @Override
+    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
+        new DLKerasTheanoNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+    }
 
 	@Override
 	public DLKerasTheanoNetworkTrainingSession createTrainingSession(final DLKerasTheanoNetwork network,

@@ -48,6 +48,10 @@ package org.knime.dl.testing.backend;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLCancelable;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
+import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorId;
@@ -76,6 +80,12 @@ public class DLTestingBackendExecutionContext implements DLExecutionContext<DLTe
     @Override
     public DLTensorFactory getTensorFactory() {
         return m_tensorFactory;
+    }
+
+    @Override
+    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
+        // no-op
     }
 
     @Override
