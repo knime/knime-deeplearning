@@ -16,12 +16,8 @@
 		<tab name="Options">
 			<option name="Axis">
 				The axis that should be normalized (typically the
-				features axis). For
-				instance, after a Conv2D layer with
-				<code>data_format="channels_first"</code>
-				, set
-				<code>axis=1</code>
-				in BatchNormalization.
+				features axis). For instance, after a Conv2D layer with
+				data_format="channels_first" , set axis=1 in BatchNormalization.
 			</option>
 			<option name="Momentum">
 				Momentum for the moving mean and the moving
