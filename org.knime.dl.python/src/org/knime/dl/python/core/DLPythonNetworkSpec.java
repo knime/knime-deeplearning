@@ -55,7 +55,13 @@ import org.knime.dl.core.DLNetworkSpec;
 public interface DLPythonNetworkSpec extends DLNetworkSpec {
 
     /**
-     * @return the version of the Python executable this network has been created with
+     * Returns the version of the Python executable this network has been created with. May be <code>null</code> if the
+     * version is unknown. Please note that the version should only be used for version management (e.g. resolving
+     * backward compatibility issues). As such, it is not considered by {@link #hashCode()} and {@link #equals(Object)}.
+     *
+     * @return the Python version, may be <code>null</code>
+     * @since 3.6 - This getter will always return <code>null</code> if this instance is the result of deserializing an
+     *        older version of this spec class.
      */
     Version getPythonVersion();
 }

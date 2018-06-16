@@ -58,7 +58,7 @@ import org.knime.dl.util.DLUtils;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
-    
+
     /**
      * Must only be called by implementing classes that are in the same bundle as {@link DLKerasAbstractNetworkSpec}.
      *
@@ -69,7 +69,13 @@ public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
     }
 
     /**
-     * @return the version of the Keras library this network has been created with
+     * Returns the version of the Keras library this network has been created with. May be <code>null</code> if the
+     * version is unknown. Please note that the version should only be used for version management (e.g. resolving
+     * backward compatibility issues). As such, it is not considered by {@link #hashCode()} and {@link #equals(Object)}.
+     *
+     * @return the Keras version, may be <code>null</code>
+     * @since 3.6 - This getter will always return <code>null</code> if this instance is the result of deserializing an
+     *        older version of this spec class.
      */
     Version getKerasVersion();
 
