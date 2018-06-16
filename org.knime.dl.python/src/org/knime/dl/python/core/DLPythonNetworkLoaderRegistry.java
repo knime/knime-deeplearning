@@ -57,6 +57,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeout;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNotCancelable;
 
@@ -74,10 +76,6 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonNetworkLoaderRegistry.class);
 
-	private static final String INSTALLATION_TEST_VM_OPT = "knime.dl.installationtesttimeout";
-
-	private static final int INSTALLATION_TEST_DEFAULT_TIMEOUT = 25000; // in ms
-
 	private static DLPythonNetworkLoaderRegistry instance;
 
 	/**
@@ -94,22 +92,8 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 
 	private final Map<Class<?>, DLPythonNetworkLoader<?>> m_loaders = new HashMap<>();
 
-	private final int m_installationTestTimeout;
-
 	private DLPythonNetworkLoaderRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-
-		// parse test timeout duration from VM option
-		int timeout;
-		try {
-			timeout = Integer.parseInt(
-					System.getProperty(INSTALLATION_TEST_VM_OPT, Integer.toString(INSTALLATION_TEST_DEFAULT_TIMEOUT)));
-		} catch (final NumberFormatException ex) {
-			timeout = INSTALLATION_TEST_DEFAULT_TIMEOUT;
-			LOGGER.warn("The VM option -D" + INSTALLATION_TEST_VM_OPT
-					+ " was set to a non-integer value, and thus defaults to " + timeout + " ms.");
-		}
-		m_installationTestTimeout = timeout;
 
 		// register loaders
 		register();
@@ -124,14 +108,15 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 		for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
 			new Thread(() -> {
 				try {
-					loader.checkAvailability(true, m_installationTestTimeout, DLNotCancelable.INSTANCE);
-				} catch (final DLPythonInstallationTestTimeoutException e) {
+                    loader.checkAvailability(true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+				} catch (final DLInstallationTestTimeoutException e) {
 					Thread.currentThread().interrupt();
 					LOGGER.debug(e);
 					LOGGER.warn("Installation test for deep learning Python back end '"
 							+ loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted. "
 							+ "Please make sure your Python environment is properly set up and "
-							+ "consider increasing the timeout using the VM option " + "'-D" + INSTALLATION_TEST_VM_OPT
+                        + "consider increasing the timeout using the VM option " + "'-D"
+                        + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT
 							+ "=<value-in-ms>'.");
 				} catch (final DLMissingDependencyException e) {
 					LOGGER.debug("Installation test in deep learning Python network loader registry failed: "
@@ -144,11 +129,11 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 	}
 
 	/**
-	 * @return the installation test timeout that can be specified by the user via VM option
-	 *         {@link DLPythonNetworkLoaderRegistry#INSTALLATION_TEST_VM_OPT}
-	 */
+     * @return the installation test timeout as returned by
+     *         {@link DLInstallationTestTimeout#getInstallationTestTimeout()}
+     */
 	public int getInstallationTestTimeout() {
-		return m_installationTestTimeout;
+        return DLInstallationTestTimeout.getInstallationTestTimeout();
 	}
 
 	// access methods:

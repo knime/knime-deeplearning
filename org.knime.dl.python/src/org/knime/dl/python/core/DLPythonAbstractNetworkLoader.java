@@ -60,6 +60,7 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -74,7 +75,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
 	@Override
 	public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
-			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
+			throws DLMissingDependencyException, DLInstallationTestTimeoutException {
 		getInstallationTester().testInstallation(forceRefresh, timeout, this, cancelable);
 	}
 
@@ -94,18 +95,18 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
 		protected String m_message;
 
-		protected DLPythonInstallationTestTimeoutException m_timeoutException;
+		protected DLInstallationTestTimeoutException m_timeoutException;
 
 		public DLPythonInstallationTester() {
 		}
 
 		protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
 				final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
-				throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException {
+				throws DLMissingDependencyException, DLInstallationTestTimeoutException {
 			if (forceRefresh || !m_tested) {
 				final AtomicBoolean success = new AtomicBoolean();
 				final AtomicReference<String> message = new AtomicReference<>();
-				final AtomicReference<DLPythonInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
+				final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
 				try (DLPythonContext context = new DLPythonDefaultContext()) {
 					final Thread t = new Thread(() -> {
 						try {
@@ -125,7 +126,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 								if (msg == null) {
 									msg = "Installation test for Python back end '"
 											+ loader.getNetworkType().getCanonicalName() + "' was interrupted.";
-									timeoutException.set(new DLPythonInstallationTestTimeoutException(msg, e));
+									timeoutException.set(new DLInstallationTestTimeoutException(msg, e));
 								}
 								return msg;
 							});
@@ -138,7 +139,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 							if (msg == null) {
 								msg = "Installation test for Python back end '"
 										+ loader.getNetworkType().getCanonicalName() + "' timed out.";
-								timeoutException.set(new DLPythonInstallationTestTimeoutException(msg));
+								timeoutException.set(new DLInstallationTestTimeoutException(msg));
 							}
 							return msg;
 						});

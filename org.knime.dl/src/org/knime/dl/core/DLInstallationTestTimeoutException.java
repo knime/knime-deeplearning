@@ -44,24 +44,22 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core;
+package org.knime.dl.core;
 
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
-import org.knime.dl.core.DLCheckedException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonInstallationTestTimeoutException extends DLCheckedException {
+public class DLInstallationTestTimeoutException extends DLCheckedException {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @param message must be neither null nor empty
 	 */
-	public DLPythonInstallationTestTimeoutException(final String message) {
+	public DLInstallationTestTimeoutException(final String message) {
 		super(checkNotNullOrEmpty(message));
 	}
 
@@ -69,7 +67,7 @@ public class DLPythonInstallationTestTimeoutException extends DLCheckedException
 	 * @param message must be neither null nor empty
 	 * @param cause see {@link Throwable#Throwable(String, Throwable)}
 	 */
-	public DLPythonInstallationTestTimeoutException(final String message, final Throwable cause) {
+	public DLInstallationTestTimeoutException(final String message, final Throwable cause) {
 		super(checkNotNullOrEmpty(message), cause);
 	}
 
@@ -79,7 +77,7 @@ public class DLPythonInstallationTestTimeoutException extends DLCheckedException
 	 * @param enableSuppression see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 * @param writableStackTrace see {@link Throwable#Throwable(String, Throwable, boolean, boolean)}
 	 */
-	public DLPythonInstallationTestTimeoutException(final String message, final Throwable cause,
+	public DLInstallationTestTimeoutException(final String message, final Throwable cause,
 			final boolean enableSuppression, final boolean writableStackTrace) {
 		super(checkNotNullOrEmpty(message), cause, enableSuppression, writableStackTrace);
 	}

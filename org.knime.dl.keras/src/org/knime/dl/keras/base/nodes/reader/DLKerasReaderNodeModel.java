@@ -80,13 +80,13 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNotCancelable;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
-import org.knime.dl.python.core.DLPythonInstallationTestTimeoutException;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
@@ -162,7 +162,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		try {
 			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
 			    DLNotCancelable.INSTANCE);
-		} catch (final DLMissingDependencyException | DLPythonInstallationTestTimeoutException | DLCanceledExecutionException e) {
+		} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
 			throw new InvalidSettingsException(
 					"Selected Keras back end '" + loader.getName() + "' is not available anymore. "
 							+ "Please check your local installation.\nDetails: " + e.getMessage());

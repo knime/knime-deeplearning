@@ -54,10 +54,10 @@ import java.util.List;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestable;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.python.typeextension.PythonModuleExtensions;
 
@@ -66,7 +66,7 @@ import org.knime.python.typeextension.PythonModuleExtensions;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
+public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInstallationTestable {
 
 	/**
 	 * Returns the network type that's associated with this Python loader.
@@ -127,25 +127,6 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> {
      * @return the valid and resolved URL
      */
     URL validateDestination(URI destination) throws DLInvalidDestinationException;
-
-	/**
-	 * Checks if the external dependencies of this network type are available. Throws an exception if they are not or if
-	 * testing their availability timed out or was interrupted.
-	 * <P>
-	 * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-	 * should cache the results of their first invocation to improve the response time of subsequent calls.
-	 *
-	 * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-	 *            will be redone. Otherwise, previous test results will be used if available.
-	 * @param timeout timeout in milliseconds after which the installation test will be interrupted
-	 * @param cancelable to check if the operation has been canceled
-	 * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
-	 * @throws DLPythonInstallationTestTimeoutException if the installation test timed out or was interrupted in terms
-	 *             of threading
-	 * @throws DLCanceledExecutionException if the operation has been canceled
-	 */
-	void checkAvailability(boolean forceRefresh, int timeout, DLCancelable cancelable)
-			throws DLMissingDependencyException, DLPythonInstallationTestTimeoutException, DLCanceledExecutionException;
 
 	/**
 	 * Loads a network from a source into a context.
