@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -98,7 +99,6 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLRowInputRowIterator;
@@ -116,6 +116,7 @@ import org.knime.dl.core.execution.DLNetworkExecutionSession;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -251,9 +252,9 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_lastIncomingTableSpec = inDataSpec;
 
 		if (m_lastConfiguredNetworkSpec != null && m_lastConfiguredTableSpec != null) {
-			if (!m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec)) {
+            if (!areNetworkSpecsCompatible(m_lastIncomingNetworkSpec, m_lastConfiguredNetworkSpec)) {
 				throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
-			} 
+			}
 //			else if (!m_lastConfiguredTableSpec.equals(m_lastIncomingTableSpec)) {
 //			    throw new InvalidSettingsException("Input table changed. Please reconfigure the node.");
 //			}
@@ -372,6 +373,45 @@ final class DLExecutorNodeModel extends NodeModel {
 		// no op
 	}
 
+    private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {
+        // Network types must be the same.
+        if (!newSpec.getClass().equals(oldSpec.getClass())) {
+            return false;
+        }
+        // Inputs must be the same.
+        if (!Sets.symmetricDifference(new HashSet<>(Arrays.asList(newSpec.getInputSpecs())),
+            new HashSet<>(Arrays.asList(oldSpec.getInputSpecs()))).isEmpty()) {
+            return false;
+        }
+        // Selected outputs must still be available.
+        for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
+            DLTensorSpec newTensorSpec = null;
+            try {
+                newTensorSpec = getOutputOrHiddenTensorSpec(tensorName, newSpec);
+            } catch (final InvalidSettingsException e) {
+                return false;
+            }
+            DLTensorSpec oldTensorSpec = null;
+            try {
+                oldTensorSpec = getOutputOrHiddenTensorSpec(tensorName, oldSpec);
+            } catch (final InvalidSettingsException e) {
+                continue; // This should not happen. But if it does, the new spec is valid.
+            }
+            if (!newTensorSpec.equals(oldTensorSpec)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private DLTensorSpec getOutputOrHiddenTensorSpec(final String tensorName, final DLNetworkSpec networkSpec)
+        throws InvalidSettingsException {
+        return DLUtils.Networks.findSpec(tensorName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
+            .orElseThrow(() -> new InvalidSettingsException(
+                "Selected output '" + tensorName + "' could not be found in the input deep learning network."));
+    }
+
 	private void configureGeneral(final Class<? extends DLNetwork> networkType)
 			throws DLMissingDependencyException, InvalidSettingsException {
 		DLExecutionContext<?> backend = m_generalCfg.getContextEntry().getValue();
@@ -411,17 +451,13 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
     private void configureOutputs(final DLNetworkSpec networkSpec)
-			throws DLMissingExtensionException, InvalidSettingsException {
+        throws InvalidSettingsException {
 		if (m_outputCfgs.size() == 0) {
 			throw new InvalidSettingsException("No network output was selected.");
 		}
 		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
 		for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
-			// validate layer spec
-			final DLTensorSpec tensorSpec = DLUtils.Networks
-					.findSpec(tensorName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
-					.orElseThrow(() -> new InvalidSettingsException("Selected output '" + tensorName
-							+ "' could not be found in the input deep learning network."));
+            final DLTensorSpec tensorSpec = getOutputOrHiddenTensorSpec(tensorName, networkSpec);
 			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
 				throw new InvalidSettingsException(
 						"Selected output '" + tensorName + "' has an unknown shape. This is not supported.");
@@ -575,8 +611,8 @@ final class DLExecutorNodeModel extends NodeModel {
         });
         return monitor;
     }
-	
-	private static DLExecutionStatus createExecutionStatus(DLKnimeNetworkExecutionInputPreparer inputPreparer) {
+
+	private static DLExecutionStatus createExecutionStatus(final DLKnimeNetworkExecutionInputPreparer inputPreparer) {
 	    int numBatches = -1;
         try {
             numBatches = (int) inputPreparer.getNumBatches();

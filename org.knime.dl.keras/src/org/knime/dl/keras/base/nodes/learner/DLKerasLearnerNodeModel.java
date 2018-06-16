@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +126,7 @@ import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -244,7 +246,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_lastIncomingTableSpec = inTableSpec;
 
 		if (m_lastConfiguredNetworkSpec != null && m_lastConfiguredTableSpec != null) {
-			if (!m_lastConfiguredNetworkSpec.equals(m_lastIncomingNetworkSpec)) {
+            if (!areNetworkSpecsCompatible(m_lastIncomingNetworkSpec, m_lastConfiguredNetworkSpec)) {
 				throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
 			}
 		} else if (m_initialLoaded) {
@@ -399,6 +401,24 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		notifyViews(null);
 	}
 
+    private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {
+        // Network types must be the same.
+        if (!newSpec.getClass().equals(oldSpec.getClass())) {
+            return false;
+        }
+        // Inputs must be the same.
+        if (!Sets.symmetricDifference(new HashSet<>(Arrays.asList(newSpec.getInputSpecs())),
+            new HashSet<>(Arrays.asList(oldSpec.getInputSpecs()))).isEmpty()) {
+            return false;
+        }
+        // Outputs must be the same.
+        if (!Sets.symmetricDifference(new HashSet<>(Arrays.asList(newSpec.getOutputSpecs())),
+            new HashSet<>(Arrays.asList(oldSpec.getOutputSpecs()))).isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
 	private void configureGeneral(final Class<? extends DLNetwork> inNetworkType) throws Exception {
 		final DLKerasTrainingContext<?> backend = configureBackend(inNetworkType);
 		configureOptimizer(backend);
@@ -466,7 +486,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		for (final DLTensorSpec tensorSpec : inputSpecs) {
 			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
-			DLDataValueToTensorConverterFactory<?, ?> converter =
+			final DLDataValueToTensorConverterFactory<?, ?> converter =
                 DLConfigurationUtility.configureInput(inputCfg, tensorSpec, trainingContext, inTableSpec,
                     m_lastConfiguredTableSpec, DLTensorRole.INPUT);
 			m_converters.put(tensorSpec, converter);
@@ -482,7 +502,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.computeIfAbsent(tensorSpec.getName(),
 					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
 			// get selected converter
-			DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
+			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
 			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, DLTensorRole.TARGET);
 			if (m_converters.containsKey(tensorSpec)) {
 			    checkConverterEquality(tensorSpec, converter);
@@ -491,16 +511,16 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			setLossFunction(tensorSpec, targetCfg);
 		}
     }
-    
-    private void checkConverterEquality(DLTensorSpec tensorSpec, DLDataValueToTensorConverterFactory<?, ?> converter) {
-        DLDataValueToTensorConverterFactory<?, ?> alreadyConfiguredConverter = m_converters.get(tensorSpec);
+
+    private void checkConverterEquality(final DLTensorSpec tensorSpec, final DLDataValueToTensorConverterFactory<?, ?> converter) {
+        final DLDataValueToTensorConverterFactory<?, ?> alreadyConfiguredConverter = m_converters.get(tensorSpec);
         if (!converter.equals(alreadyConfiguredConverter)) {
-            throw new IllegalStateException("You use the tensor '" 
-                    + tensorSpec.getName() 
+            throw new IllegalStateException("You use the tensor '"
+                    + tensorSpec.getName()
                     + "' both as input and target but with different converters ('"
-                    + alreadyConfiguredConverter.getIdentifier() 
-                    + "' and '" 
-                    + converter.getIdentifier() 
+                    + alreadyConfiguredConverter.getIdentifier()
+                    + "' and '"
+                    + converter.getIdentifier()
                     + "'. This is not supported.");
         }
     }
@@ -781,7 +801,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			if (cfg == null) {
 			    cfg = m_targetCfgs.get(targetSpec.getIdentifier().getIdentifierString());
 			}
-			ConfigEntry<DLKerasLossFunction> lossEntry = cfg.getLossFunctionEntry();
+			final ConfigEntry<DLKerasLossFunction> lossEntry = cfg.getLossFunctionEntry();
 			if (cfg.getUseCustomLossEntry().getValue()) {
 			    lossFunction = cfg.getCustomLossFunctionEntry().getValue();
 			} else {
