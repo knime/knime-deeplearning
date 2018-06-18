@@ -68,6 +68,7 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorId;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLReportedMetric;
@@ -674,6 +675,22 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             "DLPythonNetworkSpecToDataFrameConverter.get_layer_data_specs_as_data_frames('" + network.getIdentifier()
             + "')";
 	}
+
+    /**
+     * Extracts the tensor spec from a pandas DataFrame.
+     *
+     * @param specName the name of the pandas DataFrame
+     * @param cancelable to check if the execution has been canceled
+     * @return the tensor spec in the DataFrame
+     * @throws DLCanceledExecutionException if the execution has been canceled
+     * @throws DLInvalidEnvironmentException if failed to properly setup the Python context
+     * @throws IOException if getting the data from python failed
+     */
+    protected DLTensorSpec[] extractTensorSpec(final String specName, final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        return (DLTensorSpec[])getContext(cancelable).getDataFromKernel(specName,
+            new DLPythonTensorSpecTableCreatorFactory(DLPythonNumPyTypeMap.INSTANCE), cancelable).getTable();
+    }
 
     /**
      * @param cancelable to check if the execution has been canceled
