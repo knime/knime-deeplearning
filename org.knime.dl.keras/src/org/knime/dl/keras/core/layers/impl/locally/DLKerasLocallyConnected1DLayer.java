@@ -66,6 +66,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -127,7 +128,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
      * Constructor
      */
     public DLKerasLocallyConnected1DLayer() {
-        super("keras.layers.LocallyConnected1D");
+        super("keras.layers.LocallyConnected1D", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -136,7 +137,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
     }
