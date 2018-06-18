@@ -63,6 +63,7 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -114,7 +115,7 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasBatchNormalizationLayer() {
-        super("keras.layers.BatchNormalization");
+        super("keras.layers.BatchNormalization", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -134,7 +135,7 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         if (m_axis > inputShape.length) {
             // Note that axis 1 corresponds to the axis with index 0 in inputShape
