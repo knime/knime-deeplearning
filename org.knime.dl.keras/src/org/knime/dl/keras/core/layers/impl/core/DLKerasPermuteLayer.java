@@ -75,6 +75,9 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        if (m_dims.getTuple() == null) {
+            throw new InvalidSettingsException("Permutation dimensions must be specified.");
+        }
     }
 
     @Override
