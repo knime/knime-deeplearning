@@ -52,6 +52,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -68,7 +69,7 @@ public final class DLKerasMaskingLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasMaskingLayer() {
-        super("keras.layers.Masking");
+        super("keras.layers.Masking", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -76,7 +77,7 @@ public final class DLKerasMaskingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
     }
 
     @Override
