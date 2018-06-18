@@ -72,15 +72,17 @@ public final class DLKerasSoftmaxLayer extends DLKerasAbstractAdvancedActivation
     @Override
     protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         super.validateInputShape(inputShape);
-        int inLength = inputShape.length;
-        if (inLength == 0) {
+        int rank = inputShape.length;
+        if (rank == 0) {
             // inputShape excludes the batch dimension hence the tensor that keras is operating on is
             // actually 1D.
             throw new DLInvalidTensorSpecException("Cannot apply softmax to a tensor that is 1D.");
         }
-        if (Math.abs(m_axis) > inLength) {
+        try {
+            DLLayerUtils.getAxisIndex(m_axis, rank);
+        } catch (IllegalArgumentException e) {
             throw new DLInvalidTensorSpecException(
-                "Invalid indexing. The absolute value of axis may not exceed the size of the input tensor.");
+                    "Invalid indexing. The absolute value of axis may not exceed the size of the input tensor.");
         }
     }
 

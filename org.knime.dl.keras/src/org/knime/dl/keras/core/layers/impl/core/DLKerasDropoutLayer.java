@@ -70,7 +70,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise Shape", required = false)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("", 1, 1000, EnumSet.allOf(Constraint.class));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.EMPTY, Constraint.PARTIAL));
 
     @Parameter(label = "Random seed", required = false)
     private DLKerasSeed m_seed = new DLKerasSeed();
@@ -87,8 +87,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputShape(final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
     }
 
     @Override

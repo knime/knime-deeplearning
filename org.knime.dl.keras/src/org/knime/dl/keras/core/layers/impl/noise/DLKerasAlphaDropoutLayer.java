@@ -54,7 +54,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -70,7 +69,7 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise Shape", required = false)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL)));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("", 1, 1000, EnumSet.noneOf(Constraint.class));
 
     @Parameter(label = "Random seed", required = false)
     private Long m_seed = null;

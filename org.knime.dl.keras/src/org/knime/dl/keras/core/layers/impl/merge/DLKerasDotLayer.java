@@ -73,7 +73,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
     @Parameter(label = "Axes")
-    private DLKerasTuple m_axes = new DLKerasTuple("-1", 1, 2, EnumSet.of(Constraint.NEGATIVE, Constraint.ZERO));
+    private DLKerasTuple m_axes = new DLKerasTuple("-1, -1", 2, 2, EnumSet.of(Constraint.NEGATIVE, Constraint.ZERO));
 
     @Parameter(label = "Normalize")
     private boolean m_normalize = false;
@@ -86,10 +86,15 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        int tupleLength = m_axes.getTuple().length;
+        if (tupleLength != 2) {
+            throw new InvalidSettingsException("Axes must contain exactly two axis.");
+        }
     }
 
     @Override
-    protected void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape)
+        throws DLInvalidTensorSpecException {
         int[] actualAxes = getAxes(firstInputShape.length, secondInputShape.length);
         checkInputSpec(
             DLParameterValidationUtils.dimensionsMatch(firstInputShape[actualAxes[0]], secondInputShape[actualAxes[1]]),
@@ -124,8 +129,8 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        positionalParams.add(DLPythonUtils.toPython(Arrays.stream(m_axes.getTuple())
-            .mapToInt(d -> DLLayerUtils.exampleShapeIndexToBatchShapeIndex(d.intValue())).toArray()));
+        positionalParams
+            .add(DLPythonUtils.toPython(Arrays.stream(m_axes.getTuple()).mapToInt(d -> d.intValue()).toArray()));
         namedParams.put("normalize", DLPythonUtils.toPython(m_normalize));
     }
 

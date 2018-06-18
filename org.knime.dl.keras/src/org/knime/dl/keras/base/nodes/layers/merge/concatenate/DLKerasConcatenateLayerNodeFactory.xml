@@ -15,7 +15,7 @@
 		</intro>
 		<option name="Axis">
 			The axis along which to concatenate.
-			Note that axis 0 does NOT correspond to the batch dimension but two the first dimension of the example shape.
+			Note that axis 0 is the batch axis.
 		</option>
 	</fullDescription>
 	<ports>

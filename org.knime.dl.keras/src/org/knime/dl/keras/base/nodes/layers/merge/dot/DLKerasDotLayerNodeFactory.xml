@@ -15,9 +15,8 @@
 			. The axis along which to calculate the dot product must be of the same size for both inputs.
 		</intro>
 		<option name="Axes">
-			A single integer or a comma separated pair of integers that specifies along which axis to compute the dot product.
-			In case of a single integer, this axis is used for both inputs.
-			Note that axis 0 does not correspond to the batch dimension but to the first example dimension.
+			A comma separated pair of integers that specifies along which axis to compute the dot product.
+			Note that axis 0 is the batch axis.
 		</option>
 		<option name="Normalize">
 			Whether to L2-normalize samples along the dot product axis before taking the dot product.

@@ -21,6 +21,10 @@
 		</option>
 		<option name="Noise Shape">
 			The shape of the binary dropout mask that will be multiplied with the input.
+			The noise shape has to include the batch dimension which means in case of 2D images with shape [height, width, channels], the noise shape must must have
+			rank 4 i.e. [batch, height, width, channels].
+			In order to reuse the dropout mask along specific dimensions set those to '1' in the noise shape other dimensions can be set to '?'.
+			Spatial dropout where whole feature maps are dropped can be achieved by setting noise shape to '?, 1, 1, ?'.
 		</option>
 		<option name="Random seed">
 			Random seed to use for the dropping.

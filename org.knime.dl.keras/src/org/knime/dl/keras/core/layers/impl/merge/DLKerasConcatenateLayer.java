@@ -68,7 +68,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
-    @Parameter(label = "Axis")
+    @Parameter(label = "Axis", stepSize = "1")
     private int m_axis = -1;
 
     /**
@@ -116,6 +116,6 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("axis", DLPythonUtils.toPython(DLLayerUtils.exampleShapeIndexToBatchShapeIndex(m_axis)));
+        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
     }
 }

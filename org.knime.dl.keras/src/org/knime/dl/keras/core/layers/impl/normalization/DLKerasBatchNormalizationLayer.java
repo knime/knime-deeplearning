@@ -72,8 +72,8 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Axis", min = "1", max = "100", stepSize = "1")
-    private int m_axis = 1;
+    @Parameter(label = "Axis", min="-100", max = "100", stepSize = "1")
+    private int m_axis = -1;
 
     @Parameter(label = "Momentum", min = "0", max = "1", stepSize = "0.01")
     private double m_momentum = 0.99;
@@ -137,8 +137,9 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        if (m_axis > inputShape.length) {
-            // Note that axis 1 corresponds to the axis with index 0 in inputShape
+        try {
+            DLLayerUtils.getAxisIndex(m_axis, inputShape.length);
+        } catch (IllegalArgumentException e) {
             throw new DLInvalidTensorSpecException(
                 "Normalization axis " + m_axis + " not avaiable in input of rank " + inputShape.length);
         }
