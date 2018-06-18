@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -68,12 +69,16 @@ import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
+    
+    private static final Set<Class<?>> ALLOWED_DTYPE = ImmutableSet.of(int.class);
 
     @Parameter(label = "Input dimension", min = "1")
     private int m_inputDim = 1;
@@ -100,7 +105,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
      * Constructor for embedding layers.
      */
     public DLKerasEmbeddingLayer() {
-        super("keras.layers.Embedding");
+        super("keras.layers.Embedding", ALLOWED_DTYPE);
     }
 
     @Override
@@ -138,11 +143,8 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        if (!int.class.equals(inputElementType)) {
-            throw new DLInvalidTensorSpecException("The input to an embedding layer must be of type integer.");
-        }
         if (hasInputLength()) {
             checkInputLength(inputShape);
         }
