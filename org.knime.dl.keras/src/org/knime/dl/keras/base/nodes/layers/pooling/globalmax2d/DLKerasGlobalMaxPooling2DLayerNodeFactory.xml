@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="../dlkerasmaxpoolinglayer.png" type="Other">
+	<name>Keras Global Max Pooling 2D Layer</name>
+
+	<shortDescription>
+		Keras Global Max Pooling 2D Layer
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node adds a
+			<a href="https://keras.io/layers/pooling/#globalmaxpooling2d">Keras Global Max Pooling 2D Layer</a>
+			to an existing deep learning network.
+		</intro>
+		<tab name="Options">
+			<option name="Data Format">
+				<ul>
+					<li>
+						channels_last: corresponds to inputs with shape (height, width, channels)
+					</li>
+					<li>
+						channels_first: corresponds to inputs with shape (channels, height, width)
+					</li>
+				</ul>
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>

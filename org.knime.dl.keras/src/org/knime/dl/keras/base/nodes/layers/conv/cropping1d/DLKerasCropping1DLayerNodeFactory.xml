@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="../dlkerasconvlayer.png" type="Other">
+	<name>Keras Cropping 1D Layer</name>
+
+	<shortDescription>
+		Keras Cropping 1D Layer
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node adds a
+			<a href="https://keras.io/layers/convolutional/#cropping1d">Keras Cropping 1D Layer</a>
+			to an existing deep learning network.
+		</intro>
+		<tab name="Options">
+			<option name="Cropping">
+				A tuple of two integers. How many units should be
+				trimmed off at the beginning and end of the cropping dimension.
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Cropping 1D</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Cropping 1D</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

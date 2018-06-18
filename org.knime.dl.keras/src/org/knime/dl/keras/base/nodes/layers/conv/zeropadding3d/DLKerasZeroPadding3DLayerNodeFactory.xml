@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="../dlkerasconvlayer.png" type="Other">
+	<name>Keras Zero-Padding 3D Layer</name>
+
+	<shortDescription>
+		Keras Zero-Padding 3D Layer
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node adds a
+			<a href="https://keras.io/layers/convolutional/#zeropadding3d">Keras Zero-Padding 3D Layer</a>
+			to an existing deep learning network.
+		</intro>
+		<tab name="Options">
+			<option name="Padding Dimension 1">
+				A tuple of two integers. How many zeros to add at
+				the beginning and
+				at the end of the
+				<b>first</b>
+				spatial dimension.
+			</option>
+			<option name="Padding Dimension 2">
+				A tuple of two integers. How many zeros to add at
+				the beginning and
+				at the end of the
+				<b>second</b>
+				spatial dimension.
+			</option>
+			<option name="Padding Dimension 3">
+				A tuple of two integers. How many zeros to add at
+				the beginning and
+				at the end of the
+				<b>third</b>
+				spatial dimension.
+			</option>
+			<option name="Data Format">
+				<ul>
+					<li>
+						channels_last: corresponds to inputs with shape (spatial_dim1,
+						spatial_dim2, spatial_dim3, channels)
+					</li>
+					<li>
+						channels_first: corresponds to inputs with shape (channels,
+						spatial_dim1, spatial_dim2, spatial_dim3)
+					</li>
+				</ul>
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The network to append the layer to.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The network with appended layer.
+		</outPort>
+	</ports>
+</knimeNode>
