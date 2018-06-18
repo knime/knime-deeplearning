@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -78,7 +79,7 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasZeroPadding1DLayer() {
-        super("keras.layers.ZeroPadding1D");
+        super("keras.layers.ZeroPadding1D", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -86,7 +87,7 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
     }

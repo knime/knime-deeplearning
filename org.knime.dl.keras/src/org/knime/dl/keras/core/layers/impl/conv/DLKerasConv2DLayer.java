@@ -66,6 +66,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -131,7 +132,7 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasConv2DLayer() {
-        super("keras.layers.Conv2D");
+        super("keras.layers.Conv2D", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -139,7 +140,7 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 3);
     }

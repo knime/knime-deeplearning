@@ -55,6 +55,7 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -76,7 +77,7 @@ public final class DLKerasUpSampling3DLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasUpSampling3DLayer() {
-        super("keras.layers.UpSampling3D");
+        super("keras.layers.UpSampling3D", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -84,7 +85,7 @@ public final class DLKerasUpSampling3DLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 4);
     }
