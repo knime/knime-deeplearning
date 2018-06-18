@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -64,7 +65,7 @@ public final class DLKerasELULayer extends DLKerasAbstractAdvancedActivationLaye
     /**
      */
     public DLKerasELULayer() {
-        super("keras.layers.ELU");
+        super("keras.layers.ELU", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
 

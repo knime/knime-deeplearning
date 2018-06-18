@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -64,7 +65,7 @@ public class DLKerasLeakyReLULayer extends DLKerasAbstractAdvancedActivationLaye
     /**
      */
     public DLKerasLeakyReLULayer() {
-        super("keras.layers.LeakyReLU");
+        super("keras.layers.LeakyReLU", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
 

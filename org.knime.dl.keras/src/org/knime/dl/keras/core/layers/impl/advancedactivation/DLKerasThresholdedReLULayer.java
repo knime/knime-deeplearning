@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -64,7 +65,7 @@ public final class DLKerasThresholdedReLULayer extends DLKerasAbstractAdvancedAc
     /**
      */
     public DLKerasThresholdedReLULayer() {
-        super("keras.layers.ThresholdedReLU");
+        super("keras.layers.ThresholdedReLU", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
     @Override

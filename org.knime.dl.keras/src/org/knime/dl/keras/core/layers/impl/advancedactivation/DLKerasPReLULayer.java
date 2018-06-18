@@ -58,6 +58,7 @@ import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -84,7 +85,7 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     /**
      */
     public DLKerasPReLULayer() {
-        super("keras.layers.PReLU");
+        super("keras.layers.PReLU", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
     @Override

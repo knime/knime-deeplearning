@@ -48,6 +48,8 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -61,13 +63,17 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
     // Don't ask 
     @Parameter(label = "Input tensor", min = "0")
     private DLTensorSpec m_spec = null;
+    
+    private final Set<Class<?>> m_allowedDtypes;
 
-    public DLKerasAbstractUnaryLayer(final String kerasIdentifier) {
+    public DLKerasAbstractUnaryLayer(final String kerasIdentifier, final Set<Class<?>> allowedDtypes) {
         super(kerasIdentifier, 1);
+        m_allowedDtypes = allowedDtypes;
     }
 
-    public DLKerasAbstractUnaryLayer(final String kerasIdentifier, final DLKerasLayer parent) {
+    public DLKerasAbstractUnaryLayer(final String kerasIdentifier, final DLKerasLayer parent, final Set<Class<?>> allowedDtypes) {
         super(kerasIdentifier, new DLKerasLayer[]{parent});
+        m_allowedDtypes = allowedDtypes;
     }
     
     @Override
@@ -95,7 +101,7 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
     }
 
     // Convenience methods:
-    protected abstract void validateInputSpec(Class<?> inputElementType, Long[] inputShape)
+    protected abstract void validateInputShape(Long[] inputShape)
         throws DLInvalidTensorSpecException;
 
     protected abstract Long[] inferOutputShape(Long[] inputShape);
@@ -110,7 +116,16 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
     @Override
     protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)
         throws DLInvalidTensorSpecException {
-        validateInputSpec(inputElementTypes.get(0), inputShapes.get(0));
+        validateInputType(inputElementTypes.get(0));
+        validateInputShape(inputShapes.get(0));
+    }
+    
+    protected void validateInputType(Class<?> inputElementType) throws DLInvalidTensorSpecException {
+        if (!m_allowedDtypes.contains(inputElementType)) {
+            throw new DLInvalidTensorSpecException("The tensor at port " 
+                    + " is of type " + inputElementType + " which is not among the supported types " 
+                    + m_allowedDtypes.stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]")));
+        }
     }
 
     @Override

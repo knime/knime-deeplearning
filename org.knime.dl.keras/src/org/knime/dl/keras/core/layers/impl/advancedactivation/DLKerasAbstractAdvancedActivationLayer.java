@@ -46,38 +46,42 @@
  */
 package org.knime.dl.keras.core.layers.impl.advancedactivation;
 
+import java.util.Set;
+
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 
 /**
- * @author Adrian, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 abstract class DLKerasAbstractAdvancedActivationLayer extends DLKerasAbstractUnaryLayer {
 
     /**
      * @param kerasIdentifier
+     * @param allowedDtypes 
      */
-    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier) {
-        super(kerasIdentifier);
+    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier, Set<Class<?>> allowedDtypes) {
+        super(kerasIdentifier, allowedDtypes);
     }
 
     /**
      * @param kerasIdentifier
      * @param parent
+     * @param allowedDtypes 
      */
-    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier, DLKerasLayer parent) {
-        super(kerasIdentifier, parent);
+    public DLKerasAbstractAdvancedActivationLayer(String kerasIdentifier, DLKerasLayer parent,
+        Set<Class<?>> allowedDtypes) {
+        super(kerasIdentifier, parent, allowedDtypes);
     }
-
 
     @Override
     protected Long[] inferOutputShape(Long[] inputShape) {
         return inputShape.clone();
     }
-    
+
     @Override
-    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         // nothing to validate
     }
 

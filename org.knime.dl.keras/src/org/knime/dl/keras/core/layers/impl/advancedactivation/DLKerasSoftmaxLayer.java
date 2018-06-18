@@ -51,6 +51,7 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -65,12 +66,12 @@ public final class DLKerasSoftmaxLayer extends DLKerasAbstractAdvancedActivation
     /**
      */
     public DLKerasSoftmaxLayer() {
-        super("keras.layers.Softmax");
+        super("keras.layers.Softmax", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
-    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
-        super.validateInputSpec(inputElementType, inputShape);
+    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
+        super.validateInputShape(inputShape);
         int inLength = inputShape.length;
         if (inLength == 0) {
             // inputShape excludes the batch dimension hence the tensor that keras is operating on is
