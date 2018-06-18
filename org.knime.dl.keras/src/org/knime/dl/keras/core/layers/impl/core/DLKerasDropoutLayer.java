@@ -53,7 +53,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
@@ -79,7 +79,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout");
+        super("keras.layers.Dropout", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -87,7 +87,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
     }
 

@@ -70,7 +70,7 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasFlattenLayer() {
-        super("keras.layers.Flatten");
+        super("keras.layers.Flatten", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -78,7 +78,7 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         checkInputSpec(inputShape.length >= 2, "Input shape must be at least two-dimensional.");
         checkInputSpec(DLLayerUtils.isShapeFullyDefined(inputShape), "The input shape must be fully defined.");

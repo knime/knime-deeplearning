@@ -71,7 +71,7 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasReshapeLayer() {
-        super("keras.layers.Reshape");
+        super("keras.layers.Reshape", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -79,7 +79,7 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension and still check
         Long[] target = m_shape.getTuple();
         if (DLLayerUtils.isShapeFullyDefined(target) && DLLayerUtils.isShapeFullyDefined(inputShape)) {

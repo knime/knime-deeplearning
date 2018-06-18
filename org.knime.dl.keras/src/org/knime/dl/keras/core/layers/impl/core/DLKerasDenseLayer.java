@@ -62,6 +62,7 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -106,7 +107,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasDenseLayer() {
-        super("keras.layers.Dense");
+        super("keras.layers.Dense", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -114,7 +115,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         checkInputSpec(inputShape.length >= 1, "Input shape must be at least one-dimensional.");
         checkInputSpec(inputShape[inputShape.length - 1] != null,

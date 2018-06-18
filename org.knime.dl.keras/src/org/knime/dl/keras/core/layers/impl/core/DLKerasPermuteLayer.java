@@ -53,6 +53,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -70,7 +71,7 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasPermuteLayer() {
-        super("keras.layers.Permute");
+        super("keras.layers.Permute", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -81,7 +82,7 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(Class<?> inputElementType, Long[] inputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         checkInputSpec(m_dims.getTuple().length == inputShape.length,
                 "Permutation is not specified for each dimension.");
         

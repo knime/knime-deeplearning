@@ -52,6 +52,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -68,7 +69,7 @@ public final class DLKerasRepeatLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasRepeatLayer() {
-        super("keras.layers.RepeatVector");
+        super("keras.layers.RepeatVector", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -76,7 +77,7 @@ public final class DLKerasRepeatLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         checkInputSpec(inputShape.length == 1, "Input shape must be one-dimensional.");
     }

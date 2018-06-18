@@ -52,6 +52,7 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.config.activation.DLKerasActivation;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -68,7 +69,7 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasActivationLayer() {
-        super("keras.layers.Activation");
+        super("keras.layers.Activation", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
     @Override
@@ -78,7 +79,7 @@ public final class DLKerasActivationLayer extends DLKerasAbstractUnaryLayer {
     
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape) {
+    protected void validateInputShape(final Long[] inputShape) {
         // nothing to validate
     }
 
