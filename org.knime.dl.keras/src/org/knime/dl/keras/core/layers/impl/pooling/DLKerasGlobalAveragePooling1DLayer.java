@@ -55,6 +55,7 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
@@ -62,15 +63,10 @@ import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUnaryLayer {
 
     /**
-     * This is hardcoded to "channels_last" in Keras
-     */
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
-    /**
      * Constructor
      */
     public DLKerasGlobalAveragePooling1DLayer() {
-        super("keras.layers.GlobalAveragePooling1D");
+        super("keras.layers.GlobalAveragePooling1D", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -79,14 +75,14 @@ public final class DLKerasGlobalAveragePooling1DLayer extends DLKerasAbstractUna
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
     }
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat.value());
+        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape,
+            DLKerasDataFormat.CHANNEL_LAST.value());
     }
 
     @Override

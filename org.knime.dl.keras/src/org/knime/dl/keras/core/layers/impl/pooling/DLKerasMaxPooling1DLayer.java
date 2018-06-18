@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -70,11 +71,6 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Strides")
     private long m_strides = 1;
 
-    /**
-     * This is hard-coded to "channels_last" in Keras
-     */
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
 
@@ -82,7 +78,7 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
      * Constructor
      */
     public DLKerasMaxPooling1DLayer() {
-        super("keras.layers.MaxPooling1D");
+        super("keras.layers.MaxPooling1D", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
     @Override
@@ -90,7 +86,7 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 2);
     }
@@ -98,14 +94,13 @@ public final class DLKerasMaxPooling1DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, new Long[]{m_poolSize}, new Long[]{m_strides},
-            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
+            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), DLKerasDataFormat.CHANNEL_LAST.value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("pool_size", DLPythonUtils.toPython(m_poolSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
     }
 }

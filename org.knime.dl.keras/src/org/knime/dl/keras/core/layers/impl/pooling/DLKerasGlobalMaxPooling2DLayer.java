@@ -55,6 +55,7 @@ import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -72,7 +73,7 @@ public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLa
      * Constructor
      */
     public DLKerasGlobalMaxPooling2DLayer() {
-        super("keras.layers.GlobalMaxPooling2D");
+        super("keras.layers.GlobalMaxPooling2D", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
     @Override
@@ -81,7 +82,7 @@ public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLa
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 3);
     }

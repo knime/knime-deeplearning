@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -83,7 +84,7 @@ public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLaye
      * Constructor
      */
     public DLKerasAveragePooling3DLayer() {
-        super("keras.layers.AveragePooling3D");
+        super("keras.layers.AveragePooling3D", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
@@ -91,7 +92,7 @@ public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLaye
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> inputElementType, final Long[] inputShape)
+    protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputSpecValidationUtils.validateInputRank(inputShape, 4);
     }
