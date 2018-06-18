@@ -46,10 +46,22 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLLayerUtils {
+    
+    public static final Set<Class<?>> FLOATING_POINT_DTYPES = ImmutableSet.of(float.class, double.class);
+    
+    public static final Set<Class<?>> NUMERICAL_DTYPES = ImmutableSet.of(
+        float.class, double.class, long.class, byte.class, int.class, short.class);
+    
+    public static final Set<Class<?>> ALL_DTYPES = ImmutableSet.of(
+        float.class, double.class, long.class, byte.class, int.class, short.class, boolean.class);
 
     private DLLayerUtils() {
         // static utility class

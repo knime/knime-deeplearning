@@ -46,17 +46,24 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Layer that computes the (element-wise) maximum of two inputs.
  * 
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasMaximumLayer extends DLKerasAbstractParameterFreeMergeLayer {
+    
+    private static final Set<Class<?>> ALLOWED_DTYPES =
+        ImmutableSet.of(float.class, double.class, int.class, long.class);
 
     /**
      */
     public DLKerasMaximumLayer() {
-        super("layers.keras.Maximum");
+        super("layers.keras.Maximum", ALLOWED_DTYPES);
     }
 
 }

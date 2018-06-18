@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import org.knime.dl.keras.core.layers.DLLayerUtils;
+
 /**
  * Layer that averages two inputs.
  * 
@@ -56,7 +58,12 @@ public final class DLKerasAverageLayer extends DLKerasAbstractParameterFreeMerge
     /**
      */
     public DLKerasAverageLayer() {
-        super("keras.layers.Average");
+        super("keras.layers.Average", DLLayerUtils.NUMERICAL_DTYPES);
+    }
+    
+    @Override
+    protected Class<?> inferOutputElementType(Class<?> firstInputElementType, Class<?> secondInputElementType) {
+        return float.class;
     }
 
 }

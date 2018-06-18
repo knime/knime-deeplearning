@@ -46,45 +46,26 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasAddLayer extends DLKerasAbstractBinaryInnerLayer {
+public final class DLKerasAddLayer extends DLKerasAbstractParameterFreeMergeLayer {
+
+    private static final Set<Class<?>> ALLOWED_DTYPES =
+        ImmutableSet.of(float.class, double.class, long.class, byte.class, int.class, short.class);
 
     /**
      */
     public DLKerasAddLayer() {
-        super("keras.layers.Add");
+        super("keras.layers.Add", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-        // no op
-    }
-
-    @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
-        // TODO
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] firstInputShape, final Long[] secondInputShape) {
-        // TODO
-        return firstInputShape;
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        // no op
-    }
 }

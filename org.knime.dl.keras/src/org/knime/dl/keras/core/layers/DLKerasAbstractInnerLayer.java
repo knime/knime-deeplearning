@@ -83,7 +83,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         super(kerasIdentifier);
         m_parents = checkNotNull(parents);
     }
-    
+
     // Convenience methods:
 
     protected abstract void validateInputSpecs(List<Class<?>> inputElementTypes, List<Long[]> inputShapes)
@@ -164,14 +164,15 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
             DLTensorSpec selected = getInputTensorSpec(i);
             if (parent != null) {
                 final List<DLTensorSpec> parentOutputSpecs = parent.getOutputSpecs();
-                DLTensorSpec parentOutputSpec = parentOutputSpecs.contains(selected) ? selected : parentOutputSpecs.get(0);
+                DLTensorSpec parentOutputSpec =
+                    parentOutputSpecs.contains(selected) ? selected : parentOutputSpecs.get(0);
                 if (parentOutputSpec.getBatchSize().isPresent()) {
                     final long parentBatchSize = parentOutputSpec.getBatchSize().getAsLong();
                     if (inputBatchSize == null) {
                         inputBatchSize = parentBatchSize;
                     } else {
                         checkInputSpec(inputBatchSize == parentBatchSize,
-                                "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
+                            "Batch sizes differ: " + inputBatchSize + " vs. " + parentBatchSize + ".");
                     }
                 }
                 inputShapes.add(DLUtils.Shapes.shapeToLongArray(parentOutputSpec.getShape()));

@@ -49,6 +49,7 @@ package org.knime.dl.keras.core.layers.impl.merge;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
@@ -58,13 +59,15 @@ import org.knime.dl.keras.core.layers.DLKerasMergeLayer;
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractParameterFreeMergeLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
+public abstract class DLKerasAbstractParameterFreeMergeLayer extends DLKerasAbstractBinaryInnerLayer
+    implements DLKerasMergeLayer {
 
     /**
      * @param kerasIdentifier
+     * @param allowedDtypes 
      */
-    public DLKerasAbstractParameterFreeMergeLayer(String kerasIdentifier) {
-        super(kerasIdentifier);
+    public DLKerasAbstractParameterFreeMergeLayer(String kerasIdentifier, Set<Class<?>> allowedDtypes) {
+        super(kerasIdentifier, allowedDtypes);
     }
 
     @Override
@@ -73,8 +76,8 @@ public abstract class DLKerasAbstractParameterFreeMergeLayer extends DLKerasAbst
     }
 
     @Override
-    protected void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
-        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape)
+        throws DLInvalidTensorSpecException {
         checkInputSpec(Arrays.deepEquals(firstInputShape, secondInputShape),
             "The input shapes must be of the same shape but were of shape " + Arrays.deepToString(firstInputShape)
                 + " and " + Arrays.deepToString(secondInputShape) + " respectively.");

@@ -48,6 +48,8 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -58,7 +60,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInnerLayer implements DLKerasBinaryLayer {
-    
+
     private static final int NUM_PARENTS = 2;
 
     // Don't ask 
@@ -69,15 +71,19 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
     @Parameter(label = "Second input tensor", min = "1")
     private DLTensorSpec m_spec2 = null;
 
-    public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier) {
+    private final Set<Class<?>> m_allowedDtypes;
+
+    public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier, final Set<Class<?>> allowedDtypes) {
         super(kerasIdentifier, 2);
+        m_allowedDtypes = allowedDtypes;
     }
 
     public DLKerasAbstractBinaryInnerLayer(final String kerasIdentifier, final DLKerasLayer firstParent,
-        final DLKerasLayer secondParent) {
+        final DLKerasLayer secondParent, final Set<Class<?>> allowedDtypes) {
         super(kerasIdentifier, new DLKerasLayer[]{firstParent, secondParent});
+        m_allowedDtypes = allowedDtypes;
     }
-    
+
     @Override
     public String populateCall(List<String> inputTensors) {
         if (inputTensors.size() != NUM_PARENTS) {
@@ -109,8 +115,8 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
 
     // Convenience methods:
 
-    protected abstract void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,
-        Long[] firstInputShape, Long[] secondInputShape) throws DLInvalidTensorSpecException;
+    protected abstract void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape)
+        throws DLInvalidTensorSpecException;
 
     protected abstract Long[] inferOutputShape(Long[] firstInputShape, Long[] secondInputShape);
 
@@ -125,7 +131,26 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
     @Override
     protected final void validateInputSpecs(final List<Class<?>> inputElementTypes, final List<Long[]> inputShapes)
         throws DLInvalidTensorSpecException {
-        validateInputSpec(inputElementTypes.get(0), inputElementTypes.get(1), inputShapes.get(0), inputShapes.get(1));
+        validateInputElementTypes(inputElementTypes.get(0), inputElementTypes.get(1));
+        validateInputShapes(inputShapes.get(0), inputShapes.get(1));
+    }
+
+    protected void validateInputElementTypes(Class<?> firstType, Class<?> secondType)
+        throws DLInvalidTensorSpecException {
+        checkIfTypeIsAllowed(firstType, 0);
+        checkIfTypeIsAllowed(secondType, 1);
+        if (!firstType.equals(secondType)) {
+            throw new DLInvalidTensorSpecException("The dtypes of both inputs must match but were, " 
+                    + firstType + " and " + secondType + " respectively.");
+        }
+    }
+
+    private void checkIfTypeIsAllowed(Class<?> type, int portIdx) throws DLInvalidTensorSpecException {
+        if (!m_allowedDtypes.contains(type)) {
+            throw new DLInvalidTensorSpecException("The tensor at port " 
+                    + portIdx + " is of type " + type + " which is not among the supported types " 
+                    + m_allowedDtypes.stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]")));
+        }
     }
 
     @Override

@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import org.knime.dl.keras.core.layers.DLLayerUtils;
+
 /**
  * 
  * Layer that multiplies two inputs (element-wise).
@@ -57,7 +59,7 @@ public final class DLKerasMultiplyLayer extends DLKerasAbstractParameterFreeMerg
     /**
      */
     public DLKerasMultiplyLayer() {
-        super("keras.layers.Multiply");
+        super("keras.layers.Multiply", DLLayerUtils.NUMERICAL_DTYPES);
     }
 
 }

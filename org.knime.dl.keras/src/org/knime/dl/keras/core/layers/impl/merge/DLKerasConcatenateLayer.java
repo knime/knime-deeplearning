@@ -74,7 +74,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
     /**
      */
     public DLKerasConcatenateLayer() {
-        super("keras.layers.Concatenate");
+        super("keras.layers.Concatenate", DLLayerUtils.ALL_DTYPES);
     }
 
     @Override
@@ -83,8 +83,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
     }
 
     @Override
-    protected void validateInputSpec(final Class<?> firstInputElementType, final Class<?> secondInputElementType,
-        final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShapes(final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
         final int rank = firstInputShape.length;
         checkInputSpec(rank == secondInputShape.length, "The two tensors to concatenate must have the same rank.");
         int concatenationAxis;

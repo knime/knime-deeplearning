@@ -46,6 +46,10 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Layer that subtracts two inputs.
  * 
@@ -53,10 +57,13 @@ package org.knime.dl.keras.core.layers.impl.merge;
  */
 public final class DLKerasSubtractLayer extends DLKerasAbstractParameterFreeMergeLayer {
 
+    private static final Set<Class<?>> ALLOWED_DTYPES =
+        ImmutableSet.of(int.class, long.class, float.class, double.class);
+
     /**
      */
     public DLKerasSubtractLayer() {
-        super("keras.layers.Subtract");
+        super("keras.layers.Subtract", ALLOWED_DTYPES);
     }
 
 }
