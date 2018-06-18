@@ -17,12 +17,12 @@
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
 			The Keras deep learning network that is the first input of this
-			<tt>Add</tt>
+			<tt>Subtract</tt>
 			layer.
 		</inPort>
 		<inPort index="1" name="Deep Learning Network">
 			The Keras deep learning network that is the second input of this
-			<tt>Add</tt>
+			<tt>Subtract</tt>
 			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">

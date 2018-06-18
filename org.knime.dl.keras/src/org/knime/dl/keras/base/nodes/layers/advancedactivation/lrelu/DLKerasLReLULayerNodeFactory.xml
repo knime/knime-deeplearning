@@ -4,7 +4,7 @@
 	<name>Keras Leaky ReLU Layer</name>
 
 	<shortDescription>
-		A leaky ReLU layer.
+		A leaky rectified linear unit layer.
 	</shortDescription>
 
 	<fullDescription>
@@ -13,6 +13,8 @@
 			its input space.
 			The motivation for leaky ReLUs is that vanilla ReLUs have a gradient of zero in the negative
 			part of their input space which can harm learning.
+			Corresponds to the
+			<a href="https://keras.io/layers/advanced-activations/#leakyrelu">Keras Leaky ReLU Layer</a>.
 		</intro>
 		<option name="Alpha">
 			Slope in the negative part of the input space.

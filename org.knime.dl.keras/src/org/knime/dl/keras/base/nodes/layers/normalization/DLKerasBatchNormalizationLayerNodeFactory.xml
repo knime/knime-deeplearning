@@ -4,14 +4,15 @@
 	<name>Keras Batch Normalization Layer</name>
 
 	<shortDescription>
-		Keras Batch Normalization Layer
+		A batch normalization layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/normalization/#batchnormalization">Keras Batch Normalization Layer</a>
-			to an existing deep learning network.
+			Normalize the layer input at each batch, i.e. applies a transformation 
+			that maintains the mean activation close to 0 and the activation standard deviation close to 1.
+			Corresponds to the
+			<a href="https://keras.io/layers/normalization/#batchnormalization">Keras Batch Normalization Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Axis">
@@ -64,10 +65,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Batch Normalization</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Batch Normalization</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

@@ -9,9 +9,9 @@
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/noise/#gaussiannoise">Keras Gaussian Noise Layer</a>
-			to an existing deep learning network.
+			This layer applies multiplicative zero-centered gaussian noise to the layer input.
+		Corresponds to the
+			<a href="https://keras.io/layers/noise/#gaussiannoise">Keras Gaussian Noise Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Standard Deviation">
@@ -21,10 +21,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Gaussian Noise</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Gaussian Noise</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

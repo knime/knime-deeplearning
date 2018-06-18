@@ -4,14 +4,14 @@
 	<name>Keras Cropping 3D Layer</name>
 
 	<shortDescription>
-		Keras Cropping 3D Layer
+		A cropping 3D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#cropping3d">Keras Cropping 3D Layer</a>
-			to an existing deep learning network.
+			This layer crops the layer input in three dimensions.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#cropping2d">Keras Cropping 3D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Cropping Dimension 1">
@@ -48,10 +48,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Cropping 3D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Cropping 3D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

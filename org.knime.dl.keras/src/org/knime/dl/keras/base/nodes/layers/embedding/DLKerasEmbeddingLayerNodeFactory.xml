@@ -9,11 +9,12 @@
 
 	<fullDescription>
 		<intro>
-			An embedding network layer. Corresponds to the
-			<a href="https://keras.io/layers/embeddings/">Embedding Keras layer</a>.
+			An embedding network layer.
 			This layer receives a sequence of integer indices and learns to embed those into
 			a high dimensional vector (the size of which is specified by output dimension).
 			This layer can only be used as the first layer in a model.
+			Corresponds to the
+			<a href="https://keras.io/layers/embeddings/">Embedding Keras layer</a>.
 		</intro>
 		<option name="Input dimension">
 			Size of vocabulary, i.e. maximum integer index + 1.
@@ -44,7 +45,7 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The Keras deep learning network to which to add a
+			The Keras deep learning network to which to add an
 			<tt>Embedding</tt>
 			layer.
 		</inPort>

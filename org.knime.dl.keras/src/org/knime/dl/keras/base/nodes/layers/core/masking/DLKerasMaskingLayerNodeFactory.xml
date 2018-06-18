@@ -9,9 +9,12 @@
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/core/#masking">Keras Masking Layer</a>
-			to an existing deep learning network.
+			Masks a sequence by using a mask value to skip timesteps.
+			For each timestep in the input tensor (first dimension in the tensor), if all 
+			values in the input tensor at that timestep are equal to mask_value, then the 
+			timestep will be masked (skipped) in all downstream layers (as long as they support masking).
+			Corresponds to the
+			<a href="https://keras.io/layers/core/#masking">Keras Masking Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Mask Value">
@@ -23,10 +26,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Masking</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Masking</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

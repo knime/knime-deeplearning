@@ -4,14 +4,14 @@
 	<name>Keras Zero-Padding 1D Layer</name>
 
 	<shortDescription>
-		Keras Zero-Padding 1D Layer
+		A zero-padding 1D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#zeropadding1d">Keras Zero-Padding 1D Layer</a>
-			to an existing deep learning network.
+			Pads the layer input with zeros in a single dimension.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#zeropadding1d">Keras Zero-Padding 1D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Padding">
@@ -22,10 +22,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Zero-Padding 1D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Zero-Padding 1D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

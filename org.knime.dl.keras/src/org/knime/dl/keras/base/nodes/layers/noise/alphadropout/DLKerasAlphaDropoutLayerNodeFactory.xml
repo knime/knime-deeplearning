@@ -4,14 +4,17 @@
 	<name>Keras Alpha Dropout Layer</name>
 
 	<shortDescription>
-		A alpha dropout layer.
+		An alpha dropout layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-		This node adds a
-		<a href="https://keras.io/layers/noise/#alphadropout">Keras Alpha Dropout Layer</a>
-		to an existing deep learning network.
+		Applies Alpha Dropout to the input.
+		Alpha Dropout is a Dropout that keeps mean and variance of inputs to their original values, in 
+		order to ensure the self-normalizing property even after this dropout. Alpha Dropout fits well 
+		to Scaled Exponential Linear Units by randomly setting activations to the negative saturation value.
+		Corresponds to the
+		<a href="https://keras.io/layers/noise/#alphadropout">Keras Alpha Dropout Layer</a>.
 		</intro>
 		<tab name="Options">
 		<option name="Drop Rate">
@@ -28,10 +31,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add an
+			<tt>Alpha Dropout</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Alpha Dropout</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

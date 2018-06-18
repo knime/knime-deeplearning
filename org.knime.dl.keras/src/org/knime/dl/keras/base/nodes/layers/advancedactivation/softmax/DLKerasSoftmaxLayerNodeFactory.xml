@@ -12,6 +12,8 @@
 			The softmax function is commonly used as the last layer in a classification network.
 			It transforms an unconstrained n-dimensional vector into a valid probability distribution.
 			Note that the input to a softmax must have at least one dimension in addition to the batch dimension.
+			Corresponds to the
+			<a href="https://keras.io/layers/advanced-activations/#softmax">Keras Softmax Layer</a>.
 		</intro>
 		<option name="Axis">
 			The axis along which to apply the softmax normalization.

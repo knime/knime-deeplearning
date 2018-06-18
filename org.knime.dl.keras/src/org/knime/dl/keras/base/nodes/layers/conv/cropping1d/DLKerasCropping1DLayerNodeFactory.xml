@@ -4,14 +4,14 @@
 	<name>Keras Cropping 1D Layer</name>
 
 	<shortDescription>
-		Keras Cropping 1D Layer
+		A cropping 1D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#cropping1d">Keras Cropping 1D Layer</a>
-			to an existing deep learning network.
+			This layer crops the layer input in a single dimension.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#cropping1d">Keras Cropping 1D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Cropping">

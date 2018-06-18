@@ -4,14 +4,14 @@
 	<name>Keras Separable Convolution 1D Layer</name>
 
 	<shortDescription>
-		Keras Separable Convolution 1D Layer
+		A separable convolution 1D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#separableconv1d">Keras Separable Convolution 1D Layer</a>
-			to an existing deep learning network.
+			This layer performs convolution in a single dimension with a factorization of the convolution kernel into two smaller kernels.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#separableconv1d">Keras Separable Convolution 1D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Filters">
@@ -115,10 +115,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Separable Convolution 1D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Separable Convolution 1D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

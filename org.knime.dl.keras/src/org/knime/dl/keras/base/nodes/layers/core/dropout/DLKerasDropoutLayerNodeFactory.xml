@@ -9,9 +9,11 @@
 
 	<fullDescription>
 		<intro>
-		This node adds a
-		<a href="https://keras.io/layers/core/#dropout">Keras Dropout Layer</a>
-		to an existing deep learning network.
+		Applies dropout to the layer input.
+		Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training 
+		time, which helps prevent overfitting.
+		Corresponds to the
+		<a href="https://keras.io/layers/core/#dropout">Keras Dropout Layer</a>.
 		</intro>
 		<tab name="Options">
 		<option name="Drop rate">
@@ -27,10 +29,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Dropout</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Dropout</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

@@ -9,9 +9,9 @@
 
 	<fullDescription>
 		<intro>
-		This node adds a
-		<a href="https://keras.io/layers/core/#input">Keras Input Layer</a>
-		to an existing deep learning network.
+		Creates a new Keras Deep Learning Network with the specified shape, type, and batch size.
+		Corresponds to the
+		<a href="https://keras.io/layers/core/#input">Keras Input Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Shape">
@@ -27,7 +27,7 @@
 	</fullDescription>
 	<ports>
 		<outPort index="0" name="Deep Learning Network">
-			Newly created network with specified input shape.
+			Newly created network with specified input shape and type.
 		</outPort>
 	</ports>
 </knimeNode>

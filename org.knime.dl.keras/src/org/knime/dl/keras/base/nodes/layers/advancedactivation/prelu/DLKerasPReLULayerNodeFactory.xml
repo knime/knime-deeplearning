@@ -4,7 +4,7 @@
 	<name>Keras PReLU Layer</name>
 
 	<shortDescription>
-		A parametric rectified linear unit.
+		A parametric rectified linear unit layer.
 	</shortDescription>
 
 	<fullDescription>
@@ -15,6 +15,8 @@
 			is trained alongside the rest of the network's weights.
 			Alpha is usually a vector containing a dedicated slope for each feature of the input.
 			(also see the Shared axes option).
+			Corresponds to the
+			<a href="https://keras.io/layers/advanced-activations/#prelu">Keras PReLU Layer</a>.
 		</intro>
 		<option name="Alpha initializer">
 			The initializer for alpha, usually zero or a small negative number.

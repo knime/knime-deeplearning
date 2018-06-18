@@ -9,9 +9,9 @@
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/core/#reshape">Keras Reshape Layer</a>
-			to an existing deep learning network.
+			Reshapes an output to the specified shape.
+			Corresponds to the
+			<a href="https://keras.io/layers/core/#reshape">Keras Reshape Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Shape">
@@ -21,10 +21,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Reshape</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Reshape</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

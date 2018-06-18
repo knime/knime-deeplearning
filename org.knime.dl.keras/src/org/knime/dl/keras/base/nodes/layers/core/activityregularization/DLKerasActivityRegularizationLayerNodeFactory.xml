@@ -4,14 +4,14 @@
 	<name>Keras Activity Regularization Layer</name>
 
 	<shortDescription>
-		A activity regularization layer.
+		An activity regularization layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/core/#activityregularization">Keras Activity Regularization Layer</a>
-			to an existing deep learning network.
+			This layer applies an update to the cost function based on input activity.
+			Corresponds to the
+			<a href="https://keras.io/layers/core/#activityregularization">Keras Activity Regularization Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="L1">
@@ -24,10 +24,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add an
+			<tt>Activity Regularization</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Activity Regularization</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

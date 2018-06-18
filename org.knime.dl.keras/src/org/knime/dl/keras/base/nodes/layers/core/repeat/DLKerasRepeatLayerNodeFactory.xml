@@ -9,9 +9,9 @@
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/core/#repeatvector">Keras Repeat Layer</a>
-			to an existing deep learning network.
+			This layer repeats the layer input for the specified number of times.
+			Corresponds to the
+			<a href="https://keras.io/layers/core/#repeatvector">Keras Repeat Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="N">
@@ -22,10 +22,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Repeat</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Repeat</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

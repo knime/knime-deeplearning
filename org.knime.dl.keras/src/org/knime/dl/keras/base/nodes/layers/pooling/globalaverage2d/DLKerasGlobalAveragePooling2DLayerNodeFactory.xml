@@ -4,14 +4,14 @@
 	<name>Keras Global Average Pooling 2D Layer</name>
 
 	<shortDescription>
-		Keras Global Average Pooling 2D Layer
+		An global average pooling 2D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/pooling/#globalaveragepooling2d">Keras Global Average Pooling 2D Layer</a>
-			to an existing deep learning network.
+			This layer applies global average pooling in two dimensions.
+			Corresponds to the
+			<a href="https://keras.io/layers/pooling/#globalaveragepooling2d">Keras Global Average Pooling 2D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Data Format">
@@ -28,10 +28,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Global Average Pooling 2D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Global Average Pooling 2D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

@@ -9,9 +9,9 @@
 
 	<fullDescription>
 		<intro>
-		This node adds a
-		<a href="https://keras.io/layers/noise/#gaussiandropout">Keras Gaussian Dropout Layer</a>
-		to an existing deep learning network.
+		This layer applies multiplicative one-centered gaussian noise to the layer input.
+		Corresponds to the
+		<a href="https://keras.io/layers/noise/#gaussiandropout">Keras Gaussian Dropout Layer</a>.
 		</intro>
 		<tab name="Options">
 		<option name="Drop Rate">
@@ -22,10 +22,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Gaussian Dropout</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Gaussian Dropout</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

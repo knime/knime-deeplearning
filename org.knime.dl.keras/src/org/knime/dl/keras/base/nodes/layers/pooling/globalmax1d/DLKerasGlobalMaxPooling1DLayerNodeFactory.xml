@@ -4,22 +4,26 @@
 	<name>Keras Global Max Pooling 1D Layer</name>
 
 	<shortDescription>
-		Keras Global Max Pooling 1D Layer
+		A global max pooling 1D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/pooling/#globalmaxpooling1d">Keras Global Max Pooling 1D Layer</a>
-			to an existing deep learning network.
+			This layer applies global max pooling in a single dimension.
+			Corresponds to the
+			<a href="https://keras.io/layers/pooling/#globalmaxpooling1d">Keras Global Max Pooling 1D Layer</a>.
 		</intro>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Global Max Pooling 1D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Global Max Pooling 1D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

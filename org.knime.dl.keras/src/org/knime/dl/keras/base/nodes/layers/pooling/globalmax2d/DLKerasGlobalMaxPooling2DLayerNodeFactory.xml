@@ -4,14 +4,14 @@
 	<name>Keras Global Max Pooling 2D Layer</name>
 
 	<shortDescription>
-		Keras Global Max Pooling 2D Layer
+		A global max pooling 2D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/pooling/#globalmaxpooling2d">Keras Global Max Pooling 2D Layer</a>
-			to an existing deep learning network.
+			This layer applies global max pooling in two dimensions.
+			Corresponds to the
+			<a href="https://keras.io/layers/pooling/#globalmaxpooling2d">Keras Global Max Pooling 2D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Data Format">
@@ -28,10 +28,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Global Max Pooling 2D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Global Max Pooling 2D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

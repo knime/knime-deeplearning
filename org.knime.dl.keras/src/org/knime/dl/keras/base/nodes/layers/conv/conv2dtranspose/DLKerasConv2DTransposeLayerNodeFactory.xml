@@ -4,14 +4,17 @@
 	<name>Keras Transposed Convolution 2D Layer</name>
 
 	<shortDescription>
-		Keras Transposed Convolution 2D Layer
+		A transposed convolution 2D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#conv2dtransposed">Keras Transposed Convolution 2D Layer</a>
-			to an existing deep learning network.
+			The need for transposed convolutions generally arises from the desire to use a 
+			transformation going in the opposite direction of a normal convolution, i.e., from 
+			something that has the shape of the output of some convolution to something that has the 
+			shape of its input while maintaining a connectivity pattern that is compatible with said convolution.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#conv2dtranspose">Keras Transposed Convolution 2D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Filters">
@@ -102,10 +105,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add a
+			<tt>Transposed Convolution 2D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Transposed Convolution 2D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>

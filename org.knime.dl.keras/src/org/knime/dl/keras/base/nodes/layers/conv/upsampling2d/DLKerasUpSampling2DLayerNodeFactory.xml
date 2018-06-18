@@ -4,14 +4,14 @@
 	<name>Keras Upsampling 2D Layer</name>
 
 	<shortDescription>
-		Keras Upsampling 2D Layer
+		An upsampling 2D layer.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			This node adds a
-			<a href="https://keras.io/layers/convolutional/#upsampling2d">Keras Upsampling 2D Layer</a>
-			to an existing deep learning network.
+			Repeats the rows and columns of the layer input.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#upsampling2d">Keras Upsampling 2D Layer</a>.
 		</intro>
 		<tab name="Options">
 			<option name="Size">
@@ -33,10 +33,14 @@
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
-			The network to append the layer to.
+			The Keras deep learning network to which to add an
+			<tt>Upsampling 2D</tt>
+			layer.
 		</inPort>
 		<outPort index="0" name="Deep Learning Network">
-			The network with appended layer.
+			The Keras deep learning network with an added
+			<tt>Upsampling 2D</tt>
+			layer.
 		</outPort>
 	</ports>
 </knimeNode>
