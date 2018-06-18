@@ -162,6 +162,6 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("bias_regularizer", DLKerasConfigObjectUtils.toPython(m_biasRegularizer));
         namedParams.put("activity_regularizer", DLKerasConfigObjectUtils.toPython(m_activityRegularizer));
         namedParams.put("kernel_contraint", DLKerasConfigObjectUtils.toPython(m_kernelConstraint));
-        namedParams.put("bias_contraint", DLKerasConfigObjectUtils.toPython(m_biasConstraint));
+        namedParams.put("bias_constraint", DLKerasConfigObjectUtils.toPython(m_biasConstraint));
     }
 }
