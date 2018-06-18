@@ -69,7 +69,7 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise Shape", required = false)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("", 1, 1000, EnumSet.noneOf(Constraint.class));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.noneOf(Constraint.class));
 
     @Parameter(label = "Random seed", required = false)
     private Long m_seed = null;
@@ -88,6 +88,9 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
+        if (m_noiseShape.getTuple().length != inputShape.length + 1) {
+            throw new DLInvalidTensorSpecException("The noise shape must have the same rank as the batch input shape.");
+        }
     }
 
     @Override

@@ -88,6 +88,9 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
+        if (m_noiseShape.getTuple().length != inputShape.length + 1) {
+            throw new DLInvalidTensorSpecException("The noise shape must have the same rank as the batch input shape.");
+        }
     }
 
     @Override
