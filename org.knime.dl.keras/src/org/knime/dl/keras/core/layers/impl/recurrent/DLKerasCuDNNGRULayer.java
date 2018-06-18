@@ -87,6 +87,17 @@ public final class DLKerasCuDNNGRULayer extends DLKerasAbstractFCRNNLayer {
             throw new IllegalArgumentException("This layer has only 2 possible input ports.");
         }
     }
+    
+    @Override
+    public void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec) {
+        if (index == 0) {
+            m_inputTensor = inputTensorSpec;
+        } else if (index == 1) {
+            m_hiddenStateTensor = inputTensorSpec;
+        } else {
+            throw new IllegalArgumentException("This layer has only 2 possible input ports.");
+        }
+    }
 
     @Override
     protected int getUnits() {

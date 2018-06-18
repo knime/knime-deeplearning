@@ -138,6 +138,13 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
     void setLayerParent(final DLKerasInnerLayer layer, final int index,
         final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec) throws InvalidSettingsException {
         final DLKerasInnerLayer innerLayer = layer;
+
+        // If the specified inner layer does not have an input tensor spec at the specified index, we 
+        // set the first tensor spec as default
+        if (innerLayer.getInputTensorSpec(index) == null) {
+            innerLayer.setInputTensorSpec(index, parentPortObjectSpec.getNetworkSpec().getInputSpecs()[0]);
+        }
+
         if (parentPortObjectSpec instanceof DLKerasNetworkPortObjectSpec) {
             appendToExistingNetwork(index, parentPortObjectSpec, innerLayer);
         } else if (parentPortObjectSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec) {

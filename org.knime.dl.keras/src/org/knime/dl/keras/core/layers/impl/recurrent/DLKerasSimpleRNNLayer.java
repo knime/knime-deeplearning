@@ -109,6 +109,17 @@ public final class DLKerasSimpleRNNLayer extends DLKerasAbstractNativeRNNLayer {
     }
 
     @Override
+    public void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec) {
+        if (index == 0) {
+            m_inputTensor = inputTensorSpec;
+        } else if (index == 1) {
+            m_hiddenStateTensor = inputTensorSpec;
+        } else {
+            throw new IllegalArgumentException("This layer has only 2 possible input ports.");
+        }
+    }
+
+    @Override
     protected int getUnits() {
         return m_units;
     }

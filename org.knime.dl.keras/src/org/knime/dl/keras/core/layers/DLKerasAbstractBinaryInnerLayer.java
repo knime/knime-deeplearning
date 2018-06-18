@@ -96,6 +96,17 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
         throw new IndexOutOfBoundsException();
     }
 
+    @Override
+    public void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec) {
+        if (index == 0) {
+            m_spec1 = inputTensorSpec;
+        } else if (index == 1) {
+            m_spec2 = inputTensorSpec;
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
     // Convenience methods:
 
     protected abstract void validateInputSpec(Class<?> firstInputElementType, Class<?> secondInputElementType,

@@ -262,6 +262,19 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
     }
 
     @Override
+    public void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec) {
+        if (index == 0) {
+            m_inputTensor = inputTensorSpec;
+        } else if (index == 1) {
+            m_hiddenStateTensor1 = inputTensorSpec;
+        } else if (index == SPATIAL_DIMENSIONS) {
+            m_hiddenStateTensor2 = inputTensorSpec;
+        } else {
+            throw new IllegalArgumentException("This layer has only 3 possible input ports.");
+        }
+    }
+
+    @Override
     protected boolean returnState() {
         return m_returnState;
     }

@@ -68,6 +68,11 @@ public interface DLKerasInnerLayer extends DLKerasLayer {
      * @return may be <code>null</code> if the parent at the given index is not yet set
      */
     DLTensorSpec getInputTensorSpec(int index);
+    
+    /**
+     * @param inputTensorSpec 
+     */
+    void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec);
 
     /**
      * @throws IndexOutOfBoundsException if <code>index</code> is negative or greater than or equal to

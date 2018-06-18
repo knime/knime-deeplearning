@@ -85,6 +85,14 @@ public abstract class DLKerasAbstractUnaryLayer extends DLKerasAbstractInnerLaye
         }
         return m_spec;
     }
+    
+    @Override
+    public void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec) {
+        if (index != 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        m_spec = inputTensorSpec;
+    }
 
     // Convenience methods:
     protected abstract void validateInputSpec(Class<?> inputElementType, Long[] inputShape)
