@@ -104,11 +104,10 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
             if (panel != null)
                 return panel;
             panel = new JPanel();
-            final MigLayout layout = new MigLayout("", "10[grow]10[]", "");
+            final MigLayout layout = new MigLayout("ins 0 0 0 0", "[fill,grow]", "");
             panel.setLayout(layout);
             m_tensorSpecItems = new JComboBox<>();
             panel.add(m_tensorSpecItems, "growx");
-            panel.add(m_tensorSpecItems);
             return panel;
         }
 
