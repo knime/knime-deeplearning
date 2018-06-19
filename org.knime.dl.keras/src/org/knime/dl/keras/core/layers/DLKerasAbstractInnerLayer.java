@@ -62,6 +62,7 @@ import org.knime.dl.util.DLUtils;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer implements DLKerasInnerLayer {
 
@@ -73,15 +74,19 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     }
 
     private final DLKerasTensorSpecsOutput[] m_parents;
+    
+    private final int[] m_indexInParents;
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final int numParents) {
         super(kerasIdentifier);
         m_parents = new DLKerasTensorSpecsOutput[numParents];
+        m_indexInParents = new int[numParents];
     }
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final DLKerasTensorSpecsOutput[] parents) {
         super(kerasIdentifier);
         m_parents = checkNotNull(parents);
+        m_indexInParents = new int[parents.length];
     }
 
     // Convenience methods:
@@ -109,6 +114,16 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         checkNotNull(parent);
         checkArgument(parent != this);
         m_parents[index] = parent;
+    }
+    
+    @Override
+    public final void setTensorIndexInParent(int parentIndex, int indexInParent) {
+        m_indexInParents[parentIndex] = indexInParent;
+    }
+    
+    @Override
+    public int getTensorIndexInParent(int parentIndex) {
+        return m_indexInParents[parentIndex];
     }
 
     @Override

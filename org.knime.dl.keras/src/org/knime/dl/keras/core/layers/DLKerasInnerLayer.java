@@ -70,6 +70,19 @@ public interface DLKerasInnerLayer extends DLKerasLayer {
     DLTensorSpec getInputTensorSpec(int index);
     
     /**
+     * @param parentIndex the parent index
+     * @return the index of the input tensor in the parents output tensors
+     */
+    int getTensorIndexInParent(int parentIndex);
+    
+    /**
+     * @param parentIndex the (port) index of the parent
+     * @param tensorIndexInParent index of tensor in parent's output tensors
+     * 
+     */
+    void setTensorIndexInParent(int parentIndex, int tensorIndexInParent);
+    
+    /**
      * @param inputTensorSpec 
      */
     void setInputTensorSpec(int index, DLTensorSpec inputTensorSpec);
