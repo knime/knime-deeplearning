@@ -47,17 +47,17 @@
 package org.knime.dl.keras.base.nodes.layers.merge.multiply;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
+import org.knime.dl.keras.core.layers.impl.merge.DLKerasMultiplyLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasMultiplyLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasAddLayer> {
+public final class DLKerasMultiplyLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasMultiplyLayer> {
 
     /**
      */
     public DLKerasMultiplyLayerNodeFactory() {
-        super(DLKerasAddLayer.class);
+        super(DLKerasMultiplyLayer.class);
     }
 }

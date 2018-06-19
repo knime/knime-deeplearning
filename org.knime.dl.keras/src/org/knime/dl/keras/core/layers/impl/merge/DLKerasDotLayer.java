@@ -73,7 +73,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
     @Parameter(label = "Axes")
-    private DLKerasTuple m_axes = new DLKerasTuple("-1, -1", 2, 2, EnumSet.of(Constraint.NEGATIVE, Constraint.ZERO));
+    private DLKerasTuple m_axes = new DLKerasTuple("-1, -1", 2, 2, EnumSet.of(Constraint.NEGATIVE));
 
     @Parameter(label = "Normalize")
     private boolean m_normalize = false;
@@ -95,10 +95,15 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
     @Override
     protected void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape)
         throws DLInvalidTensorSpecException {
-        int[] actualAxes = getAxes(firstInputShape.length, secondInputShape.length);
-        checkInputSpec(
-            DLParameterValidationUtils.dimensionsMatch(firstInputShape[actualAxes[0]], secondInputShape[actualAxes[1]]),
-            "The axes along which to calculate the dot product must match.");
+        try {
+            int[] actualAxes = getAxes(firstInputShape.length, secondInputShape.length);
+            if (actualAxes[0] > 0 && actualAxes[1] > 0) {
+                checkInputSpec(DLParameterValidationUtils.dimensionsMatch(firstInputShape[actualAxes[0]],
+                    secondInputShape[actualAxes[1]]), "The axes along which to calculate the dot product must match.");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new DLInvalidTensorSpecException(e.getMessage());
+        }
     }
 
     private int[] getAxes(int rank1, int rank2) {

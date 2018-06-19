@@ -47,17 +47,17 @@
 package org.knime.dl.keras.base.nodes.layers.merge.subtract;
 
 import org.knime.dl.keras.base.nodes.layers.DLKerasAbstractBinaryLayerNodeFactory;
-import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
+import org.knime.dl.keras.core.layers.impl.merge.DLKerasSubtractLayer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasSubtractLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasAddLayer> {
+public final class DLKerasSubtractLayerNodeFactory extends DLKerasAbstractBinaryLayerNodeFactory<DLKerasSubtractLayer> {
 
     /**
      */
     public DLKerasSubtractLayerNodeFactory() {
-        super(DLKerasAddLayer.class);
+        super(DLKerasSubtractLayer.class);
     }
 }

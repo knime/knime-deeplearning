@@ -63,7 +63,7 @@ public final class DLKerasMaximumLayer extends DLKerasAbstractParameterFreeMerge
     /**
      */
     public DLKerasMaximumLayer() {
-        super("layers.keras.Maximum", ALLOWED_DTYPES);
+        super("keras.layers.Maximum", ALLOWED_DTYPES);
     }
 
 }

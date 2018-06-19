@@ -54,14 +54,14 @@ import com.google.common.collect.ImmutableSet;
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLLayerUtils {
-    
+
     public static final Set<Class<?>> FLOATING_POINT_DTYPES = ImmutableSet.of(float.class, double.class);
-    
-    public static final Set<Class<?>> NUMERICAL_DTYPES = ImmutableSet.of(
-        float.class, double.class, long.class, byte.class, int.class, short.class);
-    
-    public static final Set<Class<?>> ALL_DTYPES = ImmutableSet.of(
-        float.class, double.class, long.class, byte.class, int.class, short.class, boolean.class);
+
+    public static final Set<Class<?>> NUMERICAL_DTYPES =
+        ImmutableSet.of(float.class, double.class, long.class, byte.class, int.class, short.class);
+
+    public static final Set<Class<?>> ALL_DTYPES =
+        ImmutableSet.of(float.class, double.class, long.class, byte.class, int.class, short.class, boolean.class);
 
     private DLLayerUtils() {
         // static utility class
@@ -92,21 +92,27 @@ public final class DLLayerUtils {
      * 
      */
     public static int getAxisIndex(int axis, int rank) {
+        int index;
         int batchRank = rank + 1;
         if (axis >= 0) {
             if (axis >= batchRank) {
                 throw new IllegalArgumentException(
                     "The specified concatenation axis exceeds the rank of the input tensor.");
             }
-            return axis;
+            index = axis;
         } else {
             int posAxis = batchRank + axis;
             if (posAxis < 0) {
                 throw new IllegalArgumentException(
                     "The specified concatenation axis exceeds the rank of the input tensor.");
             }
-            return posAxis;
+            index = posAxis;
         }
+        if (index == 0) {
+            throw new IllegalArgumentException(
+                "The specified index corresponds to the batch dimension. This is not supported.");
+        }
+        return index - 1;
     }
 
 }
