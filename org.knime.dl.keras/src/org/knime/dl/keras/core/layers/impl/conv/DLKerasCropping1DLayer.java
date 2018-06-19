@@ -58,9 +58,8 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
+import org.knime.dl.keras.core.struct.param.Parameter;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -100,6 +99,6 @@ public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("cropping", DLPythonUtils.toPython(m_cropping.toPytonTuple()));
+        namedParams.put("cropping", m_cropping.toPytonTuple());
     }
 }

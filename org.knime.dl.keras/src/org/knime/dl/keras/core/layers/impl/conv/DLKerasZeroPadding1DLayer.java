@@ -60,7 +60,6 @@ import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -100,7 +99,6 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        final Long[][] padding = new Long[][]{m_padding.getTuple()};
-        namedParams.put("padding", DLPythonUtils.toPython(padding));
+        namedParams.put("padding", m_padding.toPytonTuple());
     }
 }
