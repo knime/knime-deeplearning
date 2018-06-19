@@ -173,7 +173,7 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
         namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("dilation_rate", m_dilationRate.toPytonTuple());
-        namedParams.put("depth_multipier", DLPythonUtils.toPython(m_depthMultiplier));
+        namedParams.put("depth_multiplier", DLPythonUtils.toPython(m_depthMultiplier));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("depthwise_initializer", DLKerasConfigObjectUtils.toPython(m_depthwiseInitializer));
