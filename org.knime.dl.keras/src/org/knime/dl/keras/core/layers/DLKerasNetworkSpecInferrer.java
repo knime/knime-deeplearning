@@ -153,16 +153,20 @@ public final class DLKerasNetworkSpecInferrer {
             @Override
             public void visitBaseNetworkOutput(final DLKerasBaseNetworkTensorSpecOutput baseNetworkOutput) {
                 final DLKerasNetworkSpec baseNetworkSpec = baseNetworkOutput.getBaseNetworkSpec();
-                DLKerasBaseNetworkSpecHelperStruct baseNetworkHelper = baseNetworkSpecs.get(baseNetworkSpec);
+                m_layerToTensorMap.computeIfAbsent(baseNetworkOutput,
+                    bno -> Arrays.asList(baseNetworkSpec.getOutputSpecs()));
                 // Re-use base network if it's already connected to another layer.
                 // TODO: This behavior may not be intended.
-                if (baseNetworkHelper == null) {
-                    baseNetworkHelper = new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
-                    baseNetworkSpecs.put(baseNetworkSpec, baseNetworkHelper);
-                    inputSpecsToInfer.add(baseNetworkHelper::inferInputTensorSpecs);
-                    hiddenSpecsToInfer.add(baseNetworkHelper::inferHiddenTensorSpecs);
-                    outputSpecsToInfer.add(baseNetworkHelper::inferOutputTensorSpecs);
-                }
+                DLKerasBaseNetworkSpecHelperStruct baseNetworkHelper =
+                    baseNetworkSpecs.computeIfAbsent(baseNetworkSpec, bns -> {
+                        DLKerasBaseNetworkSpecHelperStruct bnh =
+                            new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
+                        baseNetworkSpecs.put(baseNetworkSpec, bnh);
+                        inputSpecsToInfer.add(bnh::inferInputTensorSpecs);
+                        hiddenSpecsToInfer.add(bnh::inferHiddenTensorSpecs);
+                        outputSpecsToInfer.add(bnh::inferOutputTensorSpecs);
+                        return bnh;
+                    });
                 final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
                 baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
                 // TODO: Support appending to hidden layers.
