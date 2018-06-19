@@ -69,7 +69,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Drop rate", min = "0.0", max = "1.0", stepSize = "0.1")
     private float m_rate;
 
-    @Parameter(label = "Noise Shape", required = false)
+    @Parameter(label = "Noise shape", required = false)
     private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.EMPTY, Constraint.PARTIAL));
 
     @Parameter(label = "Random seed", required = false)

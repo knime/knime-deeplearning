@@ -87,28 +87,28 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Scale")
     private boolean m_scale = true;
 
-    @Parameter(label = "Beta Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Beta initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_betaInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Gamma Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Gamma initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_gammaInitializer = new DLKerasOnesInitializer();
 
-    @Parameter(label = "Moving Mean Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Moving mean initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_movingMeanInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Moving Variance Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Moving variance initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_movingVarianceInitializer = new DLKerasOnesInitializer();
 
-    @Parameter(label = "Beta Regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Beta regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_betaRegularizer = null;
 
-    @Parameter(label = "Gamma Regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Gamma regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_gammaRegularizer = null;
 
-    @Parameter(label = "Beta Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Beta constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_betaConstraint = null;
 
-    @Parameter(label = "Gamma Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Gamma constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_gammaConstraint = null;
 
     /**

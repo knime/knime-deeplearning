@@ -62,7 +62,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasGaussianDropoutLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Drop Rate", min = "0.0", max = "1.0")
+    @Parameter(label = "Drop rate", min = "0.0", max = "1.0")
     private float m_rate;
 
     /**

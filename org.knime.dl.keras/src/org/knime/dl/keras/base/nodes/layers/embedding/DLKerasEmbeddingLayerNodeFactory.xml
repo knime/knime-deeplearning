@@ -28,7 +28,7 @@
 		<option name="Initializer">
 			The initializer for the embedding matrix.
 		</option>
-		<option name="Embedding Regularizer">
+		<option name="Embedding regularizer">
 			An optional regularizer for the embedding matrix.
 		</option>
 		<option name="Constraint">

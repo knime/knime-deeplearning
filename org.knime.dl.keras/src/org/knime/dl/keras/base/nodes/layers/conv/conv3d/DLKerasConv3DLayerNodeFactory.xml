@@ -21,7 +21,7 @@
 				The dimensionality of the output space (i.e. the
 				number of output filters in the convolution).
 			</option>
-			<option name="Kernel Size">
+			<option name="Kernel size">
 				A tuple of 3 integers, specifying the depth,
 				height and width of the 2D convolution window.
 			</option>
@@ -54,7 +54,7 @@
 					</li>
 				</ul>
 			</option>
-			<option name="Data Format">
+			<option name="Data format">
 				<ul>
 					<li>
 						channels_last: corresponds to inputs with shape (spatial_dim1,
@@ -66,7 +66,7 @@
 					</li>
 				</ul>
 			</option>
-			<option name="Dilation Rate">
+			<option name="Dilation rate">
 				A tuple/list of 3 integers, specifying the
 				dilation rate to use for dilated convolution. Currently, specifying
 				any dilation_rate value != 1 is incompatible with specifying any
@@ -78,27 +78,27 @@
 			<option name="Use bias?">
 				If checked, a bias vector will be used.
 			</option>
-			<option name="Kernel Initializer">
+			<option name="Kernel initializer">
 				Initializer for the kernel weights matrix.
 			</option>
-			<option name="Bias Initializer">
+			<option name="Bias initializer">
 				Initializer for the bias vector.
 			</option>
-			<option name="Kernel Regularizer">
+			<option name="Kernel regularizer">
 				Regularizer function applied to the kernel
 				weights matrix.
 			</option>
-			<option name="Bias Regulatrizer">
+			<option name="Bias regularizer">
 				Regularizer function applied to the bias vector.
 			</option>
-			<option name="Activation Regulatrizer">
+			<option name="Activation regularizer">
 				Regularizer function applied to the output of the
 				layer (its "activation").
 			</option>
-			<option name="Kernel Constraint">
+			<option name="Kernel constraint">
 				Constraint function applied to the kernel matrix.
 			</option>
-			<option name="Bias Constraint">
+			<option name="Bias constraint">
 				Constraint function applied to the bias vector.
 			</option>
 		</tab>

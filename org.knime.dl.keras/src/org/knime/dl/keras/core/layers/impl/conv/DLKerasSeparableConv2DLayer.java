@@ -91,13 +91,13 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
 
-    @Parameter(label = "Data Format", tab = "Advanced")
+    @Parameter(label = "Data format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
-    @Parameter(label = "Dilation Rate")
+    @Parameter(label = "Dilation rate")
     private DLKerasTuple m_dilationRate = new DLKerasTuple("1, 1");
 
-    @Parameter(label = "Depth Multiplier", min = "1")
+    @Parameter(label = "Depth multiplier", min = "1")
     private int m_depthMultiplier = 1;
 
     @Parameter(label = "Activation function")
@@ -106,40 +106,40 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Use bias?", tab = "Advanced")
     boolean m_useBias = true;
 
-    @Parameter(label = "Depthwise Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Depthwise initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_depthwiseInitializer = new DLKerasGlorotUniformInitializer();
 
-    @Parameter(label = "Pointwise Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Pointwise initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_pointwiseInitializer = new DLKerasGlorotUniformInitializer();
 
-    @Parameter(label = "Bias Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Depthwise Regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Depthwise regularizer", required = false, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_depthwiseRegularizer = null;
 
-    @Parameter(label = "Pointwise Regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Pointwise regularizer", required = false, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_pointwiseRegularizer = null;
 
-    @Parameter(label = "Bias Regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Bias regularizer", required = false, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_biasRegularizer = null;
 
-    @Parameter(label = "Activity Regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Activity regularizer", required = false, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_activityRegularizer = null;
 
-    @Parameter(label = "Depthwise Constraint", required = false, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Depthwise constraint", required = false, choices = DLKerasConstraintChoices.class,
         tab = "Advanced")
     private DLKerasConstraint m_depthwiseConstraint = null;
 
-    @Parameter(label = "Pointwise Constraint", required = false, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Pointwise constraint", required = false, choices = DLKerasConstraintChoices.class,
         tab = "Advanced")
     private DLKerasConstraint m_pointwiseConstraint = null;
 
-    @Parameter(label = "Bias Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_biasConstraint = null;
 
     /**

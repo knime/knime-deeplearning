@@ -20,7 +20,7 @@
 			<option name="Size">
 				A tuple of two integers. The upsampling factors per dimension.
 			</option>
-			<option name="Data Format">
+			<option name="Data format">
 				<ul>
 					<li>
 						channels_last: corresponds to inputs with shape (height, width,

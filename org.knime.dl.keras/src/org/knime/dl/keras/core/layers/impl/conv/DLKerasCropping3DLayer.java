@@ -69,16 +69,16 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Cropping Dimension 1")
+    @Parameter(label = "Cropping dimension 1")
     private DLKerasTuple m_croppingDim1 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Cropping Dimension 2")
+    @Parameter(label = "Cropping dimension 2")
     private DLKerasTuple m_croppingDim2 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Cropping Dimension 3")
+    @Parameter(label = "Cropping dimension 3")
     private DLKerasTuple m_croppingDim3 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Data Format", tab = "Advanced")
+    @Parameter(label = "Data format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**

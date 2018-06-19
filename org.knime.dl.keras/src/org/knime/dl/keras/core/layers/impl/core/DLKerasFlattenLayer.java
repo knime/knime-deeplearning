@@ -63,7 +63,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Data Format")
+    @Parameter(label = "Data format")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**

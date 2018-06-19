@@ -62,7 +62,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasGaussianNoiseLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Standard Deviation", min = "0")
+    @Parameter(label = "Standard deviation", min = "0")
     private float m_stddev = 1;
 
     /**

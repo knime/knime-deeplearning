@@ -20,11 +20,11 @@
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
 		</option>
-		<option name="Drop Rate">
+		<option name="Drop rate">
 			The drop probability (as with <a href="https://keras.io/layers/noise/#dropout">Dropout</a>). 
 			The multiplicative noise will have standard deviation sqrt(rate / (1 - rate)).
 		</option>
-		<option name="Noise Shape">
+		<option name="Noise shape">
 			The shape of the binary dropout mask that will be multiplied with the input.
 			The noise shape has to include the batch dimension which means in case of 2D images with shape [height, width, channels], the noise shape must must have
 			rank 4 i.e. [batch, height, width, channels].

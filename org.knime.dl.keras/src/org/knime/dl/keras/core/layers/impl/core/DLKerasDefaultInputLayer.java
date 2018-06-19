@@ -77,11 +77,11 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Parameter(label = "Shape")
     private DLKerasTuple m_shape = new DLKerasTuple("1", 1, Integer.MAX_VALUE, EnumSet.of(Constraint.PARTIAL));
 
-    @Parameter(label = "Batch Size", min = "0", required = false)
+    @Parameter(label = "Batch size", min = "0", required = false)
     private Integer m_batchSize = null;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
-    @Parameter(label = "Data Type")
+    @Parameter(label = "Data type")
     private DLKerasDataType m_dataType = DLKerasDataType.FLOAT_32;
 
     /**

@@ -20,7 +20,7 @@
 			<option name="Strides">
 				The step size of the pooling window in one dimension.
 			</option>
-			<option name="Pool Size">
+			<option name="Pool size">
 				The size of the pooling window in one dimension.
 			</option>
 			<option name="Padding">

@@ -17,28 +17,28 @@
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
 		</option>
-			<option name="Padding Dimension 1">
+			<option name="Padding dimension 1">
 				A tuple of two integers. How many zeros to add at
 				the beginning and
 				at the end of the
 				<b>first</b>
 				spatial dimension.
 			</option>
-			<option name="Padding Dimension 2">
+			<option name="Padding dimension 2">
 				A tuple of two integers. How many zeros to add at
 				the beginning and
 				at the end of the
 				<b>second</b>
 				spatial dimension.
 			</option>
-			<option name="Padding Dimension 3">
+			<option name="Padding dimension 3">
 				A tuple of two integers. How many zeros to add at
 				the beginning and
 				at the end of the
 				<b>third</b>
 				spatial dimension.
 			</option>
-			<option name="Data Format">
+			<option name="Data format">
 				<ul>
 					<li>
 						channels_last: corresponds to inputs with shape (spatial_dim1,

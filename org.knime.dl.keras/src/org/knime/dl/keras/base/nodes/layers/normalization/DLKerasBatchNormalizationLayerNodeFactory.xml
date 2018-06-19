@@ -40,28 +40,28 @@
 				not used. When the next layer is linear (also e.g. nn.relu), this
 				can be disabled since the scaling will be done by the next layer.
 			</option>
-			<option name="Beta Initializer">
+			<option name="Beta initializer">
 				Initializer for the beta weight.
 			</option>
-			<option name="Gamma Initializer">
+			<option name="Gamma initializer">
 				Initializer for the gamma weight.
 			</option>
-			<option name="Moving Mean Initializer">
+			<option name="Moving mean initializer">
 				Initializer for the moving mean.
 			</option>
-			<option name="Moving Variance Initializer">
+			<option name="Moving variance initializer">
 				Initializer for the moving variance.
 			</option>
-			<option name="Beta Regularizer">
+			<option name="Beta regularizer">
 				Optional regularizer for the beta weight.
 			</option>
-			<option name="Gamma Regulatrizer">
+			<option name="Gamma regularizer">
 				Optional regularizer for the gamma weight.
 			</option>
-			<option name="Beta Constraint">
+			<option name="Beta constraint">
 				Optional constraint for the beta weight.
 			</option>
-			<option name="Gamma Constraint">
+			<option name="Gamma constraint">
 				Optional constraint for the gamma weight.
 			</option>
 		</tab>

@@ -69,13 +69,13 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasZeroPadding2DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Padding Dimension 1")
+    @Parameter(label = "Padding dimension 1")
     private DLKerasTuple m_paddingDim1 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Padding Dimension 2")
+    @Parameter(label = "Padding dimension 2")
     private DLKerasTuple m_paddingDim2 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Data Format", tab = "Advanced")
+    @Parameter(label = "Data format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**

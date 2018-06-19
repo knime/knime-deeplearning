@@ -20,10 +20,10 @@
 			<option name="Strides">
 				The step size of the pooling window in three dimensions.
 			</option>
-			<option name="Pool Size">
+			<option name="Pool size">
 				The size of the pooling window in three dimensions.
 			</option>
-			<option name="Data Format">
+			<option name="Data format">
 				<ul>
 					<li>
 						channels_last: corresponds to inputs with shape (spatial_dim1, spatial_dim2, spatial_dim3, channels)

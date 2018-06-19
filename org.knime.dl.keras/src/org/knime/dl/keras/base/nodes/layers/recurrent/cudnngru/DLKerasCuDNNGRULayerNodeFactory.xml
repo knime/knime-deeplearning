@@ -9,7 +9,7 @@
 
 	<fullDescription>
 		<intro>
-			Can only be run on GPU with the TensorFlow backend. Corresponds to the
+			Can only be run on GPU with the TensorFlow back end. Corresponds to the
 			<a href="https://keras.io/layers/recurrent/#cudnngru">CuDNNGRU Keras layer</a>
 			.
 		</intro>

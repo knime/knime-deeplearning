@@ -68,13 +68,13 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasAveragePooling3DLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Pool Size")
+    @Parameter(label = "Pool size")
     private DLKerasTuple m_poolSize = new DLKerasTuple("2, 2, 2");
 
     @Parameter(label = "Strides")
     private DLKerasTuple m_strides = new DLKerasTuple("1, 1, 1");
 
-    @Parameter(label = "Data Format", tab = "Advanced")
+    @Parameter(label = "Data format", tab = "Advanced")
     private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Padding")

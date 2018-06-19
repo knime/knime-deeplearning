@@ -64,7 +64,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
  */
 public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Target Shape")
+    @Parameter(label = "Target shape")
     private DLKerasTuple m_shape = new DLKerasTuple("", 1, 1000, EnumSet.of(Constraint.EMPTY, Constraint.PARTIAL));
 
     /**

@@ -62,7 +62,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasMaskingLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Mask Value")
+    @Parameter(label = "Mask value")
     private double m_maskValue;
 
     /**
@@ -77,11 +77,11 @@ public final class DLKerasMaskingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
     }
 
     @Override
-    protected Long[] inferOutputShape(Long[] inputShape) {
+    protected Long[] inferOutputShape(final Long[] inputShape) {
         return inputShape.clone();
     }
 

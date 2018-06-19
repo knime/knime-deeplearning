@@ -20,10 +20,10 @@
 			<option name="Shape">
 				Tuple of integers defining the input shape.
 			</option>
-			<option name="Batch Size">
+			<option name="Batch size">
 				The batch size to use.
 			</option>
-			<option name="Data Type">
+			<option name="Data type">
 				The data type of the input.
 			</option>
 		</tab>
