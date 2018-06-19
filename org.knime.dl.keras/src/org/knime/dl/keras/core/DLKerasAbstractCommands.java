@@ -259,7 +259,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
         }
 
         private void handleTerminateOnNan(final Message message) {
-            final long batch = new PayloadDecoder(message.getPayload()).getNextLong();
+            final long batch = Long.parseLong(new PayloadDecoder(message.getPayload()).getNextString());
             if (m_status instanceof DLKerasTrainingStatus) {
                 ((DLKerasTrainingStatus)m_status).terminatedOnNaNLoss().raise(batch);
             }

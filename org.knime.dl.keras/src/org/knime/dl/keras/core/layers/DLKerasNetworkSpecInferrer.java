@@ -57,10 +57,10 @@ import java.util.function.Function;
 import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLDefaultTensorSpec;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.DLKerasGenericNetworkSpec;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
 
 import gnu.trove.TIntHashSet;
 
@@ -177,7 +177,8 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
 
-        m_inferredSpec = new DLKerasGenericNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
+        // TODO: Only TensorFlow is supported at the moment.
+        m_inferredSpec = new DLKerasTensorFlowNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
         return m_inferredSpec;
     }
 
