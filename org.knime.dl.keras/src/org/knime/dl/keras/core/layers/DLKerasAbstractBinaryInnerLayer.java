@@ -89,7 +89,7 @@ public abstract class DLKerasAbstractBinaryInnerLayer extends DLKerasAbstractInn
         if (inputTensors.size() != NUM_PARENTS) {
             throw new IllegalArgumentException("A binary layer expects two input tensors");
         }
-        return "[" + String.join(",", inputTensors);
+        return "[" + String.join(",", inputTensors) + "]";
     }
 
     @Override
