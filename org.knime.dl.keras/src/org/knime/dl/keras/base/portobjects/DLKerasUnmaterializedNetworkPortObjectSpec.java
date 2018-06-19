@@ -69,6 +69,7 @@ import org.knime.dl.keras.core.layers.DLKerasBaseNetworkTensorSpecOutput;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphSerializer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkSpecInferrer;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -86,13 +87,17 @@ public final class DLKerasUnmaterializedNetworkPortObjectSpec
 
     public DLKerasUnmaterializedNetworkPortObjectSpec(final List<DLKerasLayer> outputLayers)
         throws DLInvalidTensorSpecException {
-        super(new DLKerasNetworkSpecInferrer(checkNotNull(outputLayers)).inferNetworkSpec(), DLKerasNetwork.class);
+        // TODO also support other Keras backends
+        super(new DLKerasNetworkSpecInferrer(checkNotNull(outputLayers)).inferNetworkSpec(),
+            DLKerasTensorFlowNetwork.class);
         m_outputLayers = new ArrayList<>(outputLayers);
     }
 
     private DLKerasUnmaterializedNetworkPortObjectSpec(final List<DLKerasLayer> outputLayers,
         final List<DLKerasBaseNetworkTensorSpecOutput> baseNetworks) {
-        super(new DLKerasNetworkSpecInferrer(checkNotNull(outputLayers)).inferNetworkSpec(), DLKerasNetwork.class);
+        // TODO also support other Keras backends
+        super(new DLKerasNetworkSpecInferrer(checkNotNull(outputLayers)).inferNetworkSpec(),
+            DLKerasTensorFlowNetwork.class);
         m_outputLayers = outputLayers;
         m_baseNetworks = baseNetworks;
     }
