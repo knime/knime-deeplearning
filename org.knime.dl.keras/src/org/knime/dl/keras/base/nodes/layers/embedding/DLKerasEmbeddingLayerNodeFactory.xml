@@ -15,6 +15,8 @@
 			This layer can only be used as the first layer in a model.
 			Corresponds to the
 			<a href="https://keras.io/layers/embeddings/">Embedding Keras layer</a>.
+			Note that Keras' documentation is outdated.
+			The input to this layer can be of arbitrary rank and the output of this layer will have to be a tensor with one additional dimension.
 		</intro>
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
@@ -44,6 +46,7 @@
 		<option name="Input length">
 			The optional length of the input sequences, when it is constant.
 			This argument is required if you want to use dense layers after a flatten in subsequent parts of the network.
+			Note that input length must refine the input shape, i.e. all dimensions must match if they are fixed.
 		</option>
 	</fullDescription>
 	<ports>
