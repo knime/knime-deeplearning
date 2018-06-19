@@ -353,7 +353,7 @@ public final class DLKerasNetworkMaterializer {
         public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
             final List<String> variables = addTensorVariables(inputOutputLayer);
             m_inputVariables.addAll(variables);
-            m_outputVariables.add(variables);
+            m_outputVariables.addAll(variables);
             m_codeLinesToGenerate.put(inputOutputLayer, gen -> String.join(", ", variables) + " = "
                 + inputOutputLayer.getBackendRepresentation(gen.getNextLayerName(inputOutputLayer)));
         }
