@@ -62,10 +62,10 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasActivityRegularizationLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "L1", min = "0")
+    @Parameter(label = "L1", min = "0.0", stepSize = "0.1")
     private double m_l1 = 0.0;
 
-    @Parameter(label = "L2", min = "0")
+    @Parameter(label = "L2", min = "0.0", stepSize = "0.1")
     private double m_l2 = 0.0;
 
     /**
