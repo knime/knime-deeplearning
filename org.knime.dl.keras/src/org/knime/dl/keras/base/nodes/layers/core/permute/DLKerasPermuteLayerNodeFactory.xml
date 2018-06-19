@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/core/#permute">Keras Permute Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Permutation">
 				Tuple of integers defining the permutation. Each integer refers to the dimension index. Indexing starts with 1.
 				For instance, the permutation '2, 1' with input shape (64, 32) will result in shape (32, 64).

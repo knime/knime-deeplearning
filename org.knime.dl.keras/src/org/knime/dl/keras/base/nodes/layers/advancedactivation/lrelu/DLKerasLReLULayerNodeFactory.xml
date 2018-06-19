@@ -16,6 +16,9 @@
 			Corresponds to the
 			<a href="https://keras.io/layers/advanced-activations/#leakyrelu">Keras Leaky ReLU Layer</a>.
 		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 		<option name="Alpha">
 			Slope in the negative part of the input space.
 			Usually a small positive value.

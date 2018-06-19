@@ -46,11 +46,12 @@
  */
 package org.knime.dl.keras.core.layers;
 
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -59,12 +60,17 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
 
+    @Parameter(label = "Name prefix", required = false)
+    private String m_namePrefix = null;
+
     protected DLKerasAbstractLayer(final String kerasIdentifier) {
         super(kerasIdentifier);
     }
-    
 
-    // Convenience method:
+    @Override
+    public Optional<String> getNamePrefix() {
+        return Optional.ofNullable(m_namePrefix);
+    }
 
     @Override
     public String getBackendRepresentation(final String layerName) {

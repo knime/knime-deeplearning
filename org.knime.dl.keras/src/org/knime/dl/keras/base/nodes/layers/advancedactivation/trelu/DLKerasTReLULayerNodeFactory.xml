@@ -14,6 +14,9 @@
 			Corresponds to the
 			<a href="https://keras.io/layers/advanced-activations/#thresholdedrelu">Keras Thresholded ReLU Layer</a>.
 		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 		<option name="Theta">
 			Threshold location of activation.
 			A theta of 0 corresponds to an ordinary ReLU.

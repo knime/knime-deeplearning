@@ -15,6 +15,9 @@
 			Corresponds to the
 			<a href="https://keras.io/layers/advanced-activations/#softmax">Keras Softmax Layer</a>.
 		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 		<option name="Axis">
 			The axis along which to apply the softmax normalization.
 			Python-style negative indexing is supported i.e. -1 corresponds to the last axis,

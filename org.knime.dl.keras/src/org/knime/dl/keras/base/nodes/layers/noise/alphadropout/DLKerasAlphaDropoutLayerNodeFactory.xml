@@ -17,6 +17,9 @@
 		<a href="https://keras.io/layers/noise/#alphadropout">Keras Alpha Dropout Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 		<option name="Drop Rate">
 			The drop probability (as with <a href="https://keras.io/layers/noise/#dropout">Dropout</a>). 
 			The multiplicative noise will have standard deviation sqrt(rate / (1 - rate)).

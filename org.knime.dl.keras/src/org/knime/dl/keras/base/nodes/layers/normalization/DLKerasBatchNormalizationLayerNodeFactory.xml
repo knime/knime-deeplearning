@@ -15,6 +15,9 @@
 			<a href="https://keras.io/layers/normalization/#batchnormalization">Keras Batch Normalization Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Axis">
 				The axis that should be normalized (typically the
 				features axis). For instance, after a Conv2D layer with

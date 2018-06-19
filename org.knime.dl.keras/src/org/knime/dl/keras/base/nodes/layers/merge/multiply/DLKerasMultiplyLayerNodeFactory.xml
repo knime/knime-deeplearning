@@ -13,6 +13,9 @@
 			<a href="https://keras.io/layers/merge/#multiply">Multiply Keras layer</a>
 			. The inputs must be of the same shape.
 		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">

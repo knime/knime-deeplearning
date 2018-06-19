@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/convolutional/#cropping2d">Keras Cropping 2D Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Cropping Dimension 1">
 				A tuple of two integers. How many units should be trimmed off at the
 				beginning and end of the

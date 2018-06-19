@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.util.Optional;
+
 import org.knime.dl.keras.core.struct.param.Parameter;
 
 /**
@@ -57,6 +59,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
  */
 public interface DLKerasLayer extends DLKerasTensorSpecsOutput, DLKerasObject {
 
+    Optional<String> getNamePrefix();
+
     String getBackendRepresentation(String layerName);
-    
 }

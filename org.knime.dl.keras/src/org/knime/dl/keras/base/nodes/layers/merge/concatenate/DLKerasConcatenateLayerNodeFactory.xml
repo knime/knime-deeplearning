@@ -13,6 +13,9 @@
 			<a href="https://keras.io/layers/merge/#concatenate">Concatenate Keras layer</a>
 			. The inputs must be of the same shape except for the concatenation axis.
 		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 		<option name="Axis">
 			The axis along which to concatenate.
 			Note that axis 0 is the batch axis.

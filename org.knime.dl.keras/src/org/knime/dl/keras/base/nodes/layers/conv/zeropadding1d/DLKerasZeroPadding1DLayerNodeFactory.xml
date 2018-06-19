@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/convolutional/#zeropadding1d">Keras Zero-Padding 1D Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Padding">
 				A tuple of two integers. How many zeros to add at
 				the beginning and at the end of the padding dimension.

@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/convolutional/#upsampling3d">Keras Upsampling 3D Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Size">
 				A tuple of three integers. The upsampling factors per dimension.
 			</option>

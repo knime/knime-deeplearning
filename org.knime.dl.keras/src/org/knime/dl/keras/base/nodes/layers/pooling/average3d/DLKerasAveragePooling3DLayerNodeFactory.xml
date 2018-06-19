@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/pooling/#averagepooling3d">Keras Average Pooling 3D Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Strides">
 				The step size of the pooling window in three dimensions.
 			</option>

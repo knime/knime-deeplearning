@@ -14,6 +14,9 @@
 			<a href="https://keras.io/layers/convolutional/#separableconv1d">Keras Separable Convolution 1D Layer</a>.
 		</intro>
 		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
 			<option name="Filters">
 				The dimensionality of the output space (i.e. the
 				number of output filters in the convolution).

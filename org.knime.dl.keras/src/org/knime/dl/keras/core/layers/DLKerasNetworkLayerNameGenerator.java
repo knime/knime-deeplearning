@@ -83,6 +83,16 @@ public final class DLKerasNetworkLayerNameGenerator {
         "|(/.+:\\d+)" + //
         "|(_.+:\\d+))");
 
+    public static String getLayerNamePrefix(final DLKerasLayer layer) {
+        if (layer.getNamePrefix().isPresent()) {
+            return layer.getNamePrefix().get();
+        } else {
+            final String identifier = layer.getKerasIdentifier();
+            final int prefixStartIndex = identifier.lastIndexOf('.') + 1;
+            return prefixStartIndex != 0 ? toSnakeCase(identifier.substring(prefixStartIndex).toLowerCase()) : "layer";
+        }
+    }
+
     public static DLKerasNetworkLayerNameGenerator
         createFromBaseNetworks(final Collection<DLKerasNetworkSpec> baseNetworkSpecs) {
         final Version newTensorIdsVersion = new Version(3, 6, 0);
@@ -195,11 +205,8 @@ public final class DLKerasNetworkLayerNameGenerator {
     }
 
     public String getNextLayerName(final DLKerasLayer layer) {
-        final String identifier = layer.getKerasIdentifier();
-        final int prefixStartIndex = identifier.lastIndexOf('.') + 1;
-        final String layerPrefix =
-            prefixStartIndex != 0 ? toSnakeCase(identifier.substring(prefixStartIndex).toLowerCase()) : "layer";
-        return getNextLayerName(layerPrefix);
+        final String layerNamePrefix = getLayerNamePrefix(layer);
+        return getNextLayerName(layerNamePrefix);
     }
 
     public String getNextLayerName(final String layerPrefix) {

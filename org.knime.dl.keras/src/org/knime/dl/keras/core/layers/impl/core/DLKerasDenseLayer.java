@@ -80,7 +80,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
     @Parameter(label = "Use bias?", tab = "Advanced")
-    boolean m_useBias = true;
+    private boolean m_useBias = true;
 
     @Parameter(label = "Kernel Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
