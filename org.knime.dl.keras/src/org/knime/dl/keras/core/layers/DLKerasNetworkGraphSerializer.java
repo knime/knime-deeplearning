@@ -96,6 +96,10 @@ public final class DLKerasNetworkGraphSerializer {
     private static final String CFG_KEY_LAYER_PARAMS = "parameters";
 
     private static final String CFG_KEY_LAYER_PARENTS = "parents";
+    
+    private static final String CFG_KEY_PARENT_INDEX = "parent_index";
+    
+    private static final String CFG_KEY_INDEX_IN_PARENT = "index_in_parent";
 
     private static final String CFG_KEY_BASE_NETWORK_OUTPUT_INDEX = "output_index";
 
@@ -174,10 +178,12 @@ public final class DLKerasNetworkGraphSerializer {
                 @Override
                 public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
                     final NodeSettingsWO layerSettings = saveLayer(innerLayer);
-                    final NodeSettingsWO parentIndices = layerSettings.addNodeSettings(CFG_KEY_LAYER_PARENTS);
+                    final NodeSettingsWO parentSettings = layerSettings.addNodeSettings(CFG_KEY_LAYER_PARENTS);
                     for (int i = 0; i < innerLayer.getNumParents(); i++) {
                         final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
-                        parentIndices.addInt(Integer.toString(i), layerIndices.get(parent));
+                        NodeSettingsWO parentSetting = parentSettings.addNodeSettings(Integer.toString(i));
+                        parentSetting.addInt(CFG_KEY_PARENT_INDEX, layerIndices.get(parent));
+                        parentSetting.addInt(CFG_KEY_INDEX_IN_PARENT, innerLayer.getTensorIndexInParent(i));
                     }
                 }
 
@@ -290,10 +296,8 @@ public final class DLKerasNetworkGraphSerializer {
                     Structs.shallowCopyUnsafe(settingsInstance, layerInstance);
                     if (layer instanceof DLKerasInnerLayer) {
                         final DLKerasInnerLayer innerLayer = ((DLKerasInnerLayer)layer);
-                        final NodeSettings parentIndices = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
-                        for (int j = 0; j < parentIndices.getChildCount(); j++) {
-                            innerLayer.setParent(j, loadedLayers[parentIndices.getInt(Integer.toString(j))]);
-                        }
+                        final NodeSettings parentSettings = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
+                        loadParentSettings(loadedLayers, innerLayer, parentSettings);
                     }
                 } else if (DLKerasBaseNetworkTensorSpecOutput.class.isAssignableFrom(layerClass)) {
                     final DLKerasNetworkSpec spec = baseNetworkSpecs.get(i);
@@ -328,6 +332,34 @@ public final class DLKerasNetworkGraphSerializer {
         } catch (final Exception e) {
             LOGGER.error(e);
             throw new IOException("An exception occurred while loading the Keras layer graph. See log for details.", e);
+        }
+    }
+
+    private static void loadParentSettings(final DLKerasTensorSpecsOutput[] loadedLayers,
+        final DLKerasInnerLayer innerLayer, final NodeSettings parentSettings) throws InvalidSettingsException {
+        try {
+            newLoadParentSettings(loadedLayers, innerLayer, parentSettings);
+        } catch (InvalidSettingsException e) {
+            oldLoadParentSettings(loadedLayers, innerLayer, parentSettings);
+        }
+    }
+
+    private static void oldLoadParentSettings(final DLKerasTensorSpecsOutput[] loadedLayers,
+        final DLKerasInnerLayer innerLayer, final NodeSettings parentSettings) throws InvalidSettingsException {
+        for (int j = 0; j < parentSettings.getChildCount(); j++) {
+            innerLayer.setParent(j, loadedLayers[parentSettings.getInt(Integer.toString(j))]);
+            innerLayer.setTensorIndexInParent(j, 0);
+        }
+    }
+
+    private static void newLoadParentSettings(final DLKerasTensorSpecsOutput[] loadedLayers,
+        final DLKerasInnerLayer innerLayer, final NodeSettings parentSettings) throws InvalidSettingsException {
+        for (int j = 0; j < parentSettings.getChildCount(); j++) {
+            NodeSettings parentSetting = parentSettings.getNodeSettings(Integer.toString(j));
+            int parentIndex = parentSetting.getInt(CFG_KEY_PARENT_INDEX);
+            int indexInParent = parentSetting.getInt(CFG_KEY_INDEX_IN_PARENT);
+            innerLayer.setParent(j, loadedLayers[parentIndex]);
+            innerLayer.setTensorIndexInParent(j, indexInParent);
         }
     }
 }
