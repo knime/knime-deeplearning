@@ -246,6 +246,7 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
         namedParams.put("go_backwards", DLPythonUtils.toPython(m_goBackwards));
         namedParams.put("dropout", DLPythonUtils.toPython(m_dropout));
         namedParams.put("recurrent_dropout", DLPythonUtils.toPython(m_recurrentDropout));
+        super.populateParameters(positionalParams, namedParams);
     }
 
     @Override
