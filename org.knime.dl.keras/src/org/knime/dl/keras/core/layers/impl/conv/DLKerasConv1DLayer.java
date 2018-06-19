@@ -90,9 +90,6 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
 
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
     @Parameter(label = "Dilation rate", min = "1")
     private int m_dilationRate = 1;
 
@@ -147,7 +144,7 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
         final Long[] strides = {new Long(m_strides)};
         final Long[] dilationRate = {new Long(m_dilationRate)};
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, kernelSize, strides, dilationRate,
-            m_padding.value(), m_dataFormat.value());
+            m_padding.value(), DLKerasDataFormat.CHANNEL_LAST.value());
     }
 
     @Override
@@ -156,7 +153,6 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("kernel_size", DLPythonUtils.toPython(m_kernelSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
         namedParams.put("dilation_rate", DLPythonUtils.toPython(m_dilationRate));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
