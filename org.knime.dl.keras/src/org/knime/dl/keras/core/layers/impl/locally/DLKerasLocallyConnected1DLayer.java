@@ -164,7 +164,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
         namedParams.put("kernel_regularizer", DLKerasConfigObjectUtils.toPython(m_kernelRegularizer));
         namedParams.put("bias_regularizer", DLKerasConfigObjectUtils.toPython(m_biasRegularizer));
         namedParams.put("activity_regularizer", DLKerasConfigObjectUtils.toPython(m_activityRegularizer));
-        namedParams.put("kernel_contraint", DLKerasConfigObjectUtils.toPython(m_kernelConstraint));
+        namedParams.put("kernel_constraint", DLKerasConfigObjectUtils.toPython(m_kernelConstraint));
         namedParams.put("bias_constraint", DLKerasConfigObjectUtils.toPython(m_biasConstraint));
     }
 }
