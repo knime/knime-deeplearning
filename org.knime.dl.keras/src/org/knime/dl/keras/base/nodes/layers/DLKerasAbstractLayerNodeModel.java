@@ -59,6 +59,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
@@ -92,6 +93,8 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
     private final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> m_settingsWO;
 
     protected final StructInstance<MemberReadWriteInstance<?>, ?> m_instance;
+
+    private DLNetworkSpec m_lastNetworkSpec;
 
     protected DLKerasAbstractLayerNodeModel(PortType[] in, PortType[] out, Class<T> layerType) {
         super(in, out);
@@ -135,20 +138,29 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         }
     }
 
-    void setLayerParent(final DLKerasInnerLayer layer, final int index,
+    void setLayerParent(final DLKerasInnerLayer layer, final int parentIndex,
         final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec) throws InvalidSettingsException {
         final DLKerasInnerLayer innerLayer = layer;
 
         // If the specified inner layer does not have an input tensor spec at the specified index, we 
         // set the first tensor spec as default
-        if (innerLayer.getInputTensorSpec(index) == null) {
-            innerLayer.setInputTensorSpec(index, parentPortObjectSpec.getNetworkSpec().getInputSpecs()[0]);
+        DLTensorSpec inputSpec = innerLayer.getInputTensorSpec(parentIndex);
+        DLNetworkSpec networkSpec = parentPortObjectSpec.getNetworkSpec();
+        if (inputSpec == null
+            || !DLUtils.Networks.findTensorSpecIndexBasedOnId(inputSpec, networkSpec.getOutputSpecs()).isPresent()) {
+            inputSpec = networkSpec.getOutputSpecs()[0];
+            innerLayer.setInputTensorSpec(parentIndex, inputSpec);
         }
 
+        int indexInParent =
+            DLUtils.Networks.findTensorSpecIndexBasedOnId(inputSpec, networkSpec.getOutputSpecs()).orElseThrow(
+                () -> new IllegalStateException("The set tensor spec can't be found in the parent's output specs."));
+        innerLayer.setTensorIndexInParent(parentIndex, indexInParent);
+
         if (parentPortObjectSpec instanceof DLKerasNetworkPortObjectSpec) {
-            appendToExistingNetwork(index, parentPortObjectSpec, innerLayer);
+            appendToExistingNetwork(parentIndex, parentPortObjectSpec, innerLayer, indexInParent);
         } else if (parentPortObjectSpec instanceof DLKerasUnmaterializedNetworkPortObjectSpec) {
-            appendToLayer(index, parentPortObjectSpec, innerLayer);
+            appendToLayer(parentIndex, parentPortObjectSpec, innerLayer);
         } else {
             throw new InvalidSettingsException(
                 "Input port object spec (" + parentPortObjectSpec.getClass().getCanonicalName()
@@ -158,29 +170,24 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         }
     }
 
-    private static void appendToLayer(final int index, final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec,
-        final DLKerasInnerLayer innerLayer) throws InvalidSettingsException {
+    private static void appendToLayer(final int parentIndex,
+        final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec, final DLKerasInnerLayer innerLayer)
+        throws InvalidSettingsException {
         final List<DLKerasLayer> outputLayers =
             ((DLKerasUnmaterializedNetworkPortObjectSpec)parentPortObjectSpec).getOutputLayers();
         if (outputLayers.size() > 1) {
             throw new InvalidSettingsException(
                 "Appending a layer to a layer of a list of layers is not yet supported.");
         }
-        innerLayer.setParent(index, outputLayers.get(0));
+        innerLayer.setParent(parentIndex, outputLayers.get(0));
     }
 
-    private static void appendToExistingNetwork(final int index, final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec,
-        final DLKerasInnerLayer innerLayer) throws InvalidSettingsException {
-        DLTensorSpec tSpec = innerLayer.getInputTensorSpec(index);
-        OptionalInt tensorInt =
-            DLUtils.Networks.findTensorSpecIndex(tSpec, parentPortObjectSpec.getNetworkSpec().getOutputSpecs());
-        if (!tensorInt.isPresent()) {
-            throw new InvalidSettingsException("Can't find index for tensor input " + tSpec + ".");
-        }
+    private static void appendToExistingNetwork(final int parentIndex,
+        final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec, final DLKerasInnerLayer innerLayer,
+        final int indexInParent) {
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(),
-                tensorInt.getAsInt());
-        innerLayer.setParent(index, baseNetworkOutput);
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(parentPortObjectSpec.getNetworkSpec(), indexInParent);
+        innerLayer.setParent(parentIndex, baseNetworkOutput);
     }
 
     @Override

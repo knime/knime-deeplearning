@@ -76,6 +76,7 @@ import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLPartialTensorShape;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.DLUnknownTensorShape;
@@ -166,6 +167,20 @@ public final class DLUtils {
 
             for (int i = 0; i < specs.length; i++) {
                 if (spec.equals(specs[i])) {
+                    return OptionalInt.of(i);
+                }
+            }
+            return OptionalInt.empty();
+        }
+        
+        public static OptionalInt findTensorSpecIndexBasedOnId(DLTensorSpec spec, final DLTensorSpec... specs) {
+            checkNotNull(spec);
+            checkNotNull(specs);
+            
+            DLTensorId id = spec.getIdentifier();
+            
+            for (int i = 0; i < specs.length; i++) {
+                if (id.equals(specs[i].getIdentifier())) {
                     return OptionalInt.of(i);
                 }
             }
