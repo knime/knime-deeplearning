@@ -50,8 +50,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -217,8 +219,8 @@ public final class DLKerasNetworkMaterializer {
         return baseNetworkSpecs;
     }
 
-    private List<String> expandNetworkInputs(final List<Object> networkInputs) {
-        final List<String> expandedNetworkInputs = new ArrayList<>();
+    private Set<String> expandNetworkInputs(final List<Object> networkInputs) {
+        final Set<String> expandedNetworkInputs = new LinkedHashSet<>();
         for (final Object networkInput : networkInputs) {
             if (networkInput instanceof String) {
                 expandedNetworkInputs.add((String)networkInput);
@@ -307,7 +309,8 @@ public final class DLKerasNetworkMaterializer {
             final List<String> parentVariables = new ArrayList<>();
             for (int i = 0; i < innerLayer.getNumParents(); i++) {
                 final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
-                final DLTensorSpec inputSpec = innerLayer.getInputTensorSpec(i);
+                final int inputSpecIdx = innerLayer.getTensorIndexInParent(i);
+                final DLTensorSpec inputSpec = getTensorSpecs(parent).get(inputSpecIdx);
                 String variable = m_tensorVariables.get(inputSpec.getIdentifier());
                 if (variable == null) {
                     addTensorVariables(parent);
@@ -367,14 +370,14 @@ public final class DLKerasNetworkMaterializer {
                 m_baseNetworks.put(baseNetworkSpec, baseNetworkHelper);
                 m_inputVariables.add(baseNetworkHelper);
                 m_outputVariables.add(baseNetworkHelper);
+                // TODO: Support appending to hidden layers.
+                final List<String> tensorVariable = getTensorVariables(baseNetworkOutput);
+                final String baseNetworkVariable = baseNetworkHelper.m_variable;
+                m_codeLinesToGenerate.put(baseNetworkOutput,
+                    gen -> String.join(", ", tensorVariable) + " = " + baseNetworkVariable + ".outputs" + (tensorVariable.size() == 1 ? "[0]" : ""));
             }
             final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
             baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
-            // TODO: Support appending to hidden layers.
-            final List<String> tensorVariable = getTensorVariables(baseNetworkOutput);
-            final String baseNetworkVariable = baseNetworkHelper.m_variable;
-            m_codeLinesToGenerate.put(baseNetworkOutput,
-                gen -> tensorVariable + " = " + baseNetworkVariable + ".outputs[" + baseNetworkOutputIndex + "]");
         }
 
         @Override
@@ -408,4 +411,6 @@ public final class DLKerasNetworkMaterializer {
             m_networkSource = networkSource;
         }
     }
+    
+
 }
