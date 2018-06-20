@@ -186,6 +186,11 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         return Stream.concat(Arrays.stream(inLength), Stream.of(Long.valueOf(m_outputDim)))
             .toArray(Long[]::new);
     }
+    
+    @Override
+    protected Class<?> inferOutputElementType(Class<?> inputElementType) {
+        return float.class;
+    }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
