@@ -57,6 +57,7 @@ import org.knime.core.data.filestore.FileStore;
 import org.knime.core.data.filestore.FileStorePortObject;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
@@ -142,6 +143,12 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     @Override
     protected void postConstruct() throws IOException {
+        try {
+            getFileStore(0).getFile().createNewFile(); // TODO: See AP-9540. Remove once this is fixed.
+        } catch (final Exception e) {
+            NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).debug(
+                "Failed to create empty file at file store location '" + getFileStore(0).getFile().getPath() + "'.");
+        }
         if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
             final DLKerasUnmaterializedPortObjectContent unmaterialized =
                 (DLKerasUnmaterializedPortObjectContent)m_content;
