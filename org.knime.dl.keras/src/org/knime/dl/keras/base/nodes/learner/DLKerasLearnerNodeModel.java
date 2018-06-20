@@ -85,10 +85,11 @@ import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDataTableRowIterator;
-import org.knime.dl.core.DLException;
+import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
@@ -127,6 +128,7 @@ import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -158,21 +160,21 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		return new DLKerasLearnerGeneralConfig();
 	}
 
-	static DLKerasLearnerInputConfig createInputTensorModelConfig(final String inputTensorName,
-			final DLKerasLearnerGeneralConfig generalCfg) {
-		return new DLKerasLearnerInputConfig(inputTensorName, generalCfg);
-	}
+    static DLKerasLearnerInputConfig createInputTensorModelConfig(final DLTensorId inputTensorId,
+        final String inputTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
+        return new DLKerasLearnerInputConfig(inputTensorId, inputTensorName, generalCfg);
+    }
 
-	static DLKerasLearnerTargetConfig createOutputTensorModelConfig(final String outputTensorName,
-			final DLKerasLearnerGeneralConfig generalCfg) {
-		return new DLKerasLearnerTargetConfig(outputTensorName, generalCfg);
-	}
+    static DLKerasLearnerTargetConfig createOutputTensorModelConfig(final DLTensorId targetTensorId,
+        final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
+        return new DLKerasLearnerTargetConfig(targetTensorId, targetTensorName, generalCfg);
+    }
 
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
 
-	private final HashMap<String, DLKerasLearnerInputConfig> m_inputCfgs;
+    private final HashMap<DLTensorId, DLKerasLearnerInputConfig> m_inputCfgs;
 
-	private final HashMap<String, DLKerasLearnerTargetConfig> m_targetCfgs;
+    private final HashMap<DLTensorId, DLKerasLearnerTargetConfig> m_targetCfgs;
 
 	private LinkedHashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> m_converters;
 
@@ -356,22 +358,24 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		}
 	}
 
-	@Override
-	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		m_inputCfgs.clear();
-		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
-		for (final String layerName : inputSettings) {
-			final DLKerasLearnerInputConfig inputCfg = createInputTensorModelConfig(layerName, m_generalCfg);
-			m_inputCfgs.put(layerName, inputCfg);
-		}
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_inputCfgs.clear();
+        final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
+        for (final String tensorIdString : inputSettings) {
+            final DLTensorId tensorId = new DLDefaultTensorId(tensorIdString);
+            final DLKerasLearnerInputConfig inputCfg = createInputTensorModelConfig(tensorId, null, m_generalCfg);
+            m_inputCfgs.put(tensorId, inputCfg);
+        }
 
-		m_targetCfgs.clear();
-		final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_TARGET);
-		for (final String layerName : outputSettings) {
-			final DLKerasLearnerTargetConfig outputCfg = createOutputTensorModelConfig(layerName, m_generalCfg);
-			m_targetCfgs.put(layerName, outputCfg);
-		}
-	}
+        m_targetCfgs.clear();
+        final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_TARGET);
+        for (final String tensorIdString : outputSettings) {
+            final DLTensorId tensorId = new DLDefaultTensorId(tensorIdString);
+            final DLKerasLearnerTargetConfig outputCfg = createOutputTensorModelConfig(tensorId, null, m_generalCfg);
+            m_targetCfgs.put(tensorId, outputCfg);
+        }
+    }
 
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -494,34 +498,73 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		if (inputSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no input specs.");
 		}
-
-		for (final DLTensorSpec tensorSpec : inputSpecs) {
-			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.computeIfAbsent(tensorSpec.getName(),
-					name -> DLKerasLearnerNodeModel.createInputTensorModelConfig(name, m_generalCfg));
+		for (final DLTensorSpec inputSpec : inputSpecs) {
+            DLKerasLearnerInputConfig inputCfg = getInputConfig(inputSpec.getIdentifier(), inputSpec.getName());
+            if (inputCfg == null) {
+                final DLTensorId tensorId = inputSpec.getIdentifier() != null ? inputSpec.getIdentifier()
+                    : new DLDefaultTensorId(inputSpec.getName());
+                inputCfg =
+                    DLKerasLearnerNodeModel.createInputTensorModelConfig(tensorId, inputSpec.getName(), m_generalCfg);
+            }
+            // get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter =
-                DLConfigurationUtility.configureInput(inputCfg, tensorSpec, trainingContext, inTableSpec,
+                DLConfigurationUtility.configureInput(inputCfg, inputSpec, trainingContext, inTableSpec,
                     m_lastConfiguredTableSpec, DLTensorRole.INPUT);
-			m_converters.put(tensorSpec, converter);
+			m_converters.put(inputSpec, converter);
 		}
 	}
+
+    private DLKerasLearnerInputConfig getInputConfig(final DLTensorId inputIdentifier, final String inputName) {
+        DLKerasLearnerInputConfig inputCfg = null;
+        try {
+            inputCfg = m_inputCfgs.get(inputIdentifier);
+        } catch (final Exception e) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (inputCfg == null) {
+            inputCfg = m_inputCfgs.get(new DLDefaultTensorId(inputName));
+        }
+        return inputCfg;
+    }
 
     private void configureTargets(final DataTableSpec inTableSpec, final DLKerasTrainingContext<?> trainingContext,
         final DLTensorSpec[] targetSpecs) throws InvalidSettingsException {
         if (targetSpecs.length == 0) {
 			setWarningMessage("Input deep learning network has no target specs.");
 		}
-		for (final DLTensorSpec tensorSpec : targetSpecs) {
-			final DLKerasLearnerTargetConfig targetCfg = m_targetCfgs.computeIfAbsent(tensorSpec.getName(),
-					name -> DLKerasLearnerNodeModel.createOutputTensorModelConfig(name, m_generalCfg));
+		for (final DLTensorSpec targetSpec : targetSpecs) {
+            DLKerasLearnerTargetConfig targetCfg = getTargetConfig(targetSpec.getIdentifier(), targetSpec.getName());
+            if (targetCfg == null) {
+                final DLTensorId tensorId = targetSpec.getIdentifier() != null ? targetSpec.getIdentifier()
+                    : new DLDefaultTensorId(targetSpec.getName());
+                targetCfg =
+                    DLKerasLearnerNodeModel.createOutputTensorModelConfig(tensorId, targetSpec.getName(), m_generalCfg);
+            }
 			// get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
-			    targetCfg, tensorSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, DLTensorRole.TARGET);
-			if (m_converters.containsKey(tensorSpec)) {
-			    checkConverterEquality(tensorSpec, converter);
+			    targetCfg, targetSpec, trainingContext, inTableSpec, m_lastConfiguredTableSpec, DLTensorRole.TARGET);
+			if (m_converters.containsKey(targetSpec)) {
+                // This happens if a tensor is both input and target.
+			    checkConverterEquality(targetSpec, converter);
 			}
-			m_converters.put(tensorSpec, converter);
-			setLossFunction(tensorSpec, targetCfg);
+			m_converters.put(targetSpec, converter);
+			setLossFunction(targetSpec, targetCfg);
 		}
+    }
+
+    private DLKerasLearnerTargetConfig getTargetConfig(final DLTensorId targetIdentifier, final String targetName) {
+        DLKerasLearnerTargetConfig targetCfg = null;
+        try {
+            targetCfg = m_targetCfgs.get(targetIdentifier);
+        } catch (final Exception e) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (targetCfg == null) {
+            targetCfg = m_targetCfgs.get(new DLDefaultTensorId(targetName));
+        }
+        return targetCfg;
     }
 
     private void checkConverterEquality(final DLTensorSpec tensorSpec, final DLDataValueToTensorConverterFactory<?, ?> converter) {
@@ -593,7 +636,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
 		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
 				columnsForTensorId.size());
-		fillInputSpecificMaps(inTableSpec, columnsForTensorId, converterForTensorId);
+		fillInputAndTargetSpecificMaps(inTableSpec, columnsForTensorId, converterForTensorId);
 
 		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
 		// alternative strategy for handling incomplete batches.
@@ -641,23 +684,20 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     private RuntimeException handleGeneralException(final Exception e) throws CanceledExecutionException {
         final Throwable cause = e.getCause();
         if (cause != null) {
-        	if (cause instanceof CanceledExecutionException) {
-        		m_status.setStatus(Status.USER_INTERRUPTED);
-        		throw (CanceledExecutionException) cause;
+            if (cause instanceof CanceledExecutionException) {
+                m_status.setStatus(Status.USER_INTERRUPTED);
+                throw (CanceledExecutionException)cause;
             } else if (cause instanceof DLCanceledExecutionException || cause instanceof InterruptedException) {
-        		m_status.setStatus(Status.USER_INTERRUPTED);
-        		throw new CanceledExecutionException(e.getMessage());
-        	}
+                m_status.setStatus(Status.USER_INTERRUPTED);
+                throw new CanceledExecutionException(e.getMessage());
+            }
         }
-        String message;
-        if (e instanceof DLException) {
-        	message = e.getMessage();
-        } else {
-        	if (!Strings.isNullOrEmpty(e.getMessage())) {
-        		LOGGER.error(e.getMessage());
-        	}
-        	message = "An error occured during training of the Keras deep learning network. See log for details.";
-        }
+        final String message = DLUtils.Misc.findDisplayableErrorMessage(e).orElseGet(() -> {
+            if (!Strings.isNullOrEmpty(e.getMessage())) {
+                LOGGER.error(e.getMessage());
+            }
+            return "An error occured during training of the Keras deep learning network. See log for details.";
+        });
         m_status.setStatus(Status.EXCEPTION);
         return new RuntimeException(message, e);
     }
@@ -765,17 +805,17 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		}
     }
 
-    private void fillInputSpecificMaps(final DataTableSpec inTableSpec, final Map<DLTensorId, int[]> columnsForTensorId,
+    private void fillInputAndTargetSpecificMaps(final DataTableSpec inTableSpec, final Map<DLTensorId, int[]> columnsForTensorId,
         final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId) {
         for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_converters.entrySet()) {
-			final DLTensorSpec spec = entry.getKey();
-			final DataColumnSpecFilterConfiguration filterConfig;
-			final DLKerasLearnerInputConfig inputCfg = m_inputCfgs.get(spec.getName());
-			if (inputCfg != null) {
-				filterConfig = inputCfg.getInputColumnsEntry().getValue();
-			} else {
-				filterConfig = m_targetCfgs.get(spec.getName()).getInputColumnsEntry().getValue();
-			}
+            final DLTensorSpec inputOrTargetSpec = entry.getKey();
+            final DLTensorId inputOrTargetId = inputOrTargetSpec.getIdentifier();
+            final String inputOrTargetName = inputOrTargetSpec.getName();
+            DLAbstractInputConfig<?> inputOrTargetCfg = getInputConfig(inputOrTargetId, inputOrTargetName);
+            if (inputOrTargetCfg == null) {
+                inputOrTargetCfg = getTargetConfig(inputOrTargetId, inputOrTargetName);
+            }
+            final DataColumnSpecFilterConfiguration filterConfig = inputOrTargetCfg.getInputColumnsEntry().getValue();
 			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(entry.getValue().getSourceType());
 			// the input columns that will be used to fill the current spec's tensor
 			final int[] indices = Arrays.stream(filterConfig.applyTo(inTableSpec).getIncludes()).mapToInt(column -> {
@@ -786,8 +826,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 				}
 				return idx;
 			}).toArray();
-			columnsForTensorId.put(spec.getIdentifier(), indices);
-			converterForTensorId.put(spec.getIdentifier(), entry.getValue());
+			columnsForTensorId.put(inputOrTargetSpec.getIdentifier(), indices);
+			converterForTensorId.put(inputOrTargetSpec.getIdentifier(), entry.getValue());
 		}
     }
 
@@ -820,13 +860,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         final Map<DLTensorId, DLKerasLossFunction> lossFunctions = new HashMap<>();
 		for (final DLTensorSpec targetSpec : inNetworkSpec.getOutputSpecs()) {
 			final DLKerasLossFunction lossFunction;
-			DLKerasLearnerTargetConfig cfg = m_targetCfgs.get(targetSpec.getName());
-			if (cfg == null) {
-			    cfg = m_targetCfgs.get(targetSpec.getIdentifier().getIdentifierString());
-			}
-			final ConfigEntry<DLKerasLossFunction> lossEntry = cfg.getLossFunctionEntry();
-			if (cfg.getUseCustomLossEntry().getValue()) {
-			    lossFunction = cfg.getCustomLossFunctionEntry().getValue();
+            final DLKerasLearnerTargetConfig targetCfg = getTargetConfig(targetSpec.getIdentifier(), targetSpec.getName());
+			final ConfigEntry<DLKerasLossFunction> lossEntry = targetCfg.getLossFunctionEntry();
+			if (targetCfg.getUseCustomLossEntry().getValue()) {
+			    lossFunction = targetCfg.getCustomLossFunctionEntry().getValue();
 			} else {
 			    lossFunction = lossEntry.getValue();
 			}

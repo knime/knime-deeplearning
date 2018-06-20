@@ -49,6 +49,7 @@ package org.knime.dl.keras.core.training;
 import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.training.DLMetric;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.dl.util.DLUtils.Preconditions;
@@ -149,26 +150,29 @@ public interface DLKerasMetric extends DLMetric {
 			return getName() + " (" + getBackendRepresentation() + ")";
 		}
 	}
-	
+
 	public abstract static class DLKerasAbstractCustomMetric extends DLKerasAbstractMetric {
-	    
+
+        // TODO figure out which other characters are not allowed and replace them as well
+        public static String replaceIncompatibleCharsWithUnderscores(final String string) {
+            return string.replaceAll("[^\\w_]", "_");
+        }
+
 	    private final String m_functionIdentifier;
 
 	    private String m_customCode;
-	    
+
 	    private final String m_functionMatcher;
-	    
-        /**
-         * @param name
-         * @param kerasIdentifier
-         */
-        protected DLKerasAbstractCustomMetric(String name, String identifier, String tensorIdentifier) {
-            super(name, identifier + "_" + replaceIncompatibleCharsWithUnderscores(tensorIdentifier));
+
+        protected DLKerasAbstractCustomMetric(final String name, final String identifier,
+            final DLTensorId tensorIdentifier) {
+            super(name,
+                identifier + "_" + replaceIncompatibleCharsWithUnderscores(tensorIdentifier.getIdentifierString()));
             m_functionIdentifier = identifier;
             m_functionMatcher = "def " + m_functionIdentifier + "(";
             m_customCode = getDefaultCode();
         }
-        
+
         protected String getDefaultCode() {
             return DLPythonUtils.createSourceCodeBuilder()
                     .a("import keras.backend as K")
@@ -178,22 +182,17 @@ public interface DLKerasMetric extends DLMetric {
                     .n().t().a("return K.categorical_crossentropy(y_true, y_pred)")
                     .toString();
         }
-        
-        // TODO figure out which other characters are not allowed and replace them as well
-        public static String replaceIncompatibleCharsWithUnderscores(String string) {
-            return string.replaceAll("[^\\w_]", "_");
-        }
-        
+
         public String getCustomCodeDialog() {
             return m_customCode;
         }
-        
+
         public String getCustomCodeExecution() {
-            String executionCode = m_customCode.replaceAll(m_functionIdentifier, getBackendRepresentation());
+            final String executionCode = m_customCode.replaceAll(m_functionIdentifier, getBackendRepresentation());
             return executionCode;
         }
-        
-        public void setCustomCode(String customCode) {
+
+        public void setCustomCode(final String customCode) {
             Preconditions.checkNotNullOrEmpty(customCode);
             if (!customCode.contains(m_functionMatcher)) {
                 throw new IllegalArgumentException("The provided code does not contain the required function '"
@@ -201,8 +200,6 @@ public interface DLKerasMetric extends DLMetric {
             }
             m_customCode = customCode;
         }
-        
-	    
 	}
 
 	public static final class DLKerasAccuracy extends DLKerasAbstractMetric {

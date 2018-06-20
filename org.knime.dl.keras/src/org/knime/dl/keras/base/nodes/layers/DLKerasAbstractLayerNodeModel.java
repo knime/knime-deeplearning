@@ -146,13 +146,13 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         DLTensorSpec inputSpec = innerLayer.getInputTensorSpec(parentIndex);
         DLNetworkSpec networkSpec = parentPortObjectSpec.getNetworkSpec();
         if (inputSpec == null
-            || !DLUtils.Networks.findTensorSpecIndexBasedOnId(inputSpec, networkSpec.getOutputSpecs()).isPresent()) {
+            || !DLUtils.Networks.findTensorSpecIndexById(inputSpec, networkSpec.getOutputSpecs()).isPresent()) {
             inputSpec = networkSpec.getOutputSpecs()[0];
             innerLayer.setInputTensorSpec(parentIndex, inputSpec);
         }
 
         int indexInParent =
-            DLUtils.Networks.findTensorSpecIndexBasedOnId(inputSpec, networkSpec.getOutputSpecs()).orElseThrow(
+            DLUtils.Networks.findTensorSpecIndexById(inputSpec, networkSpec.getOutputSpecs()).orElseThrow(
                 () -> new IllegalStateException("The set tensor spec can't be found in the parent's output specs."));
         innerLayer.setTensorIndexInParent(parentIndex, indexInParent);
 

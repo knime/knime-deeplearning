@@ -48,19 +48,18 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLAbstractIOConfig;
 import org.knime.dl.base.settings.SettingsModelConfigEntries;
 import org.knime.dl.base.settings.SettingsModelConfigEntry;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 
 /**
- * 
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -72,8 +71,9 @@ final class DLExecutorOutputConfig extends DLAbstractIOConfig<DLExecutorGeneralC
 	private static final String CFG_KEY_OUTPUT_PREFIX = "output_prefix";
 
 
-	DLExecutorOutputConfig(final String outputTensorName, final DLExecutorGeneralConfig generalConfig) {
-	    super(checkNotNullOrEmpty(outputTensorName), generalConfig);
+    DLExecutorOutputConfig(final DLTensorId outputTensorId, final String outputTensorName,
+        final DLExecutorGeneralConfig generalConfig) {
+        super(outputTensorId, outputTensorName, generalConfig);
 		put(new SettingsModelConfigEntry<>(
 		        CFG_KEY_CONVERTER, DLTensorToDataCellConverterFactory.class,
 		        s -> new SettingsModelStringArray(s, null),
@@ -81,18 +81,18 @@ final class DLExecutorOutputConfig extends DLAbstractIOConfig<DLExecutorGeneralC
 		        this::settingsModelToValue));
 		put(SettingsModelConfigEntries.createStringConfigEntry(CFG_KEY_OUTPUT_PREFIX, outputTensorName + "_"));
 	}
-	
+
 	@SuppressWarnings("rawtypes")
-    private SettingsModelStringArray entryToSettingsModel(ConfigEntry<DLTensorToDataCellConverterFactory> entry) {
-	    DLTensorToDataCellConverterFactory<?, ?> cf = entry.getValue();
+    private SettingsModelStringArray entryToSettingsModel(final ConfigEntry<DLTensorToDataCellConverterFactory> entry) {
+	    final DLTensorToDataCellConverterFactory<?, ?> cf = entry.getValue();
 	    return new SettingsModelStringArray(entry.getEntryKey(), new String[] {cf.getName(), cf.getIdentifier()});
 	}
-	
-	private DLTensorToDataCellConverterFactory<?, ?> settingsModelToValue(SettingsModelStringArray sm) throws InvalidSettingsException {
-	    String[] array = sm.getStringArrayValue();
+
+	private DLTensorToDataCellConverterFactory<?, ?> settingsModelToValue(final SettingsModelStringArray sm) throws InvalidSettingsException {
+	    final String[] array = sm.getStringArrayValue();
 	    return DLTensorToDataCellConverterRegistry.getInstance().getConverterFactory(array[1])
 	            .orElseThrow(() -> new InvalidSettingsException("Converter '" + array[0] + " ("
-	                    + array[1] + ") for network output '" + getTensorName()
+	                    + array[1] + ") for network output '" + getTensorNameOrId()
 	                    + "' could not be found. Are you missing a KNIME extension?"));
 	}
 
@@ -100,7 +100,7 @@ final class DLExecutorOutputConfig extends DLAbstractIOConfig<DLExecutorGeneralC
     ConfigEntry<DLTensorToDataCellConverterFactory<?, ?>> getConverterEntry() {
 	    return (ConfigEntry) get(CFG_KEY_CONVERTER, DLTensorToDataCellConverterFactory.class);
 	}
-	
+
 	ConfigEntry<String> getPrefixEntry() {
 	    return get(CFG_KEY_OUTPUT_PREFIX, String.class);
 	}

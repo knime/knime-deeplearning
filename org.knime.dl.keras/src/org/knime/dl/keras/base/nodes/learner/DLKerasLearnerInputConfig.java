@@ -48,9 +48,6 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -59,6 +56,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.dl.base.settings.AbstractStandardConfigEntry;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 
@@ -69,9 +67,10 @@ import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 final class DLKerasLearnerInputConfig extends DLAbstractInputConfig<DLKerasLearnerGeneralConfig> {
 
 
-	@SuppressWarnings("rawtypes") // Java limitation
-	DLKerasLearnerInputConfig(final String inputTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
-		super(checkNotNullOrEmpty(inputTensorName), checkNotNull(generalCfg));
+    @SuppressWarnings("rawtypes") // Java limitation
+    DLKerasLearnerInputConfig(final DLTensorId inputTensorId, final String inputTensorName,
+        final DLKerasLearnerGeneralConfig generalCfg) {
+        super(inputTensorId, inputTensorName, generalCfg);
 		put(new AbstractStandardConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
 				DLDataValueToTensorConverterFactory.class) {
 
@@ -90,11 +89,11 @@ final class DLKerasLearnerInputConfig extends DLAbstractInputConfig<DLKerasLearn
 				final String converterIdentifier = settings.getString(getEntryKey());
 				if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
 					throw new InvalidSettingsException(
-							"No training data converter available for network input '" + getTensorName() + "'.");
+							"No training data converter available for network input '" + getTensorNameOrId() + "'.");
 				}
 				m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
 						.orElseThrow(() -> new InvalidSettingsException("Training data converter '"
-								+ converterIdentifier + "' of network input '" + getTensorName()
+								+ converterIdentifier + "' of network input '" + getTensorNameOrId()
 								+ "' could not be found. Are you missing a KNIME extension?"));
 			}
 		});

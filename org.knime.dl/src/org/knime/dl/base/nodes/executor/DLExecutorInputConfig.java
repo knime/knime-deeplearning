@@ -48,8 +48,6 @@
  */
 package org.knime.dl.base.nodes.executor;
 
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -61,6 +59,7 @@ import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.base.settings.SettingsModelConfigEntry;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 
@@ -71,8 +70,9 @@ import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
  */
 class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfig> {
 
-    DLExecutorInputConfig(final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
-        super(checkNotNullOrEmpty(inputTensorName), generalCfg);
+    DLExecutorInputConfig(final DLTensorId inputTensorId, final String inputTensorName,
+        final DLExecutorGeneralConfig generalCfg) {
+        super(inputTensorId, inputTensorName, generalCfg);
         put(new SettingsModelConfigEntry<>(CFG_KEY_CONVERTER, DLDataValueToTensorConverterFactory.class,
             s -> new SettingsModelStringArray(s, null), this::createSettingsModelFromEntry,
             this::createFactoryFromSettingsModel));
@@ -81,30 +81,30 @@ class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfi
             new DataColumnSpecFilterConfiguration(CFG_KEY_INPUT_COL, new DLDataTypeColumnFilter(DataValue.class))) {
 
             @Override
-            public void saveSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
+            public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
                 m_value.saveConfiguration(settings);
             }
 
             @Override
-            public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+            public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
                 // no op. Separate routines for loading in model and dialog required. See super class.
             }
         });
     }
 
     private SettingsModelStringArray createSettingsModelFromEntry(
-        @SuppressWarnings("rawtypes") ConfigEntry<DLDataValueToTensorConverterFactory> entry) {
-        DLDataValueToTensorConverterFactory<?, ?> factory = entry.getValue();
+        @SuppressWarnings("rawtypes") final ConfigEntry<DLDataValueToTensorConverterFactory> entry) {
+        final DLDataValueToTensorConverterFactory<?, ?> factory = entry.getValue();
         return new SettingsModelStringArray(entry.getEntryKey(),
             new String[]{factory.getName(), factory.getIdentifier()});
     }
 
-    private DLDataValueToTensorConverterFactory<?, ?> createFactoryFromSettingsModel(SettingsModelStringArray sm)
+    private DLDataValueToTensorConverterFactory<?, ?> createFactoryFromSettingsModel(final SettingsModelStringArray sm)
         throws InvalidSettingsException {
-        String[] array = sm.getStringArrayValue();
+        final String[] array = sm.getStringArrayValue();
         return DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(array[1]).orElseThrow(
             () -> new InvalidSettingsException("Data Converter '" + array[0] + "' (" + array[1] + ") of network input '"
-                + getTensorName() + "' could not be found. Are you missing a KNIME extension?"));
+                + getTensorNameOrId() + "' could not be found. Are you missing a KNIME extension?"));
     }
 
 }

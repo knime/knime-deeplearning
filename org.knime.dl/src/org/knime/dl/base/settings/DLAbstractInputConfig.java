@@ -50,11 +50,12 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 
 /**
  * Handles loading of the column filter configuration.
- * 
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link DLGeneralConfig} e.g. learner or executor
  */
@@ -70,11 +71,10 @@ public abstract class DLAbstractInputConfig<C extends DLGeneralConfig<?>> extend
     public static final String CFG_KEY_INPUT_COL = "input_columns";
 
     /**
-     * @param tensorName
-     * @param generalCfg
+     * @see DLAbstractIOConfig
      */
-    public DLAbstractInputConfig(String tensorName, C generalCfg) {
-        super(tensorName, generalCfg);
+    public DLAbstractInputConfig(final DLTensorId tensorId, final String tensorName, final C generalCfg) {
+        super(tensorId, tensorName, generalCfg);
     }
 
     private DataColumnSpecFilterConfiguration getInputColumnConfig() {
@@ -88,13 +88,13 @@ public abstract class DLAbstractInputConfig<C extends DLGeneralConfig<?>> extend
 
     @Override
     public void loadInDialog(final NodeSettingsRO settings, final DataTableSpec spec) throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration inputColConfig = getInputColumnConfig();
+        final DataColumnSpecFilterConfiguration inputColConfig = getInputColumnConfig();
         // we enforce inclusion by default
         inputColConfig.loadDefault(spec, null, true);
         inputColConfig.loadConfigurationInDialog(findInputColConfigParent(settings), spec);
     }
-    
-    private static NodeSettingsRO findInputColConfigParent(NodeSettingsRO settings) throws InvalidSettingsException {
+
+    private static NodeSettingsRO findInputColConfigParent(final NodeSettingsRO settings) throws InvalidSettingsException {
         NodeSettingsRO parent = settings;
         NodeSettingsRO child = settings.getNodeSettings(CFG_KEY_INPUT_COL);
         while (child.containsKey(CFG_KEY_INPUT_COL)) {

@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
@@ -96,6 +97,7 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLInstallationTestTimeout;
@@ -146,15 +148,15 @@ final class DLExecutorNodeModel extends NodeModel {
 		return new DLExecutorGeneralConfig("<none>", null, 100);
 	}
 
-	static DLExecutorInputConfig createInputTensorModelConfig(final String configKey,
-			final DLExecutorGeneralConfig generalCfg) {
-		return new DLExecutorInputConfig(configKey, generalCfg);
-	}
+    static DLExecutorInputConfig createInputTensorModelConfig(final DLTensorId inputTensorId,
+        final String inputTensorName, final DLExecutorGeneralConfig generalCfg) {
+        return new DLExecutorInputConfig(inputTensorId, inputTensorName, generalCfg);
+    }
 
-	static DLExecutorOutputConfig createOutputTensorModelConfig(final String configKey,
-			final DLExecutorGeneralConfig generalCfg) {
-		return new DLExecutorOutputConfig(configKey, generalCfg);
-	}
+    static DLExecutorOutputConfig createOutputTensorModelConfig(final DLTensorId outputTensorId,
+        final String outputTensorName, final DLExecutorGeneralConfig generalCfg) {
+        return new DLExecutorOutputConfig(outputTensorId, outputTensorName, generalCfg);
+    }
 
 	static SettingsModelStringArray createOutputOrderSettingsModel(final int outputsCount) {
 		return new SettingsModelStringArray(CFG_KEY_OUTPUTS_ORDER, new String[outputsCount]);
@@ -162,9 +164,9 @@ final class DLExecutorNodeModel extends NodeModel {
 
 	private final DLExecutorGeneralConfig m_generalCfg;
 
-	private final HashMap<String, DLExecutorInputConfig> m_inputCfgs;
+	private final HashMap<DLTensorId, DLExecutorInputConfig> m_inputCfgs;
 
-	private final HashMap<String, DLExecutorOutputConfig> m_outputCfgs;
+	private final HashMap<DLTensorId, DLExecutorOutputConfig> m_outputCfgs;
 
 	private SettingsModelStringArray m_smOutputOrder;
 
@@ -330,26 +332,27 @@ final class DLExecutorNodeModel extends NodeModel {
 	    }
 	}
 
-	@Override
-	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_inputCfgs.clear();
+        final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
+        for (final String tensorIdString : inputSettings) {
+            final DLTensorId tensorId = new DLDefaultTensorId(tensorIdString);
+            final DLExecutorInputConfig inputCfg = createInputTensorModelConfig(tensorId, null, m_generalCfg);
+            m_inputCfgs.put(tensorId, inputCfg);
+        }
 
-		m_inputCfgs.clear();
-		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUTS);
-		for (final String layerName : inputSettings) {
-			final DLExecutorInputConfig inputCfg = createInputTensorModelConfig(layerName, m_generalCfg);
-			m_inputCfgs.put(layerName, inputCfg);
-		}
+        m_outputCfgs.clear();
+        final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
+        for (final String tensorIdString : outputSettings) {
+            final DLTensorId tensorId = new DLDefaultTensorId(tensorIdString);
+            final DLExecutorOutputConfig outputCfg = createOutputTensorModelConfig(tensorId, null, m_generalCfg);
+            m_outputCfgs.put(tensorId, outputCfg);
+        }
 
-		m_outputCfgs.clear();
-		final NodeSettingsRO outputSettings = settings.getNodeSettings(CFG_KEY_OUTPUTS);
-		for (final String layerName : outputSettings) {
-			final DLExecutorOutputConfig outputCfg = createOutputTensorModelConfig(layerName, m_generalCfg);
-			m_outputCfgs.put(layerName, outputCfg);
-		}
-
-		m_smOutputOrder = createOutputOrderSettingsModel(m_outputCfgs.size());
-		m_smOutputOrder.validateSettings(settings);
-	}
+        m_smOutputOrder = createOutputOrderSettingsModel(m_outputCfgs.size());
+        m_smOutputOrder.validateSettings(settings);
+    }
 
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -408,11 +411,15 @@ final class DLExecutorNodeModel extends NodeModel {
         return true;
     }
 
-    private DLTensorSpec getOutputOrHiddenTensorSpec(final String tensorName, final DLNetworkSpec networkSpec)
-        throws InvalidSettingsException {
-        return DLUtils.Networks.findSpec(tensorName, networkSpec.getHiddenOutputSpecs(), networkSpec.getOutputSpecs())
-            .orElseThrow(() -> new InvalidSettingsException(
-                "Selected output '" + tensorName + "' could not be found in the input deep learning network."));
+    private static DLTensorSpec getOutputOrHiddenTensorSpec(final String tensorNameOrId,
+        final DLNetworkSpec networkSpec) throws InvalidSettingsException {
+        Optional<DLTensorSpec> tensorSpec =
+            DLUtils.Networks.findTensorSpecById(new DLDefaultTensorId(tensorNameOrId), networkSpec);
+        if (!tensorSpec.isPresent()) {
+            tensorSpec = DLUtils.Networks.findTensorSpecByName(tensorNameOrId, networkSpec);
+        }
+        return tensorSpec.orElseThrow(() -> new InvalidSettingsException(
+            "Selected output '" + tensorNameOrId + "' could not be found in the input deep learning network."));
     }
 
 	private void configureGeneral(final Class<? extends DLNetwork> networkType)
@@ -436,64 +443,96 @@ final class DLExecutorNodeModel extends NodeModel {
         }
 	}
 
-	private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
-			throws InvalidSettingsException {
-		m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
-		for (final DLTensorSpec tensorSpec : networkSpec.getInputSpecs()) {
-			// validate layer spec
-			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(tensorSpec.getName());
-			if (inputCfg == null) {
-				throw new InvalidSettingsException(
-						"Network input '" + tensorSpec.getName() + "' is not yet configured.");
-			}
-			// get selected converter
-			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(inputCfg, tensorSpec,
-			    m_generalCfg.getContextEntry().getValue(), inDataSpec, m_lastConfiguredTableSpec, DLTensorRole.INPUT);
-			m_inputConverters.put(tensorSpec, converter);
-		}
-	}
-
-    private void configureOutputs(final DLNetworkSpec networkSpec)
+    private void configureInputs(final DLNetworkSpec networkSpec, final DataTableSpec inDataSpec)
         throws InvalidSettingsException {
-		if (m_outputCfgs.size() == 0) {
-			throw new InvalidSettingsException("No network output was selected.");
-		}
-		m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
-		for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
-            final DLTensorSpec tensorSpec = getOutputOrHiddenTensorSpec(tensorName, networkSpec);
-			if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
-				throw new InvalidSettingsException(
-						"Selected output '" + tensorName + "' has an unknown shape. This is not supported.");
-			}
-			final DLExecutorOutputConfig cfg = m_outputCfgs.get(tensorName);
-			// get selected converter
-			final DLTensorToDataCellConverterFactory<?, ?> converter = cfg.getConverterEntry().getValue();
-			m_outputConverters.put(tensorSpec, converter);
-		}
-	}
+        m_inputConverters = new LinkedHashMap<>(m_inputCfgs.size());
+        for (final DLTensorSpec inputSpec : networkSpec.getInputSpecs()) {
+            final DLExecutorInputConfig inputCfg = getInputConfig(inputSpec.getIdentifier(), inputSpec.getName());
+            if (inputCfg == null) {
+                throw new InvalidSettingsException(
+                    "Network input '" + inputSpec.getName() + "' is not yet configured.");
+            }
+            // configure input and get selected converter
+            final DLDataValueToTensorConverterFactory<?, ?> converter =
+                DLConfigurationUtility.configureInput(inputCfg, inputSpec, m_generalCfg.getContextEntry().getValue(),
+                    inDataSpec, m_lastConfiguredTableSpec, DLTensorRole.INPUT);
+            m_inputConverters.put(inputSpec, converter);
+        }
+    }
 
-	private DataTableSpec createOutputSpec(final DataTableSpec inDataSpec) {
-		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsEntry().getValue();
-		final ArrayList<DataColumnSpec> outputSpecs = new ArrayList<>();
-		final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(keepInputColumns ? inDataSpec : null);
-		for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> output : m_outputConverters
-				.entrySet()) {
-			final DLTensorSpec tensorSpec = output.getKey();
-			final DLTensorToDataCellConverterFactory<?, ?> converter = output.getValue();
-			final OptionalLong count = converter.getDestCount(tensorSpec);
-			final String prefix = m_outputCfgs.get(tensorSpec.getName()).getPrefixEntry().getValue();
-			if (!count.isPresent()) {
-				// We can't output a tableSpec if we don't know the number of produced columns for any of the output
-				// converters.
-				return null;
-			}
-			for (int i = 0; i < count.getAsLong(); i++) {
-				outputSpecs.add(nameGenerator.newColumn(prefix + Integer.toString(i), converter.getDestType()));
-			}
-		}
-		final DataTableSpec outDataSpec = new DataTableSpec(outputSpecs.toArray(new DataColumnSpec[0]));
-		return keepInputColumns ? new DataTableSpec(inDataSpec, outDataSpec) : outDataSpec;
-	}
+    private DLExecutorInputConfig getInputConfig(final DLTensorId inputIdentifier, final String inputName) {
+        DLExecutorInputConfig inputCfg = null;
+        try {
+            inputCfg = m_inputCfgs.get(inputIdentifier);
+        } catch (final Exception e) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (inputCfg == null) {
+            inputCfg = m_inputCfgs.get(new DLDefaultTensorId(inputName));
+        }
+        return inputCfg;
+    }
+
+    private void configureOutputs(final DLNetworkSpec networkSpec) throws InvalidSettingsException {
+        if (m_outputCfgs.size() == 0) {
+            throw new InvalidSettingsException("No network output was selected.");
+        }
+        m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
+        for (final String tensorIdString : m_smOutputOrder.getStringArrayValue()) {
+            final DLTensorSpec outputSpec = getOutputOrHiddenTensorSpec(tensorIdString, networkSpec);
+            if (!DLUtils.Shapes.isKnown(outputSpec.getShape())) {
+                throw new InvalidSettingsException(
+                    "Selected output '" + outputSpec.getName() + "' has an unknown shape. This is not supported.");
+            }
+            final DLExecutorOutputConfig outputCfg = getOutputConfig(outputSpec.getIdentifier(), outputSpec.getName());
+            if (outputCfg == null) {
+                throw new InvalidSettingsException(
+                    "Network output '" + outputSpec.getName() + "' is not yet configured.");
+            }
+            // get selected converter
+            final DLTensorToDataCellConverterFactory<?, ?> converter = outputCfg.getConverterEntry().getValue();
+            m_outputConverters.put(outputSpec, converter);
+        }
+    }
+
+    private DLExecutorOutputConfig getOutputConfig(final DLTensorId outputIdentifier, final String outputName) {
+        DLExecutorOutputConfig outputCfg = null;
+        try {
+            outputCfg = m_outputCfgs.get(outputIdentifier);
+        } catch (final Exception e) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (outputCfg == null) {
+            outputCfg = m_outputCfgs.get(new DLDefaultTensorId(outputName));
+        }
+        return outputCfg;
+    }
+
+    private DataTableSpec createOutputSpec(final DataTableSpec inDataSpec) {
+        final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsEntry().getValue();
+        final ArrayList<DataColumnSpec> outputSpecs = new ArrayList<>();
+        final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(keepInputColumns ? inDataSpec : null);
+        for (final Entry<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> entry : m_outputConverters
+            .entrySet()) {
+            final DLTensorSpec outputSpec = entry.getKey();
+            final DLTensorToDataCellConverterFactory<?, ?> converter = entry.getValue();
+            final OptionalLong count = converter.getDestCount(outputSpec);
+            final DLExecutorOutputConfig outputCfg = getOutputConfig(outputSpec.getIdentifier(), outputSpec.getName());
+            final String prefix = outputCfg.getPrefixEntry().getValue();
+            if (!count.isPresent()) {
+                // We can't output a tableSpec if we don't know the number of produced columns for any of the output
+                // converters.
+                return null;
+            }
+            for (int i = 0; i < count.getAsLong(); i++) {
+                outputSpecs.add(nameGenerator.newColumn(prefix + Integer.toString(i), converter.getDestType()));
+            }
+        }
+        final DataTableSpec outDataSpec = new DataTableSpec(outputSpecs.toArray(new DataColumnSpec[0]));
+        return keepInputColumns ? new DataTableSpec(inDataSpec, outDataSpec) : outDataSpec;
+    }
 
 	@SuppressWarnings("unchecked")
 	private <N extends DLNetwork> void executeInternal(final PortObject portObject, final RowInput rowInput,
@@ -567,22 +606,22 @@ final class DLExecutorNodeModel extends NodeModel {
         final LinkedHashMap<DLTensorId, int[]> columnsForTensorId,
         final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId) {
         for (final Entry<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> entry : m_inputConverters
-				.entrySet()) {
-			final DLTensorSpec spec = entry.getKey();
-			final DLExecutorInputConfig inputCfg = m_inputCfgs.get(spec.getName());
-			final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
-			((DLDataTypeColumnFilter) filterConfig.getFilter()).setFilterClasses(getAllowedInputColumnType(inputCfg));
-			final int[] indices = Arrays.stream(filterConfig.applyTo(inDataSpec).getIncludes()).mapToInt(c -> {
-				final int idx = inDataSpec.findColumnIndex(c);
-				if (idx == -1) {
-					throw new IllegalStateException(
-							"Selected input column '" + c + "' could not be found in the input table.");
-				}
-				return idx;
-			}).toArray();
-			columnsForTensorId.put(spec.getIdentifier(), indices);
-			inputConverterForTensorId.put(spec.getIdentifier(), entry.getValue());
-		}
+            .entrySet()) {
+            final DLTensorSpec inputSpec = entry.getKey();
+            final DLExecutorInputConfig inputCfg = getInputConfig(inputSpec.getIdentifier(), inputSpec.getName());
+            final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
+            ((DLDataTypeColumnFilter)filterConfig.getFilter()).setFilterClasses(getAllowedInputColumnType(inputCfg));
+            final int[] indices = Arrays.stream(filterConfig.applyTo(inDataSpec).getIncludes()).mapToInt(c -> {
+                final int idx = inDataSpec.findColumnIndex(c);
+                if (idx == -1) {
+                    throw new IllegalStateException(
+                        "Selected input column '" + c + "' could not be found in the input table.");
+                }
+                return idx;
+            }).toArray();
+            columnsForTensorId.put(inputSpec.getIdentifier(), indices);
+            inputConverterForTensorId.put(inputSpec.getIdentifier(), entry.getValue());
+        }
     }
 
     private static void handleGeneralException(final Exception e) throws CanceledExecutionException {

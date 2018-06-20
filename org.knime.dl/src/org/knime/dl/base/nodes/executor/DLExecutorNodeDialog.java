@@ -86,7 +86,7 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
      * Creates a new dialog.
      */
     public DLExecutorNodeDialog() {
-        DLDefaultNodeDialogTab optionsTab = new DLDefaultNodeDialogTab("Options");
+        final DLDefaultNodeDialogTab optionsTab = new DLDefaultNodeDialogTab("Options");
         addTab(optionsTab.getTitle(), optionsTab.getTab());
         m_generalCfg = DLExecutorNodeModel.createGeneralModelConfig();
         m_generalPanel = new DLExecutorGeneralPanel(m_generalCfg);
@@ -105,7 +105,8 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
     }
 
     private DLInputPanel<DLExecutorInputConfig> createInputPanel(final DLTensorSpec tensorSpec) {
-        final DLExecutorInputConfig cfg = new DLExecutorInputConfig(tensorSpec.getName(), m_generalCfg);
+        final DLExecutorInputConfig cfg =
+            new DLExecutorInputConfig(tensorSpec.getIdentifier(), tensorSpec.getName(), m_generalCfg);
         return new DLInputPanel<>(cfg, tensorSpec, "Input columns:", DLTensorRole.INPUT);
     }
 
@@ -160,10 +161,10 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
             throw new NotConfigurableException(e1.getMessage());
         }
 
-        m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), currTableSpec);
-        m_outputsPanel.loadSettingsFrom(settings, specs);
         super.loadSettingsFrom(settings, specs);
 
+        m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), currTableSpec);
+        m_outputsPanel.loadSettingsFrom(settings, specs);
     }
 
     @Override
@@ -172,5 +173,4 @@ final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
         m_inputsPanel.saveSettingsTo(settings);
         m_outputsPanel.saveToSettings(settings);
     }
-
 }

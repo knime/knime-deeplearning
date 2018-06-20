@@ -48,9 +48,6 @@
  */
 package org.knime.dl.keras.base.nodes.learner;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.knime.dl.util.DLUtils.Preconditions.checkNotNullOrEmpty;
-
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -60,6 +57,7 @@ import org.knime.dl.base.settings.AbstractStandardConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.keras.core.training.DLKerasLossFunction;
@@ -75,12 +73,13 @@ final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLear
     private static final String CFG_KEY_LOSS_FUNC = "loss_function";
 
     private static final String CFG_KEY_CUSTOM_LOSS_FUNC = "custom_loss_function";
-    
+
     private static final String CFG_KEY_USE_CUSTOM_LOSS = "useCustomLoss";
-    
+
     @SuppressWarnings("rawtypes") // Java limitation
-    DLKerasLearnerTargetConfig(final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
-        super(checkNotNullOrEmpty(targetTensorName), checkNotNull(generalCfg));
+    DLKerasLearnerTargetConfig(final DLTensorId targetTensorId, final String targetTensorName,
+        final DLKerasLearnerGeneralConfig generalCfg) {
+        super(targetTensorId, targetTensorName, generalCfg);
         put(new AbstractStandardConfigEntry<DLDataValueToTensorConverterFactory>(CFG_KEY_CONVERTER,
             DLDataValueToTensorConverterFactory.class) {
 
@@ -96,11 +95,11 @@ final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLear
                 final String converterIdentifier = settings.getString(getEntryKey());
                 if (CFG_VALUE_NULL_CONVERTER.equals(converterIdentifier)) {
                     throw new InvalidSettingsException(
-                        "No target data converter available for network target '" + getTensorName() + "'.");
+                        "No target data converter available for network target '" + getTensorNameOrId() + "'.");
                 }
                 m_value = DLDataValueToTensorConverterRegistry.getInstance().getConverterFactory(converterIdentifier)
                     .orElseThrow(() -> new InvalidSettingsException(
-                        "Target data converter '" + converterIdentifier + "' of network target '" + getTensorName()
+                        "Target data converter '" + converterIdentifier + "' of network target '" + getTensorNameOrId()
                             + "' could not be found. Are you missing a KNIME extension?"));
             }
         });
@@ -135,40 +134,40 @@ final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLear
                         .filter(o -> o.getClass().getCanonicalName().equals(identifier)) //
                         .findFirst() //
                         .orElseThrow(() -> new InvalidSettingsException(
-                            "Loss function '" + identifier + "' of target '" + getTensorName()
+                            "Loss function '" + identifier + "' of target '" + getTensorNameOrId()
                                 + " could not be found. Are you missing a KNIME Deep Learning extension?"));
                 }
             }
         });
-        
+
         put(new AbstractStandardConfigEntry<Boolean>(CFG_KEY_USE_CUSTOM_LOSS, Boolean.class, false) {
             @Override
-            protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
+            protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
                 // backward compatibility to versions prior to 3.6 where there was no custom loss
                 m_value = false;
                 return true;
             }
         });
-        
+
         put(new AbstractStandardConfigEntry<DLKerasCustomLoss>(CFG_KEY_CUSTOM_LOSS_FUNC, DLKerasCustomLoss.class,
-            new DLKerasCustomLoss(targetTensorName)) {
+            new DLKerasCustomLoss(targetTensorId)) {
 
             private static final String CFG_KEY_CUSTOM_CODE = "custom_code";
 
             @Override
-            protected void saveEntry(NodeSettingsWO settings) throws InvalidSettingsException {
+            protected void saveEntry(final NodeSettingsWO settings) throws InvalidSettingsException {
                 settings.addString(CFG_KEY_CUSTOM_CODE, getValue().getCustomCodeDialog());
             }
 
             @Override
-            protected void loadEntry(NodeSettingsRO settings) throws InvalidSettingsException {
-                String customCode = settings.getString(CFG_KEY_CUSTOM_CODE);
+            protected void loadEntry(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final String customCode = settings.getString(CFG_KEY_CUSTOM_CODE);
                 m_value.setCustomCode(customCode);
             }
-            
+
             @Override
-            protected boolean handleFailureToLoadConfigEntry(NodeSettingsRO settings, Exception cause) {
-                m_value = new DLKerasCustomLoss(targetTensorName);
+            protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
+                m_value = new DLKerasCustomLoss(targetTensorId);
                 return true;
             }
         });
@@ -181,9 +180,8 @@ final class DLKerasLearnerTargetConfig extends DLAbstractInputConfig<DLKerasLear
     ConfigEntry<DLKerasCustomLoss> getCustomLossFunctionEntry() {
         return get(CFG_KEY_CUSTOM_LOSS_FUNC, DLKerasCustomLoss.class);
     }
-    
+
     ConfigEntry<Boolean> getUseCustomLossEntry() {
         return get(CFG_KEY_USE_CUSTOM_LOSS, Boolean.class);
     }
-    
 }

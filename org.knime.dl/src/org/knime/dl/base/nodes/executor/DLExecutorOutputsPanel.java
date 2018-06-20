@@ -68,7 +68,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
+import org.knime.dl.core.DLDefaultTensorId;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.util.DLUtils;
 
@@ -76,50 +78,50 @@ import org.knime.dl.util.DLUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DLExecutorOutputsPanel {
-    
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);
 
     private static final String OUTPUT_SUFFIX = "";
 
     private static final String HIDDEN_SUFFIX = " (hidden)";
 
-    private LinkedHashMap<String, DLExecutorOutputPanel> m_outputPanels = new LinkedHashMap<>();
-    
-    private JButton m_addOutputButton = new JButton("add output");
-    
+    private final LinkedHashMap<DLTensorId, DLExecutorOutputPanel> m_outputPanels = new LinkedHashMap<>();
+
+    private final JButton m_addOutputButton = new JButton("add output");
+
     private int m_numPossibleOutputs = 0;
-    
+
     private DLNetworkSpec m_networkSpec = null;
-    
+
     private final DLExecutorGeneralConfig m_generalCfg;
-    
+
     private final GridBagConstraints m_gbc = createRootConstraints();
-    
-    private final CallBackAction m_callBack;
-    
+
+    private final CallbackAction m_callBack;
+
     private final JPanel m_panel = new JPanel(new GridBagLayout());
-    
+
     /**
-     * @param generalCfg 
-     * @param dialogPanel 
-     * @param callBack 
-     * 
+     * @param generalCfg
+     * @param dialogPanel
+     * @param callBack
+     *
      */
-    public DLExecutorOutputsPanel(final DLExecutorGeneralConfig generalCfg, JPanel dialogPanel, CallBackAction callBack) {
+    public DLExecutorOutputsPanel(final DLExecutorGeneralConfig generalCfg, final JPanel dialogPanel, final CallbackAction callBack) {
         m_callBack = callBack;
         m_generalCfg = generalCfg;
         m_addOutputButton.addActionListener(e -> addAction(generalCfg, dialogPanel));
         m_panel.add(m_addOutputButton, createAddBtnConstraints());
         m_gbc.gridy++;
     }
-    
-    
+
+
     public JPanel getPanel() {
         return m_panel;
     }
 
     private void addAction(final DLExecutorGeneralConfig generalCfg,
-        JPanel dialogPanel) {
+        final JPanel dialogPanel) {
         assert m_networkSpec != null;
         // 'add output' dialog
         final JPanel outputsAddDlg = new JPanel(new GridBagLayout());
@@ -171,16 +173,27 @@ final class DLExecutorOutputsPanel {
     }
 
     private void addToAvailableOutputs(final ArrayList<String> availableOutputs,
-        final HashMap<String, DLTensorSpec> availableOutputsMap, final HashMap<String, String> availableOutputsSuffixMap,
-        final DLTensorSpec outputSpec, final String nameSuffix) {
+        final HashMap<String, DLTensorSpec> availableOutputsMap,
+        final HashMap<String, String> availableOutputsSuffixMap, final DLTensorSpec outputSpec,
+        final String nameSuffix) {
         final String outputName = outputSpec.getName() + nameSuffix;
-        if (!m_outputPanels.containsKey(outputSpec.getName())) {
+        boolean available = true;
+        try {
+            available = !m_outputPanels.containsKey(outputSpec.getIdentifier());
+        } catch (final Exception ex) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (available) {
+            available = !m_outputPanels.containsKey(new DLDefaultTensorId(outputSpec.getName()));
+        }
+        if (available) {
             availableOutputs.add(outputName);
             availableOutputsMap.put(outputName, outputSpec);
             availableOutputsSuffixMap.put(outputName, nameSuffix);
         }
     }
-    
+
     private static GridBagConstraints createAddBtnConstraints() {
         final GridBagConstraints outputsAddBtnConstr = new GridBagConstraints();
         outputsAddBtnConstr.weightx = 1;
@@ -189,7 +202,7 @@ final class DLExecutorOutputsPanel {
         outputsAddBtnConstr.insets = new Insets(0, 5, 10, 5);
         return outputsAddBtnConstr;
     }
-    
+
     private static GridBagConstraints createRootConstraints() {
         final GridBagConstraints rootConstr = new GridBagConstraints();
         rootConstr.gridx = 0;
@@ -205,28 +218,40 @@ final class DLExecutorOutputsPanel {
         rootConstr.ipady = 0;
         return rootConstr;
     }
-    
-    private void addOutputPanel(final DLTensorSpec outputTensorSpec, final DLExecutorGeneralConfig generalCfg, final String suffix)
-            throws NotConfigurableException {
-        final String outputName = outputTensorSpec.getName();
-        if (!m_outputPanels.containsKey(outputName)) {
-            final DLExecutorOutputConfig outputCfg = DLExecutorNodeModel.createOutputTensorModelConfig(outputName,
-                    generalCfg);
-            final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputTensorSpec, suffix);
-            outputPanel.addRemoveListener(e -> removeOutputPanel(outputName, outputPanel));
+
+    private void addOutputPanel(final DLTensorSpec outputSpec, final DLExecutorGeneralConfig generalCfg,
+        final String suffix) throws NotConfigurableException {
+        final DLTensorId outputId = outputSpec.getIdentifier();
+        final String outputName = outputSpec.getName();
+        boolean available = true;
+        try {
+            available = !m_outputPanels.containsKey(outputId);
+        } catch (final Exception ex) {
+            // ignore, see backward compatibility measures below
+        }
+        // Backward compatibility. KNIME 3.5 used tensor name in settings.
+        if (available) {
+            available = !m_outputPanels.containsKey(new DLDefaultTensorId(outputName));
+        }
+        if (available) {
+            final DLExecutorOutputConfig outputCfg =
+                DLExecutorNodeModel.createOutputTensorModelConfig(outputId, outputName, generalCfg);
+            final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputSpec, suffix);
+            outputPanel.addRemoveListener(
+                e -> removeOutputPanel(outputId != null ? outputId : new DLDefaultTensorId(outputName), outputPanel));
             // add output panel to dialog
-            m_outputPanels.put(outputName, outputPanel);
+            m_outputPanels.put(outputId != null ? outputId : new DLDefaultTensorId(outputName), outputPanel);
             m_panel.add(outputPanel, m_gbc);
             if (m_outputPanels.size() == m_numPossibleOutputs) {
                 m_addOutputButton.setEnabled(false);
             }
             m_gbc.gridy++;
-            m_callBack.callBack();
+            m_callBack.callback();
         }
     }
-    
-    private void removeOutputPanel(final String outputName, final DLExecutorOutputPanel outputPanel) {
-        if (m_outputPanels.remove(outputName) != null) {
+
+    private void removeOutputPanel(final DLTensorId outputId, final DLExecutorOutputPanel outputPanel) {
+        if (m_outputPanels.remove(outputId) != null) {
             doRemoval(outputPanel);
         }
     }
@@ -236,18 +261,17 @@ final class DLExecutorOutputsPanel {
         outputPanel.unregisterListeners();
         m_panel.remove(outputPanel);
         m_addOutputButton.setEnabled(true);
-        m_callBack.callBack();
+        m_callBack.callback();
     }
-    
-    
+
+
     void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         if (settings.containsKey(DLExecutorNodeModel.CFG_KEY_OUTPUTS)) {
             // if we don't clear we might have panels that were not saved (previous dialog was canceled with added output)
             clearOutputs();
             final NodeSettingsRO outputSettings;
             final String[] orderedOutputs;
-            m_networkSpec =
-                    ((DLNetworkPortObjectSpec)specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX]).getNetworkSpec();
+            m_networkSpec = ((DLNetworkPortObjectSpec)specs[DLExecutorNodeModel.IN_NETWORK_PORT_IDX]).getNetworkSpec();
             m_numPossibleOutputs = m_networkSpec.getOutputSpecs().length + m_networkSpec.getHiddenOutputSpecs().length;
             try {
                 outputSettings = settings.getNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
@@ -255,13 +279,13 @@ final class DLExecutorOutputsPanel {
             } catch (final InvalidSettingsException e) {
                 throw new NotConfigurableException(e.getMessage(), e);
             }
-            for (final String layerName : orderedOutputs) {
-                if (!m_outputPanels.containsKey(layerName)) {
+            for (final String outputIdString : orderedOutputs) {
+                if (!m_outputPanels.containsKey(new DLDefaultTensorId(outputIdString))) {
                     String suffix = OUTPUT_SUFFIX;
-                    Optional<DLTensorSpec> spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getOutputSpecs());
+                    Optional<DLTensorSpec> spec = getTensorSpec(outputIdString, m_networkSpec.getOutputSpecs());
                     if (!spec.isPresent()) {
-                        spec = DLUtils.Networks.findSpec(layerName, m_networkSpec.getHiddenOutputSpecs());
                         suffix = HIDDEN_SUFFIX;
+                        spec = getTensorSpec(outputIdString, m_networkSpec.getHiddenOutputSpecs());
                     }
                     if (spec.isPresent()) {
                         addOutputPanel(spec.get(), m_generalCfg, suffix);
@@ -273,14 +297,23 @@ final class DLExecutorOutputsPanel {
             }
         }
     }
-    
+
+    private static Optional<DLTensorSpec> getTensorSpec(final String tensorNameOrId, final DLTensorSpec[] tensorSpecs) {
+        Optional<DLTensorSpec> tensorSpec =
+            DLUtils.Networks.findTensorSpecById(new DLDefaultTensorId(tensorNameOrId), tensorSpecs);
+        if (!tensorSpec.isPresent()) {
+            tensorSpec = DLUtils.Networks.findTensorSpecByName(tensorNameOrId, tensorSpecs);
+        }
+        return tensorSpec;
+    }
+
     private void clearOutputs() {
-        for (DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
+        for (final DLExecutorOutputPanel outputPanel : m_outputPanels.values()) {
             doRemoval(outputPanel);
         }
         m_outputPanels.clear();
     }
-    
+
 
     private static String[] loadOutputOrder(final NodeSettingsRO settings, final NodeSettingsRO outputSettings)
         throws InvalidSettingsException {
@@ -295,7 +328,7 @@ final class DLExecutorOutputsPanel {
         }
         return orderedOutputs;
     }
-        
+
     public void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
         final NodeSettingsWO outputSettings = settings.addNodeSettings(DLExecutorNodeModel.CFG_KEY_OUTPUTS);
         saveOutputs(outputSettings);
@@ -303,13 +336,13 @@ final class DLExecutorOutputsPanel {
     }
 
     private void saveOutputOrder(final NodeSettingsWO settings) {
-        final SettingsModelStringArray outputOrder = DLExecutorNodeModel
-                .createOutputOrderSettingsModel(m_outputPanels.size());
+        final SettingsModelStringArray outputOrder =
+            DLExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());
         final String[] outputs = new String[m_outputPanels.size()];
 
         int i = 0;
-        for (final String output : m_outputPanels.keySet()) {
-            outputs[i++] = output;
+        for (final DLTensorId output : m_outputPanels.keySet()) {
+            outputs[i++] = output.getIdentifierString();
         }
         outputOrder.setStringArrayValue(outputs);
         outputOrder.saveSettingsTo(settings);
@@ -320,8 +353,8 @@ final class DLExecutorOutputsPanel {
             outputPanel.saveToSettings(outputSettings);
         }
     }
-    
-    interface CallBackAction {
-        void callBack();
+
+    interface CallbackAction {
+        void callback();
     }
 }

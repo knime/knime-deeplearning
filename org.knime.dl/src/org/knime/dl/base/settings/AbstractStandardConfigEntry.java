@@ -79,6 +79,31 @@ public abstract class AbstractStandardConfigEntry<T> extends AbstractConfigEntry
 		super(entryKey, entryType, value, enabled);
 	}
 
+    @Override
+    public final void saveSettingsTo(final NodeSettingsWO settings)
+        throws InvalidSettingsException, UnsupportedOperationException {
+        final NodeSettingsWO subSettings = checkNotNull(settings).addNodeSettings(m_key);
+        subSettings.addBoolean(CFG_KEY_ENABLED, m_enabled);
+        saveEntry(subSettings);
+    }
+
+    @Override
+    public final void loadSettingsFrom(final NodeSettingsRO settings)
+        throws InvalidSettingsException, UnsupportedOperationException {
+        try {
+            final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
+            m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
+            loadEntry(subSettings);
+        } catch (final Exception e) {
+            // Config entry could not be found in settings. Give deriving classes a chance to fall back to a default
+            // value or the like.
+            if (!handleFailureToLoadConfigEntry(settings, e)) {
+                throw new InvalidSettingsException(e.getMessage(), e);
+            }
+        }
+        onLoaded();
+    }
+
 	protected void saveEntry(final NodeSettingsWO settings)
 			throws InvalidSettingsException, UnsupportedOperationException {
 		if (Boolean.class.equals(m_entryType)) {
@@ -178,28 +203,4 @@ public abstract class AbstractStandardConfigEntry<T> extends AbstractConfigEntry
 	protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
 		return false;
 	}
-
-    @Override
-    public final void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException, UnsupportedOperationException {
-    	final NodeSettingsWO subSettings = checkNotNull(settings).addNodeSettings(m_key);
-    	subSettings.addBoolean(CFG_KEY_ENABLED, m_enabled);
-    	saveEntry(subSettings);
-    }
-
-    @Override
-    public final void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException, UnsupportedOperationException {
-    	final T oldValue = m_value;
-    	try {
-    		final NodeSettingsRO subSettings = checkNotNull(settings).getNodeSettings(m_key);
-    		m_enabled = subSettings.getBoolean(CFG_KEY_ENABLED);
-    		loadEntry(subSettings);
-    	} catch (final Exception e) {
-    		// Config entry could not be found in settings. Give deriving classes a chance to fall back to a default
-    		// value or the like.
-    		if (!handleFailureToLoadConfigEntry(settings, e)) {
-    			throw new InvalidSettingsException(e.getMessage(), e);
-    		}
-    	}
-    	onLoaded();
-    }
 }

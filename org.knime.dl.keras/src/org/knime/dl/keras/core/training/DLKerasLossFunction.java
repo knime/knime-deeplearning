@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.training;
 
+import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.training.DLLossFunction;
 
 /**
@@ -81,16 +82,12 @@ public interface DLKerasLossFunction extends DLLossFunction, DLKerasMetric {
 			super(name, kerasIdentifier);
 		}
 	}
-	
+
 	public static final class DLKerasCustomLoss extends DLKerasAbstractCustomMetric implements DLKerasLossFunction {
 
-        /**
-         * @param tensorIdentifier
-         */
-        public DLKerasCustomLoss(String tensorIdentifier) {
+        public DLKerasCustomLoss(final DLTensorId tensorIdentifier) {
             super("Custom loss", "custom_loss", tensorIdentifier);
         }
-	    
 	}
 
 	// Convenience classes for the different loss functions of the Keras back end:

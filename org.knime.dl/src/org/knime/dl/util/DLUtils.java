@@ -148,20 +148,35 @@ public final class DLUtils {
         private Networks() {
         }
 
-        public static Optional<DLTensorSpec> findSpec(final String name, final DLNetworkSpec networkSpec) {
-            checkNotNullOrEmpty(name);
-            checkNotNull(networkSpec);
-            return findSpec(name, networkSpec.getInputSpecs(), networkSpec.getHiddenOutputSpecs(),
+        public static Optional<DLTensorSpec> findTensorSpecByName(final String tensorName,
+            final DLNetworkSpec networkSpec) {
+            return findTensorSpecByName(tensorName, networkSpec.getInputSpecs(), networkSpec.getHiddenOutputSpecs(),
                 networkSpec.getOutputSpecs());
         }
 
-        public static Optional<DLTensorSpec> findSpec(final String name, final DLTensorSpec[]... specs) {
-            checkNotNullOrEmpty(name);
-            checkNotNull(specs);
-            return Arrays.stream(specs).flatMap(Arrays::stream).filter(s -> s.getName().equals(name)).findFirst();
+        public static Optional<DLTensorSpec> findTensorSpecByName(final String tensorName,
+            final DLTensorSpec[]... tensorSpecs) {
+            checkNotNullOrEmpty(tensorName);
+            checkNotNull(tensorSpecs);
+            return Arrays.stream(tensorSpecs).flatMap(Arrays::stream).filter(s -> s.getName().equals(tensorName))
+                .findFirst();
         }
 
-        public static OptionalInt findTensorSpecIndex(DLTensorSpec spec, final DLTensorSpec... specs) {
+        public static Optional<DLTensorSpec> findTensorSpecById(final DLTensorId tensorId,
+            final DLNetworkSpec networkSpec) {
+            return findTensorSpecById(tensorId, networkSpec.getInputSpecs(), networkSpec.getHiddenOutputSpecs(),
+                networkSpec.getOutputSpecs());
+        }
+
+        public static Optional<DLTensorSpec> findTensorSpecById(final DLTensorId tensorId,
+            final DLTensorSpec[]... tensorSpecs) {
+            checkNotNull(tensorId);
+            checkNotNull(tensorSpecs);
+            return Arrays.stream(tensorSpecs).flatMap(Arrays::stream).filter(s -> s.getIdentifier().equals(tensorId))
+                .findFirst();
+        }
+
+        public static OptionalInt findTensorSpecIndex(final DLTensorSpec spec, final DLTensorSpec... specs) {
             checkNotNull(spec);
             checkNotNull(specs);
 
@@ -172,13 +187,11 @@ public final class DLUtils {
             }
             return OptionalInt.empty();
         }
-        
-        public static OptionalInt findTensorSpecIndexBasedOnId(DLTensorSpec spec, final DLTensorSpec... specs) {
+
+        public static OptionalInt findTensorSpecIndexById(final DLTensorSpec spec, final DLTensorSpec... specs) {
             checkNotNull(spec);
             checkNotNull(specs);
-            
-            DLTensorId id = spec.getIdentifier();
-            
+            final DLTensorId id = spec.getIdentifier();
             for (int i = 0; i < specs.length; i++) {
                 if (id.equals(specs[i].getIdentifier())) {
                     return OptionalInt.of(i);

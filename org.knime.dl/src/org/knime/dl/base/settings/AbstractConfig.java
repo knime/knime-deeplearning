@@ -204,11 +204,28 @@ public abstract class AbstractConfig implements Config {
 		saveConfig(config);
 	}
 
-	@Override
-	public final void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-		final NodeSettingsRO config = settings.getNodeSettings(m_key);
-		loadConfig(config);
-	}
+    /**
+     * Calls{@link #loadConfigFromSettings(NodeSettingsRO, String)}, forwards any exception that occurs during that call
+     * to {@link #handleFailureToLoadConfig(NodeSettingsRO, Exception)}. Throws an {@link InvalidSettingsException} if
+     * the exception could not be handled.
+     * <P>
+     * This method should not do anything else since derived implementations of
+     * {@link #handleFailureToLoadConfig(NodeSettingsRO, Exception)} may want to mimic the behavior of this method to
+     * bring this config to a valid state.
+     */
+    @Override
+    public final void loadFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            loadConfigFromSettings(settings, m_key);
+        } catch (final Exception e) {
+            // Config could not be found in settings. Give deriving classes a chance to fall back to a default
+            // value or the like.
+            // TODO: This duplicates logic from AbstractStandardConfigEntry#loadSettingsFrom.
+            if (!handleFailureToLoadConfig(settings, e)) {
+                throw new InvalidSettingsException(e.getMessage(), e);
+            }
+        }
+    }
 
 	@Override
 	public int hashCode() {
@@ -280,4 +297,27 @@ public abstract class AbstractConfig implements Config {
 					"Failed to load entries of config '" + m_key + "'. See log for details.", entriesFailedToLoad);
 		}
 	}
+
+    protected NodeSettingsRO loadConfigFromSettings(final NodeSettingsRO settings, final String configKey)
+        throws InvalidSettingsException {
+        final NodeSettingsRO config = settings.getNodeSettings(configKey);
+        loadConfig(config);
+        return config;
+    }
+
+    /**
+     * This method is called by {@link #loadFromSettings(NodeSettingsRO)} if loading the config failed. It allows
+     * deriving classes to handle such cases e.g. by falling back to default values or using a different (e.g. legacy)
+     * config key.
+     *
+     * @param settings the provided node settings from which loading the config failed
+     * @param cause the exception that made loading the config fail. Usually, it is an
+     *            <code>InvalidSettingsException</code> that indicates that the config's key cannot be found in the
+     *            given settings
+     * @return <code>true</code> if the failure could be handled. Returning <code>false</code> will cause an
+     *         {@link InvalidSettingsException} to be thrown.
+     */
+    protected boolean handleFailureToLoadConfig(final NodeSettingsRO settings, final Exception cause) {
+        return false;
+    }
 }
