@@ -250,6 +250,12 @@ public final class DLPythonUtils {
 	}
 	
 	public static String toPythonTuple(final String[] elements) {
+	    if (elements == null) {
+	        return NONE;
+	    }
+	    if (elements.length == 1) {
+	        return "(" + elements[0] + ",)";
+	    }
         return elements == null ? NONE : "(" + String.join(",", elements) + ")";
     }
 	

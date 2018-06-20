@@ -46,14 +46,12 @@
  */
 package org.knime.dl.keras.core.config.constraint;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -62,7 +60,7 @@ abstract class DLKerasAbstractAxisConstraint extends DLKerasAbstractConstraint {
 
     // how should axis be declared?
     @Parameter(label = "Axis")
-    private DLKerasTuple m_axis = new DLKerasTuple("", 1, 1000, EnumSet.of(Constraint.ZERO, Constraint.NEGATIVE));
+    private int m_axis = 0;
 
     /**
      * @param kerasIdentifier
@@ -79,7 +77,7 @@ abstract class DLKerasAbstractAxisConstraint extends DLKerasAbstractConstraint {
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        namedParams.put("axis", m_axis.toPytonTuple());
+        namedParams.put("axis", DLPythonUtils.toPython(m_axis));
         super.populateParameters(positionalParams, namedParams);
     }
 }
