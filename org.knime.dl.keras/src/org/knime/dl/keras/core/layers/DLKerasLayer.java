@@ -59,7 +59,12 @@ import org.knime.dl.keras.core.struct.param.Parameter;
  */
 public interface DLKerasLayer extends DLKerasTensorSpecsOutput, DLKerasObject {
 
+    void setRuntimeId(String runtimeId);
+
+    String getRuntimeId();
+
     Optional<String> getNamePrefix();
 
     String getBackendRepresentation(String layerName);
+
 }

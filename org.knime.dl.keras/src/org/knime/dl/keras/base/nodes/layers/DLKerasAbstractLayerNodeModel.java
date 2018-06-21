@@ -49,7 +49,7 @@ package org.knime.dl.keras.base.nodes.layers;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.OptionalInt;
+import java.util.UUID;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
@@ -94,12 +94,11 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
 
     protected final StructInstance<MemberReadWriteInstance<?>, ?> m_instance;
 
-    private DLNetworkSpec m_lastNetworkSpec;
-
     protected DLKerasAbstractLayerNodeModel(PortType[] in, PortType[] out, Class<T> layerType) {
         super(in, out);
         try {
             m_layer = layerType.newInstance();
+            m_layer.setRuntimeId(UUID.randomUUID().toString());
             m_instance =
                 StructInstances.createReadWriteInstance(m_layer, ParameterStructs.createStructAccess(layerType));
             m_settingsRO = NodeSettingsStructs.createStructROAccess(m_instance.struct());

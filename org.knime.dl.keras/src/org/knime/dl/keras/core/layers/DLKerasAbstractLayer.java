@@ -63,6 +63,8 @@ public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject impleme
     @Parameter(label = "Name prefix", required = false)
     private String m_namePrefix = null;
 
+    private String m_runtimeId;
+
     protected DLKerasAbstractLayer(final String kerasIdentifier) {
         super(kerasIdentifier);
     }
@@ -91,4 +93,49 @@ public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject impleme
     public String toString() {
         return getBackendRepresentation(null);
     }
+
+    /**
+     * @param runtimeId the runtimeId to set
+     */
+    @Override
+    public void setRuntimeId(String runtimeId) {
+        m_runtimeId = runtimeId;
+    }
+
+    @Override
+    public String getRuntimeId() {
+        return m_runtimeId;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((m_namePrefix == null) ? 0 : m_namePrefix.hashCode());
+        result = prime * result + ((m_runtimeId == null) ? 0 : m_runtimeId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        DLKerasAbstractLayer other = (DLKerasAbstractLayer)obj;
+        if (m_namePrefix == null) {
+            if (other.m_namePrefix != null)
+                return false;
+        } else if (!m_namePrefix.equals(other.m_namePrefix))
+            return false;
+        if (m_runtimeId == null) {
+            if (other.m_runtimeId != null)
+                return false;
+        } else if (!m_runtimeId.equals(other.m_runtimeId))
+            return false;
+        return true;
+    }
+
 }

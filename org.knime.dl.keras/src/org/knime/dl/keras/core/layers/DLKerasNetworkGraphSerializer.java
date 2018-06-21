@@ -96,9 +96,11 @@ public final class DLKerasNetworkGraphSerializer {
     private static final String CFG_KEY_LAYER_PARAMS = "parameters";
 
     private static final String CFG_KEY_LAYER_PARENTS = "parents";
-    
+
+    private static final String CFG_KEY_LAYER_RUNTIME_ID = "runtime_id";
+
     private static final String CFG_KEY_PARENT_INDEX = "parent_index";
-    
+
     private static final String CFG_KEY_INDEX_IN_PARENT = "index_in_parent";
 
     private static final String CFG_KEY_BASE_NETWORK_OUTPUT_INDEX = "output_index";
@@ -223,6 +225,7 @@ public final class DLKerasNetworkGraphSerializer {
                         NodeSettingsStructs.createNodeSettingsInstance(
                             layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS), layerInstance.struct());
                     Structs.shallowCopyUnsafe(layerInstance, settingsInstance);
+                    layerSettings.addString(CFG_KEY_LAYER_RUNTIME_ID, layer.getRuntimeId());
                     return layerSettings;
                 }
 
@@ -287,7 +290,7 @@ public final class DLKerasNetworkGraphSerializer {
                 final DLKerasTensorSpecsOutput layer;
                 if (DLKerasLayer.class.isAssignableFrom(layerClass)) {
                     // Ordinary layers must expose a public nullary constructor.
-                    layer = (DLKerasLayer)layerClass.newInstance();
+                    layer = (DLKerasTensorSpecsOutput)layerClass.newInstance();
                     final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance =
                         ParameterStructs.createInstance((DLKerasLayer)layer);
                     final StructInstance<MemberReadInstance<?>, ?> settingsInstance = NodeSettingsStructs
@@ -299,6 +302,7 @@ public final class DLKerasNetworkGraphSerializer {
                         final NodeSettings parentSettings = layerSettings.getNodeSettings(CFG_KEY_LAYER_PARENTS);
                         loadParentSettings(loadedLayers, innerLayer, parentSettings);
                     }
+                    ((DLKerasLayer)layer).setRuntimeId(layerSettings.getString(CFG_KEY_LAYER_RUNTIME_ID));
                 } else if (DLKerasBaseNetworkTensorSpecOutput.class.isAssignableFrom(layerClass)) {
                     final DLKerasNetworkSpec spec = baseNetworkSpecs.get(i);
                     final int outputIndex = layerSettings.getInt(CFG_KEY_BASE_NETWORK_OUTPUT_INDEX);
