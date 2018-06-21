@@ -186,7 +186,7 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
 
             @Override
             public String toString() {
-                return m_spec.getName() + (m_isHidden ? " (hidden)" : "");
+                return m_spec.getName() + (m_isHidden ? " (hidden)" : "" + " " + m_spec.getShape() + " " + m_spec.getElementType());
             }
 
             @Override
