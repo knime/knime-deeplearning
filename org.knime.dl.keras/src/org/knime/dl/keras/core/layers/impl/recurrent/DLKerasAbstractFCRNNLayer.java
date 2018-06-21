@@ -126,6 +126,7 @@ public abstract class DLKerasAbstractFCRNNLayer extends DLKerasAbstractRNNLayer 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
         positionalParams.add(DLPythonUtils.toPython(getUnits()));
+        super.populateParameters(positionalParams, namedParams);
     }
 
 }
