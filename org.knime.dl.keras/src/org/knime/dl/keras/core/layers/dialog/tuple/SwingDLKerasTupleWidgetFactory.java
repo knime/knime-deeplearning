@@ -218,5 +218,17 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
                 throw new InvalidSettingsException(m_errorMessage.getText());
             }
         }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+            m_tuple.setEnabled(enabled);
+            m_errorMessage.setEnabled(enabled);
+            if (enabled) {
+                m_errorPanel.setCollapsed(false);
+            } else {
+                m_errorPanel.setCollapsed(true);
+            }
+        }
     }
 }
