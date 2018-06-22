@@ -491,6 +491,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             }
         };
         final PythonKernel kernel = context.getKernel();
+        kernel.getDefaultStdoutListener().setSilenced(true);
         kernel.addStdoutListener(stdOutListener);
         kernel.addStderrorListener(stdErrListener);
 
