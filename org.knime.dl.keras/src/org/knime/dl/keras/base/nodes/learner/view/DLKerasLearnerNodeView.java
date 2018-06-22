@@ -241,17 +241,46 @@ public class DLKerasLearnerNodeView<M extends NodeModel & DLInteractiveLearnerNo
                 tabs.addTab(spec.title(), tab.getComponent());
             }
 
+            final JPanel logPanel = new JPanel(new GridBagLayout());
+            final GridBagConstraints logGbc = new GridBagConstraints();
+
+            logGbc.fill = GridBagConstraints.BOTH;
+            logGbc.insets = new Insets(2, 2, 2, 2);
+            logGbc.gridx = 0;
+            logGbc.gridy = 0;
+            logPanel.add(new JLabel("Log"), logGbc);
+
+            logGbc.gridy++;
+            logGbc.weightx = 1.;
+            logGbc.weighty = 1.;
             m_pythonStdOutOutputArea = new JTextArea();
             ((DefaultCaret)m_pythonStdOutOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             m_pythonStdOutOutputArea.setEditable(false);
             m_pythonStdOutOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-            tabs.addTab("Log", new JScrollPane(m_pythonStdOutOutputArea));
+            final JScrollPane stdOutScrollPane = new JScrollPane(m_pythonStdOutOutputArea);
+            // Otherwise it will mess with the GridBagLayout
+            stdOutScrollPane.setPreferredSize(new Dimension(1, 1));
+            logPanel.add(stdOutScrollPane, logGbc);
 
+            logGbc.weightx = 0.;
+            logGbc.weighty = 0.;
+            logGbc.gridy++;
+            logGbc.insets = new Insets(6, 2, 2, 2);
+            logPanel.add(new JLabel("Error Log"), logGbc);
+
+            logGbc.gridy++;
+            logGbc.weightx = 1.;
+            logGbc.weighty = 1.;
+            logGbc.insets = new Insets(2, 2, 2, 2);
             m_pythonStdErrOutputArea = new JTextArea();
             ((DefaultCaret)m_pythonStdErrOutputArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             m_pythonStdErrOutputArea.setEditable(false);
             m_pythonStdErrOutputArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-            tabs.addTab("Error Log", new JScrollPane(m_pythonStdErrOutputArea));
+            final JScrollPane stdErrScrollPane = new JScrollPane(m_pythonStdErrOutputArea);
+            // Otherwise it will mess with the GridBagLayout
+            stdErrScrollPane.setPreferredSize(new Dimension(1, 1));
+            logPanel.add(stdErrScrollPane, logGbc);
+            tabs.addTab("Keras Log Output", logPanel);
 
             final GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridx = 0;
