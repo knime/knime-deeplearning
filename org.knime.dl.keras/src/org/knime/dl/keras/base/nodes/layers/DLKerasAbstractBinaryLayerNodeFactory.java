@@ -164,9 +164,5 @@ public abstract class DLKerasAbstractBinaryLayerNodeFactory<T extends DLKerasBin
             // NB: Nothing to save
         }
 
-        @Override
-        protected void reset() {
-            // NB: Nothing to reset.
-        }
     }
 }
