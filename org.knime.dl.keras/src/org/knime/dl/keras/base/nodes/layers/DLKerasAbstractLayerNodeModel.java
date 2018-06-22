@@ -213,6 +213,6 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
 
     @Override
     protected void reset() {
-        // NB: Nothing to reset.
+        m_layer.setRuntimeId(UUID.randomUUID().toString());
     }
 }
