@@ -66,12 +66,10 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
-import org.knime.dl.base.nodes.DLConverterRefresher;
 import org.knime.dl.base.nodes.DLConverterRefresher.DLNoConverterAvailableException;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.base.settings.DLInputConfig;
-import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
@@ -166,10 +164,10 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
      * @throws InvalidSettingsException if the user configuration is invalid
      */
     public void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        DLConfigurationUtility.inputMatchesTensorSpec(m_inputTensorSpec, m_dcInputColumns.getIncludeList(),
-            m_cfg.getConverterEntry().getValue(), m_tensorRole);
-
-        m_dcInputColumns.saveConfiguration(m_cfg.getInputColumnsEntry().getValue());
+        final DataColumnSpecFilterConfiguration columns = m_cfg.getInputColumnsEntry().getValue();
+        m_dcInputColumns.saveConfiguration(columns);
+        DLConfigurationUtility.inputMatchesTensorSpec(m_inputTensorSpec, columns.applyTo(m_tableSpec).getIncludes(),
+            m_tableSpec, m_cfg.getConverterEntry().getValue(), m_tensorRole);
         m_cfg.saveToSettings(settings);
     }
 

@@ -46,7 +46,6 @@
  */
 package org.knime.dl.base.nodes;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -54,7 +53,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
@@ -98,7 +96,7 @@ public class DLConfigurationUtility {
         validateTensorSpec(tensorSpec, tensorRole);
         DLDataValueToTensorConverterFactory<?, ?> converter = getConverter(tableSpec, context, tensorSpec, cfg);
         String[] includes = updateColFilterConfig(tableSpec, tensorSpec, cfg, converter, lastConfiguredTableSpec, tensorRole);
-        inputMatchesTensorSpec(tensorSpec, getSpecsForNames(includes, tableSpec), converter, tensorRole);
+        inputMatchesTensorSpec(tensorSpec, includes, tableSpec, converter, tensorRole);
         return converter;
     }
 
@@ -152,10 +150,6 @@ public class DLConfigurationUtility {
         }
         return filterConfig.applyTo(inTableSpec).getIncludes();
     }
-    
-    private static Set<DataColumnSpec> getSpecsForNames(String[] names, DataTableSpec tableSpec) {
-        return Arrays.stream(names).map(n -> tableSpec.getColumnSpec(n)).collect(Collectors.toSet());
-    }
 
     private static boolean includesChanged(DataTableSpec inTableSpec, DataTableSpec lastConfiguredTableSpec,
         DataColumnSpecFilterConfiguration filterConfig) {
@@ -175,7 +169,7 @@ public class DLConfigurationUtility {
      * @throws InvalidSettingsException if the number of elements in the inputs does not match the number of elements of
      *             the tensor
      */
-    public static void inputMatchesTensorSpec(DLTensorSpec tensorSpec, Set<DataColumnSpec> includes,
+    public static void inputMatchesTensorSpec(DLTensorSpec tensorSpec, String[] includeNames, DataTableSpec tableSpec,
         DLDataValueToTensorConverterFactory<?, ?> converter, DLTensorRole tensorRole) throws InvalidSettingsException {
         final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(tensorSpec.getShape());
         if (inputSizeOpt.isPresent()) {
@@ -184,7 +178,8 @@ public class DLConfigurationUtility {
             // converter for its output size given the input
             // columns (if possible) and compare to number of available input
             // neurons
-            final OptionalLong converterOutputSizeOpt = converter.getDestCount(new ArrayList<>(includes));
+            final OptionalLong converterOutputSizeOpt = converter.getDestCount(
+                Arrays.stream(includeNames).map(n -> tableSpec.getColumnSpec(n)).collect(Collectors.toList()));
             if (converterOutputSizeOpt.isPresent()) {
                 final long converterOutputSize = converterOutputSizeOpt.getAsLong();
                 if (converterOutputSize > inputSize) {
@@ -203,9 +198,9 @@ public class DLConfigurationUtility {
                 // we still can check if there are more input columns than input
                 // neurons since every column provides at
                 // least one element
-                if (includes.size() > inputSize) {
+                if (includeNames.length > inputSize) {
                     throw new InvalidSettingsException(
-                        "More " + tensorRole.getLowerCase() + " columns selected (" + includes.size()
+                        "More " + tensorRole.getLowerCase() + " columns selected (" + includeNames.length
                             + ") than neurons available (" + inputSize + ") for network " + tensorRole.getLowerCase()
                             + " '" + tensorSpec.getName() + "'. Try removing some columns from the selection.");
                 }
