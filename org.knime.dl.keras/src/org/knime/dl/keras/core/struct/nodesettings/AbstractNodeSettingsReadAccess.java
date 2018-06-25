@@ -46,14 +46,18 @@
  */
 package org.knime.dl.keras.core.struct.nodesettings;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
+import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
 import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @param <T> 
  */
 public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAccess<T, NodeSettingsRO> {
 
@@ -66,6 +70,14 @@ public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAcce
     @Override
     public T get(NodeSettingsRO settings) throws InvalidSettingsException {
         final String key = m_member.getKey();
+        
+        // Additionally load the enabled status of the member
+        final String enabledKey = key + "." + DefaultParameterMember.SETTINGS_KEY_ENABLED;
+        if(settings.containsKey(enabledKey) && m_member instanceof DefaultParameterMember) {
+            DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)m_member;
+            dpm.setIsEnabled(Optional.of(settings.getBoolean(enabledKey)));
+        }
+        
         if (settings.containsKey(key)) {
             return get(settings, m_member.getKey());
         } else if (m_member instanceof FieldParameterMember) {

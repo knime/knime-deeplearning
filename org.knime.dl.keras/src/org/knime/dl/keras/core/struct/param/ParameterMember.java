@@ -59,12 +59,12 @@ import org.knime.dl.keras.core.struct.Member;
 public interface ParameterMember<T> extends Member<T> {
 
     /**
-     * Gets whether the parameter value must be specified (i.e., no default).
+     * Gets the optional status of the parameter.
      * 
-     * @return <source>true</source> if required.
+     * @return the optional status
      */
-    default boolean isRequired() {
-        return true;
+    default OptionalStatus getOptionalStatus() {
+        return OptionalStatus.NotOptional;
     }
 
     /**
@@ -118,7 +118,7 @@ public interface ParameterMember<T> extends Member<T> {
     default String getLabel() {
         return getKey();
     }
-    
+
     /**
      * Gets the tab of this parameter.
      * 

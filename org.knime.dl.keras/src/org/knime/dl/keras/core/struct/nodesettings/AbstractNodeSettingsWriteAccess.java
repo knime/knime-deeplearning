@@ -50,9 +50,11 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
+import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @param <T> 
  */
 public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAccess<T, NodeSettingsWO> {
 
@@ -63,9 +65,17 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
     }
 
     @Override
-    public void set(NodeSettingsWO storage, T value) throws InvalidSettingsException {
+    public void set(NodeSettingsWO settings, T value) throws InvalidSettingsException {
         if (value != null) {
-            set(storage, value, m_member.getKey());
+            set(settings, value, m_member.getKey());
+        }
+
+        // Additionally save the enabled status of the member
+        if (m_member instanceof DefaultParameterMember) {
+            DefaultParameterMember<?> dpm = (DefaultParameterMember<?>)m_member;
+            if (dpm.isEnabled().isPresent()) {
+                settings.addBoolean(m_member.getKey() + "." + DefaultParameterMember.SETTINGS_KEY_ENABLED, dpm.isEnabled().get());
+            }
         }
     }
 

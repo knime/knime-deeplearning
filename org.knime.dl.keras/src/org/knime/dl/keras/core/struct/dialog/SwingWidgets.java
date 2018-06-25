@@ -50,6 +50,7 @@ package org.knime.dl.keras.core.struct.dialog;
 import java.util.Arrays;
 
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /** Utility class for working with {@link SwingWidget}s. */
@@ -85,6 +86,10 @@ public final class SwingWidgets {
 
     public static String tab(final SwingWidget<?> swingWidget) {
         return param(swingWidget) == null ? null : param(swingWidget).getTab();
+    }
+
+    public static OptionalStatus optionalStatus(final SwingWidget<?> swingWidget) {
+        return param(swingWidget) == null ? null : param(swingWidget).getOptionalStatus();
     }
 
     public static boolean isStyle(final SwingWidget<?> swingWidget, final String style) {

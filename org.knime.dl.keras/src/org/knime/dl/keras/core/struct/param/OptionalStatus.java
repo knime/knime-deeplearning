@@ -44,65 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl.core;
+package org.knime.dl.keras.core.struct.param;
 
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
-import org.knime.dl.keras.core.struct.param.Parameter;
-import org.knime.dl.python.util.DLPythonUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * This Enumeration indicates different behaviors for optional parameters, hence whether the parameter can be disabled/enabled
+ * via a checkbox.
+ * 
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
+public enum OptionalStatus {
+        /** The parameter is not optional. There will be no checkbox. */
+        NotOptional,
+        /** The parameter is optional and the checkbox will be checked by default. */
+        OptionalAndEnabled,
+        /** The parameter is optional but the checkbox will not be checked by default.*/
+        OptionalAndNotEnabled;
 
-    @Parameter(label = "Drop rate", min = "0.0", max = "1.0", stepSize = "0.1")
-    private float m_rate;
-
-    @Parameter(label = "Noise shape", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.EMPTY, Constraint.PARTIAL));
-
-    @Parameter(label = "Random seed", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
-    private DLKerasSeed m_seed = new DLKerasSeed();
-
+    private final static EnumSet<OptionalStatus> IS_OPTIONAL =
+        EnumSet.of(OptionalStatus.OptionalAndEnabled, OptionalStatus.OptionalAndNotEnabled);
+    
     /**
-     * Constructor
+     * Convenience method to check whether the specified status is either {@link OptionalStatus#OptionalAndEnabled} or
+     * {@link OptionalStatus#OptionalAndNotEnabled}
+     *
+     * @param status the status to check
+     * 
+     * @return whether the status is optional or not
      */
-    public DLKerasDropoutLayer() {
-        super("keras.layers.Dropout", DLLayerUtils.FLOATING_POINT_DTYPES);
-    }
-
-    @Override
-    public void validateParameters() throws InvalidSettingsException {
-    }
-
-    @Override
-    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
-        if (m_noiseShape.getTuple().length != inputShape.length + 1) {
-            throw new DLInvalidTensorSpecException("The noise shape must have the same rank as the batch input shape.");
-        }
-    }
-
-    @Override
-    protected Long[] inferOutputShape(final Long[] inputShape) {
-        return inputShape.clone();
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", m_noiseShape.toPytonTuple());
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed.getSeed()));
+    public static boolean isOptional(final OptionalStatus status) {
+        return IS_OPTIONAL.contains(status);
     }
 }

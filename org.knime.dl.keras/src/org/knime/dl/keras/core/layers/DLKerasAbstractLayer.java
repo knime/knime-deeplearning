@@ -51,6 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -60,7 +61,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject implements DLKerasLayer {
 
-    @Parameter(label = "Name prefix", required = false)
+    @Parameter(label = "Name prefix", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
     private String m_namePrefix = null;
 
     private String m_runtimeId;

@@ -108,27 +108,25 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
     }
 
     private static <T> ValueWriteAccess<T, NodeSettingsWO> createEnumAccessWO(Member<T> member) {
-        return new ValueWriteAccess<T, NodeSettingsWO>() {
+        return new AbstractNodeSettingsWriteAccess<T>(member) {
 
             @Override
-            public void set(NodeSettingsWO storage, T value) throws InvalidSettingsException {
-                if (value != null) {
-                    final Enum<?> casted = ((Enum<?>)value);
-                    storage.addString(member.getKey(), casted.name());
-                }
+            protected void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException {
+                final Enum<?> casted = ((Enum<?>)value);
+                settings.addString(key, casted.name());
             }
         };
     }
 
     private static <T> ValueWriteAccess<T, NodeSettingsWO> createObjectAccessWO(Member<T> member) {
-        return new ValueWriteAccess<T, NodeSettingsWO>() {
+        return new AbstractNodeSettingsWriteAccess<T>(member) {
             @Override
-            public void set(NodeSettingsWO settings, T obj) throws InvalidSettingsException {
+            public void set(NodeSettingsWO settings, T obj, String key) throws InvalidSettingsException {
                 if (obj != null) {
                     @SuppressWarnings("unchecked")
                     final Class<T> type = (Class<T>)obj.getClass();
                     // TODO Caching of accesses @return @return
-                    final NodeSettingsWO nestedSettings = settings.addNodeSettings(member.getKey());
+                    final NodeSettingsWO nestedSettings = settings.addNodeSettings(key);
                     nestedSettings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
                     final StructAccess<MemberReadWriteAccess<?, T>> objAccess =
                         ParameterStructs.createStructAccess(type);
@@ -148,5 +146,4 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
     private static <T> ValueWriteAccess<T, NodeSettingsWO> createPrimitiveAccessWO(Member<T> member) {
         return new NodeSettingsPrimitiveAccessWO<>(member);
     }
-
 }

@@ -66,6 +66,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -89,16 +90,16 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
 
-    @Parameter(label = "Embedding regularizer", required = false, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Embedding regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_embeddingRegularizer = null;
 
-    @Parameter(label = "Constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_constraint = null;
 
     @Parameter(label = "Mask zero")
     private boolean m_maskZero = false;
 
-    @Parameter(label = "Input length", required = false)
+    @Parameter(label = "Input length", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
     private DLKerasTuple m_inputLength = new DLKerasTuple("1", 1, 1000,
         EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL, Constraint.EMPTY)));
 

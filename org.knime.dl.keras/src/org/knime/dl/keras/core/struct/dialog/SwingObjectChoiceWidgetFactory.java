@@ -65,6 +65,7 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.ParameterChoice;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
@@ -84,7 +85,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
     public boolean supports(final Member<?> member) {
         if (member instanceof ParameterMember) {
             final ParameterMember<?> casted = (ParameterMember<?>)member;
-            return casted.choices() != null && casted.isRequired();
+            return casted.choices() != null && casted.getOptionalStatus().equals(OptionalStatus.NotOptional);
         }
         return false;
     }

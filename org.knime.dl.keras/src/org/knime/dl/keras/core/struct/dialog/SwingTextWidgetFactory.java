@@ -59,6 +59,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.scijava.util.ClassUtils;
 
@@ -75,7 +76,8 @@ class SwingTextWidgetFactory implements SwingWidgetFactory<String> {
 
     @Override
     public boolean supports(final Member<?> member) {
-        return ClassUtils.isText(member.getRawType()) && ((ParameterMember<?>)member).isRequired();
+        return ClassUtils.isText(member.getRawType())
+            && ((ParameterMember<?>)member).getOptionalStatus().equals(OptionalStatus.NotOptional);
     }
 
     @Override

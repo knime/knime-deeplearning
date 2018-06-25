@@ -47,6 +47,7 @@
 package org.knime.dl.keras.core.struct.param;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 
 /**
  * Default implemenation of a {@link ParameterMember}.
@@ -54,14 +55,22 @@ import java.lang.reflect.Type;
  * NB: Heavily inspired by work of Curtis Rueden.
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @param <T>
  */
-abstract class DefaultParameterMember<T> implements ParameterMember<T> {
+public abstract class DefaultParameterMember<T> implements ParameterMember<T> {
+
+    /**
+     * Suffix to use to save the enabled status of DefaultParameterMembers to node settings.
+     */
+    public static String SETTINGS_KEY_ENABLED = "enabledStatus";
 
     private final Type m_itemType;
 
     private final Parameter m_annotation;
 
     private ParameterChoices<T> m_choices;
+
+    private Optional<Boolean> m_isEnabled = Optional.empty();
 
     /**
      * Constructor.
@@ -107,9 +116,28 @@ abstract class DefaultParameterMember<T> implements ParameterMember<T> {
         return new ParameterEnumChoices<>(rawType.getEnumConstants());
     }
 
+    /**
+     * Returns an optional indicating whether there is already a value for the enabled status (hence, there are settings
+     * available and the optional will not be empty), and the optional status itself. 
+     * 
+     * @return the optional
+     */
+    public Optional<Boolean> isEnabled() {
+        return m_isEnabled;
+    }
+
+    /**
+     * Set the optional of the enabled status indicating if there are settings available and the enabled status itself.
+     * 
+     * @param isEnabled the optional to set
+     */
+    public void setIsEnabled(final Optional<Boolean> isEnabled) {
+        m_isEnabled = isEnabled;
+    }
+
     @Override
-    public boolean isRequired() {
-        return getAnnotation().required();
+    public OptionalStatus getOptionalStatus() {
+        return getAnnotation().optionalStatus();
     }
 
     @Override
@@ -136,7 +164,7 @@ abstract class DefaultParameterMember<T> implements ParameterMember<T> {
     public String getLabel() {
         return getAnnotation().label();
     }
-    
+
     @Override
     public String getTab() {
         return getAnnotation().tab();

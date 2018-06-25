@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -58,7 +59,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
 
-    @Parameter(label = "Seed", required = false)
+    @Parameter(label = "Seed", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
     private DLKerasSeed m_seed = new DLKerasSeed();
 
     /**

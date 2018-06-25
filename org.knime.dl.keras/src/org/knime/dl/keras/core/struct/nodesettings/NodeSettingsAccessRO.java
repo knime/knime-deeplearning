@@ -105,31 +105,26 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
     }
 
     private static <T> ValueReadAccess<T, NodeSettingsRO> createEnumAccessRO(Member<T> member) {
-        return new ValueReadAccess<T, NodeSettingsRO>() {
+        return new AbstractNodeSettingsReadAccess<T>(member) {
 
             @Override
-            public T get(NodeSettingsRO storage) throws InvalidSettingsException {
-                final String key = member.getKey();
+            public T get(NodeSettingsRO storage, String key) throws InvalidSettingsException {
                 if (storage.containsKey(key)) {
                     return enumValue(storage.getString(key), member.getRawType());
                 }
                 return null;
             }
-
-            public <V extends Enum<V>> V enumOf(final Class<V> type, final String value) {
-                return Enum.valueOf(type, value);
-            }
         };
     }
 
     private static <T> ValueReadAccess<T, NodeSettingsRO> createObjectAccessRO(Member<T> member) {
-        return new ValueReadAccess<T, NodeSettingsRO>() {
+        return new AbstractNodeSettingsReadAccess<T>(member) {
             @Override
-            public T get(NodeSettingsRO settings) throws InvalidSettingsException {
+            public T get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
                 // String ODO Caching of accesses
                 try {
-                    if (settings.containsKey(member.getKey())) {
-                        NodeSettingsRO nestedSettings = settings.getNodeSettings(member.getKey());
+                    if (settings.containsKey(key)) {
+                        NodeSettingsRO nestedSettings = settings.getNodeSettings(key);
                         @SuppressWarnings("unchecked")
                         final Class<T> type =
                             (Class<T>)Class.forName(nestedSettings.getString(NodeSettingsStructs.STRUCT_TYPE_KEY));

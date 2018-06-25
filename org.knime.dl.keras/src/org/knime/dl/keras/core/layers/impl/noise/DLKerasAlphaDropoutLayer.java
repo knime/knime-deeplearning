@@ -56,6 +56,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -68,10 +69,10 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Drop rate", min = "0.0", max = "1.0", stepSize = "0.1")
     private float m_rate;
 
-    @Parameter(label = "Noise shape", required = false)
+    @Parameter(label = "Noise shape", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
     private DLKerasTuple m_noiseShape = new DLKerasTuple("1", 1, 1000, EnumSet.noneOf(Constraint.class));
 
-    @Parameter(label = "Random seed", required = false)
+    @Parameter(label = "Random seed", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
     private Long m_seed = null;
 
     /**

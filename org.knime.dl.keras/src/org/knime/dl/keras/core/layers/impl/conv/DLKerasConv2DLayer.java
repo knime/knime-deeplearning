@@ -68,6 +68,7 @@ import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -109,23 +110,23 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Kernel regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Kernel regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_kernelRegularizer = null;
 
-    @Parameter(label = "Bias regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Bias regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_biasRegularizer = null;
 
-    @Parameter(label = "Activity regularizer", required = false, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Activity regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_activityRegularizer = null;
 
-    @Parameter(label = "Kernel constraint", required = false, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Kernel constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
         tab = "Advanced")
     private DLKerasConstraint m_kernelConstraint = null;
 
-    @Parameter(label = "Bias constraint", required = false, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_biasConstraint = null;
 
     /**

@@ -48,6 +48,7 @@
 package org.knime.dl.keras.core.struct.dialog;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -57,6 +58,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
+import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
+import org.knime.dl.keras.core.struct.param.OptionalStatus;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
@@ -69,7 +72,8 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
 
     @Override
     public boolean supports(final Member<?> member) {
-        return member instanceof ParameterMember && !((ParameterMember<?>)member).isRequired();
+        return member instanceof ParameterMember
+            && OptionalStatus.isOptional(((ParameterMember<?>)member).getOptionalStatus());
     }
 
     @Override
@@ -108,25 +112,53 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             m_panel.add(m_activateBox);
             m_panel.add(m_widget.getComponent(), "growx");
 
+            OptionalStatus os = SwingWidgets.optionalStatus(this);
+            if (os.equals(OptionalStatus.OptionalAndNotEnabled)) {
+                m_activateBox.setSelected(false);
+                setEnabled(false);
+            } else if (os.equals(OptionalStatus.OptionalAndEnabled)) {
+                m_activateBox.setSelected(true);
+                setEnabled(true);
+            } else {
+                // will not happen
+                throw new IllegalStateException("The optional status must not be " + os
+                    + " at this point. This is most likely an implementation error.");
+            }
+
             return m_panel;
         }
 
-        // -- DocumentListener methods --
+        private void setMemberEnabledStatus(Optional<Boolean> isEnabled) {
+            if (member() instanceof DefaultParameterMember) {
+                DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)member();
+                dpm.setIsEnabled(isEnabled);
+            }
+        }
 
-        // -- Model change event listener --
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
-            final boolean isActive = instance.get() != null;
-            m_activateBox.setSelected(isActive);
+            // Trigger settings loading
+            boolean isActive = instance.get() != null;
+            Optional<Boolean> isEnabled = Optional.empty();
+            if (member() instanceof DefaultParameterMember) {
+                DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)member();
+                isEnabled = dpm.isEnabled();
+            }
+            
+            // Only load the enabled status if it was was previously saved, hence there is an optional
+            if (isEnabled.isPresent()) {
+                m_activateBox.setSelected(isEnabled.get());
+                setEnabled(isEnabled.get());
+            }
+            // Always load if there is something to load from
             if (isActive) {
                 m_widget.loadFrom(instance, spec);
-            } else {
-                m_widget.setEnabled(false);
             }
         }
 
         @Override
         public void saveTo(MemberWriteInstance<T> instance) throws InvalidSettingsException {
+            setMemberEnabledStatus(Optional.of(m_activateBox.isSelected()));
             if (m_activateBox.isSelected()) {
                 m_widget.saveTo(instance);
             } else {
@@ -136,7 +168,6 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
 
         @Override
         public void setEnabled(boolean enabled) {
-            m_activateBox.setEnabled(enabled);
             m_widget.setEnabled(enabled);
         }
     }
