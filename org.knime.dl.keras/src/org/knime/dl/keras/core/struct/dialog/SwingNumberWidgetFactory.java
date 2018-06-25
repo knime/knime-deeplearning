@@ -365,7 +365,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
                 new JSpinner.NumberEditor(spinner, oldFormat.length() > newFormat.length() ? oldFormat : newFormat));
 
             // Only set the value if it is in bounds, hence ignore defaults that are not in bounds
-            if (value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue()) {
+            if (value != null && (value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue())) {
                 spinner.setValue(value);
             }
         }
