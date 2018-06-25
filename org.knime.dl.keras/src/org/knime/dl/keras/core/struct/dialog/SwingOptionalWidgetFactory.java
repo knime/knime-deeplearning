@@ -100,29 +100,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             m_panel = new JPanel(new MigLayout("ins 0 0 0 0", "[][fill,grow]"));
 
             // TODO wrapper
-            m_widget = SwingWidgetRegistry.getInstance().createWidget(new ParameterMember<T>() {
-                final ParameterMember<T> casted = (ParameterMember<T>)member();
-
-                @Override
-                public boolean isRequired() {
-                    return true;
-                }
-
-                @Override
-                public ParameterChoices<T> choices() {
-                    return casted.choices();
-                }
-
-                @Override
-                public String getKey() {
-                    return casted.getKey();
-                }
-
-                @Override
-                public Type getType() {
-                    return casted.getType();
-                }
-            });
+            m_widget = SwingWidgetRegistry.getInstance().createWidget(new ParameterMemberWrapper<T>((ParameterMember<T>)member()));
             m_activateBox = new JCheckBox();
             m_activateBox.addItemListener((i) -> {
                 m_widget.setEnabled(m_activateBox.isSelected());
@@ -160,6 +138,72 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
         public void setEnabled(boolean enabled) {
             m_activateBox.setEnabled(enabled);
             m_widget.setEnabled(enabled);
+        }
+    }
+    
+    private class ParameterMemberWrapper<M> implements ParameterMember<M> {
+        final ParameterMember<M> m_member;
+        
+        /**
+         * @param member 
+         */
+        public ParameterMemberWrapper(final ParameterMember<M> member) {
+            m_member = member;
+        }
+        
+        @Override
+        public OptionalStatus getOptionalStatus() {
+            return OptionalStatus.NotOptional;
+        }
+
+        @Override
+        public ParameterChoices<M> choices() {
+            return m_member.choices();
+        }
+
+        @Override
+        public String getKey() {
+            return m_member.getKey();
+        }
+
+        @Override
+        public Type getType() {
+            return m_member.getType();
+        }
+        
+        @Override
+        public String getLabel() {
+            return m_member.getLabel();
+        }
+        
+        @Override
+        public Object getMaximumValue() {
+            return m_member.getMaximumValue();
+        }
+        
+        @Override
+        public Object getMinimumValue() {
+            return m_member.getMinimumValue();
+        }
+        
+        @Override
+        public Object getStepSize() {
+            return m_member.getStepSize();
+        }
+        
+        @Override
+        public Class<M> getRawType() {
+            return m_member.getRawType();
+        }
+        
+        @Override
+        public String getTab() {
+            return m_member.getTab();
+        }
+        
+        @Override
+        public String getWidgetStyle() {
+            return m_member.getWidgetStyle();
         }
     }
 }
