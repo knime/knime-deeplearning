@@ -349,7 +349,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         gbc.insets = new Insets(0, 10, 5, 5);
         wrapper.add(resetSliderButton, gbc);
 
-        m_scrollLockButton = new ToggleIcon(SharedIcons.ADD_ALL.get());
+        m_scrollLockButton = new ToggleIcon(SharedIcons.ADD_PLUS.get());
         m_scrollLockButton.setIsSelected(true);
         m_scrollLockButton.setToolTipText("Auto Range Plot");
         gbc.gridx = 2;
