@@ -86,10 +86,6 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        int tupleLength = m_axes.getTuple().length;
-        if (tupleLength != 2) {
-            throw new InvalidSettingsException("Axes must contain exactly two axis.");
-        }
     }
 
     @Override

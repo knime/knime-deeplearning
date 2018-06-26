@@ -123,23 +123,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         if (m_constraint != null) {
             m_constraint.validateParameters();
         }
-
-        if (hasInputLength()) {
-            Long[] inputLength;
-            try {
-                inputLength = m_inputLength.getTuple();
-            } catch (NumberFormatException e) {
-                throw new InvalidSettingsException("The provided input length is invalid.", e);
-            }
-            for (Long dim : inputLength) {
-                if (dim == null) {
-                    throw new InvalidSettingsException("If input length is given it must not contain null dimensions.");
-                }
-                if (dim < 1) {
-                    throw new InvalidSettingsException("Invalid input length dimension: " + dim);
-                }
-            }
-        }
     }
 
     private boolean hasInputLength() {
