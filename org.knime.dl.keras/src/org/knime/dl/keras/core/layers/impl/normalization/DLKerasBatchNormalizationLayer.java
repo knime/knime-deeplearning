@@ -73,7 +73,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
 
-    @Parameter(label = "Axis", min="-100", max = "100", stepSize = "1")
+    @Parameter(label = "Axis", min = "-100", max = "100", stepSize = "1")
     private int m_axis = -1;
 
     @Parameter(label = "Momentum", min = "0", max = "1", stepSize = "0.01")
@@ -100,16 +100,20 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Moving variance initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_movingVarianceInitializer = new DLKerasOnesInitializer();
 
-    @Parameter(label = "Beta regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Beta regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_betaRegularizer = null;
 
-    @Parameter(label = "Gamma regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Gamma regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_gammaRegularizer = null;
 
-    @Parameter(label = "Beta constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Beta constraint", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_betaConstraint = null;
 
-    @Parameter(label = "Gamma constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Gamma constraint", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_gammaConstraint = null;
 
     /**

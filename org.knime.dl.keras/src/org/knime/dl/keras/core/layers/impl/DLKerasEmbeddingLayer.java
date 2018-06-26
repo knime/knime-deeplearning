@@ -78,7 +78,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
-    
+
     private static final Set<Class<?>> ALLOWED_DTYPE = ImmutableSet.of(int.class);
 
     @Parameter(label = "Input dimension", min = "1")
@@ -90,18 +90,20 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
 
-    @Parameter(label = "Embedding regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Embedding regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_embeddingRegularizer = null;
 
-    @Parameter(label = "Constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Constraint", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_constraint = null;
 
     @Parameter(label = "Mask zero")
     private boolean m_maskZero = false;
 
     @Parameter(label = "Input length", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_inputLength = new DLKerasTuple("1", 1, 1000,
-        EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL, Constraint.EMPTY)));
+    private DLKerasTuple m_inputLength =
+        new DLKerasTuple("1", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL, Constraint.EMPTY)));
 
     /**
      * Constructor for embedding layers.
@@ -145,8 +147,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputShape(final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         if (hasInputLength()) {
             checkInputLength(inputShape);
         }
@@ -184,10 +185,9 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
                 inLength[i] = inputShape[i + 1];
             }
         }
-        return Stream.concat(Arrays.stream(inLength), Stream.of(Long.valueOf(m_outputDim)))
-            .toArray(Long[]::new);
+        return Stream.concat(Arrays.stream(inLength), Stream.of(Long.valueOf(m_outputDim))).toArray(Long[]::new);
     }
-    
+
     @Override
     protected Class<?> inferOutputElementType(Class<?> inputElementType) {
         return float.class;
