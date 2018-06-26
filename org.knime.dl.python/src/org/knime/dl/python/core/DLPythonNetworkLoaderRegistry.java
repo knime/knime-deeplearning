@@ -111,18 +111,14 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
                     loader.checkAvailability(true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
 				} catch (final DLInstallationTestTimeoutException e) {
 					Thread.currentThread().interrupt();
-					LOGGER.debug(e);
-					LOGGER.warn("Installation test for deep learning Python back end '"
-							+ loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted. "
-							+ "Please make sure your Python environment is properly set up and "
-                        + "consider increasing the timeout using the VM option " + "'-D"
-                        + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT
-							+ "=<value-in-ms>'.");
+                    LOGGER.debug("Installation test for deep learning Python back end '"
+                        + loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted.");
 				} catch (final DLMissingDependencyException e) {
-					LOGGER.debug("Installation test in deep learning Python network loader registry failed: "
-							+ e.getMessage(), e);
+                    LOGGER.debug("Installation test for deep learning Python back end '"
+                        + loader.getNetworkType().getCanonicalName() + "' failed: "
+                        + e.getMessage());
 				} catch (final DLCanceledExecutionException e) {
-				    // Doesn't happen
+                    // Doesn't happen.
                 }
 			}, "DL-Installation-Test-Trigger-" + loader.getNetworkType().getName()).start();
 		}

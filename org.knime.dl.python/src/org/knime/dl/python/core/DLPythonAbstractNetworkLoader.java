@@ -57,10 +57,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeout;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.core.DLInstallationTestTimeoutException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -137,8 +138,11 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 						t.interrupt();
 						message.getAndUpdate(msg -> {
 							if (msg == null) {
-								msg = "Installation test for Python back end '"
-										+ loader.getNetworkType().getCanonicalName() + "' timed out.";
+                                msg = "Installation test for Python back end '"
+                                    + loader.getNetworkType().getCanonicalName() + "' timed out. "
+                                    + "Please make sure your Python environment is properly set up and "
+                                    + "consider increasing the timeout using the VM option " + "'-D"
+                                    + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.";
 								timeoutException.set(new DLInstallationTestTimeoutException(msg));
 							}
 							return msg;
