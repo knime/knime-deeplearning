@@ -61,7 +61,7 @@ import org.knime.dl.keras.core.struct.dialog.SwingWidget;
 import org.knime.dl.keras.core.struct.dialog.SwingWidgetFactory;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.scijava.util.ClassUtils;
 
@@ -75,7 +75,7 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
     @Override
     public boolean supports(final Member<?> member) {
         return ClassUtils.canCast(member.getRawType(), DLKerasSeed.class)
-            && ((ParameterMember<?>)member).getOptionalStatus().equals(OptionalStatus.NotOptional);
+            && ((ParameterMember<?>)member).getOptionalStatus().equals(Required.Required);
     }
 
     @Override

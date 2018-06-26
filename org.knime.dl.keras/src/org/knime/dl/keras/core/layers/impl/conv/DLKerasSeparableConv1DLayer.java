@@ -67,7 +67,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -115,25 +115,25 @@ public final class DLKerasSeparableConv1DLayer extends DLKerasAbstractUnaryLayer
     @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Depthwise regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Depthwise regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_depthwiseRegularizer = null;
 
-    @Parameter(label = "Pointwise regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Pointwise regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_pointwiseRegularizer = null;
 
-    @Parameter(label = "Bias regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_biasRegularizer = null;
 
-    @Parameter(label = "Activity regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
+    @Parameter(label = "Activity regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_activityRegularizer = null;
 
-    @Parameter(label = "Depthwise constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Depthwise constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_depthwiseConstraint = null;
 
-    @Parameter(label = "Pointwise constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Pointwise constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_pointwiseConstraint = null;
 
-    @Parameter(label = "Bias constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_biasConstraint = null;
 
     /**

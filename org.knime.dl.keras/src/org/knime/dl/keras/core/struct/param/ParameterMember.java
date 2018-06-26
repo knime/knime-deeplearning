@@ -63,8 +63,8 @@ public interface ParameterMember<T> extends Member<T> {
      * 
      * @return the optional status
      */
-    default OptionalStatus getOptionalStatus() {
-        return OptionalStatus.NotOptional;
+    default Required getOptionalStatus() {
+        return Required.Required;
     }
 
     /**

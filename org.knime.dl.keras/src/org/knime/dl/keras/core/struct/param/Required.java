@@ -49,31 +49,31 @@ package org.knime.dl.keras.core.struct.param;
 import java.util.EnumSet;
 
 /**
- * This Enumeration indicates different behaviors for optional parameters, hence whether the parameter can be disabled/enabled
- * via a checkbox.
+ * This Enumeration indicates different behaviors for optional parameters, hence whether the parameter can be
+ * disabled/enabled via a checkbox.
  * 
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public enum OptionalStatus {
+public enum Required {
         /** The parameter is not optional. There will be no checkbox. */
-        NotOptional,
+        Required,
         /** The parameter is optional and the checkbox will be checked by default. */
         OptionalAndEnabled,
-        /** The parameter is optional but the checkbox will not be checked by default.*/
+        /** The parameter is optional but the checkbox will not be checked by default. */
         OptionalAndNotEnabled;
 
-    private final static EnumSet<OptionalStatus> IS_OPTIONAL =
-        EnumSet.of(OptionalStatus.OptionalAndEnabled, OptionalStatus.OptionalAndNotEnabled);
-    
+    private final static EnumSet<Required> IS_OPTIONAL =
+        EnumSet.of(Required.OptionalAndEnabled, Required.OptionalAndNotEnabled);
+
     /**
-     * Convenience method to check whether the specified status is either {@link OptionalStatus#OptionalAndEnabled} or
-     * {@link OptionalStatus#OptionalAndNotEnabled}
+     * Convenience method to check whether the specified status is either {@link Required#OptionalAndEnabled} or
+     * {@link Required#OptionalAndNotEnabled}
      *
      * @param status the status to check
      * 
      * @return whether the status is optional or not
      */
-    public static boolean isOptional(final OptionalStatus status) {
+    public static boolean isOptional(final Required status) {
         return IS_OPTIONAL.contains(status);
     }
 }

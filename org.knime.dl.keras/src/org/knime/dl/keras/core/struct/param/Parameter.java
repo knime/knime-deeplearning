@@ -65,7 +65,7 @@ public @interface Parameter {
     String label() default "";
 
     /** Defines the optional behavior of the parameter, i.e. if the value is allowed to be null. */
-    OptionalStatus optionalStatus() default OptionalStatus.NotOptional;
+    Required required() default Required.Required;
 
     /** Defines a style of a component **/
     String style() default "";

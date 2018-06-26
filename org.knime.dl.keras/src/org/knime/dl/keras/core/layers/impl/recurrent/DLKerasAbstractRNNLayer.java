@@ -65,7 +65,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasObject;
 import org.knime.dl.keras.core.layers.DLKerasRNNLayer;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -84,31 +84,31 @@ abstract class DLKerasAbstractRNNLayer extends DLKerasAbstractInnerLayer impleme
     @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Initializers")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Kernel regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Kernel regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Regularizers")
     private DLKerasRegularizer m_kernelRegularizer = null;
 
-    @Parameter(label = "Recurrent regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Recurrent regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Regularizers")
     private DLKerasRegularizer m_recurrentRegularizer = null;
 
-    @Parameter(label = "Bias regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Bias regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Regularizers")
     private DLKerasRegularizer m_biasRegularizer = null;
 
-    @Parameter(label = "Activity regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Activity regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Regularizers")
     private DLKerasRegularizer m_activityRegularizer = null;
 
-    @Parameter(label = "Kernel constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Kernel constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
         tab = "Constraints")
     private DLKerasConstraint m_kernelConstraint = null;
 
-    @Parameter(label = "Recurrent constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Recurrent constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
         tab = "Constraints")
     private DLKerasConstraint m_recurrentConstraint = null;
 
-    @Parameter(label = "Bias constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
+    @Parameter(label = "Bias constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
         tab = "Constraints")
     private DLKerasConstraint m_biasConstraint = null;
     

@@ -61,7 +61,7 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.keras.util.DLKerasUtils;
 
@@ -73,14 +73,14 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     @Parameter(label = "Alpha initializer", choices = DLKerasInitializerChoices.class)
     private DLKerasInitializer m_alphaInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Alpha regularizer", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
+    @Parameter(label = "Alpha regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
         tab = "Advanced")
     private DLKerasRegularizer m_alphaRegularizer = null;
 
-    @Parameter(label = "Alpha constraint", optionalStatus = OptionalStatus.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Alpha constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_alphaConstraint = null;
 
-    @Parameter(label = "Shared axes", optionalStatus = OptionalStatus.OptionalAndNotEnabled)
+    @Parameter(label = "Shared axes", required = Required.OptionalAndNotEnabled)
     private DLKerasTuple m_sharedAxes = new DLKerasTuple("", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL)));
 
     /**

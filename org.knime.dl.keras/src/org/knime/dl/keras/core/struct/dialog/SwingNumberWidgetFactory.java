@@ -71,7 +71,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.scijava.util.Types;
 
@@ -89,7 +89,7 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
     @Override
     public boolean supports(final Member<?> model) {
         // TODO we need to generalize later or make one for double etc
-        return Types.isNumber(model.getRawType()) && ((ParameterMember<?>)model).getOptionalStatus().equals(OptionalStatus.NotOptional);
+        return Types.isNumber(model.getRawType()) && ((ParameterMember<?>)model).getOptionalStatus().equals(Required.Required);
     }
 
     @Override

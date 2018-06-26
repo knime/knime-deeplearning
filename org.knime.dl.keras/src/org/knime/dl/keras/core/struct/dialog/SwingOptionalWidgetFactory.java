@@ -59,7 +59,7 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 
@@ -73,7 +73,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
     @Override
     public boolean supports(final Member<?> member) {
         return member instanceof ParameterMember
-            && OptionalStatus.isOptional(((ParameterMember<?>)member).getOptionalStatus());
+            && Required.isOptional(((ParameterMember<?>)member).getOptionalStatus());
     }
 
     @Override
@@ -112,11 +112,11 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             m_panel.add(m_activateBox);
             m_panel.add(m_widget.getComponent(), "growx");
 
-            OptionalStatus os = SwingWidgets.optionalStatus(this);
-            if (os.equals(OptionalStatus.OptionalAndNotEnabled)) {
+            Required os = SwingWidgets.optionalStatus(this);
+            if (os.equals(Required.OptionalAndNotEnabled)) {
                 m_activateBox.setSelected(false);
                 setEnabled(false);
-            } else if (os.equals(OptionalStatus.OptionalAndEnabled)) {
+            } else if (os.equals(Required.OptionalAndEnabled)) {
                 m_activateBox.setSelected(true);
                 setEnabled(true);
             } else {
@@ -183,8 +183,8 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
         }
         
         @Override
-        public OptionalStatus getOptionalStatus() {
-            return OptionalStatus.NotOptional;
+        public Required getOptionalStatus() {
+            return Required.Required;
         }
 
         @Override

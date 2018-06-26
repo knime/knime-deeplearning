@@ -136,8 +136,8 @@ public abstract class DefaultParameterMember<T> implements ParameterMember<T> {
     }
 
     @Override
-    public OptionalStatus getOptionalStatus() {
-        return getAnnotation().optionalStatus();
+    public Required getOptionalStatus() {
+        return getAnnotation().required();
     }
 
     @Override

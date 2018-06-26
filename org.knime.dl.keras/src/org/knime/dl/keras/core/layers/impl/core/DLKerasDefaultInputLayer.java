@@ -63,7 +63,7 @@ import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
-import org.knime.dl.keras.core.struct.param.OptionalStatus;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.core.DLPythonNumPyTypeMap;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -78,7 +78,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     @Parameter(label = "Shape")
     private DLKerasTuple m_shape = new DLKerasTuple("1", 1, Integer.MAX_VALUE, EnumSet.of(Constraint.PARTIAL));
 
-    @Parameter(label = "Batch size", min = "1", optionalStatus = OptionalStatus.OptionalAndEnabled)
+    @Parameter(label = "Batch size", min = "1", required = Required.OptionalAndEnabled)
     private Integer m_batchSize = null;
 
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
