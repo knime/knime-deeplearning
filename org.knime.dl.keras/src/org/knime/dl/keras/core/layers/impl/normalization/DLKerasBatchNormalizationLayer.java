@@ -140,13 +140,12 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputShape(final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         try {
             DLLayerUtils.getAxisIndex(m_axis, inputShape.length);
         } catch (IllegalArgumentException e) {
-            throw new DLInvalidTensorSpecException(
-                "Normalization axis " + m_axis + " not avaiable in input of rank " + inputShape.length);
+            throw new DLInvalidTensorSpecException("Invalid input specs. Normalization axis " + m_axis
+                + " not avaiable in input of rank " + inputShape.length);
         }
     }
 

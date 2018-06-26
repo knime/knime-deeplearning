@@ -98,7 +98,7 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
                     secondInputShape[actualAxes[1]]), "The axes along which to calculate the dot product must match.");
             }
         } catch (IllegalArgumentException e) {
-            throw new DLInvalidTensorSpecException(e.getMessage());
+            throw new DLInvalidTensorSpecException("Invalid input specs. " + e.getMessage());
         }
     }
 

@@ -90,7 +90,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
         try {
             concatenationAxis = getConcatenationAxisIndex(rank);
         } catch (IllegalArgumentException e) {
-            throw new DLInvalidTensorSpecException(e.getMessage());
+            throw new DLInvalidTensorSpecException("Invalid input specs. " + e.getMessage());
         }
         checkInputSpec(
             IntStream.range(0, rank).filter(i -> i != concatenationAxis)
