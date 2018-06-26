@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
@@ -79,7 +80,7 @@ public final class DLKerasRepeatLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        checkInputSpec(inputShape.length == 1, "Input shape must be one-dimensional.");
+        DLInputShapeValidationUtils.dimsExactly(inputShape, 1);
     }
 
     @Override

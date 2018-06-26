@@ -60,6 +60,7 @@ import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices;
 import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
@@ -118,7 +119,7 @@ public final class DLKerasDenseLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        checkInputSpec(inputShape.length >= 1, "Input shape must be at least one-dimensional.");
+        DLInputShapeValidationUtils.dimsGreaterOrEqual(inputShape, 1);
         checkInputSpec(inputShape[inputShape.length - 1] != null,
             "Last dimension of input shape must be defined.");
     }

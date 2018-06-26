@@ -49,24 +49,55 @@ package org.knime.dl.keras.core.layers;
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLInputSpecValidationUtils {
+public final class DLInputShapeValidationUtils {
 
-    private DLInputSpecValidationUtils() {
+    private DLInputShapeValidationUtils() {
         // static utility class
     }
 
     /**
-     * Validates that the input has the expected rank.
+     * Checks if the specified shape has exactly the specified number of dimensions. Throws exception if not.
      *
      * @param inputShape the shape of the input
-     * @param expectedRank the expected rank
-     * @throws DLInvalidTensorSpecException if the input doesn't have the expected rank
+     * @param expectedNumberOfDims the expected dimensionality
+     * @throws DLInvalidTensorSpecException if the input doesn't have the expected dimensionality
      */
-    public static void validateInputRank(final Long[] inputShape, final int expectedRank)
+    public static void dimsExactly(final Long[] inputShape, final int expectedNumberOfDims)
         throws DLInvalidTensorSpecException {
-        if (inputShape.length != expectedRank) {
-            throw new DLInvalidTensorSpecException(
-                "The input must be of rank " + expectedRank + " but has rank " + inputShape.length + ".");
+        checkPredicate(inputShape.length == expectedNumberOfDims, "The input must be " + expectedNumberOfDims
+            + "-dimensional, but was " + inputShape.length + "-dimensional.");
+    }
+    
+    /**
+     * Checks if the specified shapes have exactly the same number of dimensions. Throws exception if not.
+     *
+     * @param inputShape1 the shape of the first input
+     * @param inputShape2 the shape of the second input
+     * @throws DLInvalidTensorSpecException if the input doesn't have the expected dimensionality
+     */
+    public static void dimsAgree(final Long[] inputShape1, final Long[] inputShape2)
+        throws DLInvalidTensorSpecException {
+        checkPredicate(inputShape1.length == inputShape2.length,
+            "Both shapes must have the same dimensionality, but shape one was " + inputShape1.length
+                + "-dimensional and shape two was " + inputShape2.length + "-dimensional.");
+    }
+
+    /**
+     * Checks if the specified shape has at least the specified number of dimensions. Throws exception if not.
+     *
+     * @param inputShape the shape of the input
+     * @param lowestNumberOfDims the minimum dimensionality
+     * @throws DLInvalidTensorSpecException if the input doesn't have at least the specified dimensionality
+     */
+    public static void dimsGreaterOrEqual(final Long[] inputShape, final int lowestNumberOfDims)
+        throws DLInvalidTensorSpecException {
+        checkPredicate(inputShape.length >= lowestNumberOfDims, "The input must be at least " + lowestNumberOfDims
+            + "-dimensional, but was " + inputShape.length + "-dimensional.");
+    }   
+
+    private static void checkPredicate(final boolean pred, final String message) throws DLInvalidTensorSpecException {
+        if (!pred) {
+            throw new DLInvalidTensorSpecException("Invalid input specs. " + message);
         }
     }
 }

@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
@@ -80,7 +81,7 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        checkInputSpec(inputShape.length >= 2, "Input shape must be at least two-dimensional.");
+        DLInputShapeValidationUtils.dimsGreaterOrEqual(inputShape, 2);
         checkInputSpec(DLLayerUtils.isShapeFullyDefined(inputShape), "The input shape must be fully defined.");
     }
 

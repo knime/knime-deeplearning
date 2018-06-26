@@ -66,15 +66,30 @@ public final class DLLayerUtils {
     private DLLayerUtils() {
         // static utility class
     }
-
+    
+    /**
+     * Calculated the total number of elements of the specified shape.
+     * 
+     * @param shape the shape
+     * @return the total number of elements
+     */
     public static Long numberOfElements(final Long[] shape) {
+        if (shape.length == 0) {
+            return 0L;
+        }
         Long numElems = 1l;
         for (Long l : shape) {
             numElems *= l;
         }
         return numElems;
     }
-
+    
+    /**
+     * Check whether the specified shape is fully defined or not. 
+     * 
+     * @param shape 
+     * @return true if the specified shape is fully defined, false if not
+     */
     public static boolean isShapeFullyDefined(final Long[] shape) {
         for (Long l : shape) {
             if (l == null) {

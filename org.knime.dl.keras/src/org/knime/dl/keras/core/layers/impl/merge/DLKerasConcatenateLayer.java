@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasMergeLayer;
@@ -85,7 +86,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
     @Override
     protected void validateInputShapes(final Long[] firstInputShape, final Long[] secondInputShape) throws DLInvalidTensorSpecException {
         final int rank = firstInputShape.length;
-        checkInputSpec(rank == secondInputShape.length, "The two tensors to concatenate must have the same rank.");
+        DLInputShapeValidationUtils.dimsAgree(firstInputShape, secondInputShape);
         int concatenationAxis;
         try {
             concatenationAxis = getConcatenationAxisIndex(rank);

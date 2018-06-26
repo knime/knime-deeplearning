@@ -51,7 +51,7 @@ import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
-import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
@@ -87,7 +87,7 @@ public final class DLKerasUpSampling2DLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        DLInputSpecValidationUtils.validateInputRank(inputShape, 3);
+        DLInputShapeValidationUtils.dimsExactly(inputShape, 3);
     }
 
     @Override

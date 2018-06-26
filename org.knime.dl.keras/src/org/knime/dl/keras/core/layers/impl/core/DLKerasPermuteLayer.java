@@ -84,7 +84,7 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         checkInputSpec(m_dims.getTuple().length == inputShape.length,
-                "Permutation is not specified for each dimension.");
+                "Permutation must be specified for each dimension.");
         
     }
 

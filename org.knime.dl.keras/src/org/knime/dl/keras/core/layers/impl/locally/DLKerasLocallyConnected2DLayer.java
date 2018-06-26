@@ -61,7 +61,7 @@ import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
-import org.knime.dl.keras.core.layers.DLInputSpecValidationUtils;
+import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
@@ -138,7 +138,7 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        DLInputSpecValidationUtils.validateInputRank(inputShape, 3);
+        DLInputShapeValidationUtils.dimsExactly(inputShape, 3);
     }
 
     @Override

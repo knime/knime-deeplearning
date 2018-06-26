@@ -138,23 +138,19 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
     private void checkInputLength(Long[] inputShape) throws DLInvalidTensorSpecException {
         Long[] inputLength = m_inputLength.getTuple();
-        if (inputLength.length != inputShape.length) {
-            throw createInvalidInputShapeException(inputLength, inputShape);
-        }
+        checkInputSpec(inputLength.length == inputShape.length, createMessage(inputLength, inputShape));
         for (int i = 0; i < inputLength.length; i++) {
             Long l = inputLength[i];
             Long incoming = inputShape[i];
-            if (l != null && incoming != null && !l.equals(incoming)) {
-                throw createInvalidInputShapeException(inputLength, inputShape);
+            if (l != null && incoming != null) {
+                checkInputSpec(l.equals(incoming), createMessage(inputLength, inputShape));
             }
         }
     }
 
-    private static DLInvalidTensorSpecException createInvalidInputShapeException(Long[] inputLength,
-        Long[] inputShape) {
-        return new DLInvalidTensorSpecException("'Input length' is " + Arrays.deepToString(inputLength)
-            + ", but received input has shape " + Arrays.deepToString(inputShape)
-            + ". If specified input length must refine input shape.");
+    private static String createMessage(Long[] inputLength, Long[] inputShape) {
+        return "'Input length' is " + Arrays.deepToString(inputLength) + ", but received input has shape "
+            + Arrays.deepToString(inputShape) + ". If specified input length must refine input shape.";
     }
 
     @Override
