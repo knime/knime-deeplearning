@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="dlkerascudnnlstmlayer.png" type="Other">
+<knimeNode icon="dlkerascudnnlstmlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras CuDNN LSTM Layer</name>
 
 	<shortDescription>
@@ -86,6 +85,9 @@
 				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
 			</option>
 		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">

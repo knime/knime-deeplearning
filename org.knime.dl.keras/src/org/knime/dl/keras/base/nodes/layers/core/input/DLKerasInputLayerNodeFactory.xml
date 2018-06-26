@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="dlkerasinputlayer.png" type="Other">
+<knimeNode icon="dlkerasinputlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Input Layer</name>
 
 	<shortDescription>
@@ -27,6 +26,9 @@
 				The data type of the input.
 			</option>
 		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
 	</fullDescription>
 	<ports>
 		<outPort index="0" name="Deep Learning Network">

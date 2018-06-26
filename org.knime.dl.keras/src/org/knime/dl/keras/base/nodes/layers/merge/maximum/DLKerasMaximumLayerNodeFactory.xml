@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="dlkerasmaximumlayer.png" type="Other">
+<knimeNode icon="dlkerasmaximumlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Maximum Layer</name>
 
 	<shortDescription>
@@ -17,6 +16,9 @@
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
 		</option>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Deep Learning Network">
