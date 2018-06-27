@@ -519,11 +519,13 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             final DLPythonNetworkTrainingTaskHandler trainingTaskHandler = createNetworkTrainingTaskHandler(context,
                 monitor, trainingInputProvider, validationInputProvider, this::createSingleTensorTableChunker);
             final RunnableFuture<Void> trainingTask = kernel.createExecutionTask(trainingTaskHandler, b.toString());
+            kernel.routeErrorMessagesToWarningLog(true);
             trainingTask.run();
             trainingTask.get();
         } catch (final ExecutionException | InterruptedException ex) {
             throw new IOException(ex);
         } finally {
+            kernel.routeErrorMessagesToWarningLog(false);
             // Remove log listeners.
             kernel.removeStderrorListener(stdOutListener);
             kernel.removeStderrorListener(stdErrListener);
