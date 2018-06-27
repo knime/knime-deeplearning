@@ -89,7 +89,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 		} else if (t.equals(long.class)) {
 			return DLWritableLongBuffer.class;
 		} else {
-			throw new IllegalArgumentException("No matching buffer type.");
+            throw new IllegalArgumentException(
+                "The element type '" + t.getTypeName() + "' of tensor '" + spec.getName() + "' is not supported.");
 		}
 	}
 
@@ -105,7 +106,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 		} else if (t.equals(long.class)) {
 			return DLReadableLongBuffer.class;
 		} else {
-			throw new IllegalArgumentException("No matching buffer type.");
+            throw new IllegalArgumentException(
+                "The element type '" + t.getTypeName() + "' of tensor '" + spec.getName() + "' is not supported.");
 		}
 	}
 

@@ -72,6 +72,7 @@ import org.knime.dl.base.settings.DLDataTypeColumnFilter;
 import org.knime.dl.base.settings.DLInputConfig;
 import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.util.DLUtils;
 
@@ -99,11 +100,11 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
     private final DLTensorRole m_tensorRole;
 
     private final List<BiConsumer<?, ?>> m_listeners = new ArrayList<>();
-    
+
     private DataTableSpec m_tableSpec;
 
     /**
-     * 
+     *
      * @param cfg stores the configuration of this input
      * @param tensorSpec the spec of the tensor which will be fed with the input data
      * @param header the string displayed above the column selection e.g. "Input columns:"
@@ -148,18 +149,18 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
 
     /**
      * Adds <b>listener</b> to the managed listeners and returns it.
-     * 
+     *
      * @param listener to add
      * @return <b>listener</b>
      */
-    protected <T, U> BiConsumer<T, U> addListener(BiConsumer<T, U> listener) {
+    protected <T, U> BiConsumer<T, U> addListener(final BiConsumer<T, U> listener) {
         m_listeners.add(listener);
         return listener;
     }
 
     /**
      * Checks if the user configuration makes sense and saves it in the config.
-     * 
+     *
      * @param settings the settings to save to
      * @throws InvalidSettingsException if the user configuration is invalid
      */
@@ -172,7 +173,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
     }
 
     @Override
-    public final void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
+    public final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         throw new UnsupportedOperationException(
             "This class should only be loaded with DLInputPanel#loadSettingsFrom(NodeSettingsRO, DataTableSpec).");
@@ -180,7 +181,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
 
     /**
      * Loads the configuration stored in <b>settings</b>.
-     * 
+     *
      * @param settings the settings to load
      * @param tableSpec
      * @throws NotConfigurableException if the configuration can't be loaded
@@ -203,12 +204,17 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
         assert m_tableSpec != null;
         final DLContext<?> context = m_cfg.getGeneralConfig().getContextEntry().getValue();
         DLConverterRefresher converterRefresher;
-        try {
             final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
                 Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
-            converterRefresher = new DLConverterRefresher(m_tableSpec,
-                context.getTensorFactory().getWritableBufferType(m_inputTensorSpec), m_inputTensorSpec, false,
-                nameComparator);
+        final Class<? extends DLWritableBuffer> bufferType;
+        try {
+            bufferType = context.getTensorFactory().getWritableBufferType(m_inputTensorSpec);
+        } catch (final IllegalArgumentException e) {
+            throw new NotConfigurableException(e.getMessage());
+        }
+        try {
+            converterRefresher =
+                new DLConverterRefresher(m_tableSpec, bufferType, m_inputTensorSpec, false, nameComparator);
         } catch (final DLNoConverterAvailableException e) {
             throw new NotConfigurableException(e.getLongMessage());
         }
@@ -218,7 +224,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
 
     /**
      * @return the spec this panel represents
-     * 
+     *
      */
     public DLTensorSpec getTensorSpec() {
         return m_inputTensorSpec;
@@ -230,7 +236,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
     @SuppressWarnings({"unchecked", "rawtypes"}) // we brute force anyway
     public void unregisterListeners() {
         // brute force just try all config entries where we registered a listener
-        for (BiConsumer listener : m_listeners) {
+        for (final BiConsumer listener : m_listeners) {
             m_cfg.getGeneralConfig().getContextEntry().removeValueChangeListener(listener);
             m_cfg.getConverterEntry().removeValueChangeListener(listener);
         }
