@@ -505,7 +505,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         if (validationInputProvider != null) {
             b.n("validation_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
                 .a(validationInputProvider.getNumBatches()).a(", network.spec.training_config.validation_batch_size, ")
-                .as("request_validation_data").a(")");
+                .as("request_validation_data").a(", is_validation_data=True)");
         } else {
             b.n("validation_data_supplier = None");
         }
@@ -862,8 +862,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
                 final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
                 final TableChunker tableChunker = m_singleTensorTableChunkerCreator.apply(entry.getKey(), tensor);
                 try {
-                    // TODO: Different identifiers for validation input (e.g. to allow pre-fetching on Python side...)?
-                    m_context.putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, m_monitor);
+                    m_context.putDataInKernel(entry.getKey().getIdentifierString() + "_validation", tableChunker, 1,
+                        m_monitor);
                 } catch (final IOException ex) {
                     throw new IOException("Transmitting validation data to Python failed.", ex);
                 } finally {

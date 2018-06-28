@@ -53,7 +53,7 @@ from DLPythonNetworkTrainingInputGenerator import DLPythonNetworkTrainingInputGe
 
 
 class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator):
-    def __init__(self, network, steps, batch_size, message_category):
+    def __init__(self, network, steps, batch_size, message_category, is_validation_data=False):
         assert network is not None
         input_names = [s.identifier for s in network.spec.input_specs]
         target_names = [s.identifier for s in network.spec.output_specs]
@@ -61,6 +61,7 @@ class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator
         self._network = network
         self._message_category = message_category
         self._request_from_java = None
+        self._is_validation_data = is_validation_data
 
     @property
     def request_from_java(self):
@@ -75,10 +76,12 @@ class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator
         # TODO: pre-allocate dictionaries
         training_data = {}
         for input_name in self._input_names:
-            training_data[input_name] = global_workspace()[input_name]
+            workspace_input_name = input_name + "_validation" if self._is_validation_data else input_name
+            training_data[input_name] = global_workspace()[workspace_input_name]
         target_data = {}
         for target_name in self._target_names:
-            target_data[target_name] = global_workspace()[target_name]
+            workspace_target_name = target_name + "_validation" if self._is_validation_data else target_name
+            target_data[target_name] = global_workspace()[workspace_target_name]
         # TODO: move formatting logic from network to generator, remove dependency on network
         return (self._network._format_input(training_data, self._batch_size),
                 self._network._format_target(target_data, self._batch_size))
