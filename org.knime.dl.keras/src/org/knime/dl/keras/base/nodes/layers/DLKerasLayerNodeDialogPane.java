@@ -80,7 +80,7 @@ import net.miginfocom.swing.MigLayout;
  * 
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialogPane {
+public final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialogPane {
 
     private final StructAccess<MemberReadAccess<?, NodeSettingsRO>> m_settingsRO;
 

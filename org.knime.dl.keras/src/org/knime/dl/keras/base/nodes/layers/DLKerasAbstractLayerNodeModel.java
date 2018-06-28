@@ -84,7 +84,7 @@ import org.knime.dl.util.DLUtils;
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends NodeModel {
+public abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends NodeModel {
 
     protected final T m_layer;
 
@@ -120,7 +120,7 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         }
     }
 
-    void amendBaseNetworkSource(final DLKerasInnerLayer layer, final int index,
+    protected void amendBaseNetworkSource(final DLKerasInnerLayer layer, final int index,
         final DLKerasNetworkPortObjectBase parentPortObject)
         throws InvalidSettingsException, DLInvalidSourceException, IOException {
         if (parentPortObject instanceof DLKerasNetworkPortObject) {
@@ -137,7 +137,7 @@ abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> extends Nod
         }
     }
 
-    void setLayerParent(final DLKerasInnerLayer layer, final int parentIndex,
+    protected void setLayerParent(final DLKerasInnerLayer layer, final int parentIndex,
         final DLKerasNetworkPortObjectSpecBase parentPortObjectSpec) throws InvalidSettingsException {
         final DLKerasInnerLayer innerLayer = layer;
 

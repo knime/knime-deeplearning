@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="dlkerascollectlayer.png" type="Other">
+	<name>Keras Collect Layer</name>
+
+	<shortDescription>
+		A layer that just collects the outputs of its input layers.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			A layer that just collects the outputs of its input layers.
+		Its main purpose is the creation of networks with multiple outputs which otherwise wouldn't
+		be possible.
+		</intro>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network that is the first input of this
+			<tt>Collect</tt>
+			layer.
+		</inPort>
+		<inPort index="1" name="Deep Learning Network">
+			The Keras deep learning network that is the second input of this
+			<tt>Collect</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The two input Keras deep learning networks merged into one by the added
+			<tt>Collect</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>
