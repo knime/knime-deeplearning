@@ -46,11 +46,8 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
-import java.util.Set;
 
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -58,9 +55,6 @@ import com.google.common.collect.ImmutableSet;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasAddLayer extends DLKerasAbstractParameterFreeMergeLayer {
-
-    private static final Set<Class<?>> ALLOWED_DTYPES =
-        ImmutableSet.of(float.class, double.class, long.class, byte.class, int.class, short.class);
 
     /**
      */
