@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -90,7 +93,8 @@ public abstract class DLKerasAbstractRNNLayerNodeFactory<T extends DLKerasRNNLay
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         try {
-            return new DLKerasLayerNodeDialogPane<>(m_layerType);
+            Integer[] a = IntStream.range(1, m_numHiddenStates + 1).boxed().toArray(Integer[]::new);
+            return new DLKerasLayerNodeDialogPane<>(m_layerType, a);
         } catch (ValidityException e) {
             throw new IllegalStateException(e);
         }

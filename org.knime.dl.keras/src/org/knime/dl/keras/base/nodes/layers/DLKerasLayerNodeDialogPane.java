@@ -46,6 +46,10 @@
  */
 package org.knime.dl.keras.base.nodes.layers;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.JPanel;
@@ -83,7 +87,14 @@ final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialo
     private final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> m_settingsWO;
 
     private final SwingWidgetPanel m_panel;
+    
+    private List<Integer> m_optionalPortIndices;
 
+    public DLKerasLayerNodeDialogPane(Class<T> layerType, Integer... optionalPortIndices) throws ValidityException {
+        this(layerType);
+        m_optionalPortIndices = Arrays.asList(optionalPortIndices);
+    }
+    
     public DLKerasLayerNodeDialogPane(Class<T> layerType) throws ValidityException {
         final Struct struct = ParameterStructs.structOf(layerType);
         m_settingsRO = NodeSettingsStructs.createStructROAccess(struct);
@@ -95,12 +106,19 @@ final class DLKerasLayerNodeDialogPane<T extends DLKerasLayer> extends NodeDialo
             nodeDialogPanel.add(e.getValue(), "growx");
             addTab(e.getKey(), nodeDialogPanel);
         }
-
+        m_optionalPortIndices = new ArrayList<>();
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        if (specs != null && specs.length > 0) {
+            for (int i = 0; i < specs.length && !m_optionalPortIndices.contains(i); i++) {
+                if (specs[i] == null) {
+                    throw new NotConfigurableException("Can't open configuration dialog. No input provided at port " + i + ".");
+                }
+            }
+        }
         try {
             m_panel.loadFrom(StructInstances.createReadInstance(settings, m_settingsRO), specs);
         } catch (InvalidSettingsException e) {

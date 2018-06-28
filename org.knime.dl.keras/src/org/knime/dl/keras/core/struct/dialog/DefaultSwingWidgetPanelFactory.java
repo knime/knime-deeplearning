@@ -150,13 +150,6 @@ public class DefaultSwingWidgetPanelFactory implements SwingWidgetPanelFactory {
 
         private <T> void load(MemberReadInstance<T> memberInstance, PortObjectSpec[] spec)
             throws InvalidSettingsException {
-            if (spec != null && spec.length > 0) {
-                for (int i = 0; i < spec.length; i++) {
-                    if (spec[i] == null) {
-                        throw new InvalidSettingsException("Can't open configuration dialog. No input provided at port " + i + ".");
-                    }
-                }
-            }
             @SuppressWarnings("unchecked")
             final SwingWidget<T> swingWidget = (SwingWidget<T>)m_widgets.get(memberInstance.member().getKey());
             swingWidget.loadFrom(memberInstance, spec);
