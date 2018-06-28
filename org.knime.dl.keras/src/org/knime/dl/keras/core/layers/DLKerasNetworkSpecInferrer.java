@@ -50,8 +50,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.knime.dl.core.DLDefaultTensorId;
@@ -60,7 +62,10 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
+import org.knime.dl.keras.core.layers.impl.DLKerasCollectLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
+
+import com.google.common.collect.Sets;
 
 import gnu.trove.TIntHashSet;
 
@@ -194,14 +199,26 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] inputSpecs = collectTensorSpecs(layerNameGen, inputSpecsToInfer);
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
+        
+        // the hidden specs may contain duplicates if collect layers are used
+        LinkedHashSet<DLTensorSpec> distinctHiddenSpecs = new LinkedHashSet<>(Arrays.asList(hiddenSpecs));
+        LinkedHashSet<DLTensorSpec> distinctOutputSpecs = new LinkedHashSet<>(Arrays.asList(outputSpecs));
+        
+        // if collect layers are used, output and hidden layers may contain the same specs in which case
+        // those specs are actually outputs
+        Set<DLTensorSpec> nonOutputHiddenSpecs = Sets.difference(distinctHiddenSpecs, distinctOutputSpecs);
 
         // TODO: Only TensorFlow is supported at the moment.
-        m_inferredSpec = new DLKerasTensorFlowNetworkSpec(inputSpecs, hiddenSpecs, outputSpecs);
+        m_inferredSpec = new DLKerasTensorFlowNetworkSpec(inputSpecs,
+            nonOutputHiddenSpecs.toArray(new DLTensorSpec[nonOutputHiddenSpecs.size()]), outputSpecs);
         return m_inferredSpec;
     }
 
     private List<DLTensorSpec> inferTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,
         final DLKerasLayer layer) {
+        if (layer instanceof DLKerasCollectLayer) {
+            return handleCollectLayer((DLKerasCollectLayer)layer);
+        }
         List<DLTensorSpec> tensorSpecs;
         try {
             tensorSpecs = layer.getOutputSpecs();
@@ -212,22 +229,40 @@ public final class DLKerasNetworkSpecInferrer {
         final String layerName = layerNameGen.getNextLayerName(layer);
         for (int i = 0; i < tensorSpecs.size(); i++) {
             final DLTensorSpec tensorSpec = tensorSpecs.get(i);
-            final DLTensorSpec amendedTensorSpec;
             // We cannot represent Keras layer nodes via KNIME nodes (unless we introduce "layer define" and
             // "layer apply" nodes). Thus, the node index is always zero.
             final String tensorName = layerNameGen.getOutputTensorName(layerName, 0, i);
-            if (tensorSpec.getBatchSize().isPresent()) {
-                amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
-                    tensorSpec.getBatchSize().getAsLong(), tensorSpec.getShape(), tensorSpec.getElementType(),
-                    tensorSpec.getDimensionOrder());
-            } else {
-                amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
-                    tensorSpec.getShape(), tensorSpec.getElementType(), tensorSpec.getDimensionOrder());
-            }
-            amendedTensorSpecs.add(amendedTensorSpec);
+            amendedTensorSpecs.add(amendSpec(tensorSpec, tensorName));
         }
         m_layerToTensorMap.put(layer, amendedTensorSpecs);
         return amendedTensorSpecs;
+    }
+    
+    private List<DLTensorSpec> handleCollectLayer(DLKerasCollectLayer layer) {
+        List<DLTensorSpec> collectedParentTensors = new ArrayList<>();
+        for (int i = 0; i < layer.getNumParents(); i++) {
+            DLKerasTensorSpecsOutput parent = layer.getParent(i);
+            List<DLTensorSpec> parentTensors = m_layerToTensorMap.get(parent);
+            if (parentTensors == null) {
+                throw new IllegalStateException("Parents must be visited prior to children.");
+            }
+            collectedParentTensors.addAll(parentTensors);
+        }
+        m_layerToTensorMap.put(layer, collectedParentTensors);
+        return collectedParentTensors;
+    }
+
+    private DLTensorSpec amendSpec(final DLTensorSpec tensorSpec, final String tensorName) {
+        final DLTensorSpec amendedTensorSpec;
+        if (tensorSpec.getBatchSize().isPresent()) {
+            amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
+                tensorSpec.getBatchSize().getAsLong(), tensorSpec.getShape(), tensorSpec.getElementType(),
+                tensorSpec.getDimensionOrder());
+        } else {
+            amendedTensorSpec = new DLDefaultTensorSpec(new DLDefaultTensorId(tensorName), tensorName,
+                tensorSpec.getShape(), tensorSpec.getElementType(), tensorSpec.getDimensionOrder());
+        }
+        return amendedTensorSpec;
     }
 
     private DLTensorSpec[] collectTensorSpecs(final DLKerasNetworkLayerNameGenerator layerNameGen,

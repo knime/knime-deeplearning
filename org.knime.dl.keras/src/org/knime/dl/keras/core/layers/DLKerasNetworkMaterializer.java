@@ -72,6 +72,7 @@ import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
+import org.knime.dl.keras.core.layers.impl.DLKerasCollectLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -118,8 +119,8 @@ public final class DLKerasNetworkMaterializer {
         final DLKerasNetworkSpecInferrer specInferrer = new DLKerasNetworkSpecInferrer(m_outputLayers);
         specInferrer.inferNetworkSpec();
         // Parse layer graph.
-        final DLKerasNetworkMaterializerParser parser = new DLKerasNetworkMaterializerParser(
-            specInferrer.getLayerToTensorMap());
+        final DLKerasNetworkMaterializerParser parser =
+            new DLKerasNetworkMaterializerParser(specInferrer.getLayerToTensorMap());
         new DLKerasNetworkGraphDepthFirstIterator(m_outputLayers).visitAll(parser);
 
         // TODO: Hard-coded for the moment.
@@ -151,6 +152,10 @@ public final class DLKerasNetworkMaterializer {
             // "layerX_2" etc.).
             final StringJoiner generatedCodeJoiner = new StringJoiner("\n");
             for (final DLKerasTensorSpecsOutput layer : layersSortedByDepth) {
+                if (layer instanceof DLKerasCollectLayer) {
+                    // collect layers don't add any python code
+                    continue;
+                }
                 generatedCodeJoiner.add(parser.m_codeLinesToGenerate.get(layer).apply(layerNameGen));
             }
             final String generatedCode = generatedCodeJoiner.toString();
@@ -202,16 +207,14 @@ public final class DLKerasNetworkMaterializer {
         for (final DLKerasBaseNetworkHelperStruct baseNetworkHelper : baseNetworks.values()) {
             baseNetworkSpecs.add(baseNetworkHelper.m_networkSpec);
             try {
-                final DLPythonNetworkHandle baseNetworkHandle =
-                    loader.load(baseNetworkHelper.m_networkSource.getURI(),
-                        commands.getContext(DLNotCancelable.INSTANCE), true, DLNotCancelable.INSTANCE);
+                final DLPythonNetworkHandle baseNetworkHandle = loader.load(baseNetworkHelper.m_networkSource.getURI(),
+                    commands.getContext(DLNotCancelable.INSTANCE), true, DLNotCancelable.INSTANCE);
                 final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
                     .n("import DLPythonNetwork") //
                     .n("DLPythonNetwork.add_network(") //
                     /**/ .a("DLPythonNetwork.get_network(").as(baseNetworkHandle.getIdentifier()).a("), ") //
                     /**/ .as(baseNetworkHelper.m_variable).a(")");
-                commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(),
-                    DLNotCancelable.INSTANCE);
+                commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
             } catch (final DLCanceledExecutionException e) {
                 // Won't happen
             }
@@ -278,7 +281,7 @@ public final class DLKerasNetworkMaterializer {
          *
          */
         public DLKerasNetworkMaterializerParser(
-            final Map<DLKerasTensorSpecsOutput,List<DLTensorSpec>> layerToTensorSpecMap) {
+            final Map<DLKerasTensorSpecsOutput, List<DLTensorSpec>> layerToTensorSpecMap) {
             m_layerToTensorSpecMap = layerToTensorSpecMap;
         }
 
@@ -294,15 +297,20 @@ public final class DLKerasNetworkMaterializer {
         public void visitHidden(final DLKerasInnerLayer innerLayer) throws Exception {
             final List<String> parentVariables = extractParentVariables(innerLayer);
             final List<String> tensorVariables = getTensorVariables(innerLayer);
-            m_codeLinesToGenerate.put(innerLayer, gen -> String.join(", ", tensorVariables) + " = "
-                + innerLayer.getBackendRepresentation(gen.getNextLayerName(innerLayer)) //
-                + '(' + innerLayer.populateCall(parentVariables)
-                + ')');
+            if (innerLayer instanceof DLKerasCollectLayer) {
+//                m_codeLinesToGenerate.put(innerLayer, gen ->
+//                    String.join(", ", tensorVariables) + " = " + String.join(", ", parentVariables));
+            } else {
+                m_codeLinesToGenerate.put(innerLayer,
+                    gen -> String.join(", ", tensorVariables) + " = "
+                        + innerLayer.getBackendRepresentation(gen.getNextLayerName(innerLayer)) //
+                        + '(' + innerLayer.populateCall(parentVariables) + ')');
+            }
         }
 
         private List<String> getTensorVariables(final DLKerasTensorSpecsOutput tensorSpecsOutput) {
-            return getTensorSpecs(tensorSpecsOutput).stream()
-                    .map(s -> m_tensorVariables.get(s.getIdentifier())).collect(Collectors.toList());
+            return getTensorSpecs(tensorSpecsOutput).stream().map(s -> m_tensorVariables.get(s.getIdentifier()))
+                .collect(Collectors.toList());
         }
 
         private List<String> extractParentVariables(final DLKerasInnerLayer innerLayer) {
@@ -316,9 +324,9 @@ public final class DLKerasNetworkMaterializer {
                     addTensorVariables(parent);
                     variable = m_tensorVariables.get(inputSpec.getIdentifier());
                 }
-                if (variable  == null) {
-                    throw new IllegalStateException("Can't find variable for tensor "
-                            + inputSpec + " after adding all tensors of respective parent.");
+                if (variable == null) {
+                    throw new IllegalStateException("Can't find variable for tensor " + inputSpec
+                        + " after adding all tensors of respective parent.");
                 }
                 parentVariables.add(variable);
             }
@@ -344,9 +352,8 @@ public final class DLKerasNetworkMaterializer {
         public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
             final List<String> tensorVariable = getTensorVariables(inputLayer);
             m_inputVariables.addAll(tensorVariable);
-            m_codeLinesToGenerate.put(inputLayer,
-                gen -> String.join(", ",tensorVariable) + " = "
-                        + inputLayer.getBackendRepresentation(gen.getNextLayerName(inputLayer)));
+            m_codeLinesToGenerate.put(inputLayer, gen -> String.join(", ", tensorVariable) + " = "
+                + inputLayer.getBackendRepresentation(gen.getNextLayerName(inputLayer)));
         }
 
         @Override
@@ -373,8 +380,8 @@ public final class DLKerasNetworkMaterializer {
                 // TODO: Support appending to hidden layers.
                 final List<String> tensorVariable = getTensorVariables(baseNetworkOutput);
                 final String baseNetworkVariable = baseNetworkHelper.m_variable;
-                m_codeLinesToGenerate.put(baseNetworkOutput,
-                    gen -> String.join(", ", tensorVariable) + " = " + baseNetworkVariable + ".outputs" + (tensorVariable.size() == 1 ? "[0]" : ""));
+                m_codeLinesToGenerate.put(baseNetworkOutput, gen -> String.join(", ", tensorVariable) + " = "
+                    + baseNetworkVariable + ".outputs" + (tensorVariable.size() == 1 ? "[0]" : ""));
             }
             final int baseNetworkOutputIndex = baseNetworkOutput.getBaseNetworkOutputIndex();
             baseNetworkHelper.m_connectedOutputs.add(baseNetworkOutputIndex);
@@ -411,6 +418,5 @@ public final class DLKerasNetworkMaterializer {
             m_networkSource = networkSource;
         }
     }
-    
 
 }
