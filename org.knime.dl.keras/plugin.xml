@@ -468,6 +468,11 @@
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.convlstm2d.DLKerasConvLSTM2DLayerNodeFactory">
       </node>
+      <node
+            category-path="/labs/deeplearning/keras/layers/"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.layers.collect.DLKerasCollectLayerNodeFactory">
+      </node>
   </extension>
    <extension
          point="org.knime.dl.DLNetworkExporter">
