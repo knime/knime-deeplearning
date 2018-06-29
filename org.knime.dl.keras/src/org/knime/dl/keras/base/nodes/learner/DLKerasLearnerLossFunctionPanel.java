@@ -47,6 +47,7 @@
 package org.knime.dl.keras.base.nodes.learner;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.Comparator;
@@ -56,6 +57,7 @@ import java.util.stream.Collectors;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -100,6 +102,8 @@ final class DLKerasLearnerLossFunctionPanel {
         CustomLossFunctionTextArea customCodeArea = new CustomLossFunctionTextArea();
         customCodeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
         m_customCodeArea = new RTextScrollPane(customCodeArea);
+        m_customCodeArea.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        m_customCodeArea.setPreferredSize(new Dimension(1, 350));
 
         JRadioButton useStandardLossFunction = new JRadioButton("Standard loss function");
         JRadioButton useCustomLossFunction = new JRadioButton("Custom loss function");
