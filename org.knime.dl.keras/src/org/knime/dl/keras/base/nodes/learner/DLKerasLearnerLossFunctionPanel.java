@@ -58,8 +58,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -156,33 +154,6 @@ final class DLKerasLearnerLossFunctionPanel {
     void loadSettings() throws NotConfigurableException {
         refreshAvailableLossFunctions();
         CustomLossFunctionDocument doc = new CustomLossFunctionDocument(m_cfg.getCustomLossFunctionEntry().getValue().getCustomCodeDialog());
-        doc.addDocumentListener(new DocumentListener() {
-            private int m_lastLineCount = m_customCodeArea.getTextArea().getLineCount();
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                updateIfLineCountChanged();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                updateIfLineCountChanged();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                updateIfLineCountChanged();
-            }
-            
-            private void updateIfLineCountChanged() {
-                int newLineCount = m_customCodeArea.getTextArea().getLineCount();
-                if (newLineCount != m_lastLineCount) {
-                    m_lastLineCount = newLineCount;
-                    m_panel.revalidate();
-                }
-            }
-            
-        });
         m_customCodeArea.getTextArea().setDocument(
             doc);
     }
