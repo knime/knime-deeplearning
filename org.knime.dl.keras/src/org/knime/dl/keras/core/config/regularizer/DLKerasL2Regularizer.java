@@ -77,7 +77,7 @@ public final class DLKerasL2Regularizer extends DLKerasAbstractConfigObject impl
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        namedParams.put("l2", DLPythonUtils.toPython(m_l2));
+        namedParams.put("l", DLPythonUtils.toPython(m_l2));
     }
 
 }
