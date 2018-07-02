@@ -228,7 +228,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
             m_tuple.setEnabled(enabled);
             m_errorMessage.setEnabled(enabled);
             if (enabled) {
-                m_errorPanel.setCollapsed(false);
+                updateStatus();
             } else {
                 m_errorPanel.setCollapsed(true);
             }
