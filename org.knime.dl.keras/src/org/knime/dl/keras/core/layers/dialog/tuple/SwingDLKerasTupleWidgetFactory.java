@@ -189,7 +189,8 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
                 m_errorMessage.setText(e.getMessage());
                 return false;
             }
-
+            // Clear the error message if the text is OK
+            m_errorMessage.setText("");
             return true;
         }
 
