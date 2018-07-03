@@ -101,7 +101,7 @@ final class DLKerasLearnerLossFunctionPanel {
         customCodeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
         m_customCodeArea = new RTextScrollPane(customCodeArea);
         m_customCodeArea.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        m_customCodeArea.setPreferredSize(new Dimension(1, 350));
+        m_customCodeArea.setPreferredSize(new Dimension(1, 155));
 
         JRadioButton useStandardLossFunction = new JRadioButton("Standard loss function");
         JRadioButton useCustomLossFunction = new JRadioButton("Custom loss function");
