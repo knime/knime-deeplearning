@@ -268,25 +268,11 @@ public class DLKerasTuple {
      * @return the Python representation of this tuple
      */
     public String toPytonTuple() {
-        return toPytonTuple(false);
-    }
-
-    /**
-     * @param increment whether to add plus one to each value before converting to string
-     * 
-     * @return the Python representation of this tuple
-     */
-    public String toPytonTuple(final boolean increment) {
         if (m_tuple == null) {
             return DLPythonUtils.NONE;
         }
-        if (increment) {
-            return DLPythonUtils.toPythonTuple(
-                Arrays.stream(m_tuple).map(l -> l + 1).map(l -> String.valueOf(l)).toArray(String[]::new));
-        } else {
-            return DLPythonUtils
-                .toPythonTuple(Arrays.stream(m_tuple).map(l -> String.valueOf(l)).toArray(String[]::new));
-        }
+        return DLPythonUtils
+                .toPythonTuple(Arrays.stream(m_tuple).map(DLPythonUtils::toPython).toArray(String[]::new));
     }
 
     /**
