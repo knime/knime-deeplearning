@@ -116,7 +116,16 @@ public abstract class DLKerasAbstractFCRNNLayer extends DLKerasAbstractRNNLayer 
 
     @Override
     protected Long[] getOutputShape(Long[] inputShape) {
-        if (returnSequences()) {
+        return getOutputShape(inputShape, returnSequences());
+    }
+    
+    @Override
+    protected Long[] getStateShape(Long[] inputShape) {
+        return getOutputShape(inputShape, false);
+    }
+    
+    private Long[] getOutputShape(Long[] inputShape, boolean sequence) {
+        if (sequence) {
             return new Long[]{inputShape[0], (long)getUnits()};
         } else {
             return new Long[]{(long)getUnits()};

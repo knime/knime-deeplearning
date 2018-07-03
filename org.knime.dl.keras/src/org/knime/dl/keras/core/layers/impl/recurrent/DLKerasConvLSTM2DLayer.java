@@ -204,9 +204,18 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
 
     @Override
     protected Long[] getOutputShape(Long[] inputShape) {
+        return getOutputShape(inputShape, m_returnSequences);
+    }
+    
+    @Override
+    protected Long[] getStateShape(Long[] inputShape) {
+        return getOutputShape(inputShape, false);
+    }
+    
+    private Long[] getOutputShape(Long[] inputShape, boolean sequence) {
         Long[] convShape = getSpatialOutputShape(inputShape);
         Long[] outShape;
-        if (m_returnSequences) {
+        if (sequence) {
             outShape = new Long[inputShape.length];
             outShape[0] = inputShape[0];
             IntStream.range(1, outShape.length).forEach(i -> outShape[i] = convShape[i - 1]);

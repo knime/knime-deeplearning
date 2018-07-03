@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.recurrent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -218,10 +219,17 @@ abstract class DLKerasAbstractRNNLayer extends DLKerasAbstractInnerLayer impleme
 
     @Override
     protected final List<Long[]> inferOutputShapes(List<Long[]> inputShape) {
-        Long[] outShape = getOutputShape(inputShape.get(0));
-        return repeat(outShape, getNumOutputs());
+        Long[] inShape = inputShape.get(0);
+        List<Long[]> outputShapes = new ArrayList<>(getNumOutputs());
+        outputShapes.add(getOutputShape(inShape));
+        if (returnState()) {
+            outputShapes.addAll(repeat(getStateShape(inShape), getNumHiddenStates()));
+        }
+        return outputShapes;
     }
     
     protected abstract Long[] getOutputShape(Long[] inputShape);
+    
+    protected abstract Long[] getStateShape(Long[] inputShape);
 
 }
