@@ -68,7 +68,7 @@ public class FieldParameterMember<T> extends DefaultParameterMember<T> {
 
     private Class<?> m_structType;
 
-    FieldParameterMember(final Field field, final Class<?> structType) {
+    public FieldParameterMember(final Field field, final Class<?> structType) {
         super(fieldType(field, structType), //
             field.getAnnotation(Parameter.class));
         m_field = field;
@@ -80,6 +80,20 @@ public class FieldParameterMember<T> extends DefaultParameterMember<T> {
     public String getKey() {
         final String key = getAnnotation().key();
         return key == null || key.isEmpty() ? m_field.getName() : key;
+    }
+    
+    /**
+     * @return the field
+     */
+    public Field getField() {
+        return m_field;
+    }
+    
+    /**
+     * @return the structType
+     */
+    public Class<?> getStructType() {
+        return m_structType;
     }
 
     /**

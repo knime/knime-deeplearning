@@ -70,7 +70,7 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise shape", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("1", 1, 1000, EnumSet.noneOf(Constraint.class));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL));
 
     @Parameter(label = "Random seed", required = Required.OptionalAndNotEnabled)
     private Long m_seed = null;
@@ -89,8 +89,10 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
-        checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
-                "The noise shape must have the same dimensionality as the input shape including the batch dimension.");
+        if (m_noiseShape != null) {
+            checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
+                    "The noise shape must have the same dimensionality as the input shape including the batch dimension.");
+        }
     }
 
     @Override
@@ -101,7 +103,7 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("rate", DLPythonUtils.toPython(m_rate));
-        namedParams.put("noise_shape", m_noiseShape.toPytonTuple());
+        namedParams.put("noise_shape", m_noiseShape == null ? DLPythonUtils.NONE : m_noiseShape.toPytonTuple());
         namedParams.put("seed", DLPythonUtils.toPython(m_seed));
     }
 }

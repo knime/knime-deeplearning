@@ -63,8 +63,9 @@ import org.knime.dl.keras.core.struct.dialog.SwingWidget;
 import org.knime.dl.keras.core.struct.dialog.SwingWidgetFactory;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.param.Required;
+import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.scijava.util.ClassUtils;
 
 import net.miginfocom.swing.MigLayout;
@@ -91,12 +92,23 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
 
         private JPanel panel;
 
-        private TupleTextField m_textField;
+        private final TupleTextField m_textField;
 
-        private DLKerasTuple m_lastTuple = null;
+        private final DLKerasTuple m_referenceTuple;
 
         public Widget(final Member<DLKerasTuple> model) {
             super(model);
+            
+            m_textField = new TupleTextField();
+            // TODO This only works because all members are FieldParameterMembers, otherwise we get a problem            
+            if (member() instanceof FieldParameterMember) {
+                FieldParameterMember<?> fpm = (FieldParameterMember<?>)member();
+                m_referenceTuple = (DLKerasTuple)fpm.getDefault();
+                m_textField.setReferenceTuple(m_referenceTuple);
+            } else {
+                throw new IllegalStateException(
+                    "The member must be of type FieldParameterMember for DLKerasTupleWidgets.");
+            }
         }
 
         @Override
@@ -105,25 +117,20 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
                 return panel;
 
             panel = new JPanel(new MigLayout("fillx,ins 0 0 0 0", "[fill,grow]"));
-
-            m_textField = new TupleTextField();
             panel.add(m_textField, "growx");
-
             return panel;
         }
 
         @Override
         public void loadFrom(MemberReadInstance<DLKerasTuple> instance, final PortObjectSpec[] spec)
             throws InvalidSettingsException {
-            m_lastTuple = instance.get();
-            m_textField.setReferenceTuple(m_lastTuple);
             m_textField.setTuple(instance.get().getTuple());
         }
 
         @Override
         public void saveTo(MemberWriteInstance<DLKerasTuple> instance) throws InvalidSettingsException {
-            instance.set(new DLKerasTuple(m_textField.getTuple(), m_lastTuple.getMinLength(),
-                m_lastTuple.getMaxLength(), m_lastTuple.getConstraints()));
+            instance.set(new DLKerasTuple(m_textField.getTuple(), m_referenceTuple.getMinLength(),
+                m_referenceTuple.getMaxLength(), m_referenceTuple.getConstraints()));
         }
 
         @Override

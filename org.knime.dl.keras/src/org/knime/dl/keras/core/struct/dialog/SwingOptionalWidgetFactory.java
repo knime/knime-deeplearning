@@ -47,7 +47,7 @@
 
 package org.knime.dl.keras.core.struct.dialog;
 
-import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Optional;
 
 import javax.swing.JCheckBox;
@@ -59,9 +59,9 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
-import org.knime.dl.keras.core.struct.param.Required;
-import org.knime.dl.keras.core.struct.param.ParameterChoices;
+import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
+import org.knime.dl.keras.core.struct.param.Required;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -80,7 +80,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
     public SwingWidget<T> create(final Member<T> model) {
         return new Widget(model);
     }
-
+    
     // -- Helper classes --
 
     private class Widget extends AbstractSwingWidget<T> {
@@ -102,9 +102,9 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
                 return m_panel;
 
             m_panel = new JPanel(new MigLayout("ins 0 0 0 0", "[][fill,grow]"));
-
-            // TODO wrapper
-            m_widget = SwingWidgetRegistry.getInstance().createWidget(new ParameterMemberWrapper<T>((ParameterMember<T>)member()));
+            
+            // Set the optional status to required so we don't end up in an endless loop wrapping optional in optional
+            m_widget = SwingWidgetRegistry.getInstance().createWidget(new RequiredFieldParameterMember<T>((FieldParameterMember<T>)member()));
             m_activateBox = new JCheckBox();
             m_activateBox.addItemListener((i) -> {
                 m_widget.setEnabled(m_activateBox.isSelected());
@@ -169,72 +169,6 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
         @Override
         public void setEnabled(boolean enabled) {
             m_widget.setEnabled(enabled);
-        }
-    }
-    
-    private class ParameterMemberWrapper<M> implements ParameterMember<M> {
-        final ParameterMember<M> m_member;
-        
-        /**
-         * @param member 
-         */
-        public ParameterMemberWrapper(final ParameterMember<M> member) {
-            m_member = member;
-        }
-        
-        @Override
-        public Required getOptionalStatus() {
-            return Required.Required;
-        }
-
-        @Override
-        public ParameterChoices<M> choices() {
-            return m_member.choices();
-        }
-
-        @Override
-        public String getKey() {
-            return m_member.getKey();
-        }
-
-        @Override
-        public Type getType() {
-            return m_member.getType();
-        }
-        
-        @Override
-        public String getLabel() {
-            return m_member.getLabel();
-        }
-        
-        @Override
-        public Object getMaximumValue() {
-            return m_member.getMaximumValue();
-        }
-        
-        @Override
-        public Object getMinimumValue() {
-            return m_member.getMinimumValue();
-        }
-        
-        @Override
-        public Object getStepSize() {
-            return m_member.getStepSize();
-        }
-        
-        @Override
-        public Class<M> getRawType() {
-            return m_member.getRawType();
-        }
-        
-        @Override
-        public String getTab() {
-            return m_member.getTab();
-        }
-        
-        @Override
-        public String getWidgetStyle() {
-            return m_member.getWidgetStyle();
         }
     }
 }

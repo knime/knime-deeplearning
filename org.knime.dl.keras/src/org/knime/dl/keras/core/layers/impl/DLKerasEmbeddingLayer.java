@@ -103,7 +103,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Input length", required = Required.OptionalAndNotEnabled)
     private DLKerasTuple m_inputLength =
-        new DLKerasTuple("1", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL, Constraint.EMPTY)));
+        new DLKerasTuple("1", 1, 1000, EnumSet.noneOf(Constraint.class));
 
     /**
      * Constructor for embedding layers.
@@ -126,6 +126,9 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     }
 
     private boolean hasInputLength() {
+        if (m_inputLength == null) {
+            return false;
+        }
         return m_inputLength.getTuple() != null;
     }
 
@@ -180,6 +183,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         namedParams.put("embeddings_regularizer", DLKerasConfigObjectUtils.toPython(m_embeddingRegularizer));
         namedParams.put("embeddings_constraint", DLKerasConfigObjectUtils.toPython(m_constraint));
         namedParams.put("mask_zero", DLPythonUtils.toPython(m_maskZero));
-        namedParams.put("input_length", m_inputLength.toPytonTuple());
+        namedParams.put("input_length", m_inputLength == null ? DLPythonUtils.NONE : m_inputLength.toPytonTuple());
     }
 }

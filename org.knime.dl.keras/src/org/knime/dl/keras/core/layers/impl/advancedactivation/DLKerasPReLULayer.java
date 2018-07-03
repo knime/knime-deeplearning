@@ -81,7 +81,7 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     private DLKerasConstraint m_alphaConstraint = null;
 
     @Parameter(label = "Shared axes", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_sharedAxes = new DLKerasTuple("", 1, 1000, EnumSet.complementOf(EnumSet.of(Constraint.PARTIAL)));
+    private DLKerasTuple m_sharedAxes = new DLKerasTuple("1", 1, 1000, EnumSet.of(Constraint.ZERO, Constraint.NEGATIVE));
 
     /**
      */

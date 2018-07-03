@@ -71,17 +71,33 @@ public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAcce
     public T get(NodeSettingsRO settings) throws InvalidSettingsException {
         final String key = m_member.getKey();
         
+        Optional<Boolean> isEnabled = Optional.empty();
         // Additionally load the enabled status of the member
         final String enabledKey = key + "." + DefaultParameterMember.SETTINGS_KEY_ENABLED;
         if(settings.containsKey(enabledKey) && m_member instanceof DefaultParameterMember) {
             DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)m_member;
-            dpm.setIsEnabled(Optional.of(settings.getBoolean(enabledKey)));
+            isEnabled = Optional.of(settings.getBoolean(enabledKey));
+            dpm.setIsEnabled(isEnabled);
         }
         
+        // there are settings available
         if (settings.containsKey(key)) {
             return get(settings, m_member.getKey());
+        // no settings available
         } else if (m_member instanceof FieldParameterMember) {
-            return ((FieldParameterMember<T>)m_member).getDefault();
+            // and no enabled status yet set, so the dialog is opened the first time
+            FieldParameterMember<T> fpm = ((FieldParameterMember<T>)m_member);
+            if (!isEnabled.isPresent()) {
+                return fpm.getDefault();
+            } else {   
+                // enabled status present but not enabled
+                if (!isEnabled.get()) {
+                    return null;
+                // enabled status present and enabled
+                } else {
+                    return fpm.getDefault();
+                }
+            }
         }
         return null;
     }
