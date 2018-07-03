@@ -9,19 +9,21 @@
 	<fullDescription>
 		<intro>
 			An embedding network layer.
-			This layer receives a sequence of integer indices and learns to embed those into
+			This layer receives a sequence of non-negative integer indices and learns to embed those into
 			a high dimensional vector (the size of which is specified by output dimension).
-			This layer can only be used as the first layer in a model.
+			This layer can only be used as the first layer in a model (after the input layer).
 			Corresponds to the
 			<a href="https://keras.io/layers/embeddings/">Embedding Keras layer</a>.
-			Note that Keras' documentation is outdated.
+			Note that the Keras documentation is outdated.
 			The input to this layer can be of arbitrary rank and the output of this layer will have to be a tensor with one additional dimension.
+			The inputs to this layer i.e. the values fed in the learner or executor must be integers in the interval [0, n] where n is the specified input dimension.
 		</intro>
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
 		</option>
 		<option name="Input dimension">
 			Size of vocabulary, i.e. maximum integer index + 1.
+			The inputs to this layer during execution or learning must be integers in the interval [0, n] where n is the specified input dimension.
 		</option>
 		<option name="Output dimension">
 			Dimension of the dense embedding.
