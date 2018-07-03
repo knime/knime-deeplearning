@@ -11,14 +11,11 @@
 			A layer that computes a dot product between samples in two inputs.
 			Corresponds to the
 			<a href="https://keras.io/layers/merge/#dot">Dot Keras layer</a>
-			. The axis along which to calculate the dot product must be of the same size for both inputs.
+			.
+			In contrast to the <a href="https://keras.io/layers/merge/#dot">Dot Keras layer</a> we currently support only 1D tensors.
 		</intro>
 		<option name="Name prefix">
 			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
-		</option>
-		<option name="Axes">
-			A comma separated pair of integers that specifies along which axis to compute the dot product.
-			Note that axis 0 is the batch axis.
 		</option>
 		<option name="Normalize">
 			Whether to L2-normalize samples along the dot product axis before taking the dot product.

@@ -46,8 +46,6 @@
  */
 package org.knime.dl.keras.core.layers.impl.merge;
 
-import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,8 +58,6 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractBinaryInnerLayer;
 import org.knime.dl.keras.core.layers.DLKerasMergeLayer;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -72,8 +68,9 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements DLKerasMergeLayer {
 
-    @Parameter(label = "Axes")
-    private DLKerasTuple m_axes = new DLKerasTuple("-1, -1", 2, 2, EnumSet.of(Constraint.NEGATIVE));
+    // Uncomment once we support higher dimensional tensors (see AP-9774)
+//    @Parameter(label = "Axes")
+//    private DLKerasTuple m_axes = new DLKerasTuple("-1, -1", 2, 2, EnumSet.of(Constraint.NEGATIVE));
 
     @Parameter(label = "Normalize")
     private boolean m_normalize = false;
@@ -86,35 +83,29 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        // nothing to validate
     }
 
     @Override
     protected void validateInputShapes(Long[] firstInputShape, Long[] secondInputShape)
         throws DLInvalidTensorSpecException {
+        checkInputSpec(firstInputShape.length == 1 && secondInputShape.length == 1, 
+                "Currently only 1D tensors are supported but the inputs were " + DLPythonUtils.toPython(firstInputShape) 
+                + " and " + DLPythonUtils.toPython(secondInputShape) + ".");
         try {
-            int[] actualAxes = getAxes(firstInputShape.length, secondInputShape.length);
-            if (actualAxes[0] > 0 && actualAxes[1] > 0) {
-                checkInputSpec(DLParameterValidationUtils.dimensionsMatch(firstInputShape[actualAxes[0]],
-                    secondInputShape[actualAxes[1]]), "The axes along which to calculate the dot product must match.");
-            }
+                checkInputSpec(DLParameterValidationUtils.dimensionsMatch(firstInputShape[0],
+                    secondInputShape[0]), 
+                    "The axes along which to calculate the dot product must match but were " 
+                    + firstInputShape[0] + " and " + secondInputShape[0] + ", respectively.");
         } catch (IllegalArgumentException e) {
             throw new DLInvalidTensorSpecException("Invalid input specs. " + e.getMessage());
         }
     }
 
-    private int[] getAxes(int rank1, int rank2) {
-        int[] actualAxes = new int[2];
-        Long[] axes = m_axes.getTuple();
-        actualAxes[0] = axes[0].intValue();
-        actualAxes[1] = axes.length == 2 ? axes[1].intValue() : actualAxes[0];
-        actualAxes[0] = DLLayerUtils.getAxisIndex(actualAxes[0], rank1);
-        actualAxes[1] = DLLayerUtils.getAxisIndex(actualAxes[1], rank2);
-        return actualAxes;
-    }
 
     @Override
     protected Long[] inferOutputShape(Long[] firstInputShape, Long[] secondInputShape) {
-        int[] axes = getAxes(firstInputShape.length, secondInputShape.length);
+        int[] axes = {0, 0};
         List<Long> outShape =
             Stream.concat(filterDimension(axes[0], firstInputShape), filterDimension(axes[1], secondInputShape))
                 .collect(Collectors.toList());
@@ -130,8 +121,7 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        positionalParams
-            .add(DLPythonUtils.toPython(Arrays.stream(m_axes.getTuple()).mapToInt(d -> d.intValue()).toArray()));
+        positionalParams.add(DLPythonUtils.toPythonTuple(new String[] {"-1", "-1"}));
         namedParams.put("normalize", DLPythonUtils.toPython(m_normalize));
     }
 

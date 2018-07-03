@@ -101,8 +101,8 @@ public final class DLLayerUtils {
 
     /**
      * @param axis the axis index possibly negative similar to Python style negative indexing
-     * @param rank the rank of the input tensor
-     * @return the actual axis index
+     * @param rank the rank of the input tensor (excluding the batch dimension)
+     * @return the actual axis index (into the tensor without the batch dimension)
      * @throws IllegalArgumentException if <b>axis</b> is not compatible with rank e.g. too in magnitude
      * 
      */
