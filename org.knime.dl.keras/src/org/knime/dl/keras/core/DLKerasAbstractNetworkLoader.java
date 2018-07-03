@@ -121,9 +121,14 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 	@Override
 	public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig, final DLCancelable cancelable)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-		try {
-            final URL sourceURL = validateSource(source);
-            File file = FileUtil.getFileFromURL(sourceURL);
+	    final URL sourceURL = validateSource(source);
+        File file = null;
+        try {
+            file = FileUtil.getFileFromURL(sourceURL);
+        } catch (final IllegalArgumentException ex) {
+            // Unknown protocol or resolving failed. Handled below.
+        }
+        try {
 			if (file == null) {
                 file = resolveToTmpFile(RemoteFileHandlerRegistry.getRemoteFileHandler(sourceURL.getProtocol())
                     .createRemoteFile(source, null, null));
