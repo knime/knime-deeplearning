@@ -103,7 +103,7 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
                 return panel;
 
             panel = new JPanel();
-            final MigLayout layout = new MigLayout("", "10[grow]10[]", "");
+            final MigLayout layout = new MigLayout("fillx,ins 0 0 0 0", "[fill,grow]10[]", "");
             panel.setLayout(layout);
 
             m_textField = new JTextField(30);
