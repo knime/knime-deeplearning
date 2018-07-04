@@ -53,9 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -63,9 +61,6 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
-
-    @Parameter(label = "Data format")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -92,6 +87,6 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
     }
 }

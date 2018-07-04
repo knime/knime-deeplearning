@@ -117,9 +117,6 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.SAME;
 
-    @Parameter(label = "Data format")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
     @Parameter(label = "Dilation rate")
     private DLKerasTuple m_dilationRate =
         new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
@@ -185,7 +182,7 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
     protected void validateInputShapes(List<Long[]> inputShapes) throws DLInvalidTensorSpecException {
         Long[] inputShape = inputShapes.get(0);
         checkInputSpec(inputShape.length == INPUT_RANK, "Expected an input with shape " + getShapeString(true) + ".");
-        int channelIdx = m_dataFormat == DLKerasDataFormat.CHANNEL_FIRST ? 1 : INPUT_RANK - 1;
+        int channelIdx = getDataFormat() == DLKerasDataFormat.CHANNEL_FIRST ? 1 : INPUT_RANK - 1;
         checkInputSpec(inputShape[channelIdx] != null, "The number of channels must be defined for the input.");
         if (m_padding == DLKerasPadding.VALID) {
             checkInputSpec(Arrays.stream(getSpatialOutputShape(inputShape)).allMatch(d -> d == null || d > 0),
@@ -228,12 +225,12 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
     private Long[] getSpatialOutputShape(Long[] inputShape) {
         Long[] convShape = Arrays.stream(inputShape).skip(1).toArray(Long[]::new);
         return DLConvolutionLayerUtils.computeOutputShape(convShape, m_filters, m_kernelSize.getTuple(),
-            m_strides.getTuple(), m_dilationRate.getTuple(), m_padding.value(), m_dataFormat.value());
+            m_strides.getTuple(), m_dilationRate.getTuple(), m_padding.value(), getDataFormat().value());
     }
 
     private String getShapeString(boolean withTime) {
         String spatial = "height, width";
-        if (m_dataFormat == DLKerasDataFormat.CHANNEL_FIRST) {
+        if (getDataFormat() == DLKerasDataFormat.CHANNEL_FIRST) {
             return withTime ? "[time, channel, " + spatial + "]" : "[channel, " + spatial + "]";
         } else {
             return withTime ? "[time, " + spatial + ", channel]" : "[" + spatial + ", channel]";
@@ -246,7 +243,7 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
         positionalParams.add(m_kernelSize.toPytonTuple());
         namedParams.put("strides", m_strides.toPytonTuple());
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
         namedParams.put("dilation_rate", m_dilationRate.toPytonTuple());
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("recurrent_activation", DLPythonUtils.toPython(m_recurrentActivation.value()));

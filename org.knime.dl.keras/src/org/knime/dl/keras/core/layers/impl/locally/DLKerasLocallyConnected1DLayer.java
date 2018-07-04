@@ -64,7 +64,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
@@ -94,10 +93,6 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
      */
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
 
-    /**
-     * Effectively 'channels last' in Keras
-     */
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Activation function")
     private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
@@ -153,7 +148,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
         final Long[] kernelSize = {new Long(m_kernelSize)};
         final Long[] strides = {new Long(m_strides)};
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, kernelSize, strides,
-            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
+            DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), getDataFormat().value());
     }
 
     @Override
@@ -162,7 +157,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
         namedParams.put("kernel_size", DLPythonUtils.toPython(m_kernelSize));
         namedParams.put("strides", DLPythonUtils.toPython(m_strides));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));

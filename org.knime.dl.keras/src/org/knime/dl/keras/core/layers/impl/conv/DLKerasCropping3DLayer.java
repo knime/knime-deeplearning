@@ -55,7 +55,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
@@ -78,9 +77,6 @@ public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Cropping dimension 3")
     private DLKerasTuple m_croppingDim3 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
-
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -107,7 +103,7 @@ public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[][] cropping =
             new Long[][]{m_croppingDim1.getTuple(), m_croppingDim2.getTuple(), m_croppingDim3.getTuple()};
-        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, m_dataFormat);
+        return DLConvolutionLayerUtils.computeCroppingOutputShape(inputShape, cropping, getDataFormat());
     }
 
     @Override
@@ -115,6 +111,6 @@ public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
         final Long[][] cropping =
                 new Long[][]{m_croppingDim1.getTuple(), m_croppingDim2.getTuple(), m_croppingDim3.getTuple()};
         namedParams.put("cropping", DLPythonUtils.toPython(cropping));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
     }
 }

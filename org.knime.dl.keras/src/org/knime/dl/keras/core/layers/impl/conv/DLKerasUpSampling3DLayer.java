@@ -54,7 +54,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -69,9 +68,6 @@ public final class DLKerasUpSampling3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Size")
     private DLKerasTuple m_size = new DLKerasTuple("2, 2, 2");
-
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -92,12 +88,12 @@ public final class DLKerasUpSampling3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, m_size.getTuple(), m_dataFormat);
+        return DLConvolutionLayerUtils.computeUpSamplingOutputShape(inputShape, m_size.getTuple(), getDataFormat());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("size", m_size.toPytonTuple());
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
     }
 }

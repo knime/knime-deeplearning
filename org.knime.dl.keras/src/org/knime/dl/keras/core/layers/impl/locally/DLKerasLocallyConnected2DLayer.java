@@ -64,7 +64,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
@@ -94,9 +93,6 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
      * Only "valid" is allowed for Locally Connected in Keras
      */
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
-
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Activation function")
     private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
@@ -149,7 +145,7 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, m_kernelSize.getTuple(), m_strides.getTuple(),
-            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding.value(), m_dataFormat.value());
+            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding.value(), getDataFormat().value());
     }
 
     @Override
@@ -158,7 +154,7 @@ public final class DLKerasLocallyConnected2DLayer extends DLKerasAbstractUnaryLa
         namedParams.put("kernel_size", m_kernelSize.toPytonTuple());
         namedParams.put("strides", m_strides.toPytonTuple());
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));
         namedParams.put("kernel_initializer", DLKerasConfigObjectUtils.toPython(m_kernelInitializer));

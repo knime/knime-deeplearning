@@ -64,7 +64,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
@@ -92,9 +91,6 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
 
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
-
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Dilation rate")
     private DLKerasTuple m_dilationRate = new DLKerasTuple("1, 1");
@@ -150,7 +146,7 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         return DLConvolutionLayerUtils.computeDeconv2DOutputShape(inputShape, m_filters, m_kernelSize.getTuple(), m_strides.getTuple(),
-            m_dataFormat, m_padding);
+            getDataFormat(), m_padding);
     }
 
     @Override
@@ -159,7 +155,7 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
         namedParams.put("kernel_size", m_kernelSize.toPytonTuple());
         namedParams.put("strides", m_strides.toPytonTuple());
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
         namedParams.put("dilation_rate", m_dilationRate.toPytonTuple());
         namedParams.put("activation", DLPythonUtils.toPython(m_activation.value()));
         namedParams.put("use_bias", DLPythonUtils.toPython(m_useBias));

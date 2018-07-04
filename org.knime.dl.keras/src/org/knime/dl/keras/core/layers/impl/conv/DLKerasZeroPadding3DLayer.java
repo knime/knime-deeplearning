@@ -55,7 +55,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
@@ -78,9 +77,6 @@ public final class DLKerasZeroPadding3DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Padding dimension 3")
     private DLKerasTuple m_paddingDim3 = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
 
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
-
     /**
      * Constructor
      */
@@ -102,7 +98,7 @@ public final class DLKerasZeroPadding3DLayer extends DLKerasAbstractUnaryLayer {
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[][] padding =
             new Long[][]{m_paddingDim1.getTuple(), m_paddingDim2.getTuple(), m_paddingDim3.getTuple()};
-        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, m_dataFormat);
+        return DLConvolutionLayerUtils.computePaddingOutputShape(inputShape, padding, getDataFormat());
     }
 
     @Override
@@ -110,6 +106,6 @@ public final class DLKerasZeroPadding3DLayer extends DLKerasAbstractUnaryLayer {
         final Long[][] padding =
             new Long[][]{m_paddingDim1.getTuple(), m_paddingDim2.getTuple(), m_paddingDim3.getTuple()};
         namedParams.put("padding", DLPythonUtils.toPython(padding));
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
     }
 }

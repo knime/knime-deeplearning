@@ -54,9 +54,7 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -65,9 +63,6 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
-
-    @Parameter(label = "Data format")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -89,11 +84,11 @@ public final class DLKerasGlobalMaxPooling2DLayer extends DLKerasAbstractUnaryLa
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, m_dataFormat.value());
+        return DLConvolutionLayerUtils.computeGlobalPoolingOutputShape(inputShape, getDataFormat().value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
     }
 }

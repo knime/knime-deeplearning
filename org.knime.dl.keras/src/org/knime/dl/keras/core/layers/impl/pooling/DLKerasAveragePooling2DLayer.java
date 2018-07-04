@@ -54,7 +54,6 @@ import org.knime.dl.keras.core.layers.DLConvolutionLayerUtils;
 import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
@@ -74,9 +73,6 @@ public final class DLKerasAveragePooling2DLayer extends DLKerasAbstractUnaryLaye
 
     @Parameter(label = "Strides")
     private DLKerasTuple m_strides = new DLKerasTuple("1, 1");
-
-    @Parameter(label = "Data format", tab = "Advanced")
-    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.VALID;
@@ -105,14 +101,14 @@ public final class DLKerasAveragePooling2DLayer extends DLKerasAbstractUnaryLaye
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
         return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_poolSize.getTuple(), m_strides.getTuple(),
-            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding.value(), m_dataFormat.value());
+            DLConvolutionLayerUtils.DEFAULT_2D_DILATION, m_padding.value(), getDataFormat().value());
     }
 
     @Override
     protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
         namedParams.put("pool_size", m_poolSize.toPytonTuple());
         namedParams.put("strides", m_strides.toPytonTuple());
-        namedParams.put("data_format", DLPythonUtils.toPython(m_dataFormat.value()));
+        namedParams.put("data_format", DLPythonUtils.toPython(getDataFormat().value()));
         namedParams.put("padding", DLPythonUtils.toPython(m_padding.value()));
     }
 }
