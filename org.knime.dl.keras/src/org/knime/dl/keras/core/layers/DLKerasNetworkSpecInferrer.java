@@ -128,7 +128,21 @@ public final class DLKerasNetworkSpecInferrer {
 
             @Override
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
-                inputSpecsToInfer.add(gen -> inferTensorSpecs(gen, inputLayer));
+                final Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>> inferInputHiddenTensorSpecs =
+                    new Function<DLKerasNetworkLayerNameGenerator, List<DLTensorSpec>>() {
+
+                        private List<DLTensorSpec> m_inputHiddenTensorSpec;
+
+                        @Override
+                        public List<DLTensorSpec> apply(final DLKerasNetworkLayerNameGenerator gen) {
+                            if (m_inputHiddenTensorSpec == null) {
+                                m_inputHiddenTensorSpec = inferTensorSpecs(gen, inputLayer);
+                            }
+                            return m_inputHiddenTensorSpec;
+                        }
+                    };
+                inputSpecsToInfer.add(inferInputHiddenTensorSpecs);
+                hiddenSpecsToInfer.add(inferInputHiddenTensorSpecs);
             }
 
             @Override
@@ -157,9 +171,9 @@ public final class DLKerasNetworkSpecInferrer {
                     bno -> Arrays.asList(baseNetworkSpec.getOutputSpecs()));
                 // Re-use base network if it's already connected to another layer.
                 // TODO: This behavior may not be intended.
-                DLKerasBaseNetworkSpecHelperStruct baseNetworkHelper =
+                final DLKerasBaseNetworkSpecHelperStruct baseNetworkHelper =
                     baseNetworkSpecs.computeIfAbsent(baseNetworkSpec, bns -> {
-                        DLKerasBaseNetworkSpecHelperStruct bnh =
+                        final DLKerasBaseNetworkSpecHelperStruct bnh =
                             new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
                         baseNetworkSpecs.put(baseNetworkSpec, bnh);
                         inputSpecsToInfer.add(bnh::inferInputTensorSpecs);
