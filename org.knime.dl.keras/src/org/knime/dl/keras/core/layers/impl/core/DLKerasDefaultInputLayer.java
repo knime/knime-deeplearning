@@ -58,6 +58,7 @@ import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.layers.DLKerasAbstractLayer;
+import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasDataType;
 import org.knime.dl.keras.core.layers.DLKerasInputLayer;
 import org.knime.dl.keras.core.layers.DLKerasTensorSpecsOutput;
@@ -84,6 +85,9 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     // TODO: Fetch available types from DLPythonNumPyTypeMap via supplier.
     @Parameter(label = "Data type")
     private DLKerasDataType m_dataType = DLKerasDataType.FLOAT_32;
+    
+    @Parameter(label = "Data format")
+    private DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;
 
     /**
      * Constructor
@@ -100,7 +104,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
     private DLDefaultTensorSpec createTensorSpec() {
         final DLTensorShape shape = DLUtils.Shapes.shapeFromLongArray(getShape());
         final Class<?> elementType = DLPythonNumPyTypeMap.INSTANCE.getPreferredInternalType(m_dataType.value());
-        final DLDimensionOrder dimensionOrder = DLDimensionOrder.TDHWC;
+        final DLDimensionOrder dimensionOrder = m_dataFormat.getDimensionOrder();
         String name = "dummy";
         DLDefaultTensorId id = new DLDefaultTensorId(name);
         if (m_batchSize == null) {
