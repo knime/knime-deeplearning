@@ -34,18 +34,6 @@
 			<option name="Padding">
 				Locally Connected Layers only support 'valid' padding.
 			</option>
-			<option name="Data format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (height, width,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						height, width)
-					</li>
-				</ul>
-			</option>
 			<option name="Activation function">
 				The activation function to use.
 			</option>

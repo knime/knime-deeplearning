@@ -53,18 +53,6 @@
 					</li>
 				</ul>
 			</option>
-			<option name="Data format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (spatial_dim1,
-						spatial_dim2, spatial_dim3, channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						spatial_dim1, spatial_dim2, spatial_dim3)
-					</li>
-				</ul>
-			</option>
 			<option name="Dilation rate">
 				A tuple/list of 3 integers, specifying the
 				dilation rate to use for dilated convolution. Currently, specifying

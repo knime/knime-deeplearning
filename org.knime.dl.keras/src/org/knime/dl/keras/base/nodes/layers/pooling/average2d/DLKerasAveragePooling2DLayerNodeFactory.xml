@@ -22,16 +22,6 @@
 			<option name="Pool size">
 				The size of the pooling window in two dimensions.
 			</option>
-			<option name="Data format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (height, width, channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels, height, width)
-					</li>
-				</ul>
-			</option>
 			<option name="Padding">
 				Different padding modes to apply to the spatial dimensions (excluding the batch and channel dimensions) 
 				of the inputs before the pooling operation. The padding will be done with zeroes. A detailed

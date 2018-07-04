@@ -42,10 +42,6 @@
 				Same padding keeps the spatial size of the input intact (provided no stride or dilation is used) while valid padding reduces the size
 				of the input.
 			</option>
-			<option name="Data format">
-				Specifies which dimension is the channel/feature dimension.
-				The default is channels_last which means that the last dimension of the tensor is the channel/feature dimension.
-			</option>
 			<option name="Dilation rate">
 				A comma separated pair of integers specifying the dilation rate to use for dilated convolution.
 				Note that it is not supported to specify a stride value != 1 and a dilation rate value != 1.

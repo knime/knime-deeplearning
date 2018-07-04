@@ -19,18 +19,6 @@
 			<option name="Size">
 				A tuple of three integers. The upsampling factors per dimension.
 			</option>
-			<option name="Data format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (spatial_dim1,
-						spatial_dim2, spatial_dim3, channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						spatial_dim1, spatial_dim2, spatial_dim3)
-					</li>
-				</ul>
-			</option>
 		</tab>
 		<link href="https://www.knime.com/deeplearning/keras">
 			KNIME Deep Learning Keras Integration

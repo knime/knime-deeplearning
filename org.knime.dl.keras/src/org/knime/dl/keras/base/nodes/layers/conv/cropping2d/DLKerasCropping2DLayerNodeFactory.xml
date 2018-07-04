@@ -28,18 +28,6 @@
 				<b>second</b>
 				spatial dimension.
 			</option>
-			<option name="Data format">
-				<ul>
-					<li>
-						channels_last: corresponds to inputs with shape (height, width,
-						channels)
-					</li>
-					<li>
-						channels_first: corresponds to inputs with shape (channels,
-						height, width)
-					</li>
-				</ul>
-			</option>
 		</tab>
 		<link href="https://www.knime.com/deeplearning/keras">
 			KNIME Deep Learning Keras Integration
