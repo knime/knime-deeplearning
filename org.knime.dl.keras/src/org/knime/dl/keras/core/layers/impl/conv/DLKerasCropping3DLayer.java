@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
+import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -96,6 +97,10 @@ public final class DLKerasCropping3DLayer extends DLKerasAbstractUnaryLayer {
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 4);
+
+        final String message =
+            DLParameterValidationUtils.checkCroppingOutputGreaterThanZero(inferOutputShape(inputShape));
+        checkInputSpec(message == null, message);
     }
 
     @Override
