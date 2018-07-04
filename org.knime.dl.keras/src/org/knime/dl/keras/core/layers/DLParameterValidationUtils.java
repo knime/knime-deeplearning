@@ -46,9 +46,9 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.util.Arrays;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
@@ -166,6 +166,55 @@ public final class DLParameterValidationUtils {
             definedAndMatch = d1.equals(d2);
         }
         return bothUndefined || definedAndMatch;
+    }
+
+    /**
+     * Checks if the tensor shape output by a convolution (or convolution-like) operation is greater than zero in all
+     * dimensions.
+     *
+     * @param outputShape array representation of layer output shape
+     * @return {@code null} if shape is valid, otherwise returns an error message
+     */
+    public static String checkConvolutionOutputGreaterThanZero(final Long[] outputShape) {
+        final String shape = Arrays.toString(outputShape);
+        for (int d = 0; d < outputShape.length; d++) {
+            if (outputShape[d] <= 0)
+                return "Output tensor shape, " + shape
+                    + ", must be greater than zero in all dimensions, kernel size or strides length may be too large.";
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the tensor shape output by a cropping operation is greater than zero in all dimensions.
+     *
+     * @param outputShape array representation of layer output shape
+     * @return {@code null} if shape is valid, otherwise returns an error message
+     */
+    public static String checkCroppingOutputGreaterThanZero(final Long[] outputShape) {
+        final String shape = Arrays.toString(outputShape);
+        for (int d = 0; d < outputShape.length; d++) {
+            if (outputShape[d] <= 0)
+                return "Output tensor shape, " + shape
+                    + ", must be greater than zero in all dimensions, cropping may be too large.";
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the tensor shape output by a pooling operation is greater than zero in all dimensions.
+     *
+     * @param outputShape array representation of layer output shape
+     * @return {@code null} if shape is valid, otherwise returns an error message
+     */
+    public static String checkPoolingOutputGreaterThanZero(final Long[] outputShape) {
+        final String shape = Arrays.toString(outputShape);
+        for (int d = 0; d < outputShape.length; d++) {
+            if (outputShape[d] <= 0)
+                return "Output tensor shape, " + shape
+                    + ", must be greater than zero in all dimensions, pool size or strides may be too large.";
+        }
+        return null;
     }
 
 }
