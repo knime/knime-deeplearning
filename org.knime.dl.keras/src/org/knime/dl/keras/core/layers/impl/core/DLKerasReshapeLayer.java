@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -83,9 +84,17 @@ public final class DLKerasReshapeLayer extends DLKerasAbstractUnaryLayer {
         //TODO instead of only checking the sizes if both shapes are fully defined we could calculate the unknown dimension and still check
         Long[] target = m_shape.getTuple();
         if (DLLayerUtils.isShapeFullyDefined(target) && DLLayerUtils.isShapeFullyDefined(inputShape)) {
-            checkInputSpec(DLLayerUtils.numberOfElements(inputShape).equals(DLLayerUtils.numberOfElements(target)),
-                "The input shape does not have the same number of elements as the target shape.");
+            Long inputNumElems = DLLayerUtils.numberOfElements(inputShape);
+            Long targetNumElements = DLLayerUtils.numberOfElements(target);
+            checkInputSpec(inputNumElems.equals(targetNumElements),
+                "The total number of elements of the input " + "shape must match"
+                    + " the total number of elments of the target shape. Input shape was: "
+                    + shapeAndElements(inputShape) + "; Target shape was: " + shapeAndElements(target) + ".");
         }
+    }
+
+    private static String shapeAndElements(Long[] shape) {
+        return Arrays.toString(shape) + ": " + DLLayerUtils.numberOfElements(shape) + " element/s";
     }
 
     @Override

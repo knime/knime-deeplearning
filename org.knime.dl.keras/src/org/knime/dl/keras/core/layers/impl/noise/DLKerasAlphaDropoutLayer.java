@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.noise;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,9 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
         throws DLInvalidTensorSpecException {
         if (m_noiseShape != null) {
             checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
-                    "The noise shape must have the same dimensionality as the input shape including the batch dimension.");
+                "The noise shape must have the same dimensionality as the input shape including the batch dimension."
+                    + " Expected " + (inputShape.length + 1) + "-dimensional noise shape but was "
+                    + m_noiseShape.getTuple().length + "-dimensional: " + Arrays.toString(m_noiseShape.getTuple()) + ".");
         }
     }
 

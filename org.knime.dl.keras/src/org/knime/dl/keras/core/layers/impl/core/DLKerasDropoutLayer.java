@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise shape", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_noiseShape =
-        new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL));
 
     @Parameter(label = "Random seed", required = Required.OptionalAndNotEnabled)
     private DLKerasSeed m_seed = new DLKerasSeed();
@@ -92,7 +92,9 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         if (m_noiseShape != null) {
             checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
-                    "The noise shape must have the same dimensionality as the input shape including the batch dimension.");
+                "The noise shape must have the same dimensionality as the input shape including the batch dimension."
+                    + " Expected " + (inputShape.length + 1) + "-dimensional noise shape but was "
+                    + m_noiseShape.getTuple().length + "-dimensional: " + Arrays.toString(m_noiseShape.getTuple()) + ".");
         }
     }
 

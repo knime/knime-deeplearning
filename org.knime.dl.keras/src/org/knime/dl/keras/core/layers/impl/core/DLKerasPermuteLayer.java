@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers.impl.core;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +85,9 @@ public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
     @Override
     protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
         checkInputSpec(m_dims.getTuple().length == inputShape.length,
-                "Permutation must be specified for each dimension.");
-        
+            "Permutation must be specified for each dimension. Expected " + inputShape.length
+                + "-dimensional permutation but was " + m_dims.getTuple().length + "-dimensional: "
+                + Arrays.toString(m_dims.getTuple()) + ".");
     }
 
     @Override
