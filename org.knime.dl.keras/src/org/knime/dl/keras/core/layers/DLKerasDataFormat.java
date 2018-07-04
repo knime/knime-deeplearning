@@ -55,8 +55,8 @@ import org.knime.dl.core.DLDimensionOrder;
  */
 public enum DLKerasDataFormat implements DLKerasEnum<String> {
 
-        CHANNEL_FIRST("Channel First", "channels_first", DLDimensionOrder.TDHWC),
-        CHANNEL_LAST("Channel Last", "channels_last", DLDimensionOrder.TCDHW);
+        CHANNEL_FIRST("Channel First", "channels_first", DLDimensionOrder.TCDHW),
+        CHANNEL_LAST("Channel Last", "channels_last", DLDimensionOrder.TDHWC);
 
     private String m_label;
 

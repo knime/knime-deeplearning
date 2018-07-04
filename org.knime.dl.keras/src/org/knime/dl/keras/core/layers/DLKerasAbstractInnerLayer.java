@@ -204,7 +204,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
                 } else {
                     // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
                     checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
-                        "Dimension orders differ: " + inputDimensionOrder + " vs. " + parentDimensionOrder + ".");
+                        "Data formats differ: " + DLKerasDataFormat.getDataFormatFor(inputDimensionOrder) + " vs. " + DLKerasDataFormat.getDataFormatFor(parentDimensionOrder) + ".");
                 }
             }
         }
