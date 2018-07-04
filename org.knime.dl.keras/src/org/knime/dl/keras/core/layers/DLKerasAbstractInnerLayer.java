@@ -76,6 +76,8 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     private final DLKerasTensorSpecsOutput[] m_parents;
     
     private final int[] m_indexInParents;
+    
+    private DLKerasDataFormat m_dataFormat;
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final int numParents) {
         super(kerasIdentifier);
@@ -98,6 +100,10 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         throws DLInvalidTensorSpecException;
 
     protected abstract List<Long[]> inferOutputShapes(List<Long[]> inputShape);
+    
+    protected final DLKerasDataFormat getDataFormat() {
+        return m_dataFormat;
+    }
 
     @Override
     public int getNumParents() {
@@ -202,6 +208,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
                 }
             }
         }
+        m_dataFormat = DLKerasDataFormat.getDataFormatFor(inputDimensionOrder);
         return new DLInputSpecsHelperStruct(inputBatchSize, inputShapes, inputElementTypes, inputDimensionOrder);
     }
 
