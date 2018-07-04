@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import org.knime.dl.core.DLDimensionOrder;
+
 /**
  * Enum describing data formats in Keras.
  * 
@@ -53,15 +55,19 @@ package org.knime.dl.keras.core.layers;
  */
 public enum DLKerasDataFormat implements DLKerasEnum<String> {
 
-        CHANNEL_FIRST("Channel First", "channels_first"), CHANNEL_LAST("Channel Last", "channels_last");
+        CHANNEL_FIRST("Channel First", "channels_first", DLDimensionOrder.TDHWC),
+        CHANNEL_LAST("Channel Last", "channels_last", DLDimensionOrder.TCDHW);
 
     private String m_label;
 
     private String m_value;
 
-    DLKerasDataFormat(String label, String value) {
+    private DLDimensionOrder m_dimensionOrder;
+
+    DLKerasDataFormat(String label, String value, DLDimensionOrder dimensionOrder) {
         m_label = label;
         m_value = value;
+        m_dimensionOrder = dimensionOrder;
     }
 
     @Override
@@ -77,5 +83,22 @@ public enum DLKerasDataFormat implements DLKerasEnum<String> {
     @Override
     public String label() {
         return m_label;
+    }
+
+    /**
+     * @return the dimension order that corresponds to this data format
+     */
+    public DLDimensionOrder getDimensionOrder() {
+        return m_dimensionOrder;
+    }
+
+    public static DLKerasDataFormat getDataFormatFor(DLDimensionOrder dimensionOrder) {
+        for (DLKerasDataFormat value : values()) {
+            if (value.m_dimensionOrder == dimensionOrder) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("There is no data format that corresponds to dimension order '"
+        + dimensionOrder + "'.");
     }
 }
