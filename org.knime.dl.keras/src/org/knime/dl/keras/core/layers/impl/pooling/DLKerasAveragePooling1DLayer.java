@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
+import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -89,6 +90,10 @@ public final class DLKerasAveragePooling1DLayer extends DLKerasAbstractUnaryLaye
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 2);
+
+        final String message =
+            DLParameterValidationUtils.checkPoolingOutputGreaterThanZero(inferOutputShape(inputShape));
+        checkInputSpec(message == null, message);
     }
 
     @Override

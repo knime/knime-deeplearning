@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
+import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -95,6 +96,10 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 3);
+
+        final String message =
+            DLParameterValidationUtils.checkPoolingOutputGreaterThanZero(inferOutputShape(inputShape));
+        checkInputSpec(message == null, message);
     }
 
     @Override
