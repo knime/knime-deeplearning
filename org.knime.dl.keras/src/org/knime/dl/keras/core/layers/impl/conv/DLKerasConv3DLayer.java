@@ -67,6 +67,7 @@ import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
 import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
+import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -140,6 +141,10 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
     protected void validateInputShape(final Long[] inputShape)
         throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 4);
+
+        final String message =
+            DLParameterValidationUtils.checkConvolutionOutputGreaterThanZero(inferOutputShape(inputShape));
+        checkInputSpec(message == null, message);
     }
 
     @Override
