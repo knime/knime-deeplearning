@@ -147,7 +147,7 @@ public final class DLKerasLocallyConnected1DLayer extends DLKerasAbstractUnaryLa
     protected Long[] inferOutputShape(final Long[] inputShape) {
         final Long[] kernelSize = {new Long(m_kernelSize)};
         final Long[] strides = {new Long(m_strides)};
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, kernelSize, strides,
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, kernelSize, strides,
             DLConvolutionLayerUtils.DEFAULT_1D_DILATION, m_padding.value(), m_dataFormat.value());
     }
 
