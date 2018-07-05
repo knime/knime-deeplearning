@@ -121,7 +121,7 @@ public final class ParameterStructs {
      * @param type with @Parameter annotated fields.
      * @return a {@link StructAccess} over the provided type.
      */
-    public static <S> StructAccess<MemberReadWriteAccess<?, S>> createStructAccess(Class<S> type) {
+    public static <S> StructAccess<MemberReadWriteAccess<?, S>> createStructAccess(Class<?> type) {
         try {
             return new ParameterStructAccess<S>(ParameterStructs.structOf(type), type);
         } catch (ValidityException e) {
