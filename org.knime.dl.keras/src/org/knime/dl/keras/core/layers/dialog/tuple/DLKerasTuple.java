@@ -54,6 +54,7 @@ import java.util.List;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.dl.keras.core.layers.dialog.AbstractOptionalWidgetType;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -61,10 +62,13 @@ import org.knime.dl.python.util.DLPythonUtils;
  * 
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasTuple {
+public class DLKerasTuple extends AbstractOptionalWidgetType {
 
     /** */
     public static final String SETTINGS_KEY_MIN = "DLKerasTuple.Min";
+
+    /** */
+    public static final String SETTINGS_KEY_IS_ENABLED = "DLKerasTuple.IsEnabled";
 
     /** */
     public static final String SETTINGS_KEY_MAX = "DLKerasTuple.Max";
@@ -87,6 +91,8 @@ public class DLKerasTuple {
      * @param tuple the initial tuple
      */
     public DLKerasTuple(final Long[] tuple) {
+        super(true);
+        
         m_tuple = tuple;
         m_maxLength = tuple.length;
         m_minLength = tuple.length;
@@ -114,7 +120,9 @@ public class DLKerasTuple {
      * @param constraints
      */
     public DLKerasTuple(final Long[] tuple, final int minLength, final int maxLength,
-        final EnumSet<Constraint> constraints) {
+        final EnumSet<Constraint> constraints, boolean defaultEnabled) {
+        super(defaultEnabled);
+        
         if (maxLength < minLength) {
             throw new IllegalArgumentException("The maximum length must be bigger than the minimum length.");
         }
@@ -122,9 +130,8 @@ public class DLKerasTuple {
         m_maxLength = maxLength;
 
         if (tuple != null && (tuple.length > m_maxLength || tuple.length < m_minLength)) {
-            throw new IllegalArgumentException(
-                "Specified tuple length: " + tuple.length + " is not within the allowed bounds: ["
-                    + m_minLength + "-" + m_maxLength + "]");
+            throw new IllegalArgumentException("Specified tuple length: " + tuple.length
+                + " is not within the allowed bounds: [" + m_minLength + "-" + m_maxLength + "]");
         }
         m_tuple = tuple;
 
@@ -165,8 +172,8 @@ public class DLKerasTuple {
      * @param constraints
      */
     public DLKerasTuple(final String tuple, final int minLength, final int maxLength,
-        final EnumSet<Constraint> constraints) {
-        this(stringToTuple(tuple), minLength, maxLength, constraints);
+        final EnumSet<Constraint> constraints, boolean defaultEnabled) {
+        this(stringToTuple(tuple), minLength, maxLength, constraints, defaultEnabled);
     }
 
     /**
@@ -268,11 +275,10 @@ public class DLKerasTuple {
      * @return the Python representation of this tuple
      */
     public String toPytonTuple() {
-        if (m_tuple == null) {
+        if (m_tuple == null || !isEnabled()) {
             return DLPythonUtils.NONE;
         }
-        return DLPythonUtils
-                .toPythonTuple(Arrays.stream(m_tuple).map(DLPythonUtils::toPython).toArray(String[]::new));
+        return DLPythonUtils.toPythonTuple(Arrays.stream(m_tuple).map(DLPythonUtils::toPython).toArray(String[]::new));
     }
 
     /**
@@ -314,6 +320,7 @@ public class DLKerasTuple {
         settings.addString(SETTINGS_KEY_TUPLE, tupleToString(tuple.getTuple()));
         settings.addInt(SETTINGS_KEY_MIN, tuple.getMinLength());
         settings.addInt(SETTINGS_KEY_MAX, tuple.getMaxLength());
+        settings.addBoolean(SETTINGS_KEY_IS_ENABLED, tuple.isEnabled());
 
         for (Constraint c : tuple.getConstraints()) {
             settings.addString(c.getKey(), c.name());
@@ -338,8 +345,11 @@ public class DLKerasTuple {
                 }
             }
 
-            return new DLKerasTuple(settings.getString(SETTINGS_KEY_TUPLE), settings.getInt(SETTINGS_KEY_MIN),
-                settings.getInt(SETTINGS_KEY_MAX), cs.isEmpty() ? EnumSet.noneOf(Constraint.class): EnumSet.copyOf(cs));
+            boolean isEnabled = settings.containsKey(SETTINGS_KEY_IS_ENABLED) ? settings.getBoolean(SETTINGS_KEY_IS_ENABLED) : true;
+            DLKerasTuple kt = new DLKerasTuple(settings.getString(SETTINGS_KEY_TUPLE),
+                settings.getInt(SETTINGS_KEY_MIN), settings.getInt(SETTINGS_KEY_MAX),
+                cs.isEmpty() ? EnumSet.noneOf(Constraint.class) : EnumSet.copyOf(cs), isEnabled);
+            return kt;
         } else {
             return null;
         }

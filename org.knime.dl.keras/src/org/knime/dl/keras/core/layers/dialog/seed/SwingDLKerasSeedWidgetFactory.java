@@ -126,7 +126,7 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
         @Override
         public void saveTo(MemberWriteInstance<DLKerasSeed> instance) throws InvalidSettingsException {
             try {
-                instance.set(new DLKerasSeed(Long.parseLong(m_textField.getText())));
+                instance.set(new DLKerasSeed(Long.parseLong(m_textField.getText()), m_textField.isEnabled()));
             } catch (NumberFormatException e) {
                 throw new InvalidSettingsException("Could not save seed value. Must be non floating point number");
             }

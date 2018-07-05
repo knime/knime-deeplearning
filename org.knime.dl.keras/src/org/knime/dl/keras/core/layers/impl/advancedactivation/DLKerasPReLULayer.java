@@ -64,6 +64,7 @@ import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
 import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.keras.util.DLKerasUtils;
+import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -81,7 +82,7 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     private DLKerasConstraint m_alphaConstraint = null;
 
     @Parameter(label = "Shared axes", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_sharedAxes = new DLKerasTuple("1", 1, 1000, EnumSet.of(Constraint.ZERO, Constraint.NEGATIVE));
+    private DLKerasTuple m_sharedAxes = new DLKerasTuple("1", 1, 1000, EnumSet.of(Constraint.ZERO, Constraint.NEGATIVE), false);
 
     /**
      */
@@ -105,7 +106,7 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
         namedParams.put("alpha_initializer", m_alphaInitializer.getBackendRepresentation());
         namedParams.put("alpha_regularizer", DLKerasUtils.Layers.toPython(m_alphaRegularizer));
         namedParams.put("alpha_constraint", DLKerasUtils.Layers.toPython(m_alphaConstraint));
-        namedParams.put("shared_axes", m_sharedAxes.toPytonTuple());
+        namedParams.put("shared_axes", m_sharedAxes == null ? DLPythonUtils.NONE : m_sharedAxes.toPytonTuple());
     }
 
 }

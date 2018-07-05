@@ -118,7 +118,6 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
         }
     }
 
-
     @Override
     protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         // nothing to validate the layer works with any nD input of type int

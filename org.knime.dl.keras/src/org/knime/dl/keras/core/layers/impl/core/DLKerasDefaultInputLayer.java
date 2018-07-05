@@ -77,7 +77,7 @@ import org.knime.dl.util.DLUtils;
 public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer implements DLKerasInputLayer {
 
     @Parameter(label = "Shape")
-    private DLKerasTuple m_shape = new DLKerasTuple("1", 1, Integer.MAX_VALUE, EnumSet.of(Constraint.PARTIAL));
+    private DLKerasTuple m_shape = new DLKerasTuple("1", 1, Integer.MAX_VALUE, EnumSet.of(Constraint.PARTIAL), true);
 
     @Parameter(label = "Batch size", min = "1", required = Required.OptionalAndNotEnabled)
     private Integer m_batchSize = null;

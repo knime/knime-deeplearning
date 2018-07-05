@@ -69,7 +69,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Padding")
-    private DLKerasTuple m_padding = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
+    private DLKerasTuple m_padding = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO), true);
 
     // Data format is always "channel_last"
     private final DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;

@@ -50,8 +50,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
-import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -60,7 +60,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
 
     @Parameter(label = "Seed", required = Required.OptionalAndNotEnabled)
-    private DLKerasSeed m_seed = new DLKerasSeed();
+    private DLKerasSeed m_seed = new DLKerasSeed(false);
 
     /**
      * @param kerasIdentifier
@@ -71,7 +71,7 @@ abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializ
 
     @Override
     protected void populateParameters(List<String> positionalParams, Map<String, String> namedParams) {
-        namedParams.put("seed", DLPythonUtils.toPython(m_seed.getSeed()));
+        namedParams.put("seed", m_seed == null ? DLPythonUtils.NONE : m_seed.toPytonSeed());
     }
 
 }

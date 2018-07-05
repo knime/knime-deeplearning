@@ -58,8 +58,8 @@ import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.dialog.seed.DLKerasSeed;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
-import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -72,10 +72,10 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     private float m_rate;
 
     @Parameter(label = "Noise shape", required = Required.OptionalAndNotEnabled)
-    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL));
+    private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL), false);
 
     @Parameter(label = "Random seed", required = Required.OptionalAndNotEnabled)
-    private DLKerasSeed m_seed = new DLKerasSeed();
+    private DLKerasSeed m_seed = new DLKerasSeed(false);
 
     /**
      * Constructor
@@ -94,7 +94,8 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
             checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
                 "The noise shape must have the same dimensionality as the input shape including the batch dimension."
                     + " Expected " + (inputShape.length + 1) + "-dimensional noise shape but was "
-                    + m_noiseShape.getTuple().length + "-dimensional: " + Arrays.toString(m_noiseShape.getTuple()) + ".");
+                    + m_noiseShape.getTuple().length + "-dimensional: " + Arrays.toString(m_noiseShape.getTuple())
+                    + ".");
         }
     }
 

@@ -44,64 +44,25 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.core.layers.impl.core;
-
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
-import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
-import org.knime.dl.keras.core.layers.DLLayerUtils;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple.Constraint;
-import org.knime.dl.keras.core.struct.param.Parameter;
+package org.knime.dl.keras.core.layers.dialog;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasPermuteLayer extends DLKerasAbstractUnaryLayer {
+public abstract class AbstractOptionalWidgetType implements OptionalWidgetType {
 
-    @Parameter(label = "Permutation")
-    private DLKerasTuple m_dims = new DLKerasTuple("", 1, 1000, EnumSet.of(Constraint.EMPTY), true);
+    private final boolean m_isEnabled;
 
     /**
-     * Constructor
+     * @param isEnabled 
+     * 
      */
-    public DLKerasPermuteLayer() {
-        super("keras.layers.Permute", DLLayerUtils.ALL_DTYPES);
+    public AbstractOptionalWidgetType(final boolean isEnabled) {
+        m_isEnabled = isEnabled;
     }
 
     @Override
-    public void validateParameters() throws InvalidSettingsException {
-        if (m_dims.getTuple() == null) {
-            throw new InvalidSettingsException("Permutation dimensions must be specified.");
-        }
-    }
-
-    @Override
-    protected void validateInputShape(Long[] inputShape) throws DLInvalidTensorSpecException {
-        checkInputSpec(m_dims.getTuple().length == inputShape.length,
-            "Permutation must be specified for each dimension. Expected " + inputShape.length
-                + "-dimensional permutation but was " + m_dims.getTuple().length + "-dimensional: "
-                + Arrays.toString(m_dims.getTuple()) + ".");
-    }
-
-    @Override
-    protected Long[] inferOutputShape(Long[] inputShape) {
-        Long[] dims = m_dims.getTuple().clone();
-        Long[] permuted = inputShape.clone();
-        for (int i = 0; i < dims.length; i++) {
-            permuted[i] = inputShape[dims[i].intValue() - 1];
-        }
-        return permuted;
-    }
-
-    @Override
-    protected void populateParameters(final List<String> positionalParams, final Map<String, String> namedParams) {
-        namedParams.put("dims", m_dims.toPytonTuple());
+    public boolean isEnabled() {
+        return m_isEnabled;
     }
 }

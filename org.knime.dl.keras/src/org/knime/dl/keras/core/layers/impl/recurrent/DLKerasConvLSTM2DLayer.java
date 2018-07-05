@@ -108,18 +108,18 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
 
     @Parameter(label = "Kernel size")
     private DLKerasTuple m_kernelSize =
-        new DLKerasTuple("3, 3", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
+        new DLKerasTuple("3, 3", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class), true);
 
     @Parameter(label = "Strides")
     private DLKerasTuple m_strides =
-        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
+        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class), true);
 
     @Parameter(label = "Padding")
     private DLKerasPadding m_padding = DLKerasPadding.SAME;
 
     @Parameter(label = "Dilation rate")
     private DLKerasTuple m_dilationRate =
-        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class));
+        new DLKerasTuple("1, 1", SPATIAL_DIMENSIONS, SPATIAL_DIMENSIONS, EnumSet.noneOf(Constraint.class), true);
 
     @Parameter(label = "Activation")
     private DLKerasActivation m_activation = DLKerasActivation.TANH;

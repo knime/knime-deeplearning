@@ -70,7 +70,7 @@ import org.knime.dl.keras.core.struct.param.Parameter;
 public final class DLKerasCropping1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Parameter(label = "Cropping")
-    private DLKerasTuple m_cropping = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO));
+    private DLKerasTuple m_cropping = new DLKerasTuple("0, 0", 2, 2, EnumSet.of(Constraint.ZERO), true);
 
     // Data format is always "channel_last"
     private final DLKerasDataFormat m_dataFormat = DLKerasDataFormat.CHANNEL_LAST;

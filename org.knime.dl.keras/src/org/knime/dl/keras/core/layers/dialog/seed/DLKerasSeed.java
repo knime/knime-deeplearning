@@ -46,12 +46,21 @@
  */
 package org.knime.dl.keras.core.layers.dialog.seed;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.dl.keras.core.layers.dialog.AbstractOptionalWidgetType;
+import org.knime.dl.python.util.DLPythonUtils;
+
 /**
  * Class representing a random seed.
  * 
  * @author Knime, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasSeed {
+public class DLKerasSeed extends AbstractOptionalWidgetType {
+
+    /** */
+    public static final String SETTINGS_KEY_IS_ENABLED = "DLKerasSeed.IsEnabled";
 
     private static final long DEFAULT_SEED = 123456789L;
 
@@ -62,14 +71,16 @@ public class DLKerasSeed {
      * 
      * @param seed the initial seed
      */
-    public DLKerasSeed(final long seed) {
+    public DLKerasSeed(final long seed, final boolean defaultEnabled) {
+        super(defaultEnabled);
         m_seed = seed;
     }
 
     /**
      * Constructor using the default seed 123456789.
      */
-    public DLKerasSeed() {
+    public DLKerasSeed(final boolean defaultEnabled) {
+        super(defaultEnabled);
         m_seed = DEFAULT_SEED;
     }
 
@@ -78,5 +89,40 @@ public class DLKerasSeed {
      */
     public long getSeed() {
         return m_seed;
+    }
+
+    /**
+     * @return the Python representation of this seed
+     */
+    public String toPytonSeed() {
+        if (!isEnabled()) {
+            return DLPythonUtils.NONE;
+        }
+        return String.valueOf(m_seed);
+    }
+
+    /**
+     * Convenience method to saves the specified seed to the specified NodeSettings.
+     * 
+     * @param seed the seed to save
+     * @param settings the settings to write to
+     */
+    public static void saveTo(DLKerasSeed seed, NodeSettingsWO settings, String key) {
+        settings.addLong(key, seed.getSeed());
+        settings.addBoolean(SETTINGS_KEY_IS_ENABLED, seed.isEnabled());
+    }
+
+    /**
+     * Convenience method to load the seed from the specified NodeSettings.
+     * 
+     * @param settings the settings to load from
+     * @return the loaded seed if existing, else null
+     * @throws InvalidSettingsException
+     */
+    public static DLKerasSeed loadFrom(NodeSettingsRO settings, String key) throws InvalidSettingsException {
+        boolean isEnabled =
+            settings.containsKey(SETTINGS_KEY_IS_ENABLED) ? settings.getBoolean(SETTINGS_KEY_IS_ENABLED) : true;
+        DLKerasSeed ks = new DLKerasSeed(settings.getLong(key), isEnabled);
+        return ks;
     }
 }

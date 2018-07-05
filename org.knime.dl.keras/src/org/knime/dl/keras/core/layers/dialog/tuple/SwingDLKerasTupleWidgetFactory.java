@@ -130,7 +130,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         @Override
         public void saveTo(MemberWriteInstance<DLKerasTuple> instance) throws InvalidSettingsException {
             instance.set(new DLKerasTuple(m_textField.getTuple(), m_referenceTuple.getMinLength(),
-                m_referenceTuple.getMaxLength(), m_referenceTuple.getConstraints()));
+                m_referenceTuple.getMaxLength(), m_referenceTuple.getConstraints(), m_textField.isEnabled()));
         }
 
         @Override
@@ -191,7 +191,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
                 // just allocate for error checking
                 @SuppressWarnings("unused")
                 DLKerasTuple testTuple = new DLKerasTuple(stripped, m_refernceTuple.getMinLength(),
-                    m_refernceTuple.getMaxLength(), m_refernceTuple.getConstraints());
+                    m_refernceTuple.getMaxLength(), m_refernceTuple.getConstraints(), true);
             } catch (IllegalArgumentException e) {
                 m_errorMessage.setText(e.getMessage());
                 return false;
@@ -239,6 +239,11 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
             } else {
                 m_errorPanel.setCollapsed(true);
             }
+        }
+        
+        @Override
+        public boolean isEnabled() {
+            return m_tuple.isEnabled();
         }
     }
 }
