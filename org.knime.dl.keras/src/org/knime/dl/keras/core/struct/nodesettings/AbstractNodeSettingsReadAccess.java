@@ -102,5 +102,9 @@ public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAcce
         return null;
     }
 
+    protected Member<T> member() {
+        return m_member;
+    }
+
     protected abstract T get(NodeSettingsRO settings, String key) throws InvalidSettingsException;
 }
