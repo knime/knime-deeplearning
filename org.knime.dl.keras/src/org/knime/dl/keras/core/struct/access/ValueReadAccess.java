@@ -66,4 +66,6 @@ public interface ValueReadAccess<T, S> {
      * @throws InvalidSettingsException
      */
     T get(S storage) throws InvalidSettingsException;
+
+    boolean isEnabled();
 }

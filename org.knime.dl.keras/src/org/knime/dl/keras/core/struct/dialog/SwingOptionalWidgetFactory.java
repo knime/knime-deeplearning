@@ -47,9 +47,6 @@
 
 package org.knime.dl.keras.core.struct.dialog;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -58,7 +55,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
 import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.knime.dl.keras.core.struct.param.Required;
@@ -80,7 +76,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
     public SwingWidget<T> create(final Member<T> model) {
         return new Widget(model);
     }
-    
+
     // -- Helper classes --
 
     private class Widget extends AbstractSwingWidget<T> {
@@ -102,9 +98,10 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
                 return m_panel;
 
             m_panel = new JPanel(new MigLayout("ins 0 0 0 0", "[][fill,grow]"));
-            
+
             // Set the optional status to required so we don't end up in an endless loop wrapping optional in optional
-            m_widget = SwingWidgetRegistry.getInstance().createWidget(new RequiredFieldParameterMember<T>((FieldParameterMember<T>)member()));
+            m_widget = SwingWidgetRegistry.getInstance()
+                .createWidget(new RequiredFieldParameterMember<T>((FieldParameterMember<T>)member()));
             m_activateBox = new JCheckBox();
             m_activateBox.addItemListener((i) -> {
                 m_widget.setEnabled(m_activateBox.isSelected());
@@ -128,41 +125,28 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             return m_panel;
         }
 
-        private void setMemberEnabledStatus(Optional<Boolean> isEnabled) {
-            if (member() instanceof DefaultParameterMember) {
-                DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)member();
-                dpm.setIsEnabled(isEnabled);
-            }
-        }
-
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
             // Trigger settings loading
-            boolean isActive = instance.get() != null;
-            Optional<Boolean> isEnabled = Optional.empty();
-            if (member() instanceof DefaultParameterMember) {
-                DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)member();
-                isEnabled = dpm.isEnabled();
-            }
-            
+            instance.get();
+            boolean isEnabled = instance.isEnabled();
             // Only load the enabled status if it was was previously saved, hence there is an optional
-            if (isEnabled.isPresent()) {
-                m_activateBox.setSelected(isEnabled.get());
-                setEnabled(isEnabled.get());
-            }
+            m_activateBox.setSelected(isEnabled);
+            setEnabled(isEnabled);
             // Always load if there is something to load from
-            if (isActive) {
+            if (instance.get() != null) {
                 m_widget.loadFrom(instance, spec);
             }
         }
 
         @Override
         public void saveTo(MemberWriteInstance<T> instance) throws InvalidSettingsException {
-            setMemberEnabledStatus(Optional.of(m_activateBox.isSelected()));
-            if (m_activateBox.isSelected()) {
-                m_widget.saveTo(instance);
-            } else {
+            final boolean isEnabled = m_activateBox.isSelected();
+            instance.setEnabled(isEnabled);
+            if (!isEnabled) {
                 instance.set(null);
+            } else {
+                m_widget.saveTo(instance);
             }
         }
 

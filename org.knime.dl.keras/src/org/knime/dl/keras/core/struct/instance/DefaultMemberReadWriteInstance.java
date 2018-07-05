@@ -81,4 +81,17 @@ class DefaultMemberReadWriteInstance<T, S> implements MemberReadWriteInstance<T>
         }
     }
 
+    @Override
+    public boolean isEnabled() {
+        return m_access.isEnabled();
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        m_access.setEnabled(isEnabled);
+    }
+
+    protected S storage() {
+        return m_storage;
+    }
 }

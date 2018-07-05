@@ -73,4 +73,16 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
     public void set(Object obj) throws InvalidSettingsException {
         m_access.set(m_storage, obj);
     }
+
+    /**
+     * @return the storage
+     */
+    protected S storage() {
+        return m_storage;
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        m_access.setEnabled(isEnabled);
+    }
 }

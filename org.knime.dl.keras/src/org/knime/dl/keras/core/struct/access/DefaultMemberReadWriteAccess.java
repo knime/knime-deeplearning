@@ -91,4 +91,14 @@ public class DefaultMemberReadWriteAccess<T, S> implements MemberReadWriteAccess
         final T casted = (T)obj;
         m_writeAccess.set(storage, casted);
     }
+
+    @Override
+    public boolean isEnabled() {
+        return m_readAccess.isEnabled();
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        m_writeAccess.setEnabled(isEnabled);
+    }
 }

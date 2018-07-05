@@ -64,4 +64,7 @@ public interface ValueWriteAccess<T, S> {
      * 
      */
     void set(S storage, T value) throws InvalidSettingsException;
+
+    void setEnabled(boolean isEnabled);
+
 }

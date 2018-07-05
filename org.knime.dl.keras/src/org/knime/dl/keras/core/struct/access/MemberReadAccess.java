@@ -65,4 +65,9 @@ public interface MemberReadAccess<T, S> extends MemberAccess<T> {
      * @throws InvalidSettingsException
      */
     T get(final S storage) throws InvalidSettingsException;
+
+    /**
+     * 
+     */
+    boolean isEnabled();
 }

@@ -58,6 +58,8 @@ class FieldValueAccess<S, T> implements ValueReadAccess<T, S>, ValueWriteAccess<
 
     private Field m_field;
 
+    private boolean m_isEnabled;
+
     public FieldValueAccess(Field field) {
         m_field = field;
         m_field.setAccessible(true);
@@ -81,5 +83,20 @@ class FieldValueAccess<S, T> implements ValueReadAccess<T, S>, ValueWriteAccess<
         } catch (IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        // we can't set the enable status for a field really... only volatile
+        m_isEnabled = isEnabled;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return m_isEnabled;
+    }
+
+    protected Field field() {
+        return m_field;
     }
 }

@@ -51,16 +51,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
-import org.knime.dl.keras.core.struct.Structs;
 import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
 import org.knime.dl.keras.core.struct.access.DefaultMemberWriteAccess;
-import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
+import org.knime.dl.keras.core.struct.access.DefaultNestedMemberWriteAccess;
 import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
-import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.access.StructWriteAccess;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
-import org.knime.dl.keras.core.struct.instance.StructInstances;
-import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -78,7 +74,7 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
         NodeSettingsAccessFactoryRegistry registry = NodeSettingsAccessFactoryRegistry.getInstance();
 
         final Class<T> rawType = member.getRawType();
-        final ValueWriteAccess<T, NodeSettingsWO> writeAccess;
+        ValueWriteAccess<T, NodeSettingsWO> writeAccess;
         if (ClassUtils.isPrimitiveOrWrapper(rawType) && !rawType.isArray()) {
             writeAccess = createPrimitiveAccessWO(member);
         } else if (rawType.isArray() && ClassUtils.isPrimitiveOrWrapper(rawType.getComponentType())) {
@@ -98,8 +94,9 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
         } else if (registry.hasWriteAccessFactoryFor(rawType)) {
             writeAccess = registry.getWriteAccessFactoryFor(rawType).create(member);
         } else {
-            writeAccess = createObjectAccessWO(member);
+            return new DefaultNestedMemberWriteAccess<>(member, new NodeSettingsObjectAccessWO<>(member));
         }
+
         return new DefaultMemberWriteAccess<>(member, writeAccess);
     }
 
@@ -114,27 +111,6 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
             protected void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException {
                 final Enum<?> casted = ((Enum<?>)value);
                 settings.addString(key, casted.name());
-            }
-        };
-    }
-
-    private static <T> ValueWriteAccess<T, NodeSettingsWO> createObjectAccessWO(Member<T> member) {
-        return new AbstractNodeSettingsWriteAccess<T>(member) {
-            @Override
-            public void set(NodeSettingsWO settings, T obj, String key) throws InvalidSettingsException {
-                if (obj != null) {
-                    @SuppressWarnings("unchecked")
-                    final Class<T> type = (Class<T>)obj.getClass();
-                    // TODO Caching of accesses @return @return
-                    final NodeSettingsWO nestedSettings = settings.addNodeSettings(key);
-                    nestedSettings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
-                    final StructAccess<MemberReadWriteAccess<?, T>> objAccess =
-                        ParameterStructs.createStructAccess(type);
-                    final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> settingsAccess =
-                        NodeSettingsStructs.createStructWOAccess(objAccess.struct());
-                    Structs.shallowCopyUnsafe(StructInstances.createReadInstance(obj, objAccess),
-                        StructInstances.createWriteInstance(nestedSettings, settingsAccess));
-                }
             }
         };
     }

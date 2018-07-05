@@ -61,4 +61,6 @@ public interface MemberReadInstance<T> extends MemberInstance<T> {
      * @throws InvalidSettingsException if object cannot be accessed.
      */
     T get() throws InvalidSettingsException;
+
+    boolean isEnabled();
 }

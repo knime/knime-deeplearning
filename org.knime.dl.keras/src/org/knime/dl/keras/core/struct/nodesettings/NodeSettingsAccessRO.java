@@ -51,16 +51,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
-import org.knime.dl.keras.core.struct.Structs;
 import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
 import org.knime.dl.keras.core.struct.access.DefaultMemberReadAccess;
+import org.knime.dl.keras.core.struct.access.DefaultNestedMemberReadAccess;
 import org.knime.dl.keras.core.struct.access.MemberReadAccess;
-import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.access.StructReadAccess;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
-import org.knime.dl.keras.core.struct.instance.StructInstances;
-import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -76,7 +72,7 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
 
     private static <T> MemberReadAccess<T, NodeSettingsRO> createMemberInstancesRO(Member<T> member) {
         NodeSettingsAccessFactoryRegistry registry = NodeSettingsAccessFactoryRegistry.getInstance();
-        
+
         final Class<T> rawType = member.getRawType();
         final ValueReadAccess<T, NodeSettingsRO> readAccess;
         if (ClassUtils.isPrimitiveOrWrapper(rawType)) {
@@ -98,10 +94,9 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
         } else if (registry.hasReadAccessFactoryFor(rawType)) {
             readAccess = registry.getReadAccessFactoryFor(rawType).create(member);
         } else {
-            readAccess = createObjectAccessRO(member);
+            return new DefaultNestedMemberReadAccess<>(member, new NodeSettingsObjectAccessRO<>(member));
         }
         return new DefaultMemberReadAccess<>(member, readAccess);
-
     }
 
     private static <T> ValueReadAccess<T, NodeSettingsRO> createEnumAccessRO(Member<T> member) {
@@ -113,37 +108,6 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
                     return enumValue(storage.getString(key), member.getRawType());
                 }
                 return null;
-            }
-        };
-    }
-
-    private static <T> ValueReadAccess<T, NodeSettingsRO> createObjectAccessRO(Member<T> member) {
-        return new AbstractNodeSettingsReadAccess<T>(member) {
-            @Override
-            public T get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
-                // String ODO Caching of accesses
-                try {
-                    if (settings.containsKey(key)) {
-                        NodeSettingsRO nestedSettings = settings.getNodeSettings(key);
-                        @SuppressWarnings("unchecked")
-                        final Class<T> type =
-                            (Class<T>)Class.forName(nestedSettings.getString(NodeSettingsStructs.STRUCT_TYPE_KEY));
-                        final T obj = type.newInstance();
-
-                        final StructAccess<MemberReadWriteAccess<?, T>> objAccess =
-                            ParameterStructs.createStructAccess(type);
-                        Structs.shallowCopyUnsafe(
-                            StructInstances.createReadInstance(nestedSettings,
-                                NodeSettingsStructs.createStructROAccess(objAccess.struct())),
-                            StructInstances.createReadWriteInstance(obj, objAccess));
-                        return obj;
-                    } else {
-                        return null;
-                    }
-                } catch (InstantiationException | ClassNotFoundException | IllegalAccessException e) {
-                    throw new InvalidSettingsException("Can't create read access for member " + member.toString()
-                        + ". Most likely an implementation error.", e);
-                }
             }
         };
     }

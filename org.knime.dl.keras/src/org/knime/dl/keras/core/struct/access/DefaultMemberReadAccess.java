@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.struct.access;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -61,6 +62,8 @@ public class DefaultMemberReadAccess<T, S> implements MemberReadAccess<T, S> {
 
     private final ValueReadAccess<T, S> m_readAccess;
 
+    private final boolean m_isRequired;
+
     /**
      * @param member underlying {@link Member}
      * @param readAccess read access
@@ -68,6 +71,7 @@ public class DefaultMemberReadAccess<T, S> implements MemberReadAccess<T, S> {
     public DefaultMemberReadAccess(final Member<T> member, final ValueReadAccess<T, S> readAccess) {
         m_member = member;
         m_readAccess = readAccess;
+        m_isRequired = m_member instanceof ParameterMember && ((ParameterMember<T>)m_member).isRequired();
     }
 
     @Override
@@ -78,5 +82,14 @@ public class DefaultMemberReadAccess<T, S> implements MemberReadAccess<T, S> {
     @Override
     public T get(S storage) throws InvalidSettingsException {
         return m_readAccess.get(storage);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        if (!m_isRequired) {
+            return m_readAccess.isEnabled();
+        } else {
+            return true;
+        }
     }
 }

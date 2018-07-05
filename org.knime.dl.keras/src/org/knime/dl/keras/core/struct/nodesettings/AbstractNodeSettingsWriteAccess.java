@@ -51,32 +51,46 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
+import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @param <T> 
+ * @param <T>
  */
 public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAccess<T, NodeSettingsWO> {
 
     protected Member<T> m_member;
 
+    private boolean m_isRequired;
+
+    private boolean m_isEnabled;
+
     public AbstractNodeSettingsWriteAccess(Member<T> member) {
         m_member = member;
+        m_isRequired = member instanceof ParameterMember && ((ParameterMember<T>)member).isRequired();
     }
 
     @Override
     public void set(NodeSettingsWO settings, T value) throws InvalidSettingsException {
+        if (m_isRequired) {
+            setInternal(settings, value);
+        } else {
+            final NodeSettingsWO nested = settings.addNodeSettings(m_member.getKey());
+            nested.addBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED, m_isEnabled);
+            setInternal(nested, value);
+        }
+
+    }
+
+    private void setInternal(NodeSettingsWO settings, T value) throws InvalidSettingsException {
         if (value != null) {
             set(settings, value, m_member.getKey());
         }
+    }
 
-        // Additionally save the enabled status of the member
-        if (m_member instanceof DefaultParameterMember) {
-            DefaultParameterMember<?> dpm = (DefaultParameterMember<?>)m_member;
-            if (dpm.isEnabled().isPresent()) {
-                settings.addBoolean(m_member.getKey() + "." + DefaultParameterMember.SETTINGS_KEY_ENABLED, dpm.isEnabled().get());
-            }
-        }
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        m_isEnabled = isEnabled;
     }
 
     protected abstract void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException;

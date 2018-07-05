@@ -48,10 +48,9 @@ package org.knime.dl.keras.core.struct.instance;
 
 import java.util.Iterator;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.MemberReadAccess;
+import org.knime.dl.keras.core.struct.access.NestedMemberReadAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 
 /**
@@ -96,23 +95,16 @@ class StructReadInstance<S> implements StructInstance<MemberReadInstance<?>, S> 
         return m_storage;
     }
 
-    private <T> MemberReadInstance<T> createMemberReadInstance(MemberReadAccess<T, S> access, S storage) {
-        return new MemberReadInstance<T>() {
-
-            @Override
-            public Member<T> member() {
-                return access.member();
-            }
-
-            @Override
-            public T get() throws InvalidSettingsException {
-                return access.get(storage);
-            }
-        };
-    }
-
     @Override
     public Struct struct() {
         return m_access.struct();
+    }
+
+    private <T> MemberReadInstance<T> createMemberReadInstance(MemberReadAccess<T, S> access, S storage) {
+        if (access instanceof NestedMemberReadAccess) {
+            return new DefaultNestedMemberReadInstance<>((NestedMemberReadAccess<T, S>)access, storage);
+        } else {
+            return new DefaultMemberReadInstance<>(access, storage);
+        }
     }
 }

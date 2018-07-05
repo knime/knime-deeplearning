@@ -74,4 +74,12 @@ class DefaultMemberReadInstance<T, S> implements MemberReadInstance<T> {
         return m_access.get(m_storage);
     }
 
+    @Override
+    public boolean isEnabled() {
+        return m_access.isEnabled();
+    }
+
+    protected S storage() {
+        return m_storage;
+    }
 }

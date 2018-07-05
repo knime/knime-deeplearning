@@ -46,60 +46,60 @@
  */
 package org.knime.dl.keras.core.struct.nodesettings;
 
-import java.util.Optional;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
 import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
 import org.knime.dl.keras.core.struct.param.FieldParameterMember;
+import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @param <T> 
+ * @param <T>
  */
 public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAccess<T, NodeSettingsRO> {
 
-    protected Member<T> m_member;
+    private Member<T> m_member;
+
+    private boolean m_isRequired;
+
+    private boolean m_isEnabled;
 
     protected AbstractNodeSettingsReadAccess(Member<T> member) {
         m_member = member;
+        m_isRequired = member instanceof ParameterMember && ((ParameterMember<T>)member).isRequired();
     }
 
     @Override
     public T get(NodeSettingsRO settings) throws InvalidSettingsException {
-        final String key = m_member.getKey();
-        
-        Optional<Boolean> isEnabled = Optional.empty();
-        // Additionally load the enabled status of the member
-        final String enabledKey = key + "." + DefaultParameterMember.SETTINGS_KEY_ENABLED;
-        if(settings.containsKey(enabledKey) && m_member instanceof DefaultParameterMember) {
-            DefaultParameterMember<T> dpm = (DefaultParameterMember<T>)m_member;
-            isEnabled = Optional.of(settings.getBoolean(enabledKey));
-            dpm.setIsEnabled(isEnabled);
+        if (m_isRequired) {
+            return getInternal(settings);
+        } else {
+            NodeSettingsRO nested = settings.getNodeSettings(m_member.getKey());
+            m_isEnabled = nested.getBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED);
+            return getInternal(nested);
         }
-        
+    }
+
+    private T getInternal(NodeSettingsRO settings) throws InvalidSettingsException {
+        final String key = m_member.getKey();
+
         // there are settings available
         if (settings.containsKey(key)) {
             return get(settings, m_member.getKey());
-        // no settings available
+            // no settings available
         } else if (m_member instanceof FieldParameterMember) {
             // and no enabled status yet set, so the dialog is opened the first time
-            FieldParameterMember<T> fpm = ((FieldParameterMember<T>)m_member);
-            if (!isEnabled.isPresent()) {
-                return fpm.getDefault();
-            } else {   
-                // enabled status present but not enabled
-                if (!isEnabled.get()) {
-                    return null;
-                // enabled status present and enabled
-                } else {
-                    return fpm.getDefault();
-                }
-            }
+            // TODO check if parameter could also have a default...
+            return ((FieldParameterMember<T>)m_member).getDefault();
         }
         return null;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return m_isEnabled || m_isRequired;
     }
 
     protected Member<T> member() {

@@ -48,6 +48,7 @@ package org.knime.dl.keras.core.struct.access;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.param.ParameterMember;
 
 /**
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -60,6 +61,8 @@ public class DefaultMemberWriteAccess<T, S> implements MemberWriteAccess<T, S> {
 
     private final ValueWriteAccess<T, S> m_writeAccess;
 
+    private boolean m_isRequired;
+
     /**
      * @param member underlying {@link Member}
      * @param writeAccess the write access
@@ -67,6 +70,7 @@ public class DefaultMemberWriteAccess<T, S> implements MemberWriteAccess<T, S> {
     public DefaultMemberWriteAccess(final Member<T> member, final ValueWriteAccess<T, S> writeAccess) {
         m_member = member;
         m_writeAccess = writeAccess;
+        m_isRequired = m_member instanceof ParameterMember && ((ParameterMember<T>)m_member).isRequired();
     }
 
     @Override
@@ -75,9 +79,18 @@ public class DefaultMemberWriteAccess<T, S> implements MemberWriteAccess<T, S> {
     }
 
     @Override
-    public void set(final S storage, final Object value) throws InvalidSettingsException {
+    public void set(S storage, Object value) throws InvalidSettingsException {
         @SuppressWarnings("unchecked")
         final T casted = (T)value;
         m_writeAccess.set(storage, casted);
+    }
+
+    @Override
+    public void setEnabled(boolean isEnabled) {
+        if (m_isRequired) {
+            // do nothing and ignore
+        } else {
+            m_writeAccess.setEnabled(isEnabled);
+        }
     }
 }

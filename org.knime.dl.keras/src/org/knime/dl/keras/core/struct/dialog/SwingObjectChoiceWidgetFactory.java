@@ -64,12 +64,14 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
+import org.knime.dl.keras.core.struct.instance.NestedMemberReadInstance;
+import org.knime.dl.keras.core.struct.instance.NestedMemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
-import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.ParameterChoice;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterNestedStructChoice;
+import org.knime.dl.keras.core.struct.param.Required;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -150,6 +152,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
             m_comboBox.addItemListener(ie -> {
                 refreshSubPanels();
             });
+
             m_panel.add(m_comboBox, "grow, wrap");
 
             JXCollapsiblePane emptyPanel = new JXCollapsiblePane();
@@ -190,8 +193,8 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
 
                     if (!defaultsLoaded) {
                         try {
-                            m_currentSwingWidgetPanel
-                                .loadFrom(StructInstances.createReadInstance(casted.get(), casted.access()), m_lastSpec);
+                            m_currentSwingWidgetPanel.loadFrom(
+                                StructInstances.createReadInstance(casted.get(), casted.access()), m_lastSpec);
                         } catch (InvalidSettingsException e) {
                             // Can't load defaults.
                         } finally {
@@ -250,43 +253,44 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
 
         @Override
         public void saveTo(MemberWriteInstance<T> instance) throws InvalidSettingsException {
-            instance.set(save());
-        }
-
-        @SuppressWarnings("unchecked")
-        private <V extends T> V save() throws InvalidSettingsException {
-            final ParameterChoice<V> choice = (ParameterChoice<V>)m_comboBox.getSelectedItem();
-            if (m_currentSwingWidgetPanel == null) {
-                return choice.get();
+            if (instance instanceof NestedMemberWriteInstance) {
+                NestedMemberWriteInstance<T> nested = (NestedMemberWriteInstance<T>)instance;
+                @SuppressWarnings("unchecked")
+                final ParameterChoice<T> choice = (ParameterChoice<T>)m_comboBox.getSelectedItem();
+                T t = choice.get();
+                // Nothing can be activated / deactivated...
+                if (m_currentSwingWidgetPanel == null) {
+                    nested.set(t);
+                } else {
+                    @SuppressWarnings("unchecked")
+                    Class<T> type = (Class<T>)t.getClass();
+                    m_currentSwingWidgetPanel.saveTo(nested.getWritableStructInstance(type));
+                }
             } else {
-                final V inst = ((ParameterChoice<V>)m_comboBox.getSelectedItem()).get();
-                m_currentSwingWidgetPanel.saveTo(
-                    StructInstances.createWriteInstance(inst, ((ParameterNestedStructChoice<T>)choice).access()));
-                return inst;
+                instance.set(((ParameterChoice)m_comboBox.getSelectedItem()).get());
             }
+
         }
 
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
             m_lastSpec = spec;
+
             T obj = instance.get();
             // init any if empty
             if (obj == null) {
                 obj = m_choices.choices()[0].get();
             }
-            load(obj, m_choices.fromObject(obj));
-            refreshSubPanels();
-        }
 
-        @SuppressWarnings("unchecked")
-        private <V extends T> void load(T obj, ParameterChoice<V> choice) throws InvalidSettingsException {
-            final V casted = (V)obj;
-            m_comboBox.setSelectedIndex(m_choiceKeyToIndex.get(choice.getKey()));
-            refreshSubPanels();
-            if (m_currentSwingWidgetPanel != null) {
-                m_currentSwingWidgetPanel.loadFrom(
-                    StructInstances.createReadWriteInstance(casted, ((ParameterNestedStructChoice<T>)choice).access()), m_lastSpec);
+            m_comboBox.setSelectedIndex(m_choiceKeyToIndex.get(m_choices.fromObject(instance.get()).getKey()));
+            if (instance instanceof NestedMemberReadInstance) {
+                refreshSubPanels();
+                if (m_currentSwingWidgetPanel != null) {
+                    m_currentSwingWidgetPanel.loadFrom(((NestedMemberReadInstance<T>)instance).getStructInstance(),
+                        m_lastSpec);
+                }
             }
+            refreshSubPanels();
         }
 
         @Override
