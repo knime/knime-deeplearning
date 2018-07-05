@@ -58,6 +58,10 @@ import org.knime.dl.keras.core.struct.Member;
  */
 public interface ParameterMember<T> extends Member<T> {
 
+    default boolean isRequired() {
+        return getOptionalStatus() == Required.Required;
+    }
+
     /**
      * Gets the optional status of the parameter.
      * 

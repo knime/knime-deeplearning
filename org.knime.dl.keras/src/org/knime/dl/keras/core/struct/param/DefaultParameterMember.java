@@ -47,7 +47,6 @@
 package org.knime.dl.keras.core.struct.param;
 
 import java.lang.reflect.Type;
-import java.util.Optional;
 
 /**
  * Default implemenation of a {@link ParameterMember}.
@@ -69,8 +68,6 @@ public abstract class DefaultParameterMember<T> implements ParameterMember<T> {
     private final Parameter m_annotation;
 
     private ParameterChoices<T> m_choices;
-
-    private Optional<Boolean> m_isEnabled = Optional.empty();
 
     /**
      * Constructor.
@@ -115,26 +112,7 @@ public abstract class DefaultParameterMember<T> implements ParameterMember<T> {
     private <V extends Enum<V>> ParameterChoices<V> createEnumChoices(Class<V> rawType) {
         return new ParameterEnumChoices<>(rawType.getEnumConstants());
     }
-
-    /**
-     * Returns an optional indicating whether there is already a value for the enabled status (hence, there are settings
-     * available and the optional will not be empty), and the optional status itself. 
-     * 
-     * @return the optional
-     */
-    public Optional<Boolean> isEnabled() {
-        return m_isEnabled;
-    }
-
-    /**
-     * Set the optional of the enabled status indicating if there are settings available and the enabled status itself.
-     * 
-     * @param isEnabled the optional to set
-     */
-    public void setIsEnabled(final Optional<Boolean> isEnabled) {
-        m_isEnabled = isEnabled;
-    }
-
+    
     @Override
     public Required getOptionalStatus() {
         return getAnnotation().required();
