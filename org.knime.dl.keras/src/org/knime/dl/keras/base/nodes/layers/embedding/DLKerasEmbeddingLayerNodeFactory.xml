@@ -44,11 +44,6 @@
 			If mask_zero is set to True, as a consequence, index 0 cannot be used in the vocabulary
 			(input dimension should equal size of vocabulary + 1).
 		</option>
-		<option name="Input length">
-			The optional length of the input sequences, when it is constant.
-			This argument is required if you want to use dense layers after a flatten in subsequent parts of the network.
-			Note that input length must refine the input shape, i.e. all dimensions must match if they are fixed.
-		</option>
 		<link href="https://www.knime.com/deeplearning/keras">
 			KNIME Deep Learning Keras Integration
 		</link>
