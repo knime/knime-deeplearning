@@ -53,16 +53,11 @@ import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasRegularizerChoices extends DLKerasAbstractConfigObjectChoices<DLKerasRegularizer> {
-
-    @SuppressWarnings("unchecked")
-    private final static ParameterObjectChoice<DLKerasRegularizer>[] CHOICES =
-        new ParameterObjectChoice[]{new ParameterObjectChoice<>("L1 L2", DLKerasL1L2Regularizer.class),
-            new ParameterObjectChoice<>("L1", DLKerasL1Regularizer.class),
-            new ParameterObjectChoice<>("L2", DLKerasL2Regularizer.class)};
-
     /**
      */
     public DLKerasRegularizerChoices() {
-        super(CHOICES);
+        super(new ParameterObjectChoice[]{new ParameterObjectChoice<>("L1 L2", DLKerasL1L2Regularizer.class),
+            new ParameterObjectChoice<>("L1", DLKerasL1Regularizer.class),
+            new ParameterObjectChoice<>("L2", DLKerasL2Regularizer.class)});
     }
 }

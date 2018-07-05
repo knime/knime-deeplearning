@@ -54,9 +54,10 @@ import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
  */
 public class DLKerasInitializerChoices extends DLKerasAbstractConfigObjectChoices<DLKerasInitializer> {
 
-    @SuppressWarnings("unchecked")
-    private final static ParameterObjectChoice<DLKerasInitializer>[] CHOICES =
-        new ParameterObjectChoice[]{new ParameterObjectChoice<>("Constant", DLKerasConstantInitializer.class),
+    /**
+     */
+    public DLKerasInitializerChoices() {
+        super(new ParameterObjectChoice[]{new ParameterObjectChoice<>("Constant", DLKerasConstantInitializer.class),
             new ParameterObjectChoice<>("Glorot Normalizer", DLKerasGlorotNormalInitializer.class),
             new ParameterObjectChoice<>("Glorot Uniform Normalizer", DLKerasGlorotUniformInitializer.class),
             new ParameterObjectChoice<>("He Normal", DLKerasHeNormalInitializer.class),
@@ -70,11 +71,6 @@ public class DLKerasInitializerChoices extends DLKerasAbstractConfigObjectChoice
             new ParameterObjectChoice<>("Random Uniform", DLKerasRandomUniformInitializer.class),
             new ParameterObjectChoice<>("Truncated Normal", DLKerasTruncatedNormalInitializer.class),
             new ParameterObjectChoice<>("Variance Scaling", DLKerasVarianceScalingInitializer.class),
-            new ParameterObjectChoice<>("Zeros", DLKerasZerosInitializer.class)};
-
-    /**
-     */
-    public DLKerasInitializerChoices() {
-        super(CHOICES);
+            new ParameterObjectChoice<>("Zeros", DLKerasZerosInitializer.class)});
     }
 }

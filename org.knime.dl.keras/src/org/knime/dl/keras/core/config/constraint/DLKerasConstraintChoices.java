@@ -54,14 +54,10 @@ import org.knime.dl.keras.core.struct.param.ParameterObjectChoice;
  */
 public class DLKerasConstraintChoices extends DLKerasAbstractConfigObjectChoices<DLKerasConstraint> {
 
-    @SuppressWarnings("unchecked")
-    private final static ParameterObjectChoice<DLKerasConstraint>[] CHOICES =
-        new ParameterObjectChoice[]{new ParameterObjectChoice<>("Max Norm", DLKerasMaxNormConstraint.class),
+    public DLKerasConstraintChoices() {
+        super(new ParameterObjectChoice[]{new ParameterObjectChoice<>("Max Norm", DLKerasMaxNormConstraint.class),
             new ParameterObjectChoice<>("Min Max Norm", DLKerasMinMaxNormConstraint.class),
             new ParameterObjectChoice<>("Non Negative", DLKerasNonNegativeConstraint.class),
-            new ParameterObjectChoice<>("Unit Norm", DLKerasUnitNormConstraint.class)};
-
-    public DLKerasConstraintChoices() {
-        super(CHOICES);
+            new ParameterObjectChoice<>("Unit Norm", DLKerasUnitNormConstraint.class)});
     }
 }
