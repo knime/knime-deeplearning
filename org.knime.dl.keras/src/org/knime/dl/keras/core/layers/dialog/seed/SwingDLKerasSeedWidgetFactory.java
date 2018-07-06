@@ -50,11 +50,13 @@ package org.knime.dl.keras.core.layers.dialog.seed;
 import java.util.Random;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.dialog.AbstractSwingWidget;
 import org.knime.dl.keras.core.struct.dialog.SwingWidget;
@@ -62,6 +64,7 @@ import org.knime.dl.keras.core.struct.dialog.SwingWidgetFactory;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.param.Required;
+import org.knime.dl.keras.core.struct.param.FieldParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
 import org.scijava.util.ClassUtils;
 
@@ -93,6 +96,8 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
 
         private JButton m_seedButton;
 
+        private JCheckBox m_optionalBox;
+
         public Widget(final Member<DLKerasSeed> model) {
             super(model);
         }
@@ -102,9 +107,28 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
             if (panel != null)
                 return panel;
 
+            boolean isOptional = false;
+            boolean defaultSelected = false;
+            if (member() instanceof FieldParameterMember) {
+                FieldParameterMember<?> fpm = (FieldParameterMember<?>)member();
+                DLKerasSeed seed = ((DLKerasSeed)fpm.getDefault());
+                isOptional = seed.isOptional();
+                defaultSelected = seed.isEnabled();
+            } else {
+                throw new IllegalStateException(
+                    "The member must be of type FieldParameterMember for DLKerasTupleWidgets.");
+            }
+
             panel = new JPanel();
-            final MigLayout layout = new MigLayout("fillx,ins 0 0 0 0", "[fill,grow]10[]", "");
+            final MigLayout layout = new MigLayout("fillx,ins 0 0 0 0", "[][fill,grow]10[]", "");
             panel.setLayout(layout);
+
+            if (isOptional) {
+                m_optionalBox = new JCheckBox();
+                m_optionalBox.addActionListener(a -> setEnabled(m_optionalBox.isSelected()));
+                m_optionalBox.setSelected(defaultSelected);
+                panel.add(m_optionalBox);
+            }
 
             m_textField = new JTextField(30);
             panel.add(m_textField, "growx");
@@ -114,6 +138,7 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
             m_seedButton.addActionListener(a -> m_textField.setText(rnd.nextLong() + ""));
             panel.add(m_seedButton);
 
+            setEnabled(defaultSelected);
             return panel;
         }
 
@@ -121,13 +146,18 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
         public void loadFrom(MemberReadInstance<DLKerasSeed> instance, PortObjectSpec[] spec)
             throws InvalidSettingsException {
             instance.load();
-            m_textField.setText(instance.get().getSeed() + "");
+            DLKerasSeed seed = instance.get();
+            m_textField.setText(seed.getSeed() + "");
+            if (m_optionalBox != null) {
+                m_optionalBox.setSelected(seed.isEnabled());
+                setEnabled(seed.isEnabled());
+            }
         }
 
         @Override
         public void saveTo(MemberWriteInstance<DLKerasSeed> instance) throws InvalidSettingsException {
             try {
-                instance.set(new DLKerasSeed(Long.parseLong(m_textField.getText()), m_textField.isEnabled()));
+                instance.set(new DLKerasSeed(Long.parseLong(m_textField.getText()), m_optionalBox.isSelected(), false));
                 instance.save();
             } catch (NumberFormatException e) {
                 throw new InvalidSettingsException("Could not save seed value. Must be non floating point number");

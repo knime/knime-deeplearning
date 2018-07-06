@@ -75,7 +75,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
     private DLKerasTuple m_noiseShape = new DLKerasTuple("?", 1, 1000, EnumSet.of(Constraint.PARTIAL), false);
 
     @Parameter(label = "Random seed")
-    private DLKerasSeed m_seed = new DLKerasSeed(false);
+    private DLKerasSeed m_seed = new DLKerasSeed(false, true);
 
     /**
      * Constructor

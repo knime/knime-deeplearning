@@ -66,22 +66,26 @@ public class DLKerasSeed extends AbstractOptionalWidgetType {
 
     private long m_seed;
 
+    private final boolean m_isOptional;
+
     /**
      * Constructor
      * 
      * @param seed the initial seed
      */
-    public DLKerasSeed(final long seed, final boolean defaultEnabled) {
+    public DLKerasSeed(final long seed, final boolean defaultEnabled, final boolean isOptional) {
         super(defaultEnabled);
         m_seed = seed;
+        m_isOptional = isOptional;
     }
 
     /**
      * Constructor using the default seed 123456789.
      */
-    public DLKerasSeed(final boolean defaultEnabled) {
+    public DLKerasSeed(final boolean defaultEnabled, final boolean isOptional) {
         super(defaultEnabled);
         m_seed = DEFAULT_SEED;
+        m_isOptional = isOptional;
     }
 
     /**
@@ -89,6 +93,13 @@ public class DLKerasSeed extends AbstractOptionalWidgetType {
      */
     public long getSeed() {
         return m_seed;
+    }
+
+    /**
+     * @return return whether optional or not
+     */
+    public boolean isOptional() {
+        return m_isOptional;
     }
 
     /**
@@ -122,7 +133,7 @@ public class DLKerasSeed extends AbstractOptionalWidgetType {
     public static DLKerasSeed loadFrom(NodeSettingsRO settings, String key) throws InvalidSettingsException {
         boolean isEnabled =
             settings.containsKey(SETTINGS_KEY_IS_ENABLED) ? settings.getBoolean(SETTINGS_KEY_IS_ENABLED) : true;
-        DLKerasSeed ks = new DLKerasSeed(settings.getLong(key), isEnabled);
+        DLKerasSeed ks = new DLKerasSeed(settings.getLong(key), isEnabled, false);
         return ks;
     }
 }
