@@ -135,11 +135,15 @@ public class SwingDLKerasSeedWidgetFactory implements SwingWidgetFactory<DLKeras
 
             Random rnd = new Random();
             m_seedButton = new JButton("New seed");
-            m_seedButton.addActionListener(a -> m_textField.setText(rnd.nextLong() + ""));
+            m_seedButton.addActionListener(a -> m_textField.setText(getNextSeed(rnd) + ""));
             panel.add(m_seedButton);
 
             setEnabled(defaultSelected);
             return panel;
+        }
+        
+        private int getNextSeed(Random rnd) {
+            return rnd.ints(1, 0, Integer.MAX_VALUE).findAny().getAsInt();
         }
 
         @Override
