@@ -123,6 +123,7 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
             final Member<DLTensorSpec> member = instance.member();
 
             if (member instanceof ParameterMember) {
+                instance.load();
                 final DLTensorSpec selected = instance.get();
 
                 // TODO WUHU WORKAROUND. WE HAVE TO REPLACE THIS WITH A PROPER FIELD IN PARAMETERS. :-)
@@ -169,6 +170,7 @@ public class SwingDLTensorSpecWidgetFactory implements SwingWidgetFactory<DLTens
         public void saveTo(MemberWriteInstance<DLTensorSpec> instance) throws InvalidSettingsException {
             DLTensorSpecItem selected = (DLTensorSpecItem)m_tensorSpecItems.getSelectedItem();
             instance.set(selected == null ? null :selected.m_spec);
+            instance.save();
         }
 
         @Override

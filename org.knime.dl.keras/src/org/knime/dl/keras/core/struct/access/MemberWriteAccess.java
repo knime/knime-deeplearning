@@ -68,5 +68,10 @@ public interface MemberWriteAccess<T, S> extends MemberAccess<T> {
      */
     void set(S storage, Object obj) throws InvalidSettingsException;
 
+    /**
+     * Enable/Disable the write access.
+     * 
+     * @param isEnabled
+     */
     void setEnabled(boolean isEnabled);
 }

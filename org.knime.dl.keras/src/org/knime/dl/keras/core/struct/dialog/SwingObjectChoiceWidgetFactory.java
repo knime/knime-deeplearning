@@ -66,6 +66,7 @@ import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.NestedMemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.NestedMemberWriteInstance;
+import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
 import org.knime.dl.keras.core.struct.param.ParameterChoice;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
@@ -261,6 +262,7 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                 // Nothing can be activated / deactivated...
                 if (m_currentSwingWidgetPanel == null) {
                     nested.set(t);
+                    nested.save();
                 } else {
                     @SuppressWarnings("unchecked")
                     Class<T> type = (Class<T>)t.getClass();
@@ -269,13 +271,14 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
             } else {
                 instance.set(((ParameterChoice)m_comboBox.getSelectedItem()).get());
             }
+            instance.save();
 
         }
 
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
             m_lastSpec = spec;
-
+            instance.load();
             T obj = instance.get();
             // init any if empty
             if (obj == null) {

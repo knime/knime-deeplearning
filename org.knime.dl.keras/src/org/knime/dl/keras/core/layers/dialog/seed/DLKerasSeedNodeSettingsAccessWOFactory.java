@@ -75,9 +75,9 @@ public class DLKerasSeedNodeSettingsAccessWOFactory
         }
 
         @Override
-        protected void set(NodeSettingsWO settings, DLKerasSeed value, String key) throws InvalidSettingsException {
+        protected void setValue(NodeSettingsWO settings, DLKerasSeed value) throws InvalidSettingsException {
             if (value != null) {
-                DLKerasSeed.saveTo(value, settings, key);
+                DLKerasSeed.saveTo(value, settings, m_member.getKey());
             }
         }
     }

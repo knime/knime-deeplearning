@@ -61,22 +61,22 @@ class NodeSettingsPrimitiveArrayAccessWO<T> extends AbstractNodeSettingsWriteAcc
     }
 
     @Override
-    public void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException {
+    public void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException {
         final Class<?> componentType = ClassUtils.primitiveToWrapper(m_member.getRawType().getComponentType());
         if (Boolean.class.equals(componentType)) {
-            settings.addBooleanArray(key, (boolean[])value);
+            settings.addBooleanArray(m_member.getKey(), (boolean[])value);
         } else if (Double.class.equals(componentType)) {
-            settings.addDoubleArray(key, (double[])value);
+            settings.addDoubleArray(m_member.getKey(), (double[])value);
         } else if (Float.class.equals(componentType)) {
-            settings.addFloatArray(key, (float[])value);
+            settings.addFloatArray(m_member.getKey(), (float[])value);
         } else if (Byte.class.equals(componentType)) {
-            settings.addByteArray(key, (byte[])value);
+            settings.addByteArray(m_member.getKey(), (byte[])value);
         } else if (Short.class.equals(componentType)) {
-            settings.addShortArray(key, (short[])value);
+            settings.addShortArray(m_member.getKey(), (short[])value);
         } else if (Integer.class.equals(componentType)) {
-            settings.addIntArray(key, (int[])value);
+            settings.addIntArray(m_member.getKey(), (int[])value);
         } else if (Long.class.equals(componentType)) {
-            settings.addLongArray(key, (long[])value);
+            settings.addLongArray(m_member.getKey(), (long[])value);
         } else {
             throw new InvalidSettingsException(
                 "Unknown primitive type " + componentType + " for array found when trying to save settings for member "

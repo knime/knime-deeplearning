@@ -63,4 +63,6 @@ public interface MemberReadInstance<T> extends MemberInstance<T> {
     T get() throws InvalidSettingsException;
 
     boolean isEnabled();
+
+    void load() throws InvalidSettingsException;
 }

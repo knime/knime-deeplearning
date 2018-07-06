@@ -59,6 +59,8 @@ class DefaultMemberReadInstance<T, S> implements MemberReadInstance<T> {
 
     private final S m_storage;
 
+    private T m_obj;
+
     public DefaultMemberReadInstance(MemberReadAccess<T, S> access, S storage) {
         m_access = access;
         m_storage = storage;
@@ -71,7 +73,7 @@ class DefaultMemberReadInstance<T, S> implements MemberReadInstance<T> {
 
     @Override
     public T get() throws InvalidSettingsException {
-        return m_access.get(m_storage);
+        return m_obj;
     }
 
     @Override
@@ -81,5 +83,10 @@ class DefaultMemberReadInstance<T, S> implements MemberReadInstance<T> {
 
     protected S storage() {
         return m_storage;
+    }
+
+    @Override
+    public void load() throws InvalidSettingsException {
+        m_obj = m_access.get(m_storage);
     }
 }

@@ -79,9 +79,9 @@ public class DLKerasSeedNodeSettingsAccessROFactory
         }
 
         @Override
-        protected DLKerasSeed get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
-            if (settings.containsKey(key)) {
-                return DLKerasSeed.loadFrom(settings, key);
+        protected DLKerasSeed getValue(NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(member().getKey())) {
+                return DLKerasSeed.loadFrom(settings, member().getKey());
             } else {
                 return null;
             }

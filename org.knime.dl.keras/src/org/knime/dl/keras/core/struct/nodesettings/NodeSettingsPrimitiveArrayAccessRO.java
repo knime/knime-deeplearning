@@ -61,7 +61,8 @@ class NodeSettingsPrimitiveArrayAccessRO<T> extends AbstractNodeSettingsReadAcce
     }
 
     @Override
-    public T get(NodeSettingsRO storage, String key) throws InvalidSettingsException {
+    public T getValue(NodeSettingsRO storage) throws InvalidSettingsException {
+        String key = member().getKey();
         final Class<?> rawType = ClassUtils.primitiveToWrapper(member().getRawType().getComponentType());
         final Object value;
         if (Boolean.class.equals(rawType)) {

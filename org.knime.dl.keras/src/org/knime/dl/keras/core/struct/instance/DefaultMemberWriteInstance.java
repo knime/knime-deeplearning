@@ -59,6 +59,8 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
 
     private final S m_storage;
 
+    private T m_obj;
+
     public DefaultMemberWriteInstance(MemberWriteAccess<T, S> access, S storage) {
         m_access = access;
         m_storage = storage;
@@ -71,7 +73,7 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
 
     @Override
     public void set(Object obj) throws InvalidSettingsException {
-        m_access.set(m_storage, obj);
+        m_obj = (T)obj;
     }
 
     /**
@@ -84,5 +86,10 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
     @Override
     public void setEnabled(boolean isEnabled) {
         m_access.setEnabled(isEnabled);
+    }
+
+    @Override
+    public void save() throws InvalidSettingsException {
+        m_access.set(m_storage, m_obj);
     }
 }

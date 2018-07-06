@@ -78,7 +78,8 @@ public class DLKerasTupleNodeSettingsAccessROFactory
         }
 
         @Override
-        protected DLKerasTuple get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
+        protected DLKerasTuple getValue(NodeSettingsRO settings) throws InvalidSettingsException {
+            String key = member().getKey();
             if (settings.containsKey(key)) {
                 return DLKerasTuple.loadFrom(settings.getNodeSettings(key));
             } else {

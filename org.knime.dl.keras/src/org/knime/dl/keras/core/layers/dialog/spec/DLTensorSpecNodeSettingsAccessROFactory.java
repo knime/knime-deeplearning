@@ -87,8 +87,8 @@ public class DLTensorSpecNodeSettingsAccessROFactory
         }
 
         @Override
-        protected DLTensorSpec get(NodeSettingsRO settings, String key) throws InvalidSettingsException {
-            final NodeSettingsRO subSettings = settings.getNodeSettings(key);
+        protected DLTensorSpec getValue(NodeSettingsRO settings) throws InvalidSettingsException {
+            final NodeSettingsRO subSettings = settings.getNodeSettings(member().getKey());
             final String typeAsString =
                 subSettings.getString(DLTensorSpecNodeSettingsAccessWOFactory.KEY_TENSOR_ELEMENT_TYPE);
             try {

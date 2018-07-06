@@ -108,9 +108,9 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
         return new AbstractNodeSettingsWriteAccess<T>(member) {
 
             @Override
-            protected void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException {
+            protected void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException {
                 final Enum<?> casted = ((Enum<?>)value);
-                settings.addString(key, casted.name());
+                settings.addString(member.getKey(), casted.name());
             }
         };
     }

@@ -89,7 +89,8 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
     @Override
     public boolean supports(final Member<?> model) {
         // TODO we need to generalize later or make one for double etc
-        return Types.isNumber(model.getRawType()) && ((ParameterMember<?>)model).getOptionalStatus().equals(Required.Required);
+        return Types.isNumber(model.getRawType())
+            && ((ParameterMember<?>)model).getOptionalStatus().equals(Required.Required);
     }
 
     @Override
@@ -350,11 +351,13 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
         @Override
         public void saveTo(MemberWriteInstance<Number> instance) throws InvalidSettingsException {
             instance.set(modelValue());
+            instance.save();
         }
 
         @Override
         public void loadFrom(MemberReadInstance<Number> instance, PortObjectSpec[] spec)
             throws InvalidSettingsException {
+            instance.load();
             Number value = instance.get();
 
             String oldFormat = findDecimalFormat((String)SwingWidgets.stepSize(this),
@@ -365,7 +368,8 @@ class SwingNumberWidgetFactory implements SwingWidgetFactory<Number> {
                 new JSpinner.NumberEditor(spinner, oldFormat.length() > newFormat.length() ? oldFormat : newFormat));
 
             // Only set the value if it is in bounds, hence ignore defaults that are not in bounds
-            if (value != null && (value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue())) {
+            if (value != null
+                && (value.doubleValue() >= getMin().doubleValue() && value.doubleValue() <= getMax().doubleValue())) {
                 spinner.setValue(value);
             }
         }

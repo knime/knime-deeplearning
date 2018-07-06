@@ -47,6 +47,8 @@
 package org.knime.dl.keras.core.struct.nodesettings;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
@@ -72,10 +74,19 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
 
     @Override
     public void set(NodeSettingsWO settings, T value) throws InvalidSettingsException {
+        NodeSettingsWO nested = null;
+        if (settings instanceof NodeSettings) {
+            if (((NodeSettings)settings).containsKey(m_member.getKey())) {
+                nested = ((NodeSettings)settings).getNodeSettings(m_member.getKey());
+            }
+        }
+        if (nested == null) {
+            nested = settings.addNodeSettings(m_member.getKey());
+        }
+
         if (m_isRequired) {
-            setInternal(settings, value);
+            setInternal(nested, value);
         } else {
-            final NodeSettingsWO nested = settings.addNodeSettings(m_member.getKey());
             nested.addBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED, m_isEnabled);
             setInternal(nested, value);
         }
@@ -84,7 +95,7 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
 
     private void setInternal(NodeSettingsWO settings, T value) throws InvalidSettingsException {
         if (value != null) {
-            set(settings, value, m_member.getKey());
+            setValue(settings, value);
         }
     }
 
@@ -93,5 +104,5 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
         m_isEnabled = isEnabled;
     }
 
-    protected abstract void set(NodeSettingsWO settings, T value, String key) throws InvalidSettingsException;
+    protected abstract void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException;
 }

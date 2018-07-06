@@ -60,7 +60,8 @@ class NodeSettingsStringAccessRO extends AbstractNodeSettingsReadAccess<String> 
     }
 
     @Override
-    public String get(NodeSettingsRO storage, String key) throws InvalidSettingsException {
+    public String getValue(NodeSettingsRO storage) throws InvalidSettingsException {
+        String key = member().getKey();
         if (storage.containsKey(key)) {
             return storage.getString(key);
         } else {

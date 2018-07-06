@@ -139,12 +139,14 @@ class SwingTextWidgetFactory implements SwingWidgetFactory<String> {
         @Override
         public void loadFrom(MemberReadInstance<String> instance, final PortObjectSpec[] spec)
             throws InvalidSettingsException {
+            instance.load();
             textComponent.setText(instance.get());
         }
 
         @Override
         public void saveTo(MemberWriteInstance<String> instance) throws InvalidSettingsException {
             instance.set(textComponent.getText());
+            instance.save();
         }
 
         @Override

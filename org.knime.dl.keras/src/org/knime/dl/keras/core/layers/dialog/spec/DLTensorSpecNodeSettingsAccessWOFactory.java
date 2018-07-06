@@ -85,9 +85,9 @@ public class DLTensorSpecNodeSettingsAccessWOFactory
         }
 
         @Override
-        protected void set(NodeSettingsWO settings, DLTensorSpec value, String key) throws InvalidSettingsException {
+        protected void setValue(NodeSettingsWO settings, DLTensorSpec value) throws InvalidSettingsException {
             if (value != null) {
-                NodeSettingsWO subSettings = settings.addNodeSettings(key);
+                NodeSettingsWO subSettings = settings.addNodeSettings(m_member.getKey());
                 subSettings.addString(KEY_TENSOR_ELEMENT_TYPE, value.getElementType().getName());
                 subSettings.addString(KEY_TENSOR_ID, value.getIdentifier().getIdentifierString());
                 subSettings.addString(KEY_TENSOR_NAME, value.getName());

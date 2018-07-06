@@ -124,6 +124,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         @Override
         public void loadFrom(MemberReadInstance<DLKerasTuple> instance, final PortObjectSpec[] spec)
             throws InvalidSettingsException {
+            instance.load();
             m_textField.setTuple(instance.get().getTuple());
         }
 
@@ -131,6 +132,7 @@ public class SwingDLKerasTupleWidgetFactory implements SwingWidgetFactory<DLKera
         public void saveTo(MemberWriteInstance<DLKerasTuple> instance) throws InvalidSettingsException {
             instance.set(new DLKerasTuple(m_textField.getTuple(), m_referenceTuple.getMinLength(),
                 m_referenceTuple.getMaxLength(), m_referenceTuple.getConstraints(), m_textField.isEnabled()));
+            instance.save();
         }
 
         @Override

@@ -73,17 +73,16 @@ public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAcce
     }
 
     @Override
-    public void set(NodeSettingsWO settings, T obj, String key) throws InvalidSettingsException {
+    public void setValue(NodeSettingsWO settings, T obj) throws InvalidSettingsException {
         if (obj != null) {
             @SuppressWarnings("unchecked")
             final Class<T> type = (Class<T>)obj.getClass();
-            final NodeSettingsWO nestedSettings = settings.addNodeSettings(key);
-            nestedSettings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
+            settings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
             final StructAccess<MemberReadWriteAccess<?, T>> objAccess = ParameterStructs.createStructAccess(type);
             final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> settingsAccess =
                 NodeSettingsStructs.createStructWOAccess(objAccess.struct());
             Structs.shallowCopyUnsafe(StructInstances.createReadInstance(obj, objAccess),
-                StructInstances.createWriteInstance(nestedSettings, settingsAccess));
+                StructInstances.createWriteInstance(settings, settingsAccess));
         }
     }
 

@@ -103,7 +103,9 @@ public class NestedFieldValueAccess<T, S> extends FieldValueAccess<S, T> impleme
     }
 
     private void initProxyInstance(T obj) {
-        if (m_proxyInstance == null || m_prevType != obj.getClass()) {
+        if (obj == null)
+            return;
+        else if (m_proxyInstance == null || m_prevType != obj.getClass()) {
             m_prevType = obj.getClass();
             m_proxyInstance =
                 StructInstances.createReadWriteInstance(obj, ParameterStructs.createStructAccess(obj.getClass()));

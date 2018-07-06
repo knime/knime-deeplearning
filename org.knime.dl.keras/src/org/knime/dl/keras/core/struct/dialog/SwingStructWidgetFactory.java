@@ -128,6 +128,7 @@ class SwingStructWidgetFactory<T> implements SwingWidgetFactory<T> {
 
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
+            instance.load();
             m_structPanel.loadFrom(StructInstances.createReadInstance(instance.get(), m_access), spec);
         }
 

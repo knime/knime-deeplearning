@@ -59,9 +59,9 @@ class NodeSettingsStringAccessWO extends AbstractNodeSettingsWriteAccess<String>
     }
 
     @Override
-    public void set(final NodeSettingsWO settings, final String value, String key) {
+    public void setValue(final NodeSettingsWO settings, final String value) {
         if (value != null) {
-            settings.addString(key, value);
+            settings.addString(m_member.getKey(), value);
         }
     }
 }

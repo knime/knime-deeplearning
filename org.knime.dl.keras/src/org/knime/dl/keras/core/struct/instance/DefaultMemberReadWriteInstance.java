@@ -59,6 +59,8 @@ class DefaultMemberReadWriteInstance<T, S> implements MemberReadWriteInstance<T>
 
     private S m_storage;
 
+    private T m_obj;
+
     public DefaultMemberReadWriteInstance(MemberReadWriteAccess<T, S> access, S storage) {
         m_access = access;
         m_storage = storage;
@@ -71,14 +73,12 @@ class DefaultMemberReadWriteInstance<T, S> implements MemberReadWriteInstance<T>
 
     @Override
     public T get() throws InvalidSettingsException {
-        return m_access.get(m_storage);
+        return m_obj;
     }
 
     @Override
     public void set(Object obj) throws InvalidSettingsException {
-        if (get() == null || !get().equals(obj)) {
-            m_access.set(m_storage, obj);
-        }
+        m_obj = (T)obj;
     }
 
     @Override
@@ -93,5 +93,15 @@ class DefaultMemberReadWriteInstance<T, S> implements MemberReadWriteInstance<T>
 
     protected S storage() {
         return m_storage;
+    }
+
+    @Override
+    public void load() throws InvalidSettingsException {
+        m_obj = m_access.get(m_storage);
+    }
+
+    @Override
+    public void save() throws InvalidSettingsException {
+        m_access.set(m_storage, m_obj);
     }
 }

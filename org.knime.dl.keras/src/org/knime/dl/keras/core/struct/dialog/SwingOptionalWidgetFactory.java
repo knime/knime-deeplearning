@@ -128,6 +128,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
         @Override
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
             // Trigger settings loading
+            instance.load();
             instance.get();
             boolean isEnabled = instance.isEnabled();
             // Only load the enabled status if it was was previously saved, hence there is an optional
@@ -148,6 +149,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             } else {
                 m_widget.saveTo(instance);
             }
+            instance.save();
         }
 
         @Override

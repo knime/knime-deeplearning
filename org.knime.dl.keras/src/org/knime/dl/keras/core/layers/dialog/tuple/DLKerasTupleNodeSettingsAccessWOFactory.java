@@ -76,7 +76,8 @@ public class DLKerasTupleNodeSettingsAccessWOFactory
         }
 
         @Override
-        protected void set(NodeSettingsWO settings, DLKerasTuple value, String key) throws InvalidSettingsException {
+        protected void setValue(NodeSettingsWO settings, DLKerasTuple value) throws InvalidSettingsException {
+            String key = m_member.getKey();
             if (value != null) {
                 NodeSettingsWO subSettings = settings.addNodeSettings(key);
                 DLKerasTuple.saveTo(value, subSettings);

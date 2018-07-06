@@ -70,4 +70,11 @@ public interface MemberWriteInstance<T> extends MemberInstance<T> {
      * @param isEnabled
      */
     void setEnabled(boolean isEnabled);
+
+    /**
+     * Saves the current status of the instance
+     * 
+     * @throws InvalidSettingsException
+     */
+    void save() throws InvalidSettingsException;
 }

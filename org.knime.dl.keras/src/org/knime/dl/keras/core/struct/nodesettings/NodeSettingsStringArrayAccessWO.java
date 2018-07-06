@@ -60,7 +60,7 @@ class NodeSettingsStringArrayAccessWO extends AbstractNodeSettingsWriteAccess<St
     }
 
     @Override
-    public void set(NodeSettingsWO settings, String[] value, String key) throws InvalidSettingsException {
-        settings.addStringArray(key, value);
+    public void setValue(NodeSettingsWO settings, String[] value) throws InvalidSettingsException {
+        settings.addStringArray(m_member.getKey(), value);
     }
 }

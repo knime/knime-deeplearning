@@ -47,7 +47,7 @@
 package org.knime.dl.keras.core.struct;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.struct.instance.MemberInstance;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.NestedMemberReadInstance;
@@ -88,17 +88,22 @@ public class Structs {
     private static <T> void copy(MemberReadInstance<?> fromMember, MemberWriteInstance<T> toMember)
         throws InvalidSettingsException {
         // TODO Avoid redundant loading
-        Object object = fromMember.get();
+        fromMember.load();
         toMember.setEnabled(fromMember.isEnabled());
-        if (object != null && fromMember instanceof NestedMemberReadInstance
+        if (fromMember.get() != null && fromMember instanceof NestedMemberReadInstance
             && toMember instanceof NestedMemberWriteInstance) {
-            // TODO Unsafe. need to check
-            // TODO efficiency
-            StructInstance<MemberReadInstance<?>, ?> nested = ((NestedMemberReadInstance)fromMember).getStructInstance();
-            shallowCopyUnsafe(nested,
-                ((NestedMemberWriteInstance)toMember).getWritableStructInstance(object.getClass()));
+            StructInstance<MemberReadInstance<?>, ?> nestedFrom =
+                ((NestedMemberReadInstance)fromMember).getStructInstance();
+            StructInstance nestedTo =
+                ((NestedMemberWriteInstance)toMember).getWritableStructInstance(fromMember.get().getClass());
+            shallowCopyUnsafe(nestedFrom, nestedTo);
+
+            if (!(nestedTo.storage() instanceof NodeSettingsWO)) {
+                toMember.set(nestedTo.storage());
+            }
         } else {
-            toMember.set(object);
+            toMember.set(fromMember.get());
         }
+        toMember.save();
     }
 }

@@ -103,7 +103,8 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
         return new AbstractNodeSettingsReadAccess<T>(member) {
 
             @Override
-            public T get(NodeSettingsRO storage, String key) throws InvalidSettingsException {
+            public T getValue(NodeSettingsRO storage) throws InvalidSettingsException {
+                String key = member.getKey();
                 if (storage.containsKey(key)) {
                     return enumValue(storage.getString(key), member.getRawType());
                 }
