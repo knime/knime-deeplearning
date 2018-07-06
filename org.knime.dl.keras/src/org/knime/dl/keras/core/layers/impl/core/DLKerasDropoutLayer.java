@@ -90,7 +90,7 @@ public final class DLKerasDropoutLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
-        if (m_noiseShape != null) {
+        if (m_noiseShape != null && m_noiseShape.isEnabled()) {
             checkInputSpec(m_noiseShape.getTuple().length == inputShape.length + 1,
                 "The noise shape must have the same dimensionality as the input shape including the batch dimension."
                     + " Expected " + (inputShape.length + 1) + "-dimensional noise shape but was "
