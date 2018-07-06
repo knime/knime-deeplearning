@@ -53,8 +53,9 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
 import org.knime.dl.keras.core.struct.access.DefaultMemberWriteAccess;
-import org.knime.dl.keras.core.struct.access.DefaultNestedMemberWriteAccess;
+import org.knime.dl.keras.core.struct.access.MemberReadAccess;
 import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.access.StructWriteAccess;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 
@@ -94,7 +95,7 @@ class NodeSettingsAccessWO extends AbstractStructAccess<MemberWriteAccess<?, Nod
         } else if (registry.hasWriteAccessFactoryFor(rawType)) {
             writeAccess = registry.getWriteAccessFactoryFor(rawType).create(member);
         } else {
-            return new DefaultNestedMemberWriteAccess<>(member, new NodeSettingsObjectAccessWO<>(member));
+            writeAccess = new NodeSettingsObjectAccessWO<>(member);
         }
 
         return new DefaultMemberWriteAccess<>(member, writeAccess);

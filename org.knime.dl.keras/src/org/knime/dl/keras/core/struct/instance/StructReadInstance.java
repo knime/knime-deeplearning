@@ -50,7 +50,6 @@ import java.util.Iterator;
 
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.MemberReadAccess;
-import org.knime.dl.keras.core.struct.access.NestedMemberReadAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 
 /**
@@ -101,8 +100,9 @@ class StructReadInstance<S> implements StructInstance<MemberReadInstance<?>, S> 
     }
 
     private <T> MemberReadInstance<T> createMemberReadInstance(MemberReadAccess<T, S> access, S storage) {
-        if (access instanceof NestedMemberReadAccess) {
-            return new DefaultNestedMemberReadInstance<>((NestedMemberReadAccess<T, S>)access, storage);
+        // For now this is OK
+        if (access.member().getRawType().isInterface()) {
+            return new DefaultNestedMemberReadInstance<>(access, storage);
         } else {
             return new DefaultMemberReadInstance<>(access, storage);
         }

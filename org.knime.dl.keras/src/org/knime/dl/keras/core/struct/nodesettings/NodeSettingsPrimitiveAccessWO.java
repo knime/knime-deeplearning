@@ -62,24 +62,24 @@ class NodeSettingsPrimitiveAccessWO<T> extends AbstractNodeSettingsWriteAccess<T
 
     @Override
     public void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException {
-        final Class<?> rawType = ClassUtils.primitiveToWrapper(m_member.getRawType());
+        final Class<?> rawType = ClassUtils.primitiveToWrapper(member().getRawType());
         if (Boolean.class.equals(rawType)) {
-            settings.addBoolean(m_member.getKey(), (Boolean)value);
+            settings.addBoolean(member().getKey(), (Boolean)value);
         } else if (Double.class.equals(rawType)) {
-            settings.addDouble(m_member.getKey(), (Double)value);
+            settings.addDouble(member().getKey(), (Double)value);
         } else if (Float.class.equals(rawType)) {
-            settings.addFloat(m_member.getKey(), (Float)value);
+            settings.addFloat(member().getKey(), (Float)value);
         } else if (Byte.class.equals(rawType)) {
-            settings.addByte(m_member.getKey(), (Byte)value);
+            settings.addByte(member().getKey(), (Byte)value);
         } else if (Short.class.equals(rawType)) {
-            settings.addShort(m_member.getKey(), (Short)value);
+            settings.addShort(member().getKey(), (Short)value);
         } else if (Integer.class.equals(rawType)) {
-            settings.addInt(m_member.getKey(), (Integer)value);
+            settings.addInt(member().getKey(), (Integer)value);
         } else if (Long.class.equals(rawType)) {
-            settings.addLong(m_member.getKey(), (Long)value);
+            settings.addLong(member().getKey(), (Long)value);
         } else {
             throw new InvalidSettingsException(
-                "Unknown primitive type " + rawType + " found when trying to save settings for member " + m_member
+                "Unknown primitive type " + rawType + " found when trying to save settings for member " + member()
                     + ". Most likely an implementation error!");
         }
     }

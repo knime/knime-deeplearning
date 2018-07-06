@@ -62,11 +62,12 @@ import org.jdesktop.swingx.JXCollapsiblePane;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.NestedMemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.NestedMemberWriteInstance;
-import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
 import org.knime.dl.keras.core.struct.param.ParameterChoice;
 import org.knime.dl.keras.core.struct.param.ParameterChoices;
@@ -266,7 +267,15 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
                 } else {
                     @SuppressWarnings("unchecked")
                     Class<T> type = (Class<T>)t.getClass();
-                    m_currentSwingWidgetPanel.saveTo(nested.getWritableStructInstance(type));
+                    StructAccess<MemberReadWriteAccess<?, Object>> structAccess = nested.getStructAccess(type);
+                    try {
+                        T newInstance = type.newInstance();
+                        m_currentSwingWidgetPanel
+                            .saveTo(StructInstances.createWriteInstance(newInstance, structAccess));
+                        nested.set(newInstance);
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new InvalidSettingsException(e);
+                    }
                 }
             } else {
                 instance.set(((ParameterChoice)m_comboBox.getSelectedItem()).get());
@@ -279,17 +288,21 @@ class SwingObjectChoiceWidgetFactory<T> implements SwingWidgetFactory<T> {
         public void loadFrom(MemberReadInstance<T> instance, PortObjectSpec[] spec) throws InvalidSettingsException {
             m_lastSpec = spec;
             instance.load();
+
             T obj = instance.get();
             // init any if empty
             if (obj == null) {
                 obj = m_choices.choices()[0].get();
             }
 
-            m_comboBox.setSelectedIndex(m_choiceKeyToIndex.get(m_choices.fromObject(instance.get()).getKey()));
+            m_comboBox.setSelectedIndex(m_choiceKeyToIndex.get(m_choices.fromObject(obj).getKey()));
             if (instance instanceof NestedMemberReadInstance) {
                 refreshSubPanels();
                 if (m_currentSwingWidgetPanel != null) {
-                    m_currentSwingWidgetPanel.loadFrom(((NestedMemberReadInstance<T>)instance).getStructInstance(),
+                    Class<T> type = (Class<T>)obj.getClass();
+                    StructAccess<MemberReadWriteAccess<?, Object>> structAccess =
+                        ((NestedMemberReadInstance<T>)instance).getStructAccess(type);
+                    m_currentSwingWidgetPanel.loadFrom(StructInstances.createReadInstance(obj, structAccess),
                         m_lastSpec);
                 }
             }

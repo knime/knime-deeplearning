@@ -59,4 +59,5 @@ public interface MemberInstance<T> {
      * @return {@link Member} defining the {@link MemberInstance}.
      */
     Member<T> member();
+
 }

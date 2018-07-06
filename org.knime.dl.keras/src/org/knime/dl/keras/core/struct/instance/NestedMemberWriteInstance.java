@@ -47,6 +47,8 @@
 package org.knime.dl.keras.core.struct.instance;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
 
 /**
  * {@link MemberInstance} which provides write access to an underlying storage.
@@ -55,7 +57,5 @@ import org.knime.core.node.InvalidSettingsException;
  * @param <T> type of object.
  */
 public interface NestedMemberWriteInstance<T> extends MemberWriteInstance<T> {
-
-    StructInstance<? extends MemberWriteInstance<?>, ?> getWritableStructInstance(Class<T> type)
-        throws InvalidSettingsException;
+    StructAccess<MemberReadWriteAccess<?, Object>> getStructAccess(Class<T> type) throws InvalidSettingsException;
 }

@@ -50,7 +50,6 @@ import java.util.Iterator;
 
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.NestedMemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 
 /**
@@ -98,9 +97,8 @@ class StructReadWriteInstance<S> implements StructInstance<MemberReadWriteInstan
 
     private <T> MemberReadWriteInstance<T> createMemberReadWriteInstance(MemberReadWriteAccess<T, S> access,
         S storage) {
-        if (access instanceof NestedMemberReadWriteAccess) {
-            return new DefaultNestedMemberReadWriteInstance<>(m_access, (NestedMemberReadWriteAccess<T, S>)access,
-                storage);
+        if (access.member().getRawType().isInterface()) {
+            return new DefaultNestedMemberReadWriteInstance<T, S>(access, storage);
         } else {
             return new DefaultMemberReadWriteInstance<T, S>(access, storage);
         }

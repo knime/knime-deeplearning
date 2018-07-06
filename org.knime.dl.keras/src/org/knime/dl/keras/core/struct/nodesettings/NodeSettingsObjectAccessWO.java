@@ -50,9 +50,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Structs;
+import org.knime.dl.keras.core.struct.access.MemberReadAccess;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
-import org.knime.dl.keras.core.struct.access.NestedValueWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstance;
@@ -62,8 +62,7 @@ import org.knime.dl.keras.core.struct.param.ParameterStructs;
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAccess<T>
-    implements NestedValueWriteAccess<T, NodeSettingsWO> {
+public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAccess<T> {
 
     /**
      * @param member
@@ -75,6 +74,8 @@ public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAcce
     @Override
     public void setValue(NodeSettingsWO settings, T obj) throws InvalidSettingsException {
         if (obj != null) {
+
+            // Only one level nesting and very hacky... for now.
             @SuppressWarnings("unchecked")
             final Class<T> type = (Class<T>)obj.getClass();
             settings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
@@ -84,16 +85,5 @@ public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAcce
             Structs.shallowCopyUnsafe(StructInstances.createReadInstance(obj, objAccess),
                 StructInstances.createWriteInstance(settings, settingsAccess));
         }
-    }
-
-    @Override
-    public StructInstance<? extends MemberWriteInstance<?>, NodeSettingsWO>
-        getWritableStructInstance(NodeSettingsWO settings, Class<T> type) throws InvalidSettingsException {
-        String key = m_member.getKey();
-        final NodeSettingsWO nestedSettings = settings.addNodeSettings(key);
-        nestedSettings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
-        final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> settingsAccess =
-            NodeSettingsStructs.createStructWOAccess(ParameterStructs.structOf(type));
-        return StructInstances.createWriteInstance(nestedSettings, settingsAccess);
     }
 }

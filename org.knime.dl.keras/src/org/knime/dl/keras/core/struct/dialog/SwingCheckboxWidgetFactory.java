@@ -119,7 +119,8 @@ class SwingCheckboxWidgetFactory implements SwingWidgetFactory<Boolean> {
         public void loadFrom(MemberReadInstance<Boolean> instance, PortObjectSpec[] spec)
             throws InvalidSettingsException {
             instance.load();
-            m_checkBox.setSelected(instance.get());
+            Boolean value = instance.get();
+            m_checkBox.setSelected(value == null ? false : value);
         }
 
         @Override

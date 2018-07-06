@@ -59,7 +59,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 abstract class DLKerasAbstractSeededInitializer extends DLKerasAbstractInitializer {
 
-    @Parameter(label = "Seed", required = Required.OptionalAndNotEnabled)
+    @Parameter(label = "Seed")
     private DLKerasSeed m_seed = new DLKerasSeed(false);
 
     /**

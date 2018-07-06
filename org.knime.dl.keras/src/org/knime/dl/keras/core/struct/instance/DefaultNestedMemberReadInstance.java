@@ -47,7 +47,10 @@
 package org.knime.dl.keras.core.struct.instance;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.struct.access.NestedMemberReadAccess;
+import org.knime.dl.keras.core.struct.access.MemberReadAccess;
+import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
+import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
@@ -55,20 +58,23 @@ import org.knime.dl.keras.core.struct.access.NestedMemberReadAccess;
 public class DefaultNestedMemberReadInstance<T, S> extends DefaultMemberReadInstance<T, S>
     implements NestedMemberReadInstance<T> {
 
-    private NestedMemberReadAccess<T, S> m_nestedAccess;
+    private StructAccess<MemberReadWriteAccess<?, Object>> m_structAccess;
 
     /**
      * @param access
      * @param storage
      */
-    public DefaultNestedMemberReadInstance(NestedMemberReadAccess<T, S> access, S storage) {
+    public DefaultNestedMemberReadInstance(MemberReadAccess<T, S> access, S storage) {
         super(access, storage);
-        m_nestedAccess = access;
     }
 
     @Override
-    public StructInstance<? extends MemberReadInstance<?>, ?> getStructInstance() throws InvalidSettingsException {
-        return m_nestedAccess.getStructInstance(storage());
-    }
+    public StructAccess<MemberReadWriteAccess<?, Object>> getStructAccess(Class<T> type)
+        throws InvalidSettingsException {
+        if (m_structAccess == null) {
+            m_structAccess = ParameterStructs.createStructAccess(type);
+        }
 
+        return m_structAccess;
+    }
 }

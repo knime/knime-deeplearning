@@ -50,7 +50,6 @@ import java.util.Iterator;
 
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
-import org.knime.dl.keras.core.struct.access.NestedMemberWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
 
 /**
@@ -101,8 +100,8 @@ class StructWriteInstance<S> implements StructInstance<MemberWriteInstance<?>, S
     }
 
     private <T> MemberWriteInstance<T> create(MemberWriteAccess<T, S> access, S storage) {
-        if (access instanceof NestedMemberWriteAccess) {
-            return new DefaultNestedMemberWriteInstance<T, S>((NestedMemberWriteAccess<T, S>)access, storage);
+        if (access.member().getRawType().isInterface()) {
+            return new DefaultNestedMemberWriteInstance<T, S>(access, storage);
         } else {
             return new DefaultMemberWriteInstance<T, S>(access, storage);
         }

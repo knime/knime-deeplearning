@@ -47,11 +47,8 @@
 package org.knime.dl.keras.core.struct;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
 import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.instance.NestedMemberReadInstance;
-import org.knime.dl.keras.core.struct.instance.NestedMemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstance;
 
 /**
@@ -80,30 +77,7 @@ public class Structs {
             if (toMember == null) {
                 throw new InvalidSettingsException("Incompatible StructInstances in Structs.shallowCopy(...)!");
             }
-            // we can test a lot ...
-            copy(fromMember, toMember);
+            toMember.setFrom(fromMember);
         }
-    }
-
-    private static <T> void copy(MemberReadInstance<?> fromMember, MemberWriteInstance<T> toMember)
-        throws InvalidSettingsException {
-        // TODO Avoid redundant loading
-        fromMember.load();
-        toMember.setEnabled(fromMember.isEnabled());
-        if (fromMember.get() != null && fromMember instanceof NestedMemberReadInstance
-            && toMember instanceof NestedMemberWriteInstance) {
-            StructInstance<MemberReadInstance<?>, ?> nestedFrom =
-                ((NestedMemberReadInstance)fromMember).getStructInstance();
-            StructInstance nestedTo =
-                ((NestedMemberWriteInstance)toMember).getWritableStructInstance(fromMember.get().getClass());
-            shallowCopyUnsafe(nestedFrom, nestedTo);
-
-            if (!(nestedTo.storage() instanceof NodeSettingsWO)) {
-                toMember.set(nestedTo.storage());
-            }
-        } else {
-            toMember.set(fromMember.get());
-        }
-        toMember.save();
     }
 }

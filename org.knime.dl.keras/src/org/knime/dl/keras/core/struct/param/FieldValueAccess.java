@@ -48,6 +48,8 @@ package org.knime.dl.keras.core.struct.param;
 
 import java.lang.reflect.Field;
 
+import org.knime.dl.keras.core.struct.access.MemberReadAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 
@@ -59,6 +61,8 @@ class FieldValueAccess<S, T> implements ValueReadAccess<T, S>, ValueWriteAccess<
     private Field m_field;
 
     private boolean m_isEnabled;
+
+    private StructAccess<? extends MemberReadAccess<?, ?>> m_nestedAccess;
 
     public FieldValueAccess(Field field) {
         m_field = field;

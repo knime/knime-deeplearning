@@ -63,6 +63,8 @@ public class DefaultMemberWriteAccess<T, S> implements MemberWriteAccess<T, S> {
 
     private boolean m_isRequired;
 
+    private StructAccess<? extends MemberReadAccess<?, ?>> m_nestedAccess;
+
     /**
      * @param member underlying {@link Member}
      * @param writeAccess the write access

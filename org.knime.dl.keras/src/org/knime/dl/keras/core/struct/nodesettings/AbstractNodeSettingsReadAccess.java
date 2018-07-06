@@ -73,27 +73,21 @@ public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAcce
 
     @Override
     public T get(NodeSettingsRO settings) throws InvalidSettingsException {
-        NodeSettingsRO nested = settings.getNodeSettings(m_member.getKey());
-        if (m_isRequired) {
-            return getInternal(nested);
+        if (!settings.containsKey(m_member.getKey())) {
+            if (m_isRequired) {
+                return ((FieldParameterMember<T>)m_member).getDefault();
+            } else {
+                return null;
+            }
         } else {
-            m_isEnabled = nested.getBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED);
-            return getInternal(nested);
+            NodeSettingsRO nested = settings.getNodeSettings(m_member.getKey());
+            if (m_isRequired) {
+                return getValue(nested);
+            } else {
+                m_isEnabled = nested.getBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED);
+                return m_isEnabled ? getValue(nested) : null;
+            }
         }
-    }
-
-    private T getInternal(NodeSettingsRO settings) throws InvalidSettingsException {
-        final String key = m_member.getKey();
-        // there are settings available
-        if (settings.containsKey(key)) {
-            return getValue(settings);
-            // no settings available
-        } else if (m_member instanceof FieldParameterMember) {
-            // and no enabled status yet set, so the dialog is opened the first time
-            // TODO check if parameter could also have a default...
-            return ((FieldParameterMember<T>)m_member).getDefault();
-        }
-        return null;
     }
 
     @Override

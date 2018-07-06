@@ -145,7 +145,7 @@ class SwingOptionalWidgetFactory<T> implements SwingWidgetFactory<T> {
             final boolean isEnabled = m_activateBox.isSelected();
             instance.setEnabled(isEnabled);
             if (!isEnabled) {
-                instance.set(null);
+                instance.set((Object)null);
             } else {
                 m_widget.saveTo(instance);
             }

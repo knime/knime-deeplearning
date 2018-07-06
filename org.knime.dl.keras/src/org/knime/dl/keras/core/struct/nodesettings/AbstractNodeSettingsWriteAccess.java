@@ -51,6 +51,8 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
+import org.knime.dl.keras.core.struct.access.MemberReadAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
 import org.knime.dl.keras.core.struct.access.ValueWriteAccess;
 import org.knime.dl.keras.core.struct.param.DefaultParameterMember;
 import org.knime.dl.keras.core.struct.param.ParameterMember;
@@ -61,7 +63,7 @@ import org.knime.dl.keras.core.struct.param.ParameterMember;
  */
 public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAccess<T, NodeSettingsWO> {
 
-    protected Member<T> m_member;
+    private Member<T> m_member;
 
     private boolean m_isRequired;
 
@@ -102,6 +104,10 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
     @Override
     public void setEnabled(boolean isEnabled) {
         m_isEnabled = isEnabled;
+    }
+
+    protected Member<T> member() {
+        return m_member;
     }
 
     protected abstract void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException;

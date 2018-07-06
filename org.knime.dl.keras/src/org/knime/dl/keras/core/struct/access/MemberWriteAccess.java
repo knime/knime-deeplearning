@@ -74,4 +74,5 @@ public interface MemberWriteAccess<T, S> extends MemberAccess<T> {
      * @param isEnabled
      */
     void setEnabled(boolean isEnabled);
+
 }

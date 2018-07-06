@@ -65,6 +65,12 @@ public interface MemberWriteInstance<T> extends MemberInstance<T> {
     void set(Object obj) throws InvalidSettingsException;
 
     /**
+     * @throws InvalidSettingsException
+     * 
+     */
+    <V> void setFrom(MemberReadInstance<V> instance) throws InvalidSettingsException;
+
+    /**
      * Sets the status to enabled. Status will be written when object is set.
      * 
      * @param isEnabled

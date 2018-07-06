@@ -53,7 +53,6 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
 import org.knime.dl.keras.core.struct.access.DefaultMemberReadAccess;
-import org.knime.dl.keras.core.struct.access.DefaultNestedMemberReadAccess;
 import org.knime.dl.keras.core.struct.access.MemberReadAccess;
 import org.knime.dl.keras.core.struct.access.StructReadAccess;
 import org.knime.dl.keras.core.struct.access.ValueReadAccess;
@@ -94,7 +93,7 @@ class NodeSettingsAccessRO extends AbstractStructAccess<MemberReadAccess<?, Node
         } else if (registry.hasReadAccessFactoryFor(rawType)) {
             readAccess = registry.getReadAccessFactoryFor(rawType).create(member);
         } else {
-            return new DefaultNestedMemberReadAccess<>(member, new NodeSettingsObjectAccessRO<>(member));
+            readAccess = new NodeSettingsObjectAccessRO<>(member);
         }
         return new DefaultMemberReadAccess<>(member, readAccess);
     }

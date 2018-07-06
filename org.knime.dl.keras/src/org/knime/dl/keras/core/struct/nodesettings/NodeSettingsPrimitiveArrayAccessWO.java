@@ -62,25 +62,25 @@ class NodeSettingsPrimitiveArrayAccessWO<T> extends AbstractNodeSettingsWriteAcc
 
     @Override
     public void setValue(NodeSettingsWO settings, T value) throws InvalidSettingsException {
-        final Class<?> componentType = ClassUtils.primitiveToWrapper(m_member.getRawType().getComponentType());
+        final Class<?> componentType = ClassUtils.primitiveToWrapper(member().getRawType().getComponentType());
         if (Boolean.class.equals(componentType)) {
-            settings.addBooleanArray(m_member.getKey(), (boolean[])value);
+            settings.addBooleanArray(member().getKey(), (boolean[])value);
         } else if (Double.class.equals(componentType)) {
-            settings.addDoubleArray(m_member.getKey(), (double[])value);
+            settings.addDoubleArray(member().getKey(), (double[])value);
         } else if (Float.class.equals(componentType)) {
-            settings.addFloatArray(m_member.getKey(), (float[])value);
+            settings.addFloatArray(member().getKey(), (float[])value);
         } else if (Byte.class.equals(componentType)) {
-            settings.addByteArray(m_member.getKey(), (byte[])value);
+            settings.addByteArray(member().getKey(), (byte[])value);
         } else if (Short.class.equals(componentType)) {
-            settings.addShortArray(m_member.getKey(), (short[])value);
+            settings.addShortArray(member().getKey(), (short[])value);
         } else if (Integer.class.equals(componentType)) {
-            settings.addIntArray(m_member.getKey(), (int[])value);
+            settings.addIntArray(member().getKey(), (int[])value);
         } else if (Long.class.equals(componentType)) {
-            settings.addLongArray(m_member.getKey(), (long[])value);
+            settings.addLongArray(member().getKey(), (long[])value);
         } else {
             throw new InvalidSettingsException(
                 "Unknown primitive type " + componentType + " for array found when trying to save settings for member "
-                    + m_member + ". Most likely an implementation error!");
+                    + member() + ". Most likely an implementation error!");
         }
     }
 }

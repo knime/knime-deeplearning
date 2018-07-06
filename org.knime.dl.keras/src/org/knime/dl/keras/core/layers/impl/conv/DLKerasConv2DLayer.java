@@ -68,8 +68,8 @@ import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -98,32 +98,34 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Activation function")
     private DLKerasActivation m_activation = DLKerasActivation.LINEAR;
 
-    @Parameter(label = "Use bias?", tab = "Advanced", required = Required.OptionalAndNotEnabled)
-    Boolean m_useBias = true;
+    @Parameter(label = "Use bias?", tab = "Advanced")
+    private Boolean m_useBias = true;
 
     @Parameter(label = "Kernel initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
 
-    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced", required = Required.OptionalAndNotEnabled)
+    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced",
+        required = Required.OptionalAndNotEnabled)
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
-    @Parameter(label = "Kernel regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
-        tab = "Advanced")
+    @Parameter(label = "Kernel regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_kernelRegularizer = null;
 
-    @Parameter(label = "Bias regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
-        tab = "Advanced")
+    @Parameter(label = "Bias regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_biasRegularizer = null;
 
-    @Parameter(label = "Activity regularizer", required = Required.OptionalAndNotEnabled, choices = DLKerasRegularizerChoices.class,
-        tab = "Advanced")
+    @Parameter(label = "Activity regularizer", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasRegularizerChoices.class, tab = "Advanced")
     private DLKerasRegularizer m_activityRegularizer = null;
 
-    @Parameter(label = "Kernel constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class,
-        tab = "Advanced")
+    @Parameter(label = "Kernel constraint", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_kernelConstraint = null;
 
-    @Parameter(label = "Bias constraint", required = Required.OptionalAndNotEnabled, choices = DLKerasConstraintChoices.class, tab = "Advanced")
+    @Parameter(label = "Bias constraint", required = Required.OptionalAndNotEnabled,
+        choices = DLKerasConstraintChoices.class, tab = "Advanced")
     private DLKerasConstraint m_biasConstraint = null;
 
     /**
@@ -138,8 +140,7 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     }
 
     @Override
-    protected void validateInputShape(final Long[] inputShape)
-        throws DLInvalidTensorSpecException {
+    protected void validateInputShape(final Long[] inputShape) throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 3);
 
         final String message =
@@ -149,8 +150,8 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     protected Long[] inferOutputShape(final Long[] inputShape) {
-        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, m_kernelSize.getTuple(), m_strides.getTuple(),
-            m_dilationRate.getTuple(), m_padding.value(), getDataFormat().value());
+        return DLConvolutionLayerUtils.computeOutputShape(inputShape, m_filters, m_kernelSize.getTuple(),
+            m_strides.getTuple(), m_dilationRate.getTuple(), m_padding.value(), getDataFormat().value());
     }
 
     @Override

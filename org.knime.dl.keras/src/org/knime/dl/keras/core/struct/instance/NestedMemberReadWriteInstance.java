@@ -51,5 +51,4 @@ package org.knime.dl.keras.core.struct.instance;
  */
 public interface NestedMemberReadWriteInstance<T>
     extends NestedMemberReadInstance<T>, NestedMemberWriteInstance<T>, MemberReadWriteInstance<T> {
-    // NB: Marker Interface
 }

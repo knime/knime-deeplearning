@@ -51,10 +51,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Structs;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.NestedValueReadAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
-import org.knime.dl.keras.core.struct.instance.MemberReadInstance;
-import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
 import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
@@ -62,8 +59,7 @@ import org.knime.dl.keras.core.struct.param.ParameterStructs;
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
  * @param <T>
  */
-public class NodeSettingsObjectAccessRO<T> extends AbstractNodeSettingsReadAccess<T>
-    implements NestedValueReadAccess<T, NodeSettingsRO> {
+public class NodeSettingsObjectAccessRO<T> extends AbstractNodeSettingsReadAccess<T> {
 
     /**
      * @param member
@@ -75,19 +71,14 @@ public class NodeSettingsObjectAccessRO<T> extends AbstractNodeSettingsReadAcces
     @Override
     public T getValue(NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            String key = member().getKey();
-            if (settings.containsKey(key)) {
-                final Class<T> type = getType(settings);
-                final T obj = type.newInstance();
-                final StructAccess<MemberReadWriteAccess<?, T>> objAccess = ParameterStructs.createStructAccess(type);
-                Structs.shallowCopyUnsafe(
-                    StructInstances.createReadInstance(settings,
-                        NodeSettingsStructs.createStructROAccess(objAccess.struct())),
-                    StructInstances.createReadWriteInstance(obj, objAccess));
-                return obj;
-            } else {
-                return null;
-            }
+            final Class<T> type = getType(settings);
+            final T obj = type.newInstance();
+            final StructAccess<MemberReadWriteAccess<?, T>> objAccess = ParameterStructs.createStructAccess(type);
+            Structs.shallowCopyUnsafe(
+                StructInstances.createReadInstance(settings,
+                    NodeSettingsStructs.createStructROAccess(objAccess.struct())),
+                StructInstances.createReadWriteInstance(obj, objAccess));
+            return obj;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new InvalidSettingsException(
                 "Can't create read access for member " + member().toString() + ". Most likely an implementation error.",
@@ -95,25 +86,10 @@ public class NodeSettingsObjectAccessRO<T> extends AbstractNodeSettingsReadAcces
         }
     }
 
-    @Override
-    public StructInstance<? extends MemberReadInstance<?>, NodeSettingsRO> getStructInstance(NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        String key = member().getKey();
-        if (settings.containsKey(key)) {
-            final Class<T> type = getType(settings);
-            return StructInstances.createReadInstance(settings.getNodeSettings(key),
-                NodeSettingsStructs.createStructROAccess(ParameterStructs.structOf(type)));
-        } else {
-            return null;
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    @Override
-    public Class<T> getType(NodeSettingsRO settings) throws InvalidSettingsException {
+    private Class<T> getType(NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            return (Class<T>)Class
-                .forName(settings.getNodeSettings(member().getKey()).getString(NodeSettingsStructs.STRUCT_TYPE_KEY));
+            return (Class<T>)Class.forName(settings.getString(NodeSettingsStructs.STRUCT_TYPE_KEY));
         } catch (ClassNotFoundException e) {
             throw new InvalidSettingsException(e);
         }

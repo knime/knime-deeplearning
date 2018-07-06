@@ -54,7 +54,6 @@ import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Struct;
 import org.knime.dl.keras.core.struct.access.AbstractStructAccess;
 import org.knime.dl.keras.core.struct.access.DefaultMemberReadWriteAccess;
-import org.knime.dl.keras.core.struct.access.DefaultNestedMemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructReadWriteAccess;
 
@@ -80,14 +79,7 @@ class ParameterStructAccess<S> extends AbstractStructAccess<MemberReadWriteAcces
 
     private static <T, S> MemberReadWriteAccess<T, S> createFieldAccess(Member<T> member, Field field) {
         final FieldValueAccess<S, T> fieldAccess = new FieldValueAccess<>(field);
-
-        Struct struct = ParameterStructs.structOf(member.getRawType());
-        if (field.getType().isInterface() || (struct != null && !struct.members().isEmpty())) {
-            return new DefaultNestedMemberReadWriteAccess<>(member, new NestedFieldValueAccess<>(fieldAccess));
-        } else {
-            return new DefaultMemberReadWriteAccess<>(member, fieldAccess);
-        }
-
+        return new DefaultMemberReadWriteAccess<>(member, fieldAccess);
     }
 
     private static boolean isEqual(Type type, Class<?> rawType) {

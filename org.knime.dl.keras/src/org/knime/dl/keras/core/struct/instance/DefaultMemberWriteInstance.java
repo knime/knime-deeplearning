@@ -92,4 +92,12 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
     public void save() throws InvalidSettingsException {
         m_access.set(m_storage, m_obj);
     }
+
+    @Override
+    public <V> void setFrom(MemberReadInstance<V> instance) throws InvalidSettingsException {
+        instance.load();
+        setEnabled(instance.isEnabled());
+        set(instance.get());
+        save();
+    }
 }

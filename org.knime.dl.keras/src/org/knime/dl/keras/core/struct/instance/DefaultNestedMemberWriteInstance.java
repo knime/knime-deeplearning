@@ -47,7 +47,10 @@
 package org.knime.dl.keras.core.struct.instance;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.dl.keras.core.struct.access.NestedMemberWriteAccess;
+import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
+import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
+import org.knime.dl.keras.core.struct.access.StructAccess;
+import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
@@ -55,21 +58,43 @@ import org.knime.dl.keras.core.struct.access.NestedMemberWriteAccess;
 public class DefaultNestedMemberWriteInstance<T, S> extends DefaultMemberWriteInstance<T, S>
     implements NestedMemberWriteInstance<T> {
 
-    private final NestedMemberWriteAccess<T, S> m_nestedAccess;
+    private StructAccess<MemberReadWriteAccess<?, Object>> m_structAccess;
+
+    private MemberWriteAccess<T, S> m_memberAccess;
 
     /**
      * @param access
      * @param storage
      */
-    public DefaultNestedMemberWriteInstance(NestedMemberWriteAccess<T, S> access, S storage) {
+    public DefaultNestedMemberWriteInstance(MemberWriteAccess<T, S> access, S storage) {
         super(access, storage);
-        m_nestedAccess = access;
+        m_memberAccess = access;
     }
 
     @Override
-    public StructInstance<? extends MemberWriteInstance<?>, ?> getWritableStructInstance(Class<T> type)
+    public StructAccess<MemberReadWriteAccess<?, Object>> getStructAccess(Class<T> type)
         throws InvalidSettingsException {
-        return m_nestedAccess.getWritableStructInstance(storage(), type);
+        if (m_structAccess == null) {
+            m_structAccess = ParameterStructs.createStructAccess(type);
+        }
+        return m_structAccess;
     }
 
+    @Override
+    public <V> void setFrom(MemberReadInstance<V> instance) throws InvalidSettingsException {
+        super.setFrom(instance);
+        //        if (instance instanceof NestedMemberReadInstance) {
+        //            V t = instance.get();
+        //            if (t != null) {
+        //                @SuppressWarnings("unchecked")
+        //                Class<T> type = (Class<T>)t.getClass();
+        //                final StructAccess<MemberReadWriteAccess<?, Object>> readAccess =
+        //                    ((NestedMemberReadInstance<T>)instance).getStructAccess(type);
+        //                getStructAccess(type);
+        //                for (MemberReadWriteAccess<?, Object> rwMemberAccess : readAccess) {
+        //                    m_structAccess.member(rwMemberAccess.member().getKey()).setEnabled(rwMemberAccess.isEnabled());
+        //                }
+        //            }
+        //        }
+    }
 }
