@@ -96,7 +96,7 @@ class DefaultMemberWriteInstance<T, S> implements MemberWriteInstance<T> {
     @Override
     public <V> void setFrom(MemberReadInstance<V> instance) throws InvalidSettingsException {
         instance.load();
-        setEnabled(instance.isEnabled());
+        setEnabled(instance.isEnabled() || instance.get() != null);
         set(instance.get());
         save();
     }
