@@ -80,9 +80,13 @@ public abstract class AbstractNodeSettingsReadAccess<T> implements ValueReadAcce
                 return null;
             }
         } else {
-            NodeSettingsRO nested = settings.getNodeSettings(m_member.getKey());
+            final NodeSettingsRO nested = settings.getNodeSettings(m_member.getKey());
             if (m_isRequired) {
-                return getValue(nested);
+                if (!nested.containsKey(m_member.getKey())) {
+                    return ((FieldParameterMember<T>)m_member).getDefault();
+                } else {
+                    return getValue(nested);
+                }
             } else {
                 m_isEnabled = nested.getBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED);
                 return m_isEnabled ? getValue(nested) : null;
