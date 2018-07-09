@@ -50,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -140,19 +138,21 @@ public final class DLConvolutionLayerUtils {
         }
 
         int channelIndex = findChannelIndex(inputShape, dataFormat);
-        Long[] newDims = IntStream.range(0, inputShape.length).filter(i -> i != channelIndex)
-            .mapToObj(i -> inputShape[i]).toArray(Long[]::new);
-
-        Stream<Long> outputShape = IntStream.range(0, newDims.length)
-            .mapToObj(i -> computeOutputLength(newDims[i], filterSize[i], stride[i], dilation[i], padding));
-
-        if (dataFormat.equals("channels_first")) {
-            return Stream.concat(Stream.of(inputShape[channelIndex]), outputShape).toArray(Long[]::new);
-        } else {
-            return Stream.concat(outputShape, Stream.of(inputShape[channelIndex])).toArray(Long[]::new);
+        Long[] newDims = new Long[inputShape.length];
+        for (int i = 0; i < inputShape.length; i++) {
+            if (i < channelIndex) {
+                newDims[i] = computeOutputLength(inputShape[i], filterSize[i], stride[i], dilation[i], padding);
+            } else if (i > channelIndex) {
+                newDims[i] =
+                    computeOutputLength(inputShape[i], filterSize[i - 1], stride[i - 1], dilation[i - 1], padding);
+            } else {
+                newDims[i] = inputShape[i];
+            }
         }
+
+        return newDims;
     }
-    
+
     /**
      * Computes the output shape for convolution like layers.
      * 
@@ -360,9 +360,9 @@ public final class DLConvolutionLayerUtils {
         switch (padding) {
             case VALID:
                 return dimSize * strideSize + Math.max(kernelSize - strideSize, 0);
-                // Keras doesn't support full padding but keep the logic in case it supports it in the future
-//            case FULL:
-//                return dimSize * strideSize - (strideSize + kernelSize - 2);
+            // Keras doesn't support full padding but keep the logic in case it supports it in the future
+            //            case FULL:
+            //                return dimSize * strideSize - (strideSize + kernelSize - 2);
             case SAME:
                 return dimSize * strideSize;
         }
