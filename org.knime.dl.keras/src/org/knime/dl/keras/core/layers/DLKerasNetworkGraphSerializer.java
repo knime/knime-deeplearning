@@ -46,9 +46,12 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,6 +93,8 @@ public final class DLKerasNetworkGraphSerializer {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasNetworkGraphSerializer.class);
 
     private static final String CFG_KEY_GRAPH = "layer_graph";
+
+    private static final String CFG_KEY_LAYER = "layer";
 
     private static final String CFG_KEY_LAYER_CLASS = "class";
 
@@ -149,6 +154,195 @@ public final class DLKerasNetworkGraphSerializer {
         return networkFileStores;
     }
 
+    public static void writeGraphTo(final List<DLKerasLayer> outputLayers, final ObjectOutputStream objOut)
+        throws IOException {
+        try {
+            objOut.writeInt(outputLayers.size());
+            for (final DLKerasLayer outputLayer : outputLayers) {
+                objOut.writeObject(saveLayerAndParents(outputLayer));
+            }
+        } catch (InvalidSettingsException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public static List<DLKerasLayer> readGraphFrom(final ObjectInputStream objIn,
+        final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
+        throws IOException, ClassNotFoundException {
+
+        final int numOutputs = objIn.readInt();
+        final List<DLKerasLayer> outputLayers = new ArrayList<>(numOutputs);
+
+        for (int i = 0; i < numOutputs; i++) {
+            final DLKerasLayerBytes layerBytesObj = (DLKerasLayerBytes)objIn.readObject();
+            outputLayers.add(loadLayerAndParents(layerBytesObj));
+        }
+        return outputLayers;
+    }
+
+    /**
+     * Creates a (or loads a cached) DLKerasLayerByte object which contains the layer id and a byte representation of
+     * the layer and all its parents.
+     */
+    private static DLKerasLayerBytes saveLayerAndParents(final DLKerasLayer layer)
+        throws IOException, InvalidSettingsException {
+        final String id = layer.getRuntimeId();
+
+        // TODO check if there is something cached for this id
+
+        final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        final ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+
+        // Write the parents to the objOut
+        if (layer instanceof DLKerasInnerLayer) {
+            final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)layer;
+            // Write the number of parents to read to the objOut
+            final int numParents = innerLayer.getNumParents();
+            objOut.writeInt(numParents);
+            // Loop over parents and save in the objOut
+            for (int i = 0; i < numParents; i++) {
+                final DLKerasTensorSpecsOutput parent = innerLayer.getParent(i);
+                // TODO handle BaseNetworkTensorSpecOutput
+                if (parent instanceof DLKerasLayer) {
+                    objOut.writeInt(innerLayer.getTensorIndexInParent(i));
+                    objOut.writeObject(saveLayerAndParents((DLKerasLayer)parent));
+                }
+            }
+        } else {
+            // The layer has no parents
+            objOut.writeInt(0);
+        }
+
+        // Save the layer itself
+        saveLayer(layer, objOut);
+
+        // Get the final byte representation
+        objOut.flush();
+        final byte[] layerBytes = byteOut.toByteArray();
+
+        // TODO cache somewhere
+
+        return new DLKerasLayerBytes(id, layerBytes);
+    }
+
+    /**
+     * Saves one layer to a object stream.
+     */
+    private static void saveLayer(final DLKerasLayer layer, final ObjectOutputStream objOut)
+        throws InvalidSettingsException, IOException {
+        // TODO Layers are saved in NodeSettings right now. Is this the best solution?
+        // TODO Add a version identifier to determine how layers are saved for this version
+
+        // Create NodeSettings to save the layer
+        final NodeSettings layerSettings = new NodeSettings(CFG_KEY_LAYER); // TODO key
+        // Save the layer class
+        layerSettings.addString(CFG_KEY_LAYER_CLASS, layer.getClass().getCanonicalName());
+        // Save the layer settings
+        // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
+        final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance = ParameterStructs.createInstance(layer);
+        final StructInstance<MemberWriteInstance<?>, ?> settingsInstance = NodeSettingsStructs
+            .createNodeSettingsInstance(layerSettings.addNodeSettings(CFG_KEY_LAYER_PARAMS), layerInstance.struct());
+        Structs.shallowCopyUnsafe(layerInstance, settingsInstance);
+        // Write the NodeSettings to the objOut
+        objOut.writeObject(layerSettings);
+    }
+
+    private static DLKerasLayer loadLayerAndParents(final DLKerasLayerBytes layerBytesObj)
+        throws IOException, ClassNotFoundException {
+        final String id = layerBytesObj.getId();
+
+        // TODO check if the layer is cached already
+
+        final ByteArrayInputStream byteIn = new ByteArrayInputStream(layerBytesObj.getLayerData());
+        final ObjectInputStream objIn = new ObjectInputStream(byteIn);
+
+        // Read the parents of this layer
+        final int numParents = objIn.readInt();
+        final DLKerasTensorSpecsOutput[] parents = new DLKerasTensorSpecsOutput[numParents];
+        final int[] idxInParents = new int[numParents];
+        for (int i = 0; i < numParents; i++) {
+            // TODO handle BaseNetworkSpecOutput
+            idxInParents[i] = objIn.readInt();
+            parents[i] = loadLayerAndParents((DLKerasLayerBytes)objIn.readObject());
+        }
+
+        // Load the layer itself
+        final DLKerasLayer layer = loadLayer(objIn, id, parents, idxInParents);
+
+        // TODO Cache the layer object
+
+        return layer;
+    }
+
+    private static DLKerasLayer loadLayer(final ObjectInputStream objIn, final String id,
+        final DLKerasTensorSpecsOutput[] parents, final int[] idxInParents) throws IOException, ClassNotFoundException {
+        try {
+            // Get the layer NodeSettings
+            final NodeSettings layerSettings = (NodeSettings)objIn.readObject();
+            // Get the layer class
+            final Class<?> layerClass = Class.forName(layerSettings.getString(CFG_KEY_LAYER_CLASS));
+            // Create the layer
+            final DLKerasLayer layer = (DLKerasLayer)layerClass.newInstance();
+            // Load settings into layer
+            final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance = ParameterStructs.createInstance(layer);
+            final StructInstance<MemberReadInstance<?>, ?> settingsInstance =
+                NodeSettingsStructs.createNodeSettingsInstance(
+                    (NodeSettingsRO)layerSettings.getNodeSettings(CFG_KEY_LAYER_PARAMS), layerInstance.struct());
+            Structs.shallowCopyUnsafe(settingsInstance, layerInstance);
+            // Load parent settings
+            // TODO handle BaseNetworkSpecOutput
+            if (parents.length != 0 && layer instanceof DLKerasInnerLayer) {
+                final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)layer;
+                // TODO check if parents list fits?
+                for (int i = 0; i < parents.length; i++) {
+                    innerLayer.setParent(i, parents[i]);
+                    innerLayer.setTensorIndexInParent(i, idxInParents[i]);
+                }
+            }
+            // Set runtime id
+            layer.setRuntimeId(id);
+            return layer;
+        } catch (InvalidSettingsException e) {
+            throw new IOException("Could not load saved layer.", e); // TODO error message
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IOException("Could not load saved layer.", e); // TODO error message
+        }
+    }
+
+    // TODO move somewhere else?
+    private static class DLKerasLayerBytes implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private final String m_id;
+
+        private final byte[] m_layerData;
+
+        public DLKerasLayerBytes(final String id, final byte[] layerData) {
+            m_id = id;
+            m_layerData = layerData;
+        }
+
+        /**
+         * @return the id
+         */
+        public String getId() {
+            return m_id;
+        }
+
+        /**
+         * @return the layer represented in bytes
+         */
+        public byte[] getLayerData() {
+            return m_layerData;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // LEGACY CODE TODO REMOVE writeGraphToOld
+    // ---------------------------------------------------------------------------------------------------------------
+
     /**
      * Writes the Keras network graph specified by the given output layers and their inputs (i.e. predecessor nodes) to
      * a stream.
@@ -157,7 +351,7 @@ public final class DLKerasNetworkGraphSerializer {
      * @param objOut the stream to which to write the network graph, it is the client's responsibility to close it
      * @throws IOException if failed to write the network graph to stream
      */
-    public static Map<Integer, DLKerasBaseNetworkTensorSpecOutput> writeGraphTo(final List<DLKerasLayer> outputLayers,
+    public static Map<Integer, DLKerasBaseNetworkTensorSpecOutput> writeGraphToOld(final List<DLKerasLayer> outputLayers,
         final ObjectOutputStream objOut) throws IOException {
         final NodeSettings graphSettings = new NodeSettings(CFG_KEY_GRAPH);
         final AtomicInteger layerIndexCounter = new AtomicInteger();
@@ -262,7 +456,7 @@ public final class DLKerasNetworkGraphSerializer {
      * @throws IOException if failed to read the network graph from stream
      * @throws ClassNotFoundException if a network graph related class (e.g. a layer) could not be found
      */
-    public static List<DLKerasLayer> readGraphFrom(final ObjectInputStream objIn,
+    public static List<DLKerasLayer> readGraphFromOld(final ObjectInputStream objIn,
         final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
         throws IOException, ClassNotFoundException {
         try {
