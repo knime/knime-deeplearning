@@ -119,8 +119,9 @@ public class DLKerasSeed extends AbstractOptionalWidgetType {
      * @param settings the settings to write to
      */
     public static void saveTo(DLKerasSeed seed, NodeSettingsWO settings, String key) {
-        settings.addLong(key, seed.getSeed());
-        settings.addBoolean(SETTINGS_KEY_IS_ENABLED, seed.isEnabled());
+        NodeSettingsWO nested = settings.addNodeSettings(key);
+        nested.addLong(key, seed.getSeed());
+        nested.addBoolean(SETTINGS_KEY_IS_ENABLED, seed.isEnabled());
     }
 
     /**
@@ -131,9 +132,10 @@ public class DLKerasSeed extends AbstractOptionalWidgetType {
      * @throws InvalidSettingsException
      */
     public static DLKerasSeed loadFrom(NodeSettingsRO settings, String key) throws InvalidSettingsException {
+        NodeSettingsRO nested = settings.getNodeSettings(key);
         boolean isEnabled =
-            settings.containsKey(SETTINGS_KEY_IS_ENABLED) ? settings.getBoolean(SETTINGS_KEY_IS_ENABLED) : true;
-        DLKerasSeed ks = new DLKerasSeed(settings.getLong(key), isEnabled, false);
+            nested.containsKey(SETTINGS_KEY_IS_ENABLED) ? nested.getBoolean(SETTINGS_KEY_IS_ENABLED) : true;
+        DLKerasSeed ks = new DLKerasSeed(nested.getLong(key), isEnabled, false);
         return ks;
     }
 }
