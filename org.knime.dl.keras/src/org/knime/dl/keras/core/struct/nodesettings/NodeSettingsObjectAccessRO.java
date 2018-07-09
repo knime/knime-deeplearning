@@ -71,11 +71,12 @@ public class NodeSettingsObjectAccessRO<T> extends AbstractNodeSettingsReadAcces
     @Override
     public T getValue(NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            final Class<T> type = getType(settings);
+            NodeSettingsRO nested = settings.getNodeSettings(member().getKey());
+            final Class<T> type = getType(nested);
             final T obj = type.newInstance();
             final StructAccess<MemberReadWriteAccess<?, T>> objAccess = ParameterStructs.createStructAccess(type);
             Structs.shallowCopyUnsafe(
-                StructInstances.createReadInstance(settings,
+                StructInstances.createReadInstance(nested,
                     NodeSettingsStructs.createStructROAccess(objAccess.struct())),
                 StructInstances.createReadWriteInstance(obj, objAccess));
             return obj;

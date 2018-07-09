@@ -76,19 +76,18 @@ public abstract class AbstractNodeSettingsWriteAccess<T> implements ValueWriteAc
 
     @Override
     public void set(NodeSettingsWO settings, T value) throws InvalidSettingsException {
-        NodeSettingsWO nested = null;
-        if (settings instanceof NodeSettings) {
-            if (((NodeSettings)settings).containsKey(m_member.getKey())) {
-                nested = ((NodeSettings)settings).getNodeSettings(m_member.getKey());
-            }
-        }
-        if (nested == null) {
-            nested = settings.addNodeSettings(m_member.getKey());
-        }
-
         if (m_isRequired) {
-            setInternal(nested, value);
+            setInternal(settings, value);
         } else {
+            NodeSettingsWO nested = null;
+            if (settings instanceof NodeSettings) {
+                if (((NodeSettings)settings).containsKey(m_member.getKey())) {
+                    nested = ((NodeSettings)settings).getNodeSettings(m_member.getKey());
+                }
+            }
+            if (nested == null) {
+                nested = settings.addNodeSettings(m_member.getKey());
+            }
             nested.addBoolean(DefaultParameterMember.SETTINGS_KEY_ENABLED, m_isEnabled);
             setInternal(nested, value);
         }

@@ -47,20 +47,19 @@
 package org.knime.dl.keras.core.struct.nodesettings;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.dl.keras.core.struct.Member;
 import org.knime.dl.keras.core.struct.Structs;
-import org.knime.dl.keras.core.struct.access.MemberReadAccess;
 import org.knime.dl.keras.core.struct.access.MemberReadWriteAccess;
 import org.knime.dl.keras.core.struct.access.MemberWriteAccess;
 import org.knime.dl.keras.core.struct.access.StructAccess;
-import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
-import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstances;
 import org.knime.dl.keras.core.struct.param.ParameterStructs;
 
 /**
  * @author David Kolb, KNIME GmbH, Konstanz, Germany
+ * @param <T>
  */
 public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAccess<T> {
 
@@ -74,16 +73,24 @@ public class NodeSettingsObjectAccessWO<T> extends AbstractNodeSettingsWriteAcce
     @Override
     public void setValue(NodeSettingsWO settings, T obj) throws InvalidSettingsException {
         if (obj != null) {
-
+            NodeSettingsWO nested = null;
+            if (settings instanceof NodeSettings) {
+                if (((NodeSettings)settings).containsKey(member().getKey())) {
+                    nested = ((NodeSettings)settings).getNodeSettings(member().getKey());
+                }
+            }
+            if (nested == null) {
+                nested = settings.addNodeSettings(member().getKey());
+            }
             // Only one level nesting and very hacky... for now.
             @SuppressWarnings("unchecked")
             final Class<T> type = (Class<T>)obj.getClass();
-            settings.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
+            nested.addString(NodeSettingsStructs.STRUCT_TYPE_KEY, type.getName());
             final StructAccess<MemberReadWriteAccess<?, T>> objAccess = ParameterStructs.createStructAccess(type);
             final StructAccess<MemberWriteAccess<?, NodeSettingsWO>> settingsAccess =
                 NodeSettingsStructs.createStructWOAccess(objAccess.struct());
             Structs.shallowCopyUnsafe(StructInstances.createReadInstance(obj, objAccess),
-                StructInstances.createWriteInstance(settings, settingsAccess));
+                StructInstances.createWriteInstance(nested, settingsAccess));
         }
     }
 }
