@@ -104,8 +104,7 @@ public final class DLKerasConv2DLayer extends DLKerasAbstractUnaryLayer {
     @Parameter(label = "Kernel initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
 
-    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced",
-        required = Required.OptionalAndNotEnabled)
+    @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices.class, tab = "Advanced")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
 
     @Parameter(label = "Kernel regularizer", required = Required.OptionalAndNotEnabled,
