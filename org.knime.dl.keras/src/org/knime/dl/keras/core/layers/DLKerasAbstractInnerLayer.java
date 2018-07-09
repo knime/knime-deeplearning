@@ -74,10 +74,12 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     }
 
     private final DLKerasTensorSpecsOutput[] m_parents;
-    
+
     private final int[] m_indexInParents;
-    
+
     private DLKerasDataFormat m_dataFormat;
+
+    private List<DLTensorSpec> m_outputSpecs;
 
     public DLKerasAbstractInnerLayer(final String kerasIdentifier, final int numParents) {
         super(kerasIdentifier);
@@ -100,7 +102,7 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         throws DLInvalidTensorSpecException;
 
     protected abstract List<Long[]> inferOutputShapes(List<Long[]> inputShape);
-    
+
     protected final DLKerasDataFormat getDataFormat() {
         return m_dataFormat;
     }
@@ -121,12 +123,12 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
         checkArgument(parent != this);
         m_parents[index] = parent;
     }
-    
+
     @Override
     public final void setTensorIndexInParent(int parentIndex, int indexInParent) {
         m_indexInParents[parentIndex] = indexInParent;
     }
-    
+
     @Override
     public int getTensorIndexInParent(int parentIndex) {
         return m_indexInParents[parentIndex];
@@ -134,16 +136,19 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
 
     @Override
     public final List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException {
-        final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
-        validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
-        final List<Class<?>> outputElementTypes = inferOutputElementTypes(inputSpecs.m_elementTypes);
-        final List<Long[]> outputShapes = inferOutputShapes(inputSpecs.m_shapes);
-        final List<DLTensorSpec> outputSpecs = new ArrayList<>(outputShapes.size());
-        for (int i = 0; i < outputShapes.size(); i++) {
-            outputSpecs.add(DLDefaultTensorSpec.create(new DLDefaultTensorId("dummy"), "dummy", inputSpecs.m_batchSize,
-                outputShapes.get(i), outputElementTypes.get(i), inputSpecs.m_dimensionOrder));
+        if (m_outputSpecs == null) {
+            final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
+            validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
+            final List<Class<?>> outputElementTypes = inferOutputElementTypes(inputSpecs.m_elementTypes);
+            final List<Long[]> outputShapes = inferOutputShapes(inputSpecs.m_shapes);
+            m_outputSpecs = new ArrayList<>(outputShapes.size());
+            for (int i = 0; i < outputShapes.size(); i++) {
+                m_outputSpecs
+                    .add(DLDefaultTensorSpec.create(new DLDefaultTensorId("dummy"), "dummy", inputSpecs.m_batchSize,
+                        outputShapes.get(i), outputElementTypes.get(i), inputSpecs.m_dimensionOrder));
+            }
         }
-        return outputSpecs;
+        return m_outputSpecs;
     }
 
     @Override
@@ -204,7 +209,8 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
                 } else {
                     // TODO: implement equals/hashCode/toString in DLDefaultDimensionOrder
                     checkInputSpec(inputDimensionOrder.equals(parentDimensionOrder),
-                        "Data formats differ: " + DLKerasDataFormat.getDataFormatFor(inputDimensionOrder) + " vs. " + DLKerasDataFormat.getDataFormatFor(parentDimensionOrder) + ".");
+                        "Data formats differ: " + DLKerasDataFormat.getDataFormatFor(inputDimensionOrder) + " vs. "
+                            + DLKerasDataFormat.getDataFormatFor(parentDimensionOrder) + ".");
                 }
             }
         }
