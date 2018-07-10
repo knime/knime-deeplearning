@@ -103,6 +103,7 @@ public abstract class DLKerasAbstractFCRNNLayer extends DLKerasAbstractRNNLayer 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         if (getUnits() <= 0) {
             throw new InvalidSettingsException("The number of units must be positive but was " + getUnits() + ".");
         }

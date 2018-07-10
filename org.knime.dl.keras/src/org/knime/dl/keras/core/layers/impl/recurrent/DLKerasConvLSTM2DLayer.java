@@ -159,6 +159,7 @@ public final class DLKerasConvLSTM2DLayer extends DLKerasAbstractRNNLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         if (m_filters <= 0) {
             throw new InvalidSettingsException("The number of filters must be positive but was " + m_filters + ".");
         }
