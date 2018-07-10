@@ -75,7 +75,7 @@ public final class DLKerasRandomUniformInitializer extends DLKerasAbstractSeeded
         super.validateParameters();
         if (m_minVal >= m_maxVal) {
             throw new InvalidSettingsException(
-                "The minimum value (" + m_minVal + ") must be smaller than the maximum value(" + m_maxVal + ".");
+                "The minimum value (" + m_minVal + ") must be smaller than the maximum value (" + m_maxVal + ").");
         }
     }
 
