@@ -48,6 +48,9 @@ package org.knime.dl.keras.core.layers;
 
 import java.util.Set;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.dl.keras.core.config.DLKerasConfigObject;
+
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -128,6 +131,19 @@ public final class DLLayerUtils {
                 "The specified index corresponds to the batch dimension. This is not supported.");
         }
         return index - 1;
+    }
+
+    /**
+     * Validates the configuration for a {@link DLKerasConfigObject} provided it is not {@code null}. This includes
+     * objects such as: initializers, regularizers, and constraints.
+     *
+     * @param parameter the {@link DLKerasConfigObject} to validate
+     * @throws InvalidSettingsException if {@code parameter} has invalid settings
+     */
+    public static void validateOptionalParameter(final DLKerasConfigObject parameter) throws InvalidSettingsException {
+        if (parameter == null)
+            return;
+        parameter.validateParameters();
     }
 
 }
