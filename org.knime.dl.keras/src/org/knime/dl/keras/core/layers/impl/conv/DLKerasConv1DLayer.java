@@ -131,7 +131,13 @@ public final class DLKerasConv1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
-        // nothing to do
+        m_kernelInitializer.validateParameters();
+        m_biasInitializer.validateParameters();
+        DLLayerUtils.validateOptionalParameter(m_kernelRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_biasRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_activityRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_kernelConstraint);
+        DLLayerUtils.validateOptionalParameter(m_biasConstraint);
     }
 
     @Override

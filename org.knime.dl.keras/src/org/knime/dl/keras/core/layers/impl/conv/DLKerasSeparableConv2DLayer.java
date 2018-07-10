@@ -149,6 +149,16 @@ public final class DLKerasSeparableConv2DLayer extends DLKerasAbstractUnaryLayer
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        m_depthwiseInitializer.validateParameters();
+        m_pointwiseInitializer.validateParameters();
+        m_biasInitializer.validateParameters();
+        DLLayerUtils.validateOptionalParameter(m_depthwiseRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_pointwiseRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_biasRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_activityRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_depthwiseConstraint);
+        DLLayerUtils.validateOptionalParameter(m_pointwiseConstraint);
+        DLLayerUtils.validateOptionalParameter(m_biasConstraint);
     }
 
     @Override

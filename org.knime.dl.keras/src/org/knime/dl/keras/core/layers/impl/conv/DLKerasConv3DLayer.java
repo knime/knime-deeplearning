@@ -68,8 +68,8 @@ import org.knime.dl.keras.core.layers.DLKerasPadding;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.layers.dialog.tuple.DLKerasTuple;
-import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -132,6 +132,13 @@ public final class DLKerasConv3DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        m_kernelInitializer.validateParameters();
+        m_biasInitializer.validateParameters();
+        DLLayerUtils.validateOptionalParameter(m_kernelRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_biasRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_activityRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_kernelConstraint);
+        DLLayerUtils.validateOptionalParameter(m_biasConstraint);
     }
 
     @Override
