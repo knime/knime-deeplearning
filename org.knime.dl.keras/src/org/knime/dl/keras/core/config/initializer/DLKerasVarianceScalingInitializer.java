@@ -61,7 +61,7 @@ import org.knime.dl.python.util.DLPythonUtils;
  */
 public final class DLKerasVarianceScalingInitializer extends DLKerasAbstractSeededInitializer {
 
-    @Parameter(label = "Scale", stepSize = "0.1")
+    @Parameter(label = "Scale", stepSize = "0.1", min = "0.1")
     private float m_scale = 1.0f;
 
     @Parameter(label = "Mode")
