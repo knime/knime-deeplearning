@@ -93,12 +93,8 @@ public final class DLKerasPReLULayer extends DLKerasAbstractAdvancedActivationLa
     @Override
     public void validateParameters() throws InvalidSettingsException {
         m_alphaInitializer.validateParameters();
-        if (m_alphaRegularizer != null) {
-            m_alphaRegularizer.validateParameters();
-        }
-        if (m_alphaConstraint != null) {
-            m_alphaConstraint.validateParameters();
-        }
+        DLLayerUtils.validateOptionalParameter(m_alphaRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_alphaConstraint);
     }
 
     @Override

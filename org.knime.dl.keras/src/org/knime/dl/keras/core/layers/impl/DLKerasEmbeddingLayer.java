@@ -63,6 +63,7 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
@@ -108,14 +109,8 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
     @Override
     public void validateParameters() throws InvalidSettingsException {
         m_initializer.validateParameters();
-
-        if (m_embeddingRegularizer != null) {
-            m_embeddingRegularizer.validateParameters();
-        }
-
-        if (m_constraint != null) {
-            m_constraint.validateParameters();
-        }
+        DLLayerUtils.validateOptionalParameter(m_embeddingRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_constraint);
     }
 
     @Override

@@ -64,10 +64,10 @@ import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractInnerLayer;
-import org.knime.dl.keras.core.layers.DLKerasObject;
 import org.knime.dl.keras.core.layers.DLKerasRNNLayer;
-import org.knime.dl.keras.core.struct.param.Required;
+import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
+import org.knime.dl.keras.core.struct.param.Required;
 import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -163,21 +163,15 @@ abstract class DLKerasAbstractRNNLayer extends DLKerasAbstractInnerLayer impleme
         m_kernelInitializer.validateParameters();
         m_recurrentInitializer.validateParameters();
         m_biasInitializer.validateParameters();
-        validateOptional(m_kernelRegularizer);
-        validateOptional(m_recurrentRegularizer);
-        validateOptional(m_biasRegularizer);
-        validateOptional(m_activityRegularizer);
-        validateOptional(m_kernelConstraint);
-        validateOptional(m_recurrentConstraint);
-        validateOptional(m_biasConstraint);
+        DLLayerUtils.validateOptionalParameter(m_kernelRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_recurrentRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_biasRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_activityRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_kernelConstraint);
+        DLLayerUtils.validateOptionalParameter(m_recurrentConstraint);
+        DLLayerUtils.validateOptionalParameter(m_biasConstraint);
     }
     
-    private static void validateOptional(DLKerasObject optionalObject) throws InvalidSettingsException {
-        if (optionalObject != null) {
-            optionalObject.validateParameters();
-        }
-    }
-
     protected static <T> List<T> repeat(T obj, int times) {
         return IntStream.range(0, times).mapToObj(i -> obj).collect(Collectors.toList());
     }
