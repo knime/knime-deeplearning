@@ -137,6 +137,15 @@ public class DLKerasBatchNormalizationLayer extends DLKerasAbstractUnaryLayer {
         if (!errors.isEmpty()) {
             throw new InvalidSettingsException(errors.stream().collect(Collectors.joining("\n")));
         }
+
+        m_betaInitializer.validateParameters();
+        m_gammaInitializer.validateParameters();
+        m_movingMeanInitializer.validateParameters();
+        m_movingVarianceInitializer.validateParameters();
+        DLLayerUtils.validateOptionalParameter(m_betaRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_gammaRegularizer);
+        DLLayerUtils.validateOptionalParameter(m_betaConstraint);
+        DLLayerUtils.validateOptionalParameter(m_gammaConstraint);
     }
 
     @Override
