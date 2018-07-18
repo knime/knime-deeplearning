@@ -355,7 +355,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 2);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork1Out0 =
-            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork1, 0);
+            new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork1, 1);
 
         final DLKerasAddLayer out0 = new DLKerasAddLayer();
         out0.setRuntimeId("out0");
