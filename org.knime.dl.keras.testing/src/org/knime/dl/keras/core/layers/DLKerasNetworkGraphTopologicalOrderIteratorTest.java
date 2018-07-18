@@ -81,6 +81,7 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testSingleLayerGraphIteration() {
         final DLKerasDefaultInputLayer inout0 = new DLKerasDefaultInputLayer();
+        inout0.setRuntimeId("inout0");
 
         new DLKerasNetworkGraphTopologicalOrderIterator(Arrays.asList(inout0)).visitAll(new DLKerasLayerVisitor() {
 
@@ -123,17 +124,22 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testLinearGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
-
+        in0.setRuntimeId("in0");
+        
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
+        hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
+        hidden1.setRuntimeId("hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
+        hidden2.setRuntimeId("hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setRuntimeId("out0");
         out0.setParent(0, hidden2);
 
         new DLKerasNetworkGraphTopologicalOrderIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
@@ -198,20 +204,26 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testMultiInputLinearGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
+        in0.setRuntimeId("in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
+        in1.setRuntimeId("in1");
 
         final DLKerasAddLayer hidden0 = new DLKerasAddLayer();
+        hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
         hidden0.setParent(1, in1);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
+        hidden1.setRuntimeId("hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
+        hidden2.setRuntimeId("hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setRuntimeId("out0");
         out0.setParent(0, hidden2);
 
         new DLKerasNetworkGraphTopologicalOrderIterator(Arrays.asList(out0)).visitAll(new DLKerasLayerVisitor() {
@@ -284,20 +296,26 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testMultiOutputLinearGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
+        in0.setRuntimeId("in0");
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
+        hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
+        hidden1.setRuntimeId("hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
+        hidden2.setRuntimeId("hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setRuntimeId("out0");
         out0.setParent(0, hidden2);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
+        out1.setRuntimeId("out1");
         out1.setParent(0, hidden2);
 
         new DLKerasNetworkGraphTopologicalOrderIterator(Arrays.asList(out0, out1))
@@ -372,23 +390,30 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testMultiInputMultiOutputLinearGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
+        in0.setRuntimeId("in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
+        in1.setRuntimeId("in1");
 
         final DLKerasAddLayer hidden0 = new DLKerasAddLayer();
+        hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
         hidden0.setParent(1, in1);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
+        hidden1.setRuntimeId("hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
+        hidden2.setRuntimeId("hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setRuntimeId("out0");
         out0.setParent(0, hidden2);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
+        out1.setRuntimeId("out1");
         out1.setParent(0, hidden2);
 
         new DLKerasNetworkGraphTopologicalOrderIterator(Arrays.asList(out0, out1))
@@ -471,45 +496,59 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     @Test
     public void testMultiInputMultiOutputForkJoinGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
+        in0.setRuntimeId("in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
+        in1.setRuntimeId("in1");
 
         final DLKerasDefaultInputLayer in2 = new DLKerasDefaultInputLayer();
+        in2.setRuntimeId("in2");
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
+        hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasAddLayer hidden1 = new DLKerasAddLayer();
+        hidden1.setRuntimeId("hidden1");
         hidden1.setParent(0, hidden0);
         hidden1.setParent(1, in1);
 
         final DLKerasAddLayer hidden2 = new DLKerasAddLayer();
+        hidden2.setRuntimeId("hidden2");
         hidden2.setParent(0, hidden1);
         hidden2.setParent(1, in2);
 
         final DLKerasAddLayer hidden3 = new DLKerasAddLayer();
+        hidden3.setRuntimeId("hidden3");
         hidden3.setParent(0, hidden0);
         hidden3.setParent(1, hidden2);
 
         final DLKerasDenseLayer hidden4 = new DLKerasDenseLayer();
+        hidden4.setRuntimeId("hidden4");
         hidden4.setParent(0, hidden2);
 
         final DLKerasDenseLayer hidden5 = new DLKerasDenseLayer();
+        hidden5.setRuntimeId("hidden5");
         hidden5.setParent(0, hidden3);
 
         final DLKerasDenseLayer hidden6 = new DLKerasDenseLayer();
+        hidden6.setRuntimeId("hidden6");
         hidden6.setParent(0, hidden3);
 
         final DLKerasDenseLayer hidden7 = new DLKerasDenseLayer();
+        hidden7.setRuntimeId("hidden7");
         hidden7.setParent(0, hidden4);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
+        out0.setRuntimeId("out0");
         out0.setParent(0, hidden5);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
+        out1.setRuntimeId("out1");
         out1.setParent(0, hidden5);
 
         final DLKerasAddLayer out2 = new DLKerasAddLayer();
+        out2.setRuntimeId("out2");
         out2.setParent(0, hidden6);
         out2.setParent(1, hidden7);
 
