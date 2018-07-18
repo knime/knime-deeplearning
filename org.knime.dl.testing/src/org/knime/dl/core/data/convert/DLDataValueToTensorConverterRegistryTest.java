@@ -153,6 +153,10 @@ public class DLDataValueToTensorConverterRegistryTest {
 		final List<ListCell> collectionCell = Arrays.asList(CollectionCellFactory.createListCell(cell));
 		for (final DLDataValueToTensorConverterFactory factory : collectionConverterFactories) {
 			Assert.assertTrue(REGISTRY.getConverterFactory(factory.getIdentifier()).get().equals(factory));
+			if (factory instanceof DLIntCollectionValueToOneHotFloatTensorConverterFactory) {
+			    // will fail because it only supports Integer collection which we unfortunately can't detect prior to execution
+			    continue;
+			}
 			factory.createConverter().convert(collectionCell, tensor);
 			tensor.getBuffer().reset();
 		}
