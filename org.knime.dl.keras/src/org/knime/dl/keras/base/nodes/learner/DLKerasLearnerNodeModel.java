@@ -314,8 +314,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			}
 			m_status.setViewSpecs(m_viewSpecs);
 			m_status.setViewData(m_viewData);
-		} catch (final ClassNotFoundException e) {
-			throw new IOException("View data could not be restored.");
+        } catch (final Exception e) {
+            throw new IOException("The content of the node's learning monitor view could not be restored. "
+                + "The trained output network remains unaffected by this error.", e);
 		}
 	}
 
