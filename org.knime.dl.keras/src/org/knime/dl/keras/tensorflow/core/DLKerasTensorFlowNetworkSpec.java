@@ -96,9 +96,12 @@ public final class DLKerasTensorFlowNetworkSpec extends DLKerasAbstractNetworkSp
 		return true;
 	}
 
-	@Override
-    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
-        new DLKerasTensorFlowNetworkLoader().validateSource(source.getURI());
-		return new DLKerasTensorFlowNetwork(this, source);
-	}
+    @Override
+    public DLKerasNetwork create(final DLNetworkLocation source, final boolean validateSource)
+        throws DLInvalidSourceException {
+        if (validateSource) {
+            new DLKerasTensorFlowNetworkLoader().validateSource(source.getURI());
+        }
+        return new DLKerasTensorFlowNetwork(this, source);
+    }
 }

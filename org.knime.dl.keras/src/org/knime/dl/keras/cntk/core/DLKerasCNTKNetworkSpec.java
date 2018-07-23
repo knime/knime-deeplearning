@@ -96,9 +96,12 @@ public final class DLKerasCNTKNetworkSpec extends DLKerasAbstractNetworkSpec {
 		return true;
 	}
 
-	@Override
-    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
-        new DLKerasCNTKNetworkLoader().validateSource(source.getURI());
-		return new DLKerasCNTKNetwork(this, source);
-	}
+    @Override
+    public DLKerasNetwork create(final DLNetworkLocation source, final boolean validateSource)
+        throws DLInvalidSourceException {
+        if (validateSource) {
+            new DLKerasCNTKNetworkLoader().validateSource(source.getURI());
+        }
+        return new DLKerasCNTKNetwork(this, source);
+    }
 }

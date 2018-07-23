@@ -48,7 +48,6 @@ package org.knime.dl.keras.core;
 
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.python.core.DLPythonNetworkSpec;
 import org.knime.dl.util.DLUtils;
@@ -79,8 +78,26 @@ public interface DLKerasNetworkSpec extends DLPythonNetworkSpec {
      */
     Version getKerasVersion();
 
-	/**
-     * Creates a network whose {@link DLNetwork#getSpec()} returns this spec.
+    /**
+     * Creates a network whose {@link DLKerasNetwork#getSpec()} returns this spec and whose
+     * {@link DLKerasNetwork#getSource()} returns the given network location.
+     *
+     * @param source the network location to use as source for the network to create
+     * @param validateSource {@code true} if the network location shall be validated, {@code false} otherwise
+     * @return the created network
+     * @throws DLInvalidSourceException if {@code validateSource} is true and the given network location is invalid
+     * @since 3.6.1
      */
-    DLKerasNetwork create(DLNetworkLocation source) throws DLInvalidSourceException;
+    DLKerasNetwork create(DLNetworkLocation source, boolean validateSource) throws DLInvalidSourceException;
+
+    /**
+     * Equivalent to {@code create(source, true)}.
+     *
+     * @param source the network location to use as source for the network to create
+     * @return the created network
+     * @throws DLInvalidSourceException if the given network location is invalid
+     */
+    default DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
+        return create(source, true);
+    }
 }

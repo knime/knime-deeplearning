@@ -96,9 +96,12 @@ public final class DLKerasTheanoNetworkSpec extends DLKerasAbstractNetworkSpec {
 		return true;
 	}
 
-	@Override
-    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
-        new DLKerasTheanoNetworkLoader().validateSource(source.getURI());
-		return new DLKerasTheanoNetwork(this, source);
-	}
+    @Override
+    public DLKerasNetwork create(final DLNetworkLocation source, final boolean validateSource)
+        throws DLInvalidSourceException {
+        if (validateSource) {
+            new DLKerasTheanoNetworkLoader().validateSource(source.getURI());
+        }
+        return new DLKerasTheanoNetwork(this, source);
+    }
 }

@@ -84,8 +84,11 @@ public class DLKerasGenericNetworkSpec extends DLKerasAbstractNetworkSpec {
     }
 
     @Override
-    public DLKerasNetwork create(final DLNetworkLocation source) throws DLInvalidSourceException {
-        DLKerasAbstractNetworkLoader.validateKerasNetworkSource(source.getURI());
+    public DLKerasNetwork create(final DLNetworkLocation source, final boolean validateSource)
+        throws DLInvalidSourceException {
+        if (validateSource) {
+            DLKerasAbstractNetworkLoader.validateKerasNetworkSource(source.getURI());
+        }
         return new DLKerasGenericNetwork(this, source);
     }
 

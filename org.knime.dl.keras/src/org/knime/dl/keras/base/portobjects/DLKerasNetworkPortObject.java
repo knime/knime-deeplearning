@@ -62,6 +62,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortObjectZipInputStream;
 import org.knime.core.node.port.PortObjectZipOutputStream;
@@ -203,7 +204,17 @@ public final class DLKerasNetworkPortObject extends
         try {
             return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true, DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
-            throw new IOException(e.getMessage(), e);
+            NodeLogger.getLogger(DLKerasNetworkPortObject.class).warn("An error occurred while upgrading Keras "
+                + "network specs that were created using an older version of KNIME.\nYou may experience problems "
+                + "when configuring or executing nodes that succeed the nodes which use these outdated specs or when "
+                + "re-executing these nodes.\nError: " + e.getMessage(), e);
+            try {
+                return oldNetworkSpec.create(networkSource, false);
+            } catch (final DLInvalidSourceException ignore) {
+                // Cannot happen as per DLKerasNetworkSpec#create(..) API.
+                throw new RuntimeException("Keras network spec validated network source although it was instructed "
+                    + "not to do so. This is an implementation error.");
+            }
         }
     }
 
