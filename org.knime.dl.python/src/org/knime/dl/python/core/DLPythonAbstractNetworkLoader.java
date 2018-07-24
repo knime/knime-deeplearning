@@ -63,6 +63,8 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -114,8 +116,13 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                         try {
                             loader.createCommands(context).testInstallation(cancelable);
                             success.set(true);
-                        } catch (final DLInvalidEnvironmentException | DLCanceledExecutionException e) {
-                            message.set(e.getMessage());
+                        } catch (final Throwable th) {
+                            message.set(Strings.isNullOrEmpty(th.getMessage())
+                                ? "Unknown error of type '" + th.getClass().getName() + "'." //
+                                : th.getMessage());
+                            if (th instanceof Error) {
+                                throw (Error)th;
+                            }
                         }
                     }, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());
                     t.start();
@@ -142,7 +149,8 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                                 msg = "Installation test for Python back end '"
                                     + loader.getNetworkType().getCanonicalName() + "' timed out. "
                                     + "Please make sure your Python environment is properly set up and "
-                                    + "consider increasing the timeout using the VM option " + "'-D"
+                                    + "consider increasing the timeout (currently " + timeout
+                                    + " ms) using the VM option " + "'-D"
                                     + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.";
                                 timeoutException.set(new DLInstallationTestTimeoutException(msg));
                             }
