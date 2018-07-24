@@ -69,100 +69,101 @@ import org.knime.dl.core.DLMissingDependencyException;
  */
 public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> implements DLPythonNetworkLoader<N> {
 
-	protected abstract DLPythonAbstractCommands createCommands(DLPythonContext context)
-			throws DLInvalidEnvironmentException;
+    protected abstract DLPythonAbstractCommands createCommands(DLPythonContext context)
+        throws DLInvalidEnvironmentException;
 
-	protected abstract DLPythonInstallationTester getInstallationTester();
+    protected abstract DLPythonInstallationTester getInstallationTester();
 
-	@Override
-	public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
-			throws DLMissingDependencyException, DLInstallationTestTimeoutException {
-		getInstallationTester().testInstallation(forceRefresh, timeout, this, cancelable);
-	}
+    @Override
+    public final synchronized void checkAvailability(final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable) throws DLMissingDependencyException, DLInstallationTestTimeoutException {
+        getInstallationTester().testInstallation(forceRefresh, timeout, this, cancelable);
+    }
 
-	@Override
-	public void save(final DLPythonNetworkHandle handle, final URI destination, final DLPythonContext context, final DLCancelable cancelable)
-			throws IllegalArgumentException, DLInvalidDestinationException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final File destinationFile = FileUtil.getFileFromURL(validateDestination(destination));
-		final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
-		commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath(), cancelable);
-	}
+    @Override
+    public void save(final DLPythonNetworkHandle handle, final URI destination, final DLPythonContext context,
+        final DLCancelable cancelable) throws IllegalArgumentException, DLInvalidDestinationException,
+        DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final File destinationFile = FileUtil.getFileFromURL(validateDestination(destination));
+        final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
+        commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath(), cancelable);
+    }
 
-	protected static class DLPythonInstallationTester {
+    protected static class DLPythonInstallationTester {
 
-		protected boolean m_tested = false;
+        protected boolean m_tested = false;
 
-		protected boolean m_success;
+        protected boolean m_success;
 
-		protected String m_message;
+        protected String m_message;
 
-		protected DLInstallationTestTimeoutException m_timeoutException;
+        protected DLInstallationTestTimeoutException m_timeoutException;
 
-		public DLPythonInstallationTester() {
-		}
+        public DLPythonInstallationTester() {
+        }
 
-		protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
-				final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
-				throws DLMissingDependencyException, DLInstallationTestTimeoutException {
-			if (forceRefresh || !m_tested) {
-				final AtomicBoolean success = new AtomicBoolean();
-				final AtomicReference<String> message = new AtomicReference<>();
-				final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
-				try (DLPythonContext context = new DLPythonDefaultContext()) {
-					final Thread t = new Thread(() -> {
-						try {
-							loader.createCommands(context).testInstallation(cancelable);
-							success.set(true);
-						} catch (final DLInvalidEnvironmentException | DLCanceledExecutionException e) {
-							message.set(e.getMessage());
-						}
-					}, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());
-					t.start();
-					try {
-						t.join(timeout);
-					} catch (final InterruptedException e) {
-						if (!success.get()) {
-							t.interrupt();
-							message.getAndUpdate(msg -> {
-								if (msg == null) {
-									msg = "Installation test for Python back end '"
-											+ loader.getNetworkType().getCanonicalName() + "' was interrupted.";
-									timeoutException.set(new DLInstallationTestTimeoutException(msg, e));
-								}
-								return msg;
-							});
-						}
-						Thread.currentThread().interrupt();
-					}
-					if (!success.get() && timeoutException.get() == null) {
-						t.interrupt();
-						message.getAndUpdate(msg -> {
-							if (msg == null) {
+        protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
+            final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
+            throws DLMissingDependencyException, DLInstallationTestTimeoutException {
+            if (forceRefresh || !m_tested) {
+                final AtomicBoolean success = new AtomicBoolean();
+                final AtomicReference<String> message = new AtomicReference<>();
+                final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
+                try (DLPythonContext context = new DLPythonDefaultContext()) {
+                    final Thread t = new Thread(() -> {
+                        try {
+                            loader.createCommands(context).testInstallation(cancelable);
+                            success.set(true);
+                        } catch (final DLInvalidEnvironmentException | DLCanceledExecutionException e) {
+                            message.set(e.getMessage());
+                        }
+                    }, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());
+                    t.start();
+                    try {
+                        t.join(timeout);
+                    } catch (final InterruptedException e) {
+                        if (!success.get()) {
+                            t.interrupt();
+                            message.getAndUpdate(msg -> {
+                                if (msg == null) {
+                                    msg = "Installation test for Python back end '"
+                                        + loader.getNetworkType().getCanonicalName() + "' was interrupted.";
+                                    timeoutException.set(new DLInstallationTestTimeoutException(msg, e));
+                                }
+                                return msg;
+                            });
+                        }
+                        Thread.currentThread().interrupt();
+                    }
+                    if (!success.get() && timeoutException.get() == null) {
+                        t.interrupt();
+                        message.getAndUpdate(msg -> {
+                            if (msg == null) {
                                 msg = "Installation test for Python back end '"
                                     + loader.getNetworkType().getCanonicalName() + "' timed out. "
                                     + "Please make sure your Python environment is properly set up and "
                                     + "consider increasing the timeout using the VM option " + "'-D"
                                     + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.";
-								timeoutException.set(new DLInstallationTestTimeoutException(msg));
-							}
-							return msg;
-						});
-					}
-				}
-				m_tested = true;
-				m_success = success.get();
-				m_message = message.get();
-				m_timeoutException = timeoutException.get();
-			}
-			if (!m_success) {
-				if (m_timeoutException != null) {
-					throw m_timeoutException;
-				} else {
-					throw new DLMissingDependencyException(m_message);
-				}
-			} else {
-				m_message = null;
-			}
-		}
-	}
+                                timeoutException.set(new DLInstallationTestTimeoutException(msg));
+                            }
+                            return msg;
+                        });
+                    }
+                }
+                m_tested = true;
+                m_success = success.get();
+                m_message = message.get();
+                m_timeoutException = timeoutException.get();
+            }
+            if (!m_success) {
+                if (m_timeoutException != null) {
+                    throw m_timeoutException;
+                } else {
+                    throw new DLMissingDependencyException(m_message);
+                }
+            } else {
+                m_message = null;
+            }
+        }
+    }
 }
