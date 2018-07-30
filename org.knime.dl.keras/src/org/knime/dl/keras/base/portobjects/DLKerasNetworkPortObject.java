@@ -204,10 +204,10 @@ public final class DLKerasNetworkPortObject extends
         try {
             return new DLPythonDefaultNetworkReader<>(loader).read(networkSource, true, DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
-            NodeLogger.getLogger(DLKerasNetworkPortObject.class).warn("An error occurred while upgrading Keras "
-                + "network specs that were created using an older version of KNIME.\nYou may experience problems "
-                + "when configuring or executing nodes that succeed the nodes which use these outdated specs or when "
-                + "re-executing these nodes.\nError: " + e.getMessage(), e);
+            NodeLogger.getLogger(DLKerasNetworkPortObject.class)
+                .warn("An error occurred while upgrading Keras network specs (required for networks created with older "
+                    + "versions of KNIME).\nYou may experience problems when configuring/(re-)executing downstream "
+                    + "nodes that use the outdated specs.\nError: " + e.getMessage(), e);
             try {
                 return oldNetworkSpec.create(networkSource, false);
             } catch (final DLInvalidSourceException ignore) {
