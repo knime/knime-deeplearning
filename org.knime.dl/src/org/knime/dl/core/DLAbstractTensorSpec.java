@@ -234,6 +234,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
         m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
         if (m_identifier == null) {
             m_identifier = new DLDefaultTensorId(m_name);
+            m_hashCode = hashCodeInternal();
         }
     }
 
