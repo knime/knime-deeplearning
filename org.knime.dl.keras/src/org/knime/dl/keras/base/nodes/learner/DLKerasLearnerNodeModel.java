@@ -506,6 +506,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
                     : new DLDefaultTensorId(inputSpec.getName());
                 inputCfg =
                     DLKerasLearnerNodeModel.createInputTensorModelConfig(tensorId, inputSpec.getName(), m_generalCfg);
+                m_inputCfgs.put(tensorId, inputCfg);
             }
             // get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter =
@@ -541,6 +542,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
                     : new DLDefaultTensorId(targetSpec.getName());
                 targetCfg =
                     DLKerasLearnerNodeModel.createOutputTensorModelConfig(tensorId, targetSpec.getName(), m_generalCfg);
+                m_targetCfgs.put(tensorId, targetCfg);
             }
 			// get selected converter
 			final DLDataValueToTensorConverterFactory<?, ?> converter = DLConfigurationUtility.configureInput(
