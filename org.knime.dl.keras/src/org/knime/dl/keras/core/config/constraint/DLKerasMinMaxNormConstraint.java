@@ -85,6 +85,10 @@ public class DLKerasMinMaxNormConstraint extends DLKerasAbstractAxisConstraint {
         if (m_rate < 0 || m_rate > 1) {
             throw new InvalidSettingsException("The rate must be in the [0, 1] interval.");
         }
+        if (m_minValue > m_maxValue) {
+            throw new InvalidSettingsException(
+                "The minimum value (" + m_minValue + ") must be smaller than the maximum value (" + m_maxValue + ")");
+        }
     }
 
     @Override
