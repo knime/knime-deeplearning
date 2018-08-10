@@ -161,6 +161,14 @@ public final class DLKerasNetworkGraphSerializer {
         return networkFileStores;
     }
 
+    /**
+     * Writes the Keras network graph specified by the given output layers and their inputs (i.e. predecessor nodes) to
+     * a stream.
+     *
+     * @param outputLayers the output layers of the network to serialize
+     * @param objOut the stream to which to write the network graph, it is the client's responsibility to close it
+     * @throws IOException if failed to write the network graph to stream
+     */
     public static void writeGraphTo(final List<DLKerasLayer> outputLayers, final ObjectOutputStream objOut)
         throws IOException {
 
@@ -172,6 +180,16 @@ public final class DLKerasNetworkGraphSerializer {
         }
     }
 
+    /**
+     * Reads a Keras network graph from stream and returns its output layers. The entire graph can be accessed via the
+     * layers' input (i.e. predecessor node) relationships.
+     *
+     * @param objIn the stream from which to read the network graph, it is the client's responsibility to close it
+     * @param baseNetworkSourceAmender may be <code>null</code>
+     * @return the read network graph
+     * @throws IOException if failed to read the network graph from stream
+     * @throws ClassNotFoundException if a network graph related class (e.g. a layer) could not be found
+     */
     public static List<DLKerasLayer> readGraphFrom(final ObjectInputStream objIn,
         final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
         throws IOException, ClassNotFoundException {
@@ -196,7 +214,7 @@ public final class DLKerasNetworkGraphSerializer {
 
         // Don't save anything if the layer has been saved before
         if (savedIds.contains(id)) {
-            return new DLKerasLayerBytes(id, null);
+            return new DLKerasLayerBytes(id);
         }
 
         // Get the serialized layer from the cache or serialize it
@@ -208,7 +226,7 @@ public final class DLKerasNetworkGraphSerializer {
             layerBytes = saveLayerAndParents(layer, savedIds);
             CACHE_SERIALIZED.put(id, layerBytes);
         }
-        savedIds.add(id);
+        savedIds.addAll(layerBytes.m_includedLayers);
         return layerBytes;
     }
 
@@ -234,6 +252,9 @@ public final class DLKerasNetworkGraphSerializer {
         final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         final ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
 
+        // Keep track of the layer ids included
+        final HashSet<String> includedIds = new HashSet<>();
+
         // Write the parents to the objOut
         if (layer instanceof DLKerasInnerLayer) {
             final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)layer;
@@ -246,7 +267,12 @@ public final class DLKerasNetworkGraphSerializer {
                 // TODO handle BaseNetworkTensorSpecOutput
                 if (parent instanceof DLKerasLayer) {
                     objOut.writeInt(innerLayer.getTensorIndexInParent(i));
-                    objOut.writeObject(saveLayerAndParentsCached((DLKerasLayer)parent, savedIds));
+                    final DLKerasLayerBytes parentBytes = saveLayerAndParentsCached((DLKerasLayer)parent, savedIds);
+                    objOut.writeObject(parentBytes);
+                    // Remember which layers are included in the parent
+                    if (parentBytes.getIncludedLayers().isPresent()) {
+                        includedIds.addAll(parentBytes.getIncludedLayers().get());
+                    }
                 }
             }
         } else {
@@ -257,6 +283,7 @@ public final class DLKerasNetworkGraphSerializer {
         // Save the layer itself
         try {
             saveLayer(layer, objOut);
+            includedIds.add(id);
         } catch (InvalidSettingsException e) {
             throw new IOException("Could not save layer", e);
         }
@@ -265,14 +292,14 @@ public final class DLKerasNetworkGraphSerializer {
         objOut.flush();
         final byte[] layerBytes = byteOut.toByteArray();
 
-        return new DLKerasLayerBytes(id, layerBytes);
+        return new DLKerasLayerBytes(id, layerBytes, includedIds);
     }
 
     private static DLKerasLayer loadLayerAndParents(final DLKerasLayerBytes layerBytesObj)
         throws IOException, ClassNotFoundException {
         final String id = layerBytesObj.getId();
 
-        final ByteArrayInputStream byteIn = new ByteArrayInputStream(layerBytesObj.getLayerData());
+        final ByteArrayInputStream byteIn = new ByteArrayInputStream(layerBytesObj.getLayerData().get());
         final ObjectInputStream objIn = new ObjectInputStream(byteIn);
 
         // Read the parents of this layer
@@ -355,9 +382,18 @@ public final class DLKerasNetworkGraphSerializer {
 
         private final byte[] m_layerData;
 
-        public DLKerasLayerBytes(final String id, final byte[] layerData) {
+        private final transient HashSet<String> m_includedLayers;
+
+        public DLKerasLayerBytes(final String id) {
+            m_id = id;
+            m_layerData = null;
+            m_includedLayers = null;
+        }
+
+        public DLKerasLayerBytes(final String id, final byte[] layerData, final HashSet<String> includedLayers) {
             m_id = id;
             m_layerData = layerData;
+            m_includedLayers = includedLayers;
         }
 
         /**
@@ -370,8 +406,15 @@ public final class DLKerasNetworkGraphSerializer {
         /**
          * @return the layer represented in bytes
          */
-        public byte[] getLayerData() {
-            return m_layerData;
+        public Optional<byte[]> getLayerData() {
+            return Optional.ofNullable(m_layerData);
+        }
+
+        /**
+         * @return the includedLayers
+         */
+        public Optional<HashSet<String>> getIncludedLayers() {
+            return Optional.ofNullable(m_includedLayers);
         }
     }
 
