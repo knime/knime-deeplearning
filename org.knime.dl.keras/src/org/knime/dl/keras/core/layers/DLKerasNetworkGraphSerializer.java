@@ -55,11 +55,12 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -162,9 +163,12 @@ public final class DLKerasNetworkGraphSerializer {
 
     public static void writeGraphTo(final List<DLKerasLayer> outputLayers, final ObjectOutputStream objOut)
         throws IOException {
+
+        // Ids of the layers already saved. If a id appears again it isn't saved again with all its parents
+        final HashSet<String> savedIds = new HashSet<>();
         objOut.writeInt(outputLayers.size());
         for (final DLKerasLayer outputLayer : outputLayers) {
-            objOut.writeObject(saveLayerAndParentsCached(outputLayer));
+            objOut.writeObject(saveLayerAndParentsCached(outputLayer, savedIds));
         }
     }
 
@@ -186,25 +190,44 @@ public final class DLKerasNetworkGraphSerializer {
      * Creates a (or loads a cached) DLKerasLayerByte object which contains the layer id and a byte representation of
      * the layer and all its parents.
      */
-    private static DLKerasLayerBytes saveLayerAndParentsCached(final DLKerasLayer layer) throws IOException {
+    private static DLKerasLayerBytes saveLayerAndParentsCached(final DLKerasLayer layer, final HashSet<String> savedIds)
+        throws IOException {
         final String id = layer.getRuntimeId();
-        try {
-            return CACHE_SERIALIZED.get(id, () -> saveLayerAndParents(layer));
-        } catch (final ExecutionException e) {
-            throw new IOException("Could not save layer.", e); // TODO error message
+
+        // Don't save anything if the layer has been saved before
+        if (savedIds.contains(id)) {
+            return new DLKerasLayerBytes(id, null);
         }
+
+        // Get the serialized layer from the cache or serialize it
+        final DLKerasLayerBytes layerBytes;
+        final Optional<Object> optLayerBytes = CACHE_SERIALIZED.get(id);
+        if (optLayerBytes.isPresent()) {
+            layerBytes = (DLKerasLayerBytes)optLayerBytes.get();
+        } else {
+            layerBytes = saveLayerAndParents(layer, savedIds);
+            CACHE_SERIALIZED.put(id, layerBytes);
+        }
+        savedIds.add(id);
+        return layerBytes;
     }
 
-    private static DLKerasLayer loadLayerAndParentsCached(final DLKerasLayerBytes layerBytesObj) throws IOException {
+    private static DLKerasLayer loadLayerAndParentsCached(final DLKerasLayerBytes layerBytesObj)
+        throws IOException, ClassNotFoundException {
         final String id = layerBytesObj.getId();
-        try {
-            return CACHE_OBJECTS.get(id, () -> loadLayerAndParents(layerBytesObj));
-        } catch (final ExecutionException e) {
-            throw new IOException("Could not load layer.", e); // TODO error message
+        final DLKerasLayer layerObj;
+        final Optional<Object> optLayerObj = CACHE_OBJECTS.get(id);
+        if (optLayerObj.isPresent()) {
+            layerObj = (DLKerasLayer)optLayerObj.get();
+        } else {
+            layerObj = loadLayerAndParents(layerBytesObj);
+            CACHE_OBJECTS.put(id, layerObj);
         }
+        return layerObj;
     }
 
-    private static DLKerasLayerBytes saveLayerAndParents(final DLKerasLayer layer) throws IOException {
+    private static DLKerasLayerBytes saveLayerAndParents(final DLKerasLayer layer, final HashSet<String> savedIds)
+        throws IOException {
         // TODO is the runtime id needed here? Do we need a DLKerasLayerBytes object or is a byte[] enough?
         final String id = layer.getRuntimeId();
 
@@ -223,7 +246,7 @@ public final class DLKerasNetworkGraphSerializer {
                 // TODO handle BaseNetworkTensorSpecOutput
                 if (parent instanceof DLKerasLayer) {
                     objOut.writeInt(innerLayer.getTensorIndexInParent(i));
-                    objOut.writeObject(saveLayerAndParentsCached((DLKerasLayer)parent));
+                    objOut.writeObject(saveLayerAndParentsCached((DLKerasLayer)parent, savedIds));
                 }
             }
         } else {
