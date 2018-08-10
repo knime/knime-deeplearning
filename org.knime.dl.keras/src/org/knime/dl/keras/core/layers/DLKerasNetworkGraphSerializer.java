@@ -54,6 +54,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -216,17 +217,30 @@ public final class DLKerasNetworkGraphSerializer {
         if (savedIds.contains(id)) {
             return new DLKerasLayerBytes(id);
         }
+        // TODO Could it happen that a not complete layer gets saved and nodes are missing in the port object and cache
 
         // Get the serialized layer from the cache or serialize it
         final DLKerasLayerBytes layerBytes;
         final Optional<Object> optLayerBytes = CACHE_SERIALIZED.get(id);
         if (optLayerBytes.isPresent()) {
-            layerBytes = (DLKerasLayerBytes)optLayerBytes.get();
+            // Layer has been cached once
+            final DLKerasLayerBytes lb = (DLKerasLayerBytes)optLayerBytes.get();
+            if (Collections.disjoint(lb.getIncludedLayers().get(), savedIds)) {
+                // The cached layer only contains nodes not saved already
+                layerBytes = lb;
+            } else {
+                // The cached layer contains nodes that have been saved already
+                // We need to save it again because otherwise we would save the nodes twice (or more)
+                // Note that we only will go into recursion until we find the saved layers
+                layerBytes = saveLayerAndParents(layer, savedIds);
+            }
         } else {
+            // The layer hasn't been cached already
             layerBytes = saveLayerAndParents(layer, savedIds);
             CACHE_SERIALIZED.put(id, layerBytes);
         }
-        savedIds.addAll(layerBytes.m_includedLayers);
+        // Remember which layers have been added
+        savedIds.addAll(layerBytes.getIncludedLayers().get());
         return layerBytes;
     }
 
