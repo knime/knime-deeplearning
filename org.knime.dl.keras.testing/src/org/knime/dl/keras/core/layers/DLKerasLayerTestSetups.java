@@ -49,6 +49,7 @@ package org.knime.dl.keras.core.layers;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.knime.core.node.NodeLogger;
@@ -104,171 +105,189 @@ class DLKerasLayerTestSetups {
     }
 
     public static List<DLKerasLayer> createSingleLayerTestSetup() {
-        return Arrays.asList(new DLKerasDefaultInputLayer());
+        final DLKerasDefaultInputLayer in = new DLKerasDefaultInputLayer();
+        in.setRuntimeId(UUID.randomUUID() + "in");
+        return Arrays.asList(in);
     }
 
     public static List<DLKerasLayer> createSequentialModelTestSetup() {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
+        in0.setRuntimeId(prefix + "in0");
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
-        hidden0.setRuntimeId("hidden0");
+        hidden0.setRuntimeId(prefix + "hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
-        hidden1.setRuntimeId("hidden1");
+        hidden1.setRuntimeId(prefix + "hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
-        hidden2.setRuntimeId("hidden2");
+        hidden2.setRuntimeId(prefix + "hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, hidden2);
 
         return Arrays.asList(out0);
     }
 
     public static List<DLKerasLayer> createMultiInputModelTestSetup() {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
-        in0.setRuntimeId("in0");
+        in0.setRuntimeId(prefix + "in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
-        in1.setRuntimeId("in1");
+        in1.setRuntimeId(prefix + "in1");
 
         final DLKerasAddLayer hidden0 = new DLKerasAddLayer();
-        hidden0.setRuntimeId("hidden0");
+        hidden0.setRuntimeId(prefix + "hidden0");
         hidden0.setParent(0, in0);
         hidden0.setParent(1, in1);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
-        hidden1.setRuntimeId("hidden1");
+        hidden1.setRuntimeId(prefix + "hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
-        hidden2.setRuntimeId("hidden2");
+        hidden2.setRuntimeId(prefix + "hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, hidden2);
 
         return Arrays.asList(out0);
     }
 
     public static List<DLKerasLayer> createMultiOutputModelTestSetup() {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
-        in0.setRuntimeId("in0");
+        in0.setRuntimeId(prefix + "in0");
 
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
-        hidden0.setRuntimeId("hidden0");
+        hidden0.setRuntimeId(prefix + "hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
-        hidden1.setRuntimeId("hidden1");
+        hidden1.setRuntimeId(prefix + "hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
-        hidden2.setRuntimeId("hidden2");
+        hidden2.setRuntimeId(prefix + "hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, hidden2);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
-        out1.setRuntimeId("out1");
+        out1.setRuntimeId(prefix + "out1");
         out1.setParent(0, hidden2);
 
         return Arrays.asList(out0, out1);
     }
 
     public static List<DLKerasLayer> createMultiInputMultiOutputModelTestSetup() {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
-        in0.setRuntimeId("in0");
+        in0.setRuntimeId(prefix + "in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
-        in1.setRuntimeId("in1");
+        in1.setRuntimeId(prefix + "in1");
 
         final DLKerasAddLayer hidden0 = new DLKerasAddLayer();
-        hidden0.setRuntimeId("hidden0");
+        hidden0.setRuntimeId(prefix + "hidden0");
         hidden0.setParent(0, in0);
         hidden0.setParent(1, in1);
 
         final DLKerasDenseLayer hidden1 = new DLKerasDenseLayer();
-        hidden1.setRuntimeId("hidden1");
+        hidden1.setRuntimeId(prefix + "hidden1");
         hidden1.setParent(0, hidden0);
 
         final DLKerasDenseLayer hidden2 = new DLKerasDenseLayer();
-        hidden2.setRuntimeId("hidden2");
+        hidden2.setRuntimeId(prefix + "hidden2");
         hidden2.setParent(0, hidden1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, hidden2);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
-        out1.setRuntimeId("out1");
+        out1.setRuntimeId(prefix + "out1");
         out1.setParent(0, hidden2);
 
         return Arrays.asList(out0, out1);
     }
 
     public static List<DLKerasLayer> createMultiInputMultiOutputForkJoinModelTestSetup() {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
-        in0.setRuntimeId("in0");
+        in0.setRuntimeId(prefix + "in0");
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
-        in1.setRuntimeId("in1");
+        in1.setRuntimeId(prefix + "in1");
         
         final DLKerasDefaultInputLayer in2 = new DLKerasDefaultInputLayer();
-        in2.setRuntimeId("in2");
+        in2.setRuntimeId(prefix + "in2");
         
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
-        hidden0.setRuntimeId("hidden0");
+        hidden0.setRuntimeId(prefix + "hidden0");
         hidden0.setParent(0, in0);
 
         final DLKerasAddLayer hidden1 = new DLKerasAddLayer();
-        hidden1.setRuntimeId("hidden1");
+        hidden1.setRuntimeId(prefix + "hidden1");
         hidden1.setParent(0, hidden0);
         hidden1.setParent(1, in1);
 
         final DLKerasAddLayer hidden2 = new DLKerasAddLayer();
-        hidden2.setRuntimeId("hidden2");
+        hidden2.setRuntimeId(prefix + "hidden2");
         hidden2.setParent(0, hidden1);
         hidden2.setParent(1, in2);
 
         final DLKerasAddLayer hidden3 = new DLKerasAddLayer();
-        hidden3.setRuntimeId("hidden3");
+        hidden3.setRuntimeId(prefix + "hidden3");
         hidden3.setParent(0, hidden0);
         hidden3.setParent(1, hidden2);
 
         final DLKerasDenseLayer hidden4 = new DLKerasDenseLayer();
-        hidden4.setRuntimeId("hidden4");
+        hidden4.setRuntimeId(prefix + "hidden4");
         hidden4.setParent(0, hidden2);
 
         final DLKerasDenseLayer hidden5 = new DLKerasDenseLayer();
-        hidden5.setRuntimeId("hidden5");
+        hidden5.setRuntimeId(prefix + "hidden5");
         hidden5.setParent(0, hidden3);
 
         final DLKerasDenseLayer hidden6 = new DLKerasDenseLayer();
-        hidden6.setRuntimeId("hidden6");
+        hidden6.setRuntimeId(prefix + "hidden6");
         hidden6.setParent(0, hidden3);
 
         final DLKerasDenseLayer hidden7 = new DLKerasDenseLayer();
-        hidden7.setRuntimeId("hidden7");
+        hidden7.setRuntimeId(prefix + "hidden7");
         hidden7.setParent(0, hidden4);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, hidden5);
 
         final DLKerasDenseLayer out1 = new DLKerasDenseLayer();
-        out1.setRuntimeId("out1");
+        out1.setRuntimeId(prefix + "out1");
         out1.setParent(0, hidden5);
 
         final DLKerasAddLayer out2 = new DLKerasAddLayer();
-        out2.setRuntimeId("out2");
+        out2.setRuntimeId(prefix + "out2");
         out2.setParent(0, hidden6);
         out2.setParent(1, hidden7);
 
@@ -277,6 +296,9 @@ class DLKerasLayerTestSetups {
 
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedUnaryLayerTestSetup()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
             .read(SEQUENTIAL_NETWORK_0, false, DLNotCancelable.INSTANCE);
 
@@ -284,7 +306,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, baseNetworkOut0);
 
         return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
@@ -293,6 +315,9 @@ class DLKerasLayerTestSetups {
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
         createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup()
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
             .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
 
@@ -300,7 +325,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
 
         final DLKerasDenseLayer out0 = new DLKerasDenseLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, baseNetworkOut0);
 
         return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
@@ -308,6 +333,9 @@ class DLKerasLayerTestSetups {
 
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedBinaryLayerTestSetup()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
             .read(SEQUENTIAL_NETWORK_0, false, DLNotCancelable.INSTANCE);
 
@@ -315,7 +343,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
 
         final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, baseNetworkOut0);
         out0.setParent(1, baseNetworkOut0);
 
@@ -325,6 +353,9 @@ class DLKerasLayerTestSetups {
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
         createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup()
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
             .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
 
@@ -335,7 +366,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
 
         final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, baseNetworkOut0);
         out0.setParent(1, baseNetworkOut1);
 
@@ -345,6 +376,9 @@ class DLKerasLayerTestSetups {
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
         createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup()
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        // The runtime id has to be unique because of the cache
+        final UUID prefix = UUID.randomUUID();
+
         final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
             .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
 
@@ -358,7 +392,7 @@ class DLKerasLayerTestSetups {
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork1, 1);
 
         final DLKerasAddLayer out0 = new DLKerasAddLayer();
-        out0.setRuntimeId("out0");
+        out0.setRuntimeId(prefix + "out0");
         out0.setParent(0, baseNetwork0Out0);
         out0.setParent(1, baseNetwork1Out0);
 
