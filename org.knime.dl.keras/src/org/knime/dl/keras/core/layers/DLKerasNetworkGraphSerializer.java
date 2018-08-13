@@ -62,6 +62,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.data.filestore.FileStore;
@@ -82,6 +83,8 @@ import org.knime.dl.keras.core.struct.instance.MemberWriteInstance;
 import org.knime.dl.keras.core.struct.instance.StructInstance;
 import org.knime.dl.keras.core.struct.nodesettings.NodeSettingsStructs;
 import org.knime.dl.keras.core.struct.param.ParameterStructs;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -247,7 +250,6 @@ public final class DLKerasNetworkGraphSerializer {
             if (savedIds.contains(id)) {
                 return new DLKerasSerializedIdHolder(id);
             }
-            // TODO Could it happen that a not complete layer gets saved and nodes are missing in the port object and cache
 
             // Check if the layer has been cached and the cached version
             // doesn't save layers already saved
@@ -271,14 +273,16 @@ public final class DLKerasNetworkGraphSerializer {
         if (specOutput instanceof DLKerasLayer) {
             final DLKerasLayer layer = (DLKerasLayer)specOutput;
             // Save the layer
-            final HashSet<String> includedIds = saveLayerAndParents(layer, savedIds, objOut);
+            final Pair<Set<String>, Set<String>> includedExcludedIds = saveLayerAndParents(layer, savedIds, objOut);
+            final Set<String> includedIds = includedExcludedIds.getFirst();
+            final Set<String> excludedIds = includedExcludedIds.getSecond();
             objOut.flush();
-            final DLKerasSerializedInnerLayer serializedLayer =
-                new DLKerasSerializedInnerLayer(layer.getRuntimeId(), byteOut.toByteArray(), includedIds);
-            // Add included ids
-            savedIds.addAll(serializedLayer.getIncludedLayers());
-            // Cache if there isn't another cached version
-            if (cacheSerialized) {
+            final DLKerasSerializedInnerLayer serializedLayer = new DLKerasSerializedInnerLayer(layer.getRuntimeId(),
+                byteOut.toByteArray(), includedIds, excludedIds);
+            // Remember that this layer has been saved
+            savedIds.add(layer.getRuntimeId());
+            // Cache if there isn't another cached version and if there is nothing excluded that isn't also included
+            if (cacheSerialized && Sets.difference(excludedIds, includedIds).isEmpty()) {
                 CACHE_SERIALIZED.put(layer.getRuntimeId(), serializedLayer);
             }
             return serializedLayer;
@@ -362,15 +366,16 @@ public final class DLKerasNetworkGraphSerializer {
                         + DLKerasSerializedBaseNetwork.class.getCanonicalName() + ". This is an implementation error.");
             }
         } else {
-            throw new IllegalStateException("Layer neither cached nor saved. This is an implementation error."); // TODO can this happen?
+            throw new IllegalStateException("Layer neither cached nor saved. This is an implementation error.");
         }
     }
 
-    private static HashSet<String> saveLayerAndParents(final DLKerasLayer layer, final HashSet<String> savedIds,
-        final ObjectOutputStream objOut) throws IOException {
+    private static Pair<Set<String>, Set<String>> saveLayerAndParents(final DLKerasLayer layer,
+        final HashSet<String> savedIds, final ObjectOutputStream objOut) throws IOException {
 
         // Keep track of the layer ids included
-        final HashSet<String> includedIds = new HashSet<>();
+        final Set<String> includedIds = new HashSet<>();
+        final Set<String> excludedIds = new HashSet<>();
 
         // Write the parents to the objOut
         if (layer instanceof DLKerasInnerLayer) {
@@ -387,6 +392,9 @@ public final class DLKerasNetworkGraphSerializer {
                 // Remember which layers are included in the parent
                 if (serializedParent instanceof DLKerasSerializedInnerLayer) {
                     includedIds.addAll(((DLKerasSerializedInnerLayer)serializedParent).getIncludedLayers());
+                    excludedIds.addAll(((DLKerasSerializedInnerLayer)serializedParent).getExcludedLayers());
+                } else if (serializedParent instanceof DLKerasSerializedIdHolder) {
+                    excludedIds.add(((DLKerasSerializedIdHolder)serializedParent).getId());
                 }
             }
         } else {
@@ -398,7 +406,7 @@ public final class DLKerasNetworkGraphSerializer {
         saveLayer(layer, objOut);
         includedIds.add(layer.getRuntimeId());
 
-        return includedIds;
+        return new Pair<>(includedIds, excludedIds);
     }
 
     private static DLKerasLayer loadLayerAndParents(final ObjectInputStream objIn, final String id,
@@ -554,13 +562,16 @@ public final class DLKerasNetworkGraphSerializer {
 
         private final byte[] m_layerData;
 
-        private final transient HashSet<String> m_includedLayers;
+        private final transient Set<String> m_includedLayers;
 
-        public DLKerasSerializedInnerLayer(final String id, final byte[] layerData,
-            final HashSet<String> includedLayers) {
+        private final transient Set<String> m_excludedLayers;
+
+        public DLKerasSerializedInnerLayer(final String id, final byte[] layerData, final Set<String> includedLayers,
+            final Set<String> excludedLayers) {
             super(id);
             m_layerData = layerData;
             m_includedLayers = includedLayers;
+            m_excludedLayers = excludedLayers;
         }
 
         @Override
@@ -568,8 +579,12 @@ public final class DLKerasNetworkGraphSerializer {
             return m_layerData;
         }
 
-        public HashSet<String> getIncludedLayers() {
+        public Set<String> getIncludedLayers() {
             return m_includedLayers;
+        }
+
+        public Set<String> getExcludedLayers() {
+            return m_excludedLayers;
         }
     }
 
