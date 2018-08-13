@@ -67,6 +67,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.util.Pair;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNetworkReferenceLocation;
@@ -295,8 +296,13 @@ public final class DLKerasNetworkGraphSerializer {
             // Check the cache for the layer
             final Optional<Object> optLayerObj = CACHE_OBJECTS.get(id);
             if (optLayerObj.isPresent()) {
-                // Return the layer from the cache
-                return (DLKerasLayer)optLayerObj.get();
+                // Get the layer from the cache
+                @SuppressWarnings("unchecked")
+                final Pair<DLKerasLayer, List<DLKerasBaseNetworkTensorSpecOutput>> cachedPair =
+                    (Pair<DLKerasLayer, List<DLKerasBaseNetworkTensorSpecOutput>>)optLayerObj.get();
+                // Add the base networks of the cached layer
+                cachedPair.getSecond().forEach(b -> baseNetworkSourceAmender.accept(b));
+                return cachedPair.getFirst();
             }
         }
 
@@ -308,8 +314,13 @@ public final class DLKerasNetworkGraphSerializer {
 
             if (serializedOutput instanceof DLKerasSerializedInnerLayer) {
                 final String id = ((DLKerasSerializedInnerLayer)serializedOutput).getId();
-                final DLKerasLayer layerObj = loadLayerAndParents(objIn, id, baseNetworkSourceAmender);
-                CACHE_OBJECTS.put(id, layerObj);
+                // Remember the base networks that are parents of this layer
+                final List<DLKerasBaseNetworkTensorSpecOutput> baseNetworks = new ArrayList<>();
+                final DLKerasLayer layerObj = loadLayerAndParents(objIn, id, b -> baseNetworks.add(b));
+                // Cache the layer and it's base networks
+                CACHE_OBJECTS.put(id, new Pair<>(layerObj, baseNetworks));
+                // Add the base networks to the parent
+                baseNetworks.forEach(b -> baseNetworkSourceAmender.accept(b));
                 return layerObj;
             } else if (serializedOutput instanceof DLKerasSerializedBaseNetwork) {
                 return loadLayer(objIn, null, null, null, baseNetworkSourceAmender);
@@ -412,8 +423,6 @@ public final class DLKerasNetworkGraphSerializer {
             final DLNetworkLocation baseNetworkSource = baseNetwork.getBaseNetworkSource();
             if (baseNetworkSource instanceof DLNetworkReferenceLocation) {
                 layerSettings.addString(CFG_KEY_BASE_NETWORK_SOURCE, baseNetworkSource.getURI().toString());
-            } else {
-                // TODO how to handle this?
             }
             // Write the NodeSettings to the objOut
             objOut.writeObject(layerSettings);
