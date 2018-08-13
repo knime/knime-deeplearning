@@ -393,7 +393,6 @@ public final class DLKerasNetworkGraphSerializer {
         if (layer instanceof DLKerasLayer) {
             try {
                 // Save the layer settings
-                // TODO: Avoid redundant creation of layer struct (not instance), should be cached somewhere.
                 final StructInstance<MemberReadWriteInstance<?>, ?> layerInstance =
                     ParameterStructs.createInstance(layer);
                 final StructInstance<MemberWriteInstance<?>, ?> settingsInstance =

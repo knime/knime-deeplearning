@@ -50,8 +50,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.knime.dl.keras.core.struct.Member;
@@ -72,6 +74,9 @@ import org.scijava.util.ClassUtils;
  */
 public final class ParameterStructs {
 
+    /** Cache for structs per class (they won't change during runtime) */
+    private static final Map<Class<?>, Struct> STRUCTS_CACHE = new HashMap<Class<?>, Struct>();
+
     /**
      * Derive a {@link Struct} of the provided type. The type is expected to comprise fields annotated with @Parameter
      * describing it's input and therefore defining the {@link Struct}. If no fields are annotated the number of
@@ -82,8 +87,7 @@ public final class ParameterStructs {
      * @return {@link Struct} derived from type
      */
     public static Struct structOf(final Class<?> type) {
-        final List<Member<?>> items = parse(type);
-        return () -> items;
+        return STRUCTS_CACHE.computeIfAbsent(type, t -> () -> parse(t));
     }
 
     private static List<Member<?>> parse(final Class<?> type) {
