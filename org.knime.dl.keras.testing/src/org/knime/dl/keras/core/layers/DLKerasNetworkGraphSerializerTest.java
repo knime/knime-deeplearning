@@ -50,6 +50,8 @@ import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiI
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiInputMultiOutputForkJoinModelTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiInputMultiOutputModelTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiOutputModelTestSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createSequentialModelAppendedBinaryLayerTestSetup;
+import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createSequentialModelAppendedUnaryLayerTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createSequentialModelTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createSingleLayerTestSetup;
 
@@ -66,6 +68,9 @@ import java.util.Map.Entry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLInvalidSourceException;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -131,6 +136,18 @@ public final class DLKerasNetworkGraphSerializerTest {
     @Test
     public void testSerializeMultiInputMultiOutputForkJoinModel() throws IOException, ClassNotFoundException {
         testSerialize(createMultiInputMultiOutputForkJoinModelTestSetup());
+    }
+
+    @Test
+    public void testSerializeSequentialModelAppendedUnaryLayer() throws IOException, ClassNotFoundException,
+        DLInvalidSourceException, DLInvalidEnvironmentException, DLCanceledExecutionException {
+        testSerialize(createSequentialModelAppendedUnaryLayerTestSetup().getSecond());
+    }
+
+    @Test
+    public void testSerializeSequentialModelAppendedBinaryLayer() throws IOException, ClassNotFoundException,
+        DLInvalidSourceException, DLInvalidEnvironmentException, DLCanceledExecutionException {
+        testSerialize(createSequentialModelAppendedBinaryLayerTestSetup().getSecond());
     }
 
     private void testSerialize(final List<DLKerasLayer> outputLayers) throws IOException, ClassNotFoundException {

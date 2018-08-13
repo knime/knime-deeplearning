@@ -143,10 +143,12 @@ public final class DLKerasNetworkGraphDepthFirstIterator implements DLKerasNetwo
                 }
             }
         } else if (layer instanceof DLKerasBaseNetworkTensorSpecOutput) {
-            try {
-                visitor.visitBaseNetworkOutput((DLKerasBaseNetworkTensorSpecOutput)layer);
-            } catch (final Exception e) {
-                throw new DLNetworkGraphTraversalException(e.getMessage(), e);
+            if (visitor != null) {
+                try {
+                    visitor.visitBaseNetworkOutput((DLKerasBaseNetworkTensorSpecOutput)layer);
+                } catch (final Exception e) {
+                    throw new DLNetworkGraphTraversalException(e.getMessage(), e);
+                }
             }
         } else {
             throw new IllegalStateException("Keras layer '" + layer.getClass().getTypeName() + "' (" + layer
