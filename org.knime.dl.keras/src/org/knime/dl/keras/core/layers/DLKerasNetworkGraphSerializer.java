@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -220,15 +221,15 @@ public final class DLKerasNetworkGraphSerializer {
 
         final int numOutputs = objIn.readInt();
         final List<DLKerasLayer> outputLayers = new ArrayList<>(numOutputs);
-        // TODO try 2 times the same base network
         final Map<String, DLKerasLayer> loadedLayers = new HashMap<>();
+        final Set<DLKerasBaseNetworkTensorSpecOutput> baseNetworks = new LinkedHashSet<>();
 
         for (int i = 0; i < numOutputs; i++) {
             final DLKerasSerializedTensorSpecOutput serializedOutput =
                 (DLKerasSerializedTensorSpecOutput)objIn.readObject();
-            outputLayers
-                .add((DLKerasLayer)loadSpecOutputCached(serializedOutput, loadedLayers, baseNetworkSourceAmender));
+            outputLayers.add((DLKerasLayer)loadSpecOutputCached(serializedOutput, loadedLayers, baseNetworks));
         }
+        baseNetworks.forEach(b -> baseNetworkSourceAmender.accept(b));
         return outputLayers;
     }
 
@@ -277,8 +278,8 @@ public final class DLKerasNetworkGraphSerializer {
             final Set<String> includedIds = includedExcludedIds.getFirst();
             final Set<String> excludedIds = includedExcludedIds.getSecond();
             objOut.flush();
-            final DLKerasSerializedInnerLayer serializedLayer = new DLKerasSerializedInnerLayer(layer.getRuntimeId(),
-                byteOut.toByteArray(), includedIds, excludedIds);
+            final DLKerasSerializedInnerLayer serializedLayer =
+                new DLKerasSerializedInnerLayer(layer.getRuntimeId(), byteOut.toByteArray(), includedIds, excludedIds);
             // Remember that this layer has been saved
             savedIds.add(layer.getRuntimeId());
             // Cache if there isn't another cached version and if there is nothing excluded that isn't also included
@@ -313,7 +314,7 @@ public final class DLKerasNetworkGraphSerializer {
 
     private static DLKerasTensorSpecsOutput loadSpecOutputCached(
         final DLKerasSerializedTensorSpecOutput serializedOutput, final Map<String, DLKerasLayer> loadedLayers,
-        final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
+        final Set<DLKerasBaseNetworkTensorSpecOutput> baseNetworks)
         throws IOException, ClassNotFoundException {
         if (serializedOutput instanceof DLKerasSerializedIdHolder) {
             final String id = ((DLKerasSerializedIdHolder)serializedOutput).getId();
@@ -330,7 +331,7 @@ public final class DLKerasNetworkGraphSerializer {
                 final Pair<DLKerasLayer, List<DLKerasBaseNetworkTensorSpecOutput>> cachedPair =
                     (Pair<DLKerasLayer, List<DLKerasBaseNetworkTensorSpecOutput>>)optLayerObj.get();
                 // Add the base networks of the cached layer
-                cachedPair.getSecond().forEach(b -> baseNetworkSourceAmender.accept(b));
+                baseNetworks.addAll(cachedPair.getSecond());
                 // We need to remember that we loaded this and all parent layers
                 // (Cache maybe cleared when we load it again + parents maybe not in cache)
                 addLayerAndParents(cachedPair.getFirst(), loadedLayers);
@@ -347,18 +348,18 @@ public final class DLKerasNetworkGraphSerializer {
             if (serializedOutput instanceof DLKerasSerializedInnerLayer) {
                 final String id = ((DLKerasSerializedInnerLayer)serializedOutput).getId();
                 // Remember the base networks that are parents of this layer
-                final List<DLKerasBaseNetworkTensorSpecOutput> baseNetworks = new ArrayList<>();
+                final Set<DLKerasBaseNetworkTensorSpecOutput> currentBaseNetworks = new LinkedHashSet<>();
                 // Load the layer and its parents
-                final DLKerasLayer layerObj = loadLayerAndParents(objIn, id, loadedLayers, b -> baseNetworks.add(b));
+                final DLKerasLayer layerObj = loadLayerAndParents(objIn, id, loadedLayers, currentBaseNetworks);
                 // Remember that we loaded the layer
                 loadedLayers.put(id, layerObj);
                 // Cache the layer and it's base networks
-                CACHE_OBJECTS.put(id, new Pair<>(layerObj, baseNetworks));
+                CACHE_OBJECTS.put(id, new Pair<>(layerObj, currentBaseNetworks));
                 // Add the base networks to the child
-                baseNetworks.forEach(b -> baseNetworkSourceAmender.accept(b));
+                baseNetworks.addAll(currentBaseNetworks);
                 return layerObj;
             } else if (serializedOutput instanceof DLKerasSerializedBaseNetwork) {
-                return loadLayer(objIn, null, null, null, baseNetworkSourceAmender);
+                return loadLayer(objIn, null, null, null, baseNetworks);
             } else {
                 throw new UnsupportedOperationException(
                     "Serialized layer class '" + serializedOutput.getClass().getCanonicalName()
@@ -410,8 +411,7 @@ public final class DLKerasNetworkGraphSerializer {
     }
 
     private static DLKerasLayer loadLayerAndParents(final ObjectInputStream objIn, final String id,
-        final Map<String, DLKerasLayer> loadedLayers,
-        final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
+        final Map<String, DLKerasLayer> loadedLayers, final Set<DLKerasBaseNetworkTensorSpecOutput> baseNetworks)
         throws IOException, ClassNotFoundException {
 
         // Read the parents of this layer
@@ -420,12 +420,12 @@ public final class DLKerasNetworkGraphSerializer {
         final int[] idxInParents = new int[numParents];
         for (int i = 0; i < numParents; i++) {
             idxInParents[i] = objIn.readInt();
-            parents[i] = loadSpecOutputCached((DLKerasSerializedTensorSpecOutput)objIn.readObject(), loadedLayers,
-                baseNetworkSourceAmender);
+            parents[i] =
+                loadSpecOutputCached((DLKerasSerializedTensorSpecOutput)objIn.readObject(), loadedLayers, baseNetworks);
         }
 
         // Load the layer itself
-        return (DLKerasLayer)loadLayer(objIn, id, parents, idxInParents, baseNetworkSourceAmender);
+        return (DLKerasLayer)loadLayer(objIn, id, parents, idxInParents, baseNetworks);
     }
 
     /**
@@ -473,7 +473,7 @@ public final class DLKerasNetworkGraphSerializer {
 
     private static DLKerasTensorSpecsOutput loadLayer(final ObjectInputStream objIn, final String id,
         final DLKerasTensorSpecsOutput[] parents, final int[] idxInParents,
-        final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
+        final Set<DLKerasBaseNetworkTensorSpecOutput> baseNetworks)
         throws IOException, ClassNotFoundException {
         try {
             // Get the layer NodeSettings
@@ -510,8 +510,8 @@ public final class DLKerasNetworkGraphSerializer {
                 if (layerSettings.containsKey(CFG_KEY_BASE_NETWORK_SOURCE)) {
                     final URI sourceURI = new URI(layerSettings.getString(CFG_KEY_BASE_NETWORK_SOURCE));
                     baseNetwork.setBaseNetworkSource(new DLNetworkReferenceLocation(sourceURI));
-                } else if (baseNetworkSourceAmender != null) {
-                    baseNetworkSourceAmender.accept(baseNetwork);
+                } else if (baseNetworks != null) {
+                    baseNetworks.add(baseNetwork);
                 }
                 return baseNetwork;
             } else {
