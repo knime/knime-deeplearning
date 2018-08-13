@@ -88,7 +88,7 @@ public final class DLKerasNetworkGraphSerializer {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasNetworkGraphSerializer.class);
 
-    private static final String CURRENT_VERSION_ID = "20";
+    private static final String CURRENT_VERSION_ID = "2";
 
     private static final String CFG_KEY_LAYER = "layer";
 
@@ -196,17 +196,18 @@ public final class DLKerasNetworkGraphSerializer {
             version = (String)objIn.readObject();
         } catch (Exception e) {
             // This is an old version without an saved version number
-            return readGraphFrom10(objIn, baseNetworkSourceAmender);
+            return readGraphFrom1(objIn, baseNetworkSourceAmender);
         }
 
-        if (version.equals("20")) {
-            return readGraphFrom20(objIn, baseNetworkSourceAmender);
+        if (version.equals("2")) {
+            return readGraphFrom2(objIn, baseNetworkSourceAmender);
         } else {
-            throw new IOException(""); // TODO error message
+            throw new IOException("Couldn't read saved graph because the version numbers don't match. "
+                + "Are you using an old version of KNIME?");
         }
     }
 
-    private static List<DLKerasLayer> readGraphFrom20(final ObjectInputStream objIn,
+    private static List<DLKerasLayer> readGraphFrom2(final ObjectInputStream objIn,
         final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
         throws IOException, ClassNotFoundException {
 
@@ -281,7 +282,7 @@ public final class DLKerasNetworkGraphSerializer {
         } else {
             throw new UnsupportedOperationException("Layer class '" + specOutput.getClass().getCanonicalName()
                 + "' is not marked as either " + DLKerasLayer.class.getCanonicalName() + " or "
-                + DLKerasBaseNetworkTensorSpecOutput.class.getCanonicalName() + ". This is an implementation error."); // TODO error message
+                + DLKerasBaseNetworkTensorSpecOutput.class.getCanonicalName() + ". This is an implementation error.");
         }
     }
 
@@ -381,9 +382,6 @@ public final class DLKerasNetworkGraphSerializer {
      */
     private static void saveLayer(final DLKerasTensorSpecsOutput layer, final ObjectOutputStream objOut)
         throws IOException {
-        // TODO Layers are saved in NodeSettings right now. Is this the best solution?
-        // TODO Add a version identifier to determine how layers are saved for this version
-
         // Create NodeSettings to save the layer
         final NodeSettings layerSettings = new NodeSettings(CFG_KEY_LAYER);
         // Save the layer class
@@ -400,7 +398,7 @@ public final class DLKerasNetworkGraphSerializer {
                         layerInstance.struct());
                 Structs.shallowCopyUnsafe(layerInstance, settingsInstance);
             } catch (InvalidSettingsException e) {
-                throw new IOException("Could not save layer.", e); // TODO error message
+                throw new IOException("An exception occurred while saving the Keras layer. See log for details.", e);
             }
             // Write the NodeSettings to the objOut
             objOut.writeObject(layerSettings);
@@ -419,7 +417,7 @@ public final class DLKerasNetworkGraphSerializer {
             }
             // Write the NodeSettings to the objOut
             objOut.writeObject(layerSettings);
-            // Save the output specs to the objOut TODO check if this is the best way
+            // Save the output specs to the objOut
             objOut.writeObject(baseNetwork.getBaseNetworkSpec());
         }
     }
@@ -446,7 +444,7 @@ public final class DLKerasNetworkGraphSerializer {
                 // Load parent settings
                 if (parents.length != 0 && layer instanceof DLKerasInnerLayer) {
                     final DLKerasInnerLayer innerLayer = (DLKerasInnerLayer)layer;
-                    // TODO check if parents list fits?
+                    // Set the parent layers
                     for (int i = 0; i < parents.length; i++) {
                         innerLayer.setParent(i, parents[i]);
                         innerLayer.setTensorIndexInParent(i, idxInParents[i]);
@@ -473,17 +471,15 @@ public final class DLKerasNetworkGraphSerializer {
                     + DLKerasBaseNetworkTensorSpecOutput.class.getCanonicalName()
                     + ". This is an implementation error.");
             }
-        } catch (final InvalidSettingsException e) {
-            throw new IOException("Could not load saved layer.", e); // TODO error message
+        } catch (final InvalidSettingsException | URISyntaxException e) {
+            throw new IOException("An exception occurred while loading the Keras layer. See log for details.", e);
         } catch (final InstantiationException | IllegalAccessException e) {
-            throw new IOException("Could not load saved layer.", e); // TODO error message
-        } catch (URISyntaxException e) {
-            throw new IOException("Could not load saved layer.", e); // TODO error message
+            throw new IOException("Could not create an instance of the Keras layer. See log for details.", e);
         }
     }
 
     // -------------------------------------------------------------------------------------------------
-    // INTERFACES AND CLASSES FOR CACHING SERIALIZED STUFF TODO rename them
+    // INTERFACES AND CLASSES FOR CACHING SERIALIZED STUFF
     // -------------------------------------------------------------------------------------------------
 
     private static interface DLKerasSerializedTensorSpecOutput extends Serializable {
@@ -510,7 +506,6 @@ public final class DLKerasNetworkGraphSerializer {
 
     }
 
-    // TODO move somewhere else?
     private static class DLKerasSerializedInnerLayer extends DLKerasSerializedIdHolder
         implements DLKerasSerializedDataHolder {
 
@@ -538,6 +533,9 @@ public final class DLKerasNetworkGraphSerializer {
     }
 
     private static class DLKerasSerializedBaseNetwork implements DLKerasSerializedDataHolder {
+
+        private static final long serialVersionUID = 1L;
+
         private final byte[] m_layerData;
 
         public DLKerasSerializedBaseNetwork(final byte[] layerData) {
@@ -554,7 +552,7 @@ public final class DLKerasNetworkGraphSerializer {
     // LEGACY CODE
     // ---------------------------------------------------------------------------------------------------------------
 
-    private static List<DLKerasLayer> readGraphFrom10(final ObjectInputStream objIn,
+    private static List<DLKerasLayer> readGraphFrom1(final ObjectInputStream objIn,
         final Consumer<DLKerasBaseNetworkTensorSpecOutput> baseNetworkSourceAmender)
         throws IOException, ClassNotFoundException {
         try {
