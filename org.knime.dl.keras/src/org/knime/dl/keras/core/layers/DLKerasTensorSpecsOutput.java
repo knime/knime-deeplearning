@@ -58,6 +58,14 @@ public interface DLKerasTensorSpecsOutput {
 
     List<DLTensorSpec> getOutputSpecs() throws DLInvalidTensorSpecException;
 
+    /**
+     * Invalidate a cached version of the output spec. This is called if parameters of the layer changed that may effect
+     * the output shape. Layers that cache the output shape should override this method and invalidate their cache.
+     */
+    default void invalidateOutputSpec() {
+        // The default is to do nothing. Layers which cache the output spec should override this method.
+    }
+
     boolean equalsIgnoreName(DLKerasTensorSpecsOutput other);
 
     @Override

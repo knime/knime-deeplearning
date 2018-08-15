@@ -192,6 +192,10 @@ public abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> exte
     @Override
     protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
         Structs.shallowCopyUnsafe(StructInstances.createReadInstance(settings, m_settingsRO), m_instance);
+        // The output shape could have changed
+        m_layer.invalidateOutputSpec();
+        // The layer needs a new runtime id
+        m_layer.setRuntimeId(UUID.randomUUID().toString());
     }
 
     @Override

@@ -152,6 +152,11 @@ public abstract class DLKerasAbstractInnerLayer extends DLKerasAbstractLayer imp
     }
 
     @Override
+    public void invalidateOutputSpec() {
+        m_outputSpecs = null;
+    }
+
+    @Override
     public final void validateInputSpecs() throws DLInvalidTensorSpecException {
         final DLInputSpecsHelperStruct inputSpecs = collectInputSpecs();
         validateInputSpecs(inputSpecs.m_elementTypes, inputSpecs.m_shapes);
