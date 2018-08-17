@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.util;
 
+import org.knime.core.util.Version;
 import org.knime.dl.keras.core.config.DLKerasConfigObject;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -56,6 +57,12 @@ import org.knime.dl.python.util.DLPythonUtils;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasUtils {
+
+    /** The Keras version that is currently preferred by the integration. */
+    public static final Version PREFERRED_KERAS_VERSION = new Version(2, 1, 6);
+
+    /** The TensorFlow version that is currently preferred by the integration. */
+    public static final Version PREFERRED_TF_VERSION = new Version(1, 8, 0);
 
     private DLKerasUtils() {
     }

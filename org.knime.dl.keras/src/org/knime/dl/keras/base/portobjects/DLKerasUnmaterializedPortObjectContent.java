@@ -58,6 +58,7 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
+import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -107,8 +108,12 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
             return new DLKerasMaterializedPortObjectContent(materialized);
         } catch (final Exception e) {
             NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage(), e);
-            final String message = DLUtils.Misc.findDisplayableErrorMessage(e).orElse(
-                "An error occurred while creating the Keras network from its layer specifications. See log for details.");
+            final String message = DLUtils.Misc.findDisplayableErrorMessage(e)
+                .orElse("An error occurred while creating the Keras network from its layer specifications.\n"
+                    + "This could be due to a version mismatch between Keras and TensorFlow.\n"
+                    + "Please make sure that Keras " + DLKerasUtils.PREFERRED_KERAS_VERSION + " and TensorFlow "
+                    + DLKerasUtils.PREFERRED_TF_VERSION + " are installed in your Python environment.\n"
+                    + "See log for details.");
             throw new IOException(message, e);
         }
     }
