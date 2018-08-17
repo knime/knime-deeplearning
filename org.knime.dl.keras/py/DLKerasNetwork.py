@@ -108,7 +108,10 @@ class DLKerasNetwork(DLPythonNetwork):
     @staticmethod
     def _convert_sequential_to_model(model):
         if isinstance(model, Sequential):
-            return Model(inputs=model.inputs, outputs=model.outputs)
+            if model.model and isinstance(model.model, Model):
+                return model.model
+            else:
+                return Model(inputs=model.inputs, outputs=model.outputs)
         else:
             return model
 
