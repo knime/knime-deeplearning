@@ -282,17 +282,30 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	}
 
     @Override
-    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig, final DLCancelable cancelable)
-        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig,
+        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLPythonAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
             .a(reader.importReader()) //
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
             .n(getRegisterNetworkCode("network", null));
-        getContext(cancelable).executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext(cancelable)
-            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
+        try {
+            getContext(cancelable).executeInKernel(b.toString(), cancelable);
+            return (DLPythonNetworkHandle)getContext(cancelable)
+                .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable)
+                .getTable();
+        } catch (final IOException e) {
+            if (loadTrainingConfig) {
+                // If we tried to load it compiled this could have been the problem
+                // -> Warn the user and try it uncompiled
+                LOGGER.warn("Couldn't load the model with the training configuration. See log for details. "
+                    + "Trying to load it uncompiled.", e);
+                return loadNetwork(path, false, cancelable);
+            } else {
+                throw e;
+            }
+        }
     }
 
 	@Override
