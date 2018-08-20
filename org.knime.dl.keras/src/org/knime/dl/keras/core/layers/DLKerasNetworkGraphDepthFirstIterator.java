@@ -109,7 +109,13 @@ public final class DLKerasNetworkGraphDepthFirstIterator implements DLKerasNetwo
             for (int i = parents.length - 1; i >= 0; i--) {
                 final DLKerasTensorSpecsOutput parent = parents[i];
                 // Parent may already be present if it's a fork.
-                if (!m_layerDepths.containsKey(parent)) {
+                boolean processLayer = !m_layerDepths.containsKey(parent);
+                // Check if the parent appears multiple times
+                // NB: Looping is probably faster than initializing a HashSet because most times we have only one parent
+                for (int j = i + 1; processLayer && j < parents.length; j++) {
+                    processLayer = !parents[i].equals(parents[j]);
+                }
+                if (processLayer) {
                     m_pendingLayers.push(parent);
                 }
             }

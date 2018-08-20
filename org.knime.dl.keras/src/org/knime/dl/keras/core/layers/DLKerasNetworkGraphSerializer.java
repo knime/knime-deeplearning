@@ -128,7 +128,7 @@ public final class DLKerasNetworkGraphSerializer {
 
     public static final List<FileStore> getNetworkFileStores(final List<DLKerasLayer> outputLayers) {
         final ArrayList<FileStore> networkFileStores = new ArrayList<>(3);
-        new DLKerasNetworkGraphTopologicalOrderIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
+        new DLKerasNetworkGraphDepthFirstIterator(outputLayers).visitAll(new DLKerasLayerVisitor() {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
