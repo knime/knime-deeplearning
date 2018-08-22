@@ -52,7 +52,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLCancelable;
@@ -63,6 +62,7 @@ import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
+import org.knime.python2.kernel.PythonCancelable;
 import org.knime.python2.kernel.PythonCanceledExecutionException;
 import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
@@ -76,8 +76,6 @@ import com.google.common.base.Strings;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLPythonDefaultContext implements DLPythonContext {
-
-    private static final AtomicInteger THREAD_UNIQUE_ID = new AtomicInteger();
 
     public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
         try {
@@ -137,7 +135,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
         }
         existingPath = existingPath + File.pathSeparator;
         pb.environment().put("PYTHONPATH", existingPath);
-        // TODO check if canceled!
+        // TODO: Check if canceled.
         final Process p = pb.start();
         try {
             final StringWriter stdout = new StringWriter();
@@ -159,15 +157,9 @@ public final class DLPythonDefaultContext implements DLPythonContext {
     public String[] executeInKernel(final String code, final DLCancelable cancelable)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
         try {
-            return getKernel().execute(code, () -> {
-                try {
-                    cancelable.checkCanceled();
-                } catch (final DLCanceledExecutionException e) {
-                    throw new PythonCanceledExecutionException(e.getMessage());
-                }
-            });
+            return getKernel().execute(code, new DLCancelableWrappingPythonCancelable(cancelable));
         } catch (final Exception ex) {
-            narrowPythonException(ex);
+            throwNarrowedPythonException(ex);
         }
         // This cannot happen.
         return null;
@@ -177,15 +169,9 @@ public final class DLPythonDefaultContext implements DLPythonContext {
     public String[] executeAsyncInKernel(final String code, final DLCancelable cancelable)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
         try {
-            return getKernel().executeAsync(code, () -> {
-                try {
-                    cancelable.checkCanceled();
-                } catch (final DLCanceledExecutionException e) {
-                    throw new PythonCanceledExecutionException(e.getMessage());
-                }
-            });
+            return getKernel().executeAsync(code, new DLCancelableWrappingPythonCancelable(cancelable));
         } catch (final Exception ex) {
-            narrowPythonException(ex);
+            throwNarrowedPythonException(ex);
         }
         // This cannot happen.
         return null;
@@ -194,15 +180,23 @@ public final class DLPythonDefaultContext implements DLPythonContext {
     @Override
     public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk,
         final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
-        // TODO: Check if canceled once KNIME python supports canceling the data transfer.
-        getKernel().putData(name, tableChunker, rowsPerChunk);
+        try {
+            getKernel().putData(name, tableChunker, rowsPerChunk, new DLCancelableWrappingPythonCancelable(cancelable));
+        } catch (final Exception ex) {
+            throwNarrowedPythonException(ex);
+        }
     }
 
     @Override
     public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf,
         final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
-        // TODO: Check if canceled once KNIME python supports canceling the data transfer.
-        return getKernel().getData(name, tcf);
+        try {
+            return getKernel().getData(name, tcf, new DLCancelableWrappingPythonCancelable(cancelable));
+        } catch (final Exception ex) {
+            throwNarrowedPythonException(ex);
+        }
+        // This cannot happen.
+        return null;
     }
 
     @Override
@@ -212,7 +206,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
         }
     }
 
-    private static void narrowPythonException(final Exception e)
+    private static void throwNarrowedPythonException(final Exception e)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
         if (e instanceof DLCanceledExecutionException) {
             throw (DLCanceledExecutionException)e;
@@ -221,10 +215,31 @@ public final class DLPythonDefaultContext implements DLPythonContext {
         } else if (e instanceof IOException) {
             throw (IOException)e;
         } else if (e instanceof PythonException) {
+            if (e instanceof PythonCanceledExecutionException) {
+                throw new DLCanceledExecutionException(e.getMessage());
+            }
             throw new DLInvalidEnvironmentException("An error occurred while interacting with Python."
                 + (e.getMessage() != null ? " Cause: " + e.getMessage() : ""), e);
         } else {
             throw new IOException(e);
+        }
+    }
+
+    private static final class DLCancelableWrappingPythonCancelable implements PythonCancelable {
+
+        private final DLCancelable m_delegate;
+
+        public DLCancelableWrappingPythonCancelable(final DLCancelable cancelable) {
+            m_delegate = cancelable;
+        }
+
+        @Override
+        public void checkCanceled() throws PythonCanceledExecutionException {
+            try {
+                m_delegate.checkCanceled();
+            } catch (final DLCanceledExecutionException e) {
+                throw new PythonCanceledExecutionException(e.getMessage());
+            }
         }
     }
 }
