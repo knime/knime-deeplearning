@@ -59,6 +59,7 @@ from keras.models import Sequential
 from keras.models import load_model
 from keras.models import model_from_json
 from keras.models import model_from_yaml
+from keras.layers import Lambda
 
 import DLPythonKernelGateway
 from DLKerasTrainingCallbacks import DLKerasTrainingMonitor
@@ -143,6 +144,8 @@ class DLKerasNetwork(DLPythonNetwork):
             output_tensors = model.get_layer(layer_name).get_output_at(node_idx)
             if not isinstance(output_tensors, list):
                 output_tensors = [output_tensors]
+            if output_tensors[tensor_idx] in model.inputs:
+                output_tensors[tensor_idx] = Lambda(lambda x: x)(output_tensors[tensor_idx])
             outputs.append(output_tensors[tensor_idx])
 
         # Build the model with the requested outputs
