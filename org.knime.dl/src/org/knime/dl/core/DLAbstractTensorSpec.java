@@ -69,6 +69,8 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
     private static final long serialVersionUID = 1L;
 
+    private static final int ZERO_HASHCODE = 0;
+
     /**
      * @since 3.6 - This field will default to {@link #m_name} when deserializing older versions of this spec. See
      *        {@link DLTensorSpec#getIdentifier()}.
@@ -85,7 +87,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
     private final Class<?> m_elementType;
 
-    private int m_hashCode = 0;
+    private transient int m_hashCode = ZERO_HASHCODE;
 
     /**
      * @param identifier the identifier of the tensor
@@ -193,7 +195,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
 
     @Override
     public int hashCode() {
-        if (m_hashCode == 0) {
+        if (m_hashCode == ZERO_HASHCODE) {
             m_hashCode = hashCodeInternal();
         }
         return m_hashCode;
@@ -234,8 +236,9 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
         m_batchSize = batchSize != -1 ? OptionalLong.of(batchSize) : OptionalLong.empty();
         if (m_identifier == null) {
             m_identifier = new DLDefaultTensorId(m_name);
-            m_hashCode = hashCodeInternal();
         }
+
+        m_hashCode = ZERO_HASHCODE;
     }
 
     private int hashCodeInternal() {
@@ -244,7 +247,7 @@ public abstract class DLAbstractTensorSpec implements DLTensorSpec {
         // We do not consider the name as it's for display purposes only.
         b.append(m_batchSize);
         b.append(m_shape);
-        b.append(m_elementType);
+        b.append(m_elementType.getCanonicalName());
         hashCodeInternal(b);
         return b.toHashCode();
     }
