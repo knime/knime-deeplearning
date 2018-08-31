@@ -101,7 +101,7 @@ public abstract class DLAbstractNetworkPortObjectSpec<S extends DLNetworkSpec> i
 	public final int hashCode() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
 		b.append(m_spec);
-		b.append(m_type);
+		b.append(m_type.getCanonicalName());
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}
