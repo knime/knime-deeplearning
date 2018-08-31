@@ -60,7 +60,7 @@ public abstract class DLAbstractTensorShape implements DLTensorShape {
 
 	private static final long serialVersionUID = 1L;
 
-	private int m_hashCode = 0;
+	private transient int m_hashCode = 0;
 
 	protected abstract void hashCodeInternal(HashCodeBuilder b);
 
