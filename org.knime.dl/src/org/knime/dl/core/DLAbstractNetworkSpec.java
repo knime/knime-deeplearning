@@ -51,6 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -69,6 +70,8 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 
 	private static final long serialVersionUID = 1L;
 
+    private static final int ZERO_HASHCODE = 0;
+
     /**
      * @since 3.6 - This field will default to <code>3.5.0</code> when deserializing older versions of this spec. See
      *        {@link DLNetworkSpec#getBundleVersion()}.
@@ -83,7 +86,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 
 	private transient Optional<CFG> m_trainingConfig;
 
-	private int m_hashCode = 0;
+	private transient int m_hashCode = ZERO_HASHCODE;
 
 	/**
 	 * Creates a new instance of this network spec.
@@ -109,7 +112,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	 * @param inputSpecs the input tensor specs, can be empty
 	 * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
 	 * @param outputSpecs the output tensor specs, can be empty
-	 * @param the {@link DLTrainingConfig training configuration}
+	 * @param trainingConfig the {@link DLTrainingConfig training configuration}, must be {@link Serializable}
 	 */
     protected DLAbstractNetworkSpec(final Version bundleVersion, final DLTensorSpec[] inputSpecs,
         final DLTensorSpec[] hiddenOutputSpecs,
@@ -153,7 +156,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 
 	@Override
 	public int hashCode() {
-		if (m_hashCode == 0) {
+		if (m_hashCode == ZERO_HASHCODE) {
 			m_hashCode = hashCodeInternal();
 		}
 		return m_hashCode;
@@ -175,7 +178,8 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
             && Arrays.deepEquals(other.m_inputSpecs, m_inputSpecs) //
             && Arrays.deepEquals(other.m_hiddenOutputSpecs, m_hiddenOutputSpecs) //
             && Arrays.deepEquals(other.m_outputSpecs, m_outputSpecs) //
-            && other.m_trainingConfig.equals(m_trainingConfig)//
+            // TODO: Add as soon as training configuration offers value-based equality check.
+            // && other.m_trainingConfig.equals(m_trainingConfig)//
             && equalsInternal(other);
 	}
 
@@ -202,6 +206,8 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
         if (m_bundleVersion == null) {
             m_bundleVersion = new Version(3, 5, 0);
         }
+
+        m_hashCode = ZERO_HASHCODE;
 	}
 
 	private int hashCodeInternal() {
@@ -210,7 +216,8 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 		b.append(m_inputSpecs);
 		b.append(m_hiddenOutputSpecs);
 		b.append(m_outputSpecs);
-		b.append(m_trainingConfig);
+		// TODO: Add as soon as training configuration offers value-based hash code computation.
+		// b.append(m_trainingConfig);
 		hashCodeInternal(b);
 		return b.toHashCode();
 	}

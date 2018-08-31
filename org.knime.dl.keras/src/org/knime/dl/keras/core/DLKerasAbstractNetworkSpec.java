@@ -48,6 +48,8 @@ package org.knime.dl.keras.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
+
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLAbstractNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
@@ -91,7 +93,7 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
      * @param inputSpecs the input tensor specs, can be empty
      * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
      * @param outputSpecs the output tensor specs, can be empt
-     * @param trainingConfig the {@link DLTrainingConfig training configuration}y
+     * @param trainingConfig the {@link DLTrainingConfig training configuration}, must be {@link Serializable}
      */
     protected DLKerasAbstractNetworkSpec(final Version pythonVersion, final Version kerasVersion,
         final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs, final DLTensorSpec[] outputSpecs,
@@ -121,7 +123,7 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
      * @param inputSpecs the input tensor specs, can be empty
      * @param hiddenOutputSpecs the hidden output tensor specs, can be empty
      * @param outputSpecs the output tensor specs, can be empty
-     * @param trainingConfig the {@link DLTrainingConfig training configuration}y
+     * @param trainingConfig the {@link DLTrainingConfig training configuration}, must be {@link Serializable}
      */
     protected DLKerasAbstractNetworkSpec(final DLTensorSpec[] inputSpecs, final DLTensorSpec[] hiddenOutputSpecs,
         final DLTensorSpec[] outputSpecs, final DLKerasTrainingConfig trainingConfig) {
