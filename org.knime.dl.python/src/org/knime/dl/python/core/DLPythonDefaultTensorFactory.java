@@ -60,15 +60,18 @@ import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
+import org.knime.dl.core.data.DLReadableShortBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
+import org.knime.dl.core.data.DLWritableShortBuffer;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
+import org.knime.dl.python.core.data.DLPythonShortBuffer;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -84,6 +87,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLWritableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLWritableFloatBuffer.class;
+		} else if (t.equals(short.class)) {
+			return DLWritableShortBuffer.class;
 		} else if (t.equals(int.class)) {
 			return DLWritableIntBuffer.class;
 		} else if (t.equals(long.class)) {
@@ -101,6 +106,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLReadableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLReadableFloatBuffer.class;
+		} else if (t.equals(short.class)) {
+			return DLReadableShortBuffer.class;
 		} else if (t.equals(int.class)) {
 			return DLReadableIntBuffer.class;
 		} else if (t.equals(long.class)) {
@@ -145,6 +152,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLPythonDoubleBuffer(size);
 		} else if (t.equals(float.class)) {
 			s = () -> (B) new DLPythonFloatBuffer(size);
+		} else if (t.equals(short.class)) {
+			s = () -> (B) new DLPythonShortBuffer(size);
 		} else if (t.equals(int.class)) {
 			s = () -> (B) new DLPythonIntBuffer(size);
 		} else if (t.equals(long.class)) {

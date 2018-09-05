@@ -65,6 +65,7 @@ import DLPythonKernelGateway
 from DLKerasTrainingCallbacks import DLKerasTrainingMonitor
 from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
+from DLPythonDataBuffers import DLPythonShortBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
 from DLPythonInstallationTester import compare_versions
@@ -250,6 +251,8 @@ class DLKerasNetwork(DLPythonNetwork):
             return DLPythonDoubleBuffer(y)
         elif t == np.float32:
             return DLPythonFloatBuffer(y)
+        elif t == np.int16:
+            return DLPythonShortBuffer(y)
         elif t == np.int32:
             return DLPythonIntBuffer(y)
         elif t == np.int64:
