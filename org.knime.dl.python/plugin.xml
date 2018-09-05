@@ -15,6 +15,11 @@
             python-deserializer="py/DLPythonFloatBufferDeserializer.py">
       </type>
       <type
+            id="org.knime.dl.python.core.data.serde.DLPythonByteBufferSerializerFactory"
+            java-serializer-factory="org.knime.dl.python.core.data.serde.DLPythonByteBufferSerializerFactory"
+            python-deserializer="py/DLPythonByteBufferDeserializer.py">
+      </type>
+      <type
             id="org.knime.dl.python.core.data.serde.DLPythonShortBufferSerializerFactory"
             java-serializer-factory="org.knime.dl.python.core.data.serde.DLPythonShortBufferSerializerFactory"
             python-deserializer="py/DLPythonShortBufferDeserializer.py">
@@ -43,6 +48,12 @@
             java-deserializer-factory="org.knime.dl.python.core.data.serde.DLPythonFloatBufferDeserializerFactory"
             python-serializer="py/DLPythonFloatBufferSerializer.py"
             python-type-identifier="DLPythonDataBuffers.DLPythonFloatBuffer">
+      </type>
+      <type
+            id="org.knime.dl.python.core.data.serde.DLPythonByteBufferDeserializerFactory"
+            java-deserializer-factory="org.knime.dl.python.core.data.serde.DLPythonByteBufferDeserializerFactory"
+            python-serializer="py/DLPythonByteBufferSerializer.py"
+            python-type-identifier="DLPythonDataBuffers.DLPythonByteBuffer">
       </type>
       <type
             id="org.knime.dl.python.core.data.serde.DLPythonShortBufferDeserializerFactory"
