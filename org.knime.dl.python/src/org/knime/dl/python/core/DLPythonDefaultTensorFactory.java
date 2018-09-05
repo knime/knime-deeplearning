@@ -55,6 +55,7 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLBuffer;
+import org.knime.dl.core.data.DLReadableBitBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableByteBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
@@ -62,6 +63,7 @@ import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLReadableShortBuffer;
+import org.knime.dl.core.data.DLWritableBitBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
@@ -69,6 +71,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
+import org.knime.dl.python.core.data.DLPythonBitBuffer;
 import org.knime.dl.python.core.data.DLPythonByteBuffer;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
@@ -90,6 +93,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLWritableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLWritableFloatBuffer.class;
+		} else if (t.equals(boolean.class)) {
+			return DLWritableBitBuffer.class;
 		} else if (t.equals(byte.class)) {
 			return DLWritableByteBuffer.class;
 		} else if (t.equals(short.class)) {
@@ -111,6 +116,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLReadableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLReadableFloatBuffer.class;
+		} else if (t.equals(boolean.class)) {
+			return DLReadableBitBuffer.class;
 		} else if (t.equals(byte.class)) {
 			return DLReadableByteBuffer.class;
 		} else if (t.equals(short.class)) {
@@ -159,6 +166,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLPythonDoubleBuffer(size);
 		} else if (t.equals(float.class)) {
 			s = () -> (B) new DLPythonFloatBuffer(size);
+		} else if (t.equals(boolean.class)) {
+			s = () -> (B) new DLPythonBitBuffer(size);
 		} else if (t.equals(byte.class)) {
 			s = () -> (B) new DLPythonByteBuffer(size);
 		} else if (t.equals(short.class)) {
