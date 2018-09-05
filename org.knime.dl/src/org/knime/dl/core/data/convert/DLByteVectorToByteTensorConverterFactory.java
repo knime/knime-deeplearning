@@ -106,6 +106,6 @@ public class DLByteVectorToByteTensorConverterFactory
 			throw new IllegalArgumentException("The provided byte vector is too large, "
 					+ "currently byte vectors may have a maximal length of 2^31-1.");
 		}
-		return new long[(int) input.length()];
+		return new long[] {input.length()};
 	}
 }
