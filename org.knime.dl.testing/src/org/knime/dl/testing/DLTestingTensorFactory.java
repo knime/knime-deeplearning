@@ -56,10 +56,13 @@ import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLBuffer;
+import org.knime.dl.core.data.DLDefaultBitBuffer;
+import org.knime.dl.core.data.DLDefaultByteBuffer;
 import org.knime.dl.core.data.DLDefaultDoubleBuffer;
 import org.knime.dl.core.data.DLDefaultFloatBuffer;
 import org.knime.dl.core.data.DLDefaultIntBuffer;
 import org.knime.dl.core.data.DLDefaultLongBuffer;
+import org.knime.dl.core.data.DLDefaultShortBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
@@ -157,6 +160,12 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLDefaultDoubleBuffer(size);
 		} else if (t.equals(float.class) || t.equals(Float.class)) {
 			s = () -> (B) new DLDefaultFloatBuffer(size);
+		} else if (t.equals(boolean.class) || t.equals(Boolean.class)) {
+			s = () -> (B) new DLDefaultBitBuffer(size);
+		} else if (t.equals(byte.class) || t.equals(Byte.class)) {
+			s = () -> (B) new DLDefaultByteBuffer(size);
+		} else if (t.equals(short.class) || t.equals(Short.class)) {
+			s = () -> (B) new DLDefaultShortBuffer(size);
 		} else if (t.equals(int.class) || t.equals(Integer.class)) {
 			s = () -> (B) new DLDefaultIntBuffer(size);
 		} else if (t.equals(long.class) || t.equals(Long.class)) {
