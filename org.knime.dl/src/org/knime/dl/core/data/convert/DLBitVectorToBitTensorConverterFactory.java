@@ -106,6 +106,6 @@ public class DLBitVectorToBitTensorConverterFactory
 			throw new IllegalArgumentException(
 					"The provided bit vector is too large, currently bit vectors may have a maximal length of 2^31-1.");
 		}
-		return new long[(int) input.length()];
+		return new long[]{input.length()};
 	}
 }

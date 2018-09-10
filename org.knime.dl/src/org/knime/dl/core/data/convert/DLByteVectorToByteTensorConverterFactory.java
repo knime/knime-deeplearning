@@ -57,14 +57,13 @@ import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableByteBuffer;
-import org.knime.dl.core.data.DLWritableShortBuffer;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableShortBuffer> {
+	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableByteBuffer> {
 
 	@Override
 	public String getName() {
@@ -77,8 +76,8 @@ public class DLByteVectorToByteTensorConverterFactory
 	}
 
 	@Override
-	public Class<DLWritableShortBuffer> getBufferType() {
-		return DLWritableShortBuffer.class;
+	public Class<DLWritableByteBuffer> getBufferType() {
+		return DLWritableByteBuffer.class;
 	}
 
 	@Override
@@ -87,11 +86,11 @@ public class DLByteVectorToByteTensorConverterFactory
 	}
 
 	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableShortBuffer>() {
+	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableByteBuffer> createConverter() {
+		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableByteBuffer>() {
 
 			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableShortBuffer> output) {
+			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableByteBuffer> output) {
 				final DLWritableByteBuffer buf = output.getBuffer();
 				for (int i = 0; i < input.length(); i++) {
 					buf.put((byte) input.get(i));
