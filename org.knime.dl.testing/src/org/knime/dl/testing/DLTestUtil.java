@@ -113,6 +113,15 @@ public final class DLTestUtil {
 		return array;
 	}
 
+    // Not really a range but can be used in tests easily
+    public static boolean[] booleanRange(final int length) {
+        final boolean[] array = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            array[i] = i % 2 == 0 || i % 5 == 0;
+        }
+        return array;
+    }
+
 	public static byte[] byteRange(final int length) {
 		final byte[] array = new byte[length];
 		for (int i = 0; i < length; i++) {
@@ -272,6 +281,30 @@ public final class DLTestUtil {
 		}
 		return result;
 	}
+
+    public static short[] toShort(final boolean[] array) {
+        final short[] result = new short[array.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (short)(array[i] ? 1 : 0);
+        }
+        return result;
+    }
+
+    public static short[] toShort(final byte[] array) {
+        final short[] result = new short[array.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = array[i];
+        }
+        return result;
+    }
+
+    public static byte[] toByte(final boolean[] array) {
+        final byte[] result = new byte[array.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (byte)(array[i] ? 1 : 0);
+        }
+        return result;
+    }
 
 	// Tensor:
 
