@@ -59,7 +59,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasOrthogonalInitializer extends DLKerasAbstractSeededInitializer {
 
     @Parameter(label = "Gain", stepSize = "0.1")
-    private float m_gain = 1.0f;
+    private double m_gain = 1.0;
 
     /**
      */

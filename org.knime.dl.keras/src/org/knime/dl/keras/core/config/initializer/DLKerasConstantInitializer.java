@@ -58,7 +58,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasConstantInitializer extends DLKerasAbstractInitializer {
 
     @Parameter(label = "Value", stepSize = "0.1")
-    private float m_value = 0;
+    private double m_value = 0.0;
 
     /**
      */

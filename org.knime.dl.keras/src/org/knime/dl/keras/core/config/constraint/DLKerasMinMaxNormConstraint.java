@@ -59,13 +59,13 @@ import org.knime.dl.python.util.DLPythonUtils;
 public class DLKerasMinMaxNormConstraint extends DLKerasAbstractAxisConstraint {
 
     @Parameter(label = "Minimum norm", min = "0.0", stepSize = "0.1")
-    private float m_minValue = 0.0f;
+    private double m_minValue = 0.0;
 
     @Parameter(label = "Maximum norm", min = "0.0000001", stepSize = "0.0000001")
-    private float m_maxValue = 1.0f;
+    private double m_maxValue = 1.0;
 
     @Parameter(label = "Rate", min = "0.0", max = "1.0", stepSize = "0.1")
-    private float m_rate = 1.0f;
+    private double m_rate = 1.0;
 
     /**
      */
