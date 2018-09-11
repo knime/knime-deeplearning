@@ -59,10 +59,10 @@ import org.knime.dl.python.util.DLPythonUtils;
 abstract class DLKerasAbstractNormalInitializer extends DLKerasAbstractSeededInitializer {
 
     @Parameter(label = "Mean", min = "0.0000001", stepSize = "0.0000001")
-    private double m_mean = 0.0;
+    private float m_mean = 0.0f;
 
     @Parameter(label = "Standard deviation", min = "0.0000001", stepSize = "0.0000001")
-    private double m_stddev = 0.05;
+    private float m_stddev = 0.05f;
 
     /**
      * @param kerasIdentifier

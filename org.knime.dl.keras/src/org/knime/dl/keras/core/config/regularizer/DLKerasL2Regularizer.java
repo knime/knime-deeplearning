@@ -60,7 +60,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasL2Regularizer extends DLKerasAbstractConfigObject implements DLKerasRegularizer {
 
     @Parameter(label = "L2 regularization factor", min = "0.0000001", stepSize = "0.0000001")
-    private double m_l2 = 0.0000001f;
+    private float m_l2 = 0.0000001f;
 
     /**
      */

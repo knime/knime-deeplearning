@@ -58,7 +58,7 @@ import org.knime.dl.python.util.DLPythonUtils;
 public final class DLKerasIdentityInitializer extends DLKerasAbstractInitializer {
 
     @Parameter(label = "Gain", stepSize = "0.1")
-    private double m_gain = 1.0;
+    private float m_gain = 1.0f;
 
     /**
      */
