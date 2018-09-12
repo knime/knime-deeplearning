@@ -50,6 +50,12 @@
       <DLTensorToDataCellConverterFactory
             DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLLongTensorToLongCellConverterFactory">
       </DLTensorToDataCellConverterFactory>
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLBitTensorToBooleanCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLBitTensorToBitVectorCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
