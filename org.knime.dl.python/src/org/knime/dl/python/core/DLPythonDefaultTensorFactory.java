@@ -63,6 +63,7 @@ import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLReadableShortBuffer;
+import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableByteBuffer;
@@ -71,6 +72,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
+import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
 import org.knime.dl.python.core.data.DLPythonBitBuffer;
 import org.knime.dl.python.core.data.DLPythonByteBuffer;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
@@ -78,7 +80,10 @@ import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.python.core.data.DLPythonShortBuffer;
+import org.knime.dl.python.core.data.DLPythonUnsignedByteBuffer;
 import org.knime.dl.util.DLUtils;
+
+import com.google.common.primitives.UnsignedBytes;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -95,6 +100,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLWritableFloatBuffer.class;
 		} else if (t.equals(boolean.class)) {
 			return DLWritableBitBuffer.class;
+		} else if (t.equals(UnsignedBytes.class)) {
+			return DLWritableUnsignedByteBuffer.class;
 		} else if (t.equals(byte.class)) {
 			return DLWritableByteBuffer.class;
 		} else if (t.equals(short.class)) {
@@ -118,6 +125,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLReadableFloatBuffer.class;
 		} else if (t.equals(boolean.class)) {
 			return DLReadableBitBuffer.class;
+		} else if (t.equals(UnsignedBytes.class)) {
+			return DLReadableUnsignedByteBuffer.class;
 		} else if (t.equals(byte.class)) {
 			return DLReadableByteBuffer.class;
 		} else if (t.equals(short.class)) {
@@ -168,6 +177,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLPythonFloatBuffer(size);
 		} else if (t.equals(boolean.class)) {
 			s = () -> (B) new DLPythonBitBuffer(size);
+		} else if (t.equals(UnsignedBytes.class)) {
+			s = () -> (B) new DLPythonUnsignedByteBuffer(size);
 		} else if (t.equals(byte.class)) {
 			s = () -> (B) new DLPythonByteBuffer(size);
 		} else if (t.equals(short.class)) {

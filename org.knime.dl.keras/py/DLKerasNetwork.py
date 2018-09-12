@@ -68,6 +68,7 @@ from DLPythonDataBuffers import DLPythonDoubleBuffer
 from DLPythonDataBuffers import DLPythonFloatBuffer
 from DLPythonDataBuffers import DLPythonBitBuffer
 from DLPythonDataBuffers import DLPythonByteBuffer
+from DLPythonDataBuffers import DLPythonUnsignedByteBuffer
 from DLPythonDataBuffers import DLPythonShortBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
@@ -258,6 +259,8 @@ class DLKerasNetwork(DLPythonNetwork):
             return DLPythonBitBuffer(y)
         elif t == np.int8:
             return DLPythonByteBuffer(y)
+        elif t == np.uint8:
+            return DLPythonUnsignedByteBuffer(y)
         elif t == np.int16:
             return DLPythonShortBuffer(y)
         elif t == np.int32:
@@ -266,8 +269,7 @@ class DLKerasNetwork(DLPythonNetwork):
             return DLPythonLongBuffer(y)
         # TODO: support more types
         else:
-            # TODO: warning to stderr? fail?
-            return DLPythonDoubleBuffer(y)
+            raise ValueError('Output type of the network \'{}\' is not supported.'.format(y.dtype))
 
 
 class DLKerasNetworkSpec(DLPythonNetworkSpec):

@@ -43,69 +43,43 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 30, 2017 (marcel): created
  */
-package org.knime.dl.core.data.convert;
+package org.knime.dl.core.data;
 
-import java.util.List;
-import java.util.OptionalLong;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
+import java.nio.BufferUnderflowException;
 
 /**
+ * A {@link DLReadableBuffer readable} unsigned byte buffer.
+ *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableUnsignedByteBuffer> {
+public interface DLReadableUnsignedByteBuffer extends DLReadableShortBuffer {
 
-	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
-	}
+    /**
+     * Reads the next value from the buffer.
+     *
+     * @return the value
+     * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
+     */
+    short readNextUnsignedByte() throws BufferUnderflowException;
 
-	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
-	}
+    /**
+     * Returns a copy of the buffer's content.
+     *
+     * @return the buffer's content
+     */
+    short[] toUnsignedByteArray();
 
-	@Override
-	public Class<DLWritableUnsignedByteBuffer> getBufferType() {
-		return DLWritableUnsignedByteBuffer.class;
-	}
-
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
-
-	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer>() {
-
-			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableUnsignedByteBuffer> output) {
-				final DLWritableUnsignedByteBuffer buf = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buf.put((short)input.get(i));
-				}
-			}
-		};
-	}
-
-	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
-		if (input.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("The provided byte vector is too large, "
-					+ "currently byte vectors may have a maximal length of 2^31-1.");
-		}
-		return new long[] {input.length()};
-	}
+    /**
+     * Reads <b>length</b> values from the buffer into the <b>dest</b> array starting from the next value in the buffer.
+     *
+     * @param dest destination array
+     * @param destPos position at which to start writing in <b>dest</b>
+     * @param length number of elements to read from the buffer
+     * @throws BufferUnderflowException if the buffer's {@link #size() size} is exceeded.
+     */
+    void readToUnsignedByteArray(short[] dest, int destPos, int length);
 }

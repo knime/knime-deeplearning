@@ -48,10 +48,6 @@
  */
 package org.knime.dl.python.core.data.serde;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import org.knime.dl.core.data.DLBuffer;
 import org.knime.dl.python.core.data.DLPythonByteBuffer;
 import org.knime.python.typeextension.Serializer;
@@ -79,30 +75,7 @@ public class DLPythonByteBufferSerializerFactory extends SerializerFactory<DLPyt
 
     @Override
     public Serializer<? extends DLPythonByteBuffer> createSerializer() {
-
-        return value -> {
-            // TODO: we serialize to flat buffers for now
-            // final int numDimensions = value.getNumDimensions();
-            // final long[] shape = value.getShape();
-            final long size = value.size() - value.getNextReadPosition();
-            final long numBytes = /*
-                                   * Integer.BYTES + numDimensions * Long.BYTES +
-                                   */ size * Byte.BYTES;
-            if (numBytes > Integer.MAX_VALUE) {
-                throw new IOException(
-                    "Transmitting data to Python failed. Buffer size exceeds the limit of 2^31-1 bytes.");
-            }
-            final byte[] tensorStorage = value.getStorageForReading(value.getNextReadPosition(), size);
-            final ByteBuffer buffer = ByteBuffer.allocate((int)numBytes);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            buffer.put(tensorStorage, (int)value.getNextReadPosition(), (int)size);
-            // TODO: we serialize to flat buffers for now
-            // buffer.putInt(numDimensions);
-            // for (final long dim : shape) {
-            // buffer.putLong(dim);
-            // }
-            return buffer.array();
-        };
+        return new DLPythonByteBufferSerializer<>();
     }
 
     @Override

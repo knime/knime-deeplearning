@@ -48,64 +48,58 @@
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
 import java.util.OptionalLong;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
-import org.knime.dl.core.DLTensor;
+import org.knime.core.data.DataType;
+import org.knime.core.data.vector.bytevector.DenseByteVector;
+import org.knime.core.data.vector.bytevector.DenseByteVectorCell;
+import org.knime.core.data.vector.bytevector.DenseByteVectorCellFactory;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
+import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
+import org.knime.dl.util.DLUtils;
 
 /**
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableUnsignedByteBuffer> {
+public class DLUnsignedByteTensorToByteVectorCellConverterFactory
+    implements DLTensorToDataCellConverterFactory<DLReadableUnsignedByteBuffer, DenseByteVectorCell> {
 
-	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
-	}
+    @Override
+    public String getName() {
+        return DataType.getType(DenseByteVectorCell.class).toPrettyString();
+    }
 
-	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
-	}
+    @Override
+    public Class<DLReadableUnsignedByteBuffer> getBufferType() {
+        return DLReadableUnsignedByteBuffer.class;
+    }
 
-	@Override
-	public Class<DLWritableUnsignedByteBuffer> getBufferType() {
-		return DLWritableUnsignedByteBuffer.class;
-	}
+    @Override
+    public DataType getDestType() {
+        return DataType.getType(DenseByteVectorCell.class);
+    }
 
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
+    @Override
+    public OptionalLong getDestCount(final DLTensorSpec spec) {
+        return OptionalLong.of(1);
+    }
 
-	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer>() {
-
-			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableUnsignedByteBuffer> output) {
-				final DLWritableUnsignedByteBuffer buf = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buf.put((short)input.get(i));
-				}
-			}
-		};
-	}
-
-	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
-		if (input.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("The provided byte vector is too large, "
-					+ "currently byte vectors may have a maximal length of 2^31-1.");
-		}
-		return new long[] {input.length()};
-	}
+    @Override
+    public DLTensorToDataCellConverter<DLReadableUnsignedByteBuffer, DenseByteVectorCell> createConverter() {
+        return (input, out, exec) -> {
+            final long bufferSize = input.getBuffer().size();
+            // TODO handle examples size > int
+            final long exampleSize = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).getAsLong();
+            final DLReadableUnsignedByteBuffer buf = input.getBuffer();
+            for (int i = 0; i < bufferSize / exampleSize; i++) {
+                final DenseByteVector vector = new DenseByteVector((int)exampleSize);
+                for (int j = 0; j < exampleSize; j++) {
+                    vector.set(j, buf.readNextUnsignedByte());
+                }
+                out[i] = (new DenseByteVectorCellFactory(vector)).createDataCell();
+            }
+        };
+    }
 }

@@ -43,69 +43,64 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 30, 2017 (marcel): created
  */
-package org.knime.dl.core.data.convert;
+package org.knime.dl.python.core.data;
 
-import java.util.List;
-import java.util.OptionalLong;
+import java.nio.BufferOverflowException;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLAbstactByteBuffer;
+import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
 
 /**
+ * Abstract type implementation of {@link DLPythonAbstractDataBuffer} for signed and unsigned bytes.
+ *
+ * @param <B> type of the delegate buffer
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableUnsignedByteBuffer> {
+@SuppressWarnings("serial") // not intended for serialization
+public abstract class DLPythonAbstractByteBuffer<B extends DLAbstactByteBuffer>
+    extends DLPythonAbstractDataBuffer<B, byte[]> implements DLWritableByteBuffer, DLWritableUnsignedByteBuffer {
 
-	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
-	}
+    /**
+     * Creates a new instance of this buffer.
+     *
+     * @param buffer the delegate buffer
+     */
+    protected DLPythonAbstractByteBuffer(final B buffer) {
+        super(buffer);
+    }
 
-	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
-	}
+    @Override
+    public void put(boolean value) throws BufferOverflowException {
+        m_buffer.put(value);
+    }
 
-	@Override
-	public Class<DLWritableUnsignedByteBuffer> getBufferType() {
-		return DLWritableUnsignedByteBuffer.class;
-	}
+    @Override
+    public void putAll(boolean[] values) throws BufferOverflowException {
+        m_buffer.putAll(values);
+    }
 
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
+    @Override
+    public void put(short value) throws BufferOverflowException {
+        m_buffer.put(value);
+    }
 
-	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer>() {
+    @Override
+    public void putAll(short[] values) throws BufferOverflowException {
+        m_buffer.putAll(values);
+    }
 
-			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableUnsignedByteBuffer> output) {
-				final DLWritableUnsignedByteBuffer buf = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buf.put((short)input.get(i));
-				}
-			}
-		};
-	}
+    @Override
+    public void put(byte value) throws BufferOverflowException {
+        m_buffer.put(value);
+    }
 
-	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
-		if (input.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("The provided byte vector is too large, "
-					+ "currently byte vectors may have a maximal length of 2^31-1.");
-		}
-		return new long[] {input.length()};
-	}
+    @Override
+    public void putAll(byte[] values) throws BufferOverflowException {
+        m_buffer.putAll(values);
+    }
+
 }

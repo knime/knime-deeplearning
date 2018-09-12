@@ -43,69 +43,60 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 30, 2017 (marcel): created
  */
-package org.knime.dl.core.data.convert;
+package org.knime.dl.python.core.data.serde;
 
-import java.util.List;
-import java.util.OptionalLong;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.function.Function;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
+import org.knime.dl.core.data.DLAbstactByteBuffer;
+import org.knime.dl.python.core.data.DLPythonAbstractByteBuffer;
 
 /**
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableUnsignedByteBuffer> {
+public class DLPythonByteBufferDeserializer<B extends DLPythonAbstractByteBuffer<? extends DLAbstactByteBuffer>>
+    implements DLPythonDeserializer<B> {
 
-	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
-	}
+    private final Function<Integer, B> m_bufferCreator;
 
-	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
-	}
+    public DLPythonByteBufferDeserializer(final Function<Integer, B> bufferCreator) {
+        m_bufferCreator = bufferCreator;
+    }
 
-	@Override
-	public Class<DLWritableUnsignedByteBuffer> getBufferType() {
-		return DLWritableUnsignedByteBuffer.class;
-	}
+    @Override
+    public DataCell deserialize(final byte[] bytes, final FileStoreFactory fileStoreFactory) throws IOException {
+        final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        // TODO: we serialize to a flat buffer for now
+        // final int numDimensions = buffer.getInt();
+        // final long[] shape = new long[numDimensions];
+        // for (int i = 0; i < numDimensions; i++) {
+        // shape[i] = buffer.getLong();
+        // }
+        final B value = m_bufferCreator.apply(buffer.capacity() / Byte.BYTES);
+        buffer.get(value.getStorageForWriting(0, buffer.limit()));
+        return value;
+    }
 
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
+    @Override
+    public void deserialize(final byte[] bytes, final DLTensor<B> data) {
+        final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        // TODO: we serialize to a flat buffer for now
+        // final int numDimensions = buffer.getInt();
+        // final long[] shape = new long[numDimensions];
+        // for (int i = 0; i < numDimensions; i++) {
+        // shape[i] = buffer.getLong();
+        // }
+        final B tensorBuffer = data.getBuffer();
+        final int writeStart = (int)tensorBuffer.size();
+        final byte[] tensorStorage = tensorBuffer.getStorageForWriting(writeStart, buffer.limit());
+        buffer.get(tensorStorage, writeStart, buffer.limit());
+    }
 
-	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer>() {
-
-			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableUnsignedByteBuffer> output) {
-				final DLWritableUnsignedByteBuffer buf = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buf.put((short)input.get(i));
-				}
-			}
-		};
-	}
-
-	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
-		if (input.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("The provided byte vector is too large, "
-					+ "currently byte vectors may have a maximal length of 2^31-1.");
-		}
-		return new long[] {input.length()};
-	}
 }

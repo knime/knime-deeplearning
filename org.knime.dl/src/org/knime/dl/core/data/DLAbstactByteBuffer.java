@@ -43,129 +43,99 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 28, 2017 (marcel): created
  */
-package org.knime.dl.python.core.data;
+package org.knime.dl.core.data;
 
-import java.nio.BufferUnderflowException;
+import static com.google.common.base.Preconditions.checkArgument;
 
-import org.knime.core.data.DataType;
-import org.knime.dl.core.data.DLDefaultByteBuffer;
-import org.knime.dl.core.data.DLReadableByteBuffer;
+import java.nio.BufferOverflowException;
 
 /**
- * Byte type implementation of {@link DLPythonAbstractDataBuffer}.
+ * Byte type implementation of {@link DLWrappingDataBuffer}.
  *
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("serial") // not intended for serialization
-public class DLPythonByteBuffer extends DLPythonAbstractByteBuffer<DLDefaultByteBuffer>
-    implements DLReadableByteBuffer {
+public class DLAbstactByteBuffer extends DLAbstractFlatWrappingDataBuffer<byte[]>
+    implements DLWritableByteBuffer, DLWritableUnsignedByteBuffer {
 
-    /**
-     * This buffer's {@link DataType}.
-     */
-    public static final DataType TYPE = DataType.getType(DLPythonByteBuffer.class);
+    private static final int MAX_UNSIGNED_VAL = (1 << Byte.SIZE) - 1;
 
     /**
      * Creates a new instance of this buffer.
      *
      * @param capacity the immutable capacity of the buffer
      */
-    public DLPythonByteBuffer(final long capacity) {
-        super(new DLDefaultByteBuffer(capacity));
+    public DLAbstactByteBuffer(final long capacity) {
+        super(capacity);
     }
 
     @Override
-    public short readNextShort() throws BufferUnderflowException {
-        return m_buffer.readNextShort();
+    public void setStorage(final byte[] storage, final long storageSize) throws IllegalArgumentException {
+        checkArgument(storage.length == m_capacity, "Input storage capacity does not match buffer capacity.");
+        m_storage = storage;
+        m_nextWrite = (int)storageSize;
+        resetRead();
     }
 
     @Override
-    public short[] toShortArray() {
-        return m_buffer.toShortArray();
+    public void zeroPad(long length) throws IllegalArgumentException, BufferOverflowException {
+        checkArgument(length > 0);
+        checkOverflow(m_nextWrite + length <= m_capacity);
+        for (int i = 0; i < length; i++) {
+            m_storage[m_nextWrite++] = 0;
+        }
     }
 
     @Override
-    public void readToShortArray(short[] dest, int destPos, int length) {
-        m_buffer.readToShortArray(dest, destPos, length);
+    public void put(boolean value) throws BufferOverflowException {
+        checkOverflow(m_nextWrite < m_capacity);
+        m_storage[m_nextWrite++] = (byte)(value ? 1 : 0);
     }
 
     @Override
-    public float readNextFloat() throws BufferUnderflowException {
-        return m_buffer.readNextFloat();
+    public void putAll(boolean[] values) throws BufferOverflowException {
+        checkOverflow(m_nextWrite + values.length <= m_capacity);
+        for (int i = 0; i < values.length; i++) {
+            m_storage[m_nextWrite++] = (byte)(values[i] ? 1 : 0);
+        }
     }
 
     @Override
-    public float[] toFloatArray() {
-        return m_buffer.toFloatArray();
+    public void put(byte value) throws BufferOverflowException {
+        checkOverflow(m_nextWrite < m_capacity);
+        m_storage[m_nextWrite++] = value;
     }
 
     @Override
-    public void readToFloatArray(float[] dest, int destPos, int length) {
-        m_buffer.readToFloatArray(dest, destPos, length);
+    public void putAll(byte[] values) throws BufferOverflowException {
+        checkOverflow(m_nextWrite + values.length <= m_capacity);
+        System.arraycopy(values, 0, m_storage, m_nextWrite, values.length);
+        m_nextWrite += values.length;
     }
 
     @Override
-    public double readNextDouble() throws BufferUnderflowException {
-        return m_buffer.readNextDouble();
+    public void put(short value) throws BufferOverflowException {
+        checkOverflow(m_nextWrite < m_capacity);
+        checkArgument(0 <= value && value <= MAX_UNSIGNED_VAL, "Unsinged byte must be between 0 and %s.",
+            MAX_UNSIGNED_VAL);
+        m_storage[m_nextWrite++] = (byte)value;
     }
 
     @Override
-    public double[] toDoubleArray() {
-        return m_buffer.toDoubleArray();
+    public void putAll(short[] values) throws BufferOverflowException {
+        checkOverflow(m_nextWrite + values.length <= m_capacity);
+        for (int i = 0; i < values.length; i++) {
+            checkArgument(0 <= values[i] && values[i] <= MAX_UNSIGNED_VAL, "Unsinged byte must be between 0 and %s.",
+                MAX_UNSIGNED_VAL);
+            m_storage[m_nextWrite++] = (byte)values[i];
+        }
     }
 
     @Override
-    public void readToDoubleArray(double[] dest, int destPos, int length) {
-        m_buffer.readToDoubleArray(dest, destPos, length);
-    }
-
-    @Override
-    public int readNextInt() throws BufferUnderflowException {
-        return m_buffer.readNextInt();
-    }
-
-    @Override
-    public int[] toIntArray() {
-        return m_buffer.toIntArray();
-    }
-
-    @Override
-    public void readToIntArray(int[] dest, int destPos, int length) {
-        m_buffer.readToIntArray(dest, destPos, length);
-    }
-
-    @Override
-    public long readNextLong() throws BufferUnderflowException {
-        return m_buffer.readNextLong();
-    }
-
-    @Override
-    public long[] toLongArray() {
-        return m_buffer.toLongArray();
-    }
-
-    @Override
-    public void readToLongArray(long[] dest, int destPos, int length) {
-        m_buffer.readToLongArray(dest, destPos, length);
-    }
-
-    @Override
-    public byte readNextByte() throws BufferUnderflowException {
-        return m_buffer.readNextByte();
-    }
-
-    @Override
-    public byte[] toByteArray() {
-        return m_buffer.toByteArray();
-    }
-
-    @Override
-    public void readToByteArray(byte[] dest, int destPos, int length) {
-        m_buffer.readToByteArray(dest, destPos, length);
+    protected byte[] createStorage() {
+        return new byte[m_capacity];
     }
 }

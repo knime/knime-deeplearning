@@ -51,55 +51,63 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.BufferUnderflowException;
 
 /**
- * Signed byte type implementation of {@link DLAbstactByteBuffer}.
+ * Unsigned byte type implementation of {@link DLAbstactByteBuffer}.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadableByteBuffer {
+public class DLDefaultUnsignedByteBuffer extends DLAbstactByteBuffer implements DLReadableUnsignedByteBuffer {
+
+    private static final int UNSIGNED_MASK = 0xFF;
 
     /**
      * Creates a new instance of this buffer.
      *
      * @param capacity the immutable capacity of the buffer
      */
-    public DLDefaultByteBuffer(final long capacity) {
+    public DLDefaultUnsignedByteBuffer(final long capacity) {
         super(capacity);
     }
 
     @Override
-    public byte readNextByte() throws BufferUnderflowException {
+    public short readNextUnsignedByte() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return (short)(m_storage[m_nextRead++] & UNSIGNED_MASK);
     }
 
     @Override
-    public byte[] toByteArray() {
-        return m_storage.clone();
+    public short[] toUnsignedByteArray() {
+        final short[] tmp = new short[m_storage.length];
+        for (int i = 0; i < m_storage.length; i++) {
+            tmp[i] = (short)(m_storage[i] & UNSIGNED_MASK);
+        }
+        return tmp;
     }
 
     @Override
-    public void readToByteArray(byte[] dest, int destPos, int length) {
+    public void readToUnsignedByteArray(short[] dest, int destPos, int length) {
         checkArgument(destPos >= 0);
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
-        System.arraycopy(m_storage, m_nextRead, dest, destPos, length);
+        for (int i = 0; i < length; i++) {
+            dest[destPos + i] = (short)(m_storage[m_nextRead + i] & UNSIGNED_MASK);
+        }
         m_nextRead += length;
     }
 
     @Override
     public short readNextShort() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return (short)(m_storage[m_nextRead++] & UNSIGNED_MASK);
     }
 
     @Override
     public short[] toShortArray() {
         final short[] tmp = new short[m_storage.length];
         for (int i = 0; i < m_storage.length; i++) {
-            tmp[i] = m_storage[i];
+            tmp[i] = (short)(m_storage[i] & UNSIGNED_MASK);
         }
         return tmp;
     }
@@ -110,7 +118,7 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
         for (int i = 0; i < length; i++) {
-            dest[destPos + i] = m_storage[m_nextRead + i];
+            dest[destPos + i] = (short)(m_storage[m_nextRead + i] & UNSIGNED_MASK);
         }
         m_nextRead += length;
     }
@@ -118,14 +126,14 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
     @Override
     public int readNextInt() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return m_storage[m_nextRead++] & UNSIGNED_MASK;
     }
 
     @Override
     public int[] toIntArray() {
         final int[] tmp = new int[m_storage.length];
         for (int i = 0; i < m_storage.length; i++) {
-            tmp[i] = m_storage[i];
+            tmp[i] = m_storage[i] & UNSIGNED_MASK;
         }
         return tmp;
     }
@@ -136,7 +144,7 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
         for (int i = 0; i < length; i++) {
-            dest[destPos + i] = m_storage[m_nextRead + i];
+            dest[destPos + i] = m_storage[m_nextRead + i] & UNSIGNED_MASK;
         }
         m_nextRead += length;
     }
@@ -144,14 +152,14 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
     @Override
     public long readNextLong() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return m_storage[m_nextRead++] & UNSIGNED_MASK;
     }
 
     @Override
     public long[] toLongArray() {
         final long[] tmp = new long[m_storage.length];
         for (int i = 0; i < m_storage.length; i++) {
-            tmp[i] = m_storage[i];
+            tmp[i] = m_storage[i] & UNSIGNED_MASK;
         }
         return tmp;
     }
@@ -162,7 +170,7 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
         for (int i = 0; i < length; i++) {
-            dest[destPos + i] = m_storage[m_nextRead + i];
+            dest[destPos + i] = m_storage[m_nextRead + i] & UNSIGNED_MASK;
         }
         m_nextRead += length;
     }
@@ -170,14 +178,14 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
     @Override
     public float readNextFloat() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return m_storage[m_nextRead++] & UNSIGNED_MASK;
     }
 
     @Override
     public float[] toFloatArray() {
         final float[] tmp = new float[m_storage.length];
         for (int i = 0; i < m_storage.length; i++) {
-            tmp[i] = m_storage[i];
+            tmp[i] = m_storage[i] & UNSIGNED_MASK;
         }
         return tmp;
     }
@@ -188,7 +196,7 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
         for (int i = 0; i < length; i++) {
-            dest[destPos + i] = m_storage[m_nextRead + i];
+            dest[destPos + i] = m_storage[m_nextRead + i] & UNSIGNED_MASK;
         }
         m_nextRead += length;
     }
@@ -196,14 +204,14 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
     @Override
     public double readNextDouble() throws BufferUnderflowException {
         checkUnderflow(m_nextRead < m_nextWrite);
-        return m_storage[m_nextRead++];
+        return m_storage[m_nextRead++] & UNSIGNED_MASK;
     }
 
     @Override
     public double[] toDoubleArray() {
         final double[] tmp = new double[m_storage.length];
         for (int i = 0; i < m_storage.length; i++) {
-            tmp[i] = m_storage[i];
+            tmp[i] = m_storage[i] & UNSIGNED_MASK;
         }
         return tmp;
     }
@@ -214,7 +222,7 @@ public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadab
         checkArgument(length > 0);
         checkUnderflow(m_nextRead + length <= m_nextWrite);
         for (int i = 0; i < length; i++) {
-            dest[destPos + i] = m_storage[m_nextRead + i];
+            dest[destPos + i] = m_storage[m_nextRead + i] & UNSIGNED_MASK;
         }
         m_nextRead += length;
     }

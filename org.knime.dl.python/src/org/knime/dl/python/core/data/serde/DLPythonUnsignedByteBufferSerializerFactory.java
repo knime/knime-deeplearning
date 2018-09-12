@@ -44,68 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 30, 2017 (marcel): created
+ *   Jun 26, 2017 (marcel): created
  */
-package org.knime.dl.core.data.convert;
+package org.knime.dl.python.core.data.serde;
 
-import java.util.List;
-import java.util.OptionalLong;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.vector.bytevector.ByteVectorValue;
-import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
+import org.knime.dl.core.data.DLBuffer;
+import org.knime.dl.python.core.data.DLPythonUnsignedByteBuffer;
+import org.knime.python.typeextension.Serializer;
+import org.knime.python.typeextension.SerializerFactory;
 
 /**
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLByteVectorToByteTensorConverterFactory
-	extends DLAbstractTensorDataValueToTensorConverterFactory<ByteVectorValue, DLWritableUnsignedByteBuffer> {
+public class DLPythonUnsignedByteBufferSerializerFactory extends SerializerFactory<DLPythonUnsignedByteBuffer>
+    implements DLSerializerFactory {
 
-	@Override
-	public String getName() {
-		return ((ExtensibleUtilityFactory) ByteVectorValue.UTILITY).getName();
-	}
+    /**
+     * The unique identifier of this serializer factory.
+     */
+    public static final String IDENTIFIER = "org.knime.dl.python.core.data.serde.DLPythonUnsignedByteBufferSerializerFactory";
 
-	@Override
-	public Class<ByteVectorValue> getSourceType() {
-		return ByteVectorValue.class;
-	}
+    /**
+     * Empty framework constructor.
+     */
+    public DLPythonUnsignedByteBufferSerializerFactory() {
+        super(DLPythonUnsignedByteBuffer.class);
+    }
 
-	@Override
-	public Class<DLWritableUnsignedByteBuffer> getBufferType() {
-		return DLWritableUnsignedByteBuffer.class;
-	}
+    @Override
+    public Serializer<? extends DLPythonUnsignedByteBuffer> createSerializer() {
+        return new DLPythonByteBufferSerializer<>();
+    }
 
-	@Override
-	public OptionalLong getDestCount(final List<DataColumnSpec> spec) {
-		return OptionalLong.empty();
-	}
-
-	@Override
-	public DLDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer> createConverter() {
-		return new DLAbstractTensorDataValueToTensorConverter<ByteVectorValue, DLWritableUnsignedByteBuffer>() {
-
-			@Override
-			public void convertInternal(final ByteVectorValue input, final DLTensor<DLWritableUnsignedByteBuffer> output) {
-				final DLWritableUnsignedByteBuffer buf = output.getBuffer();
-				for (int i = 0; i < input.length(); i++) {
-					buf.put((short)input.get(i));
-				}
-			}
-		};
-	}
-
-	@Override
-	protected long[] getDataShapeInternal(final ByteVectorValue input, final DLTensorSpec tensorSpec) {
-		if (input.length() > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("The provided byte vector is too large, "
-					+ "currently byte vectors may have a maximal length of 2^31-1.");
-		}
-		return new long[] {input.length()};
-	}
+    @Override
+    public Class<? extends DLBuffer> getBufferType() {
+        return DLPythonUnsignedByteBuffer.class;
+    }
 }

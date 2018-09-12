@@ -51,32 +51,32 @@ package org.knime.dl.python.core.data;
 import java.nio.BufferUnderflowException;
 
 import org.knime.core.data.DataType;
-import org.knime.dl.core.data.DLDefaultByteBuffer;
-import org.knime.dl.core.data.DLReadableByteBuffer;
+import org.knime.dl.core.data.DLDefaultUnsignedByteBuffer;
+import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
 
 /**
- * Byte type implementation of {@link DLPythonAbstractDataBuffer}.
+ * Unsigned byte type implementation of {@link DLPythonAbstractDataBuffer}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("serial") // not intended for serialization
-public class DLPythonByteBuffer extends DLPythonAbstractByteBuffer<DLDefaultByteBuffer>
-    implements DLReadableByteBuffer {
+public class DLPythonUnsignedByteBuffer extends DLPythonAbstractByteBuffer<DLDefaultUnsignedByteBuffer>
+    implements DLReadableUnsignedByteBuffer {
 
     /**
      * This buffer's {@link DataType}.
      */
-    public static final DataType TYPE = DataType.getType(DLPythonByteBuffer.class);
+    public static final DataType TYPE = DataType.getType(DLPythonUnsignedByteBuffer.class);
 
     /**
      * Creates a new instance of this buffer.
      *
      * @param capacity the immutable capacity of the buffer
      */
-    public DLPythonByteBuffer(final long capacity) {
-        super(new DLDefaultByteBuffer(capacity));
+    public DLPythonUnsignedByteBuffer(final long capacity) {
+        super(new DLDefaultUnsignedByteBuffer(capacity));
     }
 
     @Override
@@ -155,17 +155,17 @@ public class DLPythonByteBuffer extends DLPythonAbstractByteBuffer<DLDefaultByte
     }
 
     @Override
-    public byte readNextByte() throws BufferUnderflowException {
-        return m_buffer.readNextByte();
+    public short readNextUnsignedByte() throws BufferUnderflowException {
+        return m_buffer.readNextUnsignedByte();
     }
 
     @Override
-    public byte[] toByteArray() {
-        return m_buffer.toByteArray();
+    public short[] toUnsignedByteArray() {
+        return m_buffer.toUnsignedByteArray();
     }
 
     @Override
-    public void readToByteArray(byte[] dest, int destPos, int length) {
-        m_buffer.readToByteArray(dest, destPos, length);
+    public void readToUnsignedByteArray(short[] dest, int destPos, int length) {
+        m_buffer.readToUnsignedByteArray(dest, destPos, length);
     }
 }

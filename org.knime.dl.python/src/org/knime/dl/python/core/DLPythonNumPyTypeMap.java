@@ -54,6 +54,8 @@ import java.util.List;
 
 import org.knime.dl.python.core.data.DLPythonTypeMap;
 
+import com.google.common.primitives.UnsignedBytes;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -75,6 +77,7 @@ public final class DLPythonNumPyTypeMap implements DLPythonTypeMap {
 		// associate NumPy types with Java types
 		registerMapping("bool", boolean.class);
 		registerMapping("int8", byte.class);
+		registerMapping("uint8", UnsignedBytes.class);
 		registerMapping("int16", short.class);
 		registerMapping("int32", int.class);
 		registerMapping("int64", long.class);

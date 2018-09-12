@@ -63,17 +63,28 @@ import org.knime.dl.core.data.DLDefaultFloatBuffer;
 import org.knime.dl.core.data.DLDefaultIntBuffer;
 import org.knime.dl.core.data.DLDefaultLongBuffer;
 import org.knime.dl.core.data.DLDefaultShortBuffer;
+import org.knime.dl.core.data.DLDefaultUnsignedByteBuffer;
+import org.knime.dl.core.data.DLReadableBitBuffer;
 import org.knime.dl.core.data.DLReadableBuffer;
+import org.knime.dl.core.data.DLReadableByteBuffer;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
+import org.knime.dl.core.data.DLReadableShortBuffer;
+import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
+import org.knime.dl.core.data.DLWritableBitBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
+import org.knime.dl.core.data.DLWritableShortBuffer;
+import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
 import org.knime.dl.util.DLUtils;
+
+import com.google.common.primitives.UnsignedBytes;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -85,6 +96,14 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 			return double.class;
 		} else if (bufferType.equals(DLWritableFloatBuffer.class) || bufferType.equals(DLReadableFloatBuffer.class)) {
 			return float.class;
+		} else if (bufferType.equals(DLWritableBitBuffer.class) || bufferType.equals(DLReadableBitBuffer.class)) {
+			return boolean.class;
+		} else if (bufferType.equals(DLWritableUnsignedByteBuffer.class) || bufferType.equals(DLReadableUnsignedByteBuffer.class)) {
+			return UnsignedBytes.class;
+		} else if (bufferType.equals(DLWritableByteBuffer.class) || bufferType.equals(DLReadableByteBuffer.class)) {
+			return byte.class;
+		} else if (bufferType.equals(DLWritableShortBuffer.class) || bufferType.equals(DLReadableShortBuffer.class)) {
+			return short.class;
 		} else if (bufferType.equals(DLWritableIntBuffer.class) || bufferType.equals(DLReadableIntBuffer.class)) {
 			return int.class;
 		} else if (bufferType.equals(DLWritableLongBuffer.class) || bufferType.equals(DLReadableLongBuffer.class)) {
@@ -101,6 +120,14 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 			return DLWritableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLWritableFloatBuffer.class;
+		} else if (t.equals(boolean.class)) {
+			return DLWritableBitBuffer.class;
+		} else if (t.equals(UnsignedBytes.class)) {
+			return DLWritableUnsignedByteBuffer.class;
+		} else if (t.equals(byte.class)) {
+			return DLWritableByteBuffer.class;
+		} else if (t.equals(short.class)) {
+			return DLWritableShortBuffer.class;
 		} else if (t.equals(int.class)) {
 			return DLWritableIntBuffer.class;
 		} else if (t.equals(long.class)) {
@@ -117,6 +144,14 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 			return DLReadableDoubleBuffer.class;
 		} else if (t.equals(float.class)) {
 			return DLReadableFloatBuffer.class;
+		} else if (t.equals(boolean.class)) {
+			return DLReadableBitBuffer.class;
+		} else if (t.equals(UnsignedBytes.class)) {
+			return DLReadableUnsignedByteBuffer.class;
+		} else if (t.equals(byte.class)) {
+			return DLReadableByteBuffer.class;
+		} else if (t.equals(short.class)) {
+			return DLReadableShortBuffer.class;
 		} else if (t.equals(int.class)) {
 			return DLReadableIntBuffer.class;
 		} else if (t.equals(long.class)) {
@@ -162,6 +197,8 @@ public class DLTestingTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLDefaultFloatBuffer(size);
 		} else if (t.equals(boolean.class) || t.equals(Boolean.class)) {
 			s = () -> (B) new DLDefaultBitBuffer(size);
+		} else if (t.equals(UnsignedBytes.class)) {
+			s = () -> (B) new DLDefaultUnsignedByteBuffer(size);
 		} else if (t.equals(byte.class) || t.equals(Byte.class)) {
 			s = () -> (B) new DLDefaultByteBuffer(size);
 		} else if (t.equals(short.class) || t.equals(Short.class)) {

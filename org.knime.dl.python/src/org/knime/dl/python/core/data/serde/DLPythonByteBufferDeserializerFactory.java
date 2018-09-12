@@ -48,13 +48,6 @@
  */
 package org.knime.dl.python.core.data.serde;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import org.knime.core.data.DataCell;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.dl.core.DLTensor;
 import org.knime.dl.python.core.data.DLPythonByteBuffer;
 import org.knime.python.typeextension.Deserializer;
 import org.knime.python.typeextension.DeserializerFactory;
@@ -83,40 +76,7 @@ public class DLPythonByteBufferDeserializerFactory extends DeserializerFactory i
      */
     @Override
     public Deserializer createDeserializer() {
-        return new DLPythonDeserializer<DLPythonByteBuffer>() {
-
-            @Override
-            public DataCell deserialize(final byte[] bytes, final FileStoreFactory fileStoreFactory)
-                throws IOException {
-                final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                // TODO: we serialize to a flat buffer for now
-                // final int numDimensions = buffer.getInt();
-                // final long[] shape = new long[numDimensions];
-                // for (int i = 0; i < numDimensions; i++) {
-                // shape[i] = buffer.getLong();
-                // }
-                final DLPythonByteBuffer value = new DLPythonByteBuffer(buffer.capacity() / Byte.BYTES);
-                buffer.get(value.getStorageForWriting(0, buffer.limit()));
-                return value;
-            }
-
-            @Override
-            public void deserialize(final byte[] bytes, final DLTensor<DLPythonByteBuffer> data) {
-                final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                // TODO: we serialize to a flat buffer for now
-                // final int numDimensions = buffer.getInt();
-                // final long[] shape = new long[numDimensions];
-                // for (int i = 0; i < numDimensions; i++) {
-                // shape[i] = buffer.getLong();
-                // }
-                final DLPythonByteBuffer tensorBuffer = data.getBuffer();
-                final int writeStart = (int)tensorBuffer.size();
-                final byte[] tensorStorage = tensorBuffer.getStorageForWriting(writeStart, buffer.limit());
-                buffer.get(tensorStorage, writeStart, buffer.limit());
-            }
-        };
+        return new DLPythonByteBufferDeserializer<>(DLPythonByteBuffer::new);
     }
 
     /**
