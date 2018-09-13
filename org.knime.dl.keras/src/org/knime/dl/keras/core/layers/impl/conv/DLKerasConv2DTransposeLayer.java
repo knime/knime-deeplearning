@@ -126,7 +126,7 @@ public final class DLKerasConv2DTransposeLayer extends DLKerasAbstractUnaryLayer
      * Constructor
      */
     public DLKerasConv2DTransposeLayer() {
-        super("keras.layers.Conv2D", DLLayerUtils.FLOATING_POINT_DTYPES);
+        super("keras.layers.Conv2DTranspose", DLLayerUtils.FLOATING_POINT_DTYPES);
     }
 
     @Override
