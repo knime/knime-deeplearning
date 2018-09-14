@@ -58,7 +58,7 @@ import java.nio.BufferOverflowException;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLAbstactByteBuffer extends DLAbstractFlatWrappingDataBuffer<byte[]>
+public class DLAbstractByteBuffer extends DLAbstractFlatWrappingDataBuffer<byte[]>
     implements DLWritableByteBuffer, DLWritableUnsignedByteBuffer {
 
     private static final int MAX_UNSIGNED_VAL = (1 << Byte.SIZE) - 1;
@@ -68,7 +68,7 @@ public class DLAbstactByteBuffer extends DLAbstractFlatWrappingDataBuffer<byte[]
      *
      * @param capacity the immutable capacity of the buffer
      */
-    public DLAbstactByteBuffer(final long capacity) {
+    public DLAbstractByteBuffer(final long capacity) {
         super(capacity);
     }
 

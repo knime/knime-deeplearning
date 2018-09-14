@@ -52,7 +52,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from DLPythonDataBuffers import DLPythonUnsignedByteBuffer
 
 def serialize(value):
-	if not value.array.dtype == np.int8:
+	if not value.array.dtype == np.uint8:
 		value = DLPythonUnsignedByteBuffer(value.array.astype(np.uint8))
 	buffer = BytesIO(bytes())
 	buffer.write(value.array.tobytes())

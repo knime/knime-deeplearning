@@ -51,14 +51,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.BufferUnderflowException;
 
 /**
- * Signed byte type implementation of {@link DLAbstactByteBuffer}.
+ * Signed byte type implementation of {@link DLAbstractByteBuffer}.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultByteBuffer extends DLAbstactByteBuffer implements DLReadableByteBuffer {
+public class DLDefaultByteBuffer extends DLAbstractByteBuffer implements DLReadableByteBuffer {
 
     /**
      * Creates a new instance of this buffer.

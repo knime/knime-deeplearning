@@ -57,7 +57,7 @@ import org.knime.dl.core.data.DLReadableBitBuffer;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 
 /**
- * Int type implementation of {@link DLPythonAbstractDataBuffer}.
+ * Bit type implementation of {@link DLPythonAbstractDataBuffer}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

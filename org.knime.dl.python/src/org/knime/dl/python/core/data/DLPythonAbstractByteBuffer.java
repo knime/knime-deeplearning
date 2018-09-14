@@ -48,7 +48,7 @@ package org.knime.dl.python.core.data;
 
 import java.nio.BufferOverflowException;
 
-import org.knime.dl.core.data.DLAbstactByteBuffer;
+import org.knime.dl.core.data.DLAbstractByteBuffer;
 import org.knime.dl.core.data.DLWritableByteBuffer;
 import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
 
@@ -61,7 +61,7 @@ import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("serial") // not intended for serialization
-public abstract class DLPythonAbstractByteBuffer<B extends DLAbstactByteBuffer>
+public abstract class DLPythonAbstractByteBuffer<B extends DLAbstractByteBuffer>
     extends DLPythonAbstractDataBuffer<B, byte[]> implements DLWritableByteBuffer, DLWritableUnsignedByteBuffer {
 
     /**

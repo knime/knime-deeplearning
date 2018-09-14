@@ -53,7 +53,7 @@ import java.util.function.Function;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.dl.core.DLTensor;
-import org.knime.dl.core.data.DLAbstactByteBuffer;
+import org.knime.dl.core.data.DLAbstractByteBuffer;
 import org.knime.dl.python.core.data.DLPythonAbstractByteBuffer;
 
 /**
@@ -61,7 +61,7 @@ import org.knime.dl.python.core.data.DLPythonAbstractByteBuffer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonByteBufferDeserializer<B extends DLPythonAbstractByteBuffer<? extends DLAbstactByteBuffer>>
+public class DLPythonByteBufferDeserializer<B extends DLPythonAbstractByteBuffer<? extends DLAbstractByteBuffer>>
     implements DLPythonDeserializer<B> {
 
     private final Function<Integer, B> m_bufferCreator;

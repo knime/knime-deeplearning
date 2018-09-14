@@ -51,14 +51,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.BufferUnderflowException;
 
 /**
- * Unsigned byte type implementation of {@link DLAbstactByteBuffer}.
+ * Unsigned byte type implementation of {@link DLAbstractByteBuffer}.
  *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultUnsignedByteBuffer extends DLAbstactByteBuffer implements DLReadableUnsignedByteBuffer {
+public class DLDefaultUnsignedByteBuffer extends DLAbstractByteBuffer implements DLReadableUnsignedByteBuffer {
 
     private static final int UNSIGNED_MASK = 0xFF;
 

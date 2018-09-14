@@ -57,7 +57,7 @@ import org.knime.dl.core.data.DLReadableShortBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
 
 /**
- * Int type implementation of {@link DLPythonAbstractDataBuffer}.
+ * Short type implementation of {@link DLPythonAbstractDataBuffer}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany

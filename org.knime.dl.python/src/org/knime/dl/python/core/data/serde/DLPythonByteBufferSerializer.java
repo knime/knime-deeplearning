@@ -49,7 +49,7 @@ package org.knime.dl.python.core.data.serde;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.knime.dl.core.data.DLAbstactByteBuffer;
+import org.knime.dl.core.data.DLAbstractByteBuffer;
 import org.knime.dl.python.core.data.DLPythonAbstractByteBuffer;
 import org.knime.python.typeextension.Serializer;
 
@@ -58,7 +58,7 @@ import org.knime.python.typeextension.Serializer;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonByteBufferSerializer<B extends DLPythonAbstractByteBuffer<? extends DLAbstactByteBuffer>> implements Serializer<B> {
+public class DLPythonByteBufferSerializer<B extends DLPythonAbstractByteBuffer<? extends DLAbstractByteBuffer>> implements Serializer<B> {
 
     @Override
     public byte[] serialize(final B value) throws IOException {
