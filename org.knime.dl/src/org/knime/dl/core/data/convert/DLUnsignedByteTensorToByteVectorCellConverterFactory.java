@@ -90,8 +90,11 @@ public class DLUnsignedByteTensorToByteVectorCellConverterFactory
     public DLTensorToDataCellConverter<DLReadableUnsignedByteBuffer, DenseByteVectorCell> createConverter() {
         return (input, out, exec) -> {
             final long bufferSize = input.getBuffer().size();
-            // TODO handle examples size > int
             final long exampleSize = DLUtils.Shapes.getFixedSize(input.getSpec().getShape()).getAsLong();
+            if (exampleSize > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("The number of entries of one sample, " + exampleSize
+                    + ", is larger than 2^31-1. This is currently not supported.");
+            }
             final DLReadableUnsignedByteBuffer buf = input.getBuffer();
             for (int i = 0; i < bufferSize / exampleSize; i++) {
                 final DenseByteVector vector = new DenseByteVector((int)exampleSize);
