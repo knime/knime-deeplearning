@@ -467,24 +467,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         // Add log listeners.
         final StringBuilder stdOut = new StringBuilder();
         final StringBuilder stdErr = new StringBuilder();
-        final PythonOutputListener stdOutListener = new PythonOutputListener() {
-
-            private boolean m_silenced = false;
-
-            @Override
-            public void setSilenced(final boolean silenced) {
-                m_silenced = silenced;
-            }
-
-            @Override
-            public void messageReceived(final String message) {
-                if (!m_silenced) {
-                    stdOut.append(message);
-                    stdOut.append("\n");
-                    status.setStdOutOutput(stdOut.toString());
-                }
-            }
-        };
         final PythonOutputListener stdErrListener = new PythonOutputListener() {
 
             private boolean m_silenced = false;
@@ -495,11 +477,34 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             }
 
             @Override
-            public void messageReceived(final String message) {
+            public void messageReceived(final String message, final boolean isWarningMessage) {
                 if (!m_silenced) {
                     stdErr.append(message);
                     stdErr.append("\n");
                     status.setStdErrOutput(stdErr.toString());
+                }
+            }
+        };
+        final PythonOutputListener stdOutListener = new PythonOutputListener() {
+
+            private boolean m_silenced = false;
+
+            @Override
+            public void setSilenced(final boolean silenced) {
+                m_silenced = silenced;
+            }
+
+            @Override
+            public void messageReceived(final String message, final boolean isWarningMessage) {
+                if (!m_silenced) {
+                    if (isWarningMessage) {
+                        // Redirect to error output.
+                        stdErrListener.messageReceived(message, isWarningMessage);
+                    } else {
+                        stdOut.append(message);
+                        stdOut.append("\n");
+                        status.setStdOutOutput(stdOut.toString());
+                    }
                 }
             }
         };
