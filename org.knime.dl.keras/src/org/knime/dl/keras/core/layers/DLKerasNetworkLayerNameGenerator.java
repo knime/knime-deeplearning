@@ -188,18 +188,21 @@ public final class DLKerasNetworkLayerNameGenerator {
             } else {
                 layerName = reservedName;
             }
-            final int prefixDelimiterIndex = layerName.lastIndexOf('_');
-            final String layerPrefix = layerName.substring(0, prefixDelimiterIndex);
-            int layerIndex = 0;
-            try {
-                final String layerIndexString = layerName.substring(prefixDelimiterIndex + 1);
-                layerIndex = Integer.parseInt(layerIndexString);
-            } catch (final NumberFormatException nfe) {
-                // ignore, must be out of range
-            }
-            final int prefixCount = m_prefixCounts.get(layerPrefix);
-            if (layerIndex > prefixCount) {
-                m_prefixCounts.put(layerPrefix, layerIndex);
+            if (layerName.contains("_")) {
+                // Layer name could be generated
+                final int prefixDelimiterIndex = layerName.lastIndexOf('_');
+                final String layerPrefix = layerName.substring(0, prefixDelimiterIndex);
+                int layerIndex = 0;
+                try {
+                    final String layerIndexString = layerName.substring(prefixDelimiterIndex + 1);
+                    layerIndex = Integer.parseInt(layerIndexString);
+                } catch (final NumberFormatException nfe) {
+                    // ignore, must be out of range
+                }
+                final int prefixCount = m_prefixCounts.get(layerPrefix);
+                if (layerIndex > prefixCount) {
+                    m_prefixCounts.put(layerPrefix, layerIndex);
+                }
             }
         }
     }
