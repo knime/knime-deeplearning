@@ -56,23 +56,23 @@ from DLKerasNetwork import DLKerasNetworkSpec
 
 class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
 
-    def read(self, path, compile=True):
+    def read(self, path, compile=True, compatibility_mode=False):
         model = self._read_internal(path, compile)
-        return DLKerasTheanoNetwork(model)
+        return DLKerasTheanoNetwork(model, compatibility_mode)
 
-    def read_from_json(self, path):
+    def read_from_json(self, path, compatibility_mode=False):
         model = self._read_from_json_internal(path)
-        return DLKerasTheanoNetwork(model)
+        return DLKerasTheanoNetwork(model, compatibility_mode)
 
-    def read_from_yaml(self, path):
+    def read_from_yaml(self, path, compatibility_mode=False):
         model = self._read_from_yaml_internal(path)
-        return DLKerasTheanoNetwork(model)
+        return DLKerasTheanoNetwork(model, compatibility_mode)
 
 
 class DLKerasTheanoNetwork(DLKerasNetwork):
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, mode, compatibility_mode=Falsel):
+        super().__init__(model, compatibility_mode)
 
     def _extract_model_spec(self):
         return DLKerasTheanoNetworkSpecExtractor(self._model).extract_spec()

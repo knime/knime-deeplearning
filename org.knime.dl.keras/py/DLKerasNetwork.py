@@ -51,6 +51,7 @@
 
 import abc
 import re
+from distutils.version import LooseVersion
 
 import keras
 import numpy as np
@@ -83,15 +84,15 @@ class DLKerasNetworkReader(DLPythonNetworkReader):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def read(self, path, compile=True):
+    def read(self, path, compile=True, compatibility_mode=False):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def read_from_json(self, path):
+    def read_from_json(self, path, compatibility_mode=False):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def read_from_yaml(self, path):
+    def read_from_yaml(self, path, compatibility_mode=False):
         raise NotImplementedError()
 
     def _read_internal(self, path, compile=True):
@@ -112,8 +113,17 @@ class DLKerasNetwork(DLPythonNetwork):
     __metaclass__ = abc.ABCMeta
 
     @staticmethod
-    def _convert_sequential_to_model(model):
-        if isinstance(model, Sequential):
+    def _convert_sequential_to_model(model, compatibility_mode=False):
+        if isinstance(model, Sequential) and DLKerasNetwork._higher_than_keras_2_2_0():
+            # Keras 2.2.0 or higher
+            if compatibility_mode:
+                # Wrap again
+                # -> Training configuration will get lost but this is the best we can do
+                return Model(inputs=model.inputs, outputs=model.outputs)
+            else:
+                # Since Keras 2.2.0 a sequential model is also a model
+                return model
+        elif isinstance(model, Sequential):
             if model.model and isinstance(model.model, Model):
                 return model.model
             else:
@@ -121,8 +131,12 @@ class DLKerasNetwork(DLPythonNetwork):
         else:
             return model
 
-    def __init__(self, model):
-        super().__init__(DLKerasNetwork._convert_sequential_to_model(model))
+    @staticmethod
+    def _higher_than_keras_2_2_0():
+        return LooseVersion(keras.__version__) >= LooseVersion("2.2.0")
+
+    def __init__(self, model, compatibility_mode=False):
+        super().__init__(DLKerasNetwork._convert_sequential_to_model(model, compatibility_mode))
         self._training_monitor = None
 
     @abc.abstractmethod

@@ -56,23 +56,23 @@ from DLKerasNetwork import DLKerasNetworkSpec
 
 class DLKerasTensorFlowNetworkReader(DLKerasNetworkReader):
 
-    def read(self, path, compile=True):
+    def read(self, path, compile=True, compatibility_mode=False):
         model = self._read_internal(path, compile)
-        return DLKerasTensorFlowNetwork(model)
+        return DLKerasTensorFlowNetwork(model, compatibility_mode)
 
-    def read_from_json(self, path):
+    def read_from_json(self, path, compatibility_mode=False):
         model = self._read_from_json_internal(path)
-        return DLKerasTensorFlowNetwork(model)
+        return DLKerasTensorFlowNetwork(model, compatibility_mode)
 
-    def read_from_yaml(self, path):
+    def read_from_yaml(self, path, compatibility_mode=False):
         model = self._read_from_yaml_internal(path)
-        return DLKerasTensorFlowNetwork(model)
+        return DLKerasTensorFlowNetwork(model, compatibility_mode)
 
 
 class DLKerasTensorFlowNetwork(DLKerasNetwork):
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, compatibility_mode=False):
+        super().__init__(model, compatibility_mode)
 
     #def train(self):
         # TODO: support TensorBoard?
