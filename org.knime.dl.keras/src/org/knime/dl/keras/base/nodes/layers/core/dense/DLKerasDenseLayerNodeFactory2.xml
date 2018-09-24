@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkerasdenselayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras Dense Layer</name>
+
+	<shortDescription>
+		A densely connected network layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+		A densely connected layer that connects each unit of the layer input with each output unit of this layer.
+		Corresponds to the
+			<a href="https://keras.io/layers/core/#dense">Keras Dense Layer</a>.
+		</intro>
+		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+		<option name="Units">
+			Dimensionality of the output space.
+		</option>
+		<option name="Activation function">
+			The activation function to use.
+		</option>
+		<option name="Use bias?">
+			If checked, a bias vector will be used.
+		</option>
+		<option name="Kernel initializer">
+			Initializer for the kernel weights matrix.
+		</option>
+		<option name="Bias initializer">
+			Initializer for the bias vector.
+		</option>
+		<option name="Kernel regularizer">
+			Regularizer function applied to the kernel
+			weights matrix.
+		</option>
+		<option name="Bias regularizer">
+			Regularizer function applied to the bias vector.
+		</option>
+		<option name="Activation regularizer">
+			Regularizer function applied to the output of the
+			layer (its "activation").
+		</option>
+		<option name="Kernel constraint">
+			Constraint function applied to the kernel matrix.
+		</option>
+		<option name="Bias constraint">
+			Constraint function applied to the bias vector.
+		</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Dense</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Dense</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

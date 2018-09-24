@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkeraslstmlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras LSTM Layer</name>
+
+	<shortDescription>
+		Long-Short Term Memory (LSTM) layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Long-Short Term Memory (LSTM) layer. Corresponds to the
+			<a href="https://keras.io/layers/recurrent/#lstm">LSTM Keras layer</a>
+			.
+		</intro>
+		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+			<option name="Input tensor">
+				The tensor to use as input for the layer.
+			</option>
+			<option name="First hidden state tensor">
+				The tensor to use as initial state for the first hidden state in case the corresponding port is connected.
+			</option>
+			<option name="Second hidden state tensor">
+				The tensor to use as initial state for the second hidden state in case the corresponding port is connected.
+			</option>
+			<option name="Units">
+				Dimensionality of the output space.
+			</option>
+			<option name="Activation">
+				The activation function to use on the input transformations.
+			</option>
+			<option name="Recurrent activation">
+				The activation function to use for the recurrent step.
+			</option>
+			<option name="Use bias">
+				If checked, a bias vector will be used.
+			</option>
+			<option name="Return sequences">
+				Whether to return the last output in the output sequence or the full output sequence.
+				If selected the output will have shape [time, units] otherwise the output
+				will have shape [units].
+			</option>
+			<option name="Return state">
+				Whether to return the hidden states in addition to the layer output.
+				If selected the layer returns three tensors, the normal output and the two hidden states of the layer.
+				If sequences are returned, this also applies to the hidden states.
+			</option>
+			<option name="Dropout">
+				Fraction of the units to drop for the linear transformation of the input.
+			</option>
+			<option name="Recurrent dropout">
+				Fraction of the units to drop for the linear transformation of the recurrent state.
+			</option>
+			<option name="Go backwards">
+				Whether to go backwards in time i.e. read the input sequence backwards.
+			</option>
+			<option name="Unroll">
+				Whether to unroll the network i.e. convert it in a feed-forward network that reuses the layer's weights for each timestep.
+				Unrolling can speed up an RNN but it's more memory-expensive and only suitable for short sequences.
+				If the layer is not unrolled, a symbolic loop is used.
+			</option>
+			<option name="Implementation">
+				Mode 1 will structure its operations as a larger number of smaller dot products and additions, whereas mode 2 will batch them into fewer, larger operations.
+				These modes will have different performance profiles on different hardware and for different applications.
+			</option>
+		</tab>
+		<tab name="Initializers">
+			<option name="Kernel initializer">
+				Initializer for the weight matrix used for the linear transformations of the input.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Recurrent initializer">
+				Initializer for the weight matrix used for the linear transformation of the recurrent connection.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Bias initializer">
+				Initializer for the bias vector (if a bias is used).
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Unit forget bias">
+			 	If selected, add 1 to the bias of the forget gate at initialization. Use in combination with bias initializer zeros.
+			 </option>
+		</tab>
+		<tab name="Regularizers">
+			<option name="Kernel regularizer">
+				Regularizer function applied to the weight matrix.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Recurrent regularizer">
+				Regularizer function applied to the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Bias regularizer">
+				Regularizer function applied to the bias vector.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Activity regularizer">
+				Regularizer function applied to the output of the layer i.e. its activation.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+		</tab>
+		<tab name="Constraints">
+			<option name="Kernel constraint">
+				Constraint on the weight matrix for the input connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Recurrent constraint">
+				Constraint on the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Bias constraint">
+				Constraint on the bias vector.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add an
+			<tt>LSTM</tt>
+			layer.
+			The input must have shape [time, features]
+		</inPort>
+		<inPort index="1" name="Deep Learning Network">
+			An optional Keras deep learning network providing the first initial state for this <tt>LSTM</tt> layer.
+			Note that if this port is connected, you also have to connect the second hidden state port.
+			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
+		</inPort>
+		<inPort name="Deep Learning Network" index="2">
+			An optional Keras deep learning network providing the second initial state for this <tt>LSTM</tt> layer.
+			Note that if this port is connected, you also have to connect the first hidden state port.
+			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>LSTM</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

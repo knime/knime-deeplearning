@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkerascudnngrulayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras CuDNN GRU Layer</name>
+
+	<shortDescription>
+		Fast GRU implementation backed by CuDNN.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Can only be run on GPU with the TensorFlow back end. Corresponds to the
+			<a href="https://keras.io/layers/recurrent/#cudnngru">CuDNNGRU Keras layer</a>
+			.
+		</intro>
+		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+			<option name="Input tensor">
+				The tensor to use as input for the layer.
+			</option>
+			<option name="Hidden state tensor">
+				The tensor to use as initial hidden state in case the corresponding port is connected.
+			</option>
+			<option name="Units">
+				Dimensionality of the output space.
+			</option>
+			<option name="Return sequences">
+				Whether to return the last output in the output sequence or the full output sequence.
+				If selected the output will have shape [time, units] otherwise the output
+				will have shape [units].
+			</option>
+			<option name="Return state">
+				Whether to return the hidden state in addition to the layer output.
+				If selected the layer returns two tensors, the normal output and the hidden state of the layer.
+				If sequences are returned, this also applies to the hidden state.
+			</option>
+		</tab>
+		<tab name="Initializers">
+			<option name="Kernel initializer">
+				Initializer for the weight matrix used for the linear transformations of the input.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Recurrent initializer">
+				Initializer for the weight matrix used for the linear transformation of the recurrent connection.
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+			<option name="Bias initializer">
+				Initializer for the bias vector (if a bias is used).
+				See <a href="https://keras.io/initializers/">initializers</a> for details on the available initializers.
+			</option>
+		</tab>
+		<tab name="Regularizers">
+			<option name="Kernel regularizer">
+				Regularizer function applied to the weight matrix.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Recurrent regularizer">
+				Regularizer function applied to the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Bias regularizer">
+				Regularizer function applied to the bias vector.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+			<option name="Activity regularizer">
+				Regularizer function applied to the output of the layer i.e. its activation.
+				See <a href="https://keras.io/regularizers/">regularizers</a> for details on the available regularizers.
+			</option>
+		</tab>
+		<tab name="Constraints">
+			<option name="Kernel constraint">
+				Constraint on the weight matrix for the input connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Recurrent constraint">
+				Constraint on the weight matrix for the recurrent connection.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+			<option name="Bias constraint">
+				Constraint on the bias vector.
+				See <a href="https://keras.io/constraints/">constraints</a> for details on the available constraints.
+			</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add an
+			<tt>CuDNN GRU</tt>
+			layer.
+		</inPort>
+		<inPort name="Deep Learning Network" index="1">
+			An optional Keras deep learning network which provides the initial hidden state for this <tt>CuDNN GRU</tt> layer.
+			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>CuDNN GRU</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

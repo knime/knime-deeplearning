@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="../dlkerasconvlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras Convolution 1D Layer</name>
+
+	<shortDescription>
+		A convolution 1D layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This layer creates a convolution kernel that is convolved with the layer input over a single dimension.
+			Corresponds to the
+			<a href="https://keras.io/layers/convolutional/#conv1d">Keras Convolution 1D Layer</a>.
+		</intro>
+		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+			<option name="Filters">
+				The dimensionality of the output space (i.e. the
+				number of output filters in the convolution).
+			</option>
+			<option name="Kernel size">
+				The length of the 1D convolution window.
+			</option>
+			<option name="Strides">
+				The stride length of the convolution. Specifying
+				any stride value != 1 is incompatible with specifying any
+				dilation_rate value != 1.
+			</option>
+			<option name="Padding">
+				Different padding modes to apply to the spatial dimensions
+				(excluding the batch and channel dimensions)
+				of the inputs before the
+				pooling operation. The padding will be done
+				with zeroes. A detailed
+				explanation of the different modes can be
+				found
+				<a href="https://arxiv.org/pdf/1603.07285v1.pdf">here</a>
+				.
+				<ul>
+					<li>
+						Valid: No padding
+					</li>
+					<li>
+						Same: Padding such that the spatial output dimension do not
+						change.
+					</li>
+					<li>
+						Full: Padding with kernel size - 1
+					</li>
+				</ul>
+			</option>
+			<option name="Dilation rate">
+				Specifying the dilation rate to use for dilated
+				convolution. Currently, specifying any dilation_rate value != 1 is
+				incompatible with specifying any stride value != 1.
+			</option>
+			<option name="Activation function">
+				The activation function to use.
+			</option>
+			<option name="Use bias?">
+				If checked, a bias vector will be used.
+			</option>
+			<option name="Kernel initializer">
+				Initializer for the kernel weights matrix.
+			</option>
+			<option name="Bias initializer">
+				Initializer for the bias vector.
+			</option>
+			<option name="Kernel regularizer">
+				Regularizer function applied to the kernel
+				weights matrix.
+			</option>
+			<option name="Bias regularizer">
+				Regularizer function applied to the bias vector.
+			</option>
+			<option name="Activation regularizer">
+				Regularizer function applied to the output of the
+				layer (its "activation").
+			</option>
+			<option name="Kernel constraint">
+				Constraint function applied to the kernel matrix.
+			</option>
+			<option name="Bias constraint">
+				Constraint function applied to the bias vector.
+			</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Convolution 1D</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Convolution 1D</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

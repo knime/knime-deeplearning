@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkerasprelulayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras PReLU Layer</name>
+
+	<shortDescription>
+		A parametric rectified linear unit layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Like the leaky ReLU, the parametric ReLU introduces a slope in the negative part
+			of the input space to improve learning dynamics compared to ordinary ReLUs.
+			The difference to leaky ReLUs is that here the slope alpha is treated as a parameter that
+			is trained alongside the rest of the network's weights.
+			Alpha is usually a vector containing a dedicated slope for each feature of the input.
+			(also see the Shared axes option).
+			Corresponds to the
+			<a href="https://keras.io/layers/advanced-activations/#prelu">Keras PReLU Layer</a>.
+		</intro>
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+		<option name="Alpha initializer">
+			The initializer for alpha, usually zero or a small negative number.
+		</option>
+		<option name="Alpha regularizer">
+			An optional regularizer for alpha.
+		</option>
+		<option name="Alpha constraint">
+			An optional constraint on alpha.
+		</option>
+		<option name="Shared axes">
+			Optional list of axes along which to share alpha.
+			For example, in a 2D convolution with input shape (batch, height, width, channels) it is
+			common to have an alpha per channel and share the alpha across spatial dimensions.
+			In this case one would set the shared axes to "1, 2".
+		</option>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>PReLU</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>PReLU</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>

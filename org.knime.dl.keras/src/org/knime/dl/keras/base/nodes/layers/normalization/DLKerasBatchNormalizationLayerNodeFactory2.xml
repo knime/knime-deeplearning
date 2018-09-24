@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="dlkerasnormalizationlayer.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras Batch Normalization Layer</name>
+
+	<shortDescription>
+		A batch normalization layer.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Normalize the layer input at each batch, i.e. applies a transformation 
+			that maintains the mean activation close to 0 and the activation standard deviation close to 1.
+			Corresponds to the
+			<a href="https://keras.io/layers/normalization/#batchnormalization">Keras Batch Normalization Layer</a>.
+		</intro>
+		<tab name="Options">
+		<option name="Name prefix">
+			The name prefix of the layer. The prefix is complemented by an index suffix to obtain a unique layer name. If this option is unchecked, the name prefix is derived from the layer type.
+		</option>
+			<option name="Axis">
+				The axis that should be normalized (typically the
+				features axis). For instance, after a Conv2D layer with
+				data_format="channels_first" , set axis=1 in BatchNormalization.
+			</option>
+			<option name="Momentum">
+				Momentum for the moving mean and the moving
+				variance.
+			</option>
+			<option name="Epsilon">
+				Small number added to variance to avoid dividing
+				by zero.
+			</option>
+			<option name="Center">
+				If selected, add offset of beta to normalized
+				tensor. If not selected, beta is ignored.
+			</option>
+			<option name="Scale">
+				If selected, multiply by gamma. If not selected, gamma is
+				not used. When the next layer is linear (also e.g. nn.relu), this
+				can be disabled since the scaling will be done by the next layer.
+			</option>
+			<option name="Beta initializer">
+				Initializer for the beta weight.
+			</option>
+			<option name="Gamma initializer">
+				Initializer for the gamma weight.
+			</option>
+			<option name="Moving mean initializer">
+				Initializer for the moving mean.
+			</option>
+			<option name="Moving variance initializer">
+				Initializer for the moving variance.
+			</option>
+			<option name="Beta regularizer">
+				Optional regularizer for the beta weight.
+			</option>
+			<option name="Gamma regularizer">
+				Optional regularizer for the gamma weight.
+			</option>
+			<option name="Beta constraint">
+				Optional constraint for the beta weight.
+			</option>
+			<option name="Gamma constraint">
+				Optional constraint for the gamma weight.
+			</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">
+			The Keras deep learning network to which to add a
+			<tt>Batch Normalization</tt>
+			layer.
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">
+			The Keras deep learning network with an added
+			<tt>Batch Normalization</tt>
+			layer.
+		</outPort>
+	</ports>
+</knimeNode>
