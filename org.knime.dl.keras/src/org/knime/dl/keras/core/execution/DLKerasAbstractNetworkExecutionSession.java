@@ -68,7 +68,7 @@ public abstract class DLKerasAbstractNetworkExecutionSession<N extends DLKerasNe
 		C extends DLKerasAbstractCommands>
 	extends DLPythonAbstractNetworkExecutionSession<N, C> implements DLKerasNetworkExecutionSession {
 
-	protected DLKerasAbstractNetworkExecutionSession(final N network, final Set<DLTensorSpec> executionInputSpecs,
+    protected DLKerasAbstractNetworkExecutionSession(final N network, final Set<DLTensorSpec> executionInputSpecs,
 			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
 			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);

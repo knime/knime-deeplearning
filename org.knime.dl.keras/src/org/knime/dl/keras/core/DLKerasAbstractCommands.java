@@ -53,6 +53,7 @@ import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
@@ -87,6 +88,8 @@ import org.knime.python2.kernel.messaging.Message;
  */
 public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasAbstractCommands.class);
+
     private static final String KERAS_VERSION_NAME = "keras_version";
 
 	protected DLKerasAbstractCommands() {
@@ -117,30 +120,51 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
     public abstract DLKerasNetworkSpec extractNetworkSpec(DLPythonNetworkHandle network, DLCancelable cancelable)
         throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
 
-    public DLPythonNetworkHandle loadNetworkFromJson(final String path, final DLCancelable cancelable)
+    public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig,
+        final boolean compatibilityMode, final DLCancelable cancelable)
         throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
-        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-            .a(reader.importReader()) //
-            .n("reader = ").a(reader.createReader()) //
-            .n("network = ").a("reader.").a(reader.readFromJson(path)) //
-            .n(getRegisterNetworkCode("network", null));
-        getContext(cancelable).executeInKernel(b.toString(), cancelable);
-        return (DLPythonNetworkHandle)getContext(cancelable)
-            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
+        try {
+            return loadNetworkInternal(reader, reader.read(path, loadTrainingConfig, compatibilityMode), cancelable);
+        } catch (final IOException e) {
+            if (loadTrainingConfig) {
+                // If we tried to load it compiled this could have been the problem
+                // -> Warn the user and try it uncompiled
+                LOGGER.warn("Couldn't load the model with the training configuration. See log for details. "
+                    + "Trying to load it uncompiled.", e);
+                return loadNetworkInternal(reader, reader.read(path, false, compatibilityMode), cancelable);
+            } else {
+                throw e;
+            }
+        }
     }
 
-    public DLPythonNetworkHandle loadNetworkFromYaml(final String path, final DLCancelable cancelable)
+    public DLPythonNetworkHandle loadNetworkFromJson(final String path, final boolean compatibilityMode,
+        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final DLKerasAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
+        return loadNetworkInternal(reader, reader.readFromJson(path, compatibilityMode), cancelable);
+    }
+
+    public DLPythonNetworkHandle loadNetworkFromYaml(final String path, final boolean compatibilityMode,
+        final DLCancelable cancelable)
         throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasAbstractNetworkReaderCommands reader = getNetworkReaderCommands();
-        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+        return loadNetworkInternal(reader, reader.readFromYaml(path, compatibilityMode), cancelable);
+    }
+
+    private DLPythonNetworkHandle loadNetworkInternal(final DLKerasAbstractNetworkReaderCommands reader,
+        final String readerCommand, final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        final String c = DLPythonUtils.createSourceCodeBuilder() //
             .a(reader.importReader()) //
             .n("reader = ").a(reader.createReader()) //
-            .n("network = ").a("reader.").a(reader.readFromYaml(path)) //
-            .n(getRegisterNetworkCode("network", null));
-        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+            .n("network = ").a("reader.").a(readerCommand) //
+            .n(getRegisterNetworkCode("network", null)) //
+            .toString();
+        getContext(cancelable).executeInKernel(c, cancelable);
         return (DLPythonNetworkHandle)getContext(cancelable)
-            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable).getTable();
+            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable)
+            .getTable();
     }
 
 	public void setNetworkTrainingConfig(final DLPythonNetworkHandle handle, final DLKerasTrainingConfig config, final DLCancelable cancelable)
@@ -222,15 +246,22 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
             return b.toString();
         }
 
-        public String readFromJson(final String path) {
+        public String read(final String path, final boolean loadTrainingConfig, final boolean compatibilityMode) {
             final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .a("readFromJson(").asr(path).a(")");
+                .a("read(").asr(path).a(", compile=").a(loadTrainingConfig).a(", compatibility_mode=")
+                .a(compatibilityMode).a(")");
             return b.toString();
         }
 
-        public String readFromYaml(final String path) {
+        public String readFromJson(final String path, final boolean compatibilityMode) {
             final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .a("readFromYaml(").asr(path).a(")");
+                .a("readFromJson(").asr(path).a(", ").a(compatibilityMode).a(")");
+            return b.toString();
+        }
+
+        public String readFromYaml(final String path, final boolean compatibilityMode) {
+            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+                .a("readFromYaml(").asr(path).a(", ").a(compatibilityMode).a(")");
             return b.toString();
         }
     }

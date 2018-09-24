@@ -110,10 +110,11 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 	protected void executeInternal(final DLExecutionMonitor monitor) throws DLCanceledExecutionException, Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
-			m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(m_network.getClass()).orElseThrow(
-					() -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
-							+ "' could not be found. Are you missing a KNIME Deep Learning extension?"))
-                .load(m_network.getSource().getURI(), m_commands.getContext(monitor), false, monitor);
+            m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader((Class<N>)m_network.getClass())
+                .orElseThrow(
+                    () -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
+                        + "' could not be found. Are you missing a KNIME Deep Learning extension?"))
+                .load(m_network, m_commands.getContext(monitor), false, monitor);
 		}
 		final DLExecutionStatus status = monitor.getExecutionStatus();
 		long currentInBatchSize = m_expectedBatchSize;

@@ -128,6 +128,29 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInst
      */
     URL validateDestination(URI destination) throws DLInvalidDestinationException;
 
+    /**
+     * Loads a network from a source into a context. This method should be preferred over
+     * {@link #load(URI, DLPythonContext, boolean, DLCancelable)} because the implementation can use information of the
+     * network object.
+     *
+     * @param network the network
+     * @param context the context
+     * @param loadTrainingConfig true if the training configuration enclosed in <code>source</code> - if any - shall be
+     *            loaded. This is an optional feature for supporting back ends. For non-supporting back ends, calling
+     *            this method with different values for <code>loadTrainingConfig</code> should result in same return
+     *            values and side effects.
+     * @param cancelable to check if the operation has been canceled
+     * @return the network handle
+     * @throws DLInvalidSourceException if the source is unavailable or invalid
+     * @throws DLInvalidEnvironmentException if the context is invalid
+     * @throws IOException if failed to load the network
+     * @throws DLCanceledExecutionException if the operation has been canceled
+     */
+    default DLPythonNetworkHandle load(N network, DLPythonContext context, boolean loadTrainingConfig, DLCancelable cancelable)
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        return load(network.getSource().getURI(), context, loadTrainingConfig, cancelable);
+    }
+
 	/**
 	 * Loads a network from a source into a context.
 	 *

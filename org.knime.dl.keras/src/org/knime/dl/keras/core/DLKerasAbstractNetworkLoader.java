@@ -60,6 +60,7 @@ import org.knime.base.filehandling.remote.files.RemoteFile;
 import org.knime.base.filehandling.remote.files.RemoteFileHandlerRegistry;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.Version;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLException;
 import org.knime.dl.core.DLInvalidDestinationException;
@@ -78,6 +79,8 @@ import com.google.common.base.Strings;
  */
 public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> extends DLPythonAbstractNetworkLoader<N>
 		implements DLKerasNetworkLoader<N> {
+
+    private static final Version COMPATIBILITY_VERSION_LIMIT = new Version("2.1.6");
 
     public static URL validateKerasNetworkSource(final URI source) throws DLInvalidSourceException {
         try {
@@ -118,10 +121,26 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
         return validateKerasNetworkDestination(destination);
     }
 
-	@Override
-	public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig, final DLCancelable cancelable)
-			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
-	    final URL sourceURL = validateSource(source);
+    @Override
+    public DLPythonNetworkHandle load(final N network, final DLPythonContext kernel, final boolean loadTrainingConfig,
+        final DLCancelable cancelable) throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final Version kerasVersion = network.getSpec().getKerasVersion();
+        final boolean compatibilityMode =
+            kerasVersion == null || kerasVersion.compareTo(COMPATIBILITY_VERSION_LIMIT) <= 0;
+        return loadInternal(network.getSource().getURI(), kernel, loadTrainingConfig, compatibilityMode, cancelable);
+    }
+
+    @Override
+    public DLPythonNetworkHandle load(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig,
+        final DLCancelable cancelable)
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        return loadInternal(source, kernel, loadTrainingConfig, false, cancelable);
+    }
+
+    private DLPythonNetworkHandle loadInternal(final URI source, final DLPythonContext kernel, final boolean loadTrainingConfig,
+        final boolean compatibilityMode, final DLCancelable cancelable)
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException {
+        final URL sourceURL = validateSource(source);
         File file = null;
         try {
             file = FileUtil.getFileFromURL(sourceURL);
@@ -140,11 +159,11 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
 			final DLKerasAbstractCommands commands = createCommands(checkNotNull(kernel));
 			final DLPythonNetworkHandle networkHandle;
 			if (fileExtension.equals("h5")) {
-				networkHandle = commands.loadNetwork(filePath, loadTrainingConfig, cancelable);
+				networkHandle = commands.loadNetwork(filePath, loadTrainingConfig, compatibilityMode, cancelable);
 			} else if (fileExtension.equals("json")) {
-				networkHandle = commands.loadNetworkFromJson(filePath, cancelable);
+				networkHandle = commands.loadNetworkFromJson(filePath, compatibilityMode, cancelable);
 			} else if (fileExtension.equals("yaml")) {
-				networkHandle = commands.loadNetworkFromYaml(filePath, cancelable);
+				networkHandle = commands.loadNetworkFromYaml(filePath, compatibilityMode, cancelable);
 			} else {
 				throw new DLInvalidSourceException(
 						"Keras network reader only supports network files of type h5, json and yaml.");

@@ -98,12 +98,12 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 
 	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context, final DLCancelable cancelable)
 			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final DLPythonNetworkLoader<? extends DLPythonNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
+		final DLPythonNetworkLoader loader = DLPythonNetworkLoaderRegistry.getInstance()
 				.getNetworkLoader(inputNetwork.getClass())
 				.orElseThrow(() -> new DLMissingExtensionException(
 						"Python back end '" + inputNetwork.getClass().getCanonicalName()
 								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-        final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork.getSource().getURI(), context, true, cancelable);
+        final DLPythonNetworkHandle networkHandle = loader.load(inputNetwork, context, true, cancelable);
 		final String networkHandleId = networkHandle.getIdentifier();
 		final String inputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralInputObjects()[0];
 		try {

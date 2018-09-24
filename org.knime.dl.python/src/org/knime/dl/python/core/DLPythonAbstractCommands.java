@@ -290,22 +290,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             .n("reader = ").a(reader.createReader()) //
             .n("network = ").a("reader.").a(reader.read(path, loadTrainingConfig)) //
             .n(getRegisterNetworkCode("network", null));
-        try {
-            getContext(cancelable).executeInKernel(b.toString(), cancelable);
-            return (DLPythonNetworkHandle)getContext(cancelable)
-                .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable)
-                .getTable();
-        } catch (final IOException e) {
-            if (loadTrainingConfig) {
-                // If we tried to load it compiled this could have been the problem
-                // -> Warn the user and try it uncompiled
-                LOGGER.warn("Couldn't load the model with the training configuration. See log for details. "
-                    + "Trying to load it uncompiled.", e);
-                return loadNetwork(path, false, cancelable);
-            } else {
-                throw e;
-            }
-        }
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+        return (DLPythonNetworkHandle)getContext(cancelable)
+            .getDataFromKernel(CURRENT_NETWORK_NAME, new DLPythonNetworkHandleTableCreatorFactory(), cancelable)
+            .getTable();
     }
 
 	@Override
