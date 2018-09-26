@@ -52,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
@@ -159,7 +160,7 @@ public class DLPythonDataBuffersExecution1To1Test {
                 final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
                 final DLNetworkInputProvider trainingInputProvider,
                 final DLNetworkInputProvider validationInputProvider,
-                final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+                final DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, IOException> singleTensorTableChunkerCreator) {
                 return null;
             }
 		};

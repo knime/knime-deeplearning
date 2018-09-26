@@ -201,7 +201,8 @@ class DLKerasNetwork(DLPythonNetwork):
                                             callbacks=config.callbacks,
                                             validation_data=validation_data_generator,
                                             validation_steps=validation_steps,
-                                            **{kw_max_queue: 1})
+                                            workers=1,
+                                            max_queue_size=1)
         return history.history
 
     def stop_early(self):

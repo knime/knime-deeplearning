@@ -48,6 +48,7 @@ package org.knime.dl.keras.core;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
@@ -108,9 +109,9 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
     protected DLPythonNetworkTrainingTaskHandler createNetworkTrainingTaskHandler(final DLPythonContext context,
         final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
         final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
-        final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+        final DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, IOException> tensorTableChunkerCreator) {
         return new DLKerasNetworkTrainingTaskHandler(context, monitor, trainingInputProvider, validationInputProvider,
-            singleTensorTableChunkerCreator);
+            tensorTableChunkerCreator);
     }
 
     @Override
@@ -240,8 +241,8 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
         protected DLKerasNetworkTrainingTaskHandler(final DLPythonContext context,
             final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
             final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
-            final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
-            super(context, monitor, trainingInputProvider, validationInputProvider, singleTensorTableChunkerCreator);
+            final DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, IOException> tensorTableChunkerCreator) {
+            super(context, monitor, trainingInputProvider, validationInputProvider, tensorTableChunkerCreator);
         }
 
         @Override
