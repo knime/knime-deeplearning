@@ -50,15 +50,18 @@ package org.knime.dl.python.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
@@ -161,8 +164,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 	 */
 	protected final DLPythonContext m_context;
 
-	private final Map<DLTensorId, DLPythonTableChunker> m_tableChunkers = new HashMap<>();
-
 	/**
 	 * Set to <code>true</code> if the setup steps in {@link #getContext()} were successful.
 	 */
@@ -195,7 +196,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
     protected abstract DLPythonNetworkTrainingTaskHandler createNetworkTrainingTaskHandler(DLPythonContext context,
         DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor, DLNetworkInputProvider trainingInputProvider,
         DLNetworkInputProvider validationInputProvider,
-        DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator);
+        DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, IOException> singleTensorTableChunkerCreator);
 
 	@Override
 	public final synchronized DLPythonContext getContext(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
@@ -327,7 +328,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 				.entrySet()) {
 			final DLTensorId tensorIdentifier = input.getKey();
 			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
+            final TableChunker tableChunker =
+                createTensorTableChunker(tensorIdentifier, Collections.singletonList(tensor));
 			try {
 				getContext(cancelable).putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1, cancelable);
 			} catch (final IOException ex) {
@@ -535,7 +537,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         try {
             final DLPythonNetworkTrainingTaskHandler trainingTaskHandler = createNetworkTrainingTaskHandler(context,
-                monitor, trainingInputProvider, validationInputProvider, this::createSingleTensorTableChunker);
+                monitor, trainingInputProvider, validationInputProvider, this::createTensorTableChunker);
             final RunnableFuture<Void> trainingTask = kernel.createExecutionTask(trainingTaskHandler, b.toString());
             kernel.routeErrorMessagesToWarningLog(true);
             trainingTask.run();
@@ -619,15 +621,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         return new Version(pythonVersion);
     }
 
-    private TableChunker createSingleTensorTableChunker(final DLTensorId tensorId, final DLTensor<? extends DLWritableBuffer> tensor)
+    private TableChunker createTensorTableChunker(final DLTensorId tensorId,
+        final List<DLTensor<? extends DLWritableBuffer>> tensors)
         throws IOException {
-        DLPythonTableChunker tableChunker = m_tableChunkers.get(tensorId);
-        if (tableChunker == null) {
-            tableChunker = new DLPythonTableChunker(tensor);
-            m_tableChunkers.put(tensorId, tableChunker);
-        }
-        tableChunker.resetWithNextTensor(tensor);
-        return tableChunker;
+        return new DLPythonTableChunker(tensors);
     }
 
     private static byte[] getNotMissingForLength(final int length) {
@@ -639,7 +636,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
     private static final class DLPythonTableChunker implements TableChunker {
 
-        private final DLPythonResettableTableIterator m_iterator;
+        private final DLPythonTableIterator m_iterator;
 
         private boolean m_hasNextChunk = true;
 
@@ -647,14 +644,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         private final TableSpec m_tableSpec;
 
-        private final Row m_row;
-
-        private DLPythonTableChunker(final DLTensor<? extends DLWritableBuffer> tensor) {
+        private DLPythonTableChunker(final List<DLTensor<? extends DLWritableBuffer>> tensors) throws IOException {
             // Create the serializer
             final KnimeToPythonExtension extension = KnimeToPythonExtensions.getExtensions().stream()
                 .filter(ext -> (ext.getJavaSerializerFactory() instanceof DLSerializerFactory)
                     && ((DLSerializerFactory)ext.getJavaSerializerFactory()).getBufferType()
-                        .isAssignableFrom(tensor.getBuffer().getClass()))
+                        .isAssignableFrom(tensors.get(0).getBuffer().getClass()))
                 .findFirst() //
                 .orElseThrow(() -> new RuntimeException(
                     "Transmitting data to Python failed. No matching serializer available."));
@@ -663,19 +658,24 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             m_serializer = (Serializer<DLPythonDataBuffer<?>>)extension.getJavaSerializerFactory().createSerializer();
 
             // Create the shape cell (the same every time)
-            final long[] shape = DLUtils.Shapes.getFixedShape(tensor.getSpec().getShape())
+            final long[] shape = DLUtils.Shapes.getFixedShape(tensors.get(0).getSpec().getShape())
                 .orElseThrow(() -> new IllegalStateException("Execution spec does not contain fixed shape."));
             final Cell shapeCell = new CellImpl(shape, getNotMissingForLength(shape.length));
 
             // Create the table spec
-            final String identifier = tensor.getSpec().getIdentifier().getIdentifierString();
+            final String identifier = tensors.get(0).getSpec().getIdentifier().getIdentifierString();
             m_tableSpec = new TableSpecImpl(new Type[]{Type.BYTES, Type.LONG_LIST}, new String[]{identifier, "shape"},
                 Collections.singletonMap(identifier, extension.getId()));
 
-            // Create the row
-            m_row = new RowImpl(identifier, 2);
-            m_row.setCell(shapeCell, 1);
-            m_iterator = new DLPythonResettableTableIterator(m_tableSpec, m_row);
+            // Create the rows
+            final List<Row> rows = new ArrayList<>();
+            for (final DLTensor<? extends DLWritableBuffer> tensor : tensors) {
+                final Row row = new RowImpl(identifier, 2);
+                row.setCell(shapeCell, 1);
+                row.setCell(new CellImpl(m_serializer.serialize((DLPythonDataBuffer<?>)tensor.getBuffer())), 0);
+                rows.add(row);
+            }
+            m_iterator = new DLPythonTableIterator(m_tableSpec, rows);
         }
 
         @Override
@@ -700,51 +700,40 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         public TableSpec getTableSpec() {
             return m_tableSpec;
         }
-
-        private void resetWithNextTensor(final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
-            final Cell cell = new CellImpl(m_serializer.serialize((DLPythonDataBuffer<?>)tensor.getBuffer()));
-            m_row.setCell(cell, 0);
-            m_iterator.reset();
-            m_hasNextChunk = true;
-        }
     }
 
-    private static final class DLPythonResettableTableIterator implements TableIterator {
+    private static final class DLPythonTableIterator implements TableIterator {
 
         private final TableSpec m_tableSpec;
 
-        private final Row m_row;
+        private final List<Row> m_rows;
 
-        private boolean m_hasNext = true;
+        private final AtomicInteger m_next;
 
-        private DLPythonResettableTableIterator(final TableSpec tableSpec, final Row row) {
+        private DLPythonTableIterator(final TableSpec tableSpec, final List<Row> rows) {
             m_tableSpec = tableSpec;
-            m_row = row;
+            m_rows = rows;
+            m_next = new AtomicInteger(0);
         }
 
         @Override
         public Row next() {
-            m_hasNext = false;
-            return m_row;
+            return m_rows.get(m_next.getAndIncrement());
         }
 
         @Override
         public boolean hasNext() {
-            return m_hasNext;
+            return m_rows.size() > m_next.get();
         }
 
         @Override
         public int getNumberRemainingRows() {
-            return m_hasNext ? 1 : 0;
+            return m_rows.size() - m_next.get();
         }
 
         @Override
         public TableSpec getTableSpec() {
             return m_tableSpec;
-        }
-
-        private void reset() {
-            m_hasNext = true;
         }
     }
 
@@ -790,19 +779,19 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         protected LinkedHashMap<String, DLReportedMetric> batchMetrics = new LinkedHashMap<>(4);
 
-        protected final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, //
-                IOException> m_singleTensorTableChunkerCreator;
+        protected final DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, //
+                IOException> m_tensorTableChunkerCreator;
 
         protected DLPythonNetworkTrainingTaskHandler(final DLPythonContext context,
             final DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor,
             final DLNetworkInputProvider trainingInputProvider, final DLNetworkInputProvider validationInputProvider,
-            final DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator) {
+            final DLThrowingBiFunction<DLTensorId, List<DLTensor<? extends DLWritableBuffer>>, TableChunker, IOException> tensorTableChunkerCreator) {
             m_context = context;
             m_monitor = monitor;
             m_status = monitor.getTrainingStatus();
             m_trainingInputProvider = trainingInputProvider;
             m_validationInputProvider = validationInputProvider;
-            m_singleTensorTableChunkerCreator = singleTensorTableChunkerCreator;
+            m_tensorTableChunkerCreator = tensorTableChunkerCreator;
 
             // Default values.
             epochMetrics.put("val_accuracy", new DLReportedMetric("val_accuracy", 0f));
@@ -855,7 +844,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input = m_trainingInputProvider.get(batchIndex);
             for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
                 final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-                final TableChunker tableChunker = m_singleTensorTableChunkerCreator.apply(entry.getKey(), tensor);
+                final TableChunker tableChunker = m_tensorTableChunkerCreator.apply(entry.getKey(), tensor);
                 try {
                     m_context.putDataInKernel(entry.getKey().getIdentifierString(), tableChunker, 1, m_monitor);
                 } catch (final IOException ex) {
@@ -878,7 +867,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
                 m_validationInputProvider.get(batchIndex);
             for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
                 final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-                final TableChunker tableChunker = m_singleTensorTableChunkerCreator.apply(entry.getKey(), tensor);
+                final TableChunker tableChunker = m_tensorTableChunkerCreator.apply(entry.getKey(), tensor);
                 try {
                     m_context.putDataInKernel(entry.getKey().getIdentifierString() + "_validation", tableChunker, 1,
                         m_monitor);

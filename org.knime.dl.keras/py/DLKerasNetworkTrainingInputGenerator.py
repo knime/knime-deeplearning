@@ -53,15 +53,20 @@ from DLPythonNetworkTrainingInputGenerator import DLPythonNetworkTrainingInputGe
 
 
 class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator):
-    def __init__(self, network, steps, batch_size, message_category, is_validation_data=False):
+    def __init__(self, network, steps, batch_size, chunk_size, message_category, is_validation_data=False):
         assert network is not None
+        # TODO do not require a chunk size that is a multiple of the batch size
+        assert batch_size < chunk_size and chunk_size % batch_size == 0
         input_names = [s.identifier for s in network.spec.input_specs]
         target_names = [s.identifier for s in network.spec.output_specs]
         super().__init__(input_names, target_names, steps, batch_size)
         self._network = network
+        self._chunk_size = chunk_size
+        self._batches_per_chunk = chunk_size // batch_size
         self._message_category = message_category
         self._request_from_java = None
         self._is_validation_data = is_validation_data
+        self._chunk_index = -1
 
     @property
     def request_from_java(self):
@@ -71,17 +76,37 @@ class DLKerasNetworkTrainingInputGenerator(DLPythonNetworkTrainingInputGenerator
     def request_from_java(self, request_from_java):
         self._request_from_java = request_from_java
 
+    def _request_chunk(self, chunk_index):
+        if self._chunk_index != chunk_index:
+            self._request_from_java(self._message_category, chunk_index)
+            # TODO what's about threading (lock at least?)
+
+            # Get the requested data
+            # TODO pre-allocate dictionaries
+            input_data = {}
+            for input_name in self._input_names:
+                workspace_input_name = input_name + "_validation" if self._is_validation_data else input_name
+                input_data[input_name] = global_workspace()[workspace_input_name]
+            target_data = {}
+            for target_name in self._target_names:
+                workspace_target_name = target_name + "_validation" if self._is_validation_data else target_name
+                target_data[target_name] = global_workspace()[workspace_target_name]
+
+            # Format the input and target
+            # TODO: move formatting logic from network to generator, remove dependency on network
+            self._input_chunk = self._network._format_input(input_data, self._chunk_size)
+            self._target_chunk = self._network._format_target(target_data, self._chunk_size)
+
+            # Set the current chunk index
+            self._chunk_index = chunk_index
+
     def _get_batch(self, batch_index):
-        self._request_from_java(self._message_category, batch_index)
-        # TODO: pre-allocate dictionaries
-        training_data = {}
-        for input_name in self._input_names:
-            workspace_input_name = input_name + "_validation" if self._is_validation_data else input_name
-            training_data[input_name] = global_workspace()[workspace_input_name]
-        target_data = {}
-        for target_name in self._target_names:
-            workspace_target_name = target_name + "_validation" if self._is_validation_data else target_name
-            target_data[target_name] = global_workspace()[workspace_target_name]
-        # TODO: move formatting logic from network to generator, remove dependency on network
-        return (self._network._format_input(training_data, self._batch_size),
-                self._network._format_target(target_data, self._batch_size))
+        # Get required indices
+        chunk_index = batch_index // self._batches_per_chunk
+        in_chunk_start = (batch_index % self._batches_per_chunk) * self._batch_size
+        in_chunk_end = ((batch_index % self._batches_per_chunk) + 1) * self._batch_size
+        self._request_chunk(chunk_index) # Only requests if not loaded already
+        print('Batch {}, Chunk {}, Start {}, End {}'.format(batch_index, chunk_index, in_chunk_start, in_chunk_end)) # TODO remove debug output
+
+        return ([inp[in_chunk_start:in_chunk_end] for inp in self._input_chunk],
+                [oup[in_chunk_start:in_chunk_end] for oup in self._target_chunk])
