@@ -48,9 +48,9 @@ package org.knime.dl.keras.cntk.core.training;
 
 import java.util.Set;
 
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
@@ -81,7 +81,8 @@ public final class DLKerasCNTKNetworkTrainingSession
 	 */
 	public DLKerasCNTKNetworkTrainingSession(final DLKerasCNTKNetwork network,
 			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer,
+        final DLChunkedNetworkInputPreparer trainingInputPreparer,
+        final DLChunkedNetworkInputPreparer validationInputPreparer,
 			final DLTensorFactory tensorFactory) {
 		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
 				tensorFactory);

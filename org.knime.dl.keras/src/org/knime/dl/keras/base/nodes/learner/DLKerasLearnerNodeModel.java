@@ -657,10 +657,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		m_status = new DLKerasDefaultTrainingStatus(trainingConfig.getEpochs(), numTrainingBatchesPerEpoch);
 		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
 				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
-						rowIterator, (int)trainingConfig.getBatchSize(), converterForTensorId);
+                    rowIterator, (int)trainingConfig.getBatchSize(), 5, converterForTensorId); // TODO add chunk size parameter
 				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
 						? new DLKnimeNetworkValidationInputPreparer(
-								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), (int)trainingConfig.getValidationBatchSize(),
+                        new DLDataTableRowIterator(inValidationTable, columnsForTensorId),
+                        (int)trainingConfig.getValidationBatchSize(), 5, // TODO add chunk size parameter
 								converterForTensorId)
 						: null;
                 DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,

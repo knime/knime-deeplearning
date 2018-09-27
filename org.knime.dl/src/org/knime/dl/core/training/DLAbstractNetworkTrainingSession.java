@@ -56,10 +56,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
@@ -168,8 +168,8 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
 	protected DLAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
-			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+        final Set<DLTensorSpec> executionInputSpecs, final DLChunkedNetworkInputPreparer trainingInputPreparer,
+        final DLChunkedNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
 		checkArgument(areInputSpecsCongruent(checkNotNull(network), checkNotNull(executionInputSpecs)),
 				"Network input specs and execution input specs differ.");
 		checkArgument(areExecInputSpecsFullyDefined(executionInputSpecs),
@@ -183,14 +183,19 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 		m_trainingInputProvider = new DLNetworkInputProvider() {
 
 			@Override
-			public long getNumBatches() {
-				return trainingInputPreparer.getNumBatches();
+            public long getNumChunks() {
+                return trainingInputPreparer.getNumChunks();
 			}
+
+            @Override
+            public long getNumBatches() {
+                return trainingInputPreparer.getNumBatches();
+            }
 
 			@Override
 			public Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> get(final long batchIndex)
 					throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-				trainingInputPreparer.prepare(m_trainingInput, batchIndex);
+                trainingInputPreparer.prepareChunk(m_trainingInput, batchIndex);
 				return m_trainingInput;
 			}
 
@@ -203,14 +208,19 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 		m_validationInputProvider = m_doValidation ? new DLNetworkInputProvider() {
 
 			@Override
-			public long getNumBatches() {
-				return validationInputPreparer.getNumBatches();
+            public long getNumChunks() {
+                return validationInputPreparer.getNumChunks();
 			}
+
+            @Override
+            public long getNumBatches() {
+                return validationInputPreparer.getNumBatches();
+            };
 
 			@Override
 			public Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> get(final long batchIndex)
 					throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-				validationInputPreparer.prepare(m_validationInput, batchIndex);
+                validationInputPreparer.prepareChunk(m_validationInput, batchIndex);
 				return m_validationInput;
 			}
 

@@ -53,6 +53,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLAbstractKnimeNetworkInputPreparer;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLRowIterator;
 import org.knime.dl.core.DLTensor;
@@ -65,21 +66,26 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
+public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNetworkInputPreparer
+    implements DLChunkedNetworkInputPreparer {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKnimeNetworkTrainingInputPreparer.class);
 
+    private final int m_chunkSize;
+
 	/**
-	 * @param iterator provides the input data rows that are used by this instance to prepare (fill) the network tensors
-	 *            fed to {@link #prepare(Map, long)}. The iterator must know its size and must be resettable. It must be
-	 *            in a proper initial state (i.e. reset).
-	 * @param batchSize the batch size of the tensors that will be prepared by this instance
-	 * @param converters the converters that are used to write the data rows into the tensors. The given tensor ids
-	 *            determine the set of tensors supported by {@link #prepare(Map, long)}.
-	 */
-	public DLKnimeNetworkTrainingInputPreparer(final DLRowIterator iterator, final int batchSize,
+     * @param iterator provides the input data rows that are used by this instance to prepare (fill) the network tensors
+     *            fed to {@link #prepare(Map, long)}. The iterator must know its size and must be resettable. It must be
+     *            in a proper initial state (i.e. reset).
+     * @param batchSize the batch size of the tensors that will be prepared by this instance
+     * @param chunkSize the number of batches per chunk that will be prepared by this instance
+     * @param converters the converters that are used to write the data rows into the tensors. The given tensor ids
+     *            determine the set of tensors supported by {@link #prepare(Map, long)}.
+     */
+    public DLKnimeNetworkTrainingInputPreparer(final DLRowIterator iterator, final int batchSize, final int chunkSize,
 			final Map<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converters) {
 		super(iterator, batchSize, converters);
+        m_chunkSize = chunkSize;
 		final long size = iterator.size();
 		if (size % batchSize != 0) {
 			LOGGER.warn("The number of rows of the input training data table (" + size
@@ -97,47 +103,57 @@ public final class DLKnimeNetworkTrainingInputPreparer extends DLAbstractKnimeNe
 		return (long) Math.ceil(m_iterator.size() / (double) m_batchSize);
 	}
 
-	@Override
-	public void prepare(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, final long batchIndex)
-			throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-		for (long i = 0; i < m_batchSize; i++) {
-			if (!m_iterator.hasNext()) {
-				// continue at the beginning of the table to fill up incomplete batch
-				m_iterator.reset();
-			}
-			final DataRow row = m_iterator.next();
-			try {
-				writeDataValuesInTensors(m_iterator.groupByTensor(row), input);
-			} catch (final DLBufferOverflowExceptionForTensor ex) {
-				final DLTensor<?> tensor = ex.getTensor();
-				// must be present
-				final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
-				// must be present
-				final long batchSize = tensor.getSpec().getBatchSize().getAsLong();
-				throw new DLInvalidNetworkInputException(
-						"Node training data size for input/target '" + tensor.getSpec().getName()
-								+ "' exceeds the expected size. Neuron count of this input/target is " + exampleSize
-								+ ", batch size is " + batchSize + ". Thus, expected training data size is "
-								+ exampleSize * batchSize + ". Please check the column selection for this input/target "
-								+ "and validate the node's training data.",
-						ex);
-			}
-		}
-		// check if tensors were filled correctly
-		for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-			final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-			if (tensor.getBuffer().size() != tensor.getExampleSize() * m_batchSize) {
-				// Must be present. Note that exampleSize == tensor.getExampleSize() does not necessarily hold
-				// as the latter is expressed in terms of buffer elements, not input elements ("neurons").
-				final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
-				final long bufferSizeInNeurons = tensor.getBuffer().size() * (exampleSize / tensor.getExampleSize());
-				throw new DLInvalidNetworkInputException("Node training data size for network input/target '"
-						+ tensor.getSpec().getName() + "' does not match the expected size. Neuron count is "
-						+ exampleSize + ", batch size is " + m_batchSize + ". Thus, expected training data size is "
-						+ exampleSize * m_batchSize + ". However, node training data size is " + bufferSizeInNeurons
-						+ ". Please check the column selection for this input/target "
-						+ "and validate the node's training data.");
-			}
-		}
-	}
+    @Override
+    public long getNumChunks() {
+        return (m_iterator.size() + m_chunkSize * m_batchSize - 1) / (m_chunkSize * m_batchSize);
+    }
+
+    @Override
+    public void prepareChunk(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, final long chunkIndex)
+        throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+        // TODO do not fill last chunk!!!!!
+        for (long i = 0; i < m_chunkSize; i++) {
+            for (long j = 0; j < m_batchSize; j++) {
+                if (!m_iterator.hasNext()) {
+                    // continue at the beginning of the table to fill up incomplete batch
+                    m_iterator.reset();
+                }
+                final DataRow row = m_iterator.next();
+                try {
+                    writeDataValuesInTensors(m_iterator.groupByTensor(row), input);
+                } catch (final DLBufferOverflowExceptionForTensor ex) {
+                    final DLTensor<?> tensor = ex.getTensor();
+                    // must be present
+                    final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+                    // must be present
+                    final long chunkSize = tensor.getSpec().getBatchSize().getAsLong();
+                    throw new DLInvalidNetworkInputException(
+                        "Node training data size for input/target '" + tensor.getSpec().getName()
+                            + "' exceeds the expected size. Neuron count of this input/target is " + exampleSize
+                            + ", chunk size is " + chunkSize + ". Thus, expected training data size is "
+                            + exampleSize * chunkSize + ". Please check the column selection for this input/target "
+                            + "and validate the node's training data.",
+                        ex);
+                }
+            }
+            // check if tensors were filled correctly
+            for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+                final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+                if (tensor.getBuffer().size() != tensor.getExampleSize() * m_batchSize) {
+                    // Must be present. Note that exampleSize == tensor.getExampleSize() does not necessarily hold
+                    // as the latter is expressed in terms of buffer elements, not input elements ("neurons").
+                    final long exampleSize = DLUtils.Shapes.getFixedSize(tensor.getSpec().getShape()).getAsLong();
+                    final long bufferSizeInNeurons =
+                        tensor.getBuffer().size() * (exampleSize / tensor.getExampleSize());
+                    throw new DLInvalidNetworkInputException("Node training data size for network input/target '"
+                        + tensor.getSpec().getName() + "' does not match the expected size. Neuron count is "
+                        + exampleSize + ", chunk size is " + m_batchSize * m_chunkSize
+                        + ". Thus, expected training data size is " + exampleSize * m_batchSize * m_chunkSize
+                        + ". However, node training data size is " + bufferSizeInNeurons
+                        + ". Please check the column selection for this input/target "
+                        + "and validate the node's training data.");
+                }
+            }
+        }
+    }
 }

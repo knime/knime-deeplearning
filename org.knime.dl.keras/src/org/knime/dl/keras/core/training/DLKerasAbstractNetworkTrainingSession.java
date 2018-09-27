@@ -56,11 +56,11 @@ import org.knime.core.node.NodeLogger;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLExecutionMonitorCancelable;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
@@ -99,8 +99,8 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
 	protected DLKerasAbstractNetworkTrainingSession(final N network, final DLKerasTrainingConfig trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
-			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+        final Set<DLTensorSpec> executionInputSpecs, final DLChunkedNetworkInputPreparer trainingInputPreparer,
+        final DLChunkedNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
 		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
 				tensorFactory);
 		boolean hasFixedBatchSizes = false;

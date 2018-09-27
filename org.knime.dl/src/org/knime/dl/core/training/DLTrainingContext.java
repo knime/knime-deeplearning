@@ -49,10 +49,10 @@ package org.knime.dl.core.training;
 import java.util.Collection;
 import java.util.Set;
 
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
@@ -100,6 +100,6 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 * @throws IllegalArgumentException if failed to create the training session due to invalid arguments
 	 */
 	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
-			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
-			DLNetworkInputPreparer validationInputPreparer);
+        Set<DLTensorSpec> executionInputSpecs, DLChunkedNetworkInputPreparer trainingInputPreparer,
+        DLChunkedNetworkInputPreparer validationInputPreparer);
 }

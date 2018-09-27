@@ -49,7 +49,7 @@ package org.knime.dl.keras.core.training;
 import java.util.Collection;
 import java.util.Set;
 
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
@@ -83,6 +83,6 @@ public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrai
 
 	@Override
 	DLKerasNetworkTrainingSession createTrainingSession(N network, DLKerasTrainingConfig trainingConfig,
-			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
-			DLNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
+        Set<DLTensorSpec> executionInputSpecs, DLChunkedNetworkInputPreparer trainingInputPreparer,
+        DLChunkedNetworkInputPreparer validationInputPreparer) throws IllegalArgumentException;
 }

@@ -518,11 +518,12 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             .n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
             .n("from DLKerasNetworkTrainingInputGenerator import DLKerasNetworkTrainingInputGenerator") //
             .n("training_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
-            /**/ .a(trainingInputProvider.getNumBatches()).a(", network.spec.training_config.batch_size, ")
+            /**/ .a(trainingInputProvider.getNumBatches()).a(", network.spec.training_config.batch_size, 5, ") // TODO get chunk size from somewhere...
             /**/ .as("request_training_data").a(")");
         if (validationInputProvider != null) {
             b.n("validation_data_supplier = DLKerasNetworkTrainingInputGenerator(network, ")
-                .a(validationInputProvider.getNumBatches()).a(", network.spec.training_config.validation_batch_size, ")
+                .a(validationInputProvider.getNumBatches())
+                .a(", network.spec.training_config.validation_batch_size, 5, ") // TODO get chunk size from somewhere...
                 .as("request_validation_data").a(", is_validation_data=True)");
         } else {
             b.n("validation_data_supplier = None");

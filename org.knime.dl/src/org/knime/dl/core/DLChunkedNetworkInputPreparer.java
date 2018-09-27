@@ -44,52 +44,26 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.theano.core.training;
+package org.knime.dl.core;
 
-import java.util.Set;
+import java.util.Map;
 
-import org.knime.dl.core.DLChunkedNetworkInputPreparer;
-import org.knime.dl.core.DLFixedTensorShape;
-import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLTensorFactory;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
-import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
-import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
-import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Training session for Keras (Theano) networks.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasTheanoNetworkTrainingSession
-	extends DLKerasAbstractNetworkTrainingSession<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
+public interface DLChunkedNetworkInputPreparer extends DLNetworkInputPreparer {
 
-	/**
-	 * @param network the network to train
-	 * @param trainingConfig the training configuration that specifies how the network will be trained
-	 * @param executionInputSpecs a set of fully defined tensor specs. The set of tensor specs must exactly match the
-	 *            network's input tensor specs with respect to the identifiers of the contained specs. A tensor spec is
-	 *            fully defined if it features a non-empty batch size and a {@link DLFixedTensorShape fixed tensor
-	 *            shape}.
-	 * @param trainingInputPreparer the training data preparer
-	 * @param validationInputPreparer the validation data preparer, may be null in which case no validation will be
-	 *            performed during training
-	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
-	 */
-	public DLKerasTheanoNetworkTrainingSession(final DLKerasTheanoNetwork network,
-			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-        final DLChunkedNetworkInputPreparer trainingInputPreparer,
-        final DLChunkedNetworkInputPreparer validationInputPreparer,
-			final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
-	}
+    long getNumChunks();
 
-	@Override
-	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTheanoCommands();
-	}
+    void prepareChunk(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long chunkIndex)
+        throws DLCanceledExecutionException, DLInvalidNetworkInputException;
+
+    @Override
+    default void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+        throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+        throw new UnsupportedOperationException(
+            "A chunked input preparer cannot prepare batches. This is an implementation issue.");
+    }
 }

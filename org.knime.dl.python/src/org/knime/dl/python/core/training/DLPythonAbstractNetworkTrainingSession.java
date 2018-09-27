@@ -51,10 +51,10 @@ import java.util.Set;
 
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLAbstractNetworkTrainingSession;
@@ -106,8 +106,8 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
 	protected DLPythonAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
-			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+        final Set<DLTensorSpec> executionInputSpecs, final DLChunkedNetworkInputPreparer trainingInputPreparer,
+        final DLChunkedNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
 		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
 				tensorFactory);
 	}

@@ -50,9 +50,9 @@ import java.util.Set;
 
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLChunkedNetworkInputPreparer;
 import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
@@ -85,7 +85,7 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 	@Override
 	public DLKerasCNTKNetworkTrainingSession createTrainingSession(final DLKerasCNTKNetwork network,
 			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer) {
+			final DLChunkedNetworkInputPreparer trainingInputPreparer, final DLChunkedNetworkInputPreparer validationInputPreparer) {
 		return new DLKerasCNTKNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
 				trainingInputPreparer, validationInputPreparer, getTensorFactory());
 	}
