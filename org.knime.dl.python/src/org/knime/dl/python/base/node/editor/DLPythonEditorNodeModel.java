@@ -91,10 +91,11 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 
 	static final int IN_NETWORK_PORT_IDX = 0;
 
-	static void setupNetwork(final DLPythonNetwork inputNetwork, final DLPythonContext context, final DLCancelable cancelable)
+    static <N extends DLPythonNetwork> void setupNetwork(final N inputNetwork, final DLPythonContext context,
+        final DLCancelable cancelable)
 			throws DLMissingExtensionException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final DLPythonNetworkLoader loader = DLPythonNetworkLoaderRegistry.getInstance()
-				.getNetworkLoader(inputNetwork.getClass())
+        final DLPythonNetworkLoader<N> loader =
+            DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader((Class<N>)inputNetwork.getClass())
 				.orElseThrow(() -> new DLMissingExtensionException(
 						"Python back end '" + inputNetwork.getClass().getCanonicalName()
 								+ "' could not be found. Are you missing a KNIME Deep Learning extension?"));
