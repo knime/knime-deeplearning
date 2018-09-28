@@ -57,6 +57,7 @@ import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLUncheckedException;
 import org.knime.python.typeextension.PythonModuleExtensions;
 import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
@@ -66,6 +67,7 @@ import org.knime.python2.kernel.PythonCancelable;
 import org.knime.python2.kernel.PythonCanceledExecutionException;
 import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
 
@@ -202,7 +204,12 @@ public final class DLPythonDefaultContext implements DLPythonContext {
     @Override
     public void close() {
         if (isKernelOpen()) {
-            m_kernel.close();
+            try {
+                m_kernel.close();
+            } catch (PythonKernelCleanupException e) {
+                throw new DLUncheckedException(
+                    "An exception occured while cleaning up Python. Cause: " + e.getMessage(), e);
+            }
         }
     }
 

@@ -52,6 +52,7 @@ import java.io.IOException;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
+import org.knime.dl.core.DLUncheckedException;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -74,10 +75,10 @@ public interface DLPythonContext extends AutoCloseable {
 	 * Executes the given script with the given arguments.
 	 *
      * @param cancelable to check if execution has been canceled
-     * @param script the python script
-     * @param args the arguments of the python script
+     * @param script the Python script
+     * @param args the arguments of the Python script
 	 * @return stdout and stderr in an array list
-	 * @throws IOException if an error occurred while starting the python process
+	 * @throws IOException if an error occurred while starting the Python process
 	 * @throws DLCanceledExecutionException if the execution has been canceled
 	 */
 	String[] execute(DLCancelable cancelable, File script, String... args) throws IOException, DLCanceledExecutionException;
@@ -85,12 +86,12 @@ public interface DLPythonContext extends AutoCloseable {
 	/**
 	 * Executes the given source code.
 	 *
-	 * @param code the python source code
+	 * @param code the Python source code
      * @param cancelable to check if execution has been canceled
 	 * @return stdout and stderr in an array list
 	 * @throws DLCanceledExecutionException if the execution has been canceled
 	 * @throws DLInvalidEnvironmentException if execution failed, i.e. if the Python kernel returns an error output
-     * @throws IOException If an error occurred while communicating with the python kernel
+     * @throws IOException if an error occurred while communicating with the Python kernel
 	 */
 	String[] executeInKernel(final String code, DLCancelable cancelable)
 	        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
@@ -104,6 +105,9 @@ public interface DLPythonContext extends AutoCloseable {
     TableCreator<?> getDataFromKernel(String name, TableCreatorFactory tcf, DLCancelable cancelable)
         throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException;
 
+    /**
+     * @throws DLUncheckedException if an exception occurred while cleaning up the underlying Python kernel
+     */
 	@Override
 	void close();
 }
