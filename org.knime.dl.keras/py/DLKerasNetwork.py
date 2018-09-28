@@ -114,17 +114,17 @@ class DLKerasNetwork(DLPythonNetwork):
 
     @staticmethod
     def _convert_sequential_to_model(model, compatibility_mode=False):
-        if isinstance(model, Sequential) and DLKerasNetwork._higher_than_keras_2_2_0():
-            # Keras 2.2.0 or higher
-            if compatibility_mode:
-                # Wrap again
-                # -> Training configuration will get lost but this is the best we can do
-                return Model(inputs=model.inputs, outputs=model.outputs)
-            else:
-                # Since Keras 2.2.0 a sequential model is also a model
-                return model
-        elif isinstance(model, Sequential):
-            if model.model and isinstance(model.model, Model):
+        if isinstance(model, Sequential):
+            if DLKerasNetwork._higher_than_keras_2_2_0():
+                # Keras 2.2.0 or higher
+                if compatibility_mode:
+                    # Wrap again
+                    # -> Training configuration will get lost but this is the best we can do
+                    return Model(inputs=model.inputs, outputs=model.outputs)
+                else:
+                    # Since Keras 2.2.0 a sequential model is also a model
+                    return model
+            elif model.model and isinstance(model.model, Model):
                 return model.model
             else:
                 return Model(inputs=model.inputs, outputs=model.outputs)
