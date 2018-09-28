@@ -135,7 +135,7 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInst
      *
      * @param network the network
      * @param context the context
-     * @param loadTrainingConfig true if the training configuration enclosed in <code>source</code> - if any - shall be
+     * @param loadTrainingConfig true if the training configuration enclosed in <code>network</code> - if any - shall be
      *            loaded. This is an optional feature for supporting back ends. For non-supporting back ends, calling
      *            this method with different values for <code>loadTrainingConfig</code> should result in same return
      *            values and side effects.
