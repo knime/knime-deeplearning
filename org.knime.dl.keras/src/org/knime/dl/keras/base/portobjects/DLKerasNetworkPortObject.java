@@ -77,13 +77,10 @@ import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
+import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetwork;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * Keras implementation of a deep learning {@link DLNetworkPortObject network port object}.
@@ -204,12 +201,9 @@ public final class DLKerasNetworkPortObject extends
             .getNetworkLoader((Class<DLKerasNetwork>)m_spec.getNetworkType())
             .orElseThrow(() -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                 + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
-        try (final PythonKernel kernel = DLPythonDefaultContext.createKernel();
-                final DLPythonContext context = new DLPythonDefaultContext(kernel)) {
-            loader.validateSource(networkSource.getURI());
-            final DLPythonNetworkHandle handle =
-                loader.load(oldNetworkSpec.create(networkSource, false), context, true, DLNotCancelable.INSTANCE);
-            return loader.fetch(handle, networkSource, context, DLNotCancelable.INSTANCE);
+        try {
+            return new DLPythonDefaultNetworkReader<>(loader).read(oldNetworkSpec.create(networkSource, false), true,
+                DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
             NodeLogger.getLogger(DLKerasNetworkPortObject.class)
                 .warn("An error occurred while upgrading Keras network specs (required for networks created with older "
