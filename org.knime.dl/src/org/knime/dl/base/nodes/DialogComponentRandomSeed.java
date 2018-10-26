@@ -49,6 +49,7 @@ package org.knime.dl.base.nodes;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -102,7 +103,8 @@ public class DialogComponentRandomSeed extends JPanel implements IDialogComponen
 		gbc.gridx = 1;
 		gbc.weightx = 0;
 		gbc.fill = GridBagConstraints.NONE;
-		add(newButton, gbc);
+        gbc.insets = new Insets(0, 10, 0, 0);
+        add(newButton, gbc);
 	}
 
 	@Override

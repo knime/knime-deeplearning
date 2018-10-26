@@ -195,7 +195,7 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig implements DLGene
 
 		// shuffle options
 		final DefaultConfigEntry<Boolean> shuffleTrainingData = new DefaultConfigEntry<Boolean>(
-				CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, false) {
+				CFG_KEY_SHUFFLE_TRAINING_DATA, Boolean.class, true) {
 			@Override
 			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
 				// backward compatibility (3.6): set to false as we previously did not use any shuffling
@@ -206,7 +206,7 @@ final class DLKerasLearnerGeneralConfig extends AbstractConfig implements DLGene
 		};
 		put(shuffleTrainingData);
 		final DefaultConfigEntry<Long> randomSeed = new DefaultConfigEntry<Long>(CFG_KEY_RANDOM_SEED, Long.class,
-				System.currentTimeMillis(), false) {
+				System.currentTimeMillis()) {
 			@Override
 			protected boolean handleFailureToLoadConfigEntry(final NodeSettingsRO settings, final Exception cause) {
 				// backward compatibility (3.6): set to current system time (shuffling is turned off anyway if this
