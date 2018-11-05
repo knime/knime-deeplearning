@@ -134,7 +134,8 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
     }
 
     private void exporterChanged() {
-        final DLNetworkExporter<?> exporter = EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]).get();
+        final DLNetworkExporter<?> exporter =
+            EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]).get();
         final String[] suffixes = Arrays.stream(exporter.getValidExtensions()).map(s -> "." + s).toArray(String[]::new);
         m_filePanel.setSuffixes(suffixes);
     }
@@ -160,12 +161,26 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
 
         // Load the settings into the dialog components
         m_dcExporterId.loadSettingsFrom(settings, specs);
+        // Force file extension defined by selected exporter
+        m_filePanel.setDialogTypeSaveWithExtension(checkExtensionDot(
+            EXPORTER_REGISTRY.getExporterWithId(m_dcExporterId.getSelection()[1]).get().getValidExtensions()[0]));
         m_dcOverwrite.loadSettingsFrom(settings, specs);
         try {
             m_smFilePath.loadSettingsFrom(settings);
             m_filePanel.setSelectedFile(m_smFilePath.getStringValue());
         } catch (final InvalidSettingsException e) {
             m_smFilePath.setStringValue(m_filePanel.getSelectedFile());
+        }
+    }
+
+    /**
+     * Prefixes a '.' to the given String if not yet present.
+     */
+    private static String checkExtensionDot(final String extension) {
+        if (extension.startsWith(".")) {
+            return extension;
+        } else {
+            return "." + extension;
         }
     }
 
