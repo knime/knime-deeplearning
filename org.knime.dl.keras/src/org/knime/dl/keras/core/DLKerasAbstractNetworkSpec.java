@@ -48,6 +48,9 @@ package org.knime.dl.keras.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import org.knime.core.util.Version;
@@ -65,9 +68,9 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
 
     private static final long serialVersionUID = 1L;
 
-    private final Version m_pythonVersion;
+    private /** final */ Version m_pythonVersion;
 
-    private final Version m_kerasVersion;
+    private /** final */ Version m_kerasVersion;
 
     /**
      * Creates a new instance of this network spec.
@@ -140,5 +143,27 @@ public abstract class DLKerasAbstractNetworkSpec extends DLAbstractNetworkSpec<D
     @Override
     public Version getKerasVersion() {
         return m_kerasVersion;
+    }
+
+    @SuppressWarnings("static-method") // signature must be exactly as is
+    private void writeObject(final ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+    }
+
+    private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        m_pythonVersion = fixBlankQualifier(m_pythonVersion);
+        m_kerasVersion = fixBlankQualifier(m_kerasVersion);
+    }
+
+    private static Version fixBlankQualifier(Version version) {
+        // Older versions of Version don't have a qualifier.
+        // Leaving it blank would lead to an NPE in its compareTo method.
+        // Note that even older versions of this spec don't have such Versions at all.
+        if (version != null && version.getQualifier() == null) {
+            return new Version(version.getMajor(), version.getMinor(), version.getRevision());
+        } else {
+            return version;
+        }
     }
 }

@@ -76,7 +76,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
      * @since 3.6 - This field will default to <code>3.5.0</code> when deserializing older versions of this spec. See
      *        {@link DLNetworkSpec#getBundleVersion()}.
      */
-    private Version m_bundleVersion;
+    private /** final */ Version m_bundleVersion;
 
 	private final DLTensorSpec[] m_inputSpecs;
 
@@ -84,7 +84,7 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 
 	private final DLTensorSpec[] m_outputSpecs;
 
-	private transient Optional<CFG> m_trainingConfig;
+	private /** final */ transient Optional<CFG> m_trainingConfig;
 
 	private transient int m_hashCode = ZERO_HASHCODE;
 
@@ -199,16 +199,21 @@ public abstract class DLAbstractNetworkSpec<CFG extends DLTrainingConfig> implem
 	}
 
 	private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		@SuppressWarnings("unchecked") // we know what we serialized
-		final CFG trainingConfig = (CFG) stream.readObject();
-		m_trainingConfig = Optional.ofNullable(trainingConfig);
+        stream.defaultReadObject();
+        @SuppressWarnings("unchecked") // we know what we serialized
+        final CFG trainingConfig = (CFG)stream.readObject();
+        m_trainingConfig = Optional.ofNullable(trainingConfig);
         if (m_bundleVersion == null) {
             m_bundleVersion = new Version(3, 5, 0);
         }
-
+        // Older versions of Version don't have a qualifier.
+        // Leaving it blank would lead to an NPE in its compareTo method.
+        else if (m_bundleVersion.getQualifier() == null) {
+            m_bundleVersion =
+                new Version(m_bundleVersion.getMajor(), m_bundleVersion.getMinor(), m_bundleVersion.getRevision());
+        }
         m_hashCode = ZERO_HASHCODE;
-	}
+    }
 
 	private int hashCodeInternal() {
 		final HashCodeBuilder b = new HashCodeBuilder(17, 37);
