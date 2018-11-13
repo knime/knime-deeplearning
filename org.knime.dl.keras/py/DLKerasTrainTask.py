@@ -48,7 +48,6 @@
 """
 
 import DLPythonKernelGateway
-from MainThreadExecutor import MainThreadExecutor
 from messaging.AbstractTaskHandler import AbstractTaskHandler
 from messaging.Message import Message
 from messaging.Message import PayloadEncoder
@@ -63,7 +62,7 @@ class DLKerasTrainTask(Task):
         super(DLKerasTrainTask, self).__init__(None, None, self._messaging, self._messaging,
                                                self._messaging.create_receive_queue(),
                                                self._messaging.create_next_message_id,
-                                               self._kernel, MainThreadExecutor(self._kernel._monitor))
+                                               self._kernel, _SynchronousExecutor())
         self._reply_to = str(reply_to)
         self._network = network
         training_data_supplier.request_from_java = self.request_from_java
@@ -95,3 +94,59 @@ class DLKerasTrainTask(Task):
     class _RequestTaskHandler(AbstractTaskHandler):
         def _handle_success_message(self, message):
             return None
+
+
+# TODO: Remove. This was copied from knime-python. Tasks should not need to hold an executor.
+class _SynchronousExecutor(object):
+    """
+    Dummy executor that mimics a part of the interface of Python 3 futures.ThreadPoolExecutor.
+    """
+
+    def __init__(self):
+        self._shutdown = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def submit(self, fn, *args, **kwargs):
+        """
+        Immediately computes the given function using the given arguments. Blocks until computation is completed.
+        """
+        if self._shutdown:
+            raise RuntimeError('cannot schedule new futures after shutdown')
+        future = _SynchronousExecutor._ImmediatelyCompletingFuture(fn, *args, **kwargs)
+        if future.exception() is not None:
+            raise future.exception()
+        else:
+            return future
+
+    def shutdown(self, wait=True):
+        self._shutdown = True
+
+    class _ImmediatelyCompletingFuture(object):
+        """
+        Dummy future that mimics a part of the interface of Python 3 _base.Future.
+        Immediately computes the given function using the given arguments. Blocks until computation is completed.
+        """
+
+        def __init__(self, fn, *args, **kwargs):
+            self._result = None
+            self._exception = None
+            try:
+                result = fn(*args, **kwargs)
+            except BaseException as ex:
+                self._exception = ex
+            else:
+                self._result = result
+
+        def result(self, timout=None):
+            if self._exception:
+                raise self._exception
+            else:
+                return self._result
+
+        def exception(self, timeout=None):
+            return self._exception
