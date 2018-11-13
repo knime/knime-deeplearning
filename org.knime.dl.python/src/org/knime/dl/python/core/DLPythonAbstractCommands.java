@@ -102,6 +102,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
+import org.knime.python2.kernel.PythonIOException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonOutputListener;
 import org.knime.python2.kernel.messaging.AbstractTaskHandler;
@@ -798,6 +799,20 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
             batchMetrics.put("accuracy", new DLReportedMetric("accuracy", 0f));
             batchMetrics.put("loss", new DLReportedMetric("loss", 0f));
+        }
+
+        @Override
+        protected Void handleSuccessMessage(Message message) throws Exception {
+            // TODO: This is a workaround. We have to change knime-python's PythonKernelBase.py#execute to raise a real
+            // error if something goes wrong instead of just reporting to stderr.
+            final PayloadDecoder decoder = new PayloadDecoder(message.getPayload());
+            final String[] outputs = new String[2];
+            outputs[0] = decoder.getNextString();
+            outputs[1] = decoder.getNextString();
+            if (!outputs[1].isEmpty()) {
+                throw new PythonIOException(outputs[1]);
+            }
+            return null;
         }
 
         @Override
