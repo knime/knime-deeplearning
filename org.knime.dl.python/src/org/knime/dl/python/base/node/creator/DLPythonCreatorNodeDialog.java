@@ -76,7 +76,7 @@ final class DLPythonCreatorNodeDialog extends NodeDialogPane {
 
 	DLPythonCreatorNodeDialog() {
 		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonCreatorNodeConfig.getVariableNames(),
-				FlowVariableOptions.parse(getAvailableFlowVariables()));
+				FlowVariableOptions.create(getAvailableFlowVariables()));
 		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
 		m_templatesPanel = new SourceCodeTemplatesPanel(m_sourceCodePanel, "dl-python-creator");
 		addTab("Script", m_sourceCodePanel, false);

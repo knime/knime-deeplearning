@@ -85,7 +85,7 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 
 	DLPythonEditorNodeDialog() {
 		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonEditorNodeConfig.getVariableNames(),
-				FlowVariableOptions.parse(getAvailableFlowVariables()));
+				FlowVariableOptions.create(getAvailableFlowVariables()));
 		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
 		addTab("Script", m_sourceCodePanel, false);
 		addTab("Options", m_sourceCodeOptionsPanel, true);

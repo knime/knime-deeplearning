@@ -94,7 +94,7 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 
 	protected PythonKernelOptions getKernelOptions() {
 		final PythonKernelOptions options = getConfig().getKernelOptions();
-		options.setFlowVariableOptions(FlowVariableOptions.parse(getAvailableFlowVariables()));
+		options.setFlowVariableOptions(FlowVariableOptions.create(getAvailableFlowVariables()));
 		return options;
 	}
 
