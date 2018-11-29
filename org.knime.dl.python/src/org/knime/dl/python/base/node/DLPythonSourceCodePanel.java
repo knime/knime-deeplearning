@@ -48,6 +48,7 @@
  */
 package org.knime.dl.python.base.node;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.python2.config.PythonSourceCodePanel;
 import org.knime.python2.generic.VariableNames;
 import org.knime.python2.kernel.FlowVariableOptions;
@@ -63,14 +64,16 @@ public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
 
 	private static final long serialVersionUID = -3111905445745421972L;
 
-	/**
-	 * @param variableNames
-	 * @param options
-	 * @see PythonSourceCodePanel#PythonSourceCodePanel(VariableNames, FlowVariableOptions)
-	 */
-	public DLPythonSourceCodePanel(final VariableNames variableNames, final FlowVariableOptions options) {
-		super(variableNames, options);
-	}
+    /**
+     * @param parent
+     * @param variableNames
+     * @param options
+     * @see PythonSourceCodePanel#PythonSourceCodePanel(VariableNames, FlowVariableOptions)
+     */
+    public DLPythonSourceCodePanel(final NodeDialogPane parent, final VariableNames variableNames,
+        final FlowVariableOptions options) {
+        super(parent, variableNames, options);
+    }
 
 	@Override
 	public void updateVariables() {

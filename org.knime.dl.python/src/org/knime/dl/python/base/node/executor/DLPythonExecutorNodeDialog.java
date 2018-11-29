@@ -79,93 +79,95 @@ import org.knime.python2.port.PickledObject;
  */
 final class DLPythonExecutorNodeDialog extends DataAwareNodeDialogPane {
 
-	private final DLPythonSourceCodePanel m_sourceCodePanel;
+    private final DLPythonSourceCodePanel m_sourceCodePanel;
 
-	private final PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
+    private final PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
 
-	private WorkspacePreparer m_workspacePreparer;
+    private WorkspacePreparer m_workspacePreparer;
 
-	DLPythonExecutorNodeDialog() {
-		m_sourceCodePanel = new DLPythonSourceCodePanel(DLPythonExecutorNodeConfig.getVariableNames(),
-				FlowVariableOptions.create(getAvailableFlowVariables()));
-		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
-		addTab("Script", m_sourceCodePanel, false);
-		addTab("Options", m_sourceCodeOptionsPanel, true);
-	}
+    DLPythonExecutorNodeDialog() {
+        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonExecutorNodeConfig.getVariableNames(),
+            FlowVariableOptions.create(getAvailableFlowVariables()));
+        m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
+        addTab("Script", m_sourceCodePanel, false);
+        addTab("Options", m_sourceCodeOptionsPanel, true);
+    }
 
-	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
-		m_sourceCodePanel.saveSettingsTo(config);
-		m_sourceCodeOptionsPanel.saveSettingsTo(config);
-		config.saveTo(settings);
-	}
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
+        m_sourceCodePanel.saveSettingsTo(config);
+        m_sourceCodeOptionsPanel.saveSettingsTo(config);
+        config.saveTo(settings);
+    }
 
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws NotConfigurableException {
-		final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
-		config.loadFromInDialog(settings);
-		m_sourceCodePanel.loadSettingsFrom(config, specs);
-		m_sourceCodePanel.updateFlowVariables(
-				getAvailableFlowVariables().values().toArray(new FlowVariable[getAvailableFlowVariables().size()]));
-		m_sourceCodeOptionsPanel.loadSettingsFrom(config);
-		m_sourceCodePanel.updateData(new BufferedDataTable[] { null }, new PickledObject[] { null });
-	}
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        final DLPythonExecutorNodeConfig config = new DLPythonExecutorNodeConfig();
+        config.loadFromInDialog(settings);
+        m_sourceCodePanel.loadSettingsFrom(config, specs);
+        m_sourceCodePanel.updateFlowVariables(
+            getAvailableFlowVariables().values().toArray(new FlowVariable[getAvailableFlowVariables().size()]));
+        m_sourceCodeOptionsPanel.loadSettingsFrom(config);
+        m_sourceCodePanel.updateData(new BufferedDataTable[]{null}, new PickledObject[]{null});
+    }
 
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
-			throws NotConfigurableException {
-		final PortObjectSpec[] specs = new PortObjectSpec[input.length];
-		for (int i = 0; i < specs.length; i++) {
-			specs[i] = input[i] == null ? null : input[i].getSpec();
-		}
-		loadSettingsFrom(settings, specs);
-		final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) input[DLPythonExecutorNodeModel.IN_NETWORK_PORT_IDX];
-		if (portObject != null) {
-			final DLPythonNetwork network;
-			try {
-				network = portObject.getNetwork();
-			} catch (final DLInvalidSourceException | IOException e) {
-				throw new NotConfigurableException(e.getMessage());
-			}
-			if (m_workspacePreparer != null) {
-				m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
-			}
-			m_workspacePreparer = kernel -> {
-				try {
-					NodeContext.pushContext(DLPythonExecutorNodeDialog.this.getNodeContext());
-					DLPythonExecutorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
-					m_sourceCodePanel.updateVariables();
-				} catch (final Exception e) {
-					m_sourceCodePanel.errorToConsole(
-							"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
-				}
-			};
-			m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
-		}
-		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonExecutorNodeModel.IN_DATA_PORT_IDX];
-		if (inTable != null) {
-			// warn user if input table is empty which could lead to unexpected problems in the Python code
-			if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
-				m_sourceCodePanel.messageToConsole("Warning: Input table is empty.");
-			}
-			m_sourceCodePanel.updateData(new BufferedDataTable[] { inTable }, new PickledObject[] {});
-		}
-	}
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
+        throws NotConfigurableException {
+        final PortObjectSpec[] specs = new PortObjectSpec[input.length];
+        for (int i = 0; i < specs.length; i++) {
+            specs[i] = input[i] == null ? null : input[i].getSpec();
+        }
+        loadSettingsFrom(settings, specs);
+        final DLPythonNetworkPortObject<?> portObject =
+            (DLPythonNetworkPortObject<?>)input[DLPythonExecutorNodeModel.IN_NETWORK_PORT_IDX];
+        if (portObject != null) {
+            final DLPythonNetwork network;
+            try {
+                network = portObject.getNetwork();
+            } catch (final DLInvalidSourceException | IOException e) {
+                throw new NotConfigurableException(e.getMessage());
+            }
+            if (m_workspacePreparer != null) {
+                m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
+            }
+            m_workspacePreparer = kernel -> {
+                try {
+                    NodeContext.pushContext(DLPythonExecutorNodeDialog.this.getNodeContext());
+                    DLPythonExecutorNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel),
+                        DLNotCancelable.INSTANCE);
+                    m_sourceCodePanel.updateVariables();
+                } catch (final Exception e) {
+                    m_sourceCodePanel.errorToConsole(
+                        "Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
+                }
+            };
+            m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
+        }
+        final BufferedDataTable inTable = (BufferedDataTable)input[DLPythonExecutorNodeModel.IN_DATA_PORT_IDX];
+        if (inTable != null) {
+            // warn user if input table is empty which could lead to unexpected problems in the Python code
+            if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
+                m_sourceCodePanel.messageToConsole("Warning: Input table is empty.");
+            }
+            m_sourceCodePanel.updateData(new BufferedDataTable[]{inTable}, new PickledObject[]{});
+        }
+    }
 
-	@Override
-	public boolean closeOnESC() {
-		return false;
-	}
+    @Override
+    public boolean closeOnESC() {
+        return false;
+    }
 
-	@Override
-	public void onOpen() {
-		m_sourceCodePanel.open();
-	}
+    @Override
+    public void onOpen() {
+        m_sourceCodePanel.open();
+    }
 
-	@Override
-	public void onClose() {
-		m_sourceCodePanel.close();
-	}
+    @Override
+    public void onClose() {
+        m_sourceCodePanel.close();
+    }
 }
