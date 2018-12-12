@@ -43,45 +43,60 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 16, 2017 (marcel): created
  */
 package org.knime.dl.base.portobjects;
 
-import javax.swing.JComponent;
+import java.util.OptionalLong;
 
 import org.knime.core.node.ModelContent;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.ModelContentWO;
+import org.knime.core.node.port.AbstractSimplePortObject;
 import org.knime.core.node.workflow.ModelContentOutPortView;
-import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLNetworkSpec;
+import org.knime.dl.core.DLTensorSpec;
 
 /**
- * Base interface for all deep learning port object specs.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author David Kolb, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkPortObjectSpec extends PortObjectSpec {
+public class DLNetworkPortObjectSpecUtils {
 
-	/**
-	 * Returns the contained {@link DLNetworkSpec}.
-	 *
-	 * @return the network spec
-	 */
-	DLNetworkSpec getNetworkSpec();
+    private DLNetworkPortObjectSpecUtils() {
+        // Utils class
+    }
 
-	/**
-	 * Returns the type of the network that is associated with the contained network spec.
-	 *
-	 * @return the type of the network
-	 */
-	Class<? extends DLNetwork> getNetworkType();
+    /**
+     * Writes the meta info contained in the specified {@link DLNetworkSpec} to a newly created {@link ModelContent} (to
+     * abuse the {@link ModelContentOutPortView}, which is e.g. used in {@link AbstractSimplePortObject}) in order to
+     * create a nice tree view.
+     * 
+     * @param dlSpecs the specs to convert
+     * @param name the name of the tree root
+     * @return {@link ModelContent} containing meta info of the specified {@link DLNetworkSpec}
+     */
+    public static ModelContent networkSpecToModelContent(final DLNetworkSpec dlSpecs, final String name) {
+        final ModelContent model = new ModelContent(name);
+        addDLTensorSpecsToModelContent(model, dlSpecs.getInputSpecs(), "Input Specs");
+        addDLTensorSpecsToModelContent(model, dlSpecs.getHiddenOutputSpecs(), "Hidden Specs");
+        addDLTensorSpecsToModelContent(model, dlSpecs.getOutputSpecs(), "Output Specs");
+        return model;
+    }
 
-	@Override
-	default JComponent[] getViews() {
-	    final ModelContent model = DLNetworkPortObjectSpecUtils.networkSpecToModelContent(getNetworkSpec(),
-	        DLNetworkPortObject.SUMMARY);
-	    return new JComponent[] {new ModelContentOutPortView(model)};
-	}
+    private static void addDLTensorSpecsToModelContent(final ModelContent model, final DLTensorSpec[] tensorSpecs,
+        String id) {
+        ModelContentWO content = model.addModelContent(id);
+
+        for (DLTensorSpec spec : tensorSpecs) {
+            final String tensorSummary = spec.getIdentifier().getIdentifierString() + " " + spec.getShape().toString();
+            final ModelContentWO specContent = content.addModelContent(tensorSummary);
+            specContent.addString("Name", spec.getName());
+            specContent.addString("Id", spec.getIdentifier().getIdentifierString());
+            specContent.addString("Shape", spec.getShape().toString());
+            final OptionalLong ol = spec.getBatchSize();
+            specContent.addString("Batch Size", ol.isPresent() ? ol.getAsLong() + "" : "<none>");
+            specContent.addString("Element Type", spec.getElementType().getSimpleName());
+            final DLDimensionOrder dimo = spec.getDimensionOrder();
+            specContent.addString("Dimension Order", dimo != null ? dimo.name() : "<none>");
+        }
+    }
 }
