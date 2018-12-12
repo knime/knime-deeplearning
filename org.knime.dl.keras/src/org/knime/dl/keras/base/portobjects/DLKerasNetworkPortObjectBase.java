@@ -63,7 +63,7 @@ public interface DLKerasNetworkPortObjectBase extends DLPythonNetworkPortObject<
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLKerasNetworkPortObjectBase.class);
 
 	@Override
-	default String getSummary() {
+	default String getModelName() {
 		return "Keras Deep Learning Network";
 	}
 

@@ -70,6 +70,7 @@ import org.knime.core.util.DuplicateKeyException;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLTensorSpec;
 
 import com.google.common.base.Strings;
 
@@ -80,6 +81,11 @@ import com.google.common.base.Strings;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetworkPortObject extends PortObject {
+    
+    /**
+     * Default name of the DLNetworkPortObject.
+     */
+    public static final String SUMMARY = "Deep Learning Network";
 
 	/**
 	 * The base deep learning network port type.
@@ -147,9 +153,39 @@ public interface DLNetworkPortObject extends PortObject {
 	 */
 	DLNetwork getNetwork() throws DLInvalidSourceException, IOException;
 
-	@Override
-	default String getSummary() {
-		return "Deep Learning Network";
+    /**
+     * Create a short summary of this DL network containing the network name ({@link #getModelName()}) and the shape of
+     * the first three output tensors. If this is not desired, overwrite this method. Otherwise overwrite
+     * {@link #getModelName()}, which will change the displayed network name.
+     */
+    @Override
+    default String getSummary() {
+        String summary = getModelName();
+        summary += ", Output Shape(s): ";
+
+        int i = 0;
+        for (DLTensorSpec spec : getSpec().getNetworkSpec().getOutputSpecs()) {
+            if (i < 3) {
+                summary += spec.getShape().toString();
+                summary += ", ";
+            } else {
+                summary = summary.substring(0, summary.length() - 2);
+                summary += " ...";
+                break;
+            }
+            i++;
+        }
+        if (getSpec().getNetworkSpec().getOutputSpecs().length <= 3) {
+            summary = summary.substring(0, summary.length() - 2);
+        }
+        return summary;
+    }
+
+	/**
+	 * @return Human readable name of this model type.
+	 */
+	default String getModelName() {
+	    return SUMMARY;
 	}
 
 	@Override

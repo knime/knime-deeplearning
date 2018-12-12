@@ -23,7 +23,7 @@ public interface DLPythonNetworkPortObject<N extends DLNetwork & DLPythonNetwork
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLPythonNetworkPortObject.class);
 
 	@Override
-	default String getSummary() {
+	default String getModelName() {
 		return "Python-compatible Deep Learning Network";
 	}
 
