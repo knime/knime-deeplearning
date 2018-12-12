@@ -61,9 +61,11 @@ import javax.swing.JComponent;
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ModelContent;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
+import org.knime.core.node.workflow.ModelContentOutPortView;
 import org.knime.core.util.DuplicateKeyException;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLInvalidSourceException;
@@ -155,6 +157,8 @@ public interface DLNetworkPortObject extends PortObject {
 
 	@Override
 	default JComponent[] getViews() {
-		return new JComponent[0];
+	    final ModelContent model = DLNetworkPortObjectSpecUtils.networkSpecToModelContent(getSpec()
+	        .getNetworkSpec(), getSummary());
+        return new JComponent[] {new ModelContentOutPortView(model)};
 	}
 }
