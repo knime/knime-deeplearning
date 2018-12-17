@@ -132,3 +132,11 @@ class DLPythonLongBuffer(DLPythonDataBuffer):
 		"""
 		super(DLPythonLongBuffer, self).__init__(array)
 
+class DLPythonStringBuffer(DLPythonDataBuffer):
+	def __init__(self, array):
+		"""
+		Creates a new string buffer that simply wraps a numpy.ndarray.
+		:param array: The numpy.ndarray.
+		"""
+		super(DLPythonStringBuffer, self).__init__(array)
+

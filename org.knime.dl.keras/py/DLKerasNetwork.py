@@ -73,6 +73,7 @@ from DLPythonDataBuffers import DLPythonUnsignedByteBuffer
 from DLPythonDataBuffers import DLPythonShortBuffer
 from DLPythonDataBuffers import DLPythonIntBuffer
 from DLPythonDataBuffers import DLPythonLongBuffer
+from DLPythonDataBuffers import DLPythonStringBuffer
 from DLPythonInstallationTester import compare_versions
 from DLPythonNetwork import DLPythonNetwork
 from DLPythonNetwork import DLPythonNetworkReader
@@ -281,6 +282,8 @@ class DLKerasNetwork(DLPythonNetwork):
             return DLPythonIntBuffer(y)
         elif t == np.int64:
             return DLPythonLongBuffer(y)
+        elif t == np.object:
+            return DLPythonStringBuffer(y)
         # TODO: support more types
         else:
             raise ValueError('Output type of the network \'{}\' is not supported.'.format(y.dtype))
