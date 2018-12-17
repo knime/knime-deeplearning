@@ -63,6 +63,7 @@ import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLReadableShortBuffer;
+import org.knime.dl.core.data.DLReadableStringBuffer;
 import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
 import org.knime.dl.core.data.DLWritableBitBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
@@ -72,6 +73,7 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
 import org.knime.dl.core.data.DLWritableShortBuffer;
+import org.knime.dl.core.data.DLWritableStringBuffer;
 import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
 import org.knime.dl.python.core.data.DLPythonBitBuffer;
 import org.knime.dl.python.core.data.DLPythonByteBuffer;
@@ -80,6 +82,7 @@ import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.python.core.data.DLPythonShortBuffer;
+import org.knime.dl.python.core.data.DLPythonStringBuffer;
 import org.knime.dl.python.core.data.DLPythonUnsignedByteBuffer;
 import org.knime.dl.util.DLUtils;
 
@@ -110,6 +113,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLWritableIntBuffer.class;
 		} else if (t.equals(long.class)) {
 			return DLWritableLongBuffer.class;
+		} else if (t.equals(String.class)) {
+		    return DLWritableStringBuffer.class;
 		} else {
             throw new IllegalArgumentException(
                 "The element type '" + t.getTypeName() + "' of tensor '" + spec.getName() + "' is not supported.");
@@ -135,6 +140,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			return DLReadableIntBuffer.class;
 		} else if (t.equals(long.class)) {
 			return DLReadableLongBuffer.class;
+        } else if (t.equals(String.class)) {
+            return DLReadableStringBuffer.class;
 		} else {
             throw new IllegalArgumentException(
                 "The element type '" + t.getTypeName() + "' of tensor '" + spec.getName() + "' is not supported.");
@@ -187,6 +194,8 @@ public final class DLPythonDefaultTensorFactory implements DLTensorFactory {
 			s = () -> (B) new DLPythonIntBuffer(size);
 		} else if (t.equals(long.class)) {
 			s = () -> (B) new DLPythonLongBuffer(size);
+        } else if (t.equals(String.class)) {
+            s = () -> (B) new DLPythonStringBuffer(size);
 		} else {
 			throw new IllegalArgumentException("No matching tensor type for tensor spec '" + spec.getName() + "'.");
 		}

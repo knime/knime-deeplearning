@@ -85,6 +85,7 @@ public final class DLPythonNumPyTypeMap implements DLPythonTypeMap {
 		registerMapping("float32", float.class);
 		registerMapping("float64", double.class);
 		registerMapping("str", String.class);
+		registerMapping("string", String.class);
 	}
 
 	@Override
