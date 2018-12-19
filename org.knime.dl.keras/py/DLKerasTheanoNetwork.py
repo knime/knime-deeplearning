@@ -71,7 +71,7 @@ class DLKerasTheanoNetworkReader(DLKerasNetworkReader):
 
 class DLKerasTheanoNetwork(DLKerasNetwork):
 
-    def __init__(self, mode, compatibility_mode=Falsel):
+    def __init__(self, mode, compatibility_mode=False):
         super().__init__(model, compatibility_mode)
 
     def _extract_model_spec(self):
