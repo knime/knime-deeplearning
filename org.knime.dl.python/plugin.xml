@@ -44,6 +44,11 @@
             java-serializer-factory="org.knime.dl.python.core.data.serde.DLPythonLongBufferSerializerFactory"
             python-deserializer="py/DLPythonLongBufferDeserializer.py">
       </type>
+      <type
+            id="org.knime.dl.python.core.data.serde.DLPythonStringBufferSerializerFactory"
+            java-serializer-factory="org.knime.dl.python.core.data.serde.DLPythonStringBufferSerializerFactory"
+            python-deserializer="py/DLPythonStringBufferDeserializer.py">
+      </type>
    </extension>
    <extension
          point="org.knime.python.typeextension.pythontoknime">
@@ -94,6 +99,12 @@
             java-deserializer-factory="org.knime.dl.python.core.data.serde.DLPythonLongBufferDeserializerFactory"
             python-serializer="py/DLPythonLongBufferSerializer.py"
             python-type-identifier="DLPythonDataBuffers.DLPythonLongBuffer">
+      </type>
+      <type
+            id="org.knime.dl.python.core.data.serde.DLPythonStringBufferDeserializerFactory"
+            java-deserializer-factory="org.knime.dl.python.core.data.serde.DLPythonStringBufferDeserializerFactory"
+            python-serializer="py/DLPythonStringBufferSerializer.py"
+            python-type-identifier="DLPythonDataBuffers.DLPythonStringBuffer">
       </type>
    </extension>
    <extension
