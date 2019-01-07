@@ -58,7 +58,7 @@ import org.knime.dl.keras.core.config.constraint.DLKerasConstraint;
 import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices2;
 import org.knime.dl.keras.core.config.initializer.DLKerasInitializer;
 import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices2;
-import org.knime.dl.keras.core.config.initializer.DLKerasRandomUniformInitializer;
+import org.knime.dl.keras.core.config.initializer.DLKerasRandomUniformInitializer2;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices2;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
@@ -86,7 +86,7 @@ public final class DLKerasEmbeddingLayer2 extends DLKerasAbstractUnaryLayer {
     private int m_outputDim = 1;
 
     @Parameter(label = "Initializer", choices = DLKerasInitializerChoices2.class, tab = "Advanced")
-    private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer();
+    private DLKerasInitializer m_initializer = new DLKerasRandomUniformInitializer2();
 
     @Parameter(label = "Embedding regularizer", required = Required.OptionalAndNotEnabled,
         choices = DLKerasRegularizerChoices2.class, tab = "Advanced")
