@@ -111,8 +111,20 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 			}
 		};
 	}
-	
-	private int getFeatureDimSize(DLTensorSpec tensorSpec) {
+
+    @Override
+    protected long[] getDataShapeInternal(CollectionDataValue element, DLTensorSpec tensorSpec) {
+        checkType(element.getElementType());
+        long featureDimSize = getFeatureDimSize(tensorSpec);
+        for (DataCell cell : element) {
+            checkCellNotMissing(cell);
+            IntCell intCell = (IntCell)cell;
+            checkIndexValid(intCell.getIntValue(), featureDimSize);
+        }
+        return new long[]{element.size(), featureDimSize};
+    }
+
+    private static int getFeatureDimSize(DLTensorSpec tensorSpec) {
 		DLTensorShape shape = tensorSpec.getShape();
 		// in case of 2D time series, the feature dimension is always the last one
 		long featureDimSize = DLUtils.Shapes.getDimSize(shape, shape.getNumDimensions() - 1)
@@ -126,31 +138,18 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 		return (int) featureDimSize;
 	}
 
-    private void checkType(DataType type) {
+    private static void checkType(DataType type) {
         CheckUtils.checkArgument(type.equals(DataType.getType(IntCell.class)),
             "The %s converter supports only integer collections. The given collection has the common type '%s'."
                 + " Make sure that the collection contains only integer values.",
             NAME, type.toPrettyString());
     }
 
-	private void checkIndexValid(int index, long featureDimSize) {
-		CheckUtils.checkArgument(index >= 0, "Negative index encountered.");
-		CheckUtils.checkArgument(index < featureDimSize,
-				"The index %s exceeds the size of the feature dimension %s.",
-				index, featureDimSize);
-	}
-	
-	@Override
-	protected long[] getDataShapeInternal(CollectionDataValue element, DLTensorSpec tensorSpec) {
-		checkType(element.getElementType());
-		long featureDimSize = getFeatureDimSize(tensorSpec);
-		for (DataCell cell : element) {
-            checkCellNotMissing(cell);
-			IntCell intCell = (IntCell) cell;
-			checkIndexValid(intCell.getIntValue(), featureDimSize);
-		}
-		return new long[] {element.size(), featureDimSize};
-	}
+    private static void checkIndexValid(int index, long featureDimSize) {
+        CheckUtils.checkArgument(index >= 0, "Negative index encountered.");
+        CheckUtils.checkArgument(index < featureDimSize, "The index %s exceeds the size of the feature dimension %s.",
+            index, featureDimSize);
+    }
 
     private static void checkCellNotMissing(final DataCell cell) {
         CheckUtils.checkArgument(!cell.isMissing(),
