@@ -58,7 +58,7 @@ import org.knime.dl.keras.core.config.constraint.DLKerasConstraintChoices2;
 import org.knime.dl.keras.core.config.initializer.DLKerasGlorotUniformInitializer;
 import org.knime.dl.keras.core.config.initializer.DLKerasInitializer;
 import org.knime.dl.keras.core.config.initializer.DLKerasInitializerChoices2;
-import org.knime.dl.keras.core.config.initializer.DLKerasOrthogonalInitializer;
+import org.knime.dl.keras.core.config.initializer.DLKerasOrthogonalInitializer2;
 import org.knime.dl.keras.core.config.initializer.DLKerasZerosInitializer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizer;
 import org.knime.dl.keras.core.config.regularizer.DLKerasRegularizerChoices2;
@@ -80,7 +80,7 @@ abstract class DLKerasAbstractRNNLayer2 extends DLKerasAbstractInnerLayer implem
     private DLKerasInitializer m_kernelInitializer = new DLKerasGlorotUniformInitializer();
 
     @Parameter(label = "Recurrent initializer", choices = DLKerasInitializerChoices2.class, tab = "Initializers")
-    private DLKerasInitializer m_recurrentInitializer = new DLKerasOrthogonalInitializer();
+    private DLKerasInitializer m_recurrentInitializer = new DLKerasOrthogonalInitializer2();
 
     @Parameter(label = "Bias initializer", choices = DLKerasInitializerChoices2.class, tab = "Initializers")
     private DLKerasInitializer m_biasInitializer = new DLKerasZerosInitializer();
