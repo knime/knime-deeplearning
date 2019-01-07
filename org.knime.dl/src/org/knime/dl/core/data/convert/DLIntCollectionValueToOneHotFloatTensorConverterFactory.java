@@ -101,6 +101,7 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 				int featureDimSize = getFeatureDimSize(output.getSpec());
 				byte[] dummyVector = new byte[featureDimSize];
 				for (DataCell cell : element) {
+                    checkCellNotMissing(cell);
 					int index = ((IntCell)cell).getIntValue();
 					checkIndexValid(index, featureDimSize);
 					dummyVector[index] = 1;
@@ -144,10 +145,17 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 		checkType(element.getElementType());
 		long featureDimSize = getFeatureDimSize(tensorSpec);
 		for (DataCell cell : element) {
+            checkCellNotMissing(cell);
 			IntCell intCell = (IntCell) cell;
 			checkIndexValid(intCell.getIntValue(), featureDimSize);
 		}
 		return new long[] {element.size(), featureDimSize};
 	}
 
+    private static void checkCellNotMissing(final DataCell cell) {
+        CheckUtils.checkArgument(!cell.isMissing(),
+            "The input collection contains a missing cell which is not supported by the %s converter. "
+                + "Make sure that the collections contain no missing values.",
+            NAME);
+    }
 }
