@@ -124,12 +124,14 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 		}
 		return (int) featureDimSize;
 	}
-	
-	private void checkType(DataType type) {
-		CheckUtils.checkArgument(type.equals(DataType.getType(IntCell.class)),
-				"This converter supports only integer collections");
-	}
-	
+
+    private void checkType(DataType type) {
+        CheckUtils.checkArgument(type.equals(DataType.getType(IntCell.class)),
+            "The %s converter supports only integer collections. The given collection has the common type '%s'."
+                + " Make sure that the collection contains only integer values.",
+            NAME, type.toPrettyString());
+    }
+
 	private void checkIndexValid(int index, long featureDimSize) {
 		CheckUtils.checkArgument(index >= 0, "Negative index encountered.");
 		CheckUtils.checkArgument(index < featureDimSize,
