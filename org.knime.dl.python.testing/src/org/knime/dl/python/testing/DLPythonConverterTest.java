@@ -183,23 +183,25 @@ public class DLPythonConverterTest {
 
         try (final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
             outputConverters.keySet(), new DLNetworkInputPreparer() {
+                private boolean hasNext = true;
 
-            @Override
-            public long getNumBatches() {
-                return 1;
-            }
+                @Override
+                public boolean hasNext() {
+                    return hasNext;
+                };
 
-            @Override
-            public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
+                @Override
+                public void prepareNext(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
                     throws DLCanceledExecutionException, DLInvalidNetworkInputException {
-                for (Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
-                    final DLTensorId identifier = entry.getKey();
-                    final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
-                    final DLDataValueToTensorConverter converter = inputConverters.get(identifier)
-                            .createConverter();
-                    converter.convert(inputs.get(identifier), tensor);
+                    for (Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
+                        final DLTensorId identifier = entry.getKey();
+                        final DLTensor<? extends DLWritableBuffer> tensor = entry.getValue();
+                        final DLDataValueToTensorConverter converter =
+                            inputConverters.get(identifier).createConverter();
+                        converter.convert(inputs.get(identifier), tensor);
+                    }
+                    hasNext = false;
                 }
-            }
 
             @Override
             public void close() throws Exception {

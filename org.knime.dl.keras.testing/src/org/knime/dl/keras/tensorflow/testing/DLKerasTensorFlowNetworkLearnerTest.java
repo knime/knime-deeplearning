@@ -62,7 +62,7 @@ import org.junit.Test;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLTensor;
@@ -134,12 +134,25 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
 		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
-				executionInputSpecs, new DLNetworkInputPreparer() {
+            executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
+                private long currentBatch = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return currentBatch < getNumBatches();
+                }
 
 					@Override
 					public long getNumBatches() {
 						return dataSetSize / batchSize;
 					}
+
+                @Override
+                public void prepareNext(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
+                    throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+                    prepare(input, currentBatch);
+                    currentBatch++;
+                }
 
 					@Override
 					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
@@ -204,12 +217,25 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
 		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
-				executionInputSpecs, new DLNetworkInputPreparer() {
+            executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
+                private long currentBatch = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return currentBatch < getNumBatches();
+                }
 
 					@Override
 					public long getNumBatches() {
 						return dataSetSize / batchSize;
 					}
+
+                @Override
+                public void prepareNext(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
+                    throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+                    prepare(input, currentBatch);
+                    currentBatch++;
+                }
 
 					@Override
 					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
