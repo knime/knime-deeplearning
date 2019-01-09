@@ -51,7 +51,6 @@ import java.util.Map.Entry;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.node.NodeLogger;
-import org.knime.dl.core.DLAbstractKnimeNetworkInputPreparer;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLRowIterator;
@@ -65,7 +64,7 @@ import org.knime.dl.util.DLUtils;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKnimeNetworkValidationInputPreparer extends DLAbstractKnimeNetworkInputPreparer {
+public final class DLKnimeNetworkValidationInputPreparer extends DLAbstractKnimeNetworkFixedSizeInputPreparer {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKnimeNetworkValidationInputPreparer.class);
 
