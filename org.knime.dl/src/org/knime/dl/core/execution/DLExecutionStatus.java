@@ -46,7 +46,7 @@
  */
 package org.knime.dl.core.execution;
 
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import org.knime.dl.core.DLEvent;
 
@@ -61,12 +61,12 @@ public interface DLExecutionStatus {
 	/**
 	 * @return empty if the number of batches is not known, e.g. in case of streaming
 	 */
-	OptionalInt getNumBatches();
+    OptionalLong getNumBatches();
 
 	/**
 	 * @return <code>-1</code> if execution did not yet start
 	 */
-	int getCurrentBatch();
+    long getCurrentBatch();
 
 	// events:
 

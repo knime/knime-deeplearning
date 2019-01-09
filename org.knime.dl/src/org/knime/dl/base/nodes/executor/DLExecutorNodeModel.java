@@ -650,9 +650,9 @@ final class DLExecutorNodeModel extends NodeModel {
         final DLExecutionStatus status = createExecutionStatus(inputPreparer);
         final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
         monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
-        	final int currBatch = status.getCurrentBatch() + 1;
+            final long currBatch = status.getCurrentBatch() + 1;
         	if (status.getNumBatches().isPresent()) {
-        		final int numBatch = status.getNumBatches().getAsInt();
+                final long numBatch = status.getNumBatches().getAsLong();
         		monitor.setProgress(currBatch / (double) numBatch,
         				"Processing batch " + currBatch + " of " + numBatch + "...");
         	} else {
