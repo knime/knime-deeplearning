@@ -59,7 +59,7 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidNetworkInputException;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLNetworkInputProvider;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorFactory;
@@ -167,10 +167,10 @@ public abstract class DLAbstractNetworkTrainingSession<S extends DLTrainingStatu
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-	protected DLAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
-			final Set<DLTensorSpec> executionInputSpecs, final DLNetworkInputPreparer trainingInputPreparer,
-			final DLNetworkInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
-		checkArgument(areInputSpecsCongruent(checkNotNull(network), checkNotNull(executionInputSpecs)),
+    protected DLAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
+        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+        final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
+        checkArgument(areInputSpecsCongruent(checkNotNull(network), checkNotNull(executionInputSpecs)),
 				"Network input specs and execution input specs differ.");
 		checkArgument(areExecInputSpecsFullyDefined(executionInputSpecs),
 				"Execution input specs are not fully defined.");
