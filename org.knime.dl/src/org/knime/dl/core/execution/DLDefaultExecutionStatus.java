@@ -46,7 +46,7 @@
  */
 package org.knime.dl.core.execution;
 
-import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 import org.knime.dl.core.DLDefaultEvent;
 import org.knime.dl.core.DLEvent;
@@ -57,29 +57,34 @@ import org.knime.dl.core.DLEvent;
  */
 public class DLDefaultExecutionStatus implements DLExecutionStatus {
 
-	private final OptionalInt m_numBatches;
+    private final OptionalLong m_numBatches;
 
-	private int m_currentBatch = -1;
+    private long m_currentBatch = -1;
 
 	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
 
-	public DLDefaultExecutionStatus(final int numBatches) {
-		m_numBatches = OptionalInt.of(numBatches);
+    public DLDefaultExecutionStatus(final OptionalLong numBatches) {
+        m_numBatches = numBatches;
+        subscribeToBatchEnded();
+    }
+
+    public DLDefaultExecutionStatus(final long numBatches) {
+        m_numBatches = OptionalLong.of(numBatches);
 		subscribeToBatchEnded();
 	}
 
 	public DLDefaultExecutionStatus() {
-		m_numBatches = OptionalInt.empty();
+        m_numBatches = OptionalLong.empty();
 		subscribeToBatchEnded();
 	}
 
 	@Override
-	public OptionalInt getNumBatches() {
+    public OptionalLong getNumBatches() {
 		return m_numBatches;
 	}
 
 	@Override
-	public int getCurrentBatch() {
+    public long getCurrentBatch() {
 		return m_currentBatch;
 	}
 
