@@ -583,7 +583,7 @@ final class DLExecutorNodeModel extends NodeModel {
 						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
 								batchSize, columnsForTensorId, m_inputConverters),
 						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
-			final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer);
+            final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer.getNumBatches());
 			session.run(monitor);
 		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
 			throw e;
@@ -646,8 +646,8 @@ final class DLExecutorNodeModel extends NodeModel {
     }
 
     private static DLKnimeExecutionMonitor createExecutionMonitor(final ExecutionContext exec,
-        final DLKnimeNetworkExecutionInputPreparer inputPreparer) {
-        final DLExecutionStatus status = createExecutionStatus(inputPreparer);
+        final OptionalLong numBatches) {
+        final DLExecutionStatus status = new DLDefaultExecutionStatus(numBatches);
         final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
         monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
             final long currBatch = status.getCurrentBatch() + 1;
@@ -661,17 +661,6 @@ final class DLExecutorNodeModel extends NodeModel {
         });
         return monitor;
     }
-
-	private static DLExecutionStatus createExecutionStatus(final DLKnimeNetworkExecutionInputPreparer inputPreparer) {
-	    int numBatches = -1;
-        try {
-            numBatches = (int) inputPreparer.getNumBatches();
-        } catch (final UnsupportedOperationException ex) {
-            // ignore - we now know that we don't know the number of batches
-        }
-        return numBatches != -1 ? new DLDefaultExecutionStatus(numBatches)
-                : new DLDefaultExecutionStatus();
-	}
 
 	// workaround; when changing code here, also update DLExecutorInputPanel#getAllowedInputColumnType
 	private static Class<? extends DataValue> getAllowedInputColumnType(final DLExecutorInputConfig inputCfg) {
