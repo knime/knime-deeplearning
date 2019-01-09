@@ -118,13 +118,11 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 		}
 		final DLExecutionStatus status = monitor.getExecutionStatus();
 		long currentInBatchSize = m_expectedBatchSize;
-		final long numBatches = m_inputPreparer.getNumBatches();
-		final long lastBatchIndex = numBatches - 1;
-		for (long i = 0; i < numBatches; i++) {
+        while (m_inputPreparer.hasNext()) {
 			monitor.checkCanceled();
-			m_inputPreparer.prepare(m_input, i);
+            m_inputPreparer.prepareNext(m_input);
 			monitor.checkCanceled();
-			if (i == lastBatchIndex) {
+            if (!m_inputPreparer.hasNext()) {
 				// last batch might be incomplete
 				final DLTensor<? extends DLWritableBuffer> tensor = m_input.values().stream().findAny().get();
 				currentInBatchSize = tensor.getBuffer().size() / tensor.getExampleSize();
