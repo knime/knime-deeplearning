@@ -55,13 +55,10 @@ import org.knime.dl.core.data.DLWritableBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkInputPreparer extends AutoCloseable {
+public interface DLNetworkFixedSizeInputPreparer extends DLNetworkInputPreparer {
 
-    /**
-     * @return true if the input preparer has a next element
-     */
-    boolean hasNext();
+    long getNumBatches();
 
-    void prepareNext(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
+    void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
         throws DLCanceledExecutionException, DLInvalidNetworkInputException;
 }
