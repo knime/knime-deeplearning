@@ -52,7 +52,7 @@ import java.util.Set;
 import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 
 /**
@@ -99,7 +99,7 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 * @return the created training session
 	 * @throws IllegalArgumentException if failed to create the training session due to invalid arguments
 	 */
-	DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
-			Set<DLTensorSpec> executionInputSpecs, DLNetworkInputPreparer trainingInputPreparer,
-			DLNetworkInputPreparer validationInputPreparer);
+    DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
+        Set<DLTensorSpec> executionInputSpecs, DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+        DLNetworkFixedSizeInputPreparer validationInputPreparer);
 }
