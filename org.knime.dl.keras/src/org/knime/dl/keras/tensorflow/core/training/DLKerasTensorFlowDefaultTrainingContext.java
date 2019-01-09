@@ -52,7 +52,7 @@ import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
@@ -84,9 +84,10 @@ public final class DLKerasTensorFlowDefaultTrainingContext
     }
 
 	@Override
-	public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLKerasTensorFlowNetwork network,
-			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer) {
+    public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLKerasTensorFlowNetwork network,
+        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+        final DLNetworkFixedSizeInputPreparer validationInputPreparer) {
 		return new DLKerasTensorFlowNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
 				trainingInputPreparer, validationInputPreparer, getTensorFactory());
 	}

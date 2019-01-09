@@ -50,7 +50,7 @@ import java.util.Set;
 
 import org.knime.dl.core.DLFixedTensorShape;
 import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLNetworkInputPreparer;
+import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
@@ -79,10 +79,10 @@ public final class DLKerasTheanoNetworkTrainingSession
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-	public DLKerasTheanoNetworkTrainingSession(final DLKerasTheanoNetwork network,
-			final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-			final DLNetworkInputPreparer trainingInputPreparer, final DLNetworkInputPreparer validationInputPreparer,
-			final DLTensorFactory tensorFactory) {
+    public DLKerasTheanoNetworkTrainingSession(final DLKerasTheanoNetwork network,
+        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+        final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
 		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
 				tensorFactory);
 	}
