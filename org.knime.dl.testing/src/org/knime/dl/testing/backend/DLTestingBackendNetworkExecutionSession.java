@@ -82,8 +82,8 @@ public class DLTestingBackendNetworkExecutionSession
     @Override
     protected void executeInternal(final DLExecutionMonitor monitor) throws DLCanceledExecutionException, Exception {
         // we fake some network activity here: unwrap floats, calc some stuff, create doubles...
-        for (long i = 0; i < m_inputPreparer.getNumBatches(); i++) {
-            m_inputPreparer.prepare(m_input, i);
+        while (m_inputPreparer.hasNext()) {
+            m_inputPreparer.prepareNext(m_input);
             for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> in : m_input.entrySet()) {
                 // TODO: we can't be sure that casting will work here
                 final DLWrappingDataBuffer<float[]> buffer = (DLWrappingDataBuffer<float[]>)in.getValue().getBuffer();

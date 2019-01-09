@@ -107,18 +107,20 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 		final Set<DLTensorId> requestedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0].getIdentifier());
 		try (final DLKerasTensorFlowNetworkExecutionSession session = ctx.createExecutionSession(network,
 				executionInputSpecs, requestedOutputs, new DLNetworkInputPreparer() {
+                private int currentBatch = 0;
+
+                @Override
+                public boolean hasNext() {
+                    return currentBatch < 3;
+                }
 
 					@Override
-					public long getNumBatches() throws UnsupportedOperationException {
-						return 3;
-					}
-
-					@Override
-					public void prepare(Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, long batchIndex)
-							throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+                public void prepareNext(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
+                    throws DLCanceledExecutionException, DLInvalidNetworkInputException {
 						for (final Entry<DLTensorId, DLTensor<? extends DLWritableBuffer>> entry : input.entrySet()) {
 							populate(entry.getValue());
 						}
+                    currentBatch++;
 					}
 
 					@Override
