@@ -49,6 +49,7 @@ package org.knime.dl.core.execution;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalLong;
 import java.util.Queue;
 
 import org.knime.core.data.DataRow;
@@ -91,18 +92,27 @@ public final class DLKnimeNetworkExecutionInputPreparer extends DLAbstractKnimeN
 		m_baseRows = new ArrayDeque<>(batchSize);
 	}
 
-	@Override
-	public long getNumBatches() {
-		return (long) Math.ceil(m_iterator.size() / (double) m_batchSize);
+    public OptionalLong getNumBatches() {
+	    try {
+	        return OptionalLong.of((long) Math.ceil(m_iterator.size() / (double) m_batchSize));
+        } catch (final UnsupportedOperationException e) {
+            // The iterator doens't know how long the table is
+            return OptionalLong.empty();
+	    }
 	}
 
 	public Queue<DataRow> getBaseRows() {
 		return m_baseRows;
 	}
 
-	@Override
-	public void prepare(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input, final long batchIndex)
-			throws DLCanceledExecutionException, DLInvalidNetworkInputException {
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
+    }
+
+    @Override
+    public void prepareNext(final Map<DLTensorId, DLTensor<? extends DLWritableBuffer>> input)
+        throws DLCanceledExecutionException {
 		long i;
 		for (i = 0; i < m_batchSize; i++) {
 			if (!m_iterator.hasNext()) {
