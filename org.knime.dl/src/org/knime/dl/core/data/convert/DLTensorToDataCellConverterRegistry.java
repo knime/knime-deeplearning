@@ -93,7 +93,11 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 		return instance;
 	}
 
+    /** Map of the non deprecated converters */
 	private final HashMap<String, DLTensorToDataCellConverterFactory<?, ?>> m_converters = new HashMap<>();
+
+    /** Map of all converters (also deprecated converters */
+    private final HashMap<String, DLTensorToDataCellConverterFactory<?, ?>> m_allConverters = new HashMap<>();
 
 	/**
 	 * Creates a new registry instance.
@@ -187,7 +191,7 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 				return Optional.empty();
 			}
 		}
-		return Optional.ofNullable(m_converters.get(identifier));
+        return Optional.ofNullable(m_allConverters.get(identifier));
 	}
 	// :access methods
 
@@ -202,25 +206,30 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	 */
 	public final void registerConverter(final DLTensorToDataCellConverterFactory<?, ?> converter)
 			throws IllegalArgumentException {
-		registerConverterInternal(converter);
+        registerConverterInternal(converter, false);
 	}
 
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {
+        final boolean deprecated = Boolean.parseBoolean(elem.getAttribute("deprecated"));
 		registerConverterInternal(
-				(DLTensorToDataCellConverterFactory<?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
+            (DLTensorToDataCellConverterFactory<?, ?>)elem.createExecutableExtension(EXT_POINT_ATTR_CLASS), deprecated);
 	}
 
-	private synchronized void registerConverterInternal(final DLTensorToDataCellConverterFactory<?, ?> converter) {
+    private synchronized void registerConverterInternal(final DLTensorToDataCellConverterFactory<?, ?> converter,
+        final boolean deprecated) {
 		final String id = converter.getIdentifier();
 		if (id == null || id.isEmpty()) {
 			throw new IllegalArgumentException("The converter factory's id must be neither null nor empty.");
 		}
-		if (m_converters.containsKey(id)) {
+        if (m_allConverters.containsKey(id)) {
 			throw new IllegalArgumentException("A converter factory with id '" + id + "' is already registered.");
 		}
-		m_converters.put(id, converter);
+        m_allConverters.put(id, converter);
+        if (!deprecated) {
+            m_converters.put(id, converter);
+        }
 	}
 	// :registration
 }
