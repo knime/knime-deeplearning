@@ -74,6 +74,7 @@ import org.knime.dl.core.DLContext;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -124,8 +125,12 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
         addLabelRow("Shape: " + m_inputTensorSpec.getShape().toString());
 
         // converter selection
+        final DLDataValueToTensorConverterRegistry converterRegistry =
+            DLDataValueToTensorConverterRegistry.getInstance();
         m_dcConverter =
-            new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(), c -> "From " + c.getName(), "Conversion");
+            new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(),
+                c -> "From " + c.getName() + (converterRegistry.isDeprecated(c.getIdentifier()) ? " (deprecated)" : ""),
+                "Conversion");
         addDoubleColumnRow(getFirstComponent(m_dcConverter, JLabel.class),
             getFirstComponent(m_dcConverter, JComboBox.class));
 

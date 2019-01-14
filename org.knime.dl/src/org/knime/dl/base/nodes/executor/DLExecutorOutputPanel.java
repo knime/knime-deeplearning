@@ -129,8 +129,11 @@ final class DLExecutorOutputPanel extends JPanel {
 		add(outputRemoveBtn, outputRemoveBtnConstr);
 		constr.gridy++;
 		// converter selection
+        final DLTensorToDataCellConverterRegistry converterRegistry =
+            DLTensorToDataCellConverterRegistry.getInstance();
 		m_dcConverter = new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(),
-		        c -> "To " + c.getName(), "Conversion");
+            c -> "To " + c.getName() + (converterRegistry.isDeprecated(c.getIdentifier()) ? " (deprecated)" : ""),
+            "Conversion");
 		add(m_dcConverter.getComponentPanel(), constr);
 		constr.gridy++;
 		// prefix text input
