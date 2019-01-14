@@ -213,6 +213,26 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 		}
         return Optional.ofNullable(m_allConverters.get(identifier));
 	}
+
+    /**
+     * Checks if the converter with the given identifier is deprecated.
+     *
+     * @param identifier the identifier of the converter factory
+     * @return true if the converter is deprecated
+     */
+    public final boolean isDeprecated(final String identifier) {
+        // TODO what should be returned if the converter is not known?
+        if (identifier == null || identifier.isEmpty()) {
+            return false;
+        }
+        if (identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName())) {
+            final String elementConverterId = identifier.substring(
+                DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1, identifier.length() - 1);
+            return isDeprecated(elementConverterId);
+        }
+        return m_allConverters.containsKey(identifier) && !m_converters.containsKey(identifier);
+    }
+
 	// :access methods
 
 	// registration:
