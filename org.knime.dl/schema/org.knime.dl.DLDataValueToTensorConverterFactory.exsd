@@ -59,6 +59,13 @@
                </appInfo>
             </annotation>
          </attribute>
+         <attribute name="deprecated" type="boolean" use="default" value="false">
+            <annotation>
+               <documentation>
+                  Indicates whether this converter is deprecated. Deprecated converters can&apos;t be selected anymore but are still used in existing workflows.
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 
