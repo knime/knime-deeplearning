@@ -647,7 +647,12 @@ final class DLExecutorNodeModel extends NodeModel {
 
     private static DLKnimeExecutionMonitor createExecutionMonitor(final ExecutionContext exec,
         final OptionalLong numBatches) {
-        final DLExecutionStatus status = new DLDefaultExecutionStatus(numBatches);
+        final DLExecutionStatus status;
+        if (numBatches.isPresent()) {
+            status = new DLDefaultExecutionStatus(numBatches.getAsLong());
+        } else {
+            status = new DLDefaultExecutionStatus();
+        }
         final DLKnimeExecutionMonitor monitor = new DLKnimeExecutionMonitor(exec, status);
         monitor.getExecutionStatus().batchEnded().addListener((src, v) -> {
             final long currBatch = status.getCurrentBatch() + 1;
