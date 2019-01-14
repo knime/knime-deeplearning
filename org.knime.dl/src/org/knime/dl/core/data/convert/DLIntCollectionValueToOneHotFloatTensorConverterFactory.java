@@ -153,7 +153,7 @@ public class DLIntCollectionValueToOneHotFloatTensorConverterFactory
 
     private static void checkCellNotMissing(final DataCell cell) {
         CheckUtils.checkArgument(!cell.isMissing(),
-            "The input collection contains a missing cell which is not supported by the %s converter. "
+            "The input collection contains a missing value which is not supported by the %s converter. "
                 + "Make sure that the collections contain no missing values.",
             NAME);
     }
