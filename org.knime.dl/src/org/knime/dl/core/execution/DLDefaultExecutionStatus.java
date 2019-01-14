@@ -63,11 +63,6 @@ public class DLDefaultExecutionStatus implements DLExecutionStatus {
 
 	private final DLEvent<Void> m_batchEnded = new DLDefaultEvent<>();
 
-    public DLDefaultExecutionStatus(final OptionalLong numBatches) {
-        m_numBatches = numBatches;
-        subscribeToBatchEnded();
-    }
-
     public DLDefaultExecutionStatus(final long numBatches) {
         m_numBatches = OptionalLong.of(numBatches);
 		subscribeToBatchEnded();
