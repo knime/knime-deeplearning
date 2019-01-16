@@ -127,10 +127,9 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
         // converter selection
         final DLDataValueToTensorConverterRegistry converterRegistry =
             DLDataValueToTensorConverterRegistry.getInstance();
-        m_dcConverter =
-            new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(),
-                c -> "From " + c.getName() + (converterRegistry.isDeprecated(c.getIdentifier()) ? " (deprecated)" : ""),
-                "Conversion");
+        m_dcConverter = new DialogComponentObjectSelection<>(m_cfg.getConverterEntry(),
+            c -> "From " + c.getName() + (converterRegistry.isDeprecated(c.getIdentifier()) ? " (deprecated)" : ""),
+            "Conversion");
         addDoubleColumnRow(getFirstComponent(m_dcConverter, JLabel.class),
             getFirstComponent(m_dcConverter, JComboBox.class));
 
@@ -209,8 +208,8 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
         assert m_tableSpec != null;
         final DLContext<?> context = m_cfg.getGeneralConfig().getContextEntry().getValue();
         DLConverterRefresher converterRefresher;
-            final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
-                Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
+        final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
+            Comparator.comparing(DLDataValueToTensorConverterFactory::getName);
         final Class<? extends DLWritableBuffer> bufferType;
         try {
             bufferType = context.getTensorFactory().getWritableBufferType(m_inputTensorSpec);
@@ -224,6 +223,14 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
             throw new NotConfigurableException(e.getLongMessage());
         }
         final List<DLDataValueToTensorConverterFactory<?, ?>> converterFactories = converterRefresher.getConverters();
+        // Check if we have to add the previous converter
+        final DLDataValueToTensorConverterFactory<?, ?> previousConverter = m_cfg.getConverterEntry().getValue();
+        if (previousConverter != null && !converterFactories.contains(previousConverter)
+            && converterRefresher.isApplicable(previousConverter)) {
+            // The previous converter is deprecated now but still applicable
+            // We should add it to the list to keep it selected
+            converterFactories.add(previousConverter);
+        }
         m_dcConverter.replaceListItems(converterFactories, null);
     }
 

@@ -56,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,6 +77,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DialogComponentObjectSelection;
 import org.knime.dl.base.settings.ConfigUtil;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
 import org.knime.dl.core.data.convert.DLTensorToListCellConverterFactory;
@@ -188,10 +190,11 @@ final class DLExecutorOutputPanel extends JPanel {
 
 	private void refreshAvailableConverters() throws NotConfigurableException {
 		final DLExecutionContext<?> executionContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
-		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories = DLTensorToDataCellConverterRegistry
-				.getInstance().getPreferredFactoriesForSourceType(
-						executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec),
-						m_outputTensorSpec);
+        final DLTensorToDataCellConverterRegistry convRegistry = DLTensorToDataCellConverterRegistry.getInstance();
+        final Class<? extends DLReadableBuffer> bufferType =
+            executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec);
+        final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> converterFactories =
+            convRegistry.getPreferredFactoriesForSourceType(bufferType, m_outputTensorSpec);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInElement = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> builtInCollection = new HashSet<>(1);
 		final Set<DLTensorToDataCellConverterFactory<?, ?>> extensionElement = new HashSet<>(1);
@@ -213,13 +216,15 @@ final class DLExecutorOutputPanel extends JPanel {
 		}
 		final Comparator<DLTensorToDataCellConverterFactory<?, ?>> nameComparator = Comparator
 				.comparing(DLTensorToDataCellConverterFactory::getName);
-		final List<DLTensorToDataCellConverterFactory<?, ?>> converterFactoriesSorted = Stream
+        final Predicate<? super DLTensorToDataCellConverterFactory<?, ?>> canComputeOutTableSpec =
+            cf -> cf.getDestCount(m_outputTensorSpec).isPresent();
+        final List<DLTensorToDataCellConverterFactory<?, ?>> converterFactoriesSorted = Stream
 				.concat(Stream.concat(builtInElement.stream().sorted(nameComparator),
 						extensionElement.stream().sorted(nameComparator)),
 						Stream.concat(builtInCollection.stream().sorted(nameComparator),
 								extensionCollection.stream().sorted(nameComparator)))
 				// remove all converters for which we can't calculate the table outputSpec
-				.filter(cf -> cf.getDestCount(m_outputTensorSpec).isPresent()).collect(Collectors.toList());
+				.filter(canComputeOutTableSpec).collect(Collectors.toList());
 		if (converterFactoriesSorted.isEmpty()) {
 			throw new NotConfigurableException("No converter available for the output data type ("
 					+ m_outputTensorSpec.getElementType().getTypeName() + ") of network output '"
@@ -227,7 +232,15 @@ final class DLExecutorOutputPanel extends JPanel {
 					+ "'. Please make sure you are not missing a KNIME Deep Learning extension "
 					+ "and/or try to use a network that outputs different data types.");
 		}
-		m_dcConverter.replaceListItems(converterFactoriesSorted, null);
+        final DLTensorToDataCellConverterFactory<?, ?> previousConverter = m_cfg.getConverterEntry().getValue();
+        if (previousConverter != null && !converterFactoriesSorted.contains(previousConverter)
+            && previousConverter.getBufferType().isAssignableFrom(bufferType)
+            && canComputeOutTableSpec.test(previousConverter)) {
+            // The previous converter is deprecated now but still applicable
+            // We should add it to the list to keep it selected
+            converterFactoriesSorted.add(previousConverter);
+        }
+        m_dcConverter.replaceListItems(converterFactoriesSorted, null);
 	}
 
 	private void onRemove() {

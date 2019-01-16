@@ -105,6 +105,7 @@ public final class DLConverterRefresher {
 		m_bufferType = bufferType;
 		m_comparator = comparator;
 		initialize();
+        // If no converter was found. Try to find the reason and throw a useful error
 		if (m_converters.isEmpty()) {
 			final String inputOrTargetStr = isTrainingTargetSpec ? "target" : "input";
 			final List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> convertersForBuffer = m_converterRegistry
@@ -165,6 +166,24 @@ public final class DLConverterRefresher {
 		}
 		return m_ids;
 	}
+
+    /**
+     * Checks if the given factory is applicable.
+     *
+     * @param conv the converter factory
+     * @return if the converter factory can be applied on the data table and buffer type of this
+     *         {@link DLConverterRefresher}.
+     */
+    public boolean isApplicable(final DLDataValueToTensorConverterFactory<?, ?> conv) {
+        // If it is part of the converters list it has been checked already
+        if (m_converters.contains(conv)) {
+            return true;
+        }
+        // Check if the buffer type fits
+        return conv.getBufferType().isAssignableFrom(m_bufferType)
+            // Check if the source type is compatible to one of the types in the data table
+            && m_inputTypes.stream().anyMatch(t -> t.isCompatible(conv.getSourceType()));
+    }
 
 	private void initialize() {
 		getAvailableConverters();
