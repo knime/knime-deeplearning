@@ -38,6 +38,9 @@
       <DLDataValueToTensorConverterFactory
             DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLIntCollectionValueToOneHotFloatTensorConverterFactory">
       </DLDataValueToTensorConverterFactory>
+      <DLDataValueToTensorConverterFactory
+            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLStringValueToStringTensorConverterFactory">
+      </DLDataValueToTensorConverterFactory>
    </extension>
    <extension
          point="org.knime.dl.DLTensorToDataCellConverterFactory">
@@ -58,6 +61,9 @@
       </DLTensorToDataCellConverterFactory>
       <DLTensorToDataCellConverterFactory
             DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLUnsignedByteTensorToByteVectorCellConverterFactory">
+      </DLTensorToDataCellConverterFactory>
+      <DLTensorToDataCellConverterFactory
+            DLTensorToDataCellConverterFactory="org.knime.dl.core.data.convert.DLStringTensorToStringCellConverterFactory">
       </DLTensorToDataCellConverterFactory>
    </extension>
    <extension
