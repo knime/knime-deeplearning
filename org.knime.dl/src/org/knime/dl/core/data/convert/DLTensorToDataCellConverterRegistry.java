@@ -110,13 +110,13 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	// access methods:
 
 	/**
-	 * Returns all deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create converters
-	 * which convert a specific source type considering a source spec.
-	 *
-	 * @param sourceType the source type
-	 * @param sourceSpec the source spec
-	 * @return all deep learning converter factories that allow conversion of the source type
-	 */
+     * Returns all deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create converters
+     * which convert a specific source type considering a source spec. Doesn't return deprecated converters.
+     *
+     * @param sourceType the source type
+     * @param sourceSpec the source spec
+     * @return all deep learning converter factories that allow conversion of the source type
+     */
 	public final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> getFactoriesForSourceType(
 			final Class<? extends DLReadableBuffer> sourceType, final DLTensorSpec sourceSpec) {
 		final ArrayList<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> convs = new ArrayList<>();
@@ -143,13 +143,13 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	}
 
 	/**
-	 * Returns the preferred deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create
-	 * converters which convert a specific source type considering a source spec.
-	 *
-	 * @param sourceType the source type
-	 * @param sourceSpec the source spec
-	 * @return all deep learning converter factories that allow conversion of the source type
-	 */
+     * Returns the preferred deep learning {@link DLTensorToDataCellConverterFactory converter factories} that create
+     * converters which convert a specific source type considering a source spec. Doesn't return deprecated converters.
+     *
+     * @param sourceType the source type
+     * @param sourceSpec the source spec
+     * @return all deep learning converter factories that allow conversion of the source type
+     */
 	public List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> getPreferredFactoriesForSourceType(
 			final Class<? extends DLReadableBuffer> sourceType, final DLTensorSpec sourceSpec) {
 		final List<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> convs = getFactoriesForSourceType(
@@ -170,12 +170,12 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	}
 
 	/**
-	 * Returns the deep learning {@link DLTensorToDataCellConverterFactory converter factory} that matches the given
-	 * identifier if present.
-	 *
-	 * @param identifier the unique identifier
-	 * @return the converter factory that matches the identifier
-	 */
+     * Returns the deep learning {@link DLTensorToDataCellConverterFactory converter factory} that matches the given
+     * identifier if present. Also returns deprecated converters.
+     *
+     * @param identifier the unique identifier
+     * @return the converter factory that matches the identifier
+     */
 	public final Optional<DLTensorToDataCellConverterFactory<?, ? extends DataCell>> getConverterFactory(
 			final String identifier) {
 		if (identifier == null || identifier.isEmpty()) {
@@ -199,18 +199,24 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
      *
      * @param identifier the identifier of the converter factory
      * @return true if the converter is deprecated
+     * @throws IllegalArgumentException if the identifier doesn't correspond to a registered converter
      */
     public final boolean isDeprecated(final String identifier) {
-        // TODO what should be returned if the converter is not known?
         if (identifier == null || identifier.isEmpty()) {
-            return false;
+            throw new IllegalArgumentException("The converter identifier can't be empty.");
         }
+        // If the identifier points to a collection converter we need to handle it recursively
         if (identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName())) {
             final String elementConverterId = identifier.substring(
                 DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1, identifier.length() - 1);
             return isDeprecated(elementConverterId);
         }
-        return m_allConverters.containsKey(identifier) && !m_converters.containsKey(identifier);
+        // If the identifier is not known at all we throw an exception
+        if (!m_allConverters.containsKey(identifier)) {
+            throw new IllegalArgumentException("The converter with the identifier " + identifier
+                + "is not registered. Are you missing a KNIME Extension?");
+        }
+        return !m_converters.containsKey(identifier);
     }
 
 	// :access methods

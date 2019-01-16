@@ -106,12 +106,12 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	// access methods:
 
 	/**
-	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
-	 * which convert into a specific destination buffer.
-	 *
-	 * @param bufferType the destination type
-	 * @return all deep learning converter factories that allow conversion into the destination type
-	 */
+     * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
+     * which convert into a specific destination buffer. Doesn't return deprecated converters.
+     *
+     * @param bufferType the destination type
+     * @return all deep learning converter factories that allow conversion into the destination type
+     */
 	public List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getConverterFactoriesForBufferType(
 			final Class<? extends DLWritableBuffer> bufferType) {
 		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> convs = new HashSet<>();
@@ -126,13 +126,13 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	}
 
 	/**
-	 * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
-	 * which convert a specific source type into a specific destination buffer.
-	 *
-	 * @param sourceType the source type
-	 * @param bufferType the destination type
-	 * @return all deep learning converter factories that allow conversion of the source type into the destination type
-	 */
+     * Returns all deep learning {@link DLDataValueToTensorConverterFactory converter factories} that create converters
+     * which convert a specific source type into a specific destination buffer. Doesn't return deprecated converters.
+     *
+     * @param sourceType the source type
+     * @param bufferType the destination type
+     * @return all deep learning converter factories that allow conversion of the source type into the destination type
+     */
 	public final List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getConverterFactories(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
 		final HashSet<DLDataValueToTensorConverterFactory<?, ?>> convs = new HashSet<>();
@@ -153,14 +153,15 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	}
 
 	/**
-	 * Returns the preferred deep learning {@link DLDataValueToTensorConverterFactory converter factory} that creates
-	 * converters which convert a specific source type into a specific destination buffer.
-	 *
-	 * @param sourceType the source type
-	 * @param bufferType the destination type
-	 * @return the preferred deep learning converter factory that allows conversion of the source type into the
-	 *         destination type
-	 */
+     * Returns the preferred deep learning {@link DLDataValueToTensorConverterFactory converter factory} that creates
+     * converters which convert a specific source type into a specific destination buffer. Doesn't return deprecated
+     * converters.
+     *
+     * @param sourceType the source type
+     * @param bufferType the destination type
+     * @return the preferred deep learning converter factory that allows conversion of the source type into the
+     *         destination type
+     */
 	public final Optional<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getPreferredConverterFactory(
 			final DataType sourceType, final Class<? extends DLWritableBuffer> bufferType) {
 		final List<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> convs = getConverterFactories(
@@ -189,12 +190,12 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	}
 
 	/**
-	 * Returns the deep learning {@link DLDataValueToTensorConverterFactory converter factory} with the given identifier
-	 * if present.
-	 *
-	 * @param identifier the identifier of the converter factory
-	 * @return the deep learning converter factory that matches the identifier
-	 */
+     * Returns the deep learning {@link DLDataValueToTensorConverterFactory converter factory} with the given identifier
+     * if present. Also returns deprecated converters.
+     *
+     * @param identifier the identifier of the converter factory
+     * @return the deep learning converter factory that matches the identifier
+     */
 	public final Optional<DLDataValueToTensorConverterFactory<? extends DataValue, ?>> getConverterFactory(
 			final String identifier) {
 		if (identifier == null || identifier.isEmpty()) {
@@ -219,18 +220,24 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
      *
      * @param identifier the identifier of the converter factory
      * @return true if the converter is deprecated
+     * @throws IllegalArgumentException if the identifier doesn't correspond to a registered converter
      */
     public final boolean isDeprecated(final String identifier) {
-        // TODO what should be returned if the converter is not known?
         if (identifier == null || identifier.isEmpty()) {
-            return false;
+            throw new IllegalArgumentException("The converter identifier can't be empty.");
         }
+        // If the identifier points to a collection converter we need to handle it recursively
         if (identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName())) {
             final String elementConverterId = identifier.substring(
                 DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1, identifier.length() - 1);
             return isDeprecated(elementConverterId);
         }
-        return m_allConverters.containsKey(identifier) && !m_converters.containsKey(identifier);
+        // If the identifier is not known at all we throw an exception
+        if (!m_allConverters.containsKey(identifier)) {
+            throw new IllegalArgumentException("The converter with the identifier " + identifier
+                + "is not registered. Are you missing a KNIME Extension?");
+        }
+        return !m_converters.containsKey(identifier);
     }
 
 	// :access methods
