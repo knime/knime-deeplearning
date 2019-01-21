@@ -79,6 +79,8 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 
 	private static final String EXT_POINT_ATTR_CLASS = "DLTensorToDataCellConverterFactory";
 
+    private static final String EXT_POINT_ATTR_DEPRECATED = "deprecated";
+
 	private static DLTensorToDataCellConverterRegistry instance;
 
 	/**
@@ -238,7 +240,7 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {
-        final boolean deprecated = Boolean.parseBoolean(elem.getAttribute("deprecated"));
+        final boolean deprecated = Boolean.parseBoolean(elem.getAttribute(EXT_POINT_ATTR_DEPRECATED));
 		registerConverterInternal(
             (DLTensorToDataCellConverterFactory<?, ?>)elem.createExecutableExtension(EXT_POINT_ATTR_CLASS), deprecated);
 	}
