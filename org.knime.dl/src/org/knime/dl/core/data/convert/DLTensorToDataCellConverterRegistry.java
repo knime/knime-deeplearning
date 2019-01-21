@@ -183,10 +183,9 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 		if (identifier == null || identifier.isEmpty()) {
 			return Optional.empty();
 		}
-		if (identifier.startsWith(DLTensorToListCellConverterFactory.class.getName())) {
-			final String elementConverterId = identifier.substring(
-					DLTensorToListCellConverterFactory.class.getName().length() + 1, identifier.length() - 1);
-			final Optional<DLTensorToDataCellConverterFactory<?, ?>> conv = getConverterFactory(elementConverterId);
+        if (isCollectionConverter(identifier)) {
+            final Optional<DLTensorToDataCellConverterFactory<?, ?>> conv =
+                getConverterFactory(extractElementConverter(identifier));
 			if (conv.isPresent()) {
 				return Optional.of(new DLTensorToListCellConverterFactory<>(conv.get()));
 			} else {
@@ -208,10 +207,8 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
             throw new IllegalArgumentException("The converter identifier can't be empty.");
         }
         // If the identifier points to a collection converter we need to handle it recursively
-        if (identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName())) {
-            final String elementConverterId = identifier.substring(
-                DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1, identifier.length() - 1);
-            return isDeprecated(elementConverterId);
+        if (isCollectionConverter(identifier)) {
+            return isDeprecated(extractElementConverter(identifier));
         }
         // If the identifier is not known at all we throw an exception
         if (!m_allConverters.containsKey(identifier)) {
@@ -221,7 +218,20 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
         return !m_converters.containsKey(identifier);
     }
 
-	// :access methods
+    // :access methods
+
+    // static helpers:
+
+    private static boolean isCollectionConverter(final String identifier) {
+        return identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName());
+    }
+
+    private static String extractElementConverter(final String identifier) {
+        return identifier.substring(DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1,
+            identifier.length() - 1);
+    }
+
+    // :static helpers
 
 	// registration:
 
