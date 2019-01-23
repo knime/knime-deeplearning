@@ -223,11 +223,11 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
     // static helpers:
 
     private static boolean isCollectionConverter(final String identifier) {
-        return identifier.startsWith(DLCollectionDataValueToTensorConverterFactory.class.getName());
+        return identifier.startsWith(DLTensorToListCellConverterFactory.class.getName());
     }
 
     private static String extractElementConverter(final String identifier) {
-        return identifier.substring(DLCollectionDataValueToTensorConverterFactory.class.getName().length() + 1,
+        return identifier.substring(DLTensorToListCellConverterFactory.class.getName().length() + 1,
             identifier.length() - 1);
     }
 
