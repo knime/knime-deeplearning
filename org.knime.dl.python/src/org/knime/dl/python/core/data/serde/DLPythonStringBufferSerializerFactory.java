@@ -85,9 +85,12 @@ public class DLPythonStringBufferSerializerFactory extends SerializerFactory<DLP
     }
 
     private static byte[] createBytes(DLPythonStringBuffer value) {
-        final int size = (int)(value.size() - value.getNextReadPosition());
-        String[] storage = value.getStorageForReading(value.getNextReadPosition(), size);
-        byte[][] values = Arrays.stream(storage).map(s -> s.getBytes(Charsets.UTF_8)).toArray(byte[][]::new);
+        // Note that casting to int should be fine because the data is stored in a array which is indexed by int
+        final int nextRead = (int)value.getNextReadPosition();
+        final int size = (int)(value.size() - nextRead);
+        String[] storage = value.getStorageForReading(nextRead, size);
+        byte[][] values = Arrays.stream(storage, nextRead, nextRead + size).map(s -> s.getBytes(Charsets.UTF_8))
+            .toArray(byte[][]::new);
         int[] lengths = Arrays.stream(values).mapToInt(b -> b.length).toArray();
         int totalLength = (size + 1) * Integer.BYTES + Arrays.stream(lengths).sum();
         ByteBuffer buffer = ByteBuffer.allocate(totalLength);
