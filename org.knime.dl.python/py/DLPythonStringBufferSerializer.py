@@ -58,7 +58,7 @@ def serialize(value):
 	array = array.ravel()
 	buffer = BytesIO(bytes())
 	buffer.write(len(array).to_bytes(4, 'little'))
-	lengths = np.array([len(s) for s in array])
+	lengths = np.array([len(s) for s in array], dtype=np.int32)
 	buffer.write(lengths.tobytes())
 	for str in array:
 		buffer.write(str)
