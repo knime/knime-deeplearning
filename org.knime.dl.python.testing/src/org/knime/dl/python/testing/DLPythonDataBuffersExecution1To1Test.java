@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -78,6 +79,7 @@ import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLReadableLongBuffer;
+import org.knime.dl.core.data.DLReadableStringBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
@@ -87,6 +89,7 @@ import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
 import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
+import org.knime.dl.python.core.data.DLPythonStringBuffer;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.dl.util.DLUtils;
@@ -98,9 +101,11 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker
  */
 public class DLPythonDataBuffersExecution1To1Test {
 
-	private static final DLPythonNetworkHandle HANDLE = new DLPythonNetworkHandle("dummy");
+    private static final DLPythonNetworkHandle HANDLE = new DLPythonNetworkHandle("dummy");
 
 	private static final int NUM_IN_TENSORS = 1;
+
+    private static final int MAX_STRING_LENGTH = 100;
 
 	private static final DLTensorId IN_TENSOR_ID = new DLDefaultTensorId("test_in_data");
 
@@ -364,4 +369,53 @@ public class DLPythonDataBuffersExecution1To1Test {
 			Assert.assertEquals(inputData.readNextLong() * 5, outputData.readNextLong());
 		}
 	}
+
+    @Test
+    public void testString() throws Exception {
+        final ArrayList<DLTensor<? extends DLWritableBuffer>> layerData = new ArrayList<>(NUM_IN_TENSORS);
+        for (int i = 0; i < NUM_IN_TENSORS; i++) {
+            final DLTensorSpec spec = new DLDefaultTensorSpec(IN_TENSOR_ID, IN_TENSOR_NAME, IN_TENSOR_SHAPE,
+                String.class, DLDimensionOrder.TDHWC);
+            final long exampleSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get());
+            final DLPythonStringBuffer buff = new DLPythonStringBuffer(exampleSize);
+            for (int j = 0; j < buff.getCapacity(); j++) {
+                final int length = m_rng.nextInt(MAX_STRING_LENGTH);
+                final String val = RandomStringUtils.random(length);
+                buff.put(val);
+            }
+            layerData.add(new DLDefaultTensor<>(spec, buff, exampleSize));
+        }
+
+        final HashMap<DLTensorId, DLTensor<? extends DLWritableBuffer>> networkInput = new HashMap<>();
+        for (final DLTensor<? extends DLWritableBuffer> input : layerData) {
+            networkInput.put(input.getSpec().getIdentifier(), input);
+        }
+
+        m_commands.setNetworkInputs(HANDLE, networkInput, CANCELABLE);
+        final String code = DLUtils.Files.readAllUTF8(
+            DLUtils.Files.getFileFromBundle(BUNDLE_ID, "py/DLPythonDataBuffers1To1ExecutionTest_testString.py"));
+        m_commands.getContext(CANCELABLE).executeInKernel(code, CANCELABLE);
+
+        final HashMap<DLTensorId, DLTensor<? extends DLReadableBuffer>> outputTensorSpecs = new HashMap<>();
+        for (final String outputTensorName : REQUESTED_OUT_TENSORS) {
+            final DLDefaultTensorSpec spec = new DLDefaultTensorSpec(OUT_TENSOR_ID, outputTensorName, OUT_TENSOR_SHAPE,
+                String.class, DLDimensionOrder.TDHWC);
+            final long exampleSize = DLUtils.Shapes.getSize(DLUtils.Shapes.getFixedShape(spec.getShape()).get());
+            outputTensorSpecs.put(spec.getIdentifier(),
+                new DLDefaultTensor<>(spec, new DLPythonStringBuffer(exampleSize), exampleSize));
+        }
+        m_commands.getNetworkOutputs(HANDLE, outputTensorSpecs, CANCELABLE);
+
+        final DLTensor<?> input = networkInput.values().iterator().next();
+        final DLTensor<?> output = outputTensorSpecs.values().iterator().next();
+        Assert.assertArrayEquals(DLUtils.Shapes.getFixedShape(input.getSpec().getShape()).get(),
+            DLUtils.Shapes.getFixedShape(output.getSpec().getShape()).get());
+        Assert.assertEquals(input.getSpec().getElementType(), output.getSpec().getElementType());
+        final DLReadableStringBuffer inputData = (DLReadableStringBuffer)input.getBuffer();
+        final DLReadableStringBuffer outputData = (DLReadableStringBuffer)output.getBuffer();
+
+        for (int i = 0; i < inputData.size(); i++) {
+            Assert.assertEquals(inputData.readNext() + "_suffix", outputData.readNext());
+        }
+    }
 }
