@@ -89,9 +89,12 @@ public class DLPythonStringBufferSerializerFactory extends SerializerFactory<DLP
         final int nextRead = (int)value.getNextReadPosition();
         final int size = (int)(value.size() - nextRead);
         String[] storage = value.getStorageForReading(nextRead, size);
-        byte[][] values = Arrays.stream(storage, nextRead, nextRead + size).map(s -> s.getBytes(Charsets.UTF_8))
-            .toArray(byte[][]::new);
-        int[] lengths = Arrays.stream(values).mapToInt(b -> b.length).toArray();
+        final byte[][] values = new byte[size][];
+        final int[] lengths = new int[size];
+        for (int i = nextRead; i < nextRead + size; i++) {
+            values[i] = storage[i].getBytes(Charsets.UTF_8);
+            lengths[i] = values[i].length;
+        }
         int totalLength = (size + 1) * Integer.BYTES + Arrays.stream(lengths).sum();
         ByteBuffer buffer = ByteBuffer.allocate(totalLength);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
