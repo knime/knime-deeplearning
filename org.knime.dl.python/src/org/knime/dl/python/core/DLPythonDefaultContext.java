@@ -52,6 +52,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLCancelable;
@@ -59,7 +61,6 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
 import org.knime.python.typeextension.PythonModuleExtensions;
-import org.knime.python2.PythonPreferencePage;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -70,6 +71,7 @@ import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
+import org.knime.python2.prefs.PythonPreferences;
 
 import com.google.common.base.Strings;
 
@@ -117,13 +119,10 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     @Override
     public String[] execute(final DLCancelable cancelable, final File script, final String... args) throws IOException {
-        final String[] pbargs = new String[args.length + 2];
-        pbargs[0] = PythonPreferencePage.getPython3Path();
-        pbargs[1] = script.getAbsolutePath();
-        for (int i = 0; i < args.length; i++) {
-            pbargs[i + 2] = args[i];
-        }
-        final ProcessBuilder pb = new ProcessBuilder(pbargs);
+        final ProcessBuilder pb = PythonPreferences.getPython3CommandPreference().createProcessBuilder();
+        final List<String> pbCommand = pb.command();
+        pbCommand.add(script.getAbsolutePath());
+        Collections.addAll(pbCommand, args);
         // Add all python modules to PYTHONPATH variable
         String existingPath = pb.environment().get("PYTHONPATH");
         existingPath = existingPath == null ? "" : existingPath;
