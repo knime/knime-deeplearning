@@ -91,11 +91,12 @@ public class DLPythonStringBufferSerializerFactory extends SerializerFactory<DLP
         String[] storage = value.getStorageForReading(nextRead, size);
         final byte[][] values = new byte[size][];
         final int[] lengths = new int[size];
-        for (int i = nextRead; i < nextRead + size; i++) {
-            values[i] = storage[i].getBytes(Charsets.UTF_8);
+        int totalLength = (size + 1) * Integer.BYTES;
+        for (int i = 0; i < size; i++) {
+            values[i] = storage[nextRead + i].getBytes(Charsets.UTF_8);
             lengths[i] = values[i].length;
+            totalLength += lengths[i];
         }
-        int totalLength = (size + 1) * Integer.BYTES + Arrays.stream(lengths).sum();
         ByteBuffer buffer = ByteBuffer.allocate(totalLength);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(size);
