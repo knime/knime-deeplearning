@@ -49,8 +49,6 @@ package org.knime.dl.python.core.data.serde;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.charset.Charset;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.filestore.FileStoreFactory;
@@ -92,20 +90,25 @@ public class DLPythonStringBufferDeserializerFactory extends DeserializerFactory
 
             @Override
             public DataCell deserialize(byte[] bytes, FileStoreFactory fileStoreFactory) throws IOException {
-                int[] lengths = getLengths(bytes);
-                int nValues = lengths.length;
-                final DLPythonStringBuffer value = new DLPythonStringBuffer(nValues);
-                String[] storage = value.getStorageForWriting(value.size(), nValues);
-                readStrings(bytes, storage, lengths);
-                return value;
+                final int[] lengths = getLengths(bytes);
+                final DLPythonStringBuffer buffer = new DLPythonStringBuffer(lengths.length);
+                readStrings(bytes, buffer, lengths);
+                return buffer;
             }
 
-            private void readStrings(byte[] bytes, String[] dst, int[] lengths) {
+            @Override
+            public void deserialize(byte[] bytes, DLTensor<DLPythonStringBuffer> data) {
+                final int[] lengths = getLengths(bytes);
+                final DLPythonStringBuffer buffer = data.getBuffer();
+                readStrings(bytes, buffer, lengths);
+            }
+
+            private void readStrings(byte[] bytes, DLPythonStringBuffer buffer, int[] lengths) {
                 int nValues = lengths.length;
                 int offset = Integer.BYTES * (nValues + 1);
                 for (int i = 0; i < nValues; i++) {
                     int length = lengths[i];
-                    dst[i] = new String(bytes, offset, length, Charsets.UTF_8);
+                    buffer.put(new String(bytes, offset, length, Charsets.UTF_8));
                     offset += length;
                 }
             }
@@ -120,18 +123,6 @@ public class DLPythonStringBufferDeserializerFactory extends DeserializerFactory
                 }
                 return lengths;
             }
-
-            @Override
-            public void deserialize(byte[] bytes, DLTensor<DLPythonStringBuffer> data) {
-                final int[] lengths = getLengths(bytes);
-                final int nValues = lengths.length;
-                DLPythonStringBuffer tensorBuffer = data.getBuffer();
-                final int writeStart = (int)tensorBuffer.size();
-                final String[] tensorStorage = tensorBuffer.getStorageForWriting(writeStart, nValues);
-                readStrings(bytes, tensorStorage, lengths);
-            }
-
         };
     }
-
 }
