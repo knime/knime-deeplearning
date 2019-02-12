@@ -44,68 +44,39 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.util;
+package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 
-import org.knime.core.util.Version;
-import org.knime.dl.core.DLTensorId;
-import org.knime.dl.keras.core.config.DLKerasConfigObject;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.util.filter.NameFilterConfiguration;
+import org.knime.core.node.util.filter.StringFilterPanel;
 
 /**
- * Various Keras specific utility methods and classes.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtils {
+public class StringFilterConfiguration extends NameFilterConfiguration {
 
-    /** The Keras version that is currently preferred by the integration. */
-    public static final Version PREFERRED_KERAS_VERSION = new Version(2, 1, 6);
-
-    /** The TensorFlow version that is currently preferred by the integration. */
-    public static final Version PREFERRED_TF_VERSION = new Version(1, 8, 0);
-
-    private DLKerasUtils() {
-    }
-    
-    public static final class Layers {
-        /**
-         * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
-         * or returns the None representation if <b>obj</b> is null.
-         *
-         * @param obj a {@link DLKerasConfigObject}, may be null
-         * @return the backend representation of <b>obj</b> or None if <b>obj</b> is null
-         */
-        public static String toPython(DLKerasConfigObject obj) {
-            return obj == null ? DLPythonUtils.NONE : obj.getBackendRepresentation();
-        }
-
-        /**
-         * Extracts the layer name of the given tensor id.
-         *
-         * @param id the identifier of the tensor
-         * @return the name of the layer
-         */
-        public static String getLayerName(final DLTensorId id) {
-            final String s = id.getIdentifierString();
-            return s.substring(0, s.lastIndexOf('_'));
-        }
+    /**
+     * Creates a new configuration for a string filtering. Usually used with the {@link StringFilterPanel}.
+     *
+     * @param configRootName
+     */
+    public StringFilterConfiguration(final String configRootName) {
+        super(configRootName);
+        setEnforceOption(EnforceOption.EnforceExclusion);
     }
 
-    public static final class Tensors {
+    /**
+     * Loads the configuration from the given settings and the given available strings.
+     * 
+     * @param settings the node settings
+     * @param names the available strings
+     */
+    public void loadConfigurationInDialogParent(final NodeSettingsRO settings, final String[] names) {
+        super.loadConfigurationInDialog(settings, names);
+    }
 
-        private Tensors() {
-        }
-
-        /**
-         * @param layerName the full layer name of the form <tt>prefix_index</tt>
-         * @param nodeIndex the node index
-         * @param layerIndex the layerIndex
-         * @return the created tensor name
-         */
-        public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
-            // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
-            return layerName + "_" + nodeIndex + ":" + layerIndex;
-        }
+    @Override
+    public FilterResult applyTo(final String[] names) {
+        return super.applyTo(names);
     }
 }

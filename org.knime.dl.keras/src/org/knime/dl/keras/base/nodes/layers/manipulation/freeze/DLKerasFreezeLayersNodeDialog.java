@@ -44,68 +44,47 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.util;
+package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 
-import org.knime.core.util.Version;
-import org.knime.dl.core.DLTensorId;
-import org.knime.dl.keras.core.config.DLKerasConfigObject;
-import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.filter.StringFilterPanel;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
+import org.knime.dl.keras.core.DLKerasNetworkSpec;
 
 /**
- * Various Keras specific utility methods and classes.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLKerasUtils {
+public class DLKerasFreezeLayersNodeDialog extends NodeDialogPane {
 
-    /** The Keras version that is currently preferred by the integration. */
-    public static final Version PREFERRED_KERAS_VERSION = new Version(2, 1, 6);
+    private final StringFilterPanel m_layerFilterPanel;
 
-    /** The TensorFlow version that is currently preferred by the integration. */
-    public static final Version PREFERRED_TF_VERSION = new Version(1, 8, 0);
-
-    private DLKerasUtils() {
-    }
-    
-    public static final class Layers {
-        /**
-         * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
-         * or returns the None representation if <b>obj</b> is null.
-         *
-         * @param obj a {@link DLKerasConfigObject}, may be null
-         * @return the backend representation of <b>obj</b> or None if <b>obj</b> is null
-         */
-        public static String toPython(DLKerasConfigObject obj) {
-            return obj == null ? DLPythonUtils.NONE : obj.getBackendRepresentation();
-        }
-
-        /**
-         * Extracts the layer name of the given tensor id.
-         *
-         * @param id the identifier of the tensor
-         * @return the name of the layer
-         */
-        public static String getLayerName(final DLTensorId id) {
-            final String s = id.getIdentifierString();
-            return s.substring(0, s.lastIndexOf('_'));
-        }
+    DLKerasFreezeLayersNodeDialog() {
+        m_layerFilterPanel = new StringFilterPanel();
+        addTab("Freeze Layers", m_layerFilterPanel);
     }
 
-    public static final class Tensors {
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        final StringFilterConfiguration config = DLKerasFreezeLayersNodeModel.createLayerFilterConfig();
+        m_layerFilterPanel.saveConfiguration(config);
+        config.saveConfiguration(settings);
+    }
 
-        private Tensors() {
-        }
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        final DLKerasNetworkPortObjectSpecBase spec =
+            (DLKerasNetworkPortObjectSpecBase)specs[DLKerasFreezeLayersNodeModel.IN_NETWORK_PORT_IDX];
+        final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
+        final String[] layers = DLKerasFreezeLayersNodeModel.getLayerNames(networkSpec);
 
-        /**
-         * @param layerName the full layer name of the form <tt>prefix_index</tt>
-         * @param nodeIndex the node index
-         * @param layerIndex the layerIndex
-         * @return the created tensor name
-         */
-        public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
-            // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
-            return layerName + "_" + nodeIndex + ":" + layerIndex;
-        }
+        final StringFilterConfiguration config = DLKerasFreezeLayersNodeModel.createLayerFilterConfig();
+        config.loadConfigurationInDialogParent(settings, layers);
+        m_layerFilterPanel.loadConfiguration(config, layers);
     }
 }
