@@ -53,6 +53,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.StringFilterPanel;
+import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 
@@ -79,7 +80,7 @@ public class DLKerasFreezeLayersNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         final DLKerasNetworkPortObjectSpecBase spec =
-            (DLKerasNetworkPortObjectSpecBase)specs[DLKerasFreezeLayersNodeModel.IN_NETWORK_PORT_IDX];
+            (DLKerasNetworkPortObjectSpecBase)specs[DLKerasAbstractManipulationNodeModel.IN_NETWORK_PORT_IDX];
         final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
         final String[] layers = DLKerasFreezeLayersNodeModel.getLayerNames(networkSpec);
 

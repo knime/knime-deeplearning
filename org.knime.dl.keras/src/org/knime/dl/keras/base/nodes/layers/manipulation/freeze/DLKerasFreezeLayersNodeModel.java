@@ -48,58 +48,28 @@ package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.knime.core.data.StringValue;
-import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.dl.base.portobjects.DLNetworkPortObject;
-import org.knime.dl.core.DLCancelable;
-import org.knime.dl.core.DLCanceledExecutionException;
-import org.knime.dl.core.DLExecutionMonitorCancelable;
-import org.knime.dl.core.DLInvalidDestinationException;
-import org.knime.dl.core.DLInvalidEnvironmentException;
-import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLMissingExtensionException;
-import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
-import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.util.DLKerasUtils;
-import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
-import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.core.DLPythonNetworkLoader;
-import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
-import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasFreezeLayersNodeModel extends NodeModel {
-
-    private static final String OUTPUT_NETWORK_VAR = "output_network";
-
-    private static final String NETWORK_TYPE_IDENTIFIER = "network_type_identifier";
-
-    static final int IN_NETWORK_PORT_IDX = 0;
+public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNodeModel {
 
     static StringFilterConfiguration createLayerFilterConfig() {
         return new StringFilterConfiguration("frozen_layers");
@@ -119,7 +89,7 @@ public class DLKerasFreezeLayersNodeModel extends NodeModel {
     private final StringFilterConfiguration m_frozenLayers = createLayerFilterConfig();
 
     DLKerasFreezeLayersNodeModel() {
-        super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, new PortType[]{DLKerasNetworkPortObjectBase.TYPE});
+        super();
     }
 
     @Override
@@ -131,87 +101,17 @@ public class DLKerasFreezeLayersNodeModel extends NodeModel {
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final DLKerasNetworkPortObjectBase portObject = (DLKerasNetworkPortObjectBase)inObjects[IN_NETWORK_PORT_IDX];
-        final DLKerasNetwork inputNetwork = portObject.getNetwork();
-        final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
-
-        // TODO handle stdout and stderr
-
-        try (final DLPythonContext pythonContext = new DLPythonDefaultContext()) {
-            // Load the input network
-            final DLPythonNetworkHandle inputNetworkHandle =
-                DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(inputNetwork.getClass())
-                    .orElseThrow(() -> new DLMissingExtensionException(
-                        "Python back end '" + inputNetwork.getClass().getCanonicalName()
-                            + "' could not be found. Are you missing a KNIME Deep Learning extension?"))
-                    .load(inputNetwork.getSource().getURI(), pythonContext, false, cancelable);
-
-            // Freeze the layers
-            final String freezeSourceCode = createFreezeSourceCode(inputNetworkHandle, inputNetwork.getSpec());
-            pythonContext.executeInKernel(freezeSourceCode, cancelable);
-
-            // Save the output network
-            final DLPythonNetworkPortObject<?> outputPortObject = saveOutputNetwork(exec, cancelable, pythonContext);
-            return new PortObject[]{outputPortObject};
-        }
-    }
-
-    private String createFreezeSourceCode(final DLPythonNetworkHandle inputNetworkHandle,
+    protected String createManipulationSourceCode(final DLPythonNetworkHandle inputNetworkHandle,
         final DLKerasNetworkSpec networkSpec) {
         // Get the configured layers
         final String[] layers = getLayerNames(networkSpec);
         final String[] frozen = m_frozenLayers.applyTo(layers).getIncludes();
 
-        // Get the model
-        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-            .a("import DLPythonNetwork") //
-            .n("import keras.backend as K") //
-            .n("from tensorflow import saved_model") //
-            .n(OUTPUT_NETWORK_VAR).a(" = DLPythonNetwork.get_network(").as(inputNetworkHandle.getIdentifier())
-            /**/ .a(").model");
-
         // Freeze the configured layers
-        b //
+        return DLPythonUtils.createSourceCodeBuilder() //
             .n("for l in ").a(OUTPUT_NETWORK_VAR).a(".layers:") //
-            .n().t().a("l.trainable = not l.name in ").as(frozen);
-
-        return b.toString();
-    }
-
-    private static <N extends DLPythonNetwork> DLPythonNetworkPortObject<?> saveOutputNetwork(
-        final ExecutionContext exec, final DLCancelable cancelable, final DLPythonContext pythonContext)
-        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException, CanceledExecutionException,
-        DLMissingExtensionException, DLInvalidDestinationException, DLInvalidSourceException {
-        final String loaderIdentifierSourceCode = DLPythonUtils.createSourceCodeBuilder() //
-            .a("import DLPythonNetwork") //
-            .n("import DLPythonNetworkType") //
-            .n("import pandas as pd") //
-            .n("network_type = DLPythonNetworkType.get_model_network_type(").a(OUTPUT_NETWORK_VAR).a(")") //
-            .n("DLPythonNetwork.add_network(network_type.wrap_model(") //
-            /**/ .a(OUTPUT_NETWORK_VAR).a("), ").as(OUTPUT_NETWORK_VAR).a(")") //
-            .n("global network_type_identifier") //
-            .n(NETWORK_TYPE_IDENTIFIER).a(" = pd.DataFrame(data=[network_type.identifier])") //
+            .n().t().a("l.trainable = not l.name in ").as(frozen) //
             .toString();
-        pythonContext.executeInKernel(loaderIdentifierSourceCode, cancelable);
-        final String networkLoaderIdentifier = ((StringValue)pythonContext.getKernel()
-            .getDataTable(NETWORK_TYPE_IDENTIFIER, exec, exec).iterator().next().getCell(0)).getStringValue();
-        @SuppressWarnings("unchecked")
-        final DLPythonNetworkLoader<N> loader = (DLPythonNetworkLoader<N>)DLPythonNetworkLoaderRegistry.getInstance()
-            .getNetworkLoader(networkLoaderIdentifier)
-            .orElseThrow(() -> new DLMissingExtensionException("Python back end '" + networkLoaderIdentifier
-                + "' could not be found. Are you missing a KNIME Deep Learning extension?"));
-        final FileStore fileStore =
-            DLNetworkPortObject.createFileStoreForSaving(loader.getSaveModelURLExtension(), exec);
-        final URI fileStoreURI = fileStore.getFile().toURI();
-        final DLPythonNetworkHandle handle = new DLPythonNetworkHandle(OUTPUT_NETWORK_VAR);
-        loader.save(handle, fileStoreURI, pythonContext, cancelable);
-        if (!fileStore.getFile().exists()) {
-            throw new IllegalStateException(
-                "Failed to save output deep learning network '" + OUTPUT_NETWORK_VAR + "'.");
-        }
-        return loader.createPortObject(
-            loader.fetch(handle, new DLNetworkFileStoreLocation(fileStore), pythonContext, cancelable), fileStore);
     }
 
     @Override
