@@ -48,6 +48,9 @@ package org.knime.dl.keras.base.nodes.layers.manipulation.outputs;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.function.Consumer;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
@@ -56,7 +59,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
@@ -80,9 +85,25 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final DLKerasNetworkPortObjectSpecBase spec = (DLKerasNetworkPortObjectSpecBase)inSpecs[0];
+        final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
+
+        final HashSet<String> tensors = new HashSet<>();
+        final Consumer<DLTensorSpec[]> addToSet = tensorSpecs -> Arrays.stream(tensorSpecs)
+            .map(s -> s.getIdentifier().getIdentifierString()).forEach(tensors::add);
+        addToSet.accept(networkSpec.getHiddenOutputSpecs());
+        addToSet.accept(networkSpec.getOutputSpecs());
+
+        // Check that all configured outputs are available
+        for (final String id : m_outputTensors.getStringArrayValue()) {
+            if (!tensors.contains(id)) {
+                throw new InvalidSettingsException("The tensor '" + id
+                    + "' is configured as an output but not available anymore. Please reconfigure the node.");
+            }
+        }
+
         // We don't know the output spec yet because we don't know which hidden tensors will
         // be available in the resulting model. The network spec doesn't hold structure information.
-        // TODO check if the selected output tensors are avaiable
         return new PortObjectSpec[]{null};
     }
 
