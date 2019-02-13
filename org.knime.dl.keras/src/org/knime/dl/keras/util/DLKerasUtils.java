@@ -67,8 +67,13 @@ public final class DLKerasUtils {
 
     private DLKerasUtils() {
     }
-    
+
+    /** Utility functions related to layers */
     public static final class Layers {
+
+        private Layers() {
+        }
+
         /**
          * Helper function that retrieves the backend representation of a {@link DLKerasConfigObject}
          * or returns the None representation if <b>obj</b> is null.
@@ -87,11 +92,21 @@ public final class DLKerasUtils {
          * @return the name of the layer
          */
         public static String getLayerName(final DLTensorId id) {
-            final String s = id.getIdentifierString();
-            return s.substring(0, s.lastIndexOf('_'));
+            return getLayerName(id.getIdentifierString());
+        }
+
+        /**
+         * Extracts the layer name of the given tensor id.
+         *
+         * @param id the identifier of the tensor
+         * @return the name of the layer
+         */
+        public static String getLayerName(final String id) {
+            return id.substring(0, id.lastIndexOf('_'));
         }
     }
 
+    /** Utility functions related to tensors */
     public static final class Tensors {
 
         private Tensors() {
@@ -106,6 +121,46 @@ public final class DLKerasUtils {
         public static String createTensorName(final String layerName, final int nodeIndex, final int layerIndex) {
             // Equals the naming scheme in DLKerasNetworkSpecExtractor on Python side.
             return layerName + "_" + nodeIndex + ":" + layerIndex;
+        }
+
+        /**
+         * Extracts the node index of the given tensor id.
+         *
+         * @param id the identifier of the tensor
+         * @return the node index
+         */
+        public static int getNodeIndex(final DLTensorId id) {
+            return getNodeIndex(id.getIdentifierString());
+        }
+
+        /**
+         * Extracts the node index of the given tensor id.
+         *
+         * @param id the identifier of the tensor
+         * @return the node index
+         */
+        public static int getNodeIndex(final String id) {
+            return Integer.parseInt(id.substring(id.lastIndexOf('_') + 1, id.lastIndexOf(':')));
+        }
+
+        /**
+         * Extracts the tensor index of the given tensor id.
+         *
+         * @param id the identifier of the tensor
+         * @return the tensor index
+         */
+        public static int getTensorIndex(final DLTensorId id) {
+            return getTensorIndex(id.getIdentifierString());
+        }
+
+        /**
+         * Extracts the tensor index of the given tensor id.
+         *
+         * @param id the identifier of the tensor
+         * @return the tensor index
+         */
+        public static int getTensorIndex(final String id) {
+            return Integer.parseInt(id.substring(id.lastIndexOf(':') + 1));
         }
     }
 }

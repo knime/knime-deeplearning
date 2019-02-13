@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="../dlkerasconvlayer.png" type="Other"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Keras Select Output Layers</name>
+
+	<shortDescription>TODO</shortDescription>
+
+	<fullDescription>
+		<intro>TODO</intro>
+		<tab name="Options">TODO
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Deep Learning Network">TODO
+		</inPort>
+		<outPort index="0" name="Deep Learning Network">TODO
+		</outPort>
+	</ports>
+</knimeNode>
