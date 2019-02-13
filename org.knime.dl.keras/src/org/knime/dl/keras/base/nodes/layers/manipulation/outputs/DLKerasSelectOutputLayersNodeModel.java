@@ -89,11 +89,11 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
     @Override
     protected String createManipulationSourceCode(final DLPythonNetworkHandle inputNetworkHandle,
         final DLKerasNetworkSpec networkSpec) {
-        // TODO find out which inputs are connected
 
         // Create a array for the new outputs
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-            .n("outputs = []");
+            .n("inputs = ").a(OUTPUT_NETWORK_VAR).a(".inputs") //
+            .n("outputs = []"); //
 
         for (final String tensor : m_outputTensors.getStringArrayValue()) {
             final String layerName = DLKerasUtils.Layers.getLayerName(tensor);
@@ -101,8 +101,8 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
             final int tensorIndex = DLKerasUtils.Tensors.getTensorIndex(tensor);
 
             b // Append the output tensor
-                .n("tensors = ").a(OUTPUT_NETWORK_VAR).a(".get_layer(").as(layerName).a(")") //
-                /**/ .a(".get_output_at(").a(nodeIndex).a(")") //
+                .n("layer = ").a(OUTPUT_NETWORK_VAR).a(".get_layer(").as(layerName).a(")") //
+                .n("tensors = layer.get_output_at(").a(nodeIndex).a(")") //
                 .n("if isinstance(tensors, list):") //
                 /**/ .n().t().a("outputs.append(tensors[").a(tensorIndex).a("])") //
                 .n("else:") //
@@ -110,9 +110,23 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
         }
 
         b // Create the new model
-            .n("inputs = ").a(OUTPUT_NETWORK_VAR).a(".inputs") //
             .n("from keras.models import Model")//
             .n(OUTPUT_NETWORK_VAR).a(" = Model(inputs, outputs)");
+
+        b // Remove irrelevant inputs
+            .n("orig_inputs = inputs") //
+            .n("relevant_inputs = []") //
+            .n("for v in ").a(OUTPUT_NETWORK_VAR).a("._nodes_by_depth.values():") //
+            .n().t().a("if orig_inputs == []:") //
+            .n().t().t().a("break") //
+            .n().t().a("for n in v:") //
+            .n().t().t().a("for in_tensor in n.input_tensors:") //
+            .n().t().t().t().a("if in_tensor in orig_inputs:") //
+            .n().t().t().t().t().a("relevant_inputs.append(in_tensor)") //
+            .n().t().t().t().t().a("orig_inputs.remove(in_tensor)"); //
+
+        b // Create new model with only relevant inputs
+            .n(OUTPUT_NETWORK_VAR).a(" = Model(relevant_inputs, outputs)");
 
         return b.toString();
     }
