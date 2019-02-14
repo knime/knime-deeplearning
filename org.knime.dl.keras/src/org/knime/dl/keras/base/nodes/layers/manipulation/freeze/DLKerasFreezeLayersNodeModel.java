@@ -48,9 +48,9 @@ package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -76,13 +76,11 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
     }
 
     static String[] getLayerNames(final DLKerasNetworkSpec spec) {
-        final DLTensorSpec[] hiddenSpecs = spec.getHiddenOutputSpecs();
-        final DLTensorSpec[] outputSpecs = spec.getOutputSpecs();
-        final List<String> layers = new ArrayList<>(hiddenSpecs.length + outputSpecs.length);
+        final Set<String> layers = new HashSet<>();
         final Consumer<DLTensorSpec[]> addToList =
             l -> Arrays.stream(l).map(t -> DLKerasUtils.Layers.getLayerName(t.getIdentifier())).forEach(layers::add);
-        addToList.accept(hiddenSpecs);
-        addToList.accept(outputSpecs);
+        addToList.accept(spec.getHiddenOutputSpecs());
+        addToList.accept(spec.getOutputSpecs());
         return layers.toArray(new String[layers.size()]);
     }
 
