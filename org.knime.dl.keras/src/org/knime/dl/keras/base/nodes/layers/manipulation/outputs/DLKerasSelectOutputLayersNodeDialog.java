@@ -92,6 +92,10 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         final DLKerasNetworkPortObjectSpecBase spec =
             (DLKerasNetworkPortObjectSpecBase)specs[DLKerasAbstractManipulationNodeModel.IN_NETWORK_PORT_IDX];
+        if (spec == null) {
+            throw new NotConfigurableException(
+                "Can't configure the node without specification of the input network. Please configure or execute the predecessor.");
+        }
         final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
 
         m_dcStringSelection.loadSettingsFrom(settings, specs);
