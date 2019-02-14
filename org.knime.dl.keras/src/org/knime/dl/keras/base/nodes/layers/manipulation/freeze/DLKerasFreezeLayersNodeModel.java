@@ -63,7 +63,6 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.util.DLKerasUtils;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.util.DLPythonUtils;
 
 /**
@@ -103,8 +102,7 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
     }
 
     @Override
-    protected String createManipulationSourceCode(final DLPythonNetworkHandle inputNetworkHandle,
-        final DLKerasNetworkSpec networkSpec) {
+    protected String createManipulationSourceCode(final DLKerasNetworkSpec networkSpec) {
         // Get the configured layers
         final String[] layers = getLayerNames(networkSpec);
         final String[] frozen = m_frozenLayers.applyTo(layers).getIncludes();

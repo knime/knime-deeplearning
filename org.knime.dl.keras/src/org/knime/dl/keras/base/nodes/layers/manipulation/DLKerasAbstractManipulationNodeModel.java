@@ -90,12 +90,22 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
 
     private static final String NETWORK_TYPE_IDENTIFIER = "network_type_identifier";
 
+    /**
+     * Creates a abstract node model that loads a Keras mode and manipulates it using some python code provided by the
+     * {@link #createManipulationSourceCode(DLKerasNetworkSpec)} method.
+     */
     protected DLKerasAbstractManipulationNodeModel() {
         super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, new PortType[]{DLKerasNetworkPortObjectBase.TYPE});
     }
 
-    protected abstract String createManipulationSourceCode(DLPythonNetworkHandle inputNetworkHandle,
-        DLKerasNetworkSpec networkSpec);
+    /**
+     * Create Python code that manipulates the Keras model. The model is available at the variable
+     * {@link #OUTPUT_NETWORK_VAR}.
+     *
+     * @param networkSpec the specs of the Keras model
+     * @return Python code which manipulates the Keras model
+     */
+    protected abstract String createManipulationSourceCode(DLKerasNetworkSpec networkSpec);
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
@@ -117,7 +127,7 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
             pythonContext.executeInKernel(getModelSourceCode, cancelable);
 
             // Freeze the layers
-            final String freezeSourceCode = createManipulationSourceCode(inputNetworkHandle, inputNetwork.getSpec());
+            final String freezeSourceCode = createManipulationSourceCode(inputNetwork.getSpec());
             pythonContext.executeInKernel(freezeSourceCode, cancelable);
 
             // Save the output network

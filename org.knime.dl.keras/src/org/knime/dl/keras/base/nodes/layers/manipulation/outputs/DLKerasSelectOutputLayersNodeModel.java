@@ -64,7 +64,6 @@ import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipula
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.util.DLKerasUtils;
-import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -108,8 +107,7 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
     }
 
     @Override
-    protected String createManipulationSourceCode(final DLPythonNetworkHandle inputNetworkHandle,
-        final DLKerasNetworkSpec networkSpec) {
+    protected String createManipulationSourceCode(final DLKerasNetworkSpec networkSpec) {
 
         // Create a array for the new outputs
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
