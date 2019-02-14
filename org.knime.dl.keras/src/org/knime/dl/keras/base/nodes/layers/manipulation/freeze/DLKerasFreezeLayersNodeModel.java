@@ -94,8 +94,12 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO Should we save the frozen layers in the specs?
-        // TODO check that configured layers are available
+        // TODO Check the configuration:
+        // - If enforce inclusion is activated: All configured included layers must be available
+        // - If enforce exclusion is activated: All configured excluded layers must be available
+        // This is currently not implemented in the NameFilterConfiguraion used. (The column filter doesn't do the check either)
+
+        // TODO Save the frozen layers in the network spec
         // This node doesn't change the specs
         return inSpecs;
     }
@@ -121,7 +125,7 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO nothing to do?
+        // nothing to validate
     }
 
     @Override
