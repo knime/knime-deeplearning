@@ -87,6 +87,11 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
         final DLKerasNetworkPortObjectSpecBase spec = (DLKerasNetworkPortObjectSpecBase)inSpecs[0];
         final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
 
+        final String[] selectedOutputs = m_outputTensors.getStringArrayValue();
+        if (selectedOutputs.length == 0) {
+            throw new InvalidSettingsException("No output selected. Select at least one output tensor.");
+        }
+
         final HashSet<String> tensors = new HashSet<>();
         final Consumer<DLTensorSpec[]> addToSet = tensorSpecs -> Arrays.stream(tensorSpecs)
             .map(s -> s.getIdentifier().getIdentifierString()).forEach(tensors::add);
@@ -94,7 +99,7 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
         addToSet.accept(networkSpec.getOutputSpecs());
 
         // Check that all configured outputs are available
-        for (final String id : m_outputTensors.getStringArrayValue()) {
+        for (final String id : selectedOutputs) {
             if (!tensors.contains(id)) {
                 throw new InvalidSettingsException("The tensor '" + id
                     + "' is configured as an output but not available anymore. Please reconfigure the node.");
