@@ -5,17 +5,51 @@
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Freeze Layers</name>
 
-	<shortDescription>TODO</shortDescription>
+	<shortDescription>Make Keras layers not trainable.</shortDescription>
 
 	<fullDescription>
-		<intro>TODO</intro>
-		<tab name="Options">TODO
+		<intro>Freezes the parameters of the selected layers. If the model is
+			trained afterwards the parameters of the selected layers are not
+			updated. All other layers are set to trainable.
+		</intro>
+		<tab name="Freeze Layers">
+			<option name="Not trainable layers">
+				The list contains the layer names of the layers that should
+				<b>not</b>
+				be trainable in the output network.
+			</option>
+			<option name="Enforce inclusion">
+				Select to force the list of
+				<b>not</b>
+				trainable layers not to change. Even if other layers are added to
+				the input network. Other layers are then added to the trainable
+				layers list.
+			</option>
+			<option name="Trainable layers">
+				The list contains the layer names of the layers
+				that should be trainable in the output network.
+			</option>
+			<option name="Enforce inclusion">
+				Select to force the list of trainable layers not to change. Even if
+				other layers are added to the input network. Other layers are then
+				added to the
+				<b>not</b>
+				trainable layers list.
+			</option>
+			<option name="Wildcard/Regex Selection">
+				Use a wildcard of Regular expression to select the layers which
+				should be
+				<b>not</b>
+				trainable.
+			</option>
 		</tab>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">TODO
+		<inPort index="0" name="Deep Learning Network">The Keras deep learning network.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">TODO
+		<outPort index="0" name="Deep Learning Network">The Keras deep learning network with
+			the selected layers set to not-trainable and all other layers set to
+			trainable.
 		</outPort>
 	</ports>
 </knimeNode>
