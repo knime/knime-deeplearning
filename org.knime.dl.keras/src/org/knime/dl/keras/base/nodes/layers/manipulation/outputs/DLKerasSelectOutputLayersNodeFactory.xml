@@ -5,17 +5,22 @@
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Select Output Layers</name>
 
-	<shortDescription>TODO</shortDescription>
+	<shortDescription>Select the output layers of a Keras model.
+	</shortDescription>
 
 	<fullDescription>
-		<intro>TODO</intro>
-		<tab name="Options">TODO
+		<intro>Changes the output tensors of the Keras deep learning model.
+			The new outputs must be selected in the node configuration.
+		</intro>
+		<tab name="Output Selection">
+			<option name="TODO">TODO</option>
 		</tab>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">TODO
+		<inPort index="0" name="Deep Learning Network">The Keras deep learning network.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">TODO
+		<outPort index="0" name="Deep Learning Network">A Keras deep learning network with the
+			selected outputs.
 		</outPort>
 	</ports>
 </knimeNode>

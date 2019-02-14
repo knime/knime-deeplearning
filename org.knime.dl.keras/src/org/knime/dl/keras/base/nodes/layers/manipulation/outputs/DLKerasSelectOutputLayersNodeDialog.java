@@ -46,18 +46,30 @@
  */
 package org.knime.dl.keras.base.nodes.layers.manipulation.outputs;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentStringListSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLTensorSpec;
@@ -70,21 +82,53 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
  */
 public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
 
-    private final SettingsModelStringArray m_smOutputTensors;
+    private final JPanel m_panel;
 
-    private final DialogComponentStringListSelection m_dcStringSelection;
+    private final GridBagConstraints m_gbc;
+
+    private final List<String> m_selectedTensorIds;
+
+    private final Map<String, OutputSelectionPanel> m_visiblePanels;
+
+    private final Map<String, DLTensorSpec> m_availableTensorsFromName;
+
+    private final Map<String, DLTensorSpec> m_availableTensorsFromId;
+
+    private final List<String> m_availableTensorsNames;
 
     DLKerasSelectOutputLayersNodeDialog() {
-        // TODO create a special dialog
-        m_smOutputTensors = DLKerasSelectOutputLayersNodeModel.createOutputTensorsSM();
-        m_dcStringSelection = new DialogComponentStringListSelection(m_smOutputTensors, "Output tensors",
-            Collections.singleton(""), true, 5);
-        addTab("Output tensors", m_dcStringSelection.getComponentPanel());
+        m_selectedTensorIds = new ArrayList<>();
+        m_visiblePanels = new HashMap<>();
+
+        m_availableTensorsFromName = new HashMap<>();
+        m_availableTensorsFromId = new HashMap<>();
+        m_availableTensorsNames = new ArrayList<>();
+
+        m_panel = new JPanel(new GridBagLayout());
+        m_gbc = new GridBagConstraints();
+        m_gbc.gridx = 0;
+        m_gbc.gridy = 0;
+        m_gbc.insets = new Insets(4, 4, 4, 4);
+
+        // Add output button
+        final JButton addBtn = new JButton("Add output");
+        addBtn.addActionListener(e -> addAction());
+        m_gbc.anchor = GridBagConstraints.NORTHEAST;
+        m_gbc.weightx = 0;
+        m_panel.add(addBtn, m_gbc);
+
+        // Prepare grid bag constrains for output panels
+        m_gbc.fill = GridBagConstraints.HORIZONTAL;
+        m_gbc.weightx = 1;
+
+        addTab("Output Selection", m_panel);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_dcStringSelection.saveSettingsTo(settings);
+        final SettingsModelStringArray sm = DLKerasSelectOutputLayersNodeModel.createOutputTensorsSM();
+        sm.setStringArrayValue(m_selectedTensorIds.toArray(new String[m_selectedTensorIds.size()]));
+        sm.saveSettingsTo(settings);
     }
 
     @Override
@@ -98,18 +142,130 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
         }
         final DLKerasNetworkSpec networkSpec = spec.getNetworkSpec();
 
-        m_dcStringSelection.loadSettingsFrom(settings, specs);
-        m_dcStringSelection.replaceListItems(getTensorIds(networkSpec), (String[])null);
+        // Update available tensors
+        m_availableTensorsFromName.clear();
+        m_availableTensorsFromId.clear();
+        m_availableTensorsNames.clear();
+        addToAvailableTensors(networkSpec.getHiddenOutputSpecs());
+        addToAvailableTensors(networkSpec.getOutputSpecs());
+        Collections.reverse(m_availableTensorsNames);
+
+        // Clear the visible output panels
+        for (final OutputSelectionPanel o : m_visiblePanels.values()) {
+            m_panel.remove(o);
+        }
+        m_visiblePanels.clear();
+        m_selectedTensorIds.clear();
+
+        // Update the dialog with the saved settings
+        final SettingsModelStringArray sm = DLKerasSelectOutputLayersNodeModel.createOutputTensorsSM();
+        try {
+            sm.loadSettingsFrom(settings);
+            for (final String output : sm.getStringArrayValue()) {
+                addOutput(m_availableTensorsFromId.get(output));
+            }
+        } catch (final InvalidSettingsException e) {
+            // No valid settings are saved: Just show a dialog with no output selected yet
+        }
+        updatePanel();
     }
 
-    private static List<String> getTensorIds(final DLKerasNetworkSpec spec) {
-        final DLTensorSpec[] hiddenSpecs = spec.getHiddenOutputSpecs();
-        final DLTensorSpec[] outputSpecs = spec.getOutputSpecs();
-        final List<String> layers = new ArrayList<>(hiddenSpecs.length + outputSpecs.length);
-        final Consumer<DLTensorSpec[]> addToList =
-            l -> Arrays.stream(l).map(t -> t.getIdentifier().getIdentifierString()).forEach(layers::add);
-        addToList.accept(hiddenSpecs);
-        addToList.accept(outputSpecs);
-        return layers;
+    private void addToAvailableTensors(final DLTensorSpec[] tensors) {
+        for (final DLTensorSpec s : tensors) {
+            m_availableTensorsFromName.put(s.getName(), s);
+            m_availableTensorsFromId.put(s.getIdentifier().getIdentifierString(), s);
+            m_availableTensorsNames.add(s.getName());
+        }
+    }
+
+    private void removeOutput(final String identifier, final OutputSelectionPanel panel) {
+        m_panel.remove(panel);
+        updatePanel();
+        m_selectedTensorIds.remove(identifier);
+        m_visiblePanels.remove(identifier);
+    }
+
+    private void addOutput(final DLTensorSpec tensor) {
+        // Add a panel for the output tensor
+        final String id = tensor.getIdentifier().getIdentifierString();
+        final String name = tensor.getName();
+        final String shape = tensor.getShape().toString();
+        final String dtype = tensor.getElementType().getSimpleName();
+        final OutputSelectionPanel output = new OutputSelectionPanel(id, name, shape, dtype);
+        m_gbc.gridy++;
+        m_panel.add(output, m_gbc);
+        updatePanel();
+
+        // Add it to the currently selected tensors
+        m_selectedTensorIds.add(id);
+        m_visiblePanels.put(id, output);
+    }
+
+    private void updatePanel() {
+        getPanel().validate();
+        getPanel().repaint();
+    }
+
+    private void addAction() {
+        // 'add output' dialog
+        final JPanel outputsAddDlg = new JPanel(new GridBagLayout());
+        final GridBagConstraints addOutputDialogConstr = new GridBagConstraints();
+        addOutputDialogConstr.gridx = 0;
+        addOutputDialogConstr.gridy = 0;
+        addOutputDialogConstr.weightx = 1;
+        addOutputDialogConstr.anchor = GridBagConstraints.WEST;
+        addOutputDialogConstr.fill = GridBagConstraints.VERTICAL;
+        // get the tensor names that are available and not yet selected
+        final ArrayList<String> availableForSelection = new ArrayList<>(m_availableTensorsNames);
+        availableForSelection.removeAll(m_selectedTensorIds.stream().map(m_availableTensorsFromId::get)
+            .map(DLTensorSpec::getName).collect(Collectors.toList()));
+        // output selection
+        final SettingsModelString smOutput = new SettingsModelString("output", availableForSelection.get(0));
+        final DialogComponentStringSelection dcOutput =
+            new DialogComponentStringSelection(smOutput, "Output", availableForSelection);
+        outputsAddDlg.add(dcOutput.getComponentPanel(), addOutputDialogConstr);
+        final int selectedOption = JOptionPane.showConfirmDialog(getPanel(), outputsAddDlg, "Add output...",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (selectedOption == JOptionPane.OK_OPTION) {
+            final DLTensorSpec outputTensorSpec = m_availableTensorsFromName.get(smOutput.getStringValue());
+            addOutput(outputTensorSpec);
+        }
+    }
+
+    private final class OutputSelectionPanel extends JPanel {
+
+        private static final long serialVersionUID = 1L;
+
+        public OutputSelectionPanel(final String identifier, final String name, final String shape,
+            final String dtype) {
+            super(new GridBagLayout());
+
+            // Set the border
+            final TitledBorder border = BorderFactory.createTitledBorder(name);
+            setBorder(border);
+
+            final GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.insets = new Insets(4, 4, 4, 4);
+            gbc.anchor = GridBagConstraints.NORTHWEST;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.weightx = 2;
+
+            // Add the information
+            add(new JLabel("Shape: " + shape), gbc);
+            gbc.gridy++;
+            add(new JLabel("Data type: " + dtype), gbc);
+
+            // Add the remove button
+            gbc.gridy = 0;
+            gbc.gridx = 1;
+            gbc.weightx = 0;
+            gbc.anchor = GridBagConstraints.NORTHEAST;
+            final JButton removeBtn = new JButton("Remove");
+            add(removeBtn, gbc);
+
+            removeBtn.addActionListener(e -> removeOutput(identifier, this));
+        }
     }
 }
