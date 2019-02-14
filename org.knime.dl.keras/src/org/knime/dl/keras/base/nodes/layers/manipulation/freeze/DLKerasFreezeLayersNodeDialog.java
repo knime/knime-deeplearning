@@ -66,6 +66,8 @@ public class DLKerasFreezeLayersNodeDialog extends NodeDialogPane {
 
     DLKerasFreezeLayersNodeDialog() {
         m_layerFilterPanel = new StringFilterPanel();
+        m_layerFilterPanel.setIncludeTitle("Not trainable layers");
+        m_layerFilterPanel.setExcludeTitle("Trainable layers");
         addTab("Freeze Layers", m_layerFilterPanel);
     }
 
