@@ -13,7 +13,13 @@
 			The new outputs must be selected in the node configuration.
 		</intro>
 		<tab name="Output Selection">
-			<option name="TODO">TODO</option>
+			<option name="Add output">Add an output tensor to the list of selected
+				outputs. A dialog will be shown that allows to select which tensor
+				should be added.
+			</option>
+			<option name="Remove">Remove the particular output from the list of
+				selected outputs.
+			</option>
 		</tab>
 	</fullDescription>
 	<ports>
