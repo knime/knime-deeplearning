@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.base.nodes.layers.manipulation.outputs;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -108,20 +109,23 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
         m_gbc = new GridBagConstraints();
         m_gbc.gridx = 0;
         m_gbc.gridy = 0;
-        m_gbc.insets = new Insets(4, 4, 4, 4);
 
         // Add output button
         final JButton addBtn = new JButton("Add output");
         addBtn.addActionListener(e -> addAction());
-        m_gbc.anchor = GridBagConstraints.NORTHEAST;
-        m_gbc.weightx = 0;
+        m_gbc.insets = new Insets(10, 4, 4, 10);
+        m_gbc.anchor = GridBagConstraints.EAST;
+        m_gbc.weightx = 1;
         m_panel.add(addBtn, m_gbc);
 
         // Prepare grid bag constrains for output panels
+        m_gbc.insets = new Insets(4, 4, 4, 4);
         m_gbc.fill = GridBagConstraints.HORIZONTAL;
         m_gbc.weightx = 1;
 
-        addTab("Output Selection", m_panel);
+        final JPanel alignNorthPanel = new JPanel(new BorderLayout());
+        alignNorthPanel.add(m_panel, BorderLayout.NORTH);
+        addTab("Output Selection", alignNorthPanel);
     }
 
     @Override
