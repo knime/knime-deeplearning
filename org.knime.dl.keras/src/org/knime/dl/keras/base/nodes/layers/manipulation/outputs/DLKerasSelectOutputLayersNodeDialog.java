@@ -66,6 +66,7 @@ import javax.swing.border.TitledBorder;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -82,6 +83,8 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
+
+    private final static NodeLogger LOGGER = NodeLogger.getLogger(DLKerasSelectOutputLayersNodeDialog.class);
 
     private final JPanel m_panel;
 
@@ -169,7 +172,12 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
         try {
             sm.loadSettingsFrom(settings);
             for (final String output : sm.getStringArrayValue()) {
-                addOutput(m_availableTensorsFromId.get(output));
+                // Only add the output if it is available
+                if (m_availableTensorsFromId.containsKey(output)) {
+                    addOutput(m_availableTensorsFromId.get(output));
+                } else {
+                    LOGGER.warn("The output with the identifier '" + output + "' is not avaiable anymore.");
+                }
             }
         } catch (final InvalidSettingsException e) {
             // No valid settings are saved: Just show a dialog with no output selected yet
