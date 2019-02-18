@@ -126,9 +126,9 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
             final String getModelSourceCode = createGetModelSourceCode(inputNetworkHandle);
             pythonContext.executeInKernel(getModelSourceCode, cancelable);
 
-            // Freeze the layers
-            final String freezeSourceCode = createManipulationSourceCode(inputNetwork.getSpec());
-            pythonContext.executeInKernel(freezeSourceCode, cancelable);
+            // Manipulate the layers
+            final String manipulateSourceCode = createManipulationSourceCode(inputNetwork.getSpec());
+            pythonContext.executeInKernel(manipulateSourceCode, cancelable);
 
             // Save the output network
             final DLPythonNetworkPortObject<?> outputPortObject = saveOutputNetwork(exec, cancelable, pythonContext);
