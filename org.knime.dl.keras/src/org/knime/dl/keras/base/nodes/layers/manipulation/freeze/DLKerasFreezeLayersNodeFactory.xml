@@ -9,7 +9,7 @@
 
 	<fullDescription>
 		<intro>Freezes the parameters of the selected layers. If the model is
-			trained afterwards the parameters of the selected layers are not
+			trained afterwards, the parameters of the selected layers are not
 			updated. All other layers are set to trainable.
 		</intro>
 		<tab name="Freeze Layers">
@@ -29,7 +29,7 @@
 				The list contains the layer names of the layers
 				that should be trainable in the output network.
 			</option>
-			<option name="Enforce inclusion">
+			<option name="Enforce exclusion">
 				Select to force the list of trainable layers not to change. Even if
 				other layers are added to the input network. Other layers are then
 				added to the
@@ -37,7 +37,7 @@
 				trainable layers list.
 			</option>
 			<option name="Wildcard/Regex Selection">
-				Use a wildcard of Regular expression to select the layers which
+				Use a wildcard or regular expression to select the layers which
 				should be
 				<b>not</b>
 				trainable.
