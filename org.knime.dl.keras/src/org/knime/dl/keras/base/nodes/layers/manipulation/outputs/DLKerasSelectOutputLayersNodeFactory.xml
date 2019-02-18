@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./dlkerasselectoutputlayer.png" type="Manipulator"
-	xmlns="http://knime.org/node/v3.6"
+<knimeNode icon="./dlkerasselectoutputlayer.png"
+	type="Manipulator" xmlns="http://knime.org/node/v3.6"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Select Output Layers</name>
@@ -9,8 +9,8 @@
 	</shortDescription>
 
 	<fullDescription>
-		<intro>Changes the output tensors of the Keras deep learning model.
-			The new outputs must be selected in the node configuration.
+		<intro>Changes the set of output tensors of the Keras deep learning
+			model. The new outputs must be selected in the node configuration.
 		</intro>
 		<tab name="Output Selection">
 			<option name="Add output">Add an output tensor to the list of selected
