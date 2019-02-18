@@ -564,12 +564,12 @@
             factory-class="org.knime.dl.keras.base.nodes.layers.collect.DLKerasCollectLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/"
+            category-path="/labs/deeplearning/keras/"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.manipulation.freeze.DLKerasFreezeLayersNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/"
+            category-path="/labs/deeplearning/keras/"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.manipulation.outputs.DLKerasSelectOutputLayersNodeFactory">
       </node>
