@@ -127,6 +127,9 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         final SettingsModelStringArray sm = DLKerasSelectOutputLayersNodeModel.createOutputTensorsSM();
+        if (m_selectedTensorIds.isEmpty()) {
+            throw new InvalidSettingsException("No output selected. Select at least one output tensor.");
+        }
         sm.setStringArrayValue(m_selectedTensorIds.toArray(new String[m_selectedTensorIds.size()]));
         sm.saveSettingsTo(settings);
     }
