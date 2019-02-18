@@ -49,7 +49,7 @@ package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -75,7 +75,7 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
     }
 
     static String[] getLayerNames(final DLKerasNetworkSpec spec) {
-        final Set<String> layers = new HashSet<>();
+        final Set<String> layers = new LinkedHashSet<>();
         final Consumer<DLTensorSpec[]> addToList =
             l -> Arrays.stream(l).map(t -> DLKerasUtils.Layers.getLayerName(t.getIdentifier())).forEach(layers::add);
         addToList.accept(spec.getHiddenOutputSpecs());
