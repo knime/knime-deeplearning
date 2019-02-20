@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -121,7 +120,6 @@ import org.knime.dl.core.execution.DLNetworkExecutionSession;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -380,11 +378,6 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
     private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {
-        // Inputs must be the same.
-        if (!Sets.symmetricDifference(new HashSet<>(Arrays.asList(newSpec.getInputSpecs())),
-            new HashSet<>(Arrays.asList(oldSpec.getInputSpecs()))).isEmpty()) {
-            return false;
-        }
         // Selected outputs must still be available.
         for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
             DLTensorSpec newTensorSpec = null;
