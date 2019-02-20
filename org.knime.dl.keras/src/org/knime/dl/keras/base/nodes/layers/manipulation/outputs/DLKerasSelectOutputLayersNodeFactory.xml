@@ -9,8 +9,10 @@
 	</shortDescription>
 
 	<fullDescription>
-		<intro>Changes the set of output tensors of the Keras deep learning
-			model. The new outputs must be selected in the node configuration.
+		<intro>Allows to manipulate the network architecture of a Keras deep learning model
+			by choosing a new set of output tensors of the model. Of the original layers of
+			the model, only those that are relevant to produce the selected outputs are retained.
+			The new outputs must be selected in the node configuration.
 		</intro>
 		<tab name="Output Selection">
 			<option name="Add output">Add an output tensor to the list of selected
