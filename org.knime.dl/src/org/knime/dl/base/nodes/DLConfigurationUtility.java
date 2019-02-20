@@ -171,6 +171,12 @@ public class DLConfigurationUtility {
      */
     public static void inputMatchesTensorSpec(DLTensorSpec tensorSpec, String[] includeNames, DataTableSpec tableSpec,
         DLDataValueToTensorConverterFactory<?, ?> converter, DLTensorRole tensorRole) throws InvalidSettingsException {
+        // Check if at least one input is selected
+        if (includeNames.length == 0) {
+            throw new InvalidSettingsException(
+                "No " + tensorRole.getLowerCase() + " columns selected. Try adding columns to the selection.");
+        }
+
         final OptionalLong inputSizeOpt = DLUtils.Shapes.getFixedSize(tensorSpec.getShape());
         if (inputSizeOpt.isPresent()) {
             final long inputSize = inputSizeOpt.getAsLong();
