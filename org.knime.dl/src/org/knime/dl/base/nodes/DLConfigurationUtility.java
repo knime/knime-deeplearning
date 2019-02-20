@@ -136,7 +136,7 @@ public class DLConfigurationUtility {
         final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
         ((DLDataTypeColumnFilter)filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
         // check if selected columns are still in input table
-        if (lastConfiguredTableSpec != null) {
+        if (lastConfiguredTableSpec != null && filterConfig.isEnforceInclusion()) {
             if (includesChanged(inTableSpec, lastConfiguredTableSpec, filterConfig)) {
                 throw new InvalidSettingsException("The included columns for " + tensorRole.getLowerCase() + " '"
                     + tensorSpec.getName() + "' changed. Please reconfigure the node.");
