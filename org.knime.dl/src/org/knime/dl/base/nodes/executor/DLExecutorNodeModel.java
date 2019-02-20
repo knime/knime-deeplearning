@@ -108,6 +108,7 @@ import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLRowInputRowIterator;
 import org.knime.dl.core.DLTensorId;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.convert.DLDataValueToTensorConverterFactory;
 import org.knime.dl.core.data.convert.DLTensorToDataCellConverterFactory;
 import org.knime.dl.core.execution.DLDefaultExecutionStatus;
@@ -172,10 +173,6 @@ final class DLExecutorNodeModel extends NodeModel {
 
 	private LinkedHashMap<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> m_outputConverters;
 
-	private DLNetworkSpec m_lastIncomingNetworkSpec;
-
-	private DLNetworkSpec m_lastConfiguredNetworkSpec;
-
 	private DataTableSpec m_lastIncomingTableSpec;
 
 	private DataTableSpec m_lastConfiguredTableSpec;
@@ -188,8 +185,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		m_generalCfg = createGeneralModelConfig();
 		m_inputCfgs = new HashMap<>();
 		m_outputCfgs = new HashMap<>();
-		m_lastIncomingNetworkSpec = null;
-		m_lastConfiguredNetworkSpec = null;
 		m_lastIncomingTableSpec = null;
 		m_lastConfiguredTableSpec = null;
 		m_initialLoaded = false;
@@ -251,19 +246,10 @@ final class DLExecutorNodeModel extends NodeModel {
 			LOGGER.warn("Input deep learning network has no output specs.");
 		}
 
-		m_lastIncomingNetworkSpec = networkSpec;
 		m_lastIncomingTableSpec = inDataSpec;
 
-		if (m_lastConfiguredNetworkSpec != null && m_lastConfiguredTableSpec != null) {
-            if (!areNetworkSpecsCompatible(m_lastIncomingNetworkSpec, m_lastConfiguredNetworkSpec)) {
-				throw new InvalidSettingsException("Input deep learning network changed. Please reconfigure the node.");
-			}
-//			else if (!m_lastConfiguredTableSpec.equals(m_lastIncomingTableSpec)) {
-//			    throw new InvalidSettingsException("Input table changed. Please reconfigure the node.");
-//			}
-		} else if (m_initialLoaded) {
+        if (m_lastConfiguredTableSpec == null && m_initialLoaded) {
 			// loaded from saved workflow
-			m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
 			m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 		}
 
@@ -367,7 +353,6 @@ final class DLExecutorNodeModel extends NodeModel {
 
 		m_smOutputOrder.loadSettingsFrom(settings);
 
-		m_lastConfiguredNetworkSpec = m_lastIncomingNetworkSpec;
 		m_lastConfiguredTableSpec = m_lastIncomingTableSpec;
 		m_initialLoaded = true;
 	}
@@ -377,29 +362,6 @@ final class DLExecutorNodeModel extends NodeModel {
 		// no op
 	}
 
-    private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {
-        // Selected outputs must still be available.
-        for (final String tensorName : m_smOutputOrder.getStringArrayValue()) {
-            DLTensorSpec newTensorSpec = null;
-            try {
-                newTensorSpec = getOutputOrHiddenTensorSpec(tensorName, newSpec);
-            } catch (final InvalidSettingsException e) {
-                return false;
-            }
-            DLTensorSpec oldTensorSpec = null;
-            try {
-                oldTensorSpec = getOutputOrHiddenTensorSpec(tensorName, oldSpec);
-            } catch (final InvalidSettingsException e) {
-                continue; // This should not happen. But if it does, the new spec is valid.
-            }
-            if (!newTensorSpec.equals(oldTensorSpec)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private static DLTensorSpec getOutputOrHiddenTensorSpec(final String tensorNameOrId,
         final DLNetworkSpec networkSpec) throws InvalidSettingsException {
         Optional<DLTensorSpec> tensorSpec =
@@ -408,7 +370,8 @@ final class DLExecutorNodeModel extends NodeModel {
             tensorSpec = DLUtils.Networks.findTensorSpecByName(tensorNameOrId, networkSpec);
         }
         return tensorSpec.orElseThrow(() -> new InvalidSettingsException(
-            "Selected output '" + tensorNameOrId + "' could not be found in the input deep learning network."));
+            "Selected output '" + tensorNameOrId
+                + "' could not be found in the input deep learning network. Please reconfigure the node."));
     }
 
 	private void configureGeneral(final Class<? extends DLNetwork> networkType)
@@ -469,6 +432,7 @@ final class DLExecutorNodeModel extends NodeModel {
         }
         m_outputConverters = new LinkedHashMap<>(m_outputCfgs.size());
         for (final String tensorIdString : m_smOutputOrder.getStringArrayValue()) {
+            // Note that #getOutputOrHiddenTensorSpec throws an exception if the tensor is not available
             final DLTensorSpec outputSpec = getOutputOrHiddenTensorSpec(tensorIdString, networkSpec);
             if (!DLUtils.Shapes.isKnown(outputSpec.getShape())) {
                 throw new InvalidSettingsException(
@@ -481,6 +445,24 @@ final class DLExecutorNodeModel extends NodeModel {
             }
             // get selected converter
             final DLTensorToDataCellConverterFactory<?, ?> converter = outputCfg.getConverterEntry().getValue();
+            // check that the selected converter is compatible
+            if (converter == null) {
+                throw new InvalidSettingsException("Selected output '" + outputSpec.getName()
+                    + "' has no converter configured. Are you missing a KNIME extension?");
+            }
+            if (!converter.getDestCount(outputSpec).isPresent()) {
+                throw new InvalidSettingsException(
+                    "The converter '" + converter.getName() + "' of the output '" + outputSpec.getName()
+                        + "' can't compute the number of output elements. This is not supported. Please reconfigure the node.");
+            }
+            final Class<? extends DLReadableBuffer> bufferType =
+                m_generalCfg.getContextEntry().getValue().getTensorFactory().getReadableBufferType(outputSpec);
+            if (!converter.getBufferType().isAssignableFrom(bufferType)) {
+                throw new InvalidSettingsException(
+                    "The configured converter '" + converter.getIdentifier()
+                        + "' is not compatible with the output tensor '" + outputSpec.getName() + "' of type "
+                        + outputSpec.getElementType().getCanonicalName() + ". Please reconfigure the node.");
+            }
             m_outputConverters.put(outputSpec, converter);
         }
     }
