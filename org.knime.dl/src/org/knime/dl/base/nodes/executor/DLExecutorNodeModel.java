@@ -380,10 +380,6 @@ final class DLExecutorNodeModel extends NodeModel {
 	}
 
     private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {
-        // Network types must be the same.
-        if (!newSpec.getClass().equals(oldSpec.getClass())) {
-            return false;
-        }
         // Inputs must be the same.
         if (!Sets.symmetricDifference(new HashSet<>(Arrays.asList(newSpec.getInputSpecs())),
             new HashSet<>(Arrays.asList(oldSpec.getInputSpecs()))).isEmpty()) {
