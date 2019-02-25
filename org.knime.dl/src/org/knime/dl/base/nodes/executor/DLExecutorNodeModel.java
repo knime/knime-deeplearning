@@ -459,7 +459,7 @@ final class DLExecutorNodeModel extends NodeModel {
                 m_generalCfg.getContextEntry().getValue().getTensorFactory().getReadableBufferType(outputSpec);
             if (!converter.getBufferType().isAssignableFrom(bufferType)) {
                 throw new InvalidSettingsException(
-                    "The configured converter '" + converter.getIdentifier()
+                    "The configured converter '" + converter.getName()
                         + "' is not compatible with the output tensor '" + outputSpec.getName() + "' of type "
                         + outputSpec.getElementType().getCanonicalName() + ". Please reconfigure the node.");
             }
