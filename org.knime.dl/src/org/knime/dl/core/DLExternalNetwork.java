@@ -44,28 +44,17 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core;
-
-import org.knime.dl.core.DLAbstractExternalNetwork;
-import org.knime.dl.core.DLNetworkLocation;
-import org.knime.dl.core.DLNetworkSpec;
+package org.knime.dl.core;
 
 /**
- * @param <S> type of the network spec
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLPythonAbstractNetwork<S extends DLNetworkSpec> extends DLAbstractExternalNetwork<S>
-    implements DLPythonNetwork {
+public interface DLExternalNetwork extends DLNetwork {
 
     /**
-     * Creates a new Python network that is defined by an external file or directory.
-     *
-     * @param spec the spec of the network
-     * @param source the location of the defining file or directory
+     * @return the location of the saved network
      */
-    protected DLPythonAbstractNetwork(final S spec, final DLNetworkLocation source) {
-        super(spec, source);
-    }
+    DLNetworkLocation getSource();
 }

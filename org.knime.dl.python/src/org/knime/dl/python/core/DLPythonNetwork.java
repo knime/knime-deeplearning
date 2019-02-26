@@ -46,14 +46,13 @@
  */
 package org.knime.dl.python.core;
 
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.DLNetworkLocation;
+import org.knime.dl.core.DLExternalNetwork;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetwork extends DLNetwork {
-
-    DLNetworkLocation getSource();
+public interface DLPythonNetwork extends DLExternalNetwork {
+    // Marker interface for backwards compatibility
 }
