@@ -80,6 +80,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
@@ -708,20 +709,21 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     private void setupTrainingStatus(final boolean doValidation, final DLKerasTrainingConfig trainingConfig,
         final int numTrainingBatchesPerEpoch, final int totalNumTrainingBatches,
         final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor) {
+        final NodeContext nodeContext = NodeContext.getContext();
         m_status.setViewSpecs(m_viewSpecs);
         m_status.setViewData(m_viewData);
         m_status.trainingEnded().addListener((src, v) -> {
         	try {
-        		notifyViews(m_status);
+                notifyViewsWithNodeContext(nodeContext, m_status);
         	} catch (final Exception e) {
         		LOGGER.warn("An error occurred while updating the learner's view. "
         				+ "The actual learning process remains unaffected.", e);
         	}
         });
         m_status.epochStarted().addListener((src, v) -> {
-        	try {
-        		notifyViews(m_status);
-        	} catch (final Exception e) {
+            try {
+                notifyViewsWithNodeContext(nodeContext, m_status);
+            } catch (final Exception e) {
         		LOGGER.warn("An error occurred while updating the learner's view. "
         				+ "The actual learning process remains unaffected.", e);
         	}
@@ -737,9 +739,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         		final DLSparseLinePlotViewData lossPlot = (DLSparseLinePlotViewData) m_viewData[1].get(1);
         		lossPlot.getDataX().add(currentBatch);
         		lossPlot.getDataY().add(metrics.get("val_loss").getValue());
-        		try {
-        			notifyViews(m_status);
-        		} catch (final Exception e) {
+                try {
+                    notifyViewsWithNodeContext(nodeContext, m_status);
+                } catch (final Exception e) {
         			LOGGER.warn("An error occurred while updating the learner's view. "
         					+ "The actual learning process remains unaffected.", e);
         		}
@@ -758,9 +760,9 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         	// update view
         	((DLDenseLinePlotViewData) m_viewData[0].get(0)).getDataY().add(metrics.get("accuracy").getValue());
         	((DLDenseLinePlotViewData) m_viewData[1].get(0)).getDataY().add(metrics.get("loss").getValue());
-        	try {
-        		notifyViews(m_status);
-        	} catch (final Exception e) {
+            try {
+                notifyViewsWithNodeContext(nodeContext, m_status);
+            } catch (final Exception e) {
         		LOGGER.warn("An error occurred while updating the learner's view. "
         				+ "The actual learning process remains unaffected.", e);
         	}
@@ -778,6 +780,19 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         	m_status.terminatedOnNaNLoss().addListener(
         			(src, batch) -> setWarningMessage("Training terminated in batch " + (batch + 1) + " of epoch "
         					+ (m_status.getCurrentEpoch() + 1) + " due to a NaN (not a number) loss."));
+        }
+    }
+    
+    private void notifyViewsWithNodeContext(final NodeContext nodeContext, final Object arg) {
+        if (nodeContext != null) {
+            NodeContext.pushContext(nodeContext);
+        }
+        try {
+            notifyViews(arg);
+        } finally {
+            if (nodeContext != null) {
+                NodeContext.removeLastContext();
+            }
         }
     }
 
