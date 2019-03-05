@@ -3,9 +3,9 @@
 	type="Manipulator" xmlns="http://knime.org/node/v3.6"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Keras Select Output Layers</name>
+	<name>Keras Set Output Layers</name>
 
-	<shortDescription>Select the output layers of a Keras model.
+	<shortDescription>Set the output layers of a Keras model.
 	</shortDescription>
 
 	<fullDescription>
