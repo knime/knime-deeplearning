@@ -67,8 +67,8 @@ import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.python2.config.PythonFlowVariableOptions;
 import org.knime.python2.config.PythonSourceCodeConfig;
-import org.knime.python2.kernel.FlowVariableOptions;
 import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
@@ -92,11 +92,12 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 		return m_config;
 	}
 
-	protected PythonKernelOptions getKernelOptions() {
-		final PythonKernelOptions options = getConfig().getKernelOptions();
-		options.setFlowVariableOptions(FlowVariableOptions.create(getAvailableFlowVariables()));
-		return options;
-	}
+    protected PythonKernelOptions getKernelOptions() {
+        final PythonKernelOptions options = getConfig().getKernelOptions();
+        final String serializerId =
+            new PythonFlowVariableOptions(getAvailableFlowVariables()).getSerializerId().orElse(null);
+        return options.forSerializationOptions(options.getSerializationOptions().forSerializerId(serializerId));
+    }
 
 	/**
 	 * Push new variables to the stack. Only pushes new variables to the stack if they are new or changed in type or

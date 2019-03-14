@@ -58,7 +58,6 @@ import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.generic.templates.SourceCodeTemplatesPanel;
-import org.knime.python2.kernel.FlowVariableOptions;
 
 /**
  * Shamelessly copied and pasted from python source.
@@ -75,8 +74,7 @@ final class DLPythonCreatorNodeDialog extends NodeDialogPane {
 	private final SourceCodeTemplatesPanel m_templatesPanel;
 
 	DLPythonCreatorNodeDialog() {
-        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonCreatorNodeConfig.getVariableNames(),
-            FlowVariableOptions.create(getAvailableFlowVariables()));
+        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonCreatorNodeConfig.getVariableNames());
 		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
 		m_templatesPanel = new SourceCodeTemplatesPanel(m_sourceCodePanel, "dl-python-creator");
 		addTab("Script", m_sourceCodePanel, false);

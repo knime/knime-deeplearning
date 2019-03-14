@@ -61,6 +61,7 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
 import org.knime.python.typeextension.PythonModuleExtensions;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -70,7 +71,6 @@ import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
-import org.knime.python2.kernel.PythonKernelOptions.PythonVersionOption;
 import org.knime.python2.prefs.PythonPreferences;
 
 import com.google.common.base.Strings;
@@ -83,8 +83,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
         try {
-            final PythonKernelOptions options = new PythonKernelOptions();
-            options.setPythonVersionOption(PythonVersionOption.PYTHON3);
+            final PythonKernelOptions options = new PythonKernelOptions().forPythonVersion(PythonVersion.PYTHON3);
             return new PythonKernel(options);
         } catch (final IOException e) {
             final String msg = !Strings.isNullOrEmpty(e.getMessage())

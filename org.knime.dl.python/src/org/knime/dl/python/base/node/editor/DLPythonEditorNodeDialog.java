@@ -67,7 +67,6 @@ import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.config.WorkspacePreparer;
-import org.knime.python2.kernel.FlowVariableOptions;
 
 /**
  * Shamelessly copied and pasted from python predictor.
@@ -84,8 +83,7 @@ final class DLPythonEditorNodeDialog extends DataAwareNodeDialogPane {
 	private WorkspacePreparer m_workspacePreparer;
 
 	DLPythonEditorNodeDialog() {
-        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonEditorNodeConfig.getVariableNames(),
-            FlowVariableOptions.create(getAvailableFlowVariables()));
+        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonEditorNodeConfig.getVariableNames());
 		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
 		addTab("Script", m_sourceCodePanel, false);
 		addTab("Options", m_sourceCodeOptionsPanel, true);
