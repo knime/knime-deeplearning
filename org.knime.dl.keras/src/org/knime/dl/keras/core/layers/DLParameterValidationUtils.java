@@ -178,7 +178,7 @@ public final class DLParameterValidationUtils {
     public static String checkConvolutionOutputGreaterThanZero(final Long[] outputShape) {
         final String shape = Arrays.toString(outputShape);
         for (int d = 0; d < outputShape.length; d++) {
-            if (outputShape[d] <= 0)
+            if (outputShape[d] != null && outputShape[d] <= 0)
                 return "Output tensor shape, " + shape
                     + ", must be greater than zero in all dimensions, kernel size or strides length may be too large.";
         }
@@ -194,7 +194,7 @@ public final class DLParameterValidationUtils {
     public static String checkCroppingOutputGreaterThanZero(final Long[] outputShape) {
         final String shape = Arrays.toString(outputShape);
         for (int d = 0; d < outputShape.length; d++) {
-            if (outputShape[d] <= 0)
+            if (outputShape[d] != null && outputShape[d] <= 0)
                 return "Output tensor shape, " + shape
                     + ", must be greater than zero in all dimensions, cropping may be too large.";
         }
@@ -210,7 +210,7 @@ public final class DLParameterValidationUtils {
     public static String checkPoolingOutputGreaterThanZero(final Long[] outputShape) {
         final String shape = Arrays.toString(outputShape);
         for (int d = 0; d < outputShape.length; d++) {
-            if (outputShape[d] <= 0)
+            if (outputShape[d] != null && outputShape[d] <= 0)
                 return "Output tensor shape, " + shape
                     + ", must be greater than zero in all dimensions, pool size or strides may be too large.";
         }
