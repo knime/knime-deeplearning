@@ -169,6 +169,20 @@ public final class DLParameterValidationUtils {
     }
 
     /**
+     * Checks if the tensor shape input of a locally connected operation is defined in all dimensions.
+     *
+     * @param inputShape array representation of layer input shape
+     * @return {@code null} if shape is valid, otherwise returns an error message
+     */
+    public static String checkLocallyConnectedInputDefined(final Long[] inputShape) {
+        for (int d = 0; d < inputShape.length; d++) {
+            if (inputShape[d] == null)
+                return "Input tensor shape is partially defined but must be fully defined for a locally connected layer.";
+        }
+        return null;
+    }
+
+    /**
      * Checks if the tensor shape output by a convolution (or convolution-like) operation is greater than zero in all
      * dimensions.
      *

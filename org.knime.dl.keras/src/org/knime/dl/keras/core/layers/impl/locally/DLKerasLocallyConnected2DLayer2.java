@@ -144,6 +144,9 @@ public final class DLKerasLocallyConnected2DLayer2 extends DLKerasAbstractUnaryL
         throws DLInvalidTensorSpecException {
         DLInputShapeValidationUtils.dimsExactly(inputShape, 3);
 
+        final String inputMessage = DLParameterValidationUtils.checkLocallyConnectedInputDefined(inputShape);
+        checkInputSpec(inputMessage == null, inputMessage);
+
         final String message =
             DLParameterValidationUtils.checkConvolutionOutputGreaterThanZero(inferOutputShape(inputShape));
         checkInputSpec(message == null, message);
