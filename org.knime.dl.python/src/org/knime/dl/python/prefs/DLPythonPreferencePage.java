@@ -48,11 +48,14 @@ package org.knime.dl.python.prefs;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -60,12 +63,21 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.knime.core.node.NodeLogger;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.CondaEnvironmentCreationObserver;
+import org.knime.python2.config.ManualEnvironmentsConfig;
+import org.knime.python2.config.PythonConfig;
+import org.knime.python2.config.PythonEnvironmentType;
+import org.knime.python2.config.PythonEnvironmentTypeConfig;
+import org.knime.python2.prefs.PythonEnvironmentTypePreferencePanel;
 import org.knime.python2.prefs.PythonPreferencePage;
 
 /**
@@ -84,6 +96,16 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private Composite m_container;
 
+    private PythonEnvironmentTypeConfig m_environmentTypeConfig;
+
+    private List<PythonConfig> m_configs;
+
+    private StackLayout m_environmentConfigurationLayout;
+
+    private DLCondaEnvironmentPreferencePanel m_condaEnvironmentPanel;
+
+    private ManualEnvironmentsPreferencePanel m_manualEnvironmentPanel;
+
     @Override
     public void init(final IWorkbench workbench) {
         // Nothing to do
@@ -94,7 +116,54 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         createPageBody(parent);
         createInfoHeader(parent);
 
-        // TODO create controls
+        m_configs = new ArrayList<>(5);
+
+        // TODO Radio button for using the python configuration (should be activate by default)
+
+        // Environment configuration:
+
+        final Group environmentConfigurationGroup = new Group(m_container, SWT.NONE);
+        environmentConfigurationGroup.setText("Python environment configuration");
+        environmentConfigurationGroup.setLayout(new GridLayout());
+        environmentConfigurationGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        // Environment type selection:
+
+        m_environmentTypeConfig = new PythonEnvironmentTypeConfig();
+        m_configs.add(m_environmentTypeConfig);
+        @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
+        final Object unused1 =
+            new PythonEnvironmentTypePreferencePanel(m_environmentTypeConfig, environmentConfigurationGroup);
+        final Label separator = new Label(environmentConfigurationGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
+        separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        final Composite environmentConfigurationPanel = new Composite(environmentConfigurationGroup, SWT.NONE);
+        m_environmentConfigurationLayout = new StackLayout();
+        environmentConfigurationPanel.setLayout(m_environmentConfigurationLayout);
+        environmentConfigurationPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        // Conda environment configuration, including environment creation dialogs:
+
+        final DLCondaEnvironmentConfig condaEnvironmentsConfig = new DLCondaEnvironmentConfig();
+        m_configs.add(condaEnvironmentsConfig);
+        final CondaEnvironmentCreationObserver python3EnvironmentCreator = new CondaEnvironmentCreationObserver(
+            PythonVersion.PYTHON3, condaEnvironmentsConfig.getCondaDirectoryPath());
+
+        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(condaEnvironmentsConfig,
+            python3EnvironmentCreator, environmentConfigurationPanel);
+
+        // Manual environment configuration:
+
+        final ManualEnvironmentsConfig manualEnvironmentsConfig = new ManualEnvironmentsConfig();
+        m_configs.add(manualEnvironmentsConfig);
+        // TODO ManualEnvironmentPreferencePanel was package private: Should it be?
+        m_manualEnvironmentPanel =
+            new ManualEnvironmentsPreferencePanel(manualEnvironmentsConfig, environmentConfigurationPanel);
+
+        // Hooks
+
+        m_environmentTypeConfig.getEnvironmentType().addChangeListener(
+            e -> displayPanelForEnvironmentType(m_environmentTypeConfig.getEnvironmentType().getStringValue()));
 
         return m_containerScrolledView;
     }
@@ -120,6 +189,18 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         });
     }
 
+    private void displayPanelForEnvironmentType(final String environmentTypeId) {
+        final PythonEnvironmentType environmentType = PythonEnvironmentType.fromId(environmentTypeId);
+        if (PythonEnvironmentType.CONDA.equals(environmentType)) {
+            m_environmentConfigurationLayout.topControl = m_condaEnvironmentPanel.getPanel();
+        } else if (PythonEnvironmentType.MANUAL.equals(environmentType)) {
+            m_environmentConfigurationLayout.topControl = m_manualEnvironmentPanel.getPanel();
+        } else {
+            throw new IllegalStateException(
+                "Selected Python environment type is neither Conda nor manual. This is an implementation error.");
+        }
+    }
+
     private void createPageBody(final Composite parent) {
         m_containerScrolledView = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
         m_container = new Composite(m_containerScrolledView, SWT.NONE);
@@ -132,4 +213,19 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_containerScrolledView.setExpandHorizontal(true);
         m_containerScrolledView.setExpandVertical(true);
     }
+
+    @Override
+    public boolean performOk() {
+        // saveConfigurations();
+        return true;
+    }
+
+    @Override
+    protected void performApply() {
+        // TODO
+        // saveConfigurations();
+        //m_configObserver.testCurrentPreferences();
+    }
+
+    // TODO defaults, load, save
 }
