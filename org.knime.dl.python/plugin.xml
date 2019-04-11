@@ -146,4 +146,13 @@
             factory-class="org.knime.dl.python.base.node.learner.DLPythonLearnerNodeFactory">
       </node>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.knime.workbench.ui.preferences"
+            class="org.knime.dl.python.prefs.DLPythonPreferencePage"
+            id="org.knime.dl.python.prefs.DLPythonPreferencePage"
+            name="Deep Learning">
+      </page>
+   </extension>
 </plugin>
