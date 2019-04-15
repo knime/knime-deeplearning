@@ -96,15 +96,17 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private Composite m_container;
 
-    private StackLayout m_environmentConfigurationLayout;
+    private Group m_environmentConfigurationGroup;
 
-    private DLPythonConfigSelectionPanel m_configSelectionPanel;
+    private StackLayout m_environmentConfigurationLayout;
 
     private DLCondaEnvironmentPreferencePanel m_condaEnvironmentPanel;
 
     private DLManualEnvironmetPreferencePanel m_manualEnvironmentPanel;
 
     private Config m_config;
+
+    private SerializerPreferencePanel m_serializerPanel;
 
     @Override
     public void init(final IWorkbench workbench) {
@@ -118,30 +120,27 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_config = new Config();
 
         // Config selection (Python or own dl preferences):
-        m_configSelectionPanel = new DLPythonConfigSelectionPanel(m_config.m_configSelection, m_container);
+        @SuppressWarnings("unused")
+        Object unused = new DLPythonConfigSelectionPanel(m_config.m_configSelection, m_container);
 
-        // Environment configuration:
-
-        final Group environmentConfigurationGroup = new Group(m_container, SWT.NONE);
-        environmentConfigurationGroup.setText("Python environment configuration");
-        environmentConfigurationGroup.setLayout(new GridLayout());
-        environmentConfigurationGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        m_environmentConfigurationGroup = new Group(m_container, SWT.NONE);
+        m_environmentConfigurationGroup.setText("Deep Learning Python environment configuration");
+        m_environmentConfigurationGroup.setLayout(new GridLayout());
+        m_environmentConfigurationGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Environment type selection:
-
         @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
         final Object unused1 =
-            new PythonEnvironmentTypePreferencePanel(m_config.m_envType, environmentConfigurationGroup);
-        final Label separator = new Label(environmentConfigurationGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
+            new PythonEnvironmentTypePreferencePanel(m_config.m_envType, m_environmentConfigurationGroup);
+        final Label separator = new Label(m_environmentConfigurationGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
         separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        final Composite environmentConfigurationPanel = new Composite(environmentConfigurationGroup, SWT.NONE);
+        final Composite environmentConfigurationPanel = new Composite(m_environmentConfigurationGroup, SWT.NONE);
         m_environmentConfigurationLayout = new StackLayout();
         environmentConfigurationPanel.setLayout(m_environmentConfigurationLayout);
         environmentConfigurationPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Conda environment configuration, including environment creation dialogs:
-
         final CondaEnvironmentCreationObserver python3EnvironmentCreator =
             new CondaEnvironmentCreationObserver(PythonVersion.PYTHON3, m_config.m_condaEnv.getCondaDirectoryPath());
 
@@ -149,23 +148,19 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
             environmentConfigurationPanel);
 
         // Manual environment configuration:
-
         m_manualEnvironmentPanel =
             new DLManualEnvironmetPreferencePanel(m_config.m_manualEnv, environmentConfigurationPanel);
 
-        // Serializer selection:
-
-        @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
-        Object unused2 = new SerializerPreferencePanel(m_config.m_serializer, m_container);
+        m_serializerPanel = new SerializerPreferencePanel(m_config.m_serializer, m_container);
 
         // Load config
         m_config.load();
-        displayPanelForEnvironmentType(m_config.m_envType.getEnvironmentType().getStringValue());
+        updateConfigSelection();
+        updateEnvironmentType();
 
         // Hooks
-
-        m_config.m_envType.getEnvironmentType().addChangeListener(
-            e -> displayPanelForEnvironmentType(m_config.m_envType.getEnvironmentType().getStringValue()));
+        m_config.m_envType.getEnvironmentType().addChangeListener(e -> updateEnvironmentType());
+        m_config.m_configSelection.getConfigSelection().addChangeListener(e -> updateConfigSelection());
 
         return m_containerScrolledView;
     }
@@ -191,27 +186,6 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         });
     }
 
-    private void displayPanelForEnvironmentType(final String environmentTypeId) {
-        final PythonEnvironmentType environmentType = PythonEnvironmentType.fromId(environmentTypeId);
-        if (PythonEnvironmentType.CONDA.equals(environmentType)) {
-            m_environmentConfigurationLayout.topControl = m_condaEnvironmentPanel.getPanel();
-        } else if (PythonEnvironmentType.MANUAL.equals(environmentType)) {
-            m_environmentConfigurationLayout.topControl = m_manualEnvironmentPanel.getPanel();
-        } else {
-            throw new IllegalStateException(
-                "Selected Python environment type is neither Conda nor manual. This is an implementation error.");
-        }
-        updateDisplayMinSize();
-    }
-
-    private void updateDisplayMinSize() {
-        PythonPreferenceUtils.performActionOnWidgetInUiThread(getControl(), () -> {
-            m_container.layout(true, true);
-            m_containerScrolledView.setMinSize(m_container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-            return null;
-        }, false);
-    }
-
     private void createPageBody(final Composite parent) {
         m_containerScrolledView = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
         m_container = new Composite(m_containerScrolledView, SWT.NONE);
@@ -223,6 +197,55 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_containerScrolledView.setContent(m_container);
         m_containerScrolledView.setExpandHorizontal(true);
         m_containerScrolledView.setExpandVertical(true);
+    }
+
+    private void updateEnvironmentType() {
+        final PythonEnvironmentType environmentType =
+            PythonEnvironmentType.fromId(m_config.m_envType.getEnvironmentType().getStringValue());
+        if (PythonEnvironmentType.CONDA.equals(environmentType)) {
+            m_environmentConfigurationLayout.topControl = m_condaEnvironmentPanel.getPanel();
+        } else if (PythonEnvironmentType.MANUAL.equals(environmentType)) {
+            m_environmentConfigurationLayout.topControl = m_manualEnvironmentPanel.getPanel();
+        } else {
+            throw new IllegalStateException(
+                "Selected Python environment type is neither Conda nor manual. This is an implementation error.");
+        }
+        updateDisplayMinSize();
+    }
+
+    private void updateConfigSelection() {
+        final DLPythonConfigSelection configSelection =
+            DLPythonConfigSelection.fromId(m_config.m_configSelection.getConfigSelection().getStringValue());
+        if (DLPythonConfigSelection.PYTHON.equals(configSelection)) {
+            enableEnvConfig(false);
+        } else if (DLPythonConfigSelection.DL.equals(configSelection)) {
+            enableEnvConfig(true);
+        } else {
+            throw new IllegalStateException(
+                "Selected config selection is neither Python nor deep learning. This is an implementation error.");
+        }
+    }
+
+    private void enableEnvConfig(final boolean enabled) {
+        enable(m_environmentConfigurationGroup, enabled);
+        enable(m_serializerPanel.getPanel(), enabled);
+    }
+
+    private static void enable(final Control control, final boolean enabled) {
+        control.setEnabled(enabled);
+        if (control instanceof Composite) {
+            for (final Control c : ((Composite)control).getChildren()) {
+                enable(c, enabled);
+            }
+        }
+    }
+
+    private void updateDisplayMinSize() {
+        PythonPreferenceUtils.performActionOnWidgetInUiThread(getControl(), () -> {
+            m_container.layout(true, true);
+            m_containerScrolledView.setMinSize(m_container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+            return null;
+        }, false);
     }
 
     @Override
