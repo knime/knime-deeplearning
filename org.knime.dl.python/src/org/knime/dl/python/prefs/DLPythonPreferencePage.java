@@ -76,8 +76,10 @@ import org.knime.python2.config.CondaEnvironmentCreationObserver;
 import org.knime.python2.config.PythonConfig;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
+import org.knime.python2.config.SerializerConfig;
 import org.knime.python2.prefs.PythonEnvironmentTypePreferencePanel;
 import org.knime.python2.prefs.PythonPreferencePage;
+import org.knime.python2.prefs.SerializerPreferencePanel;
 
 /**
  * Preference page for configurations related to the deep-learning python setup.
@@ -158,6 +160,12 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_manualEnvironmentPanel =
             new DLManualEnvironmetPreferencePanel(manualEnvironmentConfig, environmentConfigurationPanel);
 
+        // Serializer selection:
+
+        final SerializerConfig serializerConfig = new SerializerConfig();
+        m_configs.add(serializerConfig);
+        @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
+        Object unused2 = new SerializerPreferencePanel(serializerConfig, m_container);
 
         // Hooks
 
