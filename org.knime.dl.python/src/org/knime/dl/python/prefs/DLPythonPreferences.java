@@ -79,11 +79,19 @@ public class DLPythonPreferences {
     }
 
     /**
+     * @return the config selection which should be used (python v. dl)
+     */
+    public static DLPythonConfigSelection getConfigSelectionPreference() {
+        final DLPythonConfigSelectionConfig configSelection = new DLPythonConfigSelectionConfig();
+        configSelection.loadConfigFrom(CURRENT);
+        return DLPythonConfigSelection.fromId(configSelection.getConfigSelection().getStringValue());
+    }
+
+    /**
      * @return <code>true</code> if the Python configuration should be used
      */
     public static boolean usePythonPreferences() {
-        // TODO
-        return false;
+        return DLPythonConfigSelection.PYTHON.equals(getConfigSelectionPreference());
     }
 
     /**

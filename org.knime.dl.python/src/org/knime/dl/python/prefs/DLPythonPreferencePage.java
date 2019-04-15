@@ -98,6 +98,8 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private StackLayout m_environmentConfigurationLayout;
 
+    private DLPythonConfigSelectionPanel m_configSelectionPanel;
+
     private DLCondaEnvironmentPreferencePanel m_condaEnvironmentPanel;
 
     private DLManualEnvironmetPreferencePanel m_manualEnvironmentPanel;
@@ -115,7 +117,8 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         createInfoHeader(parent);
         m_config = new Config();
 
-        // TODO Radio button for using the python configuration (should be activate by default)
+        // Config selection (Python or own dl preferences):
+        m_configSelectionPanel = new DLPythonConfigSelectionPanel(m_config.m_configSelection, m_container);
 
         // Environment configuration:
 
@@ -242,6 +245,8 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private static final class Config {
 
+        private final DLPythonConfigSelectionConfig m_configSelection = new DLPythonConfigSelectionConfig();
+
         private final PythonEnvironmentTypeConfig m_envType = new PythonEnvironmentTypeConfig();
 
         private final DLCondaEnvironmentConfig m_condaEnv = new DLCondaEnvironmentConfig();
@@ -252,6 +257,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
         private void save() {
             final PythonConfigStorage currentPrefs = DLPythonPreferences.CURRENT;
+            m_configSelection.saveConfigTo(currentPrefs);
             m_envType.saveConfigTo(currentPrefs);
             m_condaEnv.saveConfigTo(currentPrefs);
             m_manualEnv.saveConfigTo(currentPrefs);
@@ -260,6 +266,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
         private void load() {
             final PythonConfigStorage currentPrefs = DLPythonPreferences.CURRENT;
+            m_configSelection.loadConfigFrom(currentPrefs);
             m_envType.loadConfigFrom(currentPrefs);
             m_condaEnv.loadConfigFrom(currentPrefs);
             m_manualEnv.loadConfigFrom(currentPrefs);
@@ -267,6 +274,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         }
 
         private void loadDefaults() {
+            m_configSelection.loadDefaults();
             m_envType.getEnvironmentType().setStringValue(PythonEnvironmentTypeConfig.DEFAULT_ENVIRONMENT_TYPE);
             m_condaEnv.loadDefaults();
             m_manualEnv.loadDefaults();
