@@ -90,4 +90,11 @@ final class DLManualEnvironmentConfig extends AbstractPythonEnvironmentConfig {
     public void loadConfigFrom(final PythonConfigStorage storage) {
         m_envConfig.loadConfigFrom(storage);
     }
+
+    void loadDefaults() {
+        m_envConfig.getExecutablePath().setStringValue(DEFAULT_PYTHON_PATH);
+        m_envConfig.getPythonInstallationInfo().setStringValue("");
+        m_envConfig.getPythonInstallationError().setStringValue("");
+        m_envConfig.getIsDefaultPythonEnvironment().setBooleanValue(false);
+    }
 }
