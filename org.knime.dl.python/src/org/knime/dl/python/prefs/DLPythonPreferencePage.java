@@ -79,6 +79,7 @@ import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
 import org.knime.python2.prefs.PythonEnvironmentTypePreferencePanel;
 import org.knime.python2.prefs.PythonPreferencePage;
+import org.knime.python2.prefs.PythonPreferenceUtils;
 import org.knime.python2.prefs.SerializerPreferencePanel;
 
 /**
@@ -206,6 +207,15 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
             throw new IllegalStateException(
                 "Selected Python environment type is neither Conda nor manual. This is an implementation error.");
         }
+        updateDisplayMinSize();
+    }
+
+    private void updateDisplayMinSize() {
+        PythonPreferenceUtils.performActionOnWidgetInUiThread(getControl(), () -> {
+            m_container.layout(true, true);
+            m_containerScrolledView.setMinSize(m_container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+            return null;
+        }, false);
     }
 
     private void createPageBody(final Composite parent) {
