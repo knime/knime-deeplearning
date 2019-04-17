@@ -66,7 +66,7 @@ final class DLCondaEnvironmentConfig extends AbstractPythonEnvironmentConfig {
 
     private static final String CFG_KEY_DUMMY = "dummy";
 
-    private static final String DEFAULT_ENVIRONMENT_NAME = "<no environment>";
+    static final String DEFAULT_ENVIRONMENT_NAME = "<no environment>";
 
     private final SettingsModelString m_environmentName;
 

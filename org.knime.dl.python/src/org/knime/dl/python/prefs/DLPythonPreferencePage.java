@@ -69,7 +69,9 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.knime.core.node.NodeLogger;
+import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
 import org.knime.python2.PythonVersion;
+import org.knime.python2.config.AbstractPythonConfigsObserver.PythonConfigsInstallationTestStatusChangeListener;
 import org.knime.python2.config.CondaEnvironmentCreationObserver;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.config.PythonEnvironmentType;
@@ -107,6 +109,8 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
     private Config m_config;
 
     private SerializerPreferencePanel m_serializerPanel;
+
+    private DLPythonConfigsObserver m_configObserver;
 
     @Override
     public void init(final IWorkbench workbench) {
@@ -161,6 +165,37 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         // Hooks
         m_config.m_envType.getEnvironmentType().addChangeListener(e -> updateEnvironmentType());
         m_config.m_configSelection.getConfigSelection().addChangeListener(e -> updateConfigSelection());
+
+        m_configObserver = new DLPythonConfigsObserver(m_config.m_configSelection, m_config.m_envType,
+            m_config.m_condaEnv, python3EnvironmentCreator, m_config.m_manualEnv, m_config.m_serializer);
+
+        m_configObserver.addConfigsTestStatusListener(new PythonConfigsInstallationTestStatusChangeListener() {
+
+            @Override
+            public void environmentInstallationTestStarting(final PythonEnvironmentType environmentType,
+                final PythonVersion pythonVersion) {
+                updateDisplayMinSize();
+            }
+
+            @Override
+            public void environmentInstallationTestFinished(final PythonEnvironmentType environmentType,
+                final PythonVersion pythonVersion, final PythonKernelTestResult testResult) {
+                updateDisplayMinSize();
+            }
+
+            @Override
+            public void condaInstallationTestStarting() {
+                updateDisplayMinSize();
+            }
+
+            @Override
+            public void condaInstallationTestFinished(final String errorMessage) {
+                updateDisplayMinSize();
+            }
+        });
+
+        // Initial installation tests
+        m_configObserver.testCurrentPreferences();
 
         return m_containerScrolledView;
     }
@@ -257,8 +292,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
     @Override
     protected void performApply() {
         m_config.save();
-        // TODO test current preferences
-        //m_configObserver.testCurrentPreferences();
+        m_configObserver.testCurrentPreferences();
     }
 
     @Override
