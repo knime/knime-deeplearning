@@ -120,7 +120,7 @@ import com.google.common.primitives.UnsignedBytes;
  */
 public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
-	// String constants that are used on Python side:
+    // String constants that are used on Python side:
 
     /**
      * Not the actual network name but the entry in Python's global namespace under which the current (i.e. the last
@@ -128,69 +128,69 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
      */
     public static final String CURRENT_NETWORK_NAME = "current_network_name";
 
-	public static final String INPUT_SPECS_NAME = "input_specs";
+    public static final String INPUT_SPECS_NAME = "input_specs";
 
-	public static final String HIDDEN_OUTPUT_SPECS_NAME = "intermediate_output_specs";
+    public static final String HIDDEN_OUTPUT_SPECS_NAME = "intermediate_output_specs";
 
-	public static final String OUTPUT_SPECS_NAME = "output_specs";
+    public static final String OUTPUT_SPECS_NAME = "output_specs";
 
-	public static final String OPTIMIZER_SPECS = "optimizer_specs";
+    public static final String OPTIMIZER_SPECS = "optimizer_specs";
 
-	public static final String LOSS_SPECS = "loss_specs";
+    public static final String LOSS_SPECS = "loss_specs";
 
-	public static final String METRICS_SPECS = "metrics_specs";
+    public static final String METRICS_SPECS = "metrics_specs";
 
-	public static final String INPUT_TABLE_NAME = "input_table";
+    public static final String INPUT_TABLE_NAME = "input_table";
 
-	public static final String OUTPUT_TABLE_NAME = "output_table";
+    public static final String OUTPUT_TABLE_NAME = "output_table";
 
-	public static final String OUTPUT_SHAPES_NAME = "output_shapes";
+    public static final String OUTPUT_SHAPES_NAME = "output_shapes";
 
-	/** Name of the 'python version' DataFrame in python */
-	public static final String PYTHON_VERSION_NAME = "python_version";
+    /** Name of the 'python version' DataFrame in python */
+    public static final String PYTHON_VERSION_NAME = "python_version";
 
-	private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
+    private static final String INSTALLATION_TEST_OK_MSG = "[DL Python installation test: OK]";
 
-	private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
+    private static final String INSTALLATION_TEST_FAIL_MSG = "[DL Python installation test: FAIL]";
 
-	// --
+    // --
 
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonAbstractCommands.class);
 
-	/**
-	 * Methods that require a properly setup Python environment should not access this field directly. Instead, they
-	 * should use {@link #getContext()}.
-	 */
-	protected final DLPythonContext m_context;
+    /**
+     * Methods that require a properly setup Python environment should not access this field directly. Instead, they
+     * should use {@link #getContext()}.
+     */
+    protected final DLPythonContext m_context;
 
-	private final Map<DLTensorId, DLPythonTableChunker> m_tableChunkers = new HashMap<>();
+    private final Map<DLTensorId, DLPythonTableChunker> m_tableChunkers = new HashMap<>();
 
-	/**
-	 * Set to <code>true</code> if the setup steps in {@link #getContext()} were successful.
-	 */
-	private boolean m_contextSetup = false;
+    /**
+     * Set to <code>true</code> if the setup steps in {@link #getContext()} were successful.
+     */
+    private boolean m_contextSetup = false;
 
-	/**
-	 * Creates a new instance of this commands class.
-	 */
-	protected DLPythonAbstractCommands() {
-		this(new DLPythonDefaultContext());
-	}
+    /**
+     * Creates a new instance of this commands class.
+     */
+    protected DLPythonAbstractCommands() {
+        this(new DLPythonDefaultContext());
+    }
 
-	/**
-	 * Creates a new instance of this commands class that uses the given context to communicate with Python.
-	 *
-	 * @param context the Python context
-	 */
-	protected DLPythonAbstractCommands(final DLPythonContext context) {
-		m_context = context;
-	}
+    /**
+     * Creates a new instance of this commands class that uses the given context to communicate with Python.
+     *
+     * @param context the Python context
+     */
+    protected DLPythonAbstractCommands(final DLPythonContext context) {
+        m_context = context;
+    }
 
-	protected abstract String getSetupEnvironmentCode();
+    protected abstract String getSetupEnvironmentCode();
 
-	protected abstract File getInstallationTestFile() throws IOException;
+    protected abstract File getInstallationTestFile() throws IOException;
 
-	protected abstract String getSetupBackendCode();
+    protected abstract String getSetupBackendCode();
 
     protected abstract DLPythonAbstractNetworkReaderCommands getNetworkReaderCommands();
 
@@ -199,89 +199,90 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         DLNetworkInputProvider validationInputProvider,
         DLThrowingBiFunction<DLTensorId, DLTensor<? extends DLWritableBuffer>, TableChunker, IOException> singleTensorTableChunkerCreator);
 
-	@Override
-	public final synchronized DLPythonContext getContext(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
-		if (!m_contextSetup) {
-			// setup Python process environment
-			try {
-				final String setupGatewayCode = DLPythonUtils.createSourceCodeBuilder() //
-						.a("import DLPythonKernelGateway") //
-						.n("DLPythonKernelGateway._instance = ")
-						/**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals())").n()
-						.toString();
-				final String error = m_context.executeInKernel(setupGatewayCode + getSetupEnvironmentCode(), cancelable)[1];
-				if (!error.isEmpty()) {
-					throw new DLInvalidEnvironmentException(
-							"Deep learning Python back end environment could not be set up.\nCause: " + error);
-				}
-			} catch (final IOException e) {
-				throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
-						+ "(while setting up the Python back end environment)."
-						+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
-			}
-			// register all back ends
-			try {
-				final String error = m_context
-						.executeInKernel(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
-								.stream() //
-								.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
-								.collect(Collectors.joining()), cancelable)[1];
-				if (!error.isEmpty()) {
-					throw new DLInvalidEnvironmentException(
-							"Deep learning Python back ends could not be registered.\nCause: " + error);
-				}
-			} catch (final IOException e) {
-				throw new DLInvalidEnvironmentException(
-						"An error occurred while communicating with Python (while registering the Python back ends)."
-								+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
-						e);
-			}
-			// setup the actual back end
-			try {
-				final String error = m_context.executeInKernel(getSetupBackendCode(), cancelable)[1];
-				if (!error.isEmpty()) {
-					throw new DLInvalidEnvironmentException(
-							"Deep learning Python back end could not be set up.\nCause: " + error);
-				}
-			} catch (final IOException e) {
-				throw new DLInvalidEnvironmentException(
-						"An error occurred while communicating with Python (while setting up the Python back end)."
-								+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
-						e);
-			}
+    @Override
+    public final synchronized DLPythonContext getContext(final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, DLCanceledExecutionException {
+        if (!m_contextSetup) {
+            // setup Python process environment
+            try {
+                final String setupGatewayCode = DLPythonUtils.createSourceCodeBuilder() //
+                    .a("import DLPythonKernelGateway") //
+                    .n("DLPythonKernelGateway._instance = ")
+                    /**/ .a("DLPythonKernelGateway.DLPythonKernelGateway(globals())").n().toString();
+                final String error =
+                    m_context.executeInKernel(setupGatewayCode + getSetupEnvironmentCode(), cancelable)[1];
+                if (!error.isEmpty()) {
+                    throw new DLInvalidEnvironmentException(
+                        "Deep learning Python back end environment could not be set up.\nCause: " + error);
+                }
+            } catch (final IOException e) {
+                throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
+                    + "(while setting up the Python back end environment)."
+                    + (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
+            }
+            // register all back ends
+            try {
+                final String error =
+                    m_context.executeInKernel(DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
+                        .stream() //
+                        .map(nl -> "import " + nl.getPythonModuleName() + "\n") //
+                        .collect(Collectors.joining()), cancelable)[1];
+                if (!error.isEmpty()) {
+                    throw new DLInvalidEnvironmentException(
+                        "Deep learning Python back ends could not be registered.\nCause: " + error);
+                }
+            } catch (final IOException e) {
+                throw new DLInvalidEnvironmentException(
+                    "An error occurred while communicating with Python (while registering the Python back ends)."
+                        + (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
+                    e);
+            }
+            // setup the actual back end
+            try {
+                final String error = m_context.executeInKernel(getSetupBackendCode(), cancelable)[1];
+                if (!error.isEmpty()) {
+                    throw new DLInvalidEnvironmentException(
+                        "Deep learning Python back end could not be set up.\nCause: " + error);
+                }
+            } catch (final IOException e) {
+                throw new DLInvalidEnvironmentException(
+                    "An error occurred while communicating with Python (while setting up the Python back end)."
+                        + (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""),
+                    e);
+            }
 
-			m_contextSetup = true;
-		}
-		return m_context;
-	}
+            m_contextSetup = true;
+        }
+        return m_context;
+    }
 
-	@Override
-	public synchronized void testInstallation(final DLCancelable cancelable) throws DLInvalidEnvironmentException, DLCanceledExecutionException {
-		try {
-			final File script = getInstallationTestFile();
-			final String[] output = m_context.isKernelOpen()
-					? m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable)
-					: m_context.execute(cancelable, script);
-			if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
-				final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
-				final String cause = idx != -1 //
-						? "\nCause: " + output[0].substring(idx + INSTALLATION_TEST_FAIL_MSG.length())
-						: "";
-				final String further = !output[1].isEmpty() ? "\nFurther output: " + output[1] : "";
-				if (!cause.isEmpty()) {
-					throw new DLInvalidEnvironmentException(
-							"Deep learning Python back end installation tests failed." + cause + further);
-				} else {
-					throw new DLInvalidEnvironmentException(
-							"Deep learning Python back end installation tests failed for unknown reasons." + further);
-				}
-			}
-		} catch (final IOException e) {
-			throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
-					+ "(while testing the installation of the Python back end)."
-					+ (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
-		}
-	}
+    @Override
+    public synchronized void testInstallation(final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, DLCanceledExecutionException {
+        try {
+            final File script = getInstallationTestFile();
+            final String[] output =
+                m_context.isKernelOpen() ? m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable)
+                    : m_context.execute(cancelable, script);
+            if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
+                final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
+                final String cause = idx != -1 //
+                    ? "\nCause: " + output[0].substring(idx + INSTALLATION_TEST_FAIL_MSG.length()) : "";
+                final String further = !output[1].isEmpty() ? "\nFurther output: " + output[1] : "";
+                if (!cause.isEmpty()) {
+                    throw new DLInvalidEnvironmentException(
+                        "Deep learning Python back end installation tests failed." + cause + further);
+                } else {
+                    throw new DLInvalidEnvironmentException(
+                        "Deep learning Python back end installation tests failed for unknown reasons." + further);
+                }
+            }
+        } catch (final IOException e) {
+            throw new DLInvalidEnvironmentException("An error occurred while communicating with Python "
+                + "(while testing the installation of the Python back end)."
+                + (e.getMessage() != null ? "\nCause: " + e.getMessage() : ""), e);
+        }
+    }
 
     @Override
     public DLPythonNetworkHandle loadNetwork(final String path, final boolean loadTrainingConfig,
@@ -298,153 +299,160 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             .getTable();
     }
 
-	@Override
-	public void saveNetwork(final DLPythonNetworkHandle network, final String path, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-				.a("import DLPythonNetwork") //
-				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				.n("network.save(").asr(path).a(")");
-		getContext(cancelable).executeInKernel(b.toString(), cancelable);
-	}
+    @Override
+    public void saveNetwork(final DLPythonNetworkHandle network, final String path, final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import DLPythonNetwork") //
+            .n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+            .n("network.save(").asr(path).a(")");
+        getContext(cancelable).executeInKernel(b.toString(), cancelable);
+    }
 
-	// TODO: implement network handle
-	@Override
-	public void setNetworkInputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
-				.entrySet()) {
-			final DLTensorId tensorIdentifier = input.getKey();
-			final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
-			final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
-			try {
-				getContext(cancelable).putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1, cancelable);
-			} catch (final IOException ex) {
-				throw new RuntimeException("Transmitting input data to Python failed.", ex);
-			}
-		}
-	}
+    // TODO: implement network handle
+    @Override
+    public void setNetworkInputs(final DLPythonNetworkHandle network,
+        final Map<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> inputs,
+        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLWritableBuffer>> input : inputs
+            .entrySet()) {
+            final DLTensorId tensorIdentifier = input.getKey();
+            final DLTensor<? extends DLWritableBuffer> tensor = input.getValue();
+            final TableChunker tableChunker = createSingleTensorTableChunker(tensorIdentifier, tensor);
+            try {
+                getContext(cancelable).putDataInKernel(tensorIdentifier.getIdentifierString(), tableChunker, 1,
+                    cancelable);
+            } catch (final IOException ex) {
+                throw new RuntimeException("Transmitting input data to Python failed.", ex);
+            }
+        }
+    }
 
-	@Override
-	public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs,
-			final long batchSize, final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+    @Override
+    public void executeNetwork(final DLPythonNetworkHandle network, final Set<? extends DLTensorId> requestedOutputs,
+        final long batchSize, final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final String outputIdentifiers = requestedOutputs.stream().map((id) -> "'" + id.getIdentifierString() + "'")
             .collect(Collectors.joining(", ", "[", "]"));
-		final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-				.a("import DLPythonNetwork") //
-				.n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
-				.n("in_data = {}") //
-				.n("for input_spec in network.spec.input_specs:") //
-				.n().t().a("in_data[input_spec.identifier] = globals()[input_spec.identifier]") //
-				.n("out_data = network.execute(in_data, ").a(batchSize).a(", ").a(outputIdentifiers).a(")") //
-				.n("import pandas as pd") //
-				.n("output_shapes = {}") //
-				.n("for name, data in out_data.items():") //
-				.n().t().a("shape = [list(data.iloc[0][0].array.shape)]").n().t()
-				.a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
-				.n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
-				.a("] = pd.DataFrame(output_shapes)");
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import DLPythonNetwork") //
+            .n("network = DLPythonNetwork.get_network(").as(network.getIdentifier()).a(")") //
+            .n("in_data = {}") //
+            .n("for input_spec in network.spec.input_specs:") //
+            .n().t().a("in_data[input_spec.identifier] = globals()[input_spec.identifier]") //
+            .n("out_data = network.execute(in_data, ").a(batchSize).a(", ").a(outputIdentifiers).a(")") //
+            .n("import pandas as pd") //
+            .n("output_shapes = {}") //
+            .n("for name, data in out_data.items():") //
+            .n().t().a("shape = [list(data.iloc[0][0].array.shape)]").n().t()
+            .a("output_shapes[name] = [-1 if d is None else d for d in shape]") // replace None with -1
+            .n().t().a("globals()[name] = data").n("globals()[").as(OUTPUT_SHAPES_NAME)
+            .a("] = pd.DataFrame(output_shapes)");
         getContext(cancelable).executeInKernel(b.toString(), cancelable);
-	}
+    }
 
-	@Override
-	public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
-			final Set<T> outputs, final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		final Map<T, long[]> shapes = new HashMap<>(outputs.size());
-		final Map<String, T> idMap = outputs.stream()
-				.collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
-		getContext(cancelable).getDataFromKernel(OUTPUT_SHAPES_NAME, (tableSpec, tableSize) -> new TableCreator<Object>() {
+    @Override
+    public <T extends DLTensorId> Map<T, long[]> getNetworkOutputShapes(final DLPythonNetworkHandle network,
+        final Set<T> outputs, final DLCancelable cancelable)
+        throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final Map<T, long[]> shapes = new HashMap<>(outputs.size());
+        final Map<String, T> idMap =
+            outputs.stream().collect(Collectors.toMap(DLTensorId::getIdentifierString, Function.identity()));
+        getContext(cancelable).getDataFromKernel(OUTPUT_SHAPES_NAME,
+            (tableSpec, tableSize) -> new TableCreator<Object>() {
 
-			@Override
-			public void addRow(final Row row) {
-				final String[] tensorNames = tableSpec.getColumnNames();
-				for (int i = 0; i < tensorNames.length; i++) {
-					final Cell shapeCell = row.getCell(i);
-					try {
-						final int[] intShape = shapeCell.getIntegerArrayValue();
-						if (idMap.containsKey(tensorNames[i])) {
-							shapes.put(idMap.get(tensorNames[i]), Arrays.stream(intShape).mapToLong(d -> d).toArray());
-						}
-					} catch (final IllegalStateException e) {
-						LOGGER.error(
-								"An exception occurred while collecting output shapes from Python: " + e.getMessage(),
-								e);
-					}
-				}
-			}
+                @Override
+                public void addRow(final Row row) {
+                    final String[] tensorNames = tableSpec.getColumnNames();
+                    for (int i = 0; i < tensorNames.length; i++) {
+                        final Cell shapeCell = row.getCell(i);
+                        try {
+                            final int[] intShape = shapeCell.getIntegerArrayValue();
+                            if (idMap.containsKey(tensorNames[i])) {
+                                shapes.put(idMap.get(tensorNames[i]),
+                                    Arrays.stream(intShape).mapToLong(d -> d).toArray());
+                            }
+                        } catch (final IllegalStateException e) {
+                            LOGGER.error(
+                                "An exception occurred while collecting output shapes from Python: " + e.getMessage(),
+                                e);
+                        }
+                    }
+                }
 
-			@Override
-			public TableSpec getTableSpec() {
-				return tableSpec;
-			}
+                @Override
+                public TableSpec getTableSpec() {
+                    return tableSpec;
+                }
 
-			@Override
-			public Object getTable() {
-				return null;
-			}
+                @Override
+                public Object getTable() {
+                    return null;
+                }
 
-		}, cancelable);
-		// ensure that we have a shape for each output tensor
-		if (shapes.size() != outputs.size()) {
-			throw new IllegalStateException(
-					"Python didn't return a shape for each output. The shape is missing for outputs "
-							+ Sets.difference(outputs, shapes.keySet()) + ".");
-		}
-		return shapes;
-	}
+            }, cancelable);
+        // ensure that we have a shape for each output tensor
+        if (shapes.size() != outputs.size()) {
+            throw new IllegalStateException(
+                "Python didn't return a shape for each output. The shape is missing for outputs "
+                    + Sets.difference(outputs, shapes.keySet()) + ".");
+        }
+        return shapes;
+    }
 
-	// TODO: implement network handle
-	@Override
-	public void getNetworkOutputs(final DLPythonNetworkHandle network,
-			final Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs, final DLCancelable cancelable)
-			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-		for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
-				.entrySet()) {
-			final DLTensorId tensorIdentifier = output.getKey();
-			final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
+    // TODO: implement network handle
+    @Override
+    public void getNetworkOutputs(final DLPythonNetworkHandle network,
+        final Map<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> outputs,
+        final DLCancelable cancelable) throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        for (final Entry<? extends DLTensorId, ? extends DLTensor<? extends DLReadableBuffer>> output : outputs
+            .entrySet()) {
+            final DLTensorId tensorIdentifier = output.getKey();
+            final DLTensor<? extends DLReadableBuffer> tensor = output.getValue();
 
-			getContext(cancelable).getDataFromKernel(tensorIdentifier.getIdentifierString(),
-					(tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
+            getContext(cancelable).getDataFromKernel(tensorIdentifier.getIdentifierString(),
+                (tableSpec, tableSize) -> new TableCreator<DLTensor<? extends DLReadableBuffer>>() {
 
-						@Override
-						public void addRow(final Row row) {
-							final String deserializerId = tableSpec.getColumnSerializers()
-									.get(tensorIdentifier.getIdentifierString());
-							final DeserializerFactory deserializerFactory = PythonToKnimeExtensions
-									.getExtension(deserializerId).getJavaDeserializerFactory();
-							if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
-								LOGGER.coding(
-										"Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
-							}
-							final Deserializer deserializer = deserializerFactory.createDeserializer();
-							if (!(deserializer instanceof DLPythonDeserializer)) {
-								final String msg = "An exception occurred while collecting network output from Python. Unsupported deserializer.";
-								LOGGER.error(msg);
-								// TODO
-								throw new RuntimeException(msg);
-							}
-							final Cell cell = row.getCell(0);
-							try {
-								((DLPythonDeserializer) deserializer).deserialize(cell.getBytesValue(), tensor);
-							} catch (final IllegalStateException e) {
-								LOGGER.error("An exception occurred while collecting network output from Python: "
-										+ e.getMessage(), e);
-							}
-						}
+                    @Override
+                    public void addRow(final Row row) {
+                        final String deserializerId =
+                            tableSpec.getColumnSerializers().get(tensorIdentifier.getIdentifierString());
+                        final DeserializerFactory deserializerFactory =
+                            PythonToKnimeExtensions.getExtension(deserializerId).getJavaDeserializerFactory();
+                        if (!(deserializerFactory instanceof DLPythonDeserializerFactory)) {
+                            LOGGER.coding(
+                                "Deep learning Python to KNIME serialization factory must implement DLSerializerFactory.");
+                        }
+                        final Deserializer deserializer = deserializerFactory.createDeserializer();
+                        if (!(deserializer instanceof DLPythonDeserializer)) {
+                            final String msg =
+                                "An exception occurred while collecting network output from Python. Unsupported deserializer.";
+                            LOGGER.error(msg);
+                            // TODO
+                            throw new RuntimeException(msg);
+                        }
+                        final Cell cell = row.getCell(0);
+                        try {
+                            ((DLPythonDeserializer)deserializer).deserialize(cell.getBytesValue(), tensor);
+                        } catch (final IllegalStateException e) {
+                            LOGGER.error(
+                                "An exception occurred while collecting network output from Python: " + e.getMessage(),
+                                e);
+                        }
+                    }
 
-						@Override
-						public TableSpec getTableSpec() {
-							return tableSpec;
-						}
+                    @Override
+                    public TableSpec getTableSpec() {
+                        return tableSpec;
+                    }
 
-						@Override
-						public DLTensor<? extends DLReadableBuffer> getTable() {
-							return tensor;
-						}
-					}, cancelable);
-		}
-	}
+                    @Override
+                    public DLTensor<? extends DLReadableBuffer> getTable() {
+                        return tensor;
+                    }
+                }, cancelable);
+        }
+    }
 
     @Override
     public void trainNetwork(final DLPythonNetworkHandle network, final DLNetworkInputProvider trainingInputProvider,
@@ -548,13 +556,13 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         }
     }
 
-	/**
-	 * Closes the underlying {@link DLPythonContext Python context}.
-	 */
-	@Override
-	public synchronized void close() {
-		m_context.close();
-	}
+    /**
+     * Closes the underlying {@link DLPythonContext Python context}.
+     */
+    @Override
+    public synchronized void close() {
+        m_context.close();
+    }
 
     protected String getRegisterNetworkCode(final String networkVariable, final String networkIdentifier) {
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
@@ -566,20 +574,21 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         b.a(")") //
             .n("import pandas as pd") //
             .n("global ").a(CURRENT_NETWORK_NAME) //
-            .n(CURRENT_NETWORK_NAME).a(" = ").a("pd.DataFrame.from_dict({").as(CURRENT_NETWORK_NAME).a(":[network_id]})");
+            .n(CURRENT_NETWORK_NAME).a(" = ").a("pd.DataFrame.from_dict({").as(CURRENT_NETWORK_NAME)
+            .a(":[network_id]})");
         return b.toString();
     }
 
-	protected String getExtractNetworkSpecsCode(final DLPythonNetworkHandle network) {
-		return "import DLPythonNetworkSpecToDataFrameConverter\n" + //
-				"global " + INPUT_SPECS_NAME + "\n" + //
-				"global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
-				"global " + OUTPUT_SPECS_NAME + "\n" + //
-				INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + ", " + //
-				OPTIMIZER_SPECS + ", " + LOSS_SPECS + ", " + METRICS_SPECS + " = " + //
+    protected String getExtractNetworkSpecsCode(final DLPythonNetworkHandle network) {
+        return "import DLPythonNetworkSpecToDataFrameConverter\n" + //
+            "global " + INPUT_SPECS_NAME + "\n" + //
+            "global " + HIDDEN_OUTPUT_SPECS_NAME + "\n" + //
+            "global " + OUTPUT_SPECS_NAME + "\n" + //
+            INPUT_SPECS_NAME + ", " + HIDDEN_OUTPUT_SPECS_NAME + ", " + OUTPUT_SPECS_NAME + ", " + //
+            OPTIMIZER_SPECS + ", " + LOSS_SPECS + ", " + METRICS_SPECS + " = " + //
             "DLPythonNetworkSpecToDataFrameConverter.get_layer_data_specs_as_data_frames('" + network.getIdentifier()
             + "')";
-	}
+    }
 
     /**
      * Extracts the tensor spec from a pandas DataFrame.
@@ -607,18 +616,18 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
     protected Version getPythonVersion(final DLCancelable cancelable)
         throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
         final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .a("import sys") //
-                .n("import pandas as pd") //
-                .n("global ").a(PYTHON_VERSION_NAME) //
-                .n(PYTHON_VERSION_NAME).a(" = pd.DataFrame(['{}.{}.{}'.format(*sys.version_info[:3])])");
+            .a("import sys") //
+            .n("import pandas as pd") //
+            .n("global ").a(PYTHON_VERSION_NAME) //
+            .n(PYTHON_VERSION_NAME).a(" = pd.DataFrame(['{}.{}.{}'.format(*sys.version_info[:3])])");
         getContext(cancelable).executeInKernel(b.toString(), cancelable);
         final String pythonVersion = (String)getContext(cancelable).getDataFromKernel(PYTHON_VERSION_NAME,
             (s, ts) -> new SingleValueTableCreator<>(s, Cell::getStringValue), cancelable).getTable();
         return new Version(pythonVersion);
     }
 
-    private TableChunker createSingleTensorTableChunker(final DLTensorId tensorId, final DLTensor<? extends DLWritableBuffer> tensor)
-        throws IOException {
+    private TableChunker createSingleTensorTableChunker(final DLTensorId tensorId,
+        final DLTensor<? extends DLWritableBuffer> tensor) throws IOException {
         DLPythonTableChunker tableChunker = m_tableChunkers.get(tensorId);
         if (tableChunker == null) {
             tableChunker = new DLPythonTableChunker(tensor);
