@@ -109,6 +109,7 @@ import org.knime.python2.kernel.messaging.AbstractTaskHandler;
 import org.knime.python2.kernel.messaging.DefaultMessage;
 import org.knime.python2.kernel.messaging.DefaultMessage.PayloadDecoder;
 import org.knime.python2.kernel.messaging.Message;
+import org.knime.python2.util.PythonUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedBytes;
@@ -529,8 +530,16 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             kernel.routeErrorMessagesToWarningLog(true);
             trainingTask.run();
             trainingTask.get();
-        } catch (final ExecutionException | InterruptedException ex) {
-            throw new IOException(ex);
+        } catch (final ExecutionException ex) {
+            final Throwable exception = PythonUtils.Misc.unwrapExecutionException(ex).orElse(ex);
+            if (exception instanceof IOException) {
+                throw (IOException)exception; // Context is closed in this instance's close method.
+            } else {
+                throw new IOException(exception); // Context is closed in this instance's close method.
+            }
+        } catch (final InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new DLCanceledExecutionException(); // Context is closed in this instance's close method.
         } finally {
             kernel.routeErrorMessagesToWarningLog(false);
             // Remove log listeners.
