@@ -67,8 +67,8 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
         final Composite panel = getPanel();
 
         // Create the radio buttons
-        final ConfigSelectionRadioGroup configSelection =
-            new ConfigSelectionRadioGroup(config.getConfigSelection(), panel);
+        final ConfigSelectionRadioGroup configSelection = new ConfigSelectionRadioGroup(config.getConfigSelection(),
+            config.getPythonInstallationInfo(), config.getPythonInstallationError(), panel);
         final GridData gridData = new GridData();
         gridData.grabExcessHorizontalSpace = true;
         gridData.horizontalAlignment = SWT.FILL;
@@ -88,18 +88,27 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
 
         private final Button m_dlConfigRadioButton;
 
-        public ConfigSelectionRadioGroup(final SettingsModelString configSelectionConfig, final Composite parent) {
+        public ConfigSelectionRadioGroup(final SettingsModelString configSelectionConfig,
+            final SettingsModelString defaultInstallationInfo, final SettingsModelString defaultInstallationError,
+            final Composite parent) {
             super(parent, SWT.NONE);
 
             // Layout
             final RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
-            rowLayout.pack = false;
+            rowLayout.pack = true;
             rowLayout.justify = true;
+            rowLayout.spacing = 10;
             setLayout(rowLayout);
 
-            // Radio buttons
+            // Python radio button
             m_pythonConfigRadioButton = new Button(this, SWT.RADIO);
             m_pythonConfigRadioButton.setText("Use Python configuration");
+
+            // Installation info
+            @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
+            Object unused = new InstallationStatusDisplayPanel(defaultInstallationInfo, defaultInstallationError, this);
+
+            // DL radio button
             m_dlConfigRadioButton = new Button(this, SWT.RADIO);
             m_dlConfigRadioButton.setText("Use special Deep Learning configuration");
             pack();

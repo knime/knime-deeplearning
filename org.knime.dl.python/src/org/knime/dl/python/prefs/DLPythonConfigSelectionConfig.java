@@ -57,12 +57,20 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
 
     private static final String CFG_KEY_CONFIG_SELECTION = "pythonConfigSelection";
 
+    private static final String CFG_KEY_DUMMY = "dummy";
+
     private static final String DEFAULT_CONFIG_SELECTION = DLPythonConfigSelection.PYTHON.getId();
 
     private final SettingsModelString m_configSelection;
 
+    private final SettingsModelString m_pythonInstallationInfo;
+
+    private final SettingsModelString m_pythonInstallationError;
+
     DLPythonConfigSelectionConfig() {
         m_configSelection = new SettingsModelString(CFG_KEY_CONFIG_SELECTION, DEFAULT_CONFIG_SELECTION);
+        m_pythonInstallationInfo = new SettingsModelString(CFG_KEY_DUMMY, "");
+        m_pythonInstallationError = new SettingsModelString(CFG_KEY_DUMMY, "");
     }
 
     /**
@@ -70,6 +78,20 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
      */
     public SettingsModelString getConfigSelection() {
         return m_configSelection;
+    }
+
+    /**
+     * @return the pythonInstallationInfo
+     */
+    public SettingsModelString getPythonInstallationInfo() {
+        return m_pythonInstallationInfo;
+    }
+
+    /**
+     * @return the pythonInstallationError
+     */
+    public SettingsModelString getPythonInstallationError() {
+        return m_pythonInstallationError;
     }
 
     @Override
@@ -84,5 +106,7 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
 
     void loadDefaults() {
         getConfigSelection().setStringValue(DEFAULT_CONFIG_SELECTION);
+        getPythonInstallationInfo().setStringValue("");
+        getPythonInstallationError().setStringValue("");
     }
 }

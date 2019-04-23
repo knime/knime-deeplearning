@@ -66,11 +66,21 @@ import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
 import org.knime.python2.extensions.serializationlibrary.SerializationLibraryExtensions;
+import org.knime.python2.prefs.PythonPreferences;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
+
+    private static void addRequiredDLModules(final Collection<PythonModuleSpec> modules) {
+        // TODO add versions
+        // TODO ...
+        modules.add(new PythonModuleSpec("keras"));
+        modules.add(new PythonModuleSpec("tensorflow"));
+        modules.add(new PythonModuleSpec("onnx"));
+        modules.add(new PythonModuleSpec("onnx_tf"));
+    }
 
     private final DLPythonConfigSelectionConfig m_configSelectionConfig;
 
@@ -95,15 +105,15 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         m_manualEnvironmentConfig = manualEnvironmentConfig;
         m_serializerConfig = serializerConfig;
 
-        // TODO Observe config selection
+        configSelectionConfig.getConfigSelection().addChangeListener(e -> testCurrentPreferences());
 
         environmentTypeConfig.getEnvironmentType().addChangeListener(e -> testCurrentPreferences());
 
         // Refresh and test entire Conda config on Conda directory change
-        condaEnvironmentConfig.getCondaDirectoryPath().addChangeListener(e -> refreshAndTestCondaConfig());
+        condaEnvironmentConfig.getCondaDirectoryPath().addChangeListener(e -> refreshAndTestDLCondaConfig());
 
         // Test Conda environment on change
-        condaEnvironmentConfig.getEnvironmentName().addChangeListener(e -> testPythonEnvironment(true));
+        condaEnvironmentConfig.getEnvironmentName().addChangeListener(e -> testDLPythonEnvironment(true));
 
         // Disable Conda environment creation by default. Updated when Conda installation is tested
         pythonEnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(false);
@@ -111,7 +121,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         // TODO handle finished conda environment creation
 
         // Test manual config on change
-        manualEnvironmentConfig.getExecutablePath().addChangeListener(e -> testPythonEnvironment(false));
+        manualEnvironmentConfig.getExecutablePath().addChangeListener(e -> testDLPythonEnvironment(false));
 
         // Test everything if the serializer changes: C
         m_serializerConfig.getSerializer().addChangeListener(e -> testCurrentPreferences());
@@ -125,19 +135,21 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             //
             // Using the python config
             //
-            // TODO check the python config
+            clearDLEnvInfoAndError();
+            testDefaultPythonEnvironment();
         } else if (DLPythonConfigSelection.DL.equals(configSelection)) {
             //
             // Using the special DL config
             //
+            clearDefaultEnvInfoAndError();
             final PythonEnvironmentType environmentType =
                 PythonEnvironmentType.fromId(m_environmentTypeConfig.getEnvironmentType().getStringValue());
             if (PythonEnvironmentType.CONDA.equals(environmentType)) {
                 // CONDA
-                refreshAndTestCondaConfig();
+                refreshAndTestDLCondaConfig();
             } else if (PythonEnvironmentType.MANUAL.equals(environmentType)) {
                 // MANUAL
-                testPythonEnvironment(false);
+                testDLPythonEnvironment(false);
             } else {
                 throw new IllegalStateException("Selected environment type '" + environmentType.getName()
                     + "' is neither " + "conda nor manual. This is an implementation error.");
@@ -148,12 +160,12 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         }
     }
 
-    private void refreshAndTestCondaConfig() {
+    private void refreshAndTestDLCondaConfig() {
         new Thread(() -> {
             // Test the conda installation
             final Conda conda;
             try {
-                conda = testCondaInstallation();
+                conda = testDLCondaInstallation();
             } catch (final Exception ex) {
                 return;
             }
@@ -168,14 +180,42 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             // Test the configuration
             try {
                 setAvailableCondaEnvironments(availableEnvironments);
-                testPythonEnvironment(true);
+                testDLPythonEnvironment(true);
             } catch (Exception ex) {
                 // Ignore, we still want to configure and test the second environment.
             }
         }).start();
     }
 
-    private void testPythonEnvironment(final boolean isConda) {
+    private void testDefaultPythonEnvironment() {
+        final PythonCommand pythonCommand = PythonPreferences.getPython3CommandPreference();
+        Collection<PythonModuleSpec> serializerModules = PythonPreferences.getCurrentlyRequiredSerializerModules();
+
+        final Collection<PythonModuleSpec> additionalModules = new ArrayList<>();
+        // Serializer modules
+        additionalModules.addAll(serializerModules);
+        // Deep learning modules
+        addRequiredDLModules(additionalModules);
+
+        // Start the installation test in a new thread
+        new Thread(() -> {
+            onEnvironmentInstallationTestStarting(null, null);
+            final PythonKernelTestResult testResult =
+                PythonKernelTester.testPython3Installation(pythonCommand, additionalModules, true);
+            m_configSelectionConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
+            String errorLog = testResult.getErrorLog();
+            if (errorLog != null && !errorLog.isEmpty()) {
+                errorLog += "\nNote: You can create a new Python Conda environment that contains all packages\n"
+                    + "required by the KNIME Deep Learning integration by selecting 'Use special Deep Learning "
+                    + "configuration' and clicking on the '"
+                    + AbstractCondaEnvironmentsPanel.CREATE_NEW_ENVIRONMENT_BUTTON_TEXT + "' button.";
+            }
+            m_configSelectionConfig.getPythonInstallationError().setStringValue(errorLog);
+            onEnvironmentInstallationTestFinished(null, null, testResult);
+        }).start();
+    }
+
+    private void testDLPythonEnvironment(final boolean isConda) {
         // Conda or manual
         final PythonEnvironmentType environmentType;
         final PythonEnvironmentConfig environmentConfig;
@@ -204,19 +244,12 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         }
 
         final Collection<PythonModuleSpec> additionalModules = new ArrayList<>();
-
         // Serializer modules
         additionalModules.addAll(SerializationLibraryExtensions
             .getSerializationLibraryFactory(m_serializerConfig.getSerializer().getStringValue())
             .getRequiredExternalModules());
-
         // Deep learning modules
-        // TODO add versions
-        // TODO ...
-        additionalModules.add(new PythonModuleSpec("keras"));
-        additionalModules.add(new PythonModuleSpec("tensorflow"));
-        additionalModules.add(new PythonModuleSpec("onnx"));
-        additionalModules.add(new PythonModuleSpec("onnx_tf"));
+        addRequiredDLModules(additionalModules);
 
         // Start the installation test in a new thread
         new Thread(() -> {
@@ -239,7 +272,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             .equals(DLCondaEnvironmentConfig.DEFAULT_ENVIRONMENT_NAME);
     }
 
-    private Conda testCondaInstallation() throws Exception {
+    private Conda testDLCondaInstallation() throws Exception {
         final SettingsModelString condaInfoMessage = m_condaEnvironmentConfig.getCondaInstallationInfo();
         final SettingsModelString condaErrorMessage = m_condaEnvironmentConfig.getCondaInstallationError();
         try {
@@ -275,6 +308,20 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         m_condaEnvironmentConfig.getEnvironmentName().setStringValue(placeholderEnvironmentName);
         m_condaEnvironmentConfig.getAvailableEnvironmentNames()
             .setStringArrayValue(new String[]{placeholderEnvironmentName});
+    }
+
+    private void clearDefaultEnvInfoAndError() {
+        m_configSelectionConfig.getPythonInstallationInfo().setStringValue("");
+        m_configSelectionConfig.getPythonInstallationError().setStringValue("");
+    }
+
+    private void clearDLEnvInfoAndError() {
+        m_condaEnvironmentConfig.getCondaInstallationInfo().setStringValue("");
+        m_condaEnvironmentConfig.getCondaInstallationError().setStringValue("");
+        m_condaEnvironmentConfig.getPythonInstallationInfo().setStringValue("");
+        m_condaEnvironmentConfig.getPythonInstallationError().setStringValue("");
+        m_manualEnvironmentConfig.getPythonInstallationInfo().setStringValue("");
+        m_manualEnvironmentConfig.getPythonInstallationError().setStringValue("");
     }
 
     private void setCondaEnvironmentStatusMessages(final String infoMessage, final String errorMessage) {
