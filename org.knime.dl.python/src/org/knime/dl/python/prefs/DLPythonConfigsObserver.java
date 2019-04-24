@@ -73,13 +73,15 @@ import org.knime.python2.prefs.PythonPreferences;
  */
 final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
 
-    private static void addRequiredDLModules(final Collection<PythonModuleSpec> modules) {
+    private static Collection<PythonModuleSpec> getOptionalDLModules() {
+        final List<PythonModuleSpec> modules = new ArrayList<>();
         // TODO add versions
         // TODO ...
         modules.add(new PythonModuleSpec("keras"));
         modules.add(new PythonModuleSpec("tensorflow"));
         modules.add(new PythonModuleSpec("onnx"));
         modules.add(new PythonModuleSpec("onnx_tf"));
+        return modules;
     }
 
     private final DLPythonConfigSelectionConfig m_configSelectionConfig;
@@ -191,17 +193,17 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         final PythonCommand pythonCommand = PythonPreferences.getPython3CommandPreference();
         Collection<PythonModuleSpec> serializerModules = PythonPreferences.getCurrentlyRequiredSerializerModules();
 
-        final Collection<PythonModuleSpec> additionalModules = new ArrayList<>();
+        final Collection<PythonModuleSpec> additionalRequiredModules = new ArrayList<>();
         // Serializer modules
-        additionalModules.addAll(serializerModules);
+        additionalRequiredModules.addAll(serializerModules);
         // Deep learning modules
-        addRequiredDLModules(additionalModules);
+        final Collection<PythonModuleSpec> additionalOptionalModules = getOptionalDLModules();
 
         // Start the installation test in a new thread
         new Thread(() -> {
             onEnvironmentInstallationTestStarting(null, null);
-            final PythonKernelTestResult testResult =
-                PythonKernelTester.testPython3Installation(pythonCommand, additionalModules, true);
+            final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
+                additionalRequiredModules, additionalOptionalModules, true);
             m_configSelectionConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
             String errorLog = testResult.getErrorLog();
             if (errorLog != null && !errorLog.isEmpty()) {
@@ -243,20 +245,20 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
                 + PythonEnvironmentType.CONDA.getName() + "' tab of this preference page.";
         }
 
-        final Collection<PythonModuleSpec> additionalModules = new ArrayList<>();
+        final Collection<PythonModuleSpec> additionalRequiredModules = new ArrayList<>();
         // Serializer modules
-        additionalModules.addAll(SerializationLibraryExtensions
+        additionalRequiredModules.addAll(SerializationLibraryExtensions
             .getSerializationLibraryFactory(m_serializerConfig.getSerializer().getStringValue())
             .getRequiredExternalModules());
         // Deep learning modules
-        addRequiredDLModules(additionalModules);
+        final Collection<PythonModuleSpec> additionalOptionalModules = getOptionalDLModules();
 
         // Start the installation test in a new thread
         new Thread(() -> {
             onEnvironmentInstallationTestStarting(environmentType, PythonVersion.PYTHON3);
             final PythonCommand pythonCommand = environmentConfig.getPythonCommand();
-            final PythonKernelTestResult testResult =
-                PythonKernelTester.testPython3Installation(pythonCommand, additionalModules, true);
+            final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
+                additionalRequiredModules, additionalOptionalModules, true);
             environmentConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
             String errorLog = testResult.getErrorLog();
             if (errorLog != null && !errorLog.isEmpty()) {
