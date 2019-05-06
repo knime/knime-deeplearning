@@ -61,7 +61,6 @@ import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentsPanel;
 import org.knime.python2.config.AbstractPythonConfigsObserver;
 import org.knime.python2.config.CondaEnvironmentCreationObserver;
-import org.knime.python2.config.PythonEnvironmentConfig;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
@@ -212,7 +211,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
                     + "configuration' and clicking on the '"
                     + AbstractCondaEnvironmentsPanel.CREATE_NEW_ENVIRONMENT_BUTTON_TEXT + "' button.";
             }
+            final String warningLog = testResult.getWarningLog();
             m_configSelectionConfig.getPythonInstallationError().setStringValue(errorLog);
+            m_configSelectionConfig.getPythonInstallationWarning().setStringValue(warningLog);
             onEnvironmentInstallationTestFinished(null, null, testResult);
         }).start();
     }
@@ -220,7 +221,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
     private void testDLPythonEnvironment(final boolean isConda) {
         // Conda or manual
         final PythonEnvironmentType environmentType;
-        final PythonEnvironmentConfig environmentConfig;
+        final DLPythonEnvironmentConfig environmentConfig;
         final String environmentCreationInfo;
         if (isConda) {
             environmentType = PythonEnvironmentType.CONDA;
@@ -264,7 +265,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             if (errorLog != null && !errorLog.isEmpty()) {
                 errorLog += environmentCreationInfo;
             }
+            final String warningLog = testResult.getWarningLog();
             environmentConfig.getPythonInstallationError().setStringValue(errorLog);
+            environmentConfig.getPythonInstallationWarning().setStringValue(warningLog);
             onEnvironmentInstallationTestFinished(environmentType, PythonVersion.PYTHON3, testResult);
         }).start();
     }

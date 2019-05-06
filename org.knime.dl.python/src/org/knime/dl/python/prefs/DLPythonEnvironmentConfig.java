@@ -47,53 +47,16 @@
 package org.knime.dl.python.prefs;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.python2.PythonCommand;
-import org.knime.python2.config.ManualEnvironmentConfig;
-import org.knime.python2.config.PythonConfigStorage;
+import org.knime.python2.config.PythonEnvironmentConfig;
 
 /**
- * Wraps a {@link ManualEnvironmentConfig} for deep learning. Defines the config key and default python path.
- *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
-
-    private static final String CFG_KEY_MANUAL = "manualConfig";
-
-    private static final String DEFAULT_PYTHON_PATH = "python3";
-
-    private final ManualEnvironmentConfig m_envConfig;
-
-    DLManualEnvironmentConfig() {
-        m_envConfig = new ManualEnvironmentConfig(CFG_KEY_MANUAL, DEFAULT_PYTHON_PATH);
-    }
+public interface DLPythonEnvironmentConfig extends PythonEnvironmentConfig {
 
     /**
-     * @return The path to the Python executable.
+     * @return The most recent installation warning message of the Python environment configured by this instance. Not
+     *         meant of saving/loading.
      */
-    public SettingsModelString getExecutablePath() {
-        return m_envConfig.getExecutablePath();
-    }
-
-    @Override
-    public PythonCommand getPythonCommand() {
-        return m_envConfig.getPythonCommand();
-    }
-
-    @Override
-    public void saveConfigTo(final PythonConfigStorage storage) {
-        m_envConfig.saveConfigTo(storage);
-    }
-
-    @Override
-    public void loadConfigFrom(final PythonConfigStorage storage) {
-        m_envConfig.loadConfigFrom(storage);
-    }
-
-    void loadDefaults() {
-        m_envConfig.getExecutablePath().setStringValue(DEFAULT_PYTHON_PATH);
-        m_envConfig.getPythonInstallationInfo().setStringValue("");
-        m_envConfig.getPythonInstallationError().setStringValue("");
-        m_envConfig.getIsDefaultPythonEnvironment().setBooleanValue(false);
-    }
+    SettingsModelString getPythonInstallationWarning();
 }

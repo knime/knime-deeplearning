@@ -67,10 +67,13 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
 
     private final SettingsModelString m_pythonInstallationError;
 
+    private final SettingsModelString m_pythonInstallationWarning;
+
     DLPythonConfigSelectionConfig() {
         m_configSelection = new SettingsModelString(CFG_KEY_CONFIG_SELECTION, DEFAULT_CONFIG_SELECTION);
         m_pythonInstallationInfo = new SettingsModelString(CFG_KEY_DUMMY, "");
         m_pythonInstallationError = new SettingsModelString(CFG_KEY_DUMMY, "");
+        m_pythonInstallationWarning = new SettingsModelString(CFG_KEY_DUMMY, "");
     }
 
     /**
@@ -94,6 +97,13 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
         return m_pythonInstallationError;
     }
 
+    /**
+     * @return the pythonInstallationWarning
+     */
+    public SettingsModelString getPythonInstallationWarning() {
+        return m_pythonInstallationWarning;
+    }
+
     @Override
     public void saveConfigTo(final PythonConfigStorage storage) {
         storage.saveStringModel(getConfigSelection());
@@ -108,5 +118,6 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
         getConfigSelection().setStringValue(DEFAULT_CONFIG_SELECTION);
         getPythonInstallationInfo().setStringValue("");
         getPythonInstallationError().setStringValue("");
+        getPythonInstallationWarning().setStringValue("");
     }
 }

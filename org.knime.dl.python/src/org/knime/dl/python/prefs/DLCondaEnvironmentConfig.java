@@ -50,7 +50,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.python2.Conda;
 import org.knime.python2.PythonCommand;
-import org.knime.python2.config.AbstractPythonEnvironmentConfig;
 import org.knime.python2.config.CondaEnvironmentsConfig;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
@@ -58,7 +57,7 @@ import org.knime.python2.prefs.PythonPreferences;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLCondaEnvironmentConfig extends AbstractPythonEnvironmentConfig {
+final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
 
     private static final String CFG_KEY_CONDA_DIRECTORY_PATH = "condaDirectoryPath";
 
