@@ -56,6 +56,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.config.AbstractPythonConfigPanel;
+import org.knime.python2.prefs.InstallationStatusDisplayPanelWithWarning;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -67,8 +68,9 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
         final Composite panel = getPanel();
 
         // Create the radio buttons
-        final ConfigSelectionRadioGroup configSelection = new ConfigSelectionRadioGroup(config.getConfigSelection(),
-            config.getPythonInstallationInfo(), config.getPythonInstallationError(), panel);
+        final ConfigSelectionRadioGroup configSelection =
+            new ConfigSelectionRadioGroup(config.getConfigSelection(), config.getPythonInstallationInfo(),
+                config.getPythonInstallationWarning(), config.getPythonInstallationError(), panel);
         final GridData gridData = new GridData();
         gridData.grabExcessHorizontalSpace = true;
         gridData.horizontalAlignment = SWT.FILL;
@@ -89,8 +91,8 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
         private final Button m_dlConfigRadioButton;
 
         public ConfigSelectionRadioGroup(final SettingsModelString configSelectionConfig,
-            final SettingsModelString defaultInstallationInfo, final SettingsModelString defaultInstallationError,
-            final Composite parent) {
+            final SettingsModelString defaultInstallationInfo, final SettingsModelString defaultInstallationWarning,
+            final SettingsModelString defaultInstallationError, final Composite parent) {
             super(parent, SWT.NONE);
 
             // Layout
@@ -106,7 +108,8 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
 
             // Installation info
             @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
-            Object unused = new InstallationStatusDisplayPanel(defaultInstallationInfo, defaultInstallationError, this);
+            Object unused = new InstallationStatusDisplayPanelWithWarning(defaultInstallationInfo,
+                defaultInstallationWarning, defaultInstallationError, this);
 
             // DL radio button
             m_dlConfigRadioButton = new Button(this, SWT.RADIO);

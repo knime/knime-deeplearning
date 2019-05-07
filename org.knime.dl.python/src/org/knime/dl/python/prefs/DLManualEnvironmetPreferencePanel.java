@@ -61,9 +61,10 @@ public class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel
     public DLManualEnvironmetPreferencePanel(final DLManualEnvironmentConfig config, final Composite parent) {
         super(config, parent);
         final Composite panel = getPanel();
-        final StatusDisplayingFilePathEditor pythonPathEditor = new StatusDisplayingFilePathEditor(
-            config.getExecutablePath(), true, "Python", "Path to the Python start script",
-            config.getPythonInstallationInfo(), config.getPythonInstallationError(), panel);
+        final StatusDisplayingFilePathEditor pythonPathEditor =
+            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, "Python",
+                "Path to the Python start script", config.getPythonInstallationInfo(),
+                config.getPythonInstallationWarning(), config.getPythonInstallationError(), panel);
         final GridData gridData = new GridData();
         gridData.horizontalAlignment = SWT.FILL;
         gridData.grabExcessHorizontalSpace = true;

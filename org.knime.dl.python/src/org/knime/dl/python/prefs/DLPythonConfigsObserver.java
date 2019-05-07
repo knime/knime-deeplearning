@@ -201,6 +201,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         // Start the installation test in a new thread
         new Thread(() -> {
             onEnvironmentInstallationTestStarting(null, null);
+            m_configSelectionConfig.getPythonInstallationInfo().setStringValue("Testing Python environment...");
+            m_configSelectionConfig.getPythonInstallationWarning().setStringValue("");
+            m_configSelectionConfig.getPythonInstallationError().setStringValue("");
             final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
                 additionalRequiredModules, additionalOptionalModules, true);
             m_configSelectionConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
@@ -257,6 +260,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         // Start the installation test in a new thread
         new Thread(() -> {
             onEnvironmentInstallationTestStarting(environmentType, PythonVersion.PYTHON3);
+            environmentConfig.getPythonInstallationInfo().setStringValue("Testing Python environment...");
+            environmentConfig.getPythonInstallationWarning().setStringValue("");
+            environmentConfig.getPythonInstallationError().setStringValue("");
             final PythonCommand pythonCommand = environmentConfig.getPythonCommand();
             final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
                 additionalRequiredModules, additionalOptionalModules, true);
@@ -301,7 +307,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             condaInfoMessage.setStringValue("");
             condaErrorMessage.setStringValue(ex.getMessage());
             clearAvailableCondaEnvironments();
-            setCondaEnvironmentStatusMessages("", "");
+            setCondaEnvironmentStatusMessages("", "", "");
             m_pythonEnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(false);
             onCondaInstallationTestFinished(ex.getMessage());
             throw ex;
@@ -317,6 +323,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
 
     private void clearDefaultEnvInfoAndError() {
         m_configSelectionConfig.getPythonInstallationInfo().setStringValue("");
+        m_configSelectionConfig.getPythonInstallationWarning().setStringValue("");
         m_configSelectionConfig.getPythonInstallationError().setStringValue("");
     }
 
@@ -324,13 +331,17 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         m_condaEnvironmentConfig.getCondaInstallationInfo().setStringValue("");
         m_condaEnvironmentConfig.getCondaInstallationError().setStringValue("");
         m_condaEnvironmentConfig.getPythonInstallationInfo().setStringValue("");
+        m_condaEnvironmentConfig.getPythonInstallationWarning().setStringValue("");
         m_condaEnvironmentConfig.getPythonInstallationError().setStringValue("");
         m_manualEnvironmentConfig.getPythonInstallationInfo().setStringValue("");
+        m_manualEnvironmentConfig.getPythonInstallationWarning().setStringValue("");
         m_manualEnvironmentConfig.getPythonInstallationError().setStringValue("");
     }
 
-    private void setCondaEnvironmentStatusMessages(final String infoMessage, final String errorMessage) {
+    private void setCondaEnvironmentStatusMessages(final String infoMessage, final String warningMessage,
+        final String errorMessage) {
         m_condaEnvironmentConfig.getPythonInstallationInfo().setStringValue(infoMessage);
+        m_condaEnvironmentConfig.getPythonInstallationWarning().setStringValue(warningMessage);
         m_condaEnvironmentConfig.getPythonInstallationError().setStringValue(errorMessage);
     }
 
@@ -338,14 +349,14 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         throws Exception {
         try {
             if (updatePythonStatusMessage) {
-                setCondaEnvironmentStatusMessages("Collecting available environments...", "");
+                setCondaEnvironmentStatusMessages("Collecting available environments...", "", "");
             }
             return conda.getEnvironments();
         } catch (final Exception ex) {
             m_condaEnvironmentConfig.getCondaInstallationError().setStringValue(ex.getMessage());
             final String environmentsNotDetectedMessage = "Available environments could not be detected.";
             clearAvailableCondaEnvironments();
-            setCondaEnvironmentStatusMessages("", environmentsNotDetectedMessage);
+            setCondaEnvironmentStatusMessages("", "", environmentsNotDetectedMessage);
             throw ex;
         }
     }
