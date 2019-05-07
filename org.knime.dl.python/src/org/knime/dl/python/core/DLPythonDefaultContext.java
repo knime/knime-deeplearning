@@ -60,8 +60,9 @@ import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python.typeextension.PythonModuleExtensions;
-import org.knime.python2.PythonVersion;
+import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
@@ -83,7 +84,11 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
         try {
-            final PythonKernelOptions options = new PythonKernelOptions().forPythonVersion(PythonVersion.PYTHON3);
+            final SerializationOptions serializerOptions =
+                new SerializationOptions().forSerializerId(DLPythonPreferences.getSerializerPreference());
+            final PythonKernelOptions options =
+                new PythonKernelOptions().forPython3Command(DLPythonPreferences.getPythonCommandPreference())
+                    .forSerializationOptions(serializerOptions);
             return new PythonKernel(options);
         } catch (final IOException e) {
             final String msg = !Strings.isNullOrEmpty(e.getMessage())
