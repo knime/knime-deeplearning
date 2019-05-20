@@ -60,7 +60,6 @@ import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentsPanel;
 import org.knime.python2.config.AbstractPythonConfigsObserver;
-import org.knime.python2.config.CondaEnvironmentCreationObserver;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
@@ -89,7 +88,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
 
     private final DLCondaEnvironmentConfig m_condaEnvironmentConfig;
 
-    private final CondaEnvironmentCreationObserver m_pythonEnvironmentCreator;
+    private final DLCondaEnvironmentCreationObserver m_pythonEnvironmentCreator;
 
     private final DLManualEnvironmentConfig m_manualEnvironmentConfig;
 
@@ -97,7 +96,7 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
 
     DLPythonConfigsObserver(final DLPythonConfigSelectionConfig configSelectionConfig,
         final PythonEnvironmentTypeConfig environmentTypeConfig, final DLCondaEnvironmentConfig condaEnvironmentConfig,
-        final CondaEnvironmentCreationObserver pythonEnvironmentCreator,
+        final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator,
         final DLManualEnvironmentConfig manualEnvironmentConfig, final SerializerConfig serializerConfig) {
         m_configSelectionConfig = configSelectionConfig;
         m_environmentTypeConfig = environmentTypeConfig;

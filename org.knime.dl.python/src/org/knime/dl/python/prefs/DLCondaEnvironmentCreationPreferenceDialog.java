@@ -75,10 +75,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
+import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
 import org.knime.python2.config.CondaEnvironmentCreationDialog;
-import org.knime.python2.config.CondaEnvironmentCreationObserver;
-import org.knime.python2.config.CondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
-import org.knime.python2.config.CondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
 
 /**
  * This dialog is very similar to <code>CondaEnvironmentCreationPreferenceDialog</code> but creating a abstract class
@@ -102,8 +101,7 @@ class DLCondaEnvironmentCreationPreferenceDialog extends Dialog implements Conda
 
     private static final int DESCRIPTION_LABEL_WIDTH_HINTS = 300;
 
-    // TODO DL variant?
-    private final CondaEnvironmentCreationObserver m_environmentCreator;
+    private final DLCondaEnvironmentCreationObserver m_environmentCreator;
 
     // UI components: Initialized by #createContents().
 
@@ -143,7 +141,7 @@ class DLCondaEnvironmentCreationPreferenceDialog extends Dialog implements Conda
 
     private volatile boolean m_environmentCreationTerminated = false;
 
-    public DLCondaEnvironmentCreationPreferenceDialog(final CondaEnvironmentCreationObserver environmentCreator,
+    public DLCondaEnvironmentCreationPreferenceDialog(final DLCondaEnvironmentCreationObserver environmentCreator,
         final Shell parent) {
         super(parent, SWT.NONE);
         m_environmentCreator = environmentCreator;
@@ -388,8 +386,7 @@ class DLCondaEnvironmentCreationPreferenceDialog extends Dialog implements Conda
         m_shell.layout(true, true);
         m_status = new CondaEnvironmentCreationStatus();
         registerExternalHooks();
-        // TODO handle GPU vs CPU
-        m_environmentCreator.startEnvironmentCreation(environmentName, m_status);
+        m_environmentCreator.startEnvironmentCreation(environmentName, m_status, gpu);
     }
 
     /**

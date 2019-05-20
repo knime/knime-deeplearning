@@ -52,7 +52,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractPythonConfigPanel;
-import org.knime.python2.config.CondaEnvironmentCreationObserver;
 import org.knime.python2.prefs.CondaEnvironmentSelectionBox;
 import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 
@@ -62,7 +61,7 @@ import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 public class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<DLCondaEnvironmentConfig, Composite> {
 
     public DLCondaEnvironmentPreferencePanel(final DLCondaEnvironmentConfig config,
-        final CondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite parent) {
+        final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite parent) {
         super(config, parent);
         final Composite panel = getPanel();
 
@@ -78,7 +77,7 @@ public class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel
     }
 
     private static void createEnvironmentSelectionPanel(final DLCondaEnvironmentConfig config,
-        final CondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite panel) {
+        final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite panel) {
         final CondaEnvironmentSelectionBox environmentSelection =
             new CondaEnvironmentSelectionBox(PythonVersion.PYTHON3, config.getEnvironmentName(),
                 config.getAvailableEnvironmentNames(), "Python", "Name of the deep learning Conda environment",
