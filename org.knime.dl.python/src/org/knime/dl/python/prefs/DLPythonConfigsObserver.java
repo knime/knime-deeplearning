@@ -58,6 +58,8 @@ import org.knime.python2.PythonKernelTester;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
 import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.PythonVersion;
+import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
+import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
 import org.knime.python2.config.AbstractCondaEnvironmentsPanel;
 import org.knime.python2.config.AbstractPythonConfigsObserver;
 import org.knime.python2.config.PythonEnvironmentType;
@@ -118,13 +120,14 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         // Disable Conda environment creation by default. Updated when Conda installation is tested
         pythonEnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(false);
 
-        // TODO handle finished conda environment creation
+        // Handle finished Conda environment creation processes
+        observeEnvironmentCreation(pythonEnvironmentCreator);
 
         // Test manual config on change
         manualEnvironmentConfig.getExecutablePath().addChangeListener(e -> testDLPythonEnvironment(false));
 
-        // Test everything if the serializer changes: C
-        m_serializerConfig.getSerializer().addChangeListener(e -> testCurrentPreferences());
+        // Test everything if the serializer changes
+        serializerConfig.getSerializer().addChangeListener(e -> testCurrentPreferences());
     }
 
     public void testCurrentPreferences() {
@@ -371,4 +374,48 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         }
     }
 
+    private void observeEnvironmentCreation(final DLCondaEnvironmentCreationObserver creationStatus) {
+        creationStatus.addEnvironmentCreationStatusListener(new CondaEnvironmentCreationStatusListener() {
+
+            @Override
+            public void condaEnvironmentCreationStarting(final CondaEnvironmentCreationStatus status) {
+                // no-op
+            }
+
+            @Override
+            public void condaEnvironmentCreationFinished(final CondaEnvironmentCreationStatus status,
+                final String createdEnvironmentName) {
+                final Conda conda;
+                try {
+                    conda = testDLCondaInstallation();
+                } catch (final Exception ex) {
+                    return;
+                }
+                final List<String> availableEnvironments;
+                try {
+                    availableEnvironments = getAvailableCondaEnvironments(conda, true);
+                } catch (final Exception ex) {
+                    return;
+                }
+                try {
+                    setAvailableCondaEnvironments(availableEnvironments);
+                    m_condaEnvironmentConfig.getEnvironmentName().setStringValue(createdEnvironmentName);
+                    testDLPythonEnvironment(true);
+                } catch (Exception ex) {
+                    // Ignore, we still want to configure and test the second environment.
+                }
+            }
+
+            @Override
+            public void condaEnvironmentCreationCanceled(final CondaEnvironmentCreationStatus status) {
+                // no-op
+            }
+
+            @Override
+            public void condaEnvironmentCreationFailed(final CondaEnvironmentCreationStatus status,
+                final String errorMessage) {
+                // no-op
+            }
+        }, false);
+    }
 }
