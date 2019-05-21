@@ -72,7 +72,6 @@ import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
-import org.knime.python2.prefs.PythonPreferences;
 
 import com.google.common.base.Strings;
 
@@ -82,14 +81,16 @@ import com.google.common.base.Strings;
  */
 public final class DLPythonDefaultContext implements DLPythonContext {
 
+    public static PythonKernelOptions getKernelOptions() {
+        final SerializationOptions serializerOptions =
+            new SerializationOptions().forSerializerId(DLPythonPreferences.getSerializerPreference());
+        return new PythonKernelOptions().forPython3Command(DLPythonPreferences.getPythonCommandPreference())
+            .forSerializationOptions(serializerOptions);
+    }
+
     public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
         try {
-            final SerializationOptions serializerOptions =
-                new SerializationOptions().forSerializerId(DLPythonPreferences.getSerializerPreference());
-            final PythonKernelOptions options =
-                new PythonKernelOptions().forPython3Command(DLPythonPreferences.getPythonCommandPreference())
-                    .forSerializationOptions(serializerOptions);
-            return new PythonKernel(options);
+            return new PythonKernel(getKernelOptions());
         } catch (final IOException e) {
             final String msg = !Strings.isNullOrEmpty(e.getMessage())
                 ? "An error occurred while trying to launch Python: " + e.getMessage()
@@ -123,7 +124,7 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     @Override
     public String[] execute(final DLCancelable cancelable, final File script, final String... args) throws IOException {
-        final ProcessBuilder pb = PythonPreferences.getPython3CommandPreference().createProcessBuilder();
+        final ProcessBuilder pb = DLPythonPreferences.getPythonCommandPreference().createProcessBuilder();
         final List<String> pbCommand = pb.command();
         pbCommand.add(script.getAbsolutePath());
         Collections.addAll(pbCommand, args);

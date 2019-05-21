@@ -50,6 +50,7 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -151,6 +152,24 @@ public class DLPythonPreferences {
             .getRequiredExternalModules();
     }
 
+    /**
+     * Add a listener which gets notified if a setting changes.
+     *
+     * @param listener the listener
+     */
+    public static void addPreferencesChangeListener(final IPreferenceChangeListener listener) {
+        InstanceScopeConfigStorage.getInstanceScopePreferences().addPreferenceChangeListener(listener);
+    }
+
+    /**
+     * Remove a listener that was added with {@link #addPreferencesChangeListener(IPreferenceChangeListener)}.
+     *
+     * @param listener the listener to remove
+     */
+    public static void removePreferencesChangeListener(final IPreferenceChangeListener listener) {
+        InstanceScopeConfigStorage.getInstanceScopePreferences().removePreferenceChangeListener(listener);
+    }
+
     private static final class InstanceScopeConfigStorage implements PythonConfigStorage {
 
         private static final String QUALIFIER = "org.knime.dl.python";
@@ -193,6 +212,5 @@ public class DLPythonPreferences {
                     .error("Could not save Python preferences entry: " + ex.getMessage(), ex);
             }
         }
-
     }
 }

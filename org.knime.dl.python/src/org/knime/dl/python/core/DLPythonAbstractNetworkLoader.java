@@ -62,6 +62,7 @@ import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 
 import com.google.common.base.Strings;
 
@@ -102,6 +103,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
         protected DLInstallationTestTimeoutException m_timeoutException;
 
         public DLPythonInstallationTester() {
+            DLPythonPreferences.addPreferencesChangeListener(e -> {
+                m_tested = false;
+            });
         }
 
         protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
