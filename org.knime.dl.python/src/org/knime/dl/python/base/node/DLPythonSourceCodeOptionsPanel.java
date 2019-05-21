@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,50 +41,30 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
- * History
- *   Sep 25, 2014 (Patrick Winter): created
  */
-package org.knime.dl.python.base.node.editor;
+package org.knime.dl.python.base.node;
 
-import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
-import org.knime.python2.generic.VariableNames;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.config.PythonSourceCodeOptionsPanel;
+import org.knime.python2.config.PythonSourceCodePanel;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonEditorNodeConfig extends DLPythonSourceCodeConfig {
+public class DLPythonSourceCodeOptionsPanel extends PythonSourceCodeOptionsPanel {
 
-	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
-			"flow_variables", // flow variables
-			null, // input tables
-			null, // output tables
-			null, // output images
-			null, // pickled input objects
-			null, // pickled output objects
-			new String[] { "input_network" }, // general input objects
-			new String[] { "output_network" } // general output objects
-	);
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected String getDefaultSourceCode() {
-		final VariableNames vars = getVariableNames();
-		return "# " + "variable name of the input network: " + vars.getGeneralInputObjects()[0] + "\n" + //
-				"# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
-				"\n" + //
-				vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
-	}
-
-	/**
-	 * Get the variable names for this node
-	 *
-	 * @return the variable names
-	 */
-	static VariableNames getVariableNames() {
-		return VARIABLE_NAMES;
-	}
+    /**
+     * Creates a {@link PythonSourceCodeOptionsPanel} with Python 3 as enforced Python version and the deep learning
+     * Python command as default Python 3 command.
+     *
+     * @param sourceCodePanel The corresponding source code panel.
+     */
+    public DLPythonSourceCodeOptionsPanel(final PythonSourceCodePanel sourceCodePanel) {
+        super(sourceCodePanel, EnforcePythonVersion.PYTHON3, () -> null,
+            DLPythonPreferences::getPythonCommandPreference);
+    }
 }

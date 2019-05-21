@@ -49,6 +49,7 @@
 package org.knime.dl.python.base.node;
 
 import org.knime.core.node.NodeDialogPane;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.python2.config.PythonSourceCodePanel;
 import org.knime.python2.generic.VariableNames;
 
@@ -71,6 +72,7 @@ public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
      */
     public DLPythonSourceCodePanel(final NodeDialogPane parent, final VariableNames variableNames) {
         super(parent, variableNames);
+        setKernelOptions(DLPythonDefaultContext.getKernelOptions());
     }
 
 	@Override

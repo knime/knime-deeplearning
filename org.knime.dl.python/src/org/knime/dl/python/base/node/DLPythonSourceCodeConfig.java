@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,50 +41,32 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
- * History
- *   Sep 25, 2014 (Patrick Winter): created
  */
-package org.knime.dl.python.base.node.editor;
+package org.knime.dl.python.base.node;
 
-import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
-import org.knime.python2.generic.VariableNames;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
+import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * A {@link PythonSourceCodeConfig} for deep learning nodes that uses the default Python 3 command and serializer
+ * configured on the deep learning preference page.
+ * 
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonEditorNodeConfig extends DLPythonSourceCodeConfig {
+public class DLPythonSourceCodeConfig extends PythonSourceCodeConfig {
 
-	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
-			"flow_variables", // flow variables
-			null, // input tables
-			null, // output tables
-			null, // output images
-			null, // pickled input objects
-			null, // pickled output objects
-			new String[] { "input_network" }, // general input objects
-			new String[] { "output_network" } // general output objects
-	);
-
-	@Override
-	protected String getDefaultSourceCode() {
-		final VariableNames vars = getVariableNames();
-		return "# " + "variable name of the input network: " + vars.getGeneralInputObjects()[0] + "\n" + //
-				"# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
-				"\n" + //
-				vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
-	}
-
-	/**
-	 * Get the variable names for this node
-	 *
-	 * @return the variable names
-	 */
-	static VariableNames getVariableNames() {
-		return VARIABLE_NAMES;
-	}
+    @Override
+    public PythonKernelOptions getKernelOptions() {
+        final SerializationOptions serializationOptions =
+            new SerializationOptions(getChunkSize(), getConvertMissingToPython(), getConvertMissingFromPython(),
+                getSentinelOption(), getSentinelValue()).forSerializerId(DLPythonPreferences.getSerializerPreference());
+        final PythonCommand python3Command =
+            getPython3Command() == null ? DLPythonPreferences.getPythonCommandPreference() : getPython3Command();
+        return new PythonKernelOptions(getPythonVersion(), getPython2Command(), python3Command, serializationOptions);
+    }
 }

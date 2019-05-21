@@ -54,9 +54,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.dl.python.base.node.DLPythonSourceCodeOptionsPanel;
 import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
-import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.generic.templates.SourceCodeTemplatesPanel;
 
 /**
@@ -75,7 +75,7 @@ final class DLPythonCreatorNodeDialog extends NodeDialogPane {
 
 	DLPythonCreatorNodeDialog() {
         m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonCreatorNodeConfig.getVariableNames());
-		m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
+        m_sourceCodeOptionsPanel = new DLPythonSourceCodeOptionsPanel(m_sourceCodePanel);
 		m_templatesPanel = new SourceCodeTemplatesPanel(m_sourceCodePanel, "dl-python-creator");
 		addTab("Script", m_sourceCodePanel, false);
 		addTab("Options", m_sourceCodeOptionsPanel, true);

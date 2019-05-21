@@ -47,7 +47,7 @@
  */
 package org.knime.dl.python.base.node.executor;
 
-import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
 import org.knime.python2.generic.VariableNames;
 
 /**
@@ -56,7 +56,7 @@ import org.knime.python2.generic.VariableNames;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonExecutorNodeConfig extends PythonSourceCodeConfig {
+final class DLPythonExecutorNodeConfig extends DLPythonSourceCodeConfig {
 
 	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
 			"flow_variables", // flow variables

@@ -61,12 +61,12 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNotCancelable;
+import org.knime.dl.python.base.node.DLPythonSourceCodeOptionsPanel;
 import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
-import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.config.WorkspacePreparer;
 import org.knime.python2.port.PickledObject;
 
@@ -86,7 +86,7 @@ final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
 
     DLPythonLearnerNodeDialog() {
         m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonLearnerNodeConfig.getVariableNames());
-        m_sourceCodeOptionsPanel = new PythonSourceCodeOptionsPanel(m_sourceCodePanel, EnforcePythonVersion.PYTHON3);
+        m_sourceCodeOptionsPanel = new DLPythonSourceCodeOptionsPanel(m_sourceCodePanel);
         addTab("Script", m_sourceCodePanel, false);
 		addTab("Options", m_sourceCodeOptionsPanel, true);
 	}
