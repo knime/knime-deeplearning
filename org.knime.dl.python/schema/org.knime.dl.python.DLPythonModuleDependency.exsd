@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.knime.dl.python" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.knime.dl.python" id="DLPythonModuleDependency" name="DLPythonModuleDependency"/>
+      </appInfo>
+      <documentation>
+         Extension point for Python module dependencies.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="DLPythonModuleDependency"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="DLPythonModuleDependency">
+      <complexType>
+         <attribute name="DLPythonModuleDependency" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The loader class that implements the DLPythonModuleDependency interface.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.knime.dl.python.core.DLPythonModuleDependency"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         KNIME v3.8
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         Dependency classes must implement the DLPythonModuleDependency interface and provide an empty public constructor.
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright by KNIME AG, Zurich, Switzerland
+Website: http://www.knime.com; Email: contact@knime.com
+      </documentation>
+   </annotation>
+
+</schema>

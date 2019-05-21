@@ -50,10 +50,11 @@ package org.knime.dl.python.prefs;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.dl.python.envconfigs.DLCondaEnvironments;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver;
+import org.knime.python2.envconfigs.CondaEnvironments;
 
 /**
  * {@link #startEnvironmentCreation(String, CondaEnvironmentCreationStatus) Initiates}, observes, and
@@ -97,10 +98,12 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
      * @param status The status object that is will be notified about changes in the state of the initiated creation
      *            process. Can also be used to {@link #cancelEnvironmentCreation(CondaEnvironmentCreationStatus) cancel}
      *            the creation process. A new status object must be used for each new creation process.
+     * @param gpu if the GPU configuration should be used
      */
     public void startEnvironmentCreation(final String environmentName, final CondaEnvironmentCreationStatus status,
         final boolean gpu) {
-        final String envFile = DLCondaEnvironments.getPathToDLCondaConfigFile(gpu);
+        final String subDirectory = gpu && !SystemUtils.IS_OS_MAC ? "dl-gpu" : "dl-cpu";
+        final String envFile = CondaEnvironments.getPathToPython3CondaConfigFile(subDirectory);
         startEnvironmentCreation(environmentName, status, Optional.of(envFile));
     }
 }

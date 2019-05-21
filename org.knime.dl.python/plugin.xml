@@ -2,6 +2,7 @@
 <?eclipse version="3.0"?>
 <plugin>
    <extension-point id="DLPythonNetworkLoader" name="DLPythonNetworkLoader" schema="schema/org.knime.dl.python.DLPythonNetworkLoader.exsd"/>
+   <extension-point id="DLPythonModuleDependency" name="DLPythonModuleDependency" schema="schema/org.knime.dl.python.DLPythonModuleDependency.exsd"/>
    <extension
          point="org.knime.python.typeextension.knimetopython">
       <type

@@ -59,6 +59,12 @@
       </DLPythonNetworkLoader>
    </extension>
    <extension
+         point="org.knime.dl.python.DLPythonModuleDependency">
+      <DLPythonModuleDependency
+            DLPythonModuleDependency="org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowModuleDependency">
+      </DLPythonModuleDependency>
+   </extension>
+   <extension
          point="org.knime.python.modules">
       <directory
             path="py/">

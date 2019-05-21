@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.dl.python.core.DLPythonModuleDependencyRegistry;
 import org.knime.python2.Conda;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonKernelTester;
@@ -72,17 +73,6 @@ import org.knime.python2.prefs.PythonPreferences;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
-
-    private static Collection<PythonModuleSpec> getOptionalDLModules() {
-        final List<PythonModuleSpec> modules = new ArrayList<>();
-        // TODO add versions
-        // TODO ...
-        modules.add(new PythonModuleSpec("keras"));
-        modules.add(new PythonModuleSpec("tensorflow"));
-        modules.add(new PythonModuleSpec("onnx"));
-        modules.add(new PythonModuleSpec("onnx_tf"));
-        return modules;
-    }
 
     private final DLPythonConfigSelectionConfig m_configSelectionConfig;
 
@@ -198,7 +188,8 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
         // Serializer modules
         additionalRequiredModules.addAll(serializerModules);
         // Deep learning modules
-        final Collection<PythonModuleSpec> additionalOptionalModules = getOptionalDLModules();
+        final Collection<PythonModuleSpec> additionalOptionalModules =
+            DLPythonModuleDependencyRegistry.getInstance().getPythonDependenciesModules();
 
         // Start the installation test in a new thread
         new Thread(() -> {
@@ -257,7 +248,8 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             .getSerializationLibraryFactory(m_serializerConfig.getSerializer().getStringValue())
             .getRequiredExternalModules());
         // Deep learning modules
-        final Collection<PythonModuleSpec> additionalOptionalModules = getOptionalDLModules();
+        final Collection<PythonModuleSpec> additionalOptionalModules =
+            DLPythonModuleDependencyRegistry.getInstance().getPythonDependenciesModules();
 
         // Start the installation test in a new thread
         new Thread(() -> {
