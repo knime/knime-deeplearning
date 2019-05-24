@@ -62,6 +62,7 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python.typeextension.PythonModuleExtensions;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
@@ -84,7 +85,8 @@ public final class DLPythonDefaultContext implements DLPythonContext {
     public static PythonKernelOptions getKernelOptions() {
         final SerializationOptions serializerOptions =
             new SerializationOptions().forSerializerId(DLPythonPreferences.getSerializerPreference());
-        return new PythonKernelOptions().forPython3Command(DLPythonPreferences.getPythonCommandPreference())
+        return new PythonKernelOptions().forPythonVersion(PythonVersion.PYTHON3)
+            .forPython3Command(DLPythonPreferences.getPythonCommandPreference())
             .forSerializationOptions(serializerOptions);
     }
 
