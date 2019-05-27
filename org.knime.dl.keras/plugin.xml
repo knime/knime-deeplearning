@@ -175,6 +175,11 @@
             factory-class="org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeFactory">
       </node>
       <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.executor.DLKerasExecutorNodeFactory">
+      </node>
+      <node
             category-path="/labs/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.add.DLKerasAddLayerNodeFactory">
