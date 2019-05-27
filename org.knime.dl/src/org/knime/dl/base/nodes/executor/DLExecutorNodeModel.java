@@ -126,7 +126,9 @@ import com.google.common.base.Strings;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @deprecated replaced by {@link DLDefaultExecutorNodeModel}.
  */
+@Deprecated
 final class DLExecutorNodeModel extends NodeModel {
 
 	static final int IN_NETWORK_PORT_IDX = 0;

@@ -55,7 +55,9 @@ import org.knime.core.node.NodeView;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 public class DLExecutorNodeFactory extends NodeFactory<DLExecutorNodeModel> {
 
 	/**

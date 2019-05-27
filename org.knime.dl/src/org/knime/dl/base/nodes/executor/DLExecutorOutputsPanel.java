@@ -77,6 +77,7 @@ import org.knime.dl.util.DLUtils;
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 final class DLExecutorOutputsPanel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLExecutorNodeModel.class);

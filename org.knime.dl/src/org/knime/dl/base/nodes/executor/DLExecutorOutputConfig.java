@@ -64,6 +64,7 @@ import org.knime.dl.core.data.convert.DLTensorToDataCellConverterRegistry;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 final class DLExecutorOutputConfig extends DLAbstractIOConfig<DLExecutorGeneralConfig> {
 
 	private static final String CFG_KEY_CONVERTER = "output_converter";

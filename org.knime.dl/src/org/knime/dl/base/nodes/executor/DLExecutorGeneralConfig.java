@@ -53,11 +53,11 @@ import java.util.Collection;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.dl.base.settings.SettingsModelConfigEntries;
 import org.knime.dl.base.settings.AbstractConfig;
 import org.knime.dl.base.settings.AbstractConfigEntry;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLGeneralConfig;
+import org.knime.dl.base.settings.SettingsModelConfigEntries;
 import org.knime.dl.core.DLNetwork;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLExecutionContextRegistry;
@@ -71,6 +71,7 @@ import org.knime.dl.core.execution.DLExecutionContextRegistry;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<DLExecutionContext<?>> {
 
 	private static final String CFG_KEY_ROOT = "general_settings";

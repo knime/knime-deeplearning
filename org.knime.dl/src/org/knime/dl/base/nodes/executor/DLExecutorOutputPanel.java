@@ -87,6 +87,7 @@ import org.knime.dl.core.execution.DLExecutionContext;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 final class DLExecutorOutputPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;

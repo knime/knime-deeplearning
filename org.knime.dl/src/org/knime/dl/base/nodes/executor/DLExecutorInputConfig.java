@@ -68,6 +68,7 @@ import org.knime.dl.core.data.convert.DLDataValueToTensorConverterRegistry;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 class DLExecutorInputConfig extends DLAbstractInputConfig<DLExecutorGeneralConfig> {
 
     DLExecutorInputConfig(final DLTensorId inputTensorId, final String inputTensorName,

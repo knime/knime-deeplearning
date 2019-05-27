@@ -72,6 +72,7 @@ import org.knime.dl.core.execution.DLExecutionContextRegistry;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DLExecutorGeneralConfig m_cfg;
