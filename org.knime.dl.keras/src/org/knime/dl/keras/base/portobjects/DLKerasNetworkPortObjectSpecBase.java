@@ -46,6 +46,10 @@
  */
 package org.knime.dl.keras.base.portobjects;
 
+import java.io.IOException;
+
+import org.knime.core.node.port.PortObjectSpecZipInputStream;
+import org.knime.core.node.port.PortObjectSpecZipOutputStream;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
@@ -53,6 +57,7 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasNetworkPortObjectSpecBase extends DLNetworkPortObjectSpec {
 
@@ -61,4 +66,23 @@ public interface DLKerasNetworkPortObjectSpecBase extends DLNetworkPortObjectSpe
 
 	@Override
 	DLKerasNetworkSpec getNetworkSpec();
+
+    /**
+     * Serializer of {@link DLKerasNetworkPortObjectSpecBase}.
+     */
+    public static final class Serializer extends PortObjectSpecSerializer<DLKerasNetworkPortObjectSpecBase> {
+        @Override
+        public void savePortObjectSpec(final DLKerasNetworkPortObjectSpecBase portObjectSpec,
+            final PortObjectSpecZipOutputStream out) throws IOException {
+            throw new IllegalStateException(
+                "Serializing DLKerasNetworkPortObjectSpecBase is unsupported. Implement a serializer for the implementing type.");
+        }
+
+        @Override
+        public DLKerasNetworkPortObjectSpecBase loadPortObjectSpec(final PortObjectSpecZipInputStream in)
+            throws IOException {
+            throw new IllegalStateException(
+                "Deserializing DLKerasNetworkPortObjectSpecBase is unsupported. Implement a serializer for the implementing type.");
+        }
+    }
 }

@@ -46,6 +46,13 @@
  */
 package org.knime.dl.keras.base.portobjects;
 
+import java.io.IOException;
+
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortObjectZipInputStream;
+import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.dl.keras.core.DLKerasNetwork;
@@ -54,6 +61,7 @@ import org.knime.dl.python.core.DLPythonNetworkPortObject;
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public interface DLKerasNetworkPortObjectBase extends DLPythonNetworkPortObject<DLKerasNetwork> {
 
@@ -69,4 +77,24 @@ public interface DLKerasNetworkPortObjectBase extends DLPythonNetworkPortObject<
 
 	@Override
 	DLKerasNetworkPortObjectSpecBase getSpec();
+
+    /**
+     * Serializer of {@link DLKerasNetworkPortObjectBase}.
+     */
+    public static final class Serializer extends PortObjectSerializer<DLKerasNetworkPortObjectBase> {
+
+        @Override
+        public void savePortObject(final DLKerasNetworkPortObjectBase portObject, final PortObjectZipOutputStream out,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new IllegalStateException(
+                "Serializing DLKerasNetworkPortObjectBase is unsupported. Implement a serializer for the implementing type.");
+        }
+
+        @Override
+        public DLKerasNetworkPortObjectBase loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new IllegalStateException(
+                "Deserializing DLKerasNetworkPortObjectBase is unsupported. Implement a serializer for the implementing type.");
+        }
+    }
 }

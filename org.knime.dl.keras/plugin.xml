@@ -4,8 +4,8 @@
  <extension
          point="org.knime.core.PortType">
       <portType
-            color="#8fb3c2"
-            hidden="false"
+            color="#d00000"
+            hidden="true"
             name="Keras Deep Learning Network"
             objectClass="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject"
             objectSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject$Serializer"
@@ -13,13 +13,22 @@
             specSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec$Serializer">
       </portType>
       <portType
-            color="#8fb3c2"
-            hidden="false"
+            color="#d00000"
+            hidden="true"
             name="Keras Deep Learning Network"
             objectClass="org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject"
             objectSerializer="org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObject$Serializer"
             specClass="org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec"
             specSerializer="org.knime.dl.keras.base.portobjects.DLKerasUnmaterializedNetworkPortObjectSpec$Serializer">
+      </portType>
+      <portType
+            color="#d00000"
+            hidden="false"
+            name="Keras Deep Learning Network"
+            objectClass="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase"
+            objectSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase$Serializer"
+            specClass="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase"
+            specSerializer="org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase$Serializer">
       </portType>
    </extension>
    <extension
