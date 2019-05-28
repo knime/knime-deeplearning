@@ -113,7 +113,8 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
                     + "This could be due to a version mismatch between Keras and TensorFlow.\n"
                     + "Please make sure that Keras " + DLKerasUtils.PREFERRED_KERAS_VERSION + " and TensorFlow "
                     + DLKerasUtils.PREFERRED_TF_VERSION + " are installed in your Python environment.\n"
-                    + "See log for details.");
+                    + "See log for details.\n"
+                    + "You can install the correct version of Keras and TensorFlow on the 'Python Deep Learning' preference page.");
             throw new IOException(message, e);
         }
     }

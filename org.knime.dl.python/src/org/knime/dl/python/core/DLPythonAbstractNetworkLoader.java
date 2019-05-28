@@ -157,6 +157,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                                     + " ms) using the VM option " + "'-D"
                                     + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.";
                                 timeoutException.set(new DLInstallationTestTimeoutException(msg));
+                            } else {
+                                msg += "\nIf packages are missing you can install the correct version of the "
+                                    + "required packages on the 'Python Deep Learning' preference page.";
                             }
                             return msg;
                         });
