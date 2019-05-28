@@ -153,7 +153,7 @@
             category="org.knime.workbench.ui.preferences"
             class="org.knime.dl.python.prefs.DLPythonPreferencePage"
             id="org.knime.dl.python.prefs.DLPythonPreferencePage"
-            name="Deep Learning">
+            name="Python Deep Learning">
       </page>
    </extension>
 </plugin>
