@@ -54,5 +54,11 @@ import org.knime.dl.core.execution.DLNetworkExecutionSession;
  */
 public interface DLPythonNetworkExecutionSession extends DLNetworkExecutionSession {
 
-	// NB: marker interface
+    /**
+     * Set the environment variable in the Python kernel for the execution session.
+     *
+     * @param name name of the environment variable
+     * @param value value of the environment variable
+     */
+    void setKernelEnvironmentVariable(final String name, final String value);
 }
