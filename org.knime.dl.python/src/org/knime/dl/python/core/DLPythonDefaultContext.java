@@ -61,6 +61,8 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
 import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
+import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python.typeextension.PythonModuleExtensions;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
@@ -205,6 +207,16 @@ public final class DLPythonDefaultContext implements DLPythonContext {
         }
         // This cannot happen.
         return null;
+    }
+
+    @Override
+    public void setEnvironmentVariable(final String name, final String value, final DLCancelable cancelable)
+        throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException {
+        final String code = DLPythonUtils.createSourceCodeBuilder() //
+            .a("import os") //
+            .n("os.environ[").as(name).a("] = ").as(value)//
+            .toString();
+        executeInKernel(code, cancelable);
     }
 
     @Override
