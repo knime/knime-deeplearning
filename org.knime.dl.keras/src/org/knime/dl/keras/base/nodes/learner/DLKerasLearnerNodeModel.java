@@ -107,6 +107,7 @@ import org.knime.dl.core.training.DLKnimeNetworkValidationInputPreparer;
 import org.knime.dl.core.training.DLKnimeTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.core.training.DLTrainingStatus.Status;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.learner.view.DLDefaultLinePlotViewDataCollection;
 import org.knime.dl.keras.base.nodes.learner.view.DLDenseLinePlotViewData;
 import org.knime.dl.keras.base.nodes.learner.view.DLInteractiveLearnerNodeModel;
@@ -161,6 +162,10 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		return new DLKerasLearnerGeneralConfig();
 	}
 
+    static DLKerasGpuSelectionConfig createGpuSelectionConfig() {
+        return new DLKerasGpuSelectionConfig();
+    }
+
     static DLKerasLearnerInputConfig createInputTensorModelConfig(final DLTensorId inputTensorId,
         final String inputTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
         return new DLKerasLearnerInputConfig(inputTensorId, inputTensorName, generalCfg);
@@ -172,6 +177,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     }
 
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
+
+    private final DLKerasGpuSelectionConfig m_gpuSelection;
 
     private final HashMap<DLTensorId, DLKerasLearnerInputConfig> m_inputCfgs;
 
@@ -213,6 +220,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		super(new PortType[] { DLKerasNetworkPortObjectBase.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
 				new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
 		m_generalCfg = createGeneralModelConfig();
+		m_gpuSelection = createGpuSelectionConfig();
 		m_inputCfgs = new HashMap<>();
 		m_targetCfgs = new HashMap<>();
 	}
@@ -345,6 +353,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 		try {
 			m_generalCfg.copyClipSettingsToOptimizer();
 			m_generalCfg.saveToSettings(settings);
+            m_gpuSelection.saveToSettings(settings);
 
 			final NodeSettingsWO inputSettings = settings.addNodeSettings(CFG_KEY_INPUT);
 			for (final DLKerasLearnerInputConfig inputCfg : m_inputCfgs.values()) {
@@ -383,6 +392,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_generalCfg.loadFromSettings(settings);
 		m_generalCfg.copyClipSettingsToOptimizer();
+        m_gpuSelection.loadFromSettings(settings);
 
 		final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
 		for (final DLKerasLearnerInputConfig inputCfg : m_inputCfgs.values()) {
@@ -672,7 +682,11 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
 			setupTrainingStatus(doValidation, trainingConfig, numTrainingBatchesPerEpoch, totalNumTrainingBatches,
                 monitor);
-            session.run(monitor);
+            final String cudaVisibleDevices = m_gpuSelection.getCudaVisibleDevices().getValue();
+            if (!cudaVisibleDevices.isEmpty()) {
+                session.setKernelEnvironmentVariable("CUDA_VISIBLE_DEVICES", cudaVisibleDevices);
+            }
+			session.run(monitor);
 			exec.setMessage("Saving trained Keras deep learning network...");
             return session.getTrainedNetwork(exec);
 		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
