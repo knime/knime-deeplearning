@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Deep Learning - Python Backend
 Bundle-SymbolicName: org.knime.dl.python;singleton:=true
-Bundle-Version: 3.8.0.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: knime-dl-python.jar
 Bundle-Activator: org.knime.dl.python.core.Activator
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
@@ -18,17 +18,17 @@ Export-Package: org.knime.dl.python.base.node,
   org.knime.dl.python.core.training,
   org.knime.dl.python.util
 Require-Bundle: org.eclipse.ui;bundle-version="[3.109.0,4.0.0)",
- org.knime.python2;bundle-version="[3.8.0,4.0.0)",
- org.knime.core;bundle-version="[3.5.0,4.0.0)",
- org.knime.dl;bundle-version="[3.8.0,4.0.0)",
- org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
- com.google.guava;bundle-version="[19.0.0,19.0.0]",
- org.knime.python2.nodes;bundle-version="[3.8.0,4.0.0)",
- org.knime.base;bundle-version="[3.5.0,4.0.0)",
- org.knime.workbench.repository;bundle-version="[3.5.0,4.0.0)",
- org.knime.python.typeextensions;bundle-version="[3.8.0,4.0.0)",
- org.knime.python2.envconfigs;bundle-version="3.8.0",
- com.fifesoft.autocomplete;bundle-version="[2.5.7,3.0.0)"
+  org.knime.python2;bundle-version="[3.8.0,4.0.0)",
+  org.knime.core;bundle-version="[3.5.0,4.0.0)",
+  org.knime.dl;bundle-version="[3.8.0,4.0.0)",
+  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
+  com.google.guava;bundle-version="[19.0.0,19.0.0]",
+  org.knime.python2.nodes;bundle-version="[3.8.0,4.0.0)",
+  org.knime.base;bundle-version="[3.5.0,4.0.0)",
+  org.knime.workbench.repository;bundle-version="[3.5.0,4.0.0)",
+  org.knime.python.typeextensions;bundle-version="[3.8.0,4.0.0)",
+  org.knime.python2.envconfigs;bundle-version="3.8.0",
+  com.fifesoft.autocomplete;bundle-version="[2.5.7,3.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Eclipse-ExtensibleAPI: true
