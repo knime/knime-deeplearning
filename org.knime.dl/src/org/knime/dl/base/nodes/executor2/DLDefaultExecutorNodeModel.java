@@ -56,12 +56,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
@@ -102,7 +104,9 @@ import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLInstallationTestTimeout;
 import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
+import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.dl.core.DLNetworkInputPreparer;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLRowInputRowIterator;
@@ -118,6 +122,7 @@ import org.knime.dl.core.execution.DLKnimeExecutionMonitor;
 import org.knime.dl.core.execution.DLKnimeNetworkExecutionInputPreparer;
 import org.knime.dl.core.execution.DLKnimeNetworkOutputConsumer;
 import org.knime.dl.core.execution.DLNetworkExecutionSession;
+import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.util.DLUtils;
 
 import com.google.common.base.Strings;
@@ -170,9 +175,11 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
 
     private SettingsModelStringArray m_smOutputOrder;
 
-    private LinkedHashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> m_inputConverters;
+    /** the input converters */
+    protected LinkedHashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> m_inputConverters;
 
-    private LinkedHashMap<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> m_outputConverters;
+    /** the output converters */
+    protected LinkedHashMap<DLTensorSpec, DLTensorToDataCellConverterFactory<?, ?>> m_outputConverters;
 
     private DataTableSpec m_lastIncomingTableSpec;
 
@@ -520,16 +527,6 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
             return;
         }
 
-        final DLExecutionContext<N> ctx = (DLExecutionContext<N>)m_generalCfg.getContextEntry().getValue();
-        try {
-            ctx.checkAvailability(false, DLInstallationTestTimeout.getInstallationTestTimeout(),
-                DLNotCancelable.INSTANCE);
-        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
-                | DLCanceledExecutionException e) {
-            throw new InvalidSettingsException("Selected back end '" + ctx.getName() + "' is not available anymore. "
-                + "Please check your local installation.\nDetails: " + e.getMessage());
-        }
-
         final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
         final boolean isPredefinedBatchSize =
             Arrays.stream(networkSpec.getInputSpecs()).anyMatch(s -> s.getBatchSize().isPresent());
@@ -551,10 +548,8 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
                     rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
                 final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
                     inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
-                final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
-                    DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(), batchSize,
-                        columnsForTensorId, m_inputConverters),
-                    outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
+                final DLNetworkExecutionSession session = createExecutionSession(network, batchSize, columnsForTensorId,
+                    outputConverterForTensorId, rowIterator.peek(), inputPreparer, outputConsumer)) {
             final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer.getNumBatches());
             session.run(monitor);
         } catch (final CanceledExecutionException | DLCanceledExecutionException e) {
@@ -562,6 +557,52 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
         } catch (final Exception e) {
             handleGeneralException(e);
         }
+    }
+
+    /**
+     * Creates an execution session for the given parameters.
+     *
+     * @param network the deep learning network
+     * @param batchSize the size of one batch
+     * @param columnsForTensorId list of columns which should be written into a tensor per tensor id
+     * @param outputConverterForTensorId converters for the output tensors
+     * @param firstRow a row of the data table to extract the execution spec
+     * @param inputPreparer the input preparer
+     * @param outputConsumer the output consumer
+     * @param <N> type of the network
+     * @return an execution session
+     * @throws DLMissingExtensionException
+     * @throws InvalidSettingsException
+     */
+    protected <N extends DLNetwork> DLNetworkExecutionSession createExecutionSession(final N network,
+        final int batchSize, final Map<DLTensorId, int[]> columnsForTensorId,
+        final Map<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId,
+        final DataRow firstRow, final DLNetworkInputPreparer inputPreparer,
+        final DLNetworkOutputConsumer outputConsumer) throws DLMissingExtensionException, InvalidSettingsException {
+
+        final DLExecutionContext<N> ctx = getExecutionContext();
+        return ctx.createExecutionSession(
+            network, DLExecutionSpecCreator.createExecutionSpecs(firstRow, ctx.getTensorFactory(), batchSize,
+                columnsForTensorId, m_inputConverters),
+            outputConverterForTensorId.keySet(), inputPreparer, outputConsumer);
+    }
+
+    /**
+     * @return the configured execution context
+     * @throws InvalidSettingsException if the execution context is not available
+     */
+    protected <N extends DLNetwork> DLExecutionContext<N> getExecutionContext() throws InvalidSettingsException {
+        @SuppressWarnings("unchecked")
+        final DLExecutionContext<N> ctx = (DLExecutionContext<N>)m_generalCfg.getContextEntry().getValue();
+        try {
+            ctx.checkAvailability(false, DLInstallationTestTimeout.getInstallationTestTimeout(),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                | DLCanceledExecutionException e) {
+            throw new InvalidSettingsException("Selected back end '" + ctx.getName() + "' is not available anymore. "
+                + "Please check your local installation.\nDetails: " + e.getMessage());
+        }
+        return ctx;
     }
 
     private LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> createOutputConverterMap() {

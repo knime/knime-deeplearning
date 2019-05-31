@@ -70,7 +70,7 @@ import org.knime.dl.core.DLTensorSpec;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
+public class DLExecutorNodeDialog extends DefaultDLNodeDialogPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLDefaultExecutorNodeModel.class);
 
