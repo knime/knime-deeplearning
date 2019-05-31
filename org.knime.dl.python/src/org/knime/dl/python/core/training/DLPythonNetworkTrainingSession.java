@@ -55,5 +55,11 @@ import org.knime.dl.core.training.DLTrainingStatus;
  */
 public interface DLPythonNetworkTrainingSession<S extends DLTrainingStatus> extends DLNetworkTrainingSession<S> {
 
-	// NB: marker interface
+    /**
+     * Set the environment variable in the Python kernel for the training session.
+     *
+     * @param name name of the environment variable
+     * @param value value of the environment variable
+     */
+    void setKernelEnvironmentVariable(final String name, final String value);
 }

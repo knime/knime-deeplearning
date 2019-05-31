@@ -47,6 +47,9 @@
 package org.knime.dl.python.core.training;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.knime.dl.core.DLCancelable;
@@ -62,6 +65,7 @@ import org.knime.dl.core.training.DLTrainingConfig;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.core.training.DLTrainingStatus;
 import org.knime.dl.python.core.DLPythonCommands;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -93,6 +97,9 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	 */
 	protected DLPythonNetworkHandle m_handle;
 
+    private final Map<String, String> m_additionalEnvVars;
+
+
 	/**
 	 * @param network the network to train
 	 * @param trainingConfig the training configuration that specifies how the network will be trained
@@ -110,6 +117,7 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
         super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
 				tensorFactory);
+        m_additionalEnvVars = new HashMap<>();
 	}
 
 	/**
@@ -154,6 +162,11 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 			throws DLCanceledExecutionException, Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
+            @SuppressWarnings("resource") // Closed in #close
+            final DLPythonContext context = m_commands.getContext(monitor);
+            for (final Entry<String, String> var : m_additionalEnvVars.entrySet()) {
+                context.setEnvironmentVariable(var.getKey(), var.getValue(), monitor);
+            }
             m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader((Class<N>)m_network.getClass())
                 .orElseThrow(
                     () -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
@@ -163,4 +176,9 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 		}
 		m_commands.trainNetwork(m_handle, m_trainingInputProvider, m_validationInputProvider, monitor);
 	}
+
+    @Override
+    public void setKernelEnvironmentVariable(String name, String value) {
+        m_additionalEnvVars.put(name, value);
+    }
 }
