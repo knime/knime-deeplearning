@@ -43,42 +43,50 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 13, 2017 (marcel): created
  */
-package org.knime.dl.keras.base.nodes.executor;
+package org.knime.dl.keras.base.nodes;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.dl.base.nodes.executor2.DLDefaultExecutorNodeModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.dl.base.settings.AbstractConfig;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DefaultConfigEntry;
 
 /**
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm. KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeFactory extends NodeFactory<DLDefaultExecutorNodeModel> {
+public final class DLKerasGpuSelectionConfig extends AbstractConfig {
 
-    @Override
-    public DLDefaultExecutorNodeModel createNodeModel() {
-        return new DLKerasExecutorNodeModel();
+    static final String CFG_KEY_ROOT = "gpu_selection_settings";
+
+    static final String CFG_KEY_CUDA_VISIBLE_DEVICES = "cuda_visible_devices";
+
+    /**
+     * Creates a new GPU selection configuration
+     */
+    public DLKerasGpuSelectionConfig() {
+        super(CFG_KEY_ROOT);
+        putCudaVisibleDevices();
+    }
+
+    /**
+     * @return a config entry for the CUDA_VISIBLE_DEVICES environment variable
+     */
+    public ConfigEntry<String> getCudaVisibleDevices() {
+        return get(CFG_KEY_CUDA_VISIBLE_DEVICES, String.class);
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<DLDefaultExecutorNodeModel> createNodeView(final int viewIndex,
-        final DLDefaultExecutorNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
+    protected boolean handleFailureToLoadConfig(final NodeSettingsRO settings, final Exception cause) {
+        putCudaVisibleDevices();
         return true;
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DLKerasExecutorNodeDialog();
+    private void putCudaVisibleDevices() {
+        put(new DefaultConfigEntry<String>(CFG_KEY_CUDA_VISIBLE_DEVICES, String.class, ""));
     }
 }

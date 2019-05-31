@@ -46,39 +46,47 @@
  */
 package org.knime.dl.keras.base.nodes.executor;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.dl.base.nodes.executor2.DLDefaultExecutorNodeModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
+import org.knime.dl.base.nodes.executor2.DLExecutorNodeDialog;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeFactory extends NodeFactory<DLDefaultExecutorNodeModel> {
+public class DLKerasExecutorNodeDialog extends DLExecutorNodeDialog {
 
-    @Override
-    public DLDefaultExecutorNodeModel createNodeModel() {
-        return new DLKerasExecutorNodeModel();
+    private final DLKerasGpuSelectionConfig m_gpuSelection;
+
+    DLKerasExecutorNodeDialog() {
+        super();
+        final DLDefaultNodeDialogTab advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
+        addTab(advancedTab.getTitle(), advancedTab.getTab(), false);
+
+        m_gpuSelection = DLKerasExecutorNodeModel.createGpuSelectionConfig();
+        final DLKerasGpuSelectionPanel gpuSelectionPanel = new DLKerasGpuSelectionPanel(m_gpuSelection);
+        setWrapperPanel(advancedTab.getTabRoot());
+        addDialogComponentGroupWithBorder(gpuSelectionPanel, "GPU Selection");
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
+    protected void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+        super.loadSettingsFrom(settings, specs);
+        try {
+            m_gpuSelection.loadFromSettings(settings);
+        } catch (final InvalidSettingsException e1) {
+            throw new NotConfigurableException(e1.getMessage(), e1);
+        }
     }
 
     @Override
-    public NodeView<DLDefaultExecutorNodeModel> createNodeView(final int viewIndex,
-        final DLDefaultExecutorNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DLKerasExecutorNodeDialog();
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        super.saveSettingsTo(settings);
+        m_gpuSelection.saveToSettings(settings);
     }
 }

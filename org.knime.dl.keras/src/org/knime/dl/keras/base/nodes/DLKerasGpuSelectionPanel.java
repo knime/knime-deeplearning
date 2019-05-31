@@ -44,41 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.base.nodes.executor;
+package org.knime.dl.keras.base.nodes;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.dl.base.nodes.executor2.DLDefaultExecutorNodeModel;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.ConfigUtil;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeFactory extends NodeFactory<DLDefaultExecutorNodeModel> {
+public class DLKerasGpuSelectionPanel extends AbstractGridBagDialogComponentGroup {
 
-    @Override
-    public DLDefaultExecutorNodeModel createNodeModel() {
-        return new DLKerasExecutorNodeModel();
-    }
+    private final DialogComponentString m_dcCudaVisibleDevices;
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    /**
+     * Creates a new dialog panel for a GPU selection.
+     *
+     * @param cfg the config object
+     */
+    public DLKerasGpuSelectionPanel(final DLKerasGpuSelectionConfig cfg) {
+        final ConfigEntry<String> cudaVisibleDevices = cfg.getCudaVisibleDevices();
+        m_dcCudaVisibleDevices =
+            new DialogComponentString(ConfigUtil.toSettingsModelString(cudaVisibleDevices), "CUDA visible devices");
 
-    @Override
-    public NodeView<DLDefaultExecutorNodeModel> createNodeView(final int viewIndex,
-        final DLDefaultExecutorNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new DLKerasExecutorNodeDialog();
+        addDoubleColumnRow(getFirstComponent(m_dcCudaVisibleDevices, JLabel.class),
+            getFirstComponent(m_dcCudaVisibleDevices, JTextField.class));
     }
 }
