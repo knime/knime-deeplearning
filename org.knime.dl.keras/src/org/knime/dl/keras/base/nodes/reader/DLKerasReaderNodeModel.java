@@ -115,7 +115,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	}
 
 	static SettingsModelBoolean createCopyNetworkSettingsModel() {
-		return new SettingsModelBoolean(CFG_KEY_COPY_NETWORK, false);
+        return new SettingsModelBoolean(CFG_KEY_COPY_NETWORK, true);
 	}
 
 	static List<String> getValidInputFileExtensions() {
