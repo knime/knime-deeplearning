@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="dlexecutor.png" type="Predictor">
+<knimeNode icon="dlexecutor.png" type="Predictor"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Keras Network Executor</name>
 
 	<shortDescription>
@@ -45,10 +47,27 @@
 				the columns of the different outputs.
 			</option>
 		</tab>
-
+		<tab name="GPU Selection">
+			<option name="CUDA visible devices">
+				Content of the environment variable
+				<i>CUDA_VISIBLE_DEVICES</i>
+				which identifies the GPUs that are visible to the Node. If no value
+				is given the environment variable will not be set which will result
+				in all GPUs being visible to the Node. Otherwise, the value should
+				be a comma-separated list of GPU identifiers (See
+				<a
+					href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars">CUDA Environment Variables</a>
+				).
+			</option>
+		</tab>
+		<link href="https://www.knime.com/deeplearning/keras">
+			KNIME Deep Learning Keras Integration
+		</link>
 	</fullDescription>
+
 	<ports>
-		<inPort index="0" name="Deep Learning Network">The Keras deep learning network.</inPort>
+		<inPort index="0" name="Deep Learning Network">The Keras deep learning network.
+		</inPort>
 		<inPort index="1" name="Data Table">The input table.</inPort>
 		<outPort index="0" name="Data Table">The output table.</outPort>
 	</ports>

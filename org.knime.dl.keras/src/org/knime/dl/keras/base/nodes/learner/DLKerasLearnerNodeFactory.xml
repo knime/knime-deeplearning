@@ -151,6 +151,19 @@
 				It must always be present, therefore its signature is not editable.
 			</option>
 		</tab>
+		<tab name="GPU Selection">
+			<option name="CUDA visible devices">
+				Content of the environment variable
+				<i>CUDA_VISIBLE_DEVICES</i>
+				which identifies the GPUs that are visible to the Node. If no value
+				is given the environment variable will not be set which will result
+				in all GPUs being visible to the Node. Otherwise, the value should
+				be a comma-separated list of GPU identifiers (See
+				<a
+					href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars">CUDA Environment Variables</a>
+				).
+			</option>
+		</tab>
 		<link href="https://www.knime.com/deeplearning/keras">
 			KNIME Deep Learning Keras Integration
 		</link>
