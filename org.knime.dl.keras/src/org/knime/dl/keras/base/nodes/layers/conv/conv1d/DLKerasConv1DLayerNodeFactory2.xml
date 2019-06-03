@@ -47,7 +47,15 @@
 						change.
 					</li>
 					<li>
-						Full: Padding with kernel size - 1
+						Causal: Causal (dilated) convolutions, e.g.
+						<tt>output[t]</tt>
+						does not depend on
+						<tt>input[t + 1]</tt>
+						. A zero padding is used such that the output has the same length
+						as the original input. Useful when modeling temporal data where
+						the model should not violate the temporal order. See
+						<a href="https://arxiv.org/abs/1609.03499">WaveNet: A Generative Model for Raw Audio, section 2.1
+						</a>
 					</li>
 				</ul>
 			</option>
