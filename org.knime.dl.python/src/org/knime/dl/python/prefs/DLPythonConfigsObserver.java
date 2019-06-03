@@ -121,16 +121,13 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
     }
 
     public void testCurrentPreferences() {
-        final DLPythonConfigSelection configSelection =
-            DLPythonConfigSelection.fromId(m_configSelectionConfig.getConfigSelection().getStringValue());
-
-        if (DLPythonConfigSelection.PYTHON.equals(configSelection)) {
+        if (isPythonEnvironmentSelected()) {
             //
             // Using the python config
             //
             clearDLEnvInfoAndError();
             testDefaultPythonEnvironment();
-        } else if (DLPythonConfigSelection.DL.equals(configSelection)) {
+        } else if (isDlEnvironmentSelected()) {
             //
             // Using the special DL config
             //
@@ -148,9 +145,20 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
                     + "' is neither " + "conda nor manual. This is an implementation error.");
             }
         } else {
-            throw new IllegalStateException("Selected config'" + configSelection.getName() + "' is neither "
+            throw new IllegalStateException("Selected config'" + DLPythonConfigSelection
+                .fromId(m_configSelectionConfig.getConfigSelection().getStringValue()).getName() + "' is neither "
                 + "python nor deep learning. This is an implementation error.");
         }
+    }
+
+    private boolean isPythonEnvironmentSelected() {
+        return DLPythonConfigSelection.PYTHON.getId() //
+            .equals(m_configSelectionConfig.getConfigSelection().getStringValue());
+    }
+
+    private boolean isDlEnvironmentSelected() {
+        return DLPythonConfigSelection.DL.getId() //
+            .equals(m_configSelectionConfig.getConfigSelection().getStringValue());
     }
 
     private void refreshAndTestDLCondaConfig() {
@@ -199,6 +207,13 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             m_configSelectionConfig.getPythonInstallationError().setStringValue("");
             final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
                 additionalRequiredModules, additionalOptionalModules, true);
+            setDefaultPythonTestResult(testResult);
+            onEnvironmentInstallationTestFinished(null, null, testResult);
+        }).start();
+    }
+
+    private void setDefaultPythonTestResult(final PythonKernelTestResult testResult) {
+        if (isPythonEnvironmentSelected()) {
             m_configSelectionConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
             String errorLog = testResult.getErrorLog();
             if (errorLog != null && !errorLog.isEmpty()) {
@@ -210,8 +225,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             final String warningLog = testResult.getWarningLog();
             m_configSelectionConfig.getPythonInstallationError().setStringValue(errorLog);
             m_configSelectionConfig.getPythonInstallationWarning().setStringValue(warningLog);
-            onEnvironmentInstallationTestFinished(null, null, testResult);
-        }).start();
+        } else {
+            m_configSelectionConfig.getPythonInstallationInfo().setStringValue("");
+        }
     }
 
     private void testDLPythonEnvironment(final boolean isConda) {
@@ -260,6 +276,14 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             final PythonCommand pythonCommand = environmentConfig.getPythonCommand();
             final PythonKernelTestResult testResult = PythonKernelTester.testPython3Installation(pythonCommand,
                 additionalRequiredModules, additionalOptionalModules, true);
+            setDLPythonTestResult(environmentConfig, environmentCreationInfo, testResult);
+            onEnvironmentInstallationTestFinished(environmentType, PythonVersion.PYTHON3, testResult);
+        }).start();
+    }
+
+    private void setDLPythonTestResult(final DLPythonEnvironmentConfig environmentConfig,
+        final String environmentCreationInfo, final PythonKernelTestResult testResult) {
+        if (isDlEnvironmentSelected()) {
             environmentConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
             String errorLog = testResult.getErrorLog();
             if (errorLog != null && !errorLog.isEmpty()) {
@@ -268,8 +292,9 @@ final class DLPythonConfigsObserver extends AbstractPythonConfigsObserver {
             final String warningLog = testResult.getWarningLog();
             environmentConfig.getPythonInstallationError().setStringValue(errorLog);
             environmentConfig.getPythonInstallationWarning().setStringValue(warningLog);
-            onEnvironmentInstallationTestFinished(environmentType, PythonVersion.PYTHON3, testResult);
-        }).start();
+        } else {
+            environmentConfig.getPythonInstallationInfo().setStringValue("");
+        }
     }
 
     private boolean isPlaceholderEnvironmentSelected() {
