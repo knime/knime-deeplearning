@@ -133,7 +133,7 @@ import com.google.common.base.Strings;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLDefaultExecutorNodeModel extends NodeModel {
+public abstract class DLAbstractExecutorNodeModel extends NodeModel {
 
     static final int IN_NETWORK_PORT_IDX = 0;
 
@@ -147,7 +147,7 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
 
     static final String CFG_KEY_OUTPUTS_ORDER = "outputs_ordered";
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLDefaultExecutorNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLAbstractExecutorNodeModel.class);
 
     static DLExecutorGeneralConfig createGeneralModelConfig() {
         return new DLExecutorGeneralConfig("<none>", null, 100);
@@ -192,7 +192,7 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
      *
      * @param networkPortType the port type for the input network
      */
-    public DLDefaultExecutorNodeModel(final PortType networkPortType) {
+    public DLAbstractExecutorNodeModel(final PortType networkPortType) {
         super(new PortType[]{networkPortType, BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE});
         m_generalCfg = createGeneralModelConfig();
         m_inputCfgs = new HashMap<>();
@@ -231,13 +231,13 @@ public class DLDefaultExecutorNodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (inSpecs[DLDefaultExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
+        if (inSpecs[DLAbstractExecutorNodeModel.IN_NETWORK_PORT_IDX] == null) {
             throw new InvalidSettingsException("Input deep learning network is missing.");
         }
-        if (inSpecs[DLDefaultExecutorNodeModel.IN_DATA_PORT_IDX] == null) {
+        if (inSpecs[DLAbstractExecutorNodeModel.IN_DATA_PORT_IDX] == null) {
             throw new InvalidSettingsException("Input data table is missing.");
         }
-        if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(inSpecs[DLDefaultExecutorNodeModel.IN_NETWORK_PORT_IDX])) {
+        if (!DLNetworkPortObject.TYPE.acceptsPortObjectSpec(inSpecs[DLAbstractExecutorNodeModel.IN_NETWORK_PORT_IDX])) {
             throw new InvalidSettingsException("Input port object is not a valid deep learning network port object.");
         }
 

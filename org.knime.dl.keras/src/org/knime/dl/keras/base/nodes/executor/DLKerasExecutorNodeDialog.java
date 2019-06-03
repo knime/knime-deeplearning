@@ -52,14 +52,14 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
-import org.knime.dl.base.nodes.executor2.DLExecutorNodeDialog;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeDialog;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeDialog extends DLExecutorNodeDialog {
+public class DLKerasExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
 
     private final DLKerasGpuSelectionConfig m_gpuSelection;
 

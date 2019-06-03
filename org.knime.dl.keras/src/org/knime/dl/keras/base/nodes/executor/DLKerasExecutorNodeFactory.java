@@ -49,15 +49,15 @@ package org.knime.dl.keras.base.nodes.executor;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.dl.base.nodes.executor2.DLDefaultExecutorNodeModel;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeFactory extends NodeFactory<DLDefaultExecutorNodeModel> {
+public class DLKerasExecutorNodeFactory extends NodeFactory<DLAbstractExecutorNodeModel> {
 
     @Override
-    public DLDefaultExecutorNodeModel createNodeModel() {
+    public DLAbstractExecutorNodeModel createNodeModel() {
         return new DLKerasExecutorNodeModel();
     }
 
@@ -67,8 +67,8 @@ public class DLKerasExecutorNodeFactory extends NodeFactory<DLDefaultExecutorNod
     }
 
     @Override
-    public NodeView<DLDefaultExecutorNodeModel> createNodeView(final int viewIndex,
-        final DLDefaultExecutorNodeModel nodeModel) {
+    public NodeView<DLAbstractExecutorNodeModel> createNodeView(final int viewIndex,
+        final DLAbstractExecutorNodeModel nodeModel) {
         return null;
     }
 
