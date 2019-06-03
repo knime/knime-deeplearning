@@ -152,7 +152,7 @@ public final class DLConvolutionLayerUtils {
             return Stream.concat(outputShape, Stream.of(inputShape[channelIndex])).toArray(Long[]::new);
         }
     }
-    
+
     /**
      * Computes the output shape for convolution like layers.
      * 
@@ -217,6 +217,7 @@ public final class DLConvolutionLayerUtils {
         Long dilatedFilterSize = filterSize + (filterSize - 1) * (dilation - 1);
         switch (padding) {
             case "same":
+            case "causal":
                 outputLength = inputLength;
                 break;
             case "valid":
@@ -360,9 +361,9 @@ public final class DLConvolutionLayerUtils {
         switch (padding) {
             case VALID:
                 return dimSize * strideSize + Math.max(kernelSize - strideSize, 0);
-                // Keras doesn't support full padding but keep the logic in case it supports it in the future
-//            case FULL:
-//                return dimSize * strideSize - (strideSize + kernelSize - 2);
+            // Keras doesn't support full padding but keep the logic in case it supports it in the future
+            //            case FULL:
+            //                return dimSize * strideSize - (strideSize + kernelSize - 2);
             case SAME:
                 return dimSize * strideSize;
         }

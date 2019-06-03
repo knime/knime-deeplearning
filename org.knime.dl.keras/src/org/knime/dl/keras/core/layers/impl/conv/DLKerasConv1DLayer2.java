@@ -65,7 +65,7 @@ import org.knime.dl.keras.core.layers.DLInputShapeValidationUtils;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasAbstractUnaryLayer;
 import org.knime.dl.keras.core.layers.DLKerasDataFormat;
-import org.knime.dl.keras.core.layers.DLKerasPadding;
+import org.knime.dl.keras.core.layers.DLKerasPadding1D;
 import org.knime.dl.keras.core.layers.DLLayerUtils;
 import org.knime.dl.keras.core.layers.DLParameterValidationUtils;
 import org.knime.dl.keras.core.struct.param.Parameter;
@@ -90,7 +90,7 @@ public final class DLKerasConv1DLayer2 extends DLKerasAbstractUnaryLayer {
     private int m_strides = 1;
 
     @Parameter(label = "Padding")
-    private DLKerasPadding m_padding = DLKerasPadding.VALID;
+    private DLKerasPadding1D m_padding = DLKerasPadding1D.VALID;
 
     @Parameter(label = "Dilation rate", min = "1")
     private int m_dilationRate = 1;
