@@ -50,6 +50,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractPythonConfigPanel;
 import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 
@@ -62,7 +63,7 @@ public class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel
         super(config, parent);
         final Composite panel = getPanel();
         final StatusDisplayingFilePathEditor pythonPathEditor =
-            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, "Python",
+            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, PythonVersion.PYTHON3.getName(),
                 "Path to the Python start script", config.getPythonInstallationInfo(),
                 config.getPythonInstallationWarning(), config.getPythonInstallationError(), panel);
         final GridData gridData = new GridData();

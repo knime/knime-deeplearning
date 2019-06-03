@@ -80,10 +80,10 @@ public class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel
         final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite panel) {
         final CondaEnvironmentSelectionBox environmentSelection =
             new CondaEnvironmentSelectionBox(PythonVersion.PYTHON3, config.getEnvironmentName(),
-                config.getAvailableEnvironmentNames(), "Python", "Name of the deep learning Conda environment",
-                config.getPythonInstallationInfo(), config.getPythonInstallationWarning(),
-                config.getPythonInstallationError(), pythonEnvironmentCreator, panel,
-                shell -> new DLCondaEnvironmentCreationPreferenceDialog(pythonEnvironmentCreator, shell).open());
+                config.getAvailableEnvironmentNames(), PythonVersion.PYTHON3.getName(),
+                "Name of the deep learning Conda environment", config.getPythonInstallationInfo(),
+                config.getPythonInstallationWarning(), config.getPythonInstallationError(), pythonEnvironmentCreator,
+                panel, shell -> new DLCondaEnvironmentCreationPreferenceDialog(pythonEnvironmentCreator, shell).open());
         final GridData gridData = new GridData();
         gridData.horizontalAlignment = SWT.FILL;
         gridData.horizontalIndent = 20;
