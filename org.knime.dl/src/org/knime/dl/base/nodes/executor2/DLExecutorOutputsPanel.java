@@ -79,7 +79,7 @@ import org.knime.dl.util.DLUtils;
  */
 final class DLExecutorOutputsPanel {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLDefaultExecutorNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLAbstractExecutorNodeModel.class);
 
     private static final String OUTPUT_SUFFIX = "";
 
@@ -237,7 +237,7 @@ final class DLExecutorOutputsPanel {
         }
         if (available) {
             final DLExecutorOutputConfig outputCfg =
-                DLDefaultExecutorNodeModel.createOutputTensorModelConfig(outputId, outputName, generalCfg);
+                DLAbstractExecutorNodeModel.createOutputTensorModelConfig(outputId, outputName, generalCfg);
             final DLExecutorOutputPanel outputPanel = new DLExecutorOutputPanel(outputCfg, outputSpec, suffix);
             outputPanel.addRemoveListener(
                 e -> removeOutputPanel(outputId != null ? outputId : new DLDefaultTensorId(outputName), outputPanel));
@@ -266,16 +266,16 @@ final class DLExecutorOutputsPanel {
     }
 
     void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-        if (settings.containsKey(DLDefaultExecutorNodeModel.CFG_KEY_OUTPUTS)) {
+        if (settings.containsKey(DLAbstractExecutorNodeModel.CFG_KEY_OUTPUTS)) {
             // if we don't clear we might have panels that were not saved (previous dialog was canceled with added output)
             clearOutputs();
             final NodeSettingsRO outputSettings;
             final String[] orderedOutputs;
             m_networkSpec =
-                ((DLNetworkPortObjectSpec)specs[DLDefaultExecutorNodeModel.IN_NETWORK_PORT_IDX]).getNetworkSpec();
+                ((DLNetworkPortObjectSpec)specs[DLAbstractExecutorNodeModel.IN_NETWORK_PORT_IDX]).getNetworkSpec();
             m_numPossibleOutputs = m_networkSpec.getOutputSpecs().length + m_networkSpec.getHiddenOutputSpecs().length;
             try {
-                outputSettings = settings.getNodeSettings(DLDefaultExecutorNodeModel.CFG_KEY_OUTPUTS);
+                outputSettings = settings.getNodeSettings(DLAbstractExecutorNodeModel.CFG_KEY_OUTPUTS);
                 orderedOutputs = loadOutputOrder(settings, outputSettings);
             } catch (final InvalidSettingsException e) {
                 throw new NotConfigurableException(e.getMessage(), e);
@@ -320,7 +320,7 @@ final class DLExecutorOutputsPanel {
         final String[] orderedOutputs;
         if (outputSettings.getChildCount() > 0) {
             final SettingsModelStringArray outputOrder =
-                DLDefaultExecutorNodeModel.createOutputOrderSettingsModel(outputSettings.getChildCount());
+                DLAbstractExecutorNodeModel.createOutputOrderSettingsModel(outputSettings.getChildCount());
             outputOrder.loadSettingsFrom(settings);
             orderedOutputs = outputOrder.getStringArrayValue();
         } else {
@@ -330,14 +330,14 @@ final class DLExecutorOutputsPanel {
     }
 
     public void saveToSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        final NodeSettingsWO outputSettings = settings.addNodeSettings(DLDefaultExecutorNodeModel.CFG_KEY_OUTPUTS);
+        final NodeSettingsWO outputSettings = settings.addNodeSettings(DLAbstractExecutorNodeModel.CFG_KEY_OUTPUTS);
         saveOutputs(outputSettings);
         saveOutputOrder(settings);
     }
 
     private void saveOutputOrder(final NodeSettingsWO settings) {
         final SettingsModelStringArray outputOrder =
-            DLDefaultExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());
+            DLAbstractExecutorNodeModel.createOutputOrderSettingsModel(m_outputPanels.size());
         final String[] outputs = new String[m_outputPanels.size()];
 
         int i = 0;

@@ -64,6 +64,8 @@ import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -86,6 +88,11 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private final DLInputsPanel<DLKerasLearnerTargetPanel> m_targetsPanel;
 
+    private final DLKerasGpuSelectionConfig m_gpuSelection;
+
+    private final DLKerasGpuSelectionPanel m_gpuSelectionPanel;
+
+
 	public DLKerasLearnerNodeDialog() {
 	    final DLDefaultNodeDialogTab generalTab = new DLDefaultNodeDialogTab("Options");
 	    final DLDefaultNodeDialogTab advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
@@ -105,6 +112,9 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_learningBehaviorPanel = new DLKerasLearningBehaviorPanel(m_generalCfg);
 		m_optiPanel = new DLKerasLearnerOptimizationPanel(m_generalCfg);
 
+        m_gpuSelection = DLKerasLearnerNodeModel.createGpuSelectionConfig();
+        m_gpuSelectionPanel = new DLKerasGpuSelectionPanel(m_gpuSelection);
+
 		// inputs
 		setWrapperPanel(inputTab.getTabRoot());
         addSeparator("Input Data");
@@ -123,6 +133,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
         // advanced settings:
         setWrapperPanel(advancedTab.getTabRoot());
         addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
+        addDialogComponentGroupWithBorder(m_gpuSelectionPanel, "GPU Selection");
 	}
 
 
@@ -145,6 +156,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		super.saveSettingsTo(settings);
 
 		m_generalCfg.saveToSettings(settings);
+
+        m_gpuSelection.saveToSettings(settings);
 
 		m_inputsPanel.saveSettingsTo(settings);
 
@@ -197,6 +210,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		try {
 			// we can always try to load the general settings, even if the network has changed
 			m_generalCfg.loadFromSettings(settings);
+			m_gpuSelection.loadFromSettings(settings);
 		} catch (final InvalidSettingsException e1) {
 			throw new NotConfigurableException(e1.getMessage(), e1);
 		}

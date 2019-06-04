@@ -44,21 +44,49 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.execution;
+package org.knime.dl.keras.base.nodes.executor;
 
-import org.knime.dl.core.execution.DLNetworkExecutionSession;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeDialog;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
+import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetworkExecutionSession extends DLNetworkExecutionSession {
+public class DLKerasExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
 
-    /**
-     * Set the environment variable in the Python kernel for the execution session.
-     *
-     * @param name name of the environment variable
-     * @param value value of the environment variable
-     */
-    void setKernelEnvironmentVariable(final String name, final String value);
+    private final DLKerasGpuSelectionConfig m_gpuSelection;
+
+    DLKerasExecutorNodeDialog() {
+        super();
+        final DLDefaultNodeDialogTab advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
+        addTab(advancedTab.getTitle(), advancedTab.getTab(), false);
+
+        m_gpuSelection = DLKerasExecutorNodeModel.createGpuSelectionConfig();
+        final DLKerasGpuSelectionPanel gpuSelectionPanel = new DLKerasGpuSelectionPanel(m_gpuSelection);
+        setWrapperPanel(advancedTab.getTabRoot());
+        addDialogComponentGroupWithBorder(gpuSelectionPanel, "GPU Selection");
+    }
+
+    @Override
+    protected void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+        super.loadSettingsFrom(settings, specs);
+        try {
+            m_gpuSelection.loadFromSettings(settings);
+        } catch (final InvalidSettingsException e1) {
+            throw new NotConfigurableException(e1.getMessage(), e1);
+        }
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        super.saveSettingsTo(settings);
+        m_gpuSelection.saveToSettings(settings);
+    }
 }

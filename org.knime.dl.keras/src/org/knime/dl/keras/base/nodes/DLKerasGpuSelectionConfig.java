@@ -43,22 +43,50 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 13, 2017 (marcel): created
  */
-package org.knime.dl.python.core.execution;
+package org.knime.dl.keras.base.nodes;
 
-import org.knime.dl.core.execution.DLNetworkExecutionSession;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.dl.base.settings.AbstractConfig;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.DefaultConfigEntry;
 
 /**
+ * @author Benjamin Wilhelm. KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetworkExecutionSession extends DLNetworkExecutionSession {
+public final class DLKerasGpuSelectionConfig extends AbstractConfig {
+
+    static final String CFG_KEY_ROOT = "gpu_selection_settings";
+
+    static final String CFG_KEY_CUDA_VISIBLE_DEVICES = "cuda_visible_devices";
 
     /**
-     * Set the environment variable in the Python kernel for the execution session.
-     *
-     * @param name name of the environment variable
-     * @param value value of the environment variable
+     * Creates a new GPU selection configuration
      */
-    void setKernelEnvironmentVariable(final String name, final String value);
+    public DLKerasGpuSelectionConfig() {
+        super(CFG_KEY_ROOT);
+        putCudaVisibleDevices();
+    }
+
+    /**
+     * @return a config entry for the CUDA_VISIBLE_DEVICES environment variable
+     */
+    public ConfigEntry<String> getCudaVisibleDevices() {
+        return get(CFG_KEY_CUDA_VISIBLE_DEVICES, String.class);
+    }
+
+    @Override
+    protected boolean handleFailureToLoadConfig(final NodeSettingsRO settings, final Exception cause) {
+        putCudaVisibleDevices();
+        return true;
+    }
+
+    private void putCudaVisibleDevices() {
+        put(new DefaultConfigEntry<String>(CFG_KEY_CUDA_VISIBLE_DEVICES, String.class, ""));
+    }
 }

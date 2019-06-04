@@ -126,7 +126,7 @@ import com.google.common.base.Strings;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @deprecated replaced by {@link DLDefaultExecutorNodeModel}.
+ * @deprecated replaced by {@link DLAbstractExecutorNodeModel}.
  */
 @Deprecated
 final class DLExecutorNodeModel extends NodeModel {

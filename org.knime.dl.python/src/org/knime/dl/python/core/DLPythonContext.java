@@ -106,6 +106,19 @@ public interface DLPythonContext extends AutoCloseable {
         throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException;
 
     /**
+     * Set the environment variable in the running Python process.
+     *
+     * @param name name of the environment variable
+     * @param value value of the environment variable
+     * @param cancelable to check if execution has been canceled
+	 * @throws DLCanceledExecutionException if the execution has been canceled
+	 * @throws DLInvalidEnvironmentException if execution failed, i.e. if the Python kernel returns an error output
+     * @throws IOException if an error occurred while communicating with the Python kernel
+     * @since 3.8
+     */
+    void setEnvironmentVariable(String name, String value, DLCancelable cancelable) throws DLCanceledExecutionException, DLInvalidEnvironmentException, IOException;
+
+    /**
      * @throws DLUncheckedException if an exception occurred while cleaning up the underlying Python kernel
      */
 	@Override

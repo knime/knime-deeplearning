@@ -100,7 +100,7 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
     public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         final DLNetworkPortObjectSpec portObjectSpec =
-            (DLNetworkPortObjectSpec)specs[DLDefaultExecutorNodeModel.IN_NETWORK_PORT_IDX];
+            (DLNetworkPortObjectSpec)specs[DLAbstractExecutorNodeModel.IN_NETWORK_PORT_IDX];
         final Class<? extends DLNetwork> networkType = portObjectSpec.getNetworkType();
         final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
         refreshAvailableBackends(networkType);

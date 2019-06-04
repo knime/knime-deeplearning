@@ -50,6 +50,7 @@ package org.knime.dl.python.core.execution;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -68,6 +69,7 @@ import org.knime.dl.core.execution.DLExecutionStatus;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonCommands;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -87,10 +89,13 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 
 	private DLPythonNetworkHandle m_handle;
 
+    private final Map<String, String> m_additionalEnvVars;
+
 	protected DLPythonAbstractNetworkExecutionSession(final N network, final Set<DLTensorSpec> executionInputSpecs,
 			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
 			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+        m_additionalEnvVars = new HashMap<>();
 	}
 
 	/**
@@ -110,6 +115,11 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 	protected void executeInternal(final DLExecutionMonitor monitor) throws DLCanceledExecutionException, Exception {
 		if (m_commands == null) {
 			m_commands = createCommands();
+            @SuppressWarnings("resource") // Closed in #close
+            final DLPythonContext context = m_commands.getContext(monitor);
+            for (final Entry<String, String> var : m_additionalEnvVars.entrySet()) {
+                context.setEnvironmentVariable(var.getKey(), var.getValue(), monitor);
+            }
             m_handle = DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader((Class<N>)m_network.getClass())
                 .orElseThrow(
                     () -> new DLMissingExtensionException("Python back end '" + m_network.getClass().getCanonicalName()
@@ -161,4 +171,9 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 			status.batchEnded().raise(null);
 		}
 	}
+
+    @Override
+    public void setKernelEnvironmentVariable(final String name, final String value) {
+        m_additionalEnvVars.put(name, value);
+    }
 }

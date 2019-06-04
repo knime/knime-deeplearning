@@ -44,21 +44,36 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core.execution;
+package org.knime.dl.keras.base.nodes;
 
-import org.knime.dl.core.execution.DLNetworkExecutionSession;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.dl.base.nodes.AbstractGridBagDialogComponentGroup;
+import org.knime.dl.base.settings.ConfigEntry;
+import org.knime.dl.base.settings.ConfigUtil;
 
 /**
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetworkExecutionSession extends DLNetworkExecutionSession {
+public class DLKerasGpuSelectionPanel extends AbstractGridBagDialogComponentGroup {
+
+    private final DialogComponentString m_dcCudaVisibleDevices;
 
     /**
-     * Set the environment variable in the Python kernel for the execution session.
+     * Creates a new dialog panel for a GPU selection.
      *
-     * @param name name of the environment variable
-     * @param value value of the environment variable
+     * @param cfg the config object
      */
-    void setKernelEnvironmentVariable(final String name, final String value);
+    public DLKerasGpuSelectionPanel(final DLKerasGpuSelectionConfig cfg) {
+        final ConfigEntry<String> cudaVisibleDevices = cfg.getCudaVisibleDevices();
+        m_dcCudaVisibleDevices =
+            new DialogComponentString(ConfigUtil.toSettingsModelString(cudaVisibleDevices), "CUDA visible devices");
+
+        addDoubleColumnRow(getFirstComponent(m_dcCudaVisibleDevices, JLabel.class),
+            getFirstComponent(m_dcCudaVisibleDevices, JTextField.class));
+    }
 }
