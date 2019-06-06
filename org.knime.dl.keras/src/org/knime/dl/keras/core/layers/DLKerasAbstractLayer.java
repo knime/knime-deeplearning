@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.knime.dl.keras.core.struct.param.Required;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.dl.keras.core.struct.param.Parameter;
 import org.knime.dl.python.util.DLPythonUtils;
 
@@ -73,6 +74,13 @@ public abstract class DLKerasAbstractLayer extends DLKerasAbstractObject impleme
     @Override
     public Optional<String> getNamePrefix() {
         return Optional.ofNullable(m_namePrefix);
+    }
+
+    @Override
+    public void validateParameters() throws InvalidSettingsException {
+        if (m_namePrefix != null && m_namePrefix.contains(" ")) {
+            throw new InvalidSettingsException("The name prefix must not contain white spaces.");
+        }
     }
 
     @Override
