@@ -86,6 +86,7 @@ public final class DLKerasMaxPooling2DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

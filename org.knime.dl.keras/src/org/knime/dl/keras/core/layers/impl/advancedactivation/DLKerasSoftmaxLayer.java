@@ -88,6 +88,7 @@ public final class DLKerasSoftmaxLayer extends DLKerasAbstractAdvancedActivation
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // nothing to validate
     }
 

@@ -77,6 +77,7 @@ public final class DLKerasActivityRegularizationLayer extends DLKerasAbstractUna
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

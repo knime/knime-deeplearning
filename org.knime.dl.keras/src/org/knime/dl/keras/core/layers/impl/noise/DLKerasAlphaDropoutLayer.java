@@ -86,6 +86,7 @@ public final class DLKerasAlphaDropoutLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

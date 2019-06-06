@@ -71,6 +71,7 @@ public final class DLKerasFlattenLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

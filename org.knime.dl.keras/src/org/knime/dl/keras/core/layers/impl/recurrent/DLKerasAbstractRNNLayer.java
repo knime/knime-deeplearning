@@ -160,6 +160,7 @@ abstract class DLKerasAbstractRNNLayer extends DLKerasAbstractInnerLayer impleme
     
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         m_kernelInitializer.validateParameters();
         m_recurrentInitializer.validateParameters();
         m_biasInitializer.validateParameters();

@@ -111,6 +111,7 @@ public final class DLKerasCollectLayer extends DLKerasAbstractInnerLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // No parameters to validate
     }
 

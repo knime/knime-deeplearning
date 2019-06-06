@@ -71,6 +71,7 @@ public class DLKerasLeakyReLULayer extends DLKerasAbstractAdvancedActivationLaye
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // nothing to validate
     }
 

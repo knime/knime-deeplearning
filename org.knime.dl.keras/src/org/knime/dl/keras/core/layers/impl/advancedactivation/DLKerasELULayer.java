@@ -71,6 +71,7 @@ public final class DLKerasELULayer extends DLKerasAbstractAdvancedActivationLaye
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         if (m_alpha < 0.0f) {
             throw new InvalidSettingsException("Alpha must be non-negative but was " + m_alpha + ".");
         }

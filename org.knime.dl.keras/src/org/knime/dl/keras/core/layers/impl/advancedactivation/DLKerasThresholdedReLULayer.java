@@ -70,6 +70,7 @@ public final class DLKerasThresholdedReLULayer extends DLKerasAbstractAdvancedAc
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // nothing to validate
     }
 

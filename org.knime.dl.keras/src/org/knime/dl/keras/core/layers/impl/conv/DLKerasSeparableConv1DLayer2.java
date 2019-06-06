@@ -142,6 +142,7 @@ public final class DLKerasSeparableConv1DLayer2 extends DLKerasAbstractUnaryLaye
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         m_depthwiseInitializer.validateParameters();
         m_pointwiseInitializer.validateParameters();
         m_biasInitializer.validateParameters();

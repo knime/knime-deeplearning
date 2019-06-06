@@ -72,6 +72,7 @@ public abstract class DLKerasAbstractParameterFreeMergeLayer extends DLKerasAbst
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // no parameters to validate
     }
 

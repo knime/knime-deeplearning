@@ -81,6 +81,7 @@ public final class DLKerasUpSampling1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // nothing to do
     }
 

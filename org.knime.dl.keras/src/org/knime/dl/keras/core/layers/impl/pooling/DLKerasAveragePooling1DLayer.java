@@ -84,6 +84,7 @@ public final class DLKerasAveragePooling1DLayer extends DLKerasAbstractUnaryLaye
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

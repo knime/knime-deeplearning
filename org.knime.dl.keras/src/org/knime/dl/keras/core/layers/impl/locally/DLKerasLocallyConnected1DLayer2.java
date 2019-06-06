@@ -130,6 +130,7 @@ public final class DLKerasLocallyConnected1DLayer2 extends DLKerasAbstractUnaryL
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         m_kernelInitializer.validateParameters();
         m_biasInitializer.validateParameters();
         DLLayerUtils.validateOptionalParameter(m_kernelRegularizer);

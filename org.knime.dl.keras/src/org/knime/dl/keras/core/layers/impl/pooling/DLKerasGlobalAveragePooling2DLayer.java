@@ -73,6 +73,7 @@ public final class DLKerasGlobalAveragePooling2DLayer extends DLKerasAbstractUna
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // NB: Nothing to do here
     }
 

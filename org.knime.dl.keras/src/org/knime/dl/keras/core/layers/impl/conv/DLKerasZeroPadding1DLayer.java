@@ -83,6 +83,7 @@ public final class DLKerasZeroPadding1DLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
     }
 
     @Override

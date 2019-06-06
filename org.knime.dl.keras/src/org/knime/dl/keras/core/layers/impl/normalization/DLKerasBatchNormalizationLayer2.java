@@ -125,6 +125,7 @@ public class DLKerasBatchNormalizationLayer2 extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         final List<String> errors = new ArrayList<>();
         if (m_momentum == 1) {
             // Note that with a momentum of 1 the moving average will never change

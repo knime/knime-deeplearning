@@ -80,6 +80,7 @@ public final class DLKerasConcatenateLayer extends DLKerasAbstractBinaryInnerLay
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // the correctness of axis depends on the input
     }
 

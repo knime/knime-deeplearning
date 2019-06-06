@@ -83,6 +83,7 @@ public class DLKerasDotLayer extends DLKerasAbstractBinaryInnerLayer implements 
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // nothing to validate
     }
 

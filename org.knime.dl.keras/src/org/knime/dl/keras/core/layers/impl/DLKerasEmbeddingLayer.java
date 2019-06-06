@@ -108,6 +108,7 @@ public final class DLKerasEmbeddingLayer extends DLKerasAbstractUnaryLayer {
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         m_initializer.validateParameters();
         DLLayerUtils.validateOptionalParameter(m_embeddingRegularizer);
         DLLayerUtils.validateOptionalParameter(m_constraint);

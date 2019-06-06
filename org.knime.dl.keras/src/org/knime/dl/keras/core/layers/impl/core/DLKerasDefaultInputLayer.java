@@ -115,6 +115,7 @@ public final class DLKerasDefaultInputLayer extends DLKerasAbstractLayer impleme
 
     @Override
     public void validateParameters() throws InvalidSettingsException {
+        super.validateParameters();
         // NB: Nothing to do
     }
 
