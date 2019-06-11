@@ -21,17 +21,17 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">
+		<inPort index="0" name="Keras Network">
 			The Keras deep learning network that is the first input of this
 			<tt>Maximum</tt>
 			layer.
 		</inPort>
-		<inPort index="1" name="Deep Learning Network">
+		<inPort index="1" name="Keras Network">
 			The Keras deep learning network that is the second input of this
 			<tt>Maximum</tt>
 			layer.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			The two input Keras deep learning networks merged into one by the added
 			<tt>Maximum</tt>
 			layer.

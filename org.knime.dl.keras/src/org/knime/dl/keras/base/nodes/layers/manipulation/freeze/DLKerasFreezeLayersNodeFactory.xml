@@ -45,9 +45,9 @@
 		</tab>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">The Keras deep learning network.
+		<inPort index="0" name="Keras Network">The Keras deep learning network.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">The Keras deep learning network with
+		<outPort index="0" name="Keras Network">The Keras deep learning network with
 			the selected layers set to not-trainable and all other layers set to
 			trainable.
 		</outPort>

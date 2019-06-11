@@ -20,12 +20,12 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">
+		<inPort index="0" name="Keras Network">
 			The Keras deep learning network to which to add a
 			<tt>Global Average Pooling 1D</tt>
 			layer.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			The Keras deep learning network with an added
 			<tt>Global Average Pooling 1D</tt>
 			layer.

@@ -129,23 +129,23 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">
+		<inPort index="0" name="Keras Network">
 			The Keras deep learning network to which to add an
 			<tt>ConvLSTM2D</tt>
 			layer.
 			The shape of the tensor must be [time, height, width, channel] or [time, channel, height, width] for data format channels_last and channels_first respectively.
 		</inPort>
-		<inPort index="1" name="Deep Learning Network">
+		<inPort index="1" name="Keras Network">
 			An optional Keras deep learning network providing the first initial state for this <tt>ConvLSTM2D</tt> layer.
 			Note that if this port is connected, you also have to connect the second hidden state port.
 			The shape must be [height, width, channel] or [channel, height, width] depending on data format and the dimensionality of the channel dimension must match the number of filters of this layer.
 		</inPort>
-		<inPort name="Deep Learning Network" index="2">
+		<inPort index="2" name="Keras Network">>
 			An optional Keras deep learning network providing the second initial state for this <tt>ConvLSTM2D</tt> layer.
 			Note that if this port is connected, you also have to connect the first hidden state port.
 			The shape must be [height, width, channel] or [channel, height, width] depending on data format and the dimensionality of the channel dimension must match the number of filters of this layer.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			The Keras deep learning network with an added
 			<tt>ConvLSTM2D</tt>
 			layer.

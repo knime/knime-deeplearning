@@ -108,7 +108,7 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">
+		<inPort index="0" name="Keras Network">
 			The Keras deep learning network to which to add a
 			<tt>Simple RNN</tt>
 			layer.
@@ -117,7 +117,7 @@
 			An optional Keras deep learning network that provides the initial state for this <tt>Simple RNN</tt> layer.
 			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			The Keras deep learning network with an added
 			<tt>Simple RNN</tt>
 			layer.

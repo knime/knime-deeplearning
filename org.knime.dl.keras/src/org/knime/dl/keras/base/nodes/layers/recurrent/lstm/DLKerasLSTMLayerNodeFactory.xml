@@ -120,23 +120,23 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<inPort index="0" name="Deep Learning Network">
+		<inPort index="0" name="Keras Network">
 			The Keras deep learning network to which to add an
 			<tt>LSTM</tt>
 			layer.
 			The input must have shape [time, features]
 		</inPort>
-		<inPort index="1" name="Deep Learning Network">
+		<inPort index="1" name="Keras Network">
 			An optional Keras deep learning network providing the first initial state for this <tt>LSTM</tt> layer.
 			Note that if this port is connected, you also have to connect the second hidden state port.
 			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
 		</inPort>
-		<inPort name="Deep Learning Network" index="2">
+		<inPort index="2" name="Keras Network">>
 			An optional Keras deep learning network providing the second initial state for this <tt>LSTM</tt> layer.
 			Note that if this port is connected, you also have to connect the first hidden state port.
 			The hidden state must have shape [units], where units must correspond to the number of units this layer uses.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			The Keras deep learning network with an added
 			<tt>LSTM</tt>
 			layer.

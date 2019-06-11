@@ -31,7 +31,7 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<outPort index="0" name="Deep Learning Network">
+		<outPort index="0" name="Keras Network">
 			Newly created network with specified input shape and type.
 		</outPort>
 	</ports>
