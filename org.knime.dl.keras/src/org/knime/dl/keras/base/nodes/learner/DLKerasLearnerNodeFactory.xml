@@ -170,14 +170,14 @@
 	</fullDescription>
 
 	<ports>
-		<inPort index="0" name="Deep Learning Network">The input Keras deep learning network.
+		<inPort index="0" name="Keras Network">The input Keras deep learning network.
 		</inPort>
 		<inPort index="1" name="Training Data Table">The training data table that contains training
 			and target columns.</inPort>
 		<inPort index="2" name="Validation Data Table">The validation data table (optional).
 			Must have the same column names and types in the same order as the training data table.
 		</inPort>
-		<outPort index="0" name="Deep Learning Network">The trained output Keras deep learning
+		<outPort index="0" name="Keras Network">The trained output Keras deep learning
 			network.
 		</outPort>
 	</ports>

@@ -24,7 +24,7 @@
 		</link>
 	</fullDescription>
 	<ports>
-		<outPort index="0" name="Deep Learning Network">The Keras deep learning network.
+		<outPort index="0" name="Keras Network">The Keras deep learning network.
 		</outPort>
 	</ports>
 </knimeNode>
