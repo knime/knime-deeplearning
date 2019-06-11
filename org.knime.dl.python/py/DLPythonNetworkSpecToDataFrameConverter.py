@@ -84,7 +84,11 @@ class DLPythonNetworkSpecToDataFrameConverter(object):
             specs.iloc[idx, 3] = tensor_spec.shape
             specs.iloc[idx, 4] = tensor_spec.element_type
             specs.iloc[idx, 5] = tensor_spec.dimension_order
-        return specs.convert_objects(convert_numeric=True)
+
+        specs_with_numeric_types = specs.convert_objects(convert_numeric=True)
+        specs_with_numeric_types['id'] = specs_with_numeric_types['id'].astype(str)
+        specs_with_numeric_types['name'] = specs_with_numeric_types['name'].astype(str)
+        return specs_with_numeric_types
 
 
 def get_layer_data_specs_as_data_frames(identifier):
