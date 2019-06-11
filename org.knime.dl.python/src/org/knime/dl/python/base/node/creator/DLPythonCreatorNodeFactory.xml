@@ -119,8 +119,9 @@
 			The output deep learning network. This is the content of the variable
 			<b>output_network</b>
 			which has to be defined in the script and has to be a deep learning
-			network 
-			known to KNIME.
+			network known to KNIME.
+			The network can then be used in common "DL Python" nodes or in nodes
+			which are specific to the network type.
 		</outPort>
 	</ports>
 	<views>

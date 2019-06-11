@@ -97,6 +97,7 @@
 	<ports>
 		<inPort name="Deep Learning Network" index="0">
 			The trained deep learning network. Referred to as <b>input_network</b> in the Python script.
+			Can be any deep learning network which can be used in Python.
 		</inPort>
 		<inPort name="Data Table" index="1">
 			The input table. Referred to as <b>input_table</b> in the Python script, where it is a pandas.DataFrame.

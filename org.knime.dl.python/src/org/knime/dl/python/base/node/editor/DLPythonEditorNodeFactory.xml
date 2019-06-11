@@ -97,11 +97,14 @@
 	<ports>
 		<inPort name="Deep Learning Network" index="0">
 			The deep learning network. Referred to as <b>input_network</b> in the Python script.
+			Can be any deep learning network which can be used in Python.
 		</inPort>
 		<outPort name="Deep Learning Network" index="0">
 			The output deep learning network. This is the content of the variable
 			<b>output_network</b> which has to be defined in the script and has to be a deep learning
 			network known to KNIME.
+			The network can then be used in common "DL Python" nodes or in nodes
+			which are specific to the network type.
 		</outPort>
 	</ports>
 	<views>
