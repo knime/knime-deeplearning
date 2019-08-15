@@ -105,6 +105,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSp
 import org.knime.python2.kernel.PythonIOException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonOutputListener;
+import org.knime.python2.kernel.PythonOutputLogger;
 import org.knime.python2.kernel.messaging.AbstractTaskHandler;
 import org.knime.python2.kernel.messaging.DefaultMessage;
 import org.knime.python2.kernel.messaging.DefaultMessage.PayloadDecoder;
@@ -463,51 +464,24 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         final DLPythonTrainingStatus status = monitor.getTrainingStatus();
 
         // Add log listeners.
-        final StringBuilder stdOut = new StringBuilder();
         final StringBuilder stdErr = new StringBuilder();
-        final PythonOutputListener stdErrListener = new PythonOutputListener() {
-
-            private boolean m_silenced = false;
-
-            @Override
-            public void setSilenced(final boolean silenced) {
-                m_silenced = silenced;
-            }
-
-            @Override
-            public void messageReceived(final String message, final boolean isWarningMessage) {
-                if (!m_silenced) {
-                    stdErr.append(message);
-                    stdErr.append("\n");
-                    status.setStdErrOutput(stdErr.toString());
-                }
-            }
+        final Consumer<String> stdErrLogger = message -> {
+            stdErr.append(message);
+            stdErr.append("\n");
+            status.setStdErrOutput(stdErr.toString());
         };
-        final PythonOutputListener stdOutListener = new PythonOutputListener() {
+        final PythonOutputListener stdErrListener = new PythonOutputLogger(stdErrLogger, stdErrLogger, null);
 
-            private boolean m_silenced = false;
-
-            @Override
-            public void setSilenced(final boolean silenced) {
-                m_silenced = silenced;
-            }
-
-            @Override
-            public void messageReceived(final String message, final boolean isWarningMessage) {
-                if (!m_silenced) {
-                    if (isWarningMessage) {
-                        // Redirect to error output.
-                        stdErrListener.messageReceived(message, isWarningMessage);
-                    } else {
-                        stdOut.append(message);
-                        stdOut.append("\n");
-                        status.setStdOutOutput(stdOut.toString());
-                    }
-                }
-            }
+        final StringBuilder stdOut = new StringBuilder();
+        final Consumer<String> stdOutWarningLogger = message -> {
+            stdOut.append(message);
+            stdOut.append("\n");
+            status.setStdOutOutput(stdOut.toString());
         };
+        final PythonOutputListener stdOutListener = new PythonOutputLogger(stdErrLogger, stdOutWarningLogger, null);
+
         final PythonKernel kernel = context.getKernel();
-        kernel.getDefaultStdoutListener().setSilenced(true);
+        kernel.getDefaultStdoutListener().setDisabled(true);
         kernel.addStdoutListener(stdOutListener);
         kernel.addStderrorListener(stdErrListener);
 
@@ -535,7 +509,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             final DLPythonNetworkTrainingTaskHandler trainingTaskHandler = createNetworkTrainingTaskHandler(context,
                 monitor, trainingInputProvider, validationInputProvider, this::createSingleTensorTableChunker);
             final RunnableFuture<Void> trainingTask = kernel.createExecutionTask(trainingTaskHandler, b.toString());
-            kernel.routeErrorMessagesToWarningLog(true);
             trainingTask.run();
             trainingTask.get();
         } catch (final ExecutionException ex) {
@@ -549,7 +522,6 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             Thread.currentThread().interrupt();
             throw new DLCanceledExecutionException(); // Context is closed in this instance's close method.
         } finally {
-            kernel.routeErrorMessagesToWarningLog(false);
             // Remove log listeners.
             kernel.removeStderrorListener(stdOutListener);
             kernel.removeStderrorListener(stdErrListener);
@@ -820,7 +792,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         }
 
         @Override
-        protected Void handleSuccessMessage(Message message) throws Exception {
+        protected Void handleSuccessMessage(final Message message) throws Exception {
             // TODO: This is a workaround. We have to change knime-python's PythonKernelBase.py#execute to raise a real
             // error if something goes wrong instead of just reporting to stderr.
             final PayloadDecoder decoder = new PayloadDecoder(message.getPayload());
