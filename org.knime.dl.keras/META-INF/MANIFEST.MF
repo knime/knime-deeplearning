@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Deep Learning - Keras Integration
 Bundle-SymbolicName: org.knime.dl.keras;singleton:=true
-Bundle-Version: 4.0.0.qualifier
+Bundle-Version: 4.1.0.qualifier
 Bundle-ClassPath: knime-dl-keras.jar,
   libs/eventbus-1.4.jar,
   libs/gentyref-1.2.0.jar,
