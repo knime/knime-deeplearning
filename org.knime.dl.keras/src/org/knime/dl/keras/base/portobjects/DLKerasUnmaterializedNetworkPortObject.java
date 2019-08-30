@@ -94,6 +94,19 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
             // This should not occur because the layer input specs were already validated in the preceding layer node.
             throw new IllegalStateException(e);
         }
+        // Populate file store, otherwise (a) it gets lost when exporting/importing a workflow or uploading/downloading
+        // it to/from server, which makes consuming deep learning nodes (e.g., executor) fail, and (b) Model to Cell
+        // node fails because it tries to access the file store's non-existing file.
+        createDummyFileInFileStore();
+    }
+
+    private void createDummyFileInFileStore() {
+        try {
+            getFileStore(0).getFile().createNewFile();
+        } catch (final Exception e) {
+            NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).debug(
+                "Failed to create empty file at file store location '" + getFileStore(0).getFile().getPath() + "'.", e);
+        }
     }
 
     /**
@@ -143,12 +156,6 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
 
     @Override
     protected void postConstruct() throws IOException {
-        try {
-            getFileStore(0).getFile().createNewFile(); // TODO: See AP-9540. Remove once this is fixed.
-        } catch (final Exception e) {
-            NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).debug(
-                "Failed to create empty file at file store location '" + getFileStore(0).getFile().getPath() + "'.");
-        }
         if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
             final DLKerasUnmaterializedPortObjectContent unmaterialized =
                 (DLKerasUnmaterializedPortObjectContent)m_content;
