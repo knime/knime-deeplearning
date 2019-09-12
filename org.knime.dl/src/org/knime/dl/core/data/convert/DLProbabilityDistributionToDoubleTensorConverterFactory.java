@@ -43,48 +43,34 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Sep 6, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
-
-import org.knime.core.data.DataValue;
-import org.knime.dl.core.DLTensorSpec;
-import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.DLWritableDoubleBuffer;
 
 /**
- * Handles shape inference on an abstract level. Note that we currently only allow single tensor data values to be
- * selected as input i.e. it is not possible to select multiple list columns.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <I> the type of {@link DataValue}
- * @param <O> the type of target {@link DLWritableBuffer buffer}
  */
-public abstract class DLAbstractTensorDataValueToTensorConverterFactory<I extends DataValue, O extends DLWritableBuffer>
-		implements DLDataValueToTensorConverterFactory<I, O> {
+public final class DLProbabilityDistributionToDoubleTensorConverterFactory
+    extends DLAbstractProbabilityDistributionToTensorConverterFactory<DLWritableDoubleBuffer> {
 
-	/**
-	 * @param element the single element in the input list
-	 * @param tensorSpec the spec for the tensor that should be filled with <b>element</b>
-	 * @return the shape of the element
-	 */
-	protected abstract long[] getDataShapeInternal(I element, DLTensorSpec tensorSpec);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<DLWritableDoubleBuffer> getBufferType() {
+        return DLWritableDoubleBuffer.class;
+    }
 
-	/**
-	 * @throws IllegalArgumentException if <code>input</code> is not a singleton
-	 */
-	@Override
-	public final long[] getDataShape(final List<? extends DataValue> input, final DLTensorSpec tensorSpec) throws IllegalArgumentException {
-		if (input.size() > 1) {
-			throw new IllegalArgumentException(
-					"For non-scalar data values, only single column selection is supported.");
-		}
-		final DataValue element = input.get(0);
-		if (!getSourceType().isInstance(element)) {
-			throw new IllegalArgumentException("The provided values are not compatible with the converter.");
-		}
-		@SuppressWarnings("unchecked") // see instanceof check above
-		final long[] shape = getDataShapeInternal((I) element, tensorSpec);
-		return shape;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void put(final double probability, final DLWritableDoubleBuffer buffer) {
+        buffer.put(probability);
+    }
+
 }

@@ -43,48 +43,56 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Sep 12, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.dl.core.data.convert;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.knime.dl.testing.DLTestUtil.createTensor;
 
-import org.knime.core.data.DataValue;
-import org.knime.dl.core.DLTensorSpec;
+import java.util.Collections;
+
+import org.junit.Test;
+import org.knime.core.data.probability.ProbabilityDistributionCellFactory;
+import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Handles shape inference on an abstract level. Note that we currently only allow single tensor data values to be
- * selected as input i.e. it is not possible to select multiple list columns.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <I> the type of {@link DataValue}
- * @param <O> the type of target {@link DLWritableBuffer buffer}
  */
-public abstract class DLAbstractTensorDataValueToTensorConverterFactory<I extends DataValue, O extends DLWritableBuffer>
-		implements DLDataValueToTensorConverterFactory<I, O> {
+public abstract class DLAbstractProbabilityDistributionToTensorConverterFactoryTest<T extends DLWritableBuffer> {
 
-	/**
-	 * @param element the single element in the input list
-	 * @param tensorSpec the spec for the tensor that should be filled with <b>element</b>
-	 * @return the shape of the element
-	 */
-	protected abstract long[] getDataShapeInternal(I element, DLTensorSpec tensorSpec);
+    protected final DLAbstractProbabilityDistributionToTensorConverterFactory<T> m_factory = createFactory();
 
-	/**
-	 * @throws IllegalArgumentException if <code>input</code> is not a singleton
-	 */
-	@Override
-	public final long[] getDataShape(final List<? extends DataValue> input, final DLTensorSpec tensorSpec) throws IllegalArgumentException {
-		if (input.size() > 1) {
-			throw new IllegalArgumentException(
-					"For non-scalar data values, only single column selection is supported.");
-		}
-		final DataValue element = input.get(0);
-		if (!getSourceType().isInstance(element)) {
-			throw new IllegalArgumentException("The provided values are not compatible with the converter.");
-		}
-		@SuppressWarnings("unchecked") // see instanceof check above
-		final long[] shape = getDataShapeInternal((I) element, tensorSpec);
-		return shape;
-	}
+    protected abstract DLAbstractProbabilityDistributionToTensorConverterFactory<T> createFactory();
+
+    protected abstract Class<?> getElementType();
+
+    @Test
+    public void testConvert() throws Exception {
+        final DLDataValueToTensorConverter<ProbabilityDistributionValue, T> converter = m_factory.createConverter();
+        final ProbabilityDistributionValue input =
+            ProbabilityDistributionCellFactory.createCell(new double[]{0.3, 0.4, 0.3});
+        final DLTensor<T> output = (DLTensor<T>)createTensor(getElementType(), 1, 3);
+        converter.convert(Collections.singletonList(input), output);
+        final DLReadableDoubleBuffer outputAsReadable = (DLReadableDoubleBuffer)output.getBuffer();
+        assertEquals(input.size(), outputAsReadable.size());
+        for (int i = 0; i < input.size(); i++) {
+            assertEquals(input.getProbability(i), outputAsReadable.readNextDouble(), 1e-6);
+        }
+    }
+
+    @Test
+    public void testGetName() throws Exception {
+        assertEquals("Probability Distribution", m_factory.getName());
+    }
+
+    @Test
+    public void testGetSourceType() throws Exception {
+        assertEquals(ProbabilityDistributionValue.class, m_factory.getSourceType());
+    }
 }
