@@ -79,6 +79,9 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	public static synchronized DLExecutionContextRegistry getInstance() {
 		if (instance == null) {
 			instance = new DLExecutionContextRegistry();
+            // First set instance, then register. Registering usually activates other bundles. Those may try to access
+            // this registry (while the instance is still null) which would trigger another instance construction.
+            instance.register();
 		}
 		return instance;
 	}
@@ -87,7 +90,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 
 	private DLExecutionContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-		register();
+        // Do not trigger registration here. See #getInstance() above.
 	}
 
 	// access methods:

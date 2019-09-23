@@ -72,7 +72,7 @@ import org.knime.dl.core.data.DLReadableBuffer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensionPointRegistry {
-    
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLTensorToDataCellConverterRegistry.class);
 
 	private static final String EXT_POINT_ID = "org.knime.dl.DLTensorToDataCellConverterFactory";
@@ -91,6 +91,9 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	public static synchronized DLTensorToDataCellConverterRegistry getInstance() {
 		if (instance == null) {
 			instance = new DLTensorToDataCellConverterRegistry();
+            // First set instance, then register. Registering usually activates other bundles. Those may try to access
+            // this registry (while the instance is still null) which would trigger another instance construction.
+            instance.register();
 		}
 		return instance;
 	}
@@ -106,7 +109,7 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 	 */
 	private DLTensorToDataCellConverterRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-		register();
+		// Do not trigger registration here. See #getInstance() above.
 	}
 
 	// access methods:
@@ -136,7 +139,7 @@ public final class DLTensorToDataCellConverterRegistry extends DLAbstractExtensi
 		            }
 		        }
 		    } catch (Throwable t) {
-		        LOGGER.warn("An unexpected error occurred in DLTensorToDataCellConverter '" 
+		        LOGGER.warn("An unexpected error occurred in DLTensorToDataCellConverter '"
 		                + candidate.getIdentifier() + "'.", t);
 		    }
 		}

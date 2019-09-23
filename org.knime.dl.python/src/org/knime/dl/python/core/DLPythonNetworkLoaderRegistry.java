@@ -86,49 +86,26 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 	public static synchronized DLPythonNetworkLoaderRegistry getInstance() {
 		if (instance == null) {
 			instance = new DLPythonNetworkLoaderRegistry();
+            // First set instance, then register. Registering usually activates other bundles. Those may try to access
+            // this registry (while the instance is still null) which would trigger another instance construction.
+            instance.register();
+            instance.testInstallation();
 		}
 		return instance;
 	}
 
 	private final Map<Class<?>, DLPythonNetworkLoader<?>> m_loaders = new HashMap<>();
 
-	private DLPythonNetworkLoaderRegistry() {
-		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-
-		// register loaders
-		register();
-
-		// installation tests:
-
-		if (m_loaders.isEmpty()) {
-			return; // spares us creation of threads etc.
-		}
-
-		// test each installation independently
-		for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
-			new Thread(() -> {
-				try {
-                    loader.checkAvailability(true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
-				} catch (final DLInstallationTestTimeoutException e) {
-					Thread.currentThread().interrupt();
-                    LOGGER.debug("Installation test for deep learning Python back end '"
-                        + loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted.");
-				} catch (final DLMissingDependencyException e) {
-                    LOGGER.debug("Installation test for deep learning Python back end '"
-                        + loader.getNetworkType().getCanonicalName() + "' failed: "
-                        + e.getMessage());
-				} catch (final DLCanceledExecutionException e) {
-                    // Doesn't happen.
-                }
-			}, "DL-Installation-Test-Trigger-" + loader.getNetworkType().getName()).start();
-		}
-	}
+    private DLPythonNetworkLoaderRegistry() {
+        super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
+        // Do not trigger registration or perform installation tests here. See #getInstance() above.
+    }
 
 	/**
      * @return the installation test timeout as returned by
      *         {@link DLInstallationTestTimeout#getInstallationTestTimeout()}
      */
-	public int getInstallationTestTimeout() {
+	public static int getInstallationTestTimeout() {
         return DLInstallationTestTimeout.getInstallationTestTimeout();
 	}
 
@@ -202,4 +179,24 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 		m_loaders.put(networkType, loader);
 	}
 	// :registration
+
+    private void testInstallation() {
+        // Test each installation independently.
+        for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
+            new Thread(() -> {
+                try {
+                    loader.checkAvailability(true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+                } catch (final DLInstallationTestTimeoutException e) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.debug("Installation test for deep learning Python back end '"
+                        + loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted.");
+                } catch (final DLMissingDependencyException e) {
+                    LOGGER.debug("Installation test for deep learning Python back end '"
+                        + loader.getNetworkType().getCanonicalName() + "' failed: " + e.getMessage());
+                } catch (final DLCanceledExecutionException e) {
+                    // Doesn't happen.
+                }
+            }, "DL-Installation-Test-Trigger-" + loader.getNetworkType().getName()).start();
+        }
+    }
 }

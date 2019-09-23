@@ -86,8 +86,11 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	 */
 	public static synchronized DLDataValueToTensorConverterRegistry getInstance() {
 		if (instance == null) {
-			instance = new DLDataValueToTensorConverterRegistry();
-		}
+            instance = new DLDataValueToTensorConverterRegistry();
+            // First set instance, then register. Registering usually activates other bundles. Those may try to access
+            // this registry (while the instance is still null) which would trigger another instance construction.
+            instance.register();
+        }
 		return instance;
 	}
 
@@ -102,7 +105,7 @@ public final class DLDataValueToTensorConverterRegistry extends DLAbstractExtens
 	 */
 	private DLDataValueToTensorConverterRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-		register();
+		// Do not trigger registration here. See #getInstance() above.
 	}
 
 	// access methods:

@@ -78,7 +78,10 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 */
 	public static synchronized DLTrainingContextRegistry getInstance() {
 		if (instance == null) {
-			instance = new DLTrainingContextRegistry();
+            instance = new DLTrainingContextRegistry();
+            // First set instance, then register. Registering usually activates other bundles. Those may try to access
+            // this registry (while the instance is still null) which would trigger another instance construction.
+            instance.register();
 		}
 		return instance;
 	}
@@ -87,7 +90,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 
 	private DLTrainingContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-		register();
+		// Do not trigger registration here. See #getInstance() above.
 	}
 
 	// access methods:
