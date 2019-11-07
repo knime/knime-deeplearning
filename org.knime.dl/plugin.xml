@@ -41,14 +41,6 @@
       <DLDataValueToTensorConverterFactory
             DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLStringValueToStringTensorConverterFactory">
       </DLDataValueToTensorConverterFactory>
-      <DLDataValueToTensorConverterFactory
-            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLProbabilityDistributionToFloatTensorConverterFactory"
-            deprecated="false">
-      </DLDataValueToTensorConverterFactory>
-      <DLDataValueToTensorConverterFactory
-            DLDataValueToTensorConverterFactory="org.knime.dl.core.data.convert.DLProbabilityDistributionToDoubleTensorConverterFactory"
-            deprecated="false">
-      </DLDataValueToTensorConverterFactory>
    </extension>
    <extension
          point="org.knime.dl.DLTensorToDataCellConverterFactory">

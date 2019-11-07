@@ -54,8 +54,10 @@ import org.knime.dl.core.data.DLWritableDoubleBuffer;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLProbabilityDistributionToDoubleTensorConverterFactory
+final class DLProbabilityDistributionToDoubleTensorConverterFactory
     extends DLAbstractProbabilityDistributionToTensorConverterFactory<DLWritableDoubleBuffer> {
+
+    // FIXME: Broken until AP-13009 is implemented (see super class for details)
 
     /**
      * {@inheritDoc}

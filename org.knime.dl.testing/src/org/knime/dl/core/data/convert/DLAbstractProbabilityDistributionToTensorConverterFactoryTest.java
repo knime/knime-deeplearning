@@ -53,14 +53,14 @@ import static org.knime.dl.testing.DLTestUtil.createTensor;
 
 import java.util.Collections;
 
-import org.junit.Test;
-import org.knime.core.data.probability.ProbabilityDistributionCellFactory;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionCellFactory;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
+ * FIXME: The tested class is broken until AP-13009 is implemented.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -72,27 +72,27 @@ public abstract class DLAbstractProbabilityDistributionToTensorConverterFactoryT
 
     protected abstract Class<?> getElementType();
 
-    @Test
     public void testConvert() throws Exception {
-        final DLDataValueToTensorConverter<ProbabilityDistributionValue, T> converter = m_factory.createConverter();
-        final ProbabilityDistributionValue input =
-            ProbabilityDistributionCellFactory.createCell(new double[]{0.3, 0.4, 0.3});
+        final DLDataValueToTensorConverter<NominalDistributionValue, T> converter = m_factory.createConverter();
+        final String[] values = new String[] {"A", "B", "C"};
+        // FIXME
+        final NominalDistributionCellFactory factory = null;
+        final NominalDistributionValue input =
+                factory.createCell(new double[]{0.3, 0.4, 0.3}, 0);
         final DLTensor<T> output = (DLTensor<T>)createTensor(getElementType(), 1, 3);
         converter.convert(Collections.singletonList(input), output);
         final DLReadableDoubleBuffer outputAsReadable = (DLReadableDoubleBuffer)output.getBuffer();
-        assertEquals(input.size(), outputAsReadable.size());
-        for (int i = 0; i < input.size(); i++) {
-            assertEquals(input.getProbability(i), outputAsReadable.readNextDouble(), 1e-6);
+        assertEquals(values.length, outputAsReadable.size());
+        for (String value : values) {
+            assertEquals(input.getProbability(value), outputAsReadable.readNextDouble(), 1e-6);
         }
     }
 
-    @Test
     public void testGetName() throws Exception {
         assertEquals("Probability Distribution", m_factory.getName());
     }
 
-    @Test
     public void testGetSourceType() throws Exception {
-        assertEquals(ProbabilityDistributionValue.class, m_factory.getSourceType());
+        assertEquals(NominalDistributionValue.class, m_factory.getSourceType());
     }
 }

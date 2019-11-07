@@ -54,8 +54,9 @@ import org.knime.dl.core.data.DLWritableFloatBuffer;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DLProbabilityDistributionToFloatTensorConverterFactory
+final class DLProbabilityDistributionToFloatTensorConverterFactory
     extends DLAbstractProbabilityDistributionToTensorConverterFactory<DLWritableFloatBuffer> {
+    // FIXME: Broken until AP-13009 is implemented (see super class for details)
 
     /**
      * {@inheritDoc}

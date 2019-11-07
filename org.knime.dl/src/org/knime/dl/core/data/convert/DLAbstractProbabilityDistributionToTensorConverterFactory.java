@@ -50,70 +50,74 @@ package org.knime.dl.core.data.convert;
 
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 
 /**
- * Handles conversion of {@link ProbabilityDistributionValue ProbabilityDistributionValues} to floating point
- * tensors on an abstract level.
- * Implementing classes only have to handle the placement of the individual probabilities into their respective buffer.
+ * Handles conversion of {@link NominalDistributionValue NominalDistributionValues} to floating point tensors on
+ * an abstract level. Implementing classes only have to handle the placement of the individual probabilities into their
+ * respective buffer.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <O> The type of target {@link DLWritableBuffer buffer}
  */
 abstract class DLAbstractProbabilityDistributionToTensorConverterFactory<O extends DLWritableBuffer>
-    extends DLAbstractTensorDataValueToTensorConverterFactory<ProbabilityDistributionValue, O> {
+    extends DLAbstractTensorDataValueToTensorConverterFactory<NominalDistributionValue, O> {
+
+    // FIXME: This class is currently broken until AP-13009 is implemented. DO NOT REGISTER ANY SUBCLASSES AS CONVERTERS IN THE FRAMEWORK!
 
     /**
      * {@inheritDoc}
      */
     @Override
     public final String getName() {
-        return ((ExtensibleUtilityFactory)ProbabilityDistributionValue.UTILITY).getName();
+        return ((ExtensibleUtilityFactory)NominalDistributionValue.UTILITY).getName();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final Class<ProbabilityDistributionValue> getSourceType() {
-        return ProbabilityDistributionValue.class;
+    public final Class<NominalDistributionValue> getSourceType() {
+        return NominalDistributionValue.class;
     }
 
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("null") // we explicitly check for null
     @Override
     public final OptionalLong getDestCount(final List<DataColumnSpec> spec) {
         CheckUtils.checkArgument(spec.size() == 1, "Multiple probability distributions are not supported as input.");
         final DataColumnSpec colSpec = spec.get(0);
-        final List<String> names = colSpec.getElementNames();
-        CheckUtils.checkArgument(names != null && !names.isEmpty(),
-            "A probability distribution must always specify its element names.");
-        return OptionalLong.of(names.size());
+        final NominalDistributionValueMetaData metaData =
+            colSpec.getMetaDataOfType(NominalDistributionValueMetaData.class).orElseThrow(
+                () -> new IllegalStateException("Nominal distributions without meta data are not supported."));
+        return OptionalLong.of(metaData.size());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final DLDataValueToTensorConverter<ProbabilityDistributionValue, O> createConverter() {
-        return new DLAbstractTensorDataValueToTensorConverter<ProbabilityDistributionValue, O>() {
+    public final DLDataValueToTensorConverter<NominalDistributionValue, O> createConverter() {
+        return new DLAbstractTensorDataValueToTensorConverter<NominalDistributionValue, O>() {
 
             @Override
-            protected void convertInternal(final ProbabilityDistributionValue element,
-                final DLTensor<O> output) {
+            protected void convertInternal(final NominalDistributionValue element, final DLTensor<O> output) {
                 @SuppressWarnings("resource") // the buffer is managed by the framework
                 final O buffer = output.getBuffer();
-                for (int i = 0; i < element.size(); i++) {
-                    put(element.getProbability(i), buffer);
+                // FIXME get the values from the column spec instead
+                final Set<String> knownValues = element.getKnownValues();
+                for (String value : knownValues) {
+                    put(element.getProbability(value), buffer);
                 }
             }
         };
@@ -123,9 +127,9 @@ abstract class DLAbstractProbabilityDistributionToTensorConverterFactory<O exten
      * {@inheritDoc}
      */
     @Override
-    protected final long[] getDataShapeInternal(final ProbabilityDistributionValue element,
-        final DLTensorSpec tensorSpec) {
-        return new long[]{element.size()};
+    protected final long[] getDataShapeInternal(final NominalDistributionValue element, final DLTensorSpec tensorSpec) {
+        // FIXME get the size from the column spec instead
+        return new long[]{element.getKnownValues().size()};
     }
 
     protected abstract void put(final double probability, final O buffer);
