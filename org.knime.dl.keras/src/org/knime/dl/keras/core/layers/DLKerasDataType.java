@@ -47,17 +47,57 @@
 package org.knime.dl.keras.core.layers;
 
 /**
+ * The data types available in Keras, and in the Keras Input Layer in particular.
+ *
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public enum DLKerasDataType implements DLKerasEnum {
-        BOOL("Boolean", "bool"), FLOAT_16("Float 16", "float16"), FLOAT_32("Float 32", "float32"),
-        INT_8("Int 8", "int8"), INT_16("Int 16", "int16"), INT_32("Int 32", "int32"), INT_64("Int 64", "int64");
+public enum DLKerasDataType implements DLKerasEnum<String> {
+
+        /**
+         * Boolean values. This corresponds to a boolean in Java.
+         */
+        BOOL("Boolean", "bool"),
+
+        /**
+         * 16 bit floating point values.
+         */
+        FLOAT_16("Float 16", "float16"),
+
+        /**
+         * 32 bit floating point values. This corresponds to a float in Java.
+         */
+        FLOAT_32("Float 32", "float32"),
+
+        /**
+         * 64 bit floating point values. This corresponds to a double in Java.
+         */
+        FLOAT_64("Float 64", "float64"),
+
+        /**
+         * 8 bit integer values. This corresponds to a byte in Java.
+         */
+        INT_8("Int 8", "int8"),
+
+        /**
+         * 16 bit integer values. This corresponds to a short in Java.
+         */
+        INT_16("Int 16", "int16"),
+
+        /**
+         * 32 bit integer values. This corresponds to an int in Java.
+         */
+        INT_32("Int 32", "int32"),
+
+        /**
+         * 64 bit integer values. This corresponds to a long in Java.
+         */
+        INT_64("Int 64", "int64");
 
     private String m_label;
 
     private String m_value;
 
-    DLKerasDataType(String label, String value) {
+    DLKerasDataType(final String label, final String value) {
         m_label = label;
         m_value = value;
     }
