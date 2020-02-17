@@ -77,16 +77,18 @@ import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNotCancelable;
-import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 
 /**
+ * @deprecated
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 final class DLKerasReaderNodeDialog extends NodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
@@ -185,8 +187,9 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		for (int i = availableLoaders.size() - 1; i >= 0; i--) {
 			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
 			try {
-				kerasNetworkLoader.checkAvailability(false,
-						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+				DLPythonNetworkLoaderRegistry.getInstance();
+                kerasNetworkLoader.checkAvailability(false,
+						DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
 			} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
 				availableLoaders.remove(i);
 				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());

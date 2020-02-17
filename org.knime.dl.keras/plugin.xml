@@ -175,7 +175,7 @@
       </node>
       <node
             category-path="/labs/deeplearning/keras"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.reader.DLKerasReaderNodeFactory">
       </node>
       <node

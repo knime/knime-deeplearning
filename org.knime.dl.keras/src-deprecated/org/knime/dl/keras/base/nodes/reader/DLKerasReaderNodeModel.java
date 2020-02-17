@@ -93,9 +93,11 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import com.google.common.base.Strings;
 
 /**
+ * @deprecated
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 final class DLKerasReaderNodeModel extends NodeModel {
 
 	private static final String CFG_KEY_FILE_PATH = "file_path";
@@ -156,7 +158,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
         }
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
-			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
+			DLPythonNetworkLoaderRegistry.getInstance();
+            loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),
 			    DLNotCancelable.INSTANCE);
 		} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
 			throw new InvalidSettingsException(
