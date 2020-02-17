@@ -191,6 +191,11 @@
       <node
             category-path="/labs/deeplearning/keras"
             deprecated="false"
+            factory-class="org.knime.dl.keras.base.nodes.io.filehandling.network.writer.DLKerasNetworkWriterNodeFactory">
+      </node>
+      <node
+            category-path="/labs/deeplearning/keras"
+            deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.executor.DLKerasExecutorNodeFactory">
       </node>
       <node
