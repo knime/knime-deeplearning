@@ -53,9 +53,11 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
+ * @deprecated
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 public class DLKerasReaderNodeFactory extends NodeFactory<DLKerasReaderNodeModel> {
 
 	@Override
