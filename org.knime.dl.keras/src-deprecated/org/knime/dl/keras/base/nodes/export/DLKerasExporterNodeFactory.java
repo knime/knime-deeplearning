@@ -54,8 +54,10 @@ import org.knime.dl.base.nodes.export.DLDefaultExporterNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 
 /**
+ * @deprecated
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNodeModel<?>> {
 
     @Override
