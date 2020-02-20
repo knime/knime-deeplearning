@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.knime.features.dl.keras" version="0.0.0">
+           <category name="knime-deeplearning" />
+    </feature>
+   <feature id="org.knime.features.dl.keras.source" version="0.0.0">
+           <category name="knime-deeplearning" />
+    </feature>
+
+   <category-def name="knime-deeplearning" label="Build artifacts from knime-deeplearning">
+       <description>Build artifacts from knime-deeplearning</description>
+   </category-def>
+</site>

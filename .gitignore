@@ -1,5 +1,8 @@
 */bin/
-*/target/
+**/target/
 */build/
 *.pyc*
 **/.pydevproject
+.flattened-pom.xml
+org.knime.dl.keras/knime-dl-keras.jar
+org.knime.dl.python/knime-dl-python.jar
