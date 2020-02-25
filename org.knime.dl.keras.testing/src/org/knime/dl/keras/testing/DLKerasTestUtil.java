@@ -46,13 +46,18 @@
  */
 package org.knime.dl.keras.testing;
 
-import static org.knime.dl.python.testing.DLPythonTestUtil.randomNetworkSource;
 import static org.knime.dl.testing.DLTestUtil.randomTensorSpec;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.nio.file.InvalidPathException;
 import java.util.Random;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.knime.core.util.FileUtil;
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLNetworkLocation;
+import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkSpec;
@@ -97,4 +102,13 @@ public final class DLKerasTestUtil {
         final Version kerasVersion = new Version(random.nextInt(), random.nextInt(), random.nextInt());
         return new DLKerasTensorFlowNetworkSpec(pythonVersion, kerasVersion, inputs, hidden, outputs);
 	}
+
+    public static DLNetworkLocation randomNetworkSource(final Random random) {
+        try {
+            return new DLNetworkReferenceLocation(
+                FileUtil.toURL(RandomStringUtils.random(10, 0, 0, true, true, null, random) + ".h5").toURI());
+        } catch (InvalidPathException | MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
