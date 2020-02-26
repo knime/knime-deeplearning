@@ -41,8 +41,7 @@ try {
 		env.lastStage = env.STAGE_NAME
 		// passing the test configuration is optional but must be done when they are
 		// used above in the workflow tests
-		// workflowTests.runSonar(testConfigurations)
-		workflowTests.runSonar()
+		workflowTests.runSonar([]) // TODO remove empty list once workflow tests are enabled
 	}
  } catch (ex) {
 	 currentBuild.result = 'FAILED'
