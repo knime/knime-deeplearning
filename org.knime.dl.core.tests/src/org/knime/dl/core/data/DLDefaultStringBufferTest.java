@@ -44,50 +44,23 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.util;
+package org.knime.dl.core.data;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.OptionalLong;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.data.DLDefaultStringBuffer;
 
 /**
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
-
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
-
-	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
-	}
+public class DLDefaultStringBufferTest {
+    
+    @Test
+    public void testCreateStorage() throws Exception {
+        DLDefaultStringBuffer buffer = new DLDefaultStringBuffer(4);
+        String[] createdStorage = buffer.createStorage();
+        assertEquals(4, createdStorage.length);
+    }
 
 }

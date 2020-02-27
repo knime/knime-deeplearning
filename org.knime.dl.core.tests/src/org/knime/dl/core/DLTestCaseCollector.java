@@ -43,51 +43,17 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 22, 2017 (marcel): created
  */
-package org.knime.dl.util;
+package org.knime.dl.core;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.OptionalLong;
-
-import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.testing.core.AbstractTestcaseCollector;
 
 /**
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
-
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
-
-	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
-	}
-
+public class DLTestCaseCollector extends AbstractTestcaseCollector {
+	// registered at extension point, nothing to do here
 }

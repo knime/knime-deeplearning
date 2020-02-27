@@ -43,51 +43,36 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Sep 12, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.dl.util;
+package org.knime.dl.core.data.convert;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.OptionalLong;
-
-import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.data.DLWritableDoubleBuffer;
+import org.knime.dl.core.data.convert.DLAbstractProbabilityDistributionToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLProbabilityDistributionToDoubleTensorConverterFactory;
 
 /**
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
+public class DLProbabilityDistributionToDoubleTensorConverterFactoryTest
+    extends DLAbstractProbabilityDistributionToTensorConverterFactoryTest<DLWritableDoubleBuffer> {
 
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected DLAbstractProbabilityDistributionToTensorConverterFactory<DLWritableDoubleBuffer> createFactory() {
+        return new DLProbabilityDistributionToDoubleTensorConverterFactory();
+    }
 
-	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Class<?> getElementType() {
+        return double.class;
+    }
 
 }

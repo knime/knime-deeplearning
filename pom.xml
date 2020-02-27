@@ -24,6 +24,7 @@
 
 	<modules>
 		<module>org.knime.dl</module>
+		<module>org.knime.dl.core.tests</module>
 		<module>org.knime.dl.keras</module>
 		<module>org.knime.dl.keras.testing</module>
 		<module>org.knime.dl.python</module>

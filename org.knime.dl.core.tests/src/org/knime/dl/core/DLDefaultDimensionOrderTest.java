@@ -44,50 +44,64 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.util;
+package org.knime.dl.core;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.OptionalLong;
+import static org.junit.Assert.assertArrayEquals;
 
 import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLDimension;
+import org.knime.dl.core.DLDimensionOrder;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
+public class DLDefaultDimensionOrderTest {
 
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	private static DLDimension[] createDimensionArrayFromString(final String abbreviated) {
+		final DLDimension[] dimensions = new DLDimension[abbreviated.length()];
+		for (int i = 0; i < dimensions.length; i++) {
+			dimensions[i] = getDimensionForChar(abbreviated.charAt(i));
+		}
+		return dimensions;
+	}
+
+	private static DLDimension getDimensionForChar(final char c) {
+		switch (c) {
+		case ('T'):
+			return DLDimension.Time;
+		case ('D'):
+			return DLDimension.Depth;
+		case ('H'):
+			return DLDimension.Height;
+		case ('W'):
+			return DLDimension.Width;
+		case ('C'):
+			return DLDimension.Channel;
+		}
+		throw new IllegalArgumentException("Unknown dimension abbreviation '" + c);
 	}
 
 	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	public void testInferMappingTDHWC() throws Exception {
+		final DLDimensionOrder dimOrder = DLDimensionOrder.TDHWC;
+		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
+		assertArrayEquals(new int[] { 0, 2, 3, 4, 1 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
+		assertArrayEquals(new int[] { 0, 1, 2 }, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
+		assertArrayEquals(new int[] { 1, 2, 0 }, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
+		assertArrayEquals(new int[] { 0, 2, 3, 1 }, dimOrder.inferMappingFor(createDimensionArrayFromString("TCHW")));
 	}
 
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
+	@Test
+	public void testInferMappingTCDHW() throws Exception {
+		final DLDimensionOrder dimOrder = DLDimensionOrder.TCDHW;
+		assertArrayEquals(new int[] { 0, 1, 2, 3, 4 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TCDHW")));
+		assertArrayEquals(new int[] { 0, 4, 1, 2, 3 },
+				dimOrder.inferMappingFor(createDimensionArrayFromString("TDHWC")));
+		assertArrayEquals(new int[] { 2, 0, 1 }, dimOrder.inferMappingFor(createDimensionArrayFromString("HWC")));
+		assertArrayEquals(new int[] { 0, 1, 2 }, dimOrder.inferMappingFor(createDimensionArrayFromString("CHW")));
 	}
 
 }

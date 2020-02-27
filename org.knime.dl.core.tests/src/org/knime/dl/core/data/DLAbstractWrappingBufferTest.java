@@ -44,50 +44,66 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.util;
+package org.knime.dl.core.data;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.OptionalLong;
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 
 import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.data.DLDefaultDoubleBuffer;
 
 /**
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Adrian, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
+public class DLAbstractWrappingBufferTest {
 
 	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	public void testSimpleGetter() throws Exception {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			assertEquals(10, buffer.getCapacity());
+			assertEquals(0, buffer.size());
+			assertEquals(0, buffer.getNextReadPosition());
+			buffer.put(1);
+			assertEquals(10, buffer.getCapacity());
+			assertEquals(1, buffer.size());
+			assertEquals(0, buffer.getNextReadPosition());
+			buffer.readNextDouble();
+			assertEquals(10, buffer.getCapacity());
+			assertEquals(1, buffer.size());
+			assertEquals(1, buffer.getNextReadPosition());
+		}
 	}
 
 	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	public void testGetStorageForReading() throws Exception {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			buffer.putAll(new double[10]);
+			final double[] storage = buffer.getStorageForReading(0, 10);
+			assertEquals(10, storage.length);
+		}
 	}
 
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
+	@Test(expected = BufferUnderflowException.class)
+	public void testGetStorageForReadingUnderflow() throws Exception {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForReading(1, 10);
+		}
 	}
 
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
+	@Test
+	public void testGetStorageForWriting() throws Exception {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForWriting(0, 10);
+			assertEquals(10, storage.length);
+		}
 	}
 
+	@Test(expected = BufferOverflowException.class)
+	public void testGetStorageForWritingOverflow() throws Exception {
+		try (DLDefaultDoubleBuffer buffer = new DLDefaultDoubleBuffer(10)) {
+			final double[] storage = buffer.getStorageForWriting(1, 10);
+		}
+	}
 }

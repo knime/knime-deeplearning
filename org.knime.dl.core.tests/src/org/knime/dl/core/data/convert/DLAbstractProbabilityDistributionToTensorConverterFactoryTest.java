@@ -43,51 +43,58 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Sep 12, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.dl.util;
+package org.knime.dl.core.data.convert;
 
 import static org.junit.Assert.assertEquals;
+import static org.knime.dl.testing.DLTestUtil.createTensor;
 
-import java.util.OptionalLong;
+import java.util.Collections;
 
-import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.core.data.probability.nominal.NominalDistributionCellFactory;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.dl.core.DLTensor;
+import org.knime.dl.core.data.DLReadableDoubleBuffer;
+import org.knime.dl.core.data.DLWritableBuffer;
+import org.knime.dl.core.data.convert.DLAbstractProbabilityDistributionToTensorConverterFactory;
+import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 
 /**
+ * FIXME: The tested class is broken until AP-13009 is implemented.
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
+public abstract class DLAbstractProbabilityDistributionToTensorConverterFactoryTest<T extends DLWritableBuffer> {
 
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
+    protected final DLAbstractProbabilityDistributionToTensorConverterFactory<T> m_factory = createFactory();
 
-	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
-	}
+    protected abstract DLAbstractProbabilityDistributionToTensorConverterFactory<T> createFactory();
 
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
+    protected abstract Class<?> getElementType();
 
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
-	}
+    public void testConvert() throws Exception {
+        final DLDataValueToTensorConverter<NominalDistributionValue, T> converter = m_factory.createConverter();
+        final String[] values = new String[] {"A", "B", "C"};
+        // FIXME
+        final NominalDistributionCellFactory factory = null;
+        final NominalDistributionValue input =
+                factory.createCell(new double[]{0.3, 0.4, 0.3}, 0);
+        final DLTensor<T> output = (DLTensor<T>)createTensor(getElementType(), 1, 3);
+        converter.convert(Collections.singletonList(input), output);
+        final DLReadableDoubleBuffer outputAsReadable = (DLReadableDoubleBuffer)output.getBuffer();
+        assertEquals(values.length, outputAsReadable.size());
+        for (String value : values) {
+            assertEquals(input.getProbability(value), outputAsReadable.readNextDouble(), 1e-6);
+        }
+    }
 
+    public void testGetName() throws Exception {
+        assertEquals("Probability Distribution", m_factory.getName());
+    }
+
+    public void testGetSourceType() throws Exception {
+        assertEquals(NominalDistributionValue.class, m_factory.getSourceType());
+    }
 }
