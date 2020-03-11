@@ -50,6 +50,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.python2.Conda;
 import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.config.CondaEnvironmentsConfig;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
@@ -94,7 +95,8 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
 
     @Override
     public PythonCommand getPythonCommand() {
-        return Conda.createPythonCommand(m_condaDirectory.getStringValue(), m_environmentName.getStringValue());
+        return Conda.createPythonCommand(PythonVersion.PYTHON3, m_condaDirectory.getStringValue(),
+            m_environmentName.getStringValue());
     }
 
     /**

@@ -48,6 +48,7 @@ package org.knime.dl.python.prefs;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.config.ManualEnvironmentConfig;
 import org.knime.python2.config.PythonConfigStorage;
 
@@ -65,7 +66,7 @@ final class DLManualEnvironmentConfig extends DLPythonAbstractEnvironmentConfig 
     private final ManualEnvironmentConfig m_envConfig;
 
     DLManualEnvironmentConfig() {
-        m_envConfig = new ManualEnvironmentConfig(CFG_KEY_MANUAL, DEFAULT_PYTHON_PATH);
+        m_envConfig = new ManualEnvironmentConfig(PythonVersion.PYTHON3, CFG_KEY_MANUAL, DEFAULT_PYTHON_PATH);
     }
 
     /**
