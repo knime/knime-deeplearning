@@ -71,7 +71,6 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -79,7 +78,7 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.kernel.PythonExecutionMonitorCancelable;
 
 /**
  * Shamelessly copied and pasted from python source.
@@ -145,9 +144,8 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
-		final DLPythonContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
 		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
-		try {
+        try (final DLPythonContext context = getNextContextFromQueue(new PythonExecutionMonitorCancelable(exec))) {
 			context.getKernel().putFlowVariables(DLPythonEditorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 
@@ -193,8 +191,6 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 			}
 			addNewVariables(variables);
             return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context, cancelable)};
-		} finally {
-			context.close();
 		}
 	}
 

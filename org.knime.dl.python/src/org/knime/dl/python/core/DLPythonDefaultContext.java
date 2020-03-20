@@ -61,9 +61,9 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLUncheckedException;
 import org.knime.dl.python.prefs.DLPythonPreferences;
-import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python.typeextension.PythonModuleExtensions;
+import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
@@ -75,6 +75,7 @@ import org.knime.python2.kernel.PythonException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
+import org.knime.python2.kernel.PythonKernelQueue;
 
 import com.google.common.base.Strings;
 
@@ -94,12 +95,20 @@ public final class DLPythonDefaultContext implements DLPythonContext {
 
     public static PythonKernel createKernel() throws DLInvalidEnvironmentException {
         try {
-            return new PythonKernel(getKernelOptions());
+            final PythonKernelOptions options = getKernelOptions();
+            final PythonCommand command = options.getUsePython3() //
+                ? options.getPython3Command() //
+                : options.getPython2Command();
+            return PythonKernelQueue.getNextKernel(command, Collections.emptySet(), Collections.emptySet(), options,
+                PythonCancelable.NOT_CANCELABLE);
         } catch (final IOException e) {
             final String msg = !Strings.isNullOrEmpty(e.getMessage())
                 ? "An error occurred while trying to launch Python: " + e.getMessage()
                 : "An unknown error occurred while trying to launch Python. See log for details.";
             throw new DLInvalidEnvironmentException(msg, e);
+        } catch (final PythonCanceledExecutionException ex) {
+            // Cannot happen. We pass a non-cancelable above.
+            throw new IllegalStateException("Implementation error.", ex);
         }
     }
 

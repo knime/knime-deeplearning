@@ -47,7 +47,9 @@ package org.knime.dl.python.base.node;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.knime.base.node.util.exttool.ExtToolOutputNodeModel;
 import org.knime.core.data.filestore.FileStore;
@@ -63,13 +65,21 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.config.PythonFlowVariableOptions;
 import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.python2.kernel.PythonCancelable;
+import org.knime.python2.kernel.PythonCanceledExecutionException;
+import org.knime.python2.kernel.PythonIOException;
+import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
+import org.knime.python2.kernel.PythonKernelQueue;
 
 /**
  * Shamelessly copied and pasted from knime-python.
@@ -97,6 +107,28 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
         final String serializerId =
             new PythonFlowVariableOptions(getAvailableFlowVariables()).getSerializerId().orElse(null);
         return options.forSerializationOptions(options.getSerializationOptions().forSerializerId(serializerId));
+    }
+
+    protected DLPythonContext getNextContextFromQueue(final PythonCancelable cancelable)
+        throws PythonCanceledExecutionException, PythonIOException {
+        return getNextContextFromQueue(Collections.emptySet(), Collections.emptySet(), cancelable);
+    }
+
+    protected DLPythonContext getNextContextFromQueue(final Set<PythonModuleSpec> requiredAdditionalModules,
+        final PythonCancelable cancelable) throws PythonCanceledExecutionException, PythonIOException {
+        return getNextContextFromQueue(requiredAdditionalModules, Collections.emptySet(), cancelable);
+    }
+
+    protected DLPythonContext getNextContextFromQueue(final Set<PythonModuleSpec> requiredAdditionalModules,
+        final Set<PythonModuleSpec> optionalAdditionalModules, final PythonCancelable cancelable)
+        throws PythonCanceledExecutionException, PythonIOException {
+        final PythonKernelOptions options = getKernelOptions();
+        final PythonCommand command = options.getUsePython3() //
+            ? options.getPython3Command() //
+            : options.getPython2Command();
+        final PythonKernel kernel = PythonKernelQueue.getNextKernel(command, requiredAdditionalModules,
+            optionalAdditionalModules, options, cancelable);
+        return new DLPythonDefaultContext(kernel);
     }
 
 	/**

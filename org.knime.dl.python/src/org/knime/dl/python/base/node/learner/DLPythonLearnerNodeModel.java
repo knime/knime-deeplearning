@@ -74,7 +74,6 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.python.base.node.DLPythonNodeModel;
 import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -82,7 +81,7 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.dl.python.util.DLPythonSourceCodeBuilder;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.knime.python2.kernel.PythonKernel;
+import org.knime.python2.kernel.PythonExecutionMonitorCancelable;
 
 /**
  * Shamelessly copied and pasted from python predictor.
@@ -163,8 +162,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
             return new DLNetworkPortObject[]{inPortObject};
 		}
 
-		final DLPythonContext context = new DLPythonDefaultContext(new PythonKernel(getKernelOptions()));
-		try {
+        try (final DLPythonContext context = getNextContextFromQueue(new PythonExecutionMonitorCancelable(exec))) {
 			context.getKernel().putFlowVariables(DLPythonLearnerNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 			setupNetwork(inNetwork, context, cancelable);
@@ -211,8 +209,6 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 			}
 			addNewVariables(variables);
             return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context, cancelable)};
-		} finally {
-			context.close();
 		}
 	}
 
