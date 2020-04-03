@@ -60,9 +60,14 @@ import javax.swing.JComponent;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.ModelContent;
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortObjectZipInputStream;
+import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.workflow.ModelContentOutPortView;
@@ -81,7 +86,7 @@ import com.google.common.base.Strings;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public interface DLNetworkPortObject extends PortObject {
-    
+
     /**
      * Default name of the DLNetworkPortObject.
      */
@@ -91,6 +96,24 @@ public interface DLNetworkPortObject extends PortObject {
 	 * The base deep learning network port type.
 	 */
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLNetworkPortObject.class);
+
+    /**
+     * Only purpose is to make this interface class available to the {@link PortTypeRegistry} via the PorType extension
+     * point.
+     */
+    public static final class DummySerializer extends PortObjectSerializer<DLNetworkPortObject> {
+        @Override
+        public void savePortObject(final DLNetworkPortObject portObject, final PortObjectZipOutputStream out,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new UnsupportedOperationException("Don't use this serializer");
+        }
+
+        @Override
+        public DLNetworkPortObject loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new UnsupportedOperationException("Don't use this serializer");
+        }
+    }
 
 	/**
      * Creates a new file store handle. The name of the file store is randomly generated except for the file extension

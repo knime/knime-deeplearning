@@ -2,6 +2,11 @@ package org.knime.dl.python.core;
 
 import java.io.IOException;
 
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortObjectZipInputStream;
+import org.knime.core.node.port.PortObjectZipOutputStream;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
@@ -21,6 +26,24 @@ public interface DLPythonNetworkPortObject<N extends DLNetwork & DLPythonNetwork
 	 * The Python deep learning network port type.
 	 */
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(DLPythonNetworkPortObject.class);
+
+    /**
+     * Only purpose is to make this interface class available to the {@link PortTypeRegistry} via the PorType extension
+     * point.
+     */
+    public static final class DummySerializer extends PortObjectSerializer<DLPythonNetworkPortObject> {
+        @Override
+        public void savePortObject(final DLPythonNetworkPortObject portObject, final PortObjectZipOutputStream out,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new UnsupportedOperationException("Don't use this serializer");
+        }
+
+        @Override
+        public DLPythonNetworkPortObject loadPortObject(final PortObjectZipInputStream in, final PortObjectSpec spec,
+            final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            throw new UnsupportedOperationException("Don't use this serializer");
+        }
+    }
 
 	@Override
 	default String getModelName() {

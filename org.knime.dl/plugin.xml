@@ -74,4 +74,14 @@
             factory-class="org.knime.dl.base.nodes.executor.DLExecutorNodeFactory">
       </node>
    </extension>
+   <extension
+         point="org.knime.core.PortType">
+      <portType
+            hidden="false"
+            name="Deep Learning Network"
+            objectClass="org.knime.dl.base.portobjects.DLNetworkPortObject"
+            objectSerializer="org.knime.dl.base.portobjects.DLNetworkPortObject$DummySerializer"
+            specClass="org.knime.dl.base.portobjects.DLNetworkPortObjectSpec">
+      </portType>
+   </extension>
 </plugin>

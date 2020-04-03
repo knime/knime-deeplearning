@@ -156,4 +156,14 @@
             name="Python Deep Learning">
       </page>
    </extension>
+   <extension
+         point="org.knime.core.PortType">
+      <portType
+            hidden="false"
+            name="Python-compatible Deep Learning Network"
+            objectClass="org.knime.dl.python.core.DLPythonNetworkPortObject"
+            objectSerializer="org.knime.dl.python.core.DLPythonNetworkPortObject$DummySerializer"
+            specClass="org.knime.dl.base.portobjects.DLNetworkPortObjectSpec">
+      </portType>
+   </extension>
 </plugin>
