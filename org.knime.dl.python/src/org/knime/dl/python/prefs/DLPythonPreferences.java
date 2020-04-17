@@ -54,6 +54,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChang
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
@@ -189,6 +190,19 @@ public class DLPythonPreferences {
             final boolean value = Platform.getPreferencesService().getBoolean(QUALIFIER, model.getConfigName(),
                 model.getBooleanValue(), null);
             model.setBooleanValue(value);
+        }
+
+        @Override
+        public void saveIntegerModel(final SettingsModelInteger model) {
+            getInstanceScopePreferences().putInt(model.getKey(), model.getIntValue());
+            flush();
+        }
+
+        @Override
+        public void loadIntegerModel(final SettingsModelInteger model) {
+            final int value =
+                Platform.getPreferencesService().getInt(QUALIFIER, model.getKey(), model.getIntValue(), null);
+            model.setIntValue(value);
         }
 
         @Override
