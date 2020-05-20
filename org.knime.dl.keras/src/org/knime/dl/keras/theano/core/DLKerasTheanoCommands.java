@@ -107,7 +107,7 @@ public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
     private static class DLKerasTheanoNetworkReaderCommands extends DLKerasAbstractNetworkReaderCommands {
 
         private DLKerasTheanoNetworkReaderCommands() {
-            super("from DLKerasTheanoNetwork import DLKerasTheanoNetworkReader", "DLKerasTheanoNetworkReader()");
+            super("from DLTF2NetworkReader import DLTF2NetworkReader", "DLTF2NetworkReader('theano')");
         }
     }
 }

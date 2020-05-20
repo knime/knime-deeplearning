@@ -107,7 +107,7 @@ public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
     private static class DLKerasCNTKNetworkReaderCommands extends DLKerasAbstractNetworkReaderCommands {
 
         private DLKerasCNTKNetworkReaderCommands() {
-            super("from DLKerasCNTKNetwork import DLKerasCNTKNetworkReader", "DLKerasCNTKNetworkReader()");
+            super("from DLTF2NetworkReader import DLTF2NetworkReader", "DLTF2NetworkReader('cntk')");
         }
     }
 }

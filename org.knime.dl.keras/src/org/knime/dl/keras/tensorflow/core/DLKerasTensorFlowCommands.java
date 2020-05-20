@@ -108,8 +108,7 @@ public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
     private static class DLKerasTensorFlowNetworkReaderCommands extends DLKerasAbstractNetworkReaderCommands {
 
         private DLKerasTensorFlowNetworkReaderCommands() {
-            super("from DLKerasTensorFlowNetwork import DLKerasTensorFlowNetworkReader",
-                "DLKerasTensorFlowNetworkReader()");
+            super("from DLTF2NetworkReader import DLTF2NetworkReader", "DLTF2NetworkReader('tensorflow')");
         }
     }
 }
