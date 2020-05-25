@@ -44,52 +44,67 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.keras.testing;
+package org.knime.dl.testing;
 
-import java.io.IOException;
-import java.util.Random;
+import java.util.OptionalDouble;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLSessionMonitor;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasNetworkPortObjectEqualityTest {
+public abstract class DLTestAbstractSessionMonitor implements DLSessionMonitor {
 
-	// TODO: These are just randomized coverage tests. Some more targeted tests would be useful (e.g. tests that check
-	// the inequality of networks that only differ in one property).
+	private Double m_progress = null;
 
-	@Test
-    public void testEquals() throws IOException {
-		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
-		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
-		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));
+	private String m_message = null;
 
-		final DLKerasNetworkPortObject po1 = new DLKerasNetworkPortObject(net1);
-		final DLKerasNetworkPortObject po2 = new DLKerasNetworkPortObject(net2);
-		final DLKerasNetworkPortObject po3 = new DLKerasNetworkPortObject(net3);
+	private boolean m_cancel = false;
 
-		Assert.assertEquals(po1, po2);
-		Assert.assertNotEquals(po1, po3);
-		Assert.assertNotEquals(po2, po3);
+	@Override
+	public OptionalDouble getProgress() {
+		return m_progress != null ? OptionalDouble.of(m_progress) : OptionalDouble.empty();
 	}
 
-	@Test
-    public void testHashCode() throws IOException {
-		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
-		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
-		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));
+	@Override
+	public void setProgress(final double progress) {
+		m_progress = progress;
+	}
 
-		final DLKerasNetworkPortObject po1 = new DLKerasNetworkPortObject(net1);
-		final DLKerasNetworkPortObject po2 = new DLKerasNetworkPortObject(net2);
-		final DLKerasNetworkPortObject po3 = new DLKerasNetworkPortObject(net3);
+	@Override
+	public void setProgress(final double progress, final String message) {
+		m_progress = progress;
+		m_message = message;
+	}
 
-		Assert.assertEquals(po1.hashCode(), po2.hashCode());
-		Assert.assertNotEquals(po1.hashCode(), po3.hashCode());
-		Assert.assertNotEquals(po2.hashCode(), po3.hashCode());
+	@Override
+	public String getMessage() {
+		return m_message;
+	}
+
+	@Override
+	public void setMessage(final String message) {
+		m_message = message;
+	}
+
+	@Override
+	public void checkCanceled() throws DLCanceledExecutionException {
+		if (m_cancel || Thread.currentThread().isInterrupted()) {
+			throw new DLCanceledExecutionException("Execution has been canceled.");
+		}
+	}
+
+	@Override
+	public void cancel() {
+		m_cancel = true;
+	}
+
+	@Override
+	public void reset() {
+		m_progress = null;
+		m_message = null;
+		m_cancel = false;
 	}
 }

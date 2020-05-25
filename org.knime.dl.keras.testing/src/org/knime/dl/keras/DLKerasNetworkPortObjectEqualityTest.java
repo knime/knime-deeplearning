@@ -43,17 +43,54 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 22, 2017 (marcel): created
  */
-package org.knime.dl.core;
+package org.knime.dl.keras;
 
-import org.knime.testing.core.AbstractTestcaseCollector;
+import java.io.IOException;
+import java.util.Random;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
+import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.keras.testing.DLKerasTestUtil;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLTestCaseCollector extends AbstractTestcaseCollector {
-	// registered at extension point, nothing to do here
+public class DLKerasNetworkPortObjectEqualityTest {
+
+	// TODO: These are just randomized coverage tests. Some more targeted tests would be useful (e.g. tests that check
+	// the inequality of networks that only differ in one property).
+
+	@Test
+    public void testEquals() throws IOException {
+		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
+		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
+		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));
+
+		final DLKerasNetworkPortObject po1 = new DLKerasNetworkPortObject(net1);
+		final DLKerasNetworkPortObject po2 = new DLKerasNetworkPortObject(net2);
+		final DLKerasNetworkPortObject po3 = new DLKerasNetworkPortObject(net3);
+
+		Assert.assertEquals(po1, po2);
+		Assert.assertNotEquals(po1, po3);
+		Assert.assertNotEquals(po2, po3);
+	}
+
+	@Test
+    public void testHashCode() throws IOException {
+		final DLKerasTensorFlowNetwork net1 = DLKerasTestUtil.randomNetwork(new Random(1234));
+		final DLKerasTensorFlowNetwork net2 = DLKerasTestUtil.randomNetwork(new Random(1234));
+		final DLKerasTensorFlowNetwork net3 = DLKerasTestUtil.randomNetwork(new Random(1235));
+
+		final DLKerasNetworkPortObject po1 = new DLKerasNetworkPortObject(net1);
+		final DLKerasNetworkPortObject po2 = new DLKerasNetworkPortObject(net2);
+		final DLKerasNetworkPortObject po3 = new DLKerasNetworkPortObject(net3);
+
+		Assert.assertEquals(po1.hashCode(), po2.hashCode());
+		Assert.assertNotEquals(po1.hashCode(), po3.hashCode());
+		Assert.assertNotEquals(po2.hashCode(), po3.hashCode());
+	}
 }

@@ -43,37 +43,52 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   May 23, 2017 (marcel): created
  */
-package org.knime.dl.keras.tensorflow.testing;
+package org.knime.dl.util;
 
-import java.net.URL;
+import static org.junit.Assert.assertEquals;
+
+import java.util.OptionalLong;
 
 import org.junit.Test;
-import org.knime.core.util.FileUtil;
-import org.knime.dl.core.DLNetworkReferenceLocation;
-import org.knime.dl.core.DLNotCancelable;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
-import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.core.DLDefaultFixedTensorShape;
+import org.knime.dl.core.DLDefaultPartialTensorShape;
+import org.knime.dl.core.DLTensorShape;
 import org.knime.dl.util.DLUtils;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasTensorFlowNetworkReaderTest {
-
-	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+public class DLShapeUtilTest {
 
 	@Test
-    public void test() throws Exception {
-		final URL source = FileUtil
-				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
-				new DLKerasTensorFlowNetworkLoader());
-        reader.read(new DLNetworkReferenceLocation(source.toURI()), true, DLNotCancelable.INSTANCE);
-		// TODO: test against known specs
+	public void testGetDimSizeFixedShape() throws Exception {
+		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
+		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
+		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
+		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
 	}
+
+	@Test
+	public void testGetDimSizePartialShape() throws Exception {
+		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
+				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
+		});
+		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
+		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
+		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	}
+
+	@Test (expected=IllegalArgumentException.class)
+	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
+		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
+		DLUtils.Shapes.getDimSize(shape, 3);
+	}
+
+	@Test (expected=IllegalArgumentException.class)
+	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
+		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
+		DLUtils.Shapes.getDimSize(shape, -1);
+	}
+
 }

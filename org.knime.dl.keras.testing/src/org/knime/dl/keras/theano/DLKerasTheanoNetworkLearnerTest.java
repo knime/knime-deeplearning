@@ -1,3 +1,4 @@
+package org.knime.dl.keras.theano;
 /// *
 // * ------------------------------------------------------------------------
 // *
@@ -48,12 +49,10 @@
 // */
 // package org.knime.dl.keras.theano.testing;
 //
-// import java.io.IOException;
 // import java.net.URL;
-// import java.util.Collections;
+// import java.util.HashMap;
 // import java.util.Map;
 // import java.util.Map.Entry;
-// import java.util.Set;
 //
 // import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 // import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -61,17 +60,20 @@
 // import org.junit.Test;
 // import org.knime.core.node.CanceledExecutionException;
 // import org.knime.core.util.FileUtil;
-// import org.knime.dl.core.DLNetworkSpec;
 // import org.knime.dl.core.DLTensor;
 // import org.knime.dl.core.DLTensorSpec;
 // import org.knime.dl.core.data.DLWritableBuffer;
 // import org.knime.dl.core.data.DLWritableFloatBuffer;
-// import org.knime.dl.core.execution.DLExecutableNetworkAdapter;
 // import org.knime.dl.core.DLNetworkInputPreparer;
+// import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
+// import org.knime.dl.keras.core.training.DLKerasLossFunction;
+// import org.knime.dl.keras.core.training.DLKerasOptimizer;
+// import org.knime.dl.keras.core.training.DLKerasTrainableNetworkAdapter;
+// import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 // import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 // import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
 // import
-/// org.knime.dl.keras.theano.core.execution.DLKerasTheanoDefaultExecutionContext;
+/// org.knime.dl.keras.theano.core.training.DLKerasTheanoDefaultTrainingContext;
 // import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 // import org.knime.dl.util.DLUtils;
 // import org.knime.python2.Activator;
@@ -81,10 +83,12 @@
 // * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
 // * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 // */
-// public class DLKerasTheanoNetworkExecutor1To1Test {
+// public class DLKerasTheanoNetworkLearnerTest {
 //
 // private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 //
+// // TODO: we somehow need to apply the appropriate preferences on the test
+/// machines
 // private static final String PYTHON_PATH =
 /// "/home/marcel/python-configs/knime_keras.sh";
 //
@@ -97,32 +101,40 @@
 // }
 //
 // @Test
-// public void test() throws Exception {
+// public void test1To1() throws Exception {
 // final URL source = FileUtil
 // .toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID,
-/// "data/my_2d_input_model.h5").getAbsolutePath());
-// final DLKerasTheanoDefaultExecutionContext exec = new
-/// DLKerasTheanoDefaultExecutionContext();
+/// "data/simple_test_model.h5").getAbsolutePath());
+// final DLKerasTheanoDefaultTrainingContext training = new
+/// DLKerasTheanoDefaultTrainingContext();
 // final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader = new
 /// DLPythonDefaultNetworkReader<>(
 // new DLKerasTheanoNetworkLoader());
-// DLKerasTheanoNetwork network;
-// try {
-// network = reader.read(source);
-// } catch (IllegalArgumentException | IOException e) {
-// throw new RuntimeException(e);
+// final DLKerasTheanoNetwork network = reader.read(source);
+// // training:
+// final int dataSetSize = 10;
+// final int batchSize = 1;
+// final int epochs = 2;
+// final DLKerasOptimizer optimizer =
+/// training.createOptimizers().iterator().next();
+// final DLKerasLossFunction loss =
+/// training.createLossFunctions().iterator().next();
+// final Map<DLTensorSpec, DLKerasLossFunction> losses = new
+/// HashMap<>(network.getSpec().getOutputSpecs().length);
+// for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
+// losses.put(network.getSpec().getOutputSpecs()[i], loss);
 // }
-// final DLNetworkSpec networkSpec = network.getSpec();
-// final Set<DLTensorSpec> selectedOutputs =
-/// Collections.singleton(networkSpec.getOutputSpecs()[0]);
-// try (final DLExecutableNetworkAdapter execNetwork = exec.executable(network,
-/// selectedOutputs)) {
-// execNetwork.execute(new DLNetworkInputPreparer<DLTensor<? extends
+// final DLKerasTrainingConfig config = new
+/// DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
+// null);
+// try (final DLKerasTrainableNetworkAdapter trainNetwork =
+/// training.trainable(network, config)) {
+// trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends
 /// DLWritableBuffer>>() {
 //
 // @Override
 // public long size() {
-// return -1;
+// return dataSetSize;
 // }
 //
 // @Override
@@ -134,10 +146,61 @@
 // populate(entry.getValue());
 // }
 // }
-// }, out -> {
-// // TODO: test against known results - this is sth. that should
-// // rather be tested via a test workflow
-// }, 1);
+// }, null);
+// // test:
+// // TODO!
+// }
+// }
+//
+// @Test
+// public void test2To2() throws Exception {
+// final URL source = FileUtil
+// .toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID,
+/// "data/multi_in_out.h5").getAbsolutePath());
+// final DLKerasTheanoDefaultTrainingContext training = new
+/// DLKerasTheanoDefaultTrainingContext();
+// final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader = new
+/// DLPythonDefaultNetworkReader<>(
+// new DLKerasTheanoNetworkLoader());
+// final DLKerasTheanoNetwork network = reader.read(source);
+// // training:
+// final int dataSetSize = 10;
+// final int batchSize = 1;
+// final int epochs = 2;
+// final DLKerasOptimizer optimizer =
+/// training.createOptimizers().iterator().next();
+// final DLKerasLossFunction loss =
+/// training.createLossFunctions().iterator().next();
+// final Map<DLTensorSpec, DLKerasLossFunction> losses = new
+/// HashMap<>(network.getSpec().getOutputSpecs().length);
+// for (int i = 0; i < network.getSpec().getOutputSpecs().length; i++) {
+// losses.put(network.getSpec().getOutputSpecs()[i], loss);
+// }
+// final DLKerasTrainingConfig config = new
+/// DLKerasDefaultTrainingConfig(batchSize, epochs, optimizer, losses,
+// null);
+// try (final DLKerasTrainableNetworkAdapter trainNetwork =
+/// training.trainable(network, config)) {
+// trainNetwork.train(new DLNetworkInputPreparer<DLTensor<? extends
+/// DLWritableBuffer>>() {
+//
+// @Override
+// public long size() {
+// return dataSetSize;
+// }
+//
+// @Override
+// public void prepare(final Map<DLTensorSpec, DLTensor<? extends
+/// DLWritableBuffer>> input,
+// final long batchIndex) throws CanceledExecutionException {
+// for (final Entry<DLTensorSpec, DLTensor<? extends DLWritableBuffer>> entry :
+/// input.entrySet()) {
+// populate(entry.getValue());
+// }
+// }
+// }, null);
+// // test:
+// // TODO!
 // }
 // }
 //

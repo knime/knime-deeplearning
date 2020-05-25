@@ -29,7 +29,6 @@
 		<module>org.knime.dl.keras.testing</module>
 		<module>org.knime.dl.python</module>
 		<module>org.knime.dl.python.testing</module>
-		<module>org.knime.dl.testing</module>
 		<module>org.knime.features.dl.keras</module>
 		<module>org.knime.update.deeplearning</module>
 	</modules>

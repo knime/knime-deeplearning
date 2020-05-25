@@ -46,7 +46,7 @@
  * History
  * Jun 21, 2017 (marcel): created
  */
-package org.knime.dl.python.testing;
+package org.knime.dl.python;
 
 import java.io.File;
 import java.io.IOException;

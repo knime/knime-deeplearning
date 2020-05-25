@@ -46,7 +46,7 @@
  * History
  *   May 23, 2017 (marcel): created
  */
-package org.knime.dl.keras.tensorflow.testing;
+package org.knime.dl.keras.tensorflow;
 
 import java.net.URL;
 import java.util.Arrays;

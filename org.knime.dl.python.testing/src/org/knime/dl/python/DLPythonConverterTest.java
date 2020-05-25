@@ -46,7 +46,7 @@
  * History
  *   Jun 28, 2017 (marcel): created
  */
-package org.knime.dl.python.testing;
+package org.knime.dl.python;
 
 import java.util.Arrays;
 import java.util.HashMap;

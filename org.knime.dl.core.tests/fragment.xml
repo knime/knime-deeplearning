@@ -3,7 +3,7 @@
 <fragment>
 	<extension point="org.knime.testing.TestcaseCollector">
 		<TestcaseCollector
-        TestcaseCollector="org.knime.dl.core.DLTestCaseCollector">
+        TestcaseCollector="org.knime.dl.testing.DLTestCaseCollector">
 		</TestcaseCollector>
 	</extension>
 </fragment>

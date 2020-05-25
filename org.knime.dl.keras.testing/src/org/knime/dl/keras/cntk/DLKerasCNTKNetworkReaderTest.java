@@ -1,3 +1,4 @@
+package org.knime.dl.keras.cntk;
 /// *
 // * ------------------------------------------------------------------------
 // *
@@ -46,7 +47,7 @@
 // * History
 // * May 23, 2017 (marcel): created
 // */
-// package org.knime.dl.keras.theano.testing;
+// package org.knime.dl.keras.cntk.testing;
 //
 // import java.io.IOException;
 // import java.net.MalformedURLException;
@@ -60,8 +61,8 @@
 // import org.knime.core.util.FileUtil;
 // import org.knime.dl.core.DLInvalidEnvironmentException;
 // import org.knime.dl.core.DLInvalidSourceException;
-// import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
-// import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
+// import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
+// import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 // import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 // import org.knime.dl.util.DLUtils;
 // import org.knime.python2.Activator;
@@ -71,31 +72,27 @@
 // * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
 // * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
 // */
-// public class DLKerasTheanoNetworkReaderTest {
+// public class DLKerasCNTKNetworkReaderTest {
 //
 // private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
 //
-// private static final String PYTHON_PATH =
-/// "/home/marcel/python-configs/knime_keras.sh";
+// private static final String PYTHON_PATH = "/home/marcel/python-configs/knime_keras.sh";
 //
 // @Before
 // public void setup() throws Exception {
-// final IEclipsePreferences prefs =
-/// InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+// final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
 // prefs.put(PythonPreferencePage.PYTHON_3_PATH_CFG, PYTHON_PATH);
 // prefs.flush();
 // }
 //
+// // TODO
 // @Test
-// public void test() throws InvalidPathException, MalformedURLException,
-/// IOException, DLInvalidSourceException,
+// public void test() throws InvalidPathException, MalformedURLException, IOException, DLInvalidSourceException,
 // DLInvalidEnvironmentException {
 // final URL source = FileUtil
-// .toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID,
-/// "data/simple_test_model.h5").getAbsolutePath());
-// final DLPythonDefaultNetworkReader<DLKerasTheanoNetwork> reader =
-// new DLPythonDefaultNetworkReader<>(new DLKerasTheanoNetworkLoader());
+// .toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/simple_test_model.h5").getAbsolutePath());
+// final DLPythonDefaultNetworkReader<DLKerasCNTKNetwork> reader = new DLPythonDefaultNetworkReader<>(
+// new DLKerasCNTKNetworkLoader());
 // reader.read(source);
-// // TODO: test against known specs
 // }
 // }

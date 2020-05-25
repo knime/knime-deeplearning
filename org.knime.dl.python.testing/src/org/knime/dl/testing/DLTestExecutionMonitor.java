@@ -44,50 +44,28 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.util;
+package org.knime.dl.testing;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.OptionalLong;
-
-import org.junit.Test;
-import org.knime.dl.core.DLDefaultFixedTensorShape;
-import org.knime.dl.core.DLDefaultPartialTensorShape;
-import org.knime.dl.core.DLTensorShape;
+import org.knime.dl.core.DLSessionMonitor;
+import org.knime.dl.core.execution.DLDefaultExecutionStatus;
+import org.knime.dl.core.execution.DLExecutionMonitor;
+import org.knime.dl.core.execution.DLExecutionStatus;
 
 /**
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLShapeUtilTest {
+public final class DLTestExecutionMonitor extends DLTestAbstractSessionMonitor implements DLExecutionMonitor {
 
-	@Test
-	public void testGetDimSizeFixedShape() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.of(2), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	final DLExecutionStatus m_executionStatus = new DLDefaultExecutionStatus();
+
+	@Override
+	public DLExecutionStatus getExecutionStatus() {
+		return m_executionStatus;
 	}
 
-	@Test
-	public void testGetDimSizePartialShape() throws Exception {
-		DLTensorShape shape = new DLDefaultPartialTensorShape(new OptionalLong[] {
-				OptionalLong.of(1), OptionalLong.empty(), OptionalLong.of(3)
-		});
-		assertEquals(OptionalLong.of(1), DLUtils.Shapes.getDimSize(shape, 0));
-		assertEquals(OptionalLong.empty(), DLUtils.Shapes.getDimSize(shape, 1));
-		assertEquals(OptionalLong.of(3), DLUtils.Shapes.getDimSize(shape, 2));
+	@Override
+	public DLSessionMonitor createSubMonitor(final double fraction) {
+		throw new RuntimeException("not yet implemented"); // TODO: NYI
 	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnIndexTooLarge() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, 3);
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void testGetDimSizeFailsOnNegativeIndex() throws Exception {
-		DLTensorShape shape = new DLDefaultFixedTensorShape(new long[] {1, 2, 3});
-		DLUtils.Shapes.getDimSize(shape, -1);
-	}
-
 }
