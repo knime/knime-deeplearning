@@ -65,7 +65,7 @@ import org.knime.dl.util.DLUtils;
  */
 public class DLKerasTensorFlowNetworkReaderTest {
 
-	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+	private static final String BUNDLE_ID = "org.knime.dl.keras.tests";
 
 	@Test
     public void test() throws Exception {

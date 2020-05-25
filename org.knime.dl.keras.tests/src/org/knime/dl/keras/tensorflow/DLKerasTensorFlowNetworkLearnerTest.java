@@ -93,7 +93,7 @@ import org.knime.dl.util.DLUtils;
 // TODO: introduce abstract base class for back end tests
 public class DLKerasTensorFlowNetworkLearnerTest {
 
-	private static final String BUNDLE_ID = "org.knime.dl.keras.testing";
+	private static final String BUNDLE_ID = "org.knime.dl.keras.tests";
 
 	@Test
 	public void test1To1() throws Exception {

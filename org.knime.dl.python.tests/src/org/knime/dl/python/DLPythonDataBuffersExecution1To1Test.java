@@ -121,7 +121,7 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	private static final String[] REQUESTED_OUT_TENSORS = { OUT_TENSOR_NAME };
 
-	private static final String BUNDLE_ID = "org.knime.dl.python.testing";
+	private static final String BUNDLE_ID = "org.knime.dl.python.tests";
 
 	private static final DLCancelable CANCELABLE = DLNotCancelable.INSTANCE;
 
