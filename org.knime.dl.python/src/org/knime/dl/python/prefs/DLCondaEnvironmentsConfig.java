@@ -43,79 +43,105 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 12, 2020 (benjamin): created
  */
 package org.knime.dl.python.prefs;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
-import org.knime.python2.Conda;
-import org.knime.python2.PythonCommand;
-import org.knime.python2.PythonVersion;
+import org.knime.python2.config.CondaEnvironmentsConfig;
 import org.knime.python2.config.PythonConfigStorage;
+import org.knime.python2.prefs.PythonPreferences;
 
 /**
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Benjain Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
+final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
+
+    private static final String CFG_KEY_CONDA_DIRECTORY_PATH = "condaDirectoryPath";
+
+    // Note: this key is used for backwards compatibility
+    private static final String CFG_KEY_KERAS_CONDA_ENV_NAME = "condaEnvironmentName";
+
+    private static final String CFG_KEY_TF2_CONDA_ENV_NAME = "tf2CondaEnvironmentName";
 
     private static final String CFG_KEY_DUMMY = "dummy";
 
-    static final String DEFAULT_ENVIRONMENT_NAME = "<no environment>";
-
-    private final SettingsModelString m_environmentName;
-
     private final SettingsModelString m_condaDirectory;
 
-    private final SettingsModelStringArray m_availableEnvironments;
-    /**
-     * Create a new conda environment config for deep learning.
-     */
-    DLCondaEnvironmentConfig(final String configKey, final SettingsModelString condaDirectory) {
-        // Configuration
-        m_condaDirectory = condaDirectory;
-        m_environmentName = new SettingsModelString(configKey, DEFAULT_ENVIRONMENT_NAME);
+    private final SettingsModelString m_condaInstallationInfo;
 
-        // Helper settings models
-        m_availableEnvironments = new SettingsModelStringArray(CFG_KEY_DUMMY, new String[]{DEFAULT_ENVIRONMENT_NAME});
+    private final SettingsModelString m_condaInstallationError;
+
+    private final DLCondaEnvironmentConfig m_kerasEnvironmentConfig;
+
+    private final DLCondaEnvironmentConfig m_tf2EnvironmentConfig;
+
+    DLCondaEnvironmentsConfig() {
+        // Conda config
+        m_condaDirectory =
+            new SettingsModelString(CFG_KEY_CONDA_DIRECTORY_PATH, PythonPreferences.getCondaInstallationPath());
+        m_condaInstallationInfo = new SettingsModelString(CFG_KEY_DUMMY, "");
+        m_condaInstallationError = new SettingsModelString(CFG_KEY_DUMMY, "");
+
+        // Environments
+        m_kerasEnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_KERAS_CONDA_ENV_NAME, m_condaDirectory);
+        m_tf2EnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_TF2_CONDA_ENV_NAME, m_condaDirectory);
     }
 
     @Override
-    public PythonCommand getPythonCommand() {
-        return Conda.createPythonCommand(PythonVersion.PYTHON3, m_condaDirectory.getStringValue(),
-            m_environmentName.getStringValue());
+    public DLCondaEnvironmentConfig getKerasConfig() {
+        return m_kerasEnvironmentConfig;
+    }
+
+    @Override
+    public DLCondaEnvironmentConfig getTF2Config() {
+        return m_tf2EnvironmentConfig;
     }
 
     /**
-     * @return The name of the Python Conda environment.
+     * @return The path to the conda directory
      */
-    public SettingsModelString getEnvironmentName() {
-        return m_environmentName;
+    public SettingsModelString getCondaDirectoryPath() {
+        return m_condaDirectory;
     }
 
     /**
-     * @return The list of currently available Python Conda environments. Not meant for saving/loading.
+     * @return The installation status message of the local Conda installation. Not meant for saving/loading.
      */
-    public SettingsModelStringArray getAvailableEnvironmentNames() {
-        return m_availableEnvironments;
+    public SettingsModelString getCondaInstallationInfo() {
+        return m_condaInstallationInfo;
+    }
+
+    /**
+     * @return The installation error message of the local Conda installation. Not meant for saving/loading.
+     */
+    public SettingsModelString getCondaInstallationError() {
+        return m_condaInstallationError;
     }
 
     @Override
     public void saveConfigTo(final PythonConfigStorage storage) {
         storage.saveStringModel(m_condaDirectory);
-        storage.saveStringModel(m_environmentName);
+        m_kerasEnvironmentConfig.saveConfigTo(storage);
+        m_tf2EnvironmentConfig.saveConfigTo(storage);
     }
 
     @Override
     public void loadConfigFrom(final PythonConfigStorage storage) {
         storage.loadStringModel(m_condaDirectory);
-        storage.loadStringModel(m_environmentName);
+        m_kerasEnvironmentConfig.loadConfigFrom(storage);
+        m_tf2EnvironmentConfig.loadConfigFrom(storage);
     }
 
     /**
      * Load the default configuration
      */
     void loadDefaults() {
-        m_environmentName.setStringValue(DEFAULT_ENVIRONMENT_NAME);
-        m_availableEnvironments.setStringArrayValue(new String[]{DEFAULT_ENVIRONMENT_NAME});
+        m_condaDirectory.setStringValue(CondaEnvironmentsConfig.getDefaultCondaInstallationDirectory());
+        m_condaInstallationInfo.setStringValue("");
+        m_condaInstallationError.setStringValue("");
+        m_kerasEnvironmentConfig.loadDefaults();
+        m_tf2EnvironmentConfig.loadDefaults();
     }
 }

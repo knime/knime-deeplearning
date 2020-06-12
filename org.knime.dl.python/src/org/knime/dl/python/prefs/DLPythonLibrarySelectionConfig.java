@@ -43,54 +43,50 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 12, 2020 (benjamin): created
  */
 package org.knime.dl.python.prefs;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.knime.python2.config.AbstractPythonConfigPanel;
-import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.python2.config.PythonConfig;
+import org.knime.python2.config.PythonConfigStorage;
 
 /**
+ * A config which save a {@link DLPythonLibrarySelection}.
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
+final class DLPythonLibrarySelectionConfig implements PythonConfig {
 
-    DLManualEnvironmetPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
-        super(config, parent);
-        final Composite panel = getPanel();
-        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), panel);
-        createTF2EnvironmentSelectionPanel(config.getTF2Config(), panel);
+    private static final String CFG_KEY_LIBRARY_SELECTION = "librarySelection";
+
+    private static final String DEFAULT_LIBRARY_SELECTION = DLPythonLibrarySelection.KERAS.getId();
+
+    private final SettingsModelString m_librarySelection;
+
+    DLPythonLibrarySelectionConfig() {
+        m_librarySelection = new SettingsModelString(CFG_KEY_LIBRARY_SELECTION, DEFAULT_LIBRARY_SELECTION);
     }
 
-    private static void createKerasEnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, config, parent);
-    }
-
-    private static void createTF2EnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, config, parent);
-    }
-
-    private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLManualEnvironmentConfig config, final Composite parent) {
-        final StatusDisplayingFilePathEditor pythonPathEditor =
-            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, envType.getName(),
-                "Path to the " + envType.getName() + " Python start script", config.getPythonInstallationInfo(),
-                config.getPythonInstallationWarning(), config.getPythonInstallationError(), parent);
-        final GridData gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        pythonPathEditor.setLayoutData(gridData);
+    /**
+     * @return the library selection
+     */
+    SettingsModelString getLibrarySelection() {
+        return m_librarySelection;
     }
 
     @Override
-    protected Composite createPanel(final Composite parent) {
-        final Composite panel = new Composite(parent, SWT.NONE);
-        panel.setLayout(new GridLayout());
-        return panel;
+    public void saveConfigTo(final PythonConfigStorage storage) {
+        storage.saveStringModel(m_librarySelection);
+    }
+
+    @Override
+    public void loadConfigFrom(final PythonConfigStorage storage) {
+        storage.loadStringModel(m_librarySelection);
+    }
+
+    void loadDefaults() {
+        m_librarySelection.setStringValue(DEFAULT_LIBRARY_SELECTION);
     }
 }

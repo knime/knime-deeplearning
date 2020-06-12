@@ -43,54 +43,27 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 12, 2020 (benjamin): created
  */
 package org.knime.dl.python.prefs;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.knime.python2.config.AbstractPythonConfigPanel;
-import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
+import org.knime.python2.config.PythonConfig;
 
 /**
+ * A configuration for deep learning Python environments.
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
+interface DLPythonEnvironmentsConfig extends PythonConfig {
 
-    DLManualEnvironmetPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
-        super(config, parent);
-        final Composite panel = getPanel();
-        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), panel);
-        createTF2EnvironmentSelectionPanel(config.getTF2Config(), panel);
-    }
+    /**
+     * @return the config for the Keras environment.
+     */
+    DLPythonEnvironmentConfig getKerasConfig();
 
-    private static void createKerasEnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, config, parent);
-    }
-
-    private static void createTF2EnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, config, parent);
-    }
-
-    private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLManualEnvironmentConfig config, final Composite parent) {
-        final StatusDisplayingFilePathEditor pythonPathEditor =
-            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, envType.getName(),
-                "Path to the " + envType.getName() + " Python start script", config.getPythonInstallationInfo(),
-                config.getPythonInstallationWarning(), config.getPythonInstallationError(), parent);
-        final GridData gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        pythonPathEditor.setLayoutData(gridData);
-    }
-
-    @Override
-    protected Composite createPanel(final Composite parent) {
-        final Composite panel = new Composite(parent, SWT.NONE);
-        panel.setLayout(new GridLayout());
-        return panel;
-    }
+    /**
+     * @return the config for the TensorFlow 2 environment.
+     */
+    DLPythonEnvironmentConfig getTF2Config();
 }

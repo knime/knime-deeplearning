@@ -59,7 +59,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.config.PythonConfigStorage;
-import org.knime.python2.config.PythonEnvironmentConfig;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
@@ -97,6 +96,15 @@ public class DLPythonPreferences {
     }
 
     /**
+     * @return the config selection which library should be used for the DL Python nodes
+     */
+    public static DLPythonLibrarySelection getLibrarySelectionPreference() {
+        final DLPythonLibrarySelectionConfig config = new DLPythonLibrarySelectionConfig();
+        config.loadConfigFrom(CURRENT);
+        return DLPythonLibrarySelection.fromId(config.getLibrarySelection().getStringValue());
+    }
+
+    /**
      * @return the currently selected Python environment type (Conda v. manual)
      */
     public static PythonEnvironmentType getEnvironmentTypePreference() {
@@ -110,26 +118,25 @@ public class DLPythonPreferences {
     }
 
     /**
-     * @return the currently selected default Python command
+     * @return the currently selected default Python command. Use {@link #getPythonKerasCommandPreference()} or
+     *         {@link #getPythonTF2CommandPreference()} to get the commands for Keras or TensorFlow 2.
      */
     public static PythonCommand getPythonCommandPreference() {
-        if (usePythonPreferences()) {
-            return PythonPreferences.getPython3CommandPreference();
-        } else {
-            final PythonEnvironmentType envType = getEnvironmentTypePreference();
-            final PythonEnvironmentConfig envConfig;
-            if (PythonEnvironmentType.CONDA.equals(envType)) {
-                envConfig = new DLCondaEnvironmentConfig();
-            } else if (PythonEnvironmentType.MANUAL.equals(envType)) {
-                envConfig = new DLManualEnvironmentConfig();
-            } else {
-                throw new IllegalStateException(
-                    "Selected deep learning Python environment is neighter Conda nor manual. "
-                        + "This is an implementation error.");
-            }
-            envConfig.loadConfigFrom(CURRENT);
-            return envConfig.getPythonCommand();
-        }
+        return getPythonCommandFor(getLibrarySelectionPreference());
+    }
+
+    /**
+     * @return the currently selected Python command for a Keras environment
+     */
+    public static PythonCommand getPythonKerasCommandPreference() {
+        return getPythonCommandFor(DLPythonLibrarySelection.KERAS);
+    }
+
+    /**
+     * @return the currently selected Python command for a TensorFlow 2 environment
+     */
+    public static PythonCommand getPythonTF2CommandPreference() {
+        return getPythonCommandFor(DLPythonLibrarySelection.TF2);
     }
 
     /**
@@ -169,6 +176,39 @@ public class DLPythonPreferences {
      */
     public static void removePreferencesChangeListener(final IPreferenceChangeListener listener) {
         InstanceScopeConfigStorage.getInstanceScopePreferences().removePreferenceChangeListener(listener);
+    }
+
+    /** @return the python command for the given environment selection */
+    private static PythonCommand getPythonCommandFor(final DLPythonLibrarySelection envSelection) {
+        if (usePythonPreferences()) {
+            return PythonPreferences.getPython3CommandPreference();
+        } else {
+            final DLPythonEnvironmentsConfig envsConfig = getEnvironmentsConfig();
+            if (DLPythonLibrarySelection.KERAS.equals(envSelection)) {
+                return envsConfig.getKerasConfig().getPythonCommand();
+            } else if (DLPythonLibrarySelection.TF2.equals(envSelection)) {
+                return envsConfig.getTF2Config().getPythonCommand();
+            } else {
+                throw new IllegalStateException("Deep learning Python environment is neither Keras nor TensorFlow 2. "
+                    + "This is an implementation error");
+            }
+        }
+    }
+
+    /** @return the selected environment configs (conda or manual). Only valid if DL is selected */
+    private static DLPythonEnvironmentsConfig getEnvironmentsConfig() {
+        final PythonEnvironmentType envType = getEnvironmentTypePreference();
+        final DLPythonEnvironmentsConfig envsConfig;
+        if (PythonEnvironmentType.CONDA.equals(envType)) {
+            envsConfig = new DLCondaEnvironmentsConfig();
+        } else if (PythonEnvironmentType.MANUAL.equals(envType)) {
+            envsConfig = new DLManualEnvironmentsConfig();
+        } else {
+            throw new IllegalStateException("Selected deep learning Python environment is neither Conda nor manual. "
+                + "This is an implementation error.");
+        }
+        envsConfig.loadConfigFrom(CURRENT);
+        return envsConfig;
     }
 
     private static final class InstanceScopeConfigStorage implements PythonConfigStorage {

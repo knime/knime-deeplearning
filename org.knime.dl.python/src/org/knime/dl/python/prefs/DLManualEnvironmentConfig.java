@@ -59,14 +59,12 @@ import org.knime.python2.config.PythonConfigStorage;
  */
 final class DLManualEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
 
-    private static final String CFG_KEY_MANUAL = "manualConfig";
-
     private static final String DEFAULT_PYTHON_PATH = "python3";
 
     private final ManualEnvironmentConfig m_envConfig;
 
-    DLManualEnvironmentConfig() {
-        m_envConfig = new ManualEnvironmentConfig(PythonVersion.PYTHON3, CFG_KEY_MANUAL, DEFAULT_PYTHON_PATH);
+    DLManualEnvironmentConfig(final String configKey) {
+        m_envConfig = new ManualEnvironmentConfig(PythonVersion.PYTHON3, configKey, DEFAULT_PYTHON_PATH);
     }
 
     /**

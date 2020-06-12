@@ -43,54 +43,75 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 12, 2020 (benjamin): created
  */
 package org.knime.dl.python.prefs;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.knime.python2.config.AbstractPythonConfigPanel;
-import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
-
 /**
+ * An enum to select if the Keras or TF2 environment should be used by default.
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
+public enum DLPythonLibrarySelection {
 
-    DLManualEnvironmetPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
-        super(config, parent);
-        final Composite panel = getPanel();
-        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), panel);
-        createTF2EnvironmentSelectionPanel(config.getTF2Config(), panel);
+        /** Use the Keras environment for the DL Python nodes */
+        KERAS("keras", "Keras"),
+
+        /** Use the TensorFlow 2 environment for the DL Python nodes */
+        TF2("tf2", "TensorFlow 2");
+
+    private final String m_id;
+
+    private final String m_name;
+
+    /**
+     * @param configSelectionId the {@link #getId() id} of the {@link DLPythonLibrarySelection} to return
+     * @return the config selection of the given id
+     */
+    static DLPythonLibrarySelection fromId(final String configSelectionId) {
+        if (KERAS.getId().equals(configSelectionId)) {
+            return KERAS;
+        } else if (TF2.getId().equals(configSelectionId)) {
+            return TF2;
+        } else {
+            throw new IllegalStateException("Config selection '" + configSelectionId
+                + "' is neither keras nor tf2. This is an implementation error.");
+        }
     }
 
-    private static void createKerasEnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, config, parent);
+    /**
+     * @param configSelectionName the {@link #getName() name} of the {@link DLPythonLibrarySelection} to return
+     * @return the config selection of the given name
+     */
+    static DLPythonLibrarySelection fromName(final String configSelectionName) {
+        if (KERAS.getName().equals(configSelectionName)) {
+            return KERAS;
+        } else if (TF2.getName().equals(configSelectionName)) {
+            return TF2;
+        } else {
+            throw new IllegalStateException("Config selection '" + configSelectionName
+                + "' is neither keras nor tf2. This is an implementation error.");
+        }
     }
 
-    private static void createTF2EnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, config, parent);
+    private DLPythonLibrarySelection(final String id, final String name) {
+        m_id = id;
+        m_name = name;
     }
 
-    private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLManualEnvironmentConfig config, final Composite parent) {
-        final StatusDisplayingFilePathEditor pythonPathEditor =
-            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, envType.getName(),
-                "Path to the " + envType.getName() + " Python start script", config.getPythonInstallationInfo(),
-                config.getPythonInstallationWarning(), config.getPythonInstallationError(), parent);
-        final GridData gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        pythonPathEditor.setLayoutData(gridData);
+    /**
+     * @return the id of this config selection. Suitable for serialization etc.
+     */
+    String getId() {
+        return m_id;
     }
 
-    @Override
-    protected Composite createPanel(final Composite parent) {
-        final Composite panel = new Composite(parent, SWT.NONE);
-        panel.setLayout(new GridLayout());
-        return panel;
+    /**
+     * @return the name of this config selection. Suitable for use in a user interface.
+     */
+    String getName() {
+        return m_name;
     }
 }

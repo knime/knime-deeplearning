@@ -43,54 +43,58 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 12, 2020 (benjamin): created
  */
 package org.knime.dl.python.prefs;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.knime.python2.config.AbstractPythonConfigPanel;
-import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
+import org.knime.python2.config.PythonConfigStorage;
 
 /**
+ * A config for the manual selection of a Keras and TF2 environment.
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
+final class DLManualEnvironmentsConfig implements DLPythonEnvironmentsConfig {
 
-    DLManualEnvironmetPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
-        super(config, parent);
-        final Composite panel = getPanel();
-        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), panel);
-        createTF2EnvironmentSelectionPanel(config.getTF2Config(), panel);
-    }
+    // Note: this key is used for backwards compatibility
+    private static final String CFG_KEY_KERAS = "manualConfig";
 
-    private static void createKerasEnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, config, parent);
-    }
+    private static final String CFG_KEY_TF2 = "tf2ManualConfig";
 
-    private static void createTF2EnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
-        final Composite parent) {
-        createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, config, parent);
-    }
+    private final DLManualEnvironmentConfig m_kerasEnvironmentConfig;
 
-    private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLManualEnvironmentConfig config, final Composite parent) {
-        final StatusDisplayingFilePathEditor pythonPathEditor =
-            new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, envType.getName(),
-                "Path to the " + envType.getName() + " Python start script", config.getPythonInstallationInfo(),
-                config.getPythonInstallationWarning(), config.getPythonInstallationError(), parent);
-        final GridData gridData = new GridData();
-        gridData.horizontalAlignment = SWT.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        pythonPathEditor.setLayoutData(gridData);
+    private final DLManualEnvironmentConfig m_tf2EnvironmentConfig;
+
+    DLManualEnvironmentsConfig() {
+        m_kerasEnvironmentConfig = new DLManualEnvironmentConfig(CFG_KEY_KERAS);
+        m_tf2EnvironmentConfig = new DLManualEnvironmentConfig(CFG_KEY_TF2);
     }
 
     @Override
-    protected Composite createPanel(final Composite parent) {
-        final Composite panel = new Composite(parent, SWT.NONE);
-        panel.setLayout(new GridLayout());
-        return panel;
+    public DLManualEnvironmentConfig getKerasConfig() {
+        return m_kerasEnvironmentConfig;
+    }
+
+    @Override
+    public DLManualEnvironmentConfig getTF2Config() {
+        return m_tf2EnvironmentConfig;
+    }
+
+    @Override
+    public void saveConfigTo(final PythonConfigStorage storage) {
+        m_kerasEnvironmentConfig.saveConfigTo(storage);
+        m_tf2EnvironmentConfig.saveConfigTo(storage);
+    }
+
+    @Override
+    public void loadConfigFrom(final PythonConfigStorage storage) {
+        m_kerasEnvironmentConfig.loadConfigFrom(storage);
+        m_tf2EnvironmentConfig.loadConfigFrom(storage);
+    }
+
+    void loadDefaults() {
+        m_kerasEnvironmentConfig.loadDefaults();
+        m_tf2EnvironmentConfig.loadDefaults();
     }
 }

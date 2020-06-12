@@ -101,6 +101,8 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private StackLayout m_environmentConfigurationLayout;
 
+    private DLPythonLibrarySelectionPanel m_librarySelectionPanel;
+
     private DLCondaEnvironmentPreferencePanel m_condaEnvironmentPanel;
 
     private DLManualEnvironmetPreferencePanel m_manualEnvironmentPanel;
@@ -126,6 +128,9 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         @SuppressWarnings("unused")
         Object unused = new DLPythonConfigSelectionPanel(m_config.m_configSelection, m_container);
 
+        // Library selection (Keras or TensorFlow 2)
+        m_librarySelectionPanel = new DLPythonLibrarySelectionPanel(m_config.m_librarySelection, m_container);
+
         m_environmentConfigurationGroup = new Group(m_container, SWT.NONE);
         m_environmentConfigurationGroup.setText("Deep Learning Python environment configuration");
         m_environmentConfigurationGroup.setLayout(new GridLayout());
@@ -145,14 +150,14 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
         // Conda environment configuration, including environment creation dialogs:
         final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator =
-            new DLCondaEnvironmentCreationObserver(m_config.m_condaEnv.getCondaDirectoryPath());
+            new DLCondaEnvironmentCreationObserver(m_config.m_condaEnvs.getCondaDirectoryPath());
 
-        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnv, pythonEnvironmentCreator,
+        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, pythonEnvironmentCreator,
             environmentConfigurationPanel);
 
         // Manual environment configuration:
         m_manualEnvironmentPanel =
-            new DLManualEnvironmetPreferencePanel(m_config.m_manualEnv, environmentConfigurationPanel);
+            new DLManualEnvironmetPreferencePanel(m_config.m_manualEnvs, environmentConfigurationPanel);
 
         m_serializerPanel = new SerializerPreferencePanel(m_config.m_serializer, m_container);
 
@@ -166,7 +171,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_config.m_configSelection.getConfigSelection().addChangeListener(e -> updateConfigSelection());
 
         m_configObserver = new DLPythonConfigsObserver(m_config.m_configSelection, m_config.m_envType,
-            m_config.m_condaEnv, pythonEnvironmentCreator, m_config.m_manualEnv, m_config.m_serializer);
+            m_config.m_condaEnvs, pythonEnvironmentCreator, m_config.m_manualEnvs, m_config.m_serializer);
 
         m_configObserver.addConfigsTestStatusListener(new PythonConfigsInstallationTestStatusChangeListener() {
 
@@ -261,6 +266,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
     }
 
     private void enableEnvConfig(final boolean enabled) {
+        enable(m_librarySelectionPanel.getPanel(), enabled);
         enable(m_environmentConfigurationGroup, enabled);
         enable(m_serializerPanel.getPanel(), enabled);
     }
@@ -303,37 +309,42 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
         private final DLPythonConfigSelectionConfig m_configSelection = new DLPythonConfigSelectionConfig();
 
+        private final DLPythonLibrarySelectionConfig m_librarySelection = new DLPythonLibrarySelectionConfig();
+
         private final PythonEnvironmentTypeConfig m_envType = new PythonEnvironmentTypeConfig();
 
-        private final DLCondaEnvironmentConfig m_condaEnv = new DLCondaEnvironmentConfig();
+        private final DLCondaEnvironmentsConfig m_condaEnvs = new DLCondaEnvironmentsConfig();
 
-        private final DLManualEnvironmentConfig m_manualEnv = new DLManualEnvironmentConfig();
+        private final DLManualEnvironmentsConfig m_manualEnvs = new DLManualEnvironmentsConfig();
 
         private final SerializerConfig m_serializer = new SerializerConfig();
 
         private void save() {
             final PythonConfigStorage currentPrefs = DLPythonPreferences.CURRENT;
             m_configSelection.saveConfigTo(currentPrefs);
+            m_librarySelection.saveConfigTo(currentPrefs);
             m_envType.saveConfigTo(currentPrefs);
-            m_condaEnv.saveConfigTo(currentPrefs);
-            m_manualEnv.saveConfigTo(currentPrefs);
+            m_condaEnvs.saveConfigTo(currentPrefs);
+            m_manualEnvs.saveConfigTo(currentPrefs);
             m_serializer.saveConfigTo(currentPrefs);
         }
 
         private void load() {
             final PythonConfigStorage currentPrefs = DLPythonPreferences.CURRENT;
             m_configSelection.loadConfigFrom(currentPrefs);
+            m_librarySelection.loadConfigFrom(currentPrefs);
             m_envType.loadConfigFrom(currentPrefs);
-            m_condaEnv.loadConfigFrom(currentPrefs);
-            m_manualEnv.loadConfigFrom(currentPrefs);
+            m_condaEnvs.loadConfigFrom(currentPrefs);
+            m_manualEnvs.loadConfigFrom(currentPrefs);
             m_serializer.loadConfigFrom(currentPrefs);
         }
 
         private void loadDefaults() {
             m_configSelection.loadDefaults();
+            m_librarySelection.loadDefaults();
             m_envType.getEnvironmentType().setStringValue(PythonEnvironmentTypeConfig.DEFAULT_ENVIRONMENT_TYPE);
-            m_condaEnv.loadDefaults();
-            m_manualEnv.loadDefaults();
+            m_condaEnvs.loadDefaults();
+            m_manualEnvs.loadDefaults();
             m_serializer.getSerializer().setStringValue(SerializerConfig.DEFAULT_SERIALIZER);
             m_serializer.getSerializerError().setStringValue("");
         }
