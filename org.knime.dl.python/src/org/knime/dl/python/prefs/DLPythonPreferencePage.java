@@ -69,9 +69,8 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.knime.core.node.NodeLogger;
+import org.knime.dl.python.prefs.DLTestStatusChangeListenerCollection.DLPythonConfigsInstallationTestStatusChangeListener;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
-import org.knime.python2.PythonVersion;
-import org.knime.python2.config.AbstractPythonConfigsObserver.PythonConfigsInstallationTestStatusChangeListener;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
@@ -149,10 +148,12 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         environmentConfigurationPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Conda environment configuration, including environment creation dialogs:
-        final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator =
-            new DLCondaEnvironmentCreationObserver(m_config.m_condaEnvs.getCondaDirectoryPath());
+        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator = new DLCondaEnvironmentCreationObserver(
+            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.KERAS);
+        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator = new DLCondaEnvironmentCreationObserver(
+            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.TF2);
 
-        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, pythonEnvironmentCreator,
+        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, kerasEnvironmentCreator, tf2EnvironmentCreator,
             environmentConfigurationPanel);
 
         // Manual environment configuration:
@@ -170,20 +171,21 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         m_config.m_envType.getEnvironmentType().addChangeListener(e -> updateEnvironmentType());
         m_config.m_configSelection.getConfigSelection().addChangeListener(e -> updateConfigSelection());
 
-        m_configObserver = new DLPythonConfigsObserver(m_config.m_configSelection, m_config.m_envType,
-            m_config.m_condaEnvs, pythonEnvironmentCreator, m_config.m_manualEnvs, m_config.m_serializer);
+        m_configObserver =
+            new DLPythonConfigsObserver(m_config.m_configSelection, m_config.m_envType, m_config.m_condaEnvs,
+                kerasEnvironmentCreator, tf2EnvironmentCreator, m_config.m_manualEnvs, m_config.m_serializer);
 
-        m_configObserver.addConfigsTestStatusListener(new PythonConfigsInstallationTestStatusChangeListener() {
+        m_configObserver.addConfigsTestStatusListener(new DLPythonConfigsInstallationTestStatusChangeListener() {
 
             @Override
             public void environmentInstallationTestStarting(final PythonEnvironmentType environmentType,
-                final PythonVersion pythonVersion) {
+                final DLPythonLibrarySelection library) {
                 updateDisplayMinSize();
             }
 
             @Override
             public void environmentInstallationTestFinished(final PythonEnvironmentType environmentType,
-                final PythonVersion pythonVersion, final PythonKernelTestResult testResult) {
+                final DLPythonLibrarySelection library, final PythonKernelTestResult testResult) {
                 updateDisplayMinSize();
             }
 

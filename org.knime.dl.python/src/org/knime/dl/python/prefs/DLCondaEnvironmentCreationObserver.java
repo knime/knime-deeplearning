@@ -70,13 +70,18 @@ import org.knime.python2.envconfigs.CondaEnvironments;
  */
 public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvironmentCreationObserver {
 
+    private final DLPythonLibrarySelection m_library;
+
     /**
      * The created instance is {@link #getIsEnvironmentCreationEnabled() disabled by default}.
      *
      * @param condaDirectoryPath The Conda directory path. Changes in the model are reflected by this instance.
+     * @param library the DL library the created environment should contain
      */
-    public DLCondaEnvironmentCreationObserver(final SettingsModelString condaDirectoryPath) {
+    public DLCondaEnvironmentCreationObserver(final SettingsModelString condaDirectoryPath,
+        final DLPythonLibrarySelection library) {
         super(PythonVersion.PYTHON3, condaDirectoryPath);
+        m_library = library;
     }
 
     /**
@@ -86,7 +91,15 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
      *         parallel to an ongoing environment creation process.
      */
     public String getDefaultEnvironmentName() {
+        if (DLPythonLibrarySelection.TF2.equals(m_library)) {
+            return getDefaultEnvironmentName("tf2");
+        }
         return getDefaultEnvironmentName("dl");
+    }
+
+    /** @return the DL library the created evironment will contain */
+    DLPythonLibrarySelection getLibrary() {
+        return m_library;
     }
 
     /**
@@ -102,7 +115,8 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
      */
     public void startEnvironmentCreation(final String environmentName, final CondaEnvironmentCreationStatus status,
         final boolean gpu) {
-        final String subDirectory = gpu && !SystemUtils.IS_OS_MAC ? "dl-gpu" : "dl-cpu";
+        final String libraryPrefix = DLPythonLibrarySelection.TF2.equals(m_library) ? "tf2-" : "dl-";
+        final String subDirectory = libraryPrefix + (gpu && !SystemUtils.IS_OS_MAC ? "gpu" : "cpu");
         final String envFile = CondaEnvironments.getPathToPython3CondaConfigFile(subDirectory);
         startEnvironmentCreation(environmentName, status, Optional.of(envFile));
     }

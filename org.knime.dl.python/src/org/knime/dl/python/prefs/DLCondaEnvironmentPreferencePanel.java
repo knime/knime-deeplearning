@@ -61,14 +61,14 @@ import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<DLCondaEnvironmentsConfig, Composite> {
 
     DLCondaEnvironmentPreferencePanel(final DLCondaEnvironmentsConfig config,
-        final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator, final Composite parent) {
+        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator,
+        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator, final Composite parent) {
         super(config, parent);
         final Composite panel = getPanel();
 
-        // TODO get separate configs for Keras and TF2
         createCondaDirectoryPathPanel(config, panel);
-        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), pythonEnvironmentCreator, panel);
-        createTF2EnvironmentSelectionPanel(config.getTF2Config(), pythonEnvironmentCreator, panel);
+        createKerasEnvironmentSelectionPanel(config.getKerasConfig(), kerasEnvironmentCreator, panel);
+        createTF2EnvironmentSelectionPanel(config.getTF2Config(), tf2EnvironmentCreator, panel);
     }
 
     @Override

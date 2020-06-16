@@ -82,7 +82,7 @@ import org.knime.python2.config.CondaEnvironmentCreationDialog;
 /**
  * This dialog is very similar to <code>CondaEnvironmentCreationPreferenceDialog</code> but creating a abstract class
  * would be hard and limit future changes where they may need to drift of further from each other.
- * 
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
@@ -156,7 +156,8 @@ class DLCondaEnvironmentCreationPreferenceDialog extends Dialog implements Conda
         final Label descriptionText = new Label(m_shell, SWT.WRAP);
         descriptionText.setText("This will create a new preconfigured Conda environment for "
             + m_environmentCreator.getPythonVersion().getName() + " that contains all packages required by the KNIME "
-            + "Deep Learning integrations. Creating the Conda environment may take several minutes and requires an active "
+            + m_environmentCreator.getLibrary().getName()
+            + " integration. Creating the Conda environment may take several minutes and requires an active "
             + "internet connection.\n"
             + "On Linux and Windows you can choose between a 'GPU' environment that will run heavy calculations on a "
             + "NVIDIA GPU or a 'CPU' environment which will run everything on the CPU.");
