@@ -7,16 +7,17 @@ Bundle-ClassPath: knime-dl-python.jar
 Bundle-Activator: org.knime.dl.python.core.Activator
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.dl.python.base.node,
-  org.knime.dl.python.base.node.creator,
-  org.knime.dl.python.base.node.editor,
-  org.knime.dl.python.base.node.executor,
-  org.knime.dl.python.base.node.learner,
-  org.knime.dl.python.core,
-  org.knime.dl.python.core.data,
-  org.knime.dl.python.core.data.serde,
-  org.knime.dl.python.core.execution,
-  org.knime.dl.python.core.training,
-  org.knime.dl.python.util
+ org.knime.dl.python.base.node.creator,
+ org.knime.dl.python.base.node.editor,
+ org.knime.dl.python.base.node.executor,
+ org.knime.dl.python.base.node.learner,
+ org.knime.dl.python.core,
+ org.knime.dl.python.core.data,
+ org.knime.dl.python.core.data.serde,
+ org.knime.dl.python.core.execution,
+ org.knime.dl.python.core.training,
+ org.knime.dl.python.prefs,
+ org.knime.dl.python.util
 Require-Bundle: org.eclipse.ui;bundle-version="[3.109.0,4.0.0)",
   org.knime.python2;bundle-version="[4.0.0,5.0.0)",
   org.knime.core;bundle-version="[4.0.0,5.0.0)",

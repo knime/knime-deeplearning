@@ -44,8 +44,9 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.dl.python.core;
+package org.knime.dl.keras.core;
 
+import org.knime.dl.python.core.DLPythonAbstractContext;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.kernel.PythonKernel;
@@ -55,12 +56,12 @@ import org.knime.python2.kernel.PythonKernel;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLPythonDefaultContext extends DLPythonAbstractContext {
+public final class DLKerasPythonContext extends DLPythonAbstractContext {
 
     /**
      * Create a new default DL Python context. The Python kernel will be created on demand.
      */
-    public DLPythonDefaultContext() {
+    public DLKerasPythonContext() {
         super();
     }
 
@@ -69,12 +70,12 @@ public final class DLPythonDefaultContext extends DLPythonAbstractContext {
      *
      * @param kernel the Python kernel which is used by this context. Closed on {@link #close()}.
      */
-    public DLPythonDefaultContext(final PythonKernel kernel) {
+    public DLKerasPythonContext(final PythonKernel kernel) {
         super(kernel);
     }
 
     @Override
     protected PythonCommand getPythonCommand() {
-        return DLPythonPreferences.getPythonCommandPreference();
+        return DLPythonPreferences.getPythonKerasCommandPreference();
     }
 }

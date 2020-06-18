@@ -70,11 +70,11 @@ import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
 import org.knime.dl.keras.core.layers.impl.DLKerasCollectLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
-import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -131,7 +131,7 @@ public final class DLKerasNetworkMaterializer {
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
 
         try (final DLKerasAbstractCommands commands =
-            ((DLKerasNetworkLoader<?>)loader).createCommands(new DLPythonDefaultContext())) {
+            ((DLKerasNetworkLoader<?>)loader).createCommands(new DLKerasPythonContext())) {
             // Load base networks (if any). Make base networks available on Python side for later. Collect base network
             // specs.We need the network specs (a) to reserve the layer names that are already present in the base
             // networks and (b) to specify the inputs and outputs of the new network that come from the base networks.

@@ -93,6 +93,7 @@ public abstract class DLKerasAbstractCommands extends DLPythonAbstractCommands {
     private static final String KERAS_VERSION_NAME = "keras_version";
 
 	protected DLKerasAbstractCommands() {
+	    this(new DLKerasPythonContext());
 	}
 
 	protected DLKerasAbstractCommands(final DLPythonContext context) {

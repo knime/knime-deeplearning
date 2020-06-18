@@ -53,7 +53,6 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
-import org.knime.python2.kernel.PythonKernel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -67,24 +66,73 @@ public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork> {
 		m_loader = loader;
 	}
 
+	/**
+	 * @deprecated Use {@link #read(DLNetworkLocation, boolean, DLPythonContext, DLCancelable)}.
+	 */
+	@Deprecated
+    @SuppressWarnings("javadoc")
     public N read(final DLNetworkLocation source, final boolean loadTrainingConfig, final DLCancelable cancelable)
 			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         m_loader.validateSource(source.getURI()); // fail fast - spares us creating the Python kernel
-        try (final PythonKernel kernel = DLPythonDefaultContext.createKernel();
-                final DLPythonContext context = new DLPythonDefaultContext(kernel)) {
-            final DLPythonNetworkHandle handle = m_loader.load(source.getURI(), context, loadTrainingConfig, cancelable);
+        try (final DLPythonContext context = new DLPythonDefaultContext()) {
+            final DLPythonNetworkHandle handle =
+                m_loader.load(source.getURI(), context, loadTrainingConfig, cancelable);
 			return m_loader.fetch(handle, source, context, cancelable);
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #read(DLPythonNetwork, boolean, DLPythonContext, DLCancelable)}.
+	 */
+    @Deprecated
+    @SuppressWarnings("javadoc")
     public N read(final N network, final boolean loadTrainingConfig, final DLCancelable cancelable)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         m_loader.validateSource(network.getSource().getURI()); // fail fast - spares us creating the Python kernel
-        try (final PythonKernel kernel = DLPythonDefaultContext.createKernel();
-                final DLPythonContext context = new DLPythonDefaultContext(kernel)) {
-            final DLPythonNetworkHandle handle =
-                m_loader.load(network, context, loadTrainingConfig, cancelable);
+        try (final DLPythonContext context = new DLPythonDefaultContext()) {
+            final DLPythonNetworkHandle handle = m_loader.load(network, context, loadTrainingConfig, cancelable);
             return m_loader.fetch(handle, network.getSource(), context, cancelable);
         }
+    }
+
+    /**
+     * Read the network from the given source.
+     *
+     * @param source the network source
+     * @param loadTrainingConfig if a training configuration should be read
+     * @param context the Python context to use
+     * @param cancelable to check if the execution was canceled
+     * @return the network
+     * @throws DLInvalidSourceException if the source is invalid
+     * @throws DLInvalidEnvironmentException if the context is invalid
+     * @throws IOException if reading the network fails
+     * @throws DLCanceledExecutionException if the execution is canceled
+     */
+    public N read(final DLNetworkLocation source, final boolean loadTrainingConfig, final DLPythonContext context,
+        final DLCancelable cancelable)
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        m_loader.validateSource(source.getURI()); // fail fast - spares us creating the Python kernel
+        final DLPythonNetworkHandle handle = m_loader.load(source.getURI(), context, loadTrainingConfig, cancelable);
+        return m_loader.fetch(handle, source, context, cancelable);
+    }
+
+    /**
+     * Read the network from the given network object.
+     *
+     * @param network the network
+     * @param loadTrainingConfig if a training configuration should be read
+     * @param context the Python context to use
+     * @param cancelable to check if the execution was canceled
+     * @return the network
+     * @throws DLInvalidSourceException if the source is invalid
+     * @throws DLInvalidEnvironmentException if the context is invalid
+     * @throws IOException if reading the network fails
+     * @throws DLCanceledExecutionException if the execution is canceled
+     */
+    public N read(final N network, final boolean loadTrainingConfig, final DLPythonContext context, final DLCancelable cancelable)
+        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        m_loader.validateSource(network.getSource().getURI()); // fail fast - spares us creating the Python kernel
+        final DLPythonNetworkHandle handle = m_loader.load(network, context, loadTrainingConfig, cancelable);
+        return m_loader.fetch(handle, network.getSource(), context, cancelable);
     }
 }

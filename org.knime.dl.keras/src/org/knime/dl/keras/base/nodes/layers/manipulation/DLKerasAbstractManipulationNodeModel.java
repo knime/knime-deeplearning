@@ -68,8 +68,8 @@ import org.knime.dl.core.DLNetworkFileStoreLocation;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -113,7 +113,7 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
         final DLKerasNetwork inputNetwork = portObject.getNetwork();
         final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
-        try (final DLPythonContext pythonContext = new DLPythonDefaultContext()) {
+        try (final DLPythonContext pythonContext = new DLKerasPythonContext()) {
             // Load the input network
             final DLPythonNetworkHandle inputNetworkHandle =
                 DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(inputNetwork.getClass())

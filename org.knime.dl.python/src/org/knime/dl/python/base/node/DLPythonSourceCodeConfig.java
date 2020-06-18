@@ -55,7 +55,7 @@ import org.knime.python2.kernel.PythonKernelOptions;
 /**
  * A {@link PythonSourceCodeConfig} for deep learning nodes that uses the default Python 3 command and serializer
  * configured on the deep learning preference page.
- * 
+ *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public class DLPythonSourceCodeConfig extends PythonSourceCodeConfig {

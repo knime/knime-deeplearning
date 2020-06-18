@@ -77,6 +77,8 @@ import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
@@ -201,9 +203,9 @@ public final class DLKerasNetworkPortObject extends
             .getNetworkLoader((Class<DLKerasNetwork>)m_spec.getNetworkType())
             .orElseThrow(() -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                 + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
-        try {
+        try (final DLPythonContext context = new DLKerasPythonContext()) {
             return new DLPythonDefaultNetworkReader<>(loader).read(oldNetworkSpec.create(networkSource, false), true,
-                DLNotCancelable.INSTANCE);
+                context, DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {
             NodeLogger.getLogger(DLKerasNetworkPortObject.class)
                 .warn("An error occurred while upgrading Keras network specs (required for networks created with older "

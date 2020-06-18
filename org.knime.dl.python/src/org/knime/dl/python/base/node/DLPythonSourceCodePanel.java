@@ -49,9 +49,12 @@
 package org.knime.dl.python.base.node;
 
 import org.knime.core.node.NodeDialogPane;
-import org.knime.dl.python.core.DLPythonDefaultContext;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonVersion;
 import org.knime.python2.config.PythonSourceCodePanel;
+import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.generic.VariableNames;
+import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
  * We need this class to access protected members of PythonSourceCodePanel.
@@ -62,7 +65,7 @@ import org.knime.python2.generic.VariableNames;
  */
 public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
 
-	private static final long serialVersionUID = -3111905445745421972L;
+    private static final long serialVersionUID = -3111905445745421972L;
 
     /**
      * @param parent
@@ -72,26 +75,35 @@ public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
      */
     public DLPythonSourceCodePanel(final NodeDialogPane parent, final VariableNames variableNames) {
         super(parent, variableNames);
-        setKernelOptions(DLPythonDefaultContext.getKernelOptions());
+        setKernelOptions(getKernelOptions());
     }
 
-	@Override
-	public void updateVariables() {
-		super.updateVariables();
-	}
+    private static PythonKernelOptions getKernelOptions() {
+        final SerializationOptions serializerOptions =
+            new SerializationOptions().forSerializerId(DLPythonPreferences.getSerializerPreference());
+        // Note that we need to set the deprecate options because they are used by the PythonSourceCodePanel
+        return new PythonKernelOptions().forPythonVersion(PythonVersion.PYTHON3)
+            .forPython3Command(DLPythonPreferences.getPythonCommandPreference())
+            .forSerializationOptions(serializerOptions);
+    }
 
-	@Override
-	public void errorToConsole(final String text) {
-		super.errorToConsole(text);
-	}
+    @Override
+    public void updateVariables() {
+        super.updateVariables();
+    }
 
-	@Override
-	public void messageToConsole(final String text) {
-		super.messageToConsole(text);
-	};
+    @Override
+    public void errorToConsole(final String text) {
+        super.errorToConsole(text);
+    }
 
-	@Override
-	public void setStatusMessage(final String statusMessage) {
-		super.setStatusMessage(statusMessage);
-	}
+    @Override
+    public void messageToConsole(final String text) {
+        super.messageToConsole(text);
+    };
+
+    @Override
+    public void setStatusMessage(final String statusMessage) {
+        super.setStatusMessage(statusMessage);
+    }
 }

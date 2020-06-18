@@ -86,6 +86,8 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpec;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.DLKerasPythonContext;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -156,7 +158,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
         }
 		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
 		try {
-			loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
+			DLPythonNetworkLoaderRegistry.getInstance();
+            loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),
 			    DLNotCancelable.INSTANCE);
 		} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
 			throw new InvalidSettingsException(
@@ -168,10 +171,10 @@ final class DLKerasReaderNodeModel extends NodeModel {
         } catch (final DLInvalidSourceException e) {
 			throw new InvalidSettingsException(e.getMessage(), e);
 		}
-        try {
+        try (final DLPythonContext context = new DLKerasPythonContext()) {
             // TODO: We could allow the user to configure "loadTrainingConfig" flag.
             m_network = new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true,
-                DLNotCancelable.INSTANCE);
+                context, DLNotCancelable.INSTANCE);
         } catch (final Exception e) {
             String message;
             if (e instanceof DLException) {

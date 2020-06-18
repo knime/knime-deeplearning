@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCancelable;
@@ -102,7 +103,26 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
         protected DLInstallationTestTimeoutException m_timeoutException;
 
+        private final Supplier<DLPythonContext> m_contextCreator;
+
+        /**
+         * Create a installation tester which uses the default Python context for the installation tests.
+         *
+         * @deprecated use {@link #DLPythonInstallationTester(Supplier)} to control which context is used
+         */
+        @Deprecated
         public DLPythonInstallationTester() {
+            this(() -> new DLPythonDefaultContext());
+        }
+
+        /**
+         * Create a installation tester which uses the given supplier to create a Python context in which the
+         * installation tests are executed.
+         *
+         * @param contextCreator the context creator
+         */
+        public DLPythonInstallationTester(final Supplier<DLPythonContext> contextCreator) {
+            m_contextCreator = contextCreator;
             DLPythonPreferences.addPreferencesChangeListener(e -> {
                 m_tested = false;
             });
@@ -115,7 +135,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                 final AtomicBoolean success = new AtomicBoolean();
                 final AtomicReference<String> message = new AtomicReference<>();
                 final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
-                try (DLPythonContext context = new DLPythonDefaultContext()) {
+                try (final DLPythonContext context = m_contextCreator.get()) {
                     final Thread t = new Thread(() -> {
                         try {
                             loader.createCommands(context).testInstallation(cancelable);

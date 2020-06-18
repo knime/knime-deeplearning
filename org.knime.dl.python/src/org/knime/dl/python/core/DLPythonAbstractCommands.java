@@ -173,7 +173,10 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
     /**
      * Creates a new instance of this commands class.
+     * @deprecated use {@link #DLPythonAbstractCommands(DLPythonContext)} to define the used context
      */
+    @Deprecated
+    @SuppressWarnings("resource") // Context is closed in #close
     protected DLPythonAbstractCommands() {
         this(new DLPythonDefaultContext());
     }

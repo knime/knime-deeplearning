@@ -56,6 +56,7 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 
@@ -65,7 +66,8 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTheanoNetwork> {
 
-	private static DLPythonInstallationTester installationTester = new DLPythonInstallationTester();
+    private static DLPythonInstallationTester installationTester =
+        new DLPythonInstallationTester(() -> new DLKerasPythonContext());
 
 	@Override
 	public Class<DLKerasTheanoNetwork> getNetworkType() {
