@@ -104,7 +104,7 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
 
             // Python radio button
             m_pythonConfigRadioButton = new Button(this, SWT.RADIO);
-            m_pythonConfigRadioButton.setText("Use Python configuration");
+            m_pythonConfigRadioButton.setText("Use configuration from the \"Python\" preference page");
 
             // Installation info
             @SuppressWarnings("unused") // Reference to object is not needed here; everything is done in its constructor.
@@ -113,7 +113,7 @@ final class DLPythonConfigSelectionPanel extends AbstractPythonConfigPanel<DLPyt
 
             // DL radio button
             m_dlConfigRadioButton = new Button(this, SWT.RADIO);
-            m_dlConfigRadioButton.setText("Use special Deep Learning configuration");
+            m_dlConfigRadioButton.setText("Use special Deep Learning configuration as defined below");
             pack();
 
             // Hooks

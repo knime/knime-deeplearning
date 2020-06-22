@@ -97,7 +97,8 @@ final class DLPythonLibrarySelectionPanel extends AbstractPythonConfigPanel<DLPy
         public LibrarySelectionRadioGroup(final SettingsModelString libraryConfig, final Composite parent) {
             super(parent, SWT.NONE);
             final Group radioButtonGroup = new Group(this, SWT.NONE);
-            radioButtonGroup.setText("Library used in DL Python nodes");
+            // Use the abbreviation "DL" because this is how the nodes are called
+            radioButtonGroup.setText("Library used for the \"DL Python\" scripting nodes");
             m_kerasRadioButton = new Button(radioButtonGroup, SWT.RADIO);
             m_kerasRadioButton.setText(DLPythonLibrarySelection.KERAS.getName());
             m_tf2RadioButton = new Button(radioButtonGroup, SWT.RADIO);
