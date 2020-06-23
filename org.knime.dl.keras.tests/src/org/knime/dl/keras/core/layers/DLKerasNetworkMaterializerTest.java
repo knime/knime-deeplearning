@@ -61,7 +61,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
@@ -76,12 +78,16 @@ import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.python2.testing.PreferencesSetup;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasNetworkMaterializerTest {
+
+    @ClassRule
+    public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
     private List<File> m_networkSaveFiles;
 

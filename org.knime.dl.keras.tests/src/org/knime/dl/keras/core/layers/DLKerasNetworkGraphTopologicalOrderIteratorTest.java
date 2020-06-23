@@ -54,11 +54,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
 import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
 import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
+import org.knime.python2.testing.PreferencesSetup;
 
 /**
  * Also see {@link DLKerasNetworkGraphDepthFirstIteratorTest}. Test cases should be kept in sync.
@@ -67,6 +70,9 @@ import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
+
+    @ClassRule
+    public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
     private AtomicInteger m_counter;
 
@@ -125,7 +131,7 @@ public final class DLKerasNetworkGraphTopologicalOrderIteratorTest {
     public void testLinearGraphIteration() {
         final DLKerasDefaultInputLayer in0 = new DLKerasDefaultInputLayer();
         in0.setRuntimeId("in0");
-        
+
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
         hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);

@@ -50,7 +50,9 @@ package org.knime.dl.keras.tensorflow;
 
 import java.net.URL;
 
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLNetworkReferenceLocation;
 import org.knime.dl.core.DLNotCancelable;
@@ -58,6 +60,7 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.testing.PreferencesSetup;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -66,6 +69,9 @@ import org.knime.dl.util.DLUtils;
 public class DLKerasTensorFlowNetworkReaderTest {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.tests";
+
+    @ClassRule
+    public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
 	@Test
     public void test() throws Exception {

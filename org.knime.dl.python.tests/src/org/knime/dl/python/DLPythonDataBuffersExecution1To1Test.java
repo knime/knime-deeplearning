@@ -58,7 +58,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLDefaultFixedTensorShape;
@@ -94,6 +96,7 @@ import org.knime.dl.python.core.training.DLPythonTrainingStatus;
 import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
+import org.knime.python2.testing.PreferencesSetup;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -102,6 +105,9 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker
 public class DLPythonDataBuffersExecution1To1Test {
 
     private static final DLPythonNetworkHandle HANDLE = new DLPythonNetworkHandle("dummy");
+
+    @ClassRule
+    public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.python.tests");
 
 	private static final int NUM_IN_TENSORS = 1;
 

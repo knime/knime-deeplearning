@@ -55,7 +55,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidNetworkInputException;
@@ -78,6 +80,7 @@ import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowNetworkExec
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.testing.DLTestExecutionMonitor;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.testing.PreferencesSetup;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -86,6 +89,9 @@ import org.knime.dl.util.DLUtils;
 public class DLKerasTensorFlowNetworkExecutor1To1Test {
 
 	private static final String BUNDLE_ID = "org.knime.dl.keras.tests";
+
+    @ClassRule
+    public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
 	@Test
 	public void test() throws Exception {
