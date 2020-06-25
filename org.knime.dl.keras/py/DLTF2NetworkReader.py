@@ -41,7 +41,6 @@
 #  may freely choose the license terms applicable to such Node, including
 #  when such Node is propagated with or for interoperation with KNIME.
 # ------------------------------------------------------------------------
-
 '''
 @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
 '''
@@ -52,12 +51,22 @@ def is_keras_available(backend):
         import keras
         if backend == 'tensorflow':
             return is_tf1_available()
+        return True
     except:
         return False
 
 
 def is_tf2_available():
-    return is_tf_version_available(2)
+    # Check that TensorFlow 2 is available
+    if not is_tf_version_available(2):
+        return False
+
+    # Check that the TensorFlow 2 plugin is installed
+    try:
+        import TF2Network
+        return True
+    except:
+        return False
 
 
 def is_tf1_available():
@@ -67,8 +76,9 @@ def is_tf1_available():
 def is_tf_version_available(major_version):
     try:
         import tensorflow
-        import TF2Network
         major_installed_version = int(tensorflow.__version__.split('.')[0])
+        if major_installed_version != major_version:
+            raise ValueError("Major TF version: " + major_installed_version + " expected: " + major_version)
         return major_installed_version == major_version
     except:
         return False
