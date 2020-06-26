@@ -48,7 +48,10 @@
  */
 package org.knime.dl.python.prefs;
 
+import java.nio.file.Paths;
+
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.python2.Conda.CondaEnvironmentSpec;
 import org.knime.python2.config.CondaEnvironmentsConfig;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
@@ -60,10 +63,9 @@ final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
 
     private static final String CFG_KEY_CONDA_DIRECTORY_PATH = "condaDirectoryPath";
 
-    // Note: this key is used for backwards compatibility
-    private static final String CFG_KEY_KERAS_CONDA_ENV_NAME = "condaEnvironmentName";
+    private static final String CFG_KEY_KERAS_CONDA_ENV_NAME_DIR = "kerasCondaEnvironmentDirectoryPath";
 
-    private static final String CFG_KEY_TF2_CONDA_ENV_NAME = "tf2CondaEnvironmentName";
+    private static final String CFG_KEY_TF2_CONDA_ENV_NAME_DIR = "tf2CondaEnvironmentDirectoryPath";
 
     private static final String CFG_KEY_DUMMY = "dummy";
 
@@ -85,8 +87,20 @@ final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
         m_condaInstallationError = new SettingsModelString(CFG_KEY_DUMMY, "");
 
         // Environments
-        m_kerasEnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_KERAS_CONDA_ENV_NAME, m_condaDirectory);
-        m_tf2EnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_TF2_CONDA_ENV_NAME, m_condaDirectory);
+        final String condaDirectoryPath = m_condaDirectory.getStringValue();
+        m_kerasEnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_KERAS_CONDA_ENV_NAME_DIR,
+            getDefaultCondaEnvironment(condaDirectoryPath), m_condaDirectory);
+        m_tf2EnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_TF2_CONDA_ENV_NAME_DIR,
+            getDefaultCondaEnvironment(condaDirectoryPath), m_condaDirectory);
+    }
+
+    private static CondaEnvironmentSpec getDefaultCondaEnvironment(final String condaDirectoryPath) {
+        // Note: the environment must not be "base" since the base environment is not located inside the "envs"
+        // directory used below.
+        // TODO: change to sensible default
+        final String environmentName = "no environment available";
+        final String environmentDirectoryPath = Paths.get(condaDirectoryPath, "envs", environmentName).toString();
+        return new CondaEnvironmentSpec(environmentName, environmentDirectoryPath);
     }
 
     @Override

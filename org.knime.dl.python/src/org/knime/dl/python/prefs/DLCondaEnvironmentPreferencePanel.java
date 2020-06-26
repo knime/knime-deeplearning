@@ -92,8 +92,8 @@ final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<
         final DLCondaEnvironmentConfig config, final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator,
         final Composite panel) {
         final CondaEnvironmentSelectionBox environmentSelection =
-            new CondaEnvironmentSelectionBox(PythonVersion.PYTHON3, config.getEnvironmentName(),
-                config.getAvailableEnvironmentNames(), envType.getName(),
+            new CondaEnvironmentSelectionBox(PythonVersion.PYTHON3, config.getEnvironmentDirectory(),
+                config.getAvailableEnvironments(), envType.getName(),
                 "Name of the " + envType.getName() + " Conda environment", config.getPythonInstallationInfo(),
                 config.getPythonInstallationWarning(), config.getPythonInstallationError(), pythonEnvironmentCreator,
                 panel, shell -> new DLCondaEnvironmentCreationPreferenceDialog(pythonEnvironmentCreator, shell).open());

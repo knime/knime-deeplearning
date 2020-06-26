@@ -211,7 +211,7 @@ public class DLPythonPreferences {
         return envsConfig;
     }
 
-    private static final class InstanceScopeConfigStorage implements PythonConfigStorage {
+    public static final class InstanceScopeConfigStorage implements PythonConfigStorage {
 
         private static final String QUALIFIER = "org.knime.dl.python";
 

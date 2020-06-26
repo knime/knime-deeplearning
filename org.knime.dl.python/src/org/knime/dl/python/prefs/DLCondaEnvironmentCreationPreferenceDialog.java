@@ -75,6 +75,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.knime.python2.Conda.CondaEnvironmentSpec;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
 import org.knime.python2.config.CondaEnvironmentCreationDialog;
@@ -467,7 +468,7 @@ class DLCondaEnvironmentCreationPreferenceDialog extends Dialog implements Conda
 
             @Override
             public void condaEnvironmentCreationFinished(final CondaEnvironmentCreationStatus status,
-                final String createdEnvironmentName) {
+                final CondaEnvironmentSpec createdEnvironment) {
                 if (status == m_status) {
                     switchToFinishedState();
                 }
