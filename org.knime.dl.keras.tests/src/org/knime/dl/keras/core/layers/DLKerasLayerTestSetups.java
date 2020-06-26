@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -220,10 +222,10 @@ class DLKerasLayerTestSetups {
 
         final DLKerasDefaultInputLayer in1 = new DLKerasDefaultInputLayer();
         in1.setRuntimeId("in1");
-        
+
         final DLKerasDefaultInputLayer in2 = new DLKerasDefaultInputLayer();
         in2.setRuntimeId("in2");
-        
+
         final DLKerasDenseLayer hidden0 = new DLKerasDenseLayer();
         hidden0.setRuntimeId("hidden0");
         hidden0.setParent(0, in0);
@@ -373,26 +375,26 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
+        assertTrue(inputSpecs.length == 1);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
+        assertTrue(outputSpecs.length == 1);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -405,26 +407,26 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
+        assertTrue(inputSpecs.length == 1);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
+        assertTrue(outputSpecs.length == 1);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -437,34 +439,34 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 2;
+        assertTrue(inputSpecs.length == 2);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0");
-        assert !inputSpec1.getBatchSize().isPresent();
+        assertTrue(inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0"));
+        assertTrue(!inputSpec1.getBatchSize().isPresent());
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
-        assert inputShape1.length == 1;
-        assert inputShape1[0] == 1;
-        assert inputSpec1.getElementType() == float.class;
+        assertTrue(inputShape1.length == 1);
+        assertTrue(inputShape1[0] == 1);
+        assertTrue(inputSpec1.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
+        assertTrue(outputSpecs.length == 1);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_3_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_3_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -477,34 +479,34 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
+        assertTrue(inputSpecs.length == 1);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 2;
+        assertTrue(outputSpecs.length == 2);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getIdentifier().getIdentifierString().equals("dense_5_0:0");
-        assert !outputSpec1.getBatchSize().isPresent();
+        assertTrue(outputSpec1.getIdentifier().getIdentifierString().equals("dense_5_0:0"));
+        assertTrue(!outputSpec1.getBatchSize().isPresent());
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        assert outputShape1.length == 1;
-        assert outputShape1[0] == 1;
-        assert outputSpec1.getElementType() == float.class;
+        assertTrue(outputShape1.length == 1);
+        assertTrue(outputShape1[0] == 1);
+        assertTrue(outputSpec1.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -517,42 +519,42 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 2;
+        assertTrue(inputSpecs.length == 2);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0");
-        assert !inputSpec1.getBatchSize().isPresent();
+        assertTrue(inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0"));
+        assertTrue(!inputSpec1.getBatchSize().isPresent());
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
-        assert inputShape1.length == 1;
-        assert inputShape1[0] == 1;
-        assert inputSpec1.getElementType() == float.class;
+        assertTrue(inputShape1.length == 1);
+        assertTrue(inputShape1[0] == 1);
+        assertTrue(inputSpec1.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 2;
+        assertTrue(outputSpecs.length == 2);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_3_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_3_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getIdentifier().getIdentifierString().equals("dense_4_0:0");
-        assert !outputSpec1.getBatchSize().isPresent();
+        assertTrue(outputSpec1.getIdentifier().getIdentifierString().equals("dense_4_0:0"));
+        assertTrue(!outputSpec1.getBatchSize().isPresent());
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        assert outputShape1.length == 1;
-        assert outputShape1[0] == 1;
-        assert outputSpec1.getElementType() == float.class;
+        assertTrue(outputShape1.length == 1);
+        assertTrue(outputShape1[0] == 1);
+        assertTrue(outputSpec1.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -566,58 +568,58 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 3;
+        assertTrue(inputSpecs.length == 3);
 
         final DLTensorSpec inputSpec0 = inputSpecs[0];
-        assert inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0");
-        assert !inputSpec0.getBatchSize().isPresent();
+        assertTrue(inputSpec0.getIdentifier().getIdentifierString().equals("input_1_0:0"));
+        assertTrue(!inputSpec0.getBatchSize().isPresent());
         final long[] inputShape0 = DLUtils.Shapes.getFixedShape(inputSpec0.getShape()).get();
-        assert inputShape0.length == 1;
-        assert inputShape0[0] == 1;
-        assert inputSpec0.getElementType() == float.class;
+        assertTrue(inputShape0.length == 1);
+        assertTrue(inputShape0[0] == 1);
+        assertTrue(inputSpec0.getElementType() == float.class);
 
         final DLTensorSpec inputSpec1 = inputSpecs[1];
-        assert inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0");
-        assert !inputSpec1.getBatchSize().isPresent();
+        assertTrue(inputSpec1.getIdentifier().getIdentifierString().equals("input_2_0:0"));
+        assertTrue(!inputSpec1.getBatchSize().isPresent());
         final long[] inputShape1 = DLUtils.Shapes.getFixedShape(inputSpec1.getShape()).get();
-        assert inputShape1.length == 1;
-        assert inputShape1[0] == 1;
-        assert inputSpec1.getElementType() == float.class;
+        assertTrue(inputShape1.length == 1);
+        assertTrue(inputShape1[0] == 1);
+        assertTrue(inputSpec1.getElementType() == float.class);
 
         final DLTensorSpec inputSpec2 = inputSpecs[2];
-        assert inputSpec2.getIdentifier().getIdentifierString().equals("input_3_0:0");
-        assert !inputSpec2.getBatchSize().isPresent();
+        assertTrue(inputSpec2.getIdentifier().getIdentifierString().equals("input_3_0:0"));
+        assertTrue(!inputSpec2.getBatchSize().isPresent());
         final long[] inputShape2 = DLUtils.Shapes.getFixedShape(inputSpec2.getShape()).get();
-        assert inputShape2.length == 1;
-        assert inputShape2[0] == 1;
-        assert inputSpec2.getElementType() == float.class;
+        assertTrue(inputShape2.length == 1);
+        assertTrue(inputShape2[0] == 1);
+        assertTrue(inputSpec2.getElementType() == float.class);
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 3;
+        assertTrue(outputSpecs.length == 3);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_6_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_6_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
-        assert outputSpec1.getIdentifier().getIdentifierString().equals("dense_7_0:0");
-        assert !outputSpec1.getBatchSize().isPresent();
+        assertTrue(outputSpec1.getIdentifier().getIdentifierString().equals("dense_7_0:0"));
+        assertTrue(!outputSpec1.getBatchSize().isPresent());
         final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        assert outputShape1.length == 1;
-        assert outputShape1[0] == 1;
-        assert outputSpec1.getElementType() == float.class;
+        assertTrue(outputShape1.length == 1);
+        assertTrue(outputShape1[0] == 1);
+        assertTrue(outputSpec1.getElementType() == float.class);
 
         final DLTensorSpec outputSpec2 = outputSpecs[2];
-        assert outputSpec2.getIdentifier().getIdentifierString().equals("add_4_0:0");
-        assert !outputSpec2.getBatchSize().isPresent();
+        assertTrue(outputSpec2.getIdentifier().getIdentifierString().equals("add_4_0:0"));
+        assertTrue(!outputSpec2.getBatchSize().isPresent());
         final long[] outputShape2 = DLUtils.Shapes.getFixedShape(outputSpec2.getShape()).get();
-        assert outputShape2.length == 1;
-        assert outputShape2[0] == 1;
-        assert outputSpec2.getElementType() == float.class;
+        assertTrue(outputShape2.length == 1);
+        assertTrue(outputShape2[0] == 1);
+        assertTrue(outputSpec2.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -634,20 +636,20 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
+        assertTrue(inputSpecs.length == 1);
 
-        assert inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]);
+        assertTrue(inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]));
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
+        assertTrue(outputSpecs.length == 1);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("dense_4_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 1;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 1);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -665,29 +667,29 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 3;
+        assertTrue(inputSpecs.length == 3);
 
-        assert inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]);
-        assert inputSpecs[1].equals(baseNetwork.getSpec().getInputSpecs()[1]);
-        assert inputSpecs[2].equals(baseNetwork.getSpec().getInputSpecs()[2]);
+        assertTrue(inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]));
+        assertTrue(inputSpecs[1].equals(baseNetwork.getSpec().getInputSpecs()[1]));
+        assertTrue(inputSpecs[2].equals(baseNetwork.getSpec().getInputSpecs()[2]));
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 3;
+        assertTrue(outputSpecs.length == 3);
 
-        assert outputSpecs[0].equals(baseNetwork.getSpec().getOutputSpecs()[0]);
+        assertTrue(outputSpecs[0].equals(baseNetwork.getSpec().getOutputSpecs()[0]));
 
         final DLTensorSpec outputSpec1 = outputSpecs[1];
         // Would currently fail because order of network outputs is not yet as desired. Pending.
         NodeLogger.getLogger(DLKerasLayerTestSetups.class)
             .warn("DL Keras: Skipping some assertions that rely on pending work.");
-        // assert outputSpec1.getIdentifier().getIdentifierString().equals("dense_7_0:0");
-        // assert !outputSpec1.getBatchSize().isPresent();
+        // assertTrue(outputSpec1.getIdentifier().getIdentifierString().equals("dense_7_0:0"));
+        // assertTrue(!outputSpec1.getBatchSize().isPresent());
         // final long[] outputShape1 = DLUtils.Shapes.getFixedShape(outputSpec1.getShape()).get();
-        // assert outputShape1.length == 1;
-        // assert outputShape1[0] == 1;
-        // assert outputSpec1.getElementType() == float.class;
+        // assertTrue(outputShape1.length == 1);
+        // assertTrue(outputShape1[0] == 1);
+        // assertTrue(outputSpec1.getElementType() == float.class);
         //
-        // assert outputSpecs[2].equals(baseNetwork.getSpec().getOutputSpecs()[2]);
+        // assertTrue(outputSpecs[2].equals(baseNetwork.getSpec().getOutputSpecs()[2]));
 
         return testFunctionOutput;
     }
@@ -704,20 +706,20 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 1;
+        assertTrue(inputSpecs.length == 1);
 
-        assert inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]);
+        assertTrue(inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]));
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 1;
+        assertTrue(outputSpecs.length == 1);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
-        assert outputSpec0.getIdentifier().getIdentifierString().equals("add_1_0:0");
-        assert !outputSpec0.getBatchSize().isPresent();
+        assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("add_1_0:0"));
+        assertTrue(!outputSpec0.getBatchSize().isPresent());
         final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        assert outputShape0.length == 1;
-        assert outputShape0[0] == 10;
-        assert outputSpec0.getElementType() == float.class;
+        assertTrue(outputShape0.length == 1);
+        assertTrue(outputShape0[0] == 10);
+        assertTrue(outputSpec0.getElementType() == float.class);
 
         return testFunctionOutput;
     }
@@ -735,27 +737,27 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 3;
+        assertTrue(inputSpecs.length == 3);
 
-        assert inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]);
-        assert inputSpecs[1].equals(baseNetwork.getSpec().getInputSpecs()[1]);
-        assert inputSpecs[2].equals(baseNetwork.getSpec().getInputSpecs()[2]);
+        assertTrue(inputSpecs[0].equals(baseNetwork.getSpec().getInputSpecs()[0]));
+        assertTrue(inputSpecs[1].equals(baseNetwork.getSpec().getInputSpecs()[1]));
+        assertTrue(inputSpecs[2].equals(baseNetwork.getSpec().getInputSpecs()[2]));
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 2;
+        assertTrue(outputSpecs.length == 2);
 
         final DLTensorSpec outputSpec0 = outputSpecs[0];
         // Would currently fail because order of network outputs is not yet as desired. Pending.
         NodeLogger.getLogger(DLKerasLayerTestSetups.class)
             .warn("DL Keras: Skipping some assertions that rely on pending work.");
-        // assert outputSpec0.getIdentifier().getIdentifierString().equals("add_4_0:0");
-        // assert !outputSpec0.getBatchSize().isPresent();
+        // assertTrue(outputSpec0.getIdentifier().getIdentifierString().equals("add_4_0:0"));
+        // assertTrue(!outputSpec0.getBatchSize().isPresent());
         // final long[] outputShape0 = DLUtils.Shapes.getFixedShape(outputSpec0.getShape()).get();
-        // assert outputShape0.length == 1;
-        // assert outputShape0[0] == 5;
-        // assert outputSpec0.getElementType() == float.class;
+        // assertTrue(outputShape0.length == 1);
+        // assertTrue(outputShape0[0] == 5);
+        // assertTrue(outputSpec0.getElementType() == float.class);
 
-        // assert outputSpecs[1].equals(baseNetwork.getSpec().getOutputSpecs()[2]);
+        // assertTrue(outputSpecs[1].equals(baseNetwork.getSpec().getOutputSpecs()[2]));
 
         return testFunctionOutput;
     }
@@ -774,32 +776,32 @@ class DLKerasLayerTestSetups {
         final DLKerasNetworkSpec networkSpec = testFunctionOutputToSpec.apply(testFunctionOutput);
 
         final DLTensorSpec[] inputSpecs = networkSpec.getInputSpecs();
-        assert inputSpecs.length == 5;
+        assertTrue(inputSpecs.length == 5);
 
-        assert inputSpecs[0].equals(baseNetwork0.getSpec().getInputSpecs()[0]);
-        assert inputSpecs[1].equals(baseNetwork0.getSpec().getInputSpecs()[1]);
-        assert inputSpecs[2].equals(baseNetwork0.getSpec().getInputSpecs()[2]);
-        assert inputSpecs[3].equals(baseNetwork1.getSpec().getInputSpecs()[0]);
-        assert inputSpecs[4].equals(baseNetwork1.getSpec().getInputSpecs()[1]);
+        assertTrue(inputSpecs[0].equals(baseNetwork0.getSpec().getInputSpecs()[0]));
+        assertTrue(inputSpecs[1].equals(baseNetwork0.getSpec().getInputSpecs()[1]));
+        assertTrue(inputSpecs[2].equals(baseNetwork0.getSpec().getInputSpecs()[2]));
+        assertTrue(inputSpecs[3].equals(baseNetwork1.getSpec().getInputSpecs()[0]));
+        assertTrue(inputSpecs[4].equals(baseNetwork1.getSpec().getInputSpecs()[1]));
 
         final DLTensorSpec[] outputSpecs = networkSpec.getOutputSpecs();
-        assert outputSpecs.length == 4;
+        assertTrue(outputSpecs.length == 4);
 
-        assert outputSpecs[0].equals(baseNetwork0.getSpec().getOutputSpecs()[0]);
-        assert outputSpecs[1].equals(baseNetwork0.getSpec().getOutputSpecs()[1]);
+        assertTrue(outputSpecs[0].equals(baseNetwork0.getSpec().getOutputSpecs()[0]));
+        assertTrue(outputSpecs[1].equals(baseNetwork0.getSpec().getOutputSpecs()[1]));
 
         final DLTensorSpec outputSpec2 = outputSpecs[2];
         // Would currently fail because order of network outputs is not yet as desired. Pending.
         NodeLogger.getLogger(DLKerasLayerTestSetups.class)
             .warn("DL Keras: Skipping some assertions that rely on pending work.");
-        // assert outputSpec2.getIdentifier().getIdentifierString().equals("add_3_0:0");
-        // assert !outputSpec2.getBatchSize().isPresent();
+        // assertTrue(outputSpec2.getIdentifier().getIdentifierString().equals("add_3_0:0"));
+        // assertTrue(!outputSpec2.getBatchSize().isPresent());
         // final long[] outputShape2 = DLUtils.Shapes.getFixedShape(outputSpec2.getShape()).get();
-        // assert outputShape2.length == 1;
-        // assert outputShape2[0] == 5;
-        // assert outputSpec2.getElementType() == float.class;
+        // assertTrue(outputShape2.length == 1);
+        // assertTrue(outputShape2[0] == 5);
+        // assertTrue(outputSpec2.getElementType() == float.class);
         //
-        // assert outputSpecs[3].equals(baseNetwork1.getSpec().getOutputSpecs()[1]);
+        // assertTrue(outputSpecs[3].equals(baseNetwork1.getSpec().getOutputSpecs()[1]));
 
         return testFunctionOutput;
     }

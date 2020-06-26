@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.junit.Assert.assertTrue;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiInputModelTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiInputMultiOutputForkJoinModelTestSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.createMultiInputMultiOutputModelTestSetup;
@@ -142,7 +143,7 @@ public final class DLKerasNetworkGraphSerializerTest {
     }
 
     private void assertGraphEquals(final List<DLKerasLayer> a, final List<DLKerasLayer> b) {
-        assert a.size() == b.size();
+        assertTrue(a.size() == b.size());
         for (int i = 0; i < a.size(); i++) {
             assertLayerEquals(a.get(i), b.get(i));
         }
@@ -150,17 +151,17 @@ public final class DLKerasNetworkGraphSerializerTest {
             new DLKerasNetworkGraphDepthFirstIterator(a).visitAll(null);
         final Map<DLKerasTensorSpecsOutput, Integer> layersB =
             new DLKerasNetworkGraphDepthFirstIterator(b).visitAll(null);
-        assert layersA.size() == layersB.size();
+        assertTrue(layersA.size() == layersB.size());
         final Iterator<Entry<DLKerasTensorSpecsOutput, Integer>> layersBIterator = layersB.entrySet().iterator();
         for (final Entry<DLKerasTensorSpecsOutput, Integer> entryA : layersA.entrySet()) {
             final Entry<DLKerasTensorSpecsOutput, Integer> entryB = layersBIterator.next();
             assertLayerEquals(entryA.getKey(), entryB.getKey());
-            assert entryA.getValue().equals(entryB.getValue());
+            assertTrue(entryA.getValue().equals(entryB.getValue()));
         }
     }
 
     private void assertLayerEquals(final DLKerasTensorSpecsOutput a, final DLKerasTensorSpecsOutput b) {
-        assert a.equalsIgnoreName(b);
+        assertTrue(a.equalsIgnoreName(b));
     }
 
     private ObjectInputStream outStreamToInStream() throws IOException {

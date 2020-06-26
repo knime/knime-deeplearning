@@ -46,6 +46,7 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.junit.Assert.assertTrue;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputModelSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputForkJoinModelSetup;
 import static org.knime.dl.keras.core.layers.DLKerasLayerTestSetups.testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup;
@@ -101,7 +102,7 @@ public final class DLKerasNetworkMaterializerTest {
             }
             m_networkSaveFiles.clear();
             m_networkSaveFiles = null;
-            assert m_networkSaveLocations != null;
+            assertTrue(m_networkSaveLocations != null);
             m_networkSaveLocations = null;
         }
     }
@@ -198,13 +199,13 @@ public final class DLKerasNetworkMaterializerTest {
             final DLKerasNetwork network = new DLKerasNetworkMaterializer(outputLayers, pair.getSecond()).materialize();
             final DLKerasNetworkSpec networkSpec = network.getSpec();
 
-            assert pair.getFirst().length() > 0;
-            assert network.getSource().equals(pair.getSecond());
+            assertTrue(pair.getFirst().length() > 0);
+            assertTrue(network.getSource().equals(pair.getSecond()));
 
             final DLKerasNetworkSpec rereadNetworkSpec =
                 new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
                     .read(pair.getSecond(), false, DLNotCancelable.INSTANCE).getSpec();
-            assert networkSpec.equals(rereadNetworkSpec);
+            assertTrue(networkSpec.equals(rereadNetworkSpec));
 
             return network;
         } catch (final Exception e) {
@@ -215,12 +216,12 @@ public final class DLKerasNetworkMaterializerTest {
     private Pair<File, DLNetworkLocation> createNetworkSaveFile() throws IOException {
         if (m_networkSaveFiles == null) {
             m_networkSaveFiles = new ArrayList<>();
-            assert m_networkSaveLocations == null;
+            assertTrue(m_networkSaveLocations == null);
             m_networkSaveLocations = new ArrayList<>();
         }
         final File networkSaveFile =
             FileUtil.createTempFile("dl-keras-materializer-test", "." + DLKerasNetworkLoader.SAVE_MODEL_URL_EXTENSION);
-        assert networkSaveFile.length() == 0;
+        assertTrue(networkSaveFile.length() == 0);
         m_networkSaveFiles.add(networkSaveFile);
         final DLNetworkReferenceLocation networkSaveLocation = new DLNetworkReferenceLocation(networkSaveFile.toURI());
         m_networkSaveLocations.add(networkSaveLocation);

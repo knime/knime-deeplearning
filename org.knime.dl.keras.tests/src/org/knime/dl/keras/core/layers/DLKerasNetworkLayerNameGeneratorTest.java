@@ -46,6 +46,8 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 
 import org.junit.Test;
@@ -93,7 +95,7 @@ public final class DLKerasNetworkLayerNameGeneratorTest {
     private void assertLayerNameEqualsForReservedNames(final String layerPrefix, final String expectedName,
         final String... reservedNames) {
         final String layerName = getLayerNameForReservedNames(layerPrefix, reservedNames);
-        assert layerName.equals(expectedName) : "layer name '" + layerName + "' vs expected '" + expectedName + "'";
+        assertTrue("layer name '" + layerName + "' vs expected '" + expectedName + "'", layerName.equals(expectedName));
     }
 
     private String getLayerNameForReservedNames(final String layerPrefix, final String... reservedNames) {

@@ -46,6 +46,9 @@
  */
 package org.knime.dl.keras.core.layers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -107,8 +110,8 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
             @Override
             public void visitInputOutput(final DLKerasInputLayer inputOutputLayer) throws Exception {
-                assert m_counter.getAndIncrement() == 0;
-                assert inputOutputLayer == inout0;
+                assertEquals(0, m_counter.getAndIncrement());
+                assertSame(inout0, inputOutputLayer);
             }
 
             @Override
@@ -119,8 +122,8 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             @Override
             public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer inout0Depth = maxDepthsFromOutputs.get(inout0);
-                assert inout0Depth != null;
-                assert inout0Depth == 0;
+                assertNotNull(inout0Depth);
+                assertEquals(0, inout0Depth.intValue());
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -153,26 +156,26 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
-                assert m_counter.getAndIncrement() == 0;
-                assert outputLayer == out0;
-                assert outputLayer.getParent(0) == hidden2;
+                assertEquals(0, m_counter.getAndIncrement());
+                assertSame(out0, outputLayer);
+                assertSame(hidden2, outputLayer.getParent(0));
             }
 
             @Override
             public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 3) {
-                    assert hiddenLayer == hidden0;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == in0;
+                    assertSame(hidden0, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(in0, hiddenLayer.getParent(0));
                 } else if (i == 2) {
-                    assert hiddenLayer == hidden1;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden0;
+                    assertSame(hidden1, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden0, hiddenLayer.getParent(0));
                 } else if (i == 1) {
-                    assert hiddenLayer == hidden2;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden1;
+                    assertSame(hidden2, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden1, hiddenLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -180,8 +183,8 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
             @Override
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
-                assert m_counter.getAndIncrement() == 4;
-                assert inputLayer == in0;
+                assertEquals(4, m_counter.getAndIncrement());
+                assertSame(in0, inputLayer);
             }
 
             @Override
@@ -197,12 +200,12 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             @Override
             public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
-                assert maxDepthsFromOutputs.get(hidden2) == 1;
-                assert maxDepthsFromOutputs.get(hidden1) == 2;
-                assert maxDepthsFromOutputs.get(hidden0) == 3;
-                assert maxDepthsFromOutputs.get(in0) == 4;
+                assertNotNull(out0Depth);
+                assertEquals(0, out0Depth.intValue());
+                assertEquals(1, maxDepthsFromOutputs.get(hidden2).intValue());
+                assertEquals(2, maxDepthsFromOutputs.get(hidden1).intValue());
+                assertEquals(3, maxDepthsFromOutputs.get(hidden0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in0).intValue());
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -239,27 +242,27 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
             @Override
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
-                assert m_counter.getAndIncrement() == 0;
-                assert outputLayer == out0;
-                assert outputLayer.getParent(0) == hidden2;
+                assertEquals(0, m_counter.getAndIncrement());
+                assertSame(out0, outputLayer);
+                assertSame(hidden2, outputLayer.getParent(0));
             }
 
             @Override
             public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 3) {
-                    assert hiddenLayer == hidden0;
-                    assert hiddenLayer.getNumParents() == 2;
-                    assert hiddenLayer.getParent(0) == in0;
-                    assert hiddenLayer.getParent(1) == in1;
+                    assertSame(hidden0, hiddenLayer);
+                    assertEquals(2, hiddenLayer.getNumParents());
+                    assertSame(in0, hiddenLayer.getParent(0));
+                    assertSame(in1, hiddenLayer.getParent(1));
                 } else if (i == 2) {
-                    assert hiddenLayer == hidden1;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden0;
+                    assertSame(hidden1, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden0, hiddenLayer.getParent(0));
                 } else if (i == 1) {
-                    assert hiddenLayer == hidden2;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden1;
+                    assertSame(hidden2, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden1, hiddenLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -269,9 +272,9 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 4) {
-                    assert inputLayer == in0;
+                    assertSame(in0, inputLayer);
                 } else if (i == 5) {
-                    assert inputLayer == in1;
+                    assertSame(in1, inputLayer);
                 } else {
                     fail();
                 }
@@ -290,13 +293,13 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             @Override
             public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
-                assert maxDepthsFromOutputs.get(hidden2) == 1;
-                assert maxDepthsFromOutputs.get(hidden1) == 2;
-                assert maxDepthsFromOutputs.get(hidden0) == 3;
-                assert maxDepthsFromOutputs.get(in0) == 4;
-                assert maxDepthsFromOutputs.get(in1) == 4;
+                assertNotNull(out0Depth);
+                assertEquals(0, out0Depth.intValue());
+                assertEquals(1, maxDepthsFromOutputs.get(hidden2).intValue());
+                assertEquals(2, maxDepthsFromOutputs.get(hidden1).intValue());
+                assertEquals(3, maxDepthsFromOutputs.get(hidden0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in1).intValue());
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -335,11 +338,11 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 0) {
-                    assert outputLayer == out0;
-                    assert outputLayer.getParent(0) == hidden2;
+                    assertSame(out0, outputLayer);
+                    assertSame(hidden2, outputLayer.getParent(0));
                 } else if (i == 5) {
-                    assert outputLayer == out1;
-                    assert outputLayer.getParent(0) == hidden2;
+                    assertSame(out1, outputLayer);
+                    assertSame(hidden2, outputLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -349,17 +352,17 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 3) {
-                    assert hiddenLayer == hidden0;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == in0;
+                    assertSame(hidden0, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(in0, hiddenLayer.getParent(0));
                 } else if (i == 2) {
-                    assert hiddenLayer == hidden1;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden0;
+                    assertSame(hidden1, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden0, hiddenLayer.getParent(0));
                 } else if (i == 1) {
-                    assert hiddenLayer == hidden2;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden1;
+                    assertSame(hidden2, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden1, hiddenLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -367,8 +370,8 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
 
             @Override
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
-                assert m_counter.getAndIncrement() == 4;
-                assert inputLayer == in0;
+                assertEquals(4, m_counter.getAndIncrement());
+                assertSame(in0, inputLayer);
             }
 
             @Override
@@ -384,15 +387,15 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             @Override
             public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
+                assertNotNull(out0Depth);
+                assertEquals(0, out0Depth.intValue());
                 final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                assert out1Depth != null;
-                assert out1Depth == 0;
-                assert maxDepthsFromOutputs.get(hidden2) == 1;
-                assert maxDepthsFromOutputs.get(hidden1) == 2;
-                assert maxDepthsFromOutputs.get(hidden0) == 3;
-                assert maxDepthsFromOutputs.get(in0) == 4;
+                assertNotNull(out1Depth);
+                assertEquals(0, out1Depth.intValue());
+                assertEquals(1, maxDepthsFromOutputs.get(hidden2).intValue());
+                assertEquals(2, maxDepthsFromOutputs.get(hidden1).intValue());
+                assertEquals(3, maxDepthsFromOutputs.get(hidden0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in0).intValue());
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -436,11 +439,11 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 0) {
-                    assert outputLayer == out0;
-                    assert outputLayer.getParent(0) == hidden2;
+                    assertSame(out0, outputLayer);
+                    assertSame(hidden2, outputLayer.getParent(0));
                 } else if (i == 6) {
-                    assert outputLayer == out1;
-                    assert outputLayer.getParent(0) == hidden2;
+                    assertSame(out1, outputLayer);
+                    assertSame(hidden2, outputLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -450,18 +453,18 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 3) {
-                    assert hiddenLayer == hidden0;
-                    assert hiddenLayer.getNumParents() == 2;
-                    assert hiddenLayer.getParent(0) == in0;
-                    assert hiddenLayer.getParent(1) == in1;
+                    assertSame(hidden0, hiddenLayer);
+                    assertEquals(2, hiddenLayer.getNumParents());
+                    assertSame(in0, hiddenLayer.getParent(0));
+                    assertSame(in1, hiddenLayer.getParent(1));
                 } else if (i == 2) {
-                    assert hiddenLayer == hidden1;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden0;
+                    assertSame(hidden1, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden0, hiddenLayer.getParent(0));
                 } else if (i == 1) {
-                    assert hiddenLayer == hidden2;
-                    assert hiddenLayer.getNumParents() == 1;
-                    assert hiddenLayer.getParent(0) == hidden1;
+                    assertSame(hidden2, hiddenLayer);
+                    assertEquals(1, hiddenLayer.getNumParents());
+                    assertSame(hidden1, hiddenLayer.getParent(0));
                 } else {
                     fail();
                 }
@@ -471,9 +474,9 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                 final int i = m_counter.getAndIncrement();
                 if (i == 4) {
-                    assert inputLayer == in0;
+                    assertSame(in0, inputLayer);
                 } else if (i == 5) {
-                    assert inputLayer == in1;
+                    assertSame(in1, inputLayer);
                 } else {
                     fail();
                 }
@@ -492,16 +495,16 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
             @Override
             public void noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                 final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                assert out0Depth != null;
-                assert out0Depth == 0;
+                assertNotNull(out0Depth);
+                assertEquals(0, out0Depth.intValue());
                 final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                assert out1Depth != null;
-                assert out1Depth == 0;
-                assert maxDepthsFromOutputs.get(hidden2) == 1;
-                assert maxDepthsFromOutputs.get(hidden1) == 2;
-                assert maxDepthsFromOutputs.get(hidden0) == 3;
-                assert maxDepthsFromOutputs.get(in0) == 4;
-                assert maxDepthsFromOutputs.get(in1) == 4;
+                assertNotNull(out1Depth);
+                assertEquals(0, out1Depth.intValue());
+                assertEquals(1, maxDepthsFromOutputs.get(hidden2).intValue());
+                assertEquals(2, maxDepthsFromOutputs.get(hidden1).intValue());
+                assertEquals(3, maxDepthsFromOutputs.get(hidden0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in0).intValue());
+                assertEquals(4, maxDepthsFromOutputs.get(in1).intValue());
                 m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
             }
         });
@@ -575,15 +578,15 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
                 public void visitOutput(final DLKerasInnerLayer outputLayer) throws Exception {
                     final int i = m_counter.getAndIncrement();
                     if (i == 0) {
-                        assert outputLayer == out0;
-                        assert outputLayer.getParent(0) == hidden5;
+                        assertSame(out0, outputLayer);
+                        assertSame(hidden5, outputLayer.getParent(0));
                     } else if (i == 9) {
-                        assert outputLayer == out1;
-                        assert outputLayer.getParent(0) == hidden5;
+                        assertSame(out1, outputLayer);
+                        assertSame(hidden5, outputLayer.getParent(0));
                     } else if (i == 10) {
-                        assert outputLayer == out2;
-                        assert outputLayer.getParent(0) == hidden6;
-                        assert outputLayer.getParent(1) == hidden7;
+                        assertSame(out2, outputLayer);
+                        assertSame(hidden6, outputLayer.getParent(0));
+                        assertSame(hidden7, outputLayer.getParent(1));
                     } else {
                         fail();
                     }
@@ -593,40 +596,40 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
                 public void visitHidden(final DLKerasInnerLayer hiddenLayer) throws Exception {
                     final int i = m_counter.getAndIncrement();
                     if (i == 1) {
-                        assert hiddenLayer == hidden5;
-                        assert hiddenLayer.getNumParents() == 1;
-                        assert hiddenLayer.getParent(0) == hidden3;
+                        assertSame(hidden5, hiddenLayer);
+                        assertEquals(1, hiddenLayer.getNumParents());
+                        assertSame(hidden3, hiddenLayer.getParent(0));
                     } else if (i == 11) {
-                        assert hiddenLayer == hidden6;
-                        assert hiddenLayer.getNumParents() == 1;
-                        assert hiddenLayer.getParent(0) == hidden3;
+                        assertSame(hidden6, hiddenLayer);
+                        assertEquals(1, hiddenLayer.getNumParents());
+                        assertSame(hidden3, hiddenLayer.getParent(0));
                     } else if (i == 12) {
-                        assert hiddenLayer == hidden7;
-                        assert hiddenLayer.getNumParents() == 1;
-                        assert hiddenLayer.getParent(0) == hidden4;
+                        assertSame(hidden7, hiddenLayer);
+                        assertEquals(1, hiddenLayer.getNumParents());
+                        assertSame(hidden4, hiddenLayer.getParent(0));
                     } else if (i == 2) {
-                        assert hiddenLayer == hidden3;
-                        assert hiddenLayer.getNumParents() == 2;
-                        assert hiddenLayer.getParent(0) == hidden0;
-                        assert hiddenLayer.getParent(1) == hidden2;
+                        assertSame(hidden3, hiddenLayer);
+                        assertEquals(2, hiddenLayer.getNumParents());
+                        assertSame(hidden0, hiddenLayer.getParent(0));
+                        assertSame(hidden2, hiddenLayer.getParent(1));
                     } else if (i == 13) {
-                        assert hiddenLayer == hidden4;
-                        assert hiddenLayer.getNumParents() == 1;
-                        assert hiddenLayer.getParent(0) == hidden2;
+                        assertSame(hidden4, hiddenLayer);
+                        assertEquals(1, hiddenLayer.getNumParents());
+                        assertSame(hidden2, hiddenLayer.getParent(0));
                     } else if (i == 5) {
-                        assert hiddenLayer == hidden2;
-                        assert hiddenLayer.getNumParents() == 2;
-                        assert hiddenLayer.getParent(0) == hidden1;
-                        assert hiddenLayer.getParent(1) == in2;
+                        assertSame(hidden2, hiddenLayer);
+                        assertEquals(2, hiddenLayer.getNumParents());
+                        assertSame(hidden1, hiddenLayer.getParent(0));
+                        assertSame(in2, hiddenLayer.getParent(1));
                     } else if (i == 6) {
-                        assert hiddenLayer == hidden1;
-                        assert hiddenLayer.getNumParents() == 2;
-                        assert hiddenLayer.getParent(0) == hidden0;
-                        assert hiddenLayer.getParent(1) == in1;
+                        assertSame(hidden1, hiddenLayer);
+                        assertEquals(2, hiddenLayer.getNumParents());
+                        assertSame(hidden0, hiddenLayer.getParent(0));
+                        assertSame(in1, hiddenLayer.getParent(1));
                     } else if (i == 3) {
-                        assert hiddenLayer == hidden0;
-                        assert hiddenLayer.getNumParents() == 1;
-                        assert hiddenLayer.getParent(0) == in0;
+                        assertSame(hidden0, hiddenLayer);
+                        assertEquals(1, hiddenLayer.getNumParents());
+                        assertSame(in0, hiddenLayer.getParent(0));
                     } else {
                         fail();
                     }
@@ -636,11 +639,11 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
                 public void visitInput(final DLKerasInputLayer inputLayer) throws Exception {
                     final int i = m_counter.getAndIncrement();
                     if (i == 4) {
-                        assert inputLayer == in0;
+                        assertSame(in0, inputLayer);
                     } else if (i == 7) {
-                        assert inputLayer == in1;
+                        assertSame(in1, inputLayer);
                     } else if (i == 8) {
-                        assert inputLayer == in2;
+                        assertSame(in2, inputLayer);
                     } else {
                         fail();
                     }
@@ -660,33 +663,33 @@ public final class DLKerasNetworkGraphDepthFirstIteratorTest {
                 public void
                     noteLayerDepths(final Map<DLKerasTensorSpecsOutput, Integer> maxDepthsFromOutputs) {
                     final Integer out0Depth = maxDepthsFromOutputs.get(out0);
-                    assert out0Depth != null;
-                    assert out0Depth == 0;
+                    assertNotNull(out0Depth);
+                    assertEquals(0, out0Depth.intValue());
                     final Integer out1Depth = maxDepthsFromOutputs.get(out1);
-                    assert out1Depth != null;
-                    assert out1Depth == 0;
+                    assertNotNull(out1Depth);
+                    assertEquals(0, out1Depth.intValue());
                     final Integer out2Depth = maxDepthsFromOutputs.get(out2);
-                    assert out2Depth != null;
-                    assert out2Depth == 0;
-                    assert maxDepthsFromOutputs.get(hidden5) == 1;
-                    assert maxDepthsFromOutputs.get(hidden6) == 1;
-                    assert maxDepthsFromOutputs.get(hidden7) == 1;
-                    assert maxDepthsFromOutputs.get(hidden3) == 2;
-                    assert maxDepthsFromOutputs.get(hidden4) == 2;
-                    assert maxDepthsFromOutputs.get(hidden2) == 3;
-                    assert maxDepthsFromOutputs.get(hidden1) == 4;
-                    assert maxDepthsFromOutputs.get(in2) == 4;
-                    assert maxDepthsFromOutputs.get(hidden0) == 5;
-                    assert maxDepthsFromOutputs.get(in1) == 5;
-                    assert maxDepthsFromOutputs.get(in0) == 6;
+                    assertNotNull(out2Depth);
+                    assertEquals(0, out2Depth.intValue());
+                    assertEquals(1, maxDepthsFromOutputs.get(hidden5).intValue());
+                    assertEquals(1, maxDepthsFromOutputs.get(hidden6).intValue());
+                    assertEquals(1, maxDepthsFromOutputs.get(hidden7).intValue());
+                    assertEquals(2, maxDepthsFromOutputs.get(hidden3).intValue());
+                    assertEquals(2, maxDepthsFromOutputs.get(hidden4).intValue());
+                    assertEquals(3, maxDepthsFromOutputs.get(hidden2).intValue());
+                    assertEquals(4, maxDepthsFromOutputs.get(hidden1).intValue());
+                    assertEquals(4, maxDepthsFromOutputs.get(in2).intValue());
+                    assertEquals(5, maxDepthsFromOutputs.get(hidden0).intValue());
+                    assertEquals(5, maxDepthsFromOutputs.get(in1).intValue());
+                    assertEquals(6, maxDepthsFromOutputs.get(in0).intValue());
                     m_noteLayerDepthsCalledAfterCounter.set(m_counter.get());
                 }
             });
-        assert m_counter.get() == 14;
+        assertEquals(14, m_counter.get());
     }
 
     private void checkCommonPostconditions(final int expectedCounter) {
-        assert m_counter.get() == expectedCounter;
-        assert m_noteLayerDepthsCalledAfterCounter.get() == expectedCounter;
+        assertEquals(expectedCounter, m_counter.get());
+        assertEquals(expectedCounter, m_noteLayerDepthsCalledAfterCounter.get());
     }
 }
