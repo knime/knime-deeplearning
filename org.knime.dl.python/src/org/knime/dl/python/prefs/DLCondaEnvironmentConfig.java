@@ -130,7 +130,9 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
         // is available, we need to convert it into the correct path.
         if (storage instanceof InstanceScopeConfigStorage) {
             final Preferences preferences = InstanceScopeConfigStorage.getInstanceScopePreferences();
-            final boolean isLegacy = Platform.getPreferencesService().get(m_environmentDirectory.getKey(), null,
+            final boolean isLegacy = Platform.getPreferencesService().get( //
+                m_environmentDirectory.getKey(), //
+                null, //
                 new Preferences[]{preferences}) == null;
             if (isLegacy) {
                 final SettingsModelString environmentName =
