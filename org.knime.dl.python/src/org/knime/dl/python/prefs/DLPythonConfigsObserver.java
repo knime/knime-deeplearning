@@ -79,8 +79,6 @@ import com.google.common.collect.Sets;
  */
 final class DLPythonConfigsObserver {
 
-    private static final String PLACEHOLDER_CONDA_ENV = "no environment available";
-
     private final DLTestStatusChangeListenerCollection m_changeListenerCollection;
 
     private final DLPythonConfigSelectionConfig m_configSelectionConfig;
@@ -354,7 +352,8 @@ final class DLPythonConfigsObserver {
     }
 
     private static boolean isPlaceholderEnvironmentSelected(final DLCondaEnvironmentConfig config) {
-        return PLACEHOLDER_CONDA_ENV.equals(config.getEnvironmentDirectory().getStringValue());
+        return DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_DIR
+            .equals(config.getEnvironmentDirectory().getStringValue());
     }
 
     /** Test the conda installation and set the info/error message */
@@ -463,7 +462,8 @@ final class DLPythonConfigsObserver {
     private void setAvailableCondaEnvironments(List<CondaEnvironmentSpec> availableEnvironments) {
         if (availableEnvironments.isEmpty()) {
             availableEnvironments =
-                Arrays.asList(new CondaEnvironmentSpec(PLACEHOLDER_CONDA_ENV, PLACEHOLDER_CONDA_ENV));
+                Arrays.asList(new CondaEnvironmentSpec(DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_NAME,
+                    DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_DIR));
         }
         // Keras
         m_condaEnvironmentsConfig.getKerasConfig().getAvailableEnvironments()

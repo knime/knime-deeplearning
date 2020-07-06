@@ -48,8 +48,6 @@
  */
 package org.knime.dl.python.prefs;
 
-import java.nio.file.Paths;
-
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.Conda.CondaEnvironmentSpec;
 import org.knime.python2.config.CondaEnvironmentsConfig;
@@ -66,6 +64,10 @@ final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
     private static final String CFG_KEY_KERAS_CONDA_ENV_NAME_DIR = "kerasCondaEnvironmentDirectoryPath";
 
     private static final String CFG_KEY_TF2_CONDA_ENV_NAME_DIR = "tf2CondaEnvironmentDirectoryPath";
+
+    static final String PLACEHOLDER_CONDA_ENV_NAME = "no environment available";
+
+    static final String PLACEHOLDER_CONDA_ENV_DIR = "no_conda_environment_selected";
 
     private static final String CFG_KEY_DUMMY = "dummy";
 
@@ -95,12 +97,8 @@ final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
     }
 
     private static CondaEnvironmentSpec getDefaultCondaEnvironment(final String condaDirectoryPath) {
-        // Note: the environment must not be "base" since the base environment is not located inside the "envs"
-        // directory used below.
         // TODO: change to sensible default
-        final String environmentName = "no environment available";
-        final String environmentDirectoryPath = Paths.get(condaDirectoryPath, "envs", environmentName).toString();
-        return new CondaEnvironmentSpec(environmentName, environmentDirectoryPath);
+        return new CondaEnvironmentSpec(PLACEHOLDER_CONDA_ENV_NAME, PLACEHOLDER_CONDA_ENV_DIR);
     }
 
     @Override
