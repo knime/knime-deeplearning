@@ -145,6 +145,7 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
                     for (final CondaEnvironmentSpec environment : environments) {
                         if (environmentNameValue.equals(environment.getName())) {
                             m_environmentDirectory.setStringValue(environment.getDirectoryPath());
+                            storage.saveStringModel(m_environmentDirectory);
                             break;
                         }
                     }
