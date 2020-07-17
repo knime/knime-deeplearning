@@ -8,6 +8,7 @@ properties([
         upstream('knime-python/' + env.BRANCH_NAME.replaceAll('/', '%2F')),
         upstream('knime-distance/' + env.BRANCH_NAME.replaceAll('/', '%2F'))
     ]),
+    parameters(workflowTests.getConfigurationsAsParameters()),
     buildDiscarder(logRotator(numToKeepStr: '5')),
     disableConcurrentBuilds()
 ])
@@ -33,5 +34,5 @@ try {
     throw ex
 } finally {
     notifications.notifyBuild(currentBuild.result);
-    }
+}
 /* vim: set shiftwidth=4 expandtab smarttab: */
