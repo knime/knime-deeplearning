@@ -8,7 +8,7 @@
 
 	<fullDescription>
 		<intro>
-			This layer applies multiplicative zero-centered gaussian noise to the layer input.
+			This layer applies additive zero-centered Gaussian noise to the layer input.
 		Corresponds to the
 			<a href="https://keras.io/layers/noise/#gaussiannoise">Keras Gaussian Noise Layer</a>.
 		</intro>
