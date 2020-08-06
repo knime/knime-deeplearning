@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
@@ -95,6 +96,8 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
     protected static class DLPythonInstallationTester {
 
+        private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonInstallationTester.class);
+
         protected boolean m_tested = false;
 
         protected boolean m_success;
@@ -131,7 +134,10 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
         protected synchronized void testInstallation(final boolean forceRefresh, final int timeout,
             final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
             throws DLMissingDependencyException, DLInstallationTestTimeoutException {
+            final String networkTypeName = loader.getNetworkType().getCanonicalName();
             if (forceRefresh || !m_tested) {
+                LOGGER.debug("Starting installation tests for " + networkTypeName + ". (Tested: " + m_tested
+                    + ", Force refresh: " + forceRefresh + ")");
                 final AtomicBoolean success = new AtomicBoolean();
                 final AtomicReference<String> message = new AtomicReference<>();
                 final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
@@ -140,25 +146,30 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                         try {
                             loader.createCommands(context).testInstallation(cancelable);
                             success.set(true);
+                            LOGGER.debug("Installation tests for " + networkTypeName + " succeeded.");
                         } catch (final Throwable th) {
                             message.set(Strings.isNullOrEmpty(th.getMessage())
                                 ? "Unknown error of type '" + th.getClass().getName() + "'." //
                                 : th.getMessage());
+                            LOGGER.debug("Installation tests for " + networkTypeName + " failed with message \""
+                                + message + "\".");
                             if (th instanceof Error) {
                                 throw (Error)th;
                             }
                         }
-                    }, "DL-Installation-Test-" + loader.getNetworkType().getCanonicalName());
+                    }, "DL-Installation-Test-" + networkTypeName);
                     t.start();
                     try {
                         t.join(timeout);
                     } catch (final InterruptedException e) {
+                        LOGGER.debug(
+                            "Installation tests for " + networkTypeName + " interrupted. (Success: " + success + ")");
                         if (!success.get()) {
                             t.interrupt();
                             message.getAndUpdate(msg -> {
                                 if (msg == null) {
-                                    msg = "Installation test for Python back end '"
-                                        + loader.getNetworkType().getCanonicalName() + "' was interrupted.";
+                                    msg = "Installation test for Python back end '" + networkTypeName
+                                        + "' was interrupted.";
                                     timeoutException.set(new DLInstallationTestTimeoutException(msg, e));
                                 }
                                 return msg;
@@ -170,8 +181,10 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                         t.interrupt();
                         message.getAndUpdate(msg -> {
                             if (msg == null) {
+                                LOGGER
+                                    .debug("Installation tests for " + networkTypeName + " timed out without success.");
                                 msg = "Installation test for Python back end '"
-                                    + loader.getNetworkType().getCanonicalName() + "' timed out. "
+                                    + networkTypeName + "' timed out. "
                                     + "Please make sure your Python environment is properly set up and "
                                     + "consider increasing the timeout (currently " + timeout
                                     + " ms) using the VM option " + "'-D"
@@ -189,6 +202,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                 m_success = success.get();
                 m_message = message.get();
                 m_timeoutException = timeoutException.get();
+            } else {
+                LOGGER.debug("Using cached installation tests for " + networkTypeName + ". (Success: " + m_success
+                    + ", message: \"" + m_message + "\")");
             }
             if (!m_success) {
                 if (m_timeoutException != null) {
