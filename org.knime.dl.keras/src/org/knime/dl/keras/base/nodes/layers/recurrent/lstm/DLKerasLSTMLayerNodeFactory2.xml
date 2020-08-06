@@ -45,7 +45,6 @@
 			<option name="Return state">
 				Whether to return the hidden states in addition to the layer output.
 				If selected the layer returns three tensors, the normal output and the two hidden states of the layer.
-				If sequences are returned, this also applies to the hidden states.
 			</option>
 			<option name="Dropout">
 				Fraction of the units to drop for the linear transformation of the input.
