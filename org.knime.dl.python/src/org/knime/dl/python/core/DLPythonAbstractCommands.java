@@ -50,15 +50,24 @@ package org.knime.dl.python.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
@@ -102,6 +111,8 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
+import org.knime.python2.kernel.PythonCommands;
+import org.knime.python2.kernel.PythonExecutionMonitor;
 import org.knime.python2.kernel.PythonIOException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonOutputListener;
@@ -110,6 +121,11 @@ import org.knime.python2.kernel.messaging.AbstractTaskHandler;
 import org.knime.python2.kernel.messaging.DefaultMessage;
 import org.knime.python2.kernel.messaging.DefaultMessage.PayloadDecoder;
 import org.knime.python2.kernel.messaging.Message;
+import org.knime.python2.kernel.messaging.MessageHandler;
+import org.knime.python2.kernel.messaging.MessageHandlerCollection;
+import org.knime.python2.kernel.messaging.MessageSender;
+import org.knime.python2.kernel.messaging.PythonMessaging;
+import org.knime.python2.kernel.messaging.TaskHandler;
 import org.knime.python2.util.PythonUtils;
 
 import com.google.common.collect.Sets;
@@ -511,7 +527,16 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         try {
             final DLPythonNetworkTrainingTaskHandler trainingTaskHandler = createNetworkTrainingTaskHandler(context,
                 monitor, trainingInputProvider, validationInputProvider, this::createSingleTensorTableChunker);
-            final RunnableFuture<Void> trainingTask = kernel.createExecutionTask(trainingTaskHandler, b.toString());
+            // NB: We use our own DLTrainingTask to make sure the message handler is not unregistered.
+            // Unregistering the handler can cause errors if requests for training data come in after the training is done.
+            @SuppressWarnings("resource") // Closed by the kernel
+            final PythonCommands pythonCommands = kernel.getCommands();
+            @SuppressWarnings("resource") // Closed by the kernel
+            final PythonMessaging pythonMessaging = pythonCommands.getMessaging();
+            final DLTrainingTask trainingTask = new DLTrainingTask(pythonCommands.createExecuteCommand(b.toString()),
+                trainingTaskHandler, pythonMessaging, pythonMessaging,
+                pythonMessaging::createNextMessageId, pythonCommands.getExecutor(),
+                pythonCommands.getMonitor());
             trainingTask.run();
             trainingTask.get();
         } catch (final ExecutionException ex) {
@@ -750,6 +775,168 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         public String createReader() {
             return m_createReaderStatement;
+        }
+    }
+
+    /**
+     * COPIED FROM org.knime.python2.kernel.messaging.DefaultTaskFactory.DefaultTaks
+     * </p>
+     * Changes:
+     * <ul>
+     * <li>Replaced generic T by Void</li>
+     * <li>Removed code where the handler is unregisters itself. Requests for training data might come in after the
+     * training is done. In this case this MessageHandler must be still registered to handle the request.</li>
+     * </ul>
+     */
+    private static final class DLTrainingTask implements RunnableFuture<Void>, MessageHandler {
+
+        private static final int RECEIVE_QUEUE_LENGTH = 10;
+
+        private Message m_initiatingMessage;
+
+        private final FutureTask<Void> m_delegateTask = new FutureTask<>(this::runInternal);
+
+        private final TaskHandler<Void> m_delegateTaskHandler;
+
+        private final MessageSender m_messageSender;
+
+        private final MessageHandlerCollection m_messageHandlers;
+
+        private final IntSupplier m_messageIdSupplier;
+
+        private final ExecutorService m_executor;
+
+        private final PythonExecutionMonitor m_monitor;
+
+        private final BlockingQueue<Message> m_receivedMessages = new ArrayBlockingQueue<>(RECEIVE_QUEUE_LENGTH);
+
+        private final List<String> m_registeredMessageCategories = new ArrayList<>(5);
+
+        private final AtomicBoolean m_isRunningOrDone = new AtomicBoolean(false);
+
+        private boolean m_isDone = false;
+
+        private Void m_result = null;
+
+        private String m_taskCategory = null;
+
+        private DLTrainingTask(final Message message, final TaskHandler<Void> taskHandler, final MessageSender sender,
+            final MessageHandlerCollection messageHandlers, final IntSupplier messageIdSupplier,
+            final ExecutorService executor, final PythonExecutionMonitor monitor) {
+            m_initiatingMessage = message;
+            m_delegateTaskHandler = taskHandler;
+            m_messageSender = sender;
+            m_messageHandlers = messageHandlers;
+            m_messageIdSupplier = messageIdSupplier;
+            m_executor = executor;
+            m_monitor = monitor;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return m_delegateTask.isCancelled();
+        }
+
+        @Override
+        public boolean isDone() {
+            return m_delegateTask.isDone();
+        }
+
+        @Override
+        public void run() {
+            if (m_isRunningOrDone.compareAndSet(false, true)) {
+                m_executor.submit(m_delegateTask);
+            }
+        }
+
+        @Override
+        public boolean cancel(final boolean mayInterruptIfRunning) {
+            return m_delegateTask.cancel(mayInterruptIfRunning);
+        }
+
+        @Override
+        public Void get() throws InterruptedException, ExecutionException {
+            run(); // Start task if not already running.
+            return m_delegateTask.get();
+        }
+
+        @Override
+        public Void get(final long timeout, final TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+            run(); // Start task if not already running.
+            return m_delegateTask.get(timeout, unit);
+        }
+
+        @Override
+        public boolean handle(final Message message) throws ExecutionException {
+            try {
+                LOGGER.debug("Java - Enqueue message for task, message: " + message + ", initiating message: "
+                    + m_initiatingMessage);
+                if (message == m_monitor.getPoisonPill()) {
+                    do {
+                        m_receivedMessages.clear();
+                    } while (!m_receivedMessages.offer(message));
+                } else {
+                    m_receivedMessages.put(message);
+                }
+                run(); // Start task if not already running.
+            } catch (final InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new ExecutionException(
+                    "Message handler was interrupted while handling message '" + message + "'.", ex);
+            }
+            return true;
+        }
+
+        private Void runInternal() throws Exception {
+            LOGGER.debug("Java - Run task, initiating message: " + m_initiatingMessage);
+            Message toSend = m_initiatingMessage;
+            while (!m_isDone && !Thread.interrupted()) {
+                if (toSend != null) {
+                    String messageCategory = Integer.toString(toSend.getId());
+                    if (m_taskCategory == null) {
+                        m_taskCategory = messageCategory;
+                    }
+                    if (!m_messageHandlers.registerMessageHandler(messageCategory, this)) {
+                        throw new IllegalStateException(
+                            "Message handler for category '" + messageCategory + "' is already registered.");
+                    } else {
+                        m_registeredMessageCategories.add(messageCategory);
+                    }
+                    m_messageSender.send(toSend);
+                }
+                LOGGER.debug("Java - Wait for message in task, initiating message: " + m_initiatingMessage);
+                final Message received = m_receivedMessages.take();
+                if (received == m_monitor.getPoisonPill()) {
+                    LOGGER.debug("Java - Received poison pill in task, initiating message: " + m_initiatingMessage);
+                    m_monitor.checkExceptions();
+                    throw new IllegalStateException("Java - Task terminated due to an unknown error.");
+                } else {
+                    LOGGER.debug("Java - Received message in task, message: " + received + ", initiating message: "
+                        + m_initiatingMessage);
+                    toSend =
+                        m_delegateTaskHandler.handle(received, m_messageHandlers, m_messageIdSupplier, this::setResult);
+                }
+            }
+            LOGGER.info("Finishing task handler. Task category: '" + m_taskCategory + "', is done: " + m_isDone + ", is interrupted: " + Thread.interrupted());
+            // Send pending message if any.
+            // This may happen if the act of responding to a message also marks (successful) termination of the task.
+            if (toSend != null) {
+                m_messageSender.send(toSend);
+            }
+
+            // NOTE: We do not unregister this message handler.
+            // Messages for requesting training data might come in after the task is done
+
+            // Message may contain heavy payload. Dereference to obviate memory leak.
+            m_initiatingMessage = null;
+
+            return m_result;
+        }
+
+        private void setResult(final Void result) {
+            m_result = result;
+            m_isDone = true;
         }
     }
 
