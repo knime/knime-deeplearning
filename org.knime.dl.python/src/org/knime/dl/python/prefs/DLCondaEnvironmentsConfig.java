@@ -48,100 +48,69 @@
  */
 package org.knime.dl.python.prefs;
 
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.Conda.CondaEnvironmentSpec;
-import org.knime.python2.config.CondaEnvironmentsConfig;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.CondaDirectoryConfig;
+import org.knime.python2.config.CondaEnvironmentConfig;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
 
 /**
  * @author Benjain Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
-
-    private static final String CFG_KEY_CONDA_DIRECTORY_PATH = "condaDirectoryPath";
 
     private static final String CFG_KEY_KERAS_CONDA_ENV_NAME_DIR = "kerasCondaEnvironmentDirectoryPath";
 
     private static final String CFG_KEY_TF2_CONDA_ENV_NAME_DIR = "tf2CondaEnvironmentDirectoryPath";
 
-    static final String PLACEHOLDER_CONDA_ENV_NAME = "no environment available";
+    /** Only used for legacy support. See {@link CondaEnvironmentConfig#loadConfigFrom(PythonConfigStorage)}. */
+    private static final String LEGACY_CFG_KEY_KERAS_CONDA_ENV_NAME = "condaEnvironmentName";
 
-    static final String PLACEHOLDER_CONDA_ENV_DIR = "no_conda_environment_selected";
+    private final CondaDirectoryConfig m_condaDirectoryConfig =
+        new CondaDirectoryConfig(PythonPreferences.getCondaInstallationPath());
 
-    private static final String CFG_KEY_DUMMY = "dummy";
+    private final CondaEnvironmentConfig m_kerasEnvironmentConfig = new CondaEnvironmentConfig(PythonVersion.PYTHON3,
+        CFG_KEY_KERAS_CONDA_ENV_NAME_DIR, LEGACY_CFG_KEY_KERAS_CONDA_ENV_NAME, m_condaDirectoryConfig);
 
-    private final SettingsModelString m_condaDirectory;
+    private final CondaEnvironmentConfig m_tf2EnvironmentConfig = new CondaEnvironmentConfig(PythonVersion.PYTHON3,
+        CFG_KEY_TF2_CONDA_ENV_NAME_DIR, LEGACY_CFG_KEY_KERAS_CONDA_ENV_NAME, m_condaDirectoryConfig);
 
-    private final SettingsModelString m_condaInstallationInfo;
-
-    private final SettingsModelString m_condaInstallationError;
-
-    private final DLCondaEnvironmentConfig m_kerasEnvironmentConfig;
-
-    private final DLCondaEnvironmentConfig m_tf2EnvironmentConfig;
-
-    DLCondaEnvironmentsConfig() {
-        // Conda config
-        m_condaDirectory =
-            new SettingsModelString(CFG_KEY_CONDA_DIRECTORY_PATH, PythonPreferences.getCondaInstallationPath());
-        m_condaInstallationInfo = new SettingsModelString(CFG_KEY_DUMMY, "");
-        m_condaInstallationError = new SettingsModelString(CFG_KEY_DUMMY, "");
-
-        // Environments
-        final String condaDirectoryPath = m_condaDirectory.getStringValue();
-        m_kerasEnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_KERAS_CONDA_ENV_NAME_DIR,
-            getDefaultCondaEnvironment(condaDirectoryPath), m_condaDirectory);
-        m_tf2EnvironmentConfig = new DLCondaEnvironmentConfig(CFG_KEY_TF2_CONDA_ENV_NAME_DIR,
-            getDefaultCondaEnvironment(condaDirectoryPath), m_condaDirectory);
-    }
-
-    private static CondaEnvironmentSpec getDefaultCondaEnvironment(final String condaDirectoryPath) {
-        // TODO: change to sensible default
-        return new CondaEnvironmentSpec(PLACEHOLDER_CONDA_ENV_NAME, PLACEHOLDER_CONDA_ENV_DIR);
+    /**
+     * @return The configuration for the installation directory of the Conda installation.
+     */
+    public CondaDirectoryConfig getCondaDirectoryConfig() {
+        return m_condaDirectoryConfig;
     }
 
     @Override
-    public DLCondaEnvironmentConfig getKerasConfig() {
+    public CondaEnvironmentConfig getKerasConfig() {
         return m_kerasEnvironmentConfig;
     }
 
     @Override
-    public DLCondaEnvironmentConfig getTF2Config() {
+    public CondaEnvironmentConfig getTF2Config() {
         return m_tf2EnvironmentConfig;
     }
 
-    /**
-     * @return The path to the conda directory
-     */
-    public SettingsModelString getCondaDirectoryPath() {
-        return m_condaDirectory;
-    }
-
-    /**
-     * @return The installation status message of the local Conda installation. Not meant for saving/loading.
-     */
-    public SettingsModelString getCondaInstallationInfo() {
-        return m_condaInstallationInfo;
-    }
-
-    /**
-     * @return The installation error message of the local Conda installation. Not meant for saving/loading.
-     */
-    public SettingsModelString getCondaInstallationError() {
-        return m_condaInstallationError;
+    @Override
+    public void saveDefaultsTo(final PythonConfigStorage storage) {
+        m_condaDirectoryConfig.saveDefaultsTo(storage);
+        m_kerasEnvironmentConfig.saveDefaultsTo(storage);
+        m_tf2EnvironmentConfig.saveDefaultsTo(storage);
     }
 
     @Override
     public void saveConfigTo(final PythonConfigStorage storage) {
-        storage.saveStringModel(m_condaDirectory);
+        m_condaDirectoryConfig.saveConfigTo(storage);
         m_kerasEnvironmentConfig.saveConfigTo(storage);
         m_tf2EnvironmentConfig.saveConfigTo(storage);
     }
 
     @Override
     public void loadConfigFrom(final PythonConfigStorage storage) {
-        storage.loadStringModel(m_condaDirectory);
+        m_condaDirectoryConfig.loadConfigFrom(storage);
         m_kerasEnvironmentConfig.loadConfigFrom(storage);
         m_tf2EnvironmentConfig.loadConfigFrom(storage);
     }
@@ -150,10 +119,17 @@ final class DLCondaEnvironmentsConfig implements DLPythonEnvironmentsConfig {
      * Load the default configuration
      */
     void loadDefaults() {
-        m_condaDirectory.setStringValue(CondaEnvironmentsConfig.getDefaultCondaInstallationDirectory());
-        m_condaInstallationInfo.setStringValue("");
-        m_condaInstallationError.setStringValue("");
-        m_kerasEnvironmentConfig.loadDefaults();
-        m_tf2EnvironmentConfig.loadDefaults();
+        m_condaDirectoryConfig.getCondaDirectoryPath()
+            .setStringValue(CondaDirectoryConfig.getDefaultInstallationDirectory());
+        m_condaDirectoryConfig.getCondaInstallationError().setStringValue("");
+        m_condaDirectoryConfig.getCondaInstallationInfo().setStringValue("");
+        loadDefaults(m_kerasEnvironmentConfig);
+        loadDefaults(m_tf2EnvironmentConfig);
+    }
+
+    private static void loadDefaults(final CondaEnvironmentConfig config) {
+        final CondaEnvironmentSpec placeholderEnvironment = CondaEnvironmentConfig.PLACEHOLDER_ENV;
+        config.getEnvironmentDirectory().setStringValue(placeholderEnvironment.getDirectoryPath());
+        config.getAvailableEnvironments().setValue(new CondaEnvironmentSpec[]{placeholderEnvironment});
     }
 }

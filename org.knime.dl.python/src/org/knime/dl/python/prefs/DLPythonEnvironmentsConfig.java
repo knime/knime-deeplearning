@@ -49,6 +49,7 @@
 package org.knime.dl.python.prefs;
 
 import org.knime.python2.config.PythonConfig;
+import org.knime.python2.config.PythonEnvironmentConfig;
 
 /**
  * A configuration for deep learning Python environments.
@@ -60,10 +61,10 @@ interface DLPythonEnvironmentsConfig extends PythonConfig {
     /**
      * @return the config for the Keras environment.
      */
-    DLPythonEnvironmentConfig getKerasConfig();
+    PythonEnvironmentConfig getKerasConfig();
 
     /**
      * @return the config for the TensorFlow 2 environment.
      */
-    DLPythonEnvironmentConfig getTF2Config();
+    PythonEnvironmentConfig getTF2Config();
 }

@@ -52,6 +52,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractPythonConfigPanel;
+import org.knime.python2.config.CondaDirectoryConfig;
+import org.knime.python2.config.CondaEnvironmentConfig;
 import org.knime.python2.prefs.CondaEnvironmentSelectionBox;
 import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 
@@ -66,7 +68,7 @@ final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<
         super(config, parent);
         final Composite panel = getPanel();
 
-        createCondaDirectoryPathPanel(config, panel);
+        createCondaDirectoryPathPanel(config.getCondaDirectoryConfig(), panel);
         createKerasEnvironmentSelectionPanel(config.getKerasConfig(), kerasEnvironmentCreator, panel);
         createTF2EnvironmentSelectionPanel(config.getTF2Config(), tf2EnvironmentCreator, panel);
     }
@@ -78,18 +80,18 @@ final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<
         return panel;
     }
 
-    private static void createKerasEnvironmentSelectionPanel(final DLCondaEnvironmentConfig kerasConfig,
+    private static void createKerasEnvironmentSelectionPanel(final CondaEnvironmentConfig kerasConfig,
         final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator, final Composite panel) {
         createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, kerasConfig, kerasEnvironmentCreator, panel);
     }
 
-    private static void createTF2EnvironmentSelectionPanel(final DLCondaEnvironmentConfig tf2Config,
+    private static void createTF2EnvironmentSelectionPanel(final CondaEnvironmentConfig tf2Config,
         final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator, final Composite panel) {
         createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, tf2Config, tf2EnvironmentCreator, panel);
     }
 
     private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLCondaEnvironmentConfig config, final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator,
+        final CondaEnvironmentConfig config, final DLCondaEnvironmentCreationObserver pythonEnvironmentCreator,
         final Composite panel) {
         final CondaEnvironmentSelectionBox environmentSelection =
             new CondaEnvironmentSelectionBox(PythonVersion.PYTHON3, config.getEnvironmentDirectory(),
@@ -104,7 +106,7 @@ final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<
         environmentSelection.setLayoutData(gridData);
     }
 
-    private static void createCondaDirectoryPathPanel(final DLCondaEnvironmentsConfig config, final Composite panel) {
+    private static void createCondaDirectoryPathPanel(final CondaDirectoryConfig config, final Composite panel) {
         final StatusDisplayingFilePathEditor directoryPathEditor = new StatusDisplayingFilePathEditor(
             config.getCondaDirectoryPath(), false, "Conda", "Path to the Conda installation directory",
             config.getCondaInstallationInfo(), config.getCondaInstallationError(), panel);

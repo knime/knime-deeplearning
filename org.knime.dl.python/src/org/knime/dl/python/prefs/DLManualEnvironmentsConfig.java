@@ -48,12 +48,15 @@
  */
 package org.knime.dl.python.prefs;
 
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.ManualEnvironmentConfig;
 import org.knime.python2.config.PythonConfigStorage;
 
 /**
  * A config for the manual selection of a Keras and TF2 environment.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 final class DLManualEnvironmentsConfig implements DLPythonEnvironmentsConfig {
 
@@ -62,23 +65,28 @@ final class DLManualEnvironmentsConfig implements DLPythonEnvironmentsConfig {
 
     private static final String CFG_KEY_TF2 = "tf2ManualConfig";
 
-    private final DLManualEnvironmentConfig m_kerasEnvironmentConfig;
+    private static final String DEFAULT_PYTHON_PATH = "python3";
 
-    private final DLManualEnvironmentConfig m_tf2EnvironmentConfig;
+    private final ManualEnvironmentConfig m_kerasEnvironmentConfig =
+        new ManualEnvironmentConfig(PythonVersion.PYTHON3, CFG_KEY_KERAS, DEFAULT_PYTHON_PATH);
 
-    DLManualEnvironmentsConfig() {
-        m_kerasEnvironmentConfig = new DLManualEnvironmentConfig(CFG_KEY_KERAS);
-        m_tf2EnvironmentConfig = new DLManualEnvironmentConfig(CFG_KEY_TF2);
-    }
+    private final ManualEnvironmentConfig m_tf2EnvironmentConfig =
+        new ManualEnvironmentConfig(PythonVersion.PYTHON3, CFG_KEY_TF2, DEFAULT_PYTHON_PATH);
 
     @Override
-    public DLManualEnvironmentConfig getKerasConfig() {
+    public ManualEnvironmentConfig getKerasConfig() {
         return m_kerasEnvironmentConfig;
     }
 
     @Override
-    public DLManualEnvironmentConfig getTF2Config() {
+    public ManualEnvironmentConfig getTF2Config() {
         return m_tf2EnvironmentConfig;
+    }
+
+    @Override
+    public void saveDefaultsTo(final PythonConfigStorage storage) {
+        m_kerasEnvironmentConfig.saveDefaultsTo(storage);
+        m_tf2EnvironmentConfig.saveDefaultsTo(storage);
     }
 
     @Override
@@ -94,7 +102,15 @@ final class DLManualEnvironmentsConfig implements DLPythonEnvironmentsConfig {
     }
 
     void loadDefaults() {
-        m_kerasEnvironmentConfig.loadDefaults();
-        m_tf2EnvironmentConfig.loadDefaults();
+        loadDefaults(m_kerasEnvironmentConfig);
+        loadDefaults(m_tf2EnvironmentConfig);
+    }
+
+    private static void loadDefaults(final ManualEnvironmentConfig config) {
+        config.getExecutablePath().setStringValue(DEFAULT_PYTHON_PATH);
+        config.getPythonInstallationInfo().setStringValue("");
+        config.getPythonInstallationWarning().setStringValue("");
+        config.getPythonInstallationError().setStringValue("");
+        config.getIsDefaultPythonEnvironment().setBooleanValue(false);
     }
 }

@@ -69,6 +69,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.dl.python.prefs.DLTestStatusChangeListenerCollection.DLPythonConfigsInstallationTestStatusChangeListener;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
 import org.knime.python2.config.PythonConfigStorage;
@@ -148,13 +149,15 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         environmentConfigurationPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Conda environment configuration, including environment creation dialogs:
-        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator = new DLCondaEnvironmentCreationObserver(
-            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.KERAS);
-        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator = new DLCondaEnvironmentCreationObserver(
-            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.TF2);
+        final SettingsModelString condaDirectoryPath =
+            m_config.m_condaEnvs.getCondaDirectoryConfig().getCondaDirectoryPath();
+        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator =
+            new DLCondaEnvironmentCreationObserver(condaDirectoryPath, DLPythonLibrarySelection.KERAS);
+        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator =
+            new DLCondaEnvironmentCreationObserver(condaDirectoryPath, DLPythonLibrarySelection.TF2);
 
-        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, kerasEnvironmentCreator, tf2EnvironmentCreator,
-            environmentConfigurationPanel);
+        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, kerasEnvironmentCreator,
+            tf2EnvironmentCreator, environmentConfigurationPanel);
 
         // Manual environment configuration:
         m_manualEnvironmentPanel =

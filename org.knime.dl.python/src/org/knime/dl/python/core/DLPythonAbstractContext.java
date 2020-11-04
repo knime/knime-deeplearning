@@ -66,6 +66,7 @@ import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.python.util.DLPythonUtils;
 import org.knime.python.typeextension.PythonModuleExtensions;
 import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonCommand.UnconfiguredEnvironmentException;
 import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
@@ -73,6 +74,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator
 import org.knime.python2.kernel.PythonCancelable;
 import org.knime.python2.kernel.PythonCanceledExecutionException;
 import org.knime.python2.kernel.PythonException;
+import org.knime.python2.kernel.PythonIOException;
 import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelCleanupException;
 import org.knime.python2.kernel.PythonKernelOptions;
@@ -126,7 +128,12 @@ public abstract class DLPythonAbstractContext implements DLPythonContext {
 
     @Override
     public String[] execute(final DLCancelable cancelable, final File script, final String... args) throws IOException {
-        final ProcessBuilder pb = getPythonCommand().createProcessBuilder();
+        ProcessBuilder pb;
+        try {
+            pb = getPythonCommand().createProcessBuilder();
+        } catch (UnconfiguredEnvironmentException ex) {
+            throw new PythonIOException(ex.getMessage(), ex);
+        }
         final List<String> pbCommand = pb.command();
         pbCommand.add(script.getAbsolutePath());
         Collections.addAll(pbCommand, args);
