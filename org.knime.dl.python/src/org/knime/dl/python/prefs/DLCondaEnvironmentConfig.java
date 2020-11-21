@@ -53,7 +53,7 @@ import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.dl.python.prefs.DLPythonPreferences.InstanceScopeConfigStorage;
 import org.knime.python2.Conda;
-import org.knime.python2.Conda.CondaEnvironmentSpec;
+import org.knime.python2.Conda.CondaEnvironmentIdentifier;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.ObservableValue;
@@ -77,10 +77,10 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
     private final SettingsModelString m_condaDirectory;
 
     /** Not meant for saving/loading. We just want observable values here to communicate with the view. */
-    private final ObservableValue<CondaEnvironmentSpec[]> m_availableEnvironments;
+    private final ObservableValue<CondaEnvironmentIdentifier[]> m_availableEnvironments;
 
     /** Required in {@link #loadDefaults()}. */
-    private final CondaEnvironmentSpec m_defaultEnvironment;
+    private final CondaEnvironmentIdentifier m_defaultEnvironment;
 
     /**
      * @param environmentDirectoryConfigKey The identifier of the Conda environment directory config. Used for
@@ -90,11 +90,11 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
      *            otherwise managed by this config.
      */
     DLCondaEnvironmentConfig(final String environmentDirectoryConfigKey, //
-        final CondaEnvironmentSpec defaultEnvironment, //
+        final CondaEnvironmentIdentifier defaultEnvironment, //
         final SettingsModelString condaDirectory) {
         m_environmentDirectory =
             new SettingsModelString(environmentDirectoryConfigKey, defaultEnvironment.getDirectoryPath());
-        m_availableEnvironments = new ObservableValue<>(new CondaEnvironmentSpec[]{defaultEnvironment});
+        m_availableEnvironments = new ObservableValue<>(new CondaEnvironmentIdentifier[]{defaultEnvironment});
         m_defaultEnvironment = defaultEnvironment;
         m_condaDirectory = condaDirectory;
     }
@@ -115,7 +115,7 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
     /**
      * @return The list of the currently available Python Conda environments. Not meant for saving/loading.
      */
-    public ObservableValue<CondaEnvironmentSpec[]> getAvailableEnvironments() {
+    public ObservableValue<CondaEnvironmentIdentifier[]> getAvailableEnvironments() {
         return m_availableEnvironments;
     }
 
@@ -140,9 +140,9 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
                 storage.loadStringModel(environmentName);
                 try {
                     final String environmentNameValue = environmentName.getStringValue();
-                    final List<CondaEnvironmentSpec> environments =
+                    final List<CondaEnvironmentIdentifier> environments =
                         new Conda(m_condaDirectory.getStringValue()).getEnvironments();
-                    for (final CondaEnvironmentSpec environment : environments) {
+                    for (final CondaEnvironmentIdentifier environment : environments) {
                         if (environmentNameValue.equals(environment.getName())) {
                             m_environmentDirectory.setStringValue(environment.getDirectoryPath());
                             storage.saveStringModel(m_environmentDirectory);
@@ -163,6 +163,6 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
      */
     void loadDefaults() {
         m_environmentDirectory.setStringValue(m_defaultEnvironment.getDirectoryPath());
-        m_availableEnvironments.setValue(new CondaEnvironmentSpec[]{m_defaultEnvironment});
+        m_availableEnvironments.setValue(new CondaEnvironmentIdentifier[]{m_defaultEnvironment});
     }
 }
