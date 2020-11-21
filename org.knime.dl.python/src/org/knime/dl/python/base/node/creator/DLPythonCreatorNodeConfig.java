@@ -51,37 +51,30 @@ import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
 import org.knime.python2.generic.VariableNames;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonCreatorNodeConfig extends DLPythonSourceCodeConfig {
 
-	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
-			"flow_variables", // flow variables
-			null, // input tables
-			null, // output tables
-			null, // output images
-			null, // pickled input objects
-			null, // pickled output objects
-			null, // general input objects
-			new String[] { "output_network" } // general output objects
-	);
+    private static final VariableNames VARIABLE_NAMES = new VariableNames( //
+        "flow_variables", // flow variables
+        null, // input tables
+        null, // output tables
+        null, // output images
+        null, // pickled input objects
+        null, // pickled output objects
+        null, // general input objects
+        new String[]{"output_network"} // general output objects
+    );
 
-	@Override
-	protected String getDefaultSourceCode() {
-		final VariableNames vars = getVariableNames();
-		return "# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
-				"\n";
-	}
+    public static VariableNames getVariableNames() {
+        return VARIABLE_NAMES;
+    }
 
-	/**
-	 * Get the variable names for this node
-	 *
-	 * @return the variable names
-	 */
-	static VariableNames getVariableNames() {
-		return VARIABLE_NAMES;
-	}
+    @Override
+    protected String getDefaultSourceCode() {
+        final VariableNames vars = getVariableNames();
+        return "# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
+            "\n";
+    }
 }

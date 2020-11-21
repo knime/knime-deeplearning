@@ -58,6 +58,7 @@ import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * The Keras (CNTK) training back end.
@@ -77,17 +78,18 @@ public final class DLKerasCNTKDefaultTrainingContext extends DLKerasAbstractTrai
 	}
 
     @Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public void checkAvailability(final DLPythonContext context, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
-        new DLKerasCNTKNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+        new DLKerasCNTKNetworkLoader().checkAvailability(context, forceRefresh, timeout, cancelable);
     }
 
 	@Override
-    public DLKerasCNTKNetworkTrainingSession createTrainingSession(final DLKerasCNTKNetwork network,
-        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    public DLKerasCNTKNetworkTrainingSession createTrainingSession(final DLPythonContext context,
+        final DLKerasCNTKNetwork network, final DLKerasTrainingConfig trainingConfig,
+        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer) {
-		return new DLKerasCNTKNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
-				trainingInputPreparer, validationInputPreparer, getTensorFactory());
-	}
+        return new DLKerasCNTKNetworkTrainingSession(context, network, trainingConfig, executionInputSpecs,
+            trainingInputPreparer, validationInputPreparer, getTensorFactory());
+    }
 }

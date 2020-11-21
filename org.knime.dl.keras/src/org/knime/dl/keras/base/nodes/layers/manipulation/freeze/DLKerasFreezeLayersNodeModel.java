@@ -115,17 +115,17 @@ public class DLKerasFreezeLayersNodeModel extends DLKerasAbstractManipulationNod
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsToDerived(final NodeSettingsWO settings) {
         m_frozenLayers.saveConfiguration(settings);
     }
 
     @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettingsDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
         // nothing to validate
     }
 
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void loadValidatedSettingsFromDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_frozenLayers.loadConfigurationInModel(settings);
     }
 

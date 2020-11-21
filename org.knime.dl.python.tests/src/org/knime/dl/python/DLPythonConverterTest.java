@@ -181,8 +181,8 @@ public class DLPythonConverterTest {
         // pre-allocate output map
         final HashMap<DLTensorId, DataCell[]> outputs = new HashMap<>(outputConverters.size());
 
-        try (final DLNetworkExecutionSession session = ctx.createExecutionSession(network, executionInputSpecs,
-            outputConverters.keySet(), new DLNetworkInputPreparer() {
+        try (final DLNetworkExecutionSession session = ctx.createExecutionSession(null, network,
+            executionInputSpecs, outputConverters.keySet(), new DLNetworkInputPreparer() {
                 private boolean hasNext = true;
 
                 @Override

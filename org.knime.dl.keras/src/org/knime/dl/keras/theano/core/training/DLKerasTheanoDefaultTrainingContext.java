@@ -58,6 +58,7 @@ import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * The Keras (Theano) training back end.
@@ -77,17 +78,18 @@ public final class DLKerasTheanoDefaultTrainingContext extends DLKerasAbstractTr
 	}
 
     @Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public void checkAvailability(final DLPythonContext context, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
-        new DLKerasTheanoNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+        new DLKerasTheanoNetworkLoader().checkAvailability(context, forceRefresh, timeout, cancelable);
     }
 
-	@Override
-    public DLKerasTheanoNetworkTrainingSession createTrainingSession(final DLKerasTheanoNetwork network,
-        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    @Override
+    public DLKerasTheanoNetworkTrainingSession createTrainingSession(final DLPythonContext context,
+        final DLKerasTheanoNetwork network, final DLKerasTrainingConfig trainingConfig,
+        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer) {
-		return new DLKerasTheanoNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
-				trainingInputPreparer, validationInputPreparer, getTensorFactory());
-	}
+        return new DLKerasTheanoNetworkTrainingSession(context, network, trainingConfig, executionInputSpecs,
+            trainingInputPreparer, validationInputPreparer, getTensorFactory());
+    }
 }

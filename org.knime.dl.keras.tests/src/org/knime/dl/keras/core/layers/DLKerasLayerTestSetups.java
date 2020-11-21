@@ -68,6 +68,7 @@ import org.knime.dl.keras.core.layers.impl.core.DLKerasDefaultInputLayer;
 import org.knime.dl.keras.core.layers.impl.core.DLKerasDenseLayer;
 import org.knime.dl.keras.core.layers.impl.merge.DLKerasAddLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.util.DLUtils;
 
@@ -277,10 +278,11 @@ class DLKerasLayerTestSetups {
         return Arrays.asList(out0, out1, out2);
     }
 
-    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedUnaryLayerTestSetup()
-        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
+        createSequentialModelAppendedUnaryLayerTestSetup(final DLPythonContext context)
+            throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(SEQUENTIAL_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(SEQUENTIAL_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
@@ -293,10 +295,10 @@ class DLKerasLayerTestSetups {
     }
 
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
-        createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup()
+        createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup(final DLPythonContext context)
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 1);
@@ -308,10 +310,11 @@ class DLKerasLayerTestSetups {
         return new Pair<>(Arrays.asList(baseNetwork), Arrays.asList(out0));
     }
 
-    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>> createSequentialModelAppendedBinaryLayerTestSetup()
-        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+    public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
+        createSequentialModelAppendedBinaryLayerTestSetup(final DLPythonContext context)
+            throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(SEQUENTIAL_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(SEQUENTIAL_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
@@ -325,10 +328,10 @@ class DLKerasLayerTestSetups {
     }
 
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
-        createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup()
+        createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup(final DLPythonContext context)
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOut0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork, 0);
@@ -345,13 +348,13 @@ class DLKerasLayerTestSetups {
     }
 
     public static Pair<List<DLKerasNetwork>, List<DLKerasLayer>>
-        createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup()
+        createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup(final DLPythonContext context)
             throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasNetwork baseNetwork1 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork0Out0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 2);
@@ -626,9 +629,9 @@ class DLKerasLayerTestSetups {
 
     public static <IO> IO testOnSequentialModelAppendedUnaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedUnaryLayerTestSetup();
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedUnaryLayerTestSetup(context);
         final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
         final DLKerasLayer out0 = pair.getSecond().get(0);
 
@@ -656,10 +659,10 @@ class DLKerasLayerTestSetups {
 
     public static <IO> IO testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
-            createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup();
+            createMultiInputMultiOutputModelAppendedUnaryLayerTestSetup(context);
         final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
         final DLKerasLayer out0 = pair.getSecond().get(0);
 
@@ -696,9 +699,9 @@ class DLKerasLayerTestSetups {
 
     public static <IO> IO testOnSequentialModelAppendedBinaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedBinaryLayerTestSetup();
+        final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair = createSequentialModelAppendedBinaryLayerTestSetup(context);
         final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
         final DLKerasLayer out0 = pair.getSecond().get(0);
 
@@ -726,10 +729,10 @@ class DLKerasLayerTestSetups {
 
     public static <IO> IO testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
-            createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup();
+            createMultiInputMultiOutputModelAppendedBinaryLayerTestSetup(context);
         final DLKerasNetwork baseNetwork = pair.getFirst().get(0);
         final DLKerasLayer out0 = pair.getSecond().get(0);
 
@@ -764,10 +767,10 @@ class DLKerasLayerTestSetups {
 
     public static <IO> IO testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final Pair<List<DLKerasNetwork>, List<DLKerasLayer>> pair =
-            createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup();
+            createTwoMultiInputMultiOutputModelsAppendedBinaryLayerTestSetup(context);
         final DLKerasNetwork baseNetwork0 = pair.getFirst().get(0);
         final DLKerasNetwork baseNetwork1 = pair.getFirst().get(1);
         final DLKerasLayer out0 = pair.getSecond().get(0);
@@ -808,16 +811,16 @@ class DLKerasLayerTestSetups {
 
     public static <IO extends DLKerasNetwork> IO testOnMultipleNetworksMultipleAppendedLayersSetup(
         final Function<List<DLKerasLayer>, IO> testFunction,
-        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec)
+        final Function<IO, DLKerasNetworkSpec> testFunctionOutputToSpec, final DLPythonContext context)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final DLKerasNetwork baseNetwork0 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(SEQUENTIAL_NETWORK_1, false, DLNotCancelable.INSTANCE);
+            .read(SEQUENTIAL_NETWORK_1, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasNetwork baseNetwork1 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_0, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasNetwork baseNetwork2 = new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false, DLNotCancelable.INSTANCE);
+            .read(MULTI_INPUT_MULTI_OUTPUT_NETWORK_1, false, context, DLNotCancelable.INSTANCE);
 
         final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetwork0Out0 =
             new DLKerasDefaultBaseNetworkTensorSpecOutput(baseNetwork0, 0);

@@ -86,7 +86,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 		return instance;
 	}
 
-	private final Set<DLExecutionContext<?>> m_ctxs = new HashSet<>();
+	private final Set<DLExecutionContext<?, ?>> m_ctxs = new HashSet<>();
 
 	private DLExecutionContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -101,7 +101,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param networkType the network type
 	 * @return the execution contexts
 	 */
-	public Collection<DLExecutionContext<?>> getExecutionContextsForNetworkType(
+	public Collection<DLExecutionContext<?, ?>> getExecutionContextsForNetworkType(
 			final Class<? extends DLNetwork> networkType) {
 		return m_ctxs.stream() //
 				.filter(ctx -> networkType.isAssignableFrom(ctx.getNetworkType())) //
@@ -114,7 +114,7 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param identifier the identifier
 	 * @return the execution context if present
 	 */
-	public Optional<DLExecutionContext<?>> getExecutionContext(final String identifier) {
+	public Optional<DLExecutionContext<?, ?>> getExecutionContext(final String identifier) {
 		return m_ctxs.stream() //
 				.filter(ctx -> ctx.getIdentifier().equals(identifier)) //
 				.findFirst();
@@ -129,17 +129,17 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param executionContext the execution context to register
 	 * @throws IllegalArgumentException if the given execution context's network type is null
 	 */
-	public void registerExecutionContext(final DLExecutionContext<?> executionContext) throws IllegalArgumentException {
+	public void registerExecutionContext(final DLExecutionContext<?, ?> executionContext) throws IllegalArgumentException {
 		registerExecutionContextInternal(executionContext);
 	}
 
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {
-		registerExecutionContextInternal((DLExecutionContext<?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
+		registerExecutionContextInternal((DLExecutionContext<?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
 	}
 
-	private synchronized void registerExecutionContextInternal(final DLExecutionContext<?> ctx) {
+	private synchronized void registerExecutionContextInternal(final DLExecutionContext<?, ?> ctx) {
 		final Class<? extends DLNetwork> networkType = ctx.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The execution context's associated network type must not be null.");

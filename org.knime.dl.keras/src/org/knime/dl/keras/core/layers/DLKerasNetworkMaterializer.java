@@ -70,11 +70,11 @@ import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
-import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLKerasLayerVisitor;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphIterator.DLNetworkGraphTraversalException;
 import org.knime.dl.keras.core.layers.impl.DLKerasCollectLayer;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -96,6 +96,7 @@ public final class DLKerasNetworkMaterializer {
     /**
      * Creates a new instance of this class that allows to materialize the Keras network graph specified by the given
      * output layers and their inputs (i.e. predecessor nodes) and save it to the given <code>URL</code>.
+     * @param context
      *
      * @param outputLayers the output layers of the network to materialize
      * @param saveLocation the location where the materialized network is saved
@@ -107,6 +108,7 @@ public final class DLKerasNetworkMaterializer {
 
     /**
      * Materializes the Keras network graph.
+     * @param context
      *
      * @return the materialized network
      * @throws DLNetworkGraphTraversalException if traversing the network graph failed
@@ -115,7 +117,8 @@ public final class DLKerasNetworkMaterializer {
      *             or invalid
      * @throws IOException if failed to materialize and save the network due to I/O related errors
      */
-    public DLKerasNetwork materialize() throws DLInvalidEnvironmentException, DLInvalidSourceException, IOException {
+    public DLKerasNetwork materialize(final DLPythonContext context)
+        throws DLInvalidEnvironmentException, DLInvalidSourceException, IOException {
         final DLKerasNetworkSpecInferrer specInferrer = new DLKerasNetworkSpecInferrer(m_outputLayers);
         specInferrer.inferNetworkSpec();
         // Parse layer graph.
@@ -130,72 +133,69 @@ public final class DLKerasNetworkMaterializer {
             .getNetworkLoader(backend).orElseThrow(() -> new IllegalStateException("Back end for Keras network type '"
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
 
-        try (final DLKerasAbstractCommands commands =
-            ((DLKerasNetworkLoader<?>)loader).createCommands(new DLKerasPythonContext())) {
-            // Load base networks (if any). Make base networks available on Python side for later. Collect base network
-            // specs.We need the network specs (a) to reserve the layer names that are already present in the base
-            // networks and (b) to specify the inputs and outputs of the new network that come from the base networks.
-            final LinkedHashMap<DLKerasNetworkSpec, DLKerasBaseNetworkHelperStruct> baseNetworks =
-                parser.m_baseNetworks;
-            final List<DLKerasNetworkSpec> baseNetworkSpecs = retrieveBaseNetworkSpecs(loader, commands, baseNetworks);
+        final DLKerasAbstractCommands commands = ((DLKerasNetworkLoader<?>)loader).createCommands(context);
+        // Load base networks (if any). Make base networks available on Python side for later. Collect base network
+        // specs.We need the network specs (a) to reserve the layer names that are already present in the base
+        // networks and (b) to specify the inputs and outputs of the new network that come from the base networks.
+        final LinkedHashMap<DLKerasNetworkSpec, DLKerasBaseNetworkHelperStruct> baseNetworks = parser.m_baseNetworks;
+        final List<DLKerasNetworkSpec> baseNetworkSpecs = retrieveBaseNetworkSpecs(loader, commands, baseNetworks);
 
-            // Base network layer names are reserved.
-            final DLKerasNetworkLayerNameGenerator layerNameGen =
-                DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
+        // Base network layer names are reserved.
+        final DLKerasNetworkLayerNameGenerator layerNameGen =
+            DLKerasNetworkLayerNameGenerator.createFromBaseNetworks(baseNetworkSpecs);
 
-            // Topological ordering.
-            final List<DLKerasTensorSpecsOutput> layersSortedByDepth =
-                DLKerasNetworkGraphTopologicalOrderIterator.sortTopologically(parser.m_maxDepthsFromOutputs.entrySet());
+        // Topological ordering.
+        final List<DLKerasTensorSpecsOutput> layersSortedByDepth =
+            DLKerasNetworkGraphTopologicalOrderIterator.sortTopologically(parser.m_maxDepthsFromOutputs.entrySet());
 
-            // Generate code lines according to the topological ordering above. This ensures that each inner layer's
-            // inputs are generated before itself and that we get an "intuitive" layer naming order ("layerX_1" "before"
-            // "layerX_2" etc.).
-            final StringJoiner generatedCodeJoiner = new StringJoiner("\n");
-            for (final DLKerasTensorSpecsOutput layer : layersSortedByDepth) {
-                if (layer instanceof DLKerasCollectLayer) {
-                    // collect layers don't add any python code
-                    continue;
-                }
-                generatedCodeJoiner.add(parser.m_codeLinesToGenerate.get(layer).apply(layerNameGen));
+        // Generate code lines according to the topological ordering above. This ensures that each inner layer's
+        // inputs are generated before itself and that we get an "intuitive" layer naming order ("layerX_1" "before"
+        // "layerX_2" etc.).
+        final StringJoiner generatedCodeJoiner = new StringJoiner("\n");
+        for (final DLKerasTensorSpecsOutput layer : layersSortedByDepth) {
+            if (layer instanceof DLKerasCollectLayer) {
+                // collect layers don't add any python code
+                continue;
             }
-            final String generatedCode = generatedCodeJoiner.toString();
+            generatedCodeJoiner.add(parser.m_codeLinesToGenerate.get(layer).apply(layerNameGen));
+        }
+        final String generatedCode = generatedCodeJoiner.toString();
 
-            // Execute generated code and build network whose lists of inputs and outputs (possibly) contain inputs and
-            // outputs of base networks which have to be "expanded" (base network -> inputs/outputs) first.
-            // Make generated network available on Python side.
-            final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
-                .n("import DLPythonNetwork") //
-                .n(baseNetworks.values(),
-                    n -> n.m_variable + " = DLPythonNetwork.get_network(\"" + n.m_variable + "\").model") //
-                .n("import keras").n(generatedCode) //
-                .n("generated_network = keras.models.Model(") //
-                // All inputs and (non-connected) outputs of the base networks are kept.
-                // TODO: This behavior may not be intended.
-                .a("inputs=[" + String.join(",", expandNetworkInputs(parser.m_inputVariables)) + "]").a(", ") //
-                .a("outputs=[" + String.join(",", expandNetworkOutputs(parser.m_outputVariables)) + "]") //
-                .a(")") //
-                .n("import DLPythonNetworkType") //
-                .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
-                .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
-            try {
-                commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
-            } catch (final DLCanceledExecutionException e) {
-                // Won't happen
-            }
+        // Execute generated code and build network whose lists of inputs and outputs (possibly) contain inputs and
+        // outputs of base networks which have to be "expanded" (base network -> inputs/outputs) first.
+        // Make generated network available on Python side.
+        final DLPythonSourceCodeBuilder b = DLPythonUtils.createSourceCodeBuilder() //
+            .n("import DLPythonNetwork") //
+            .n(baseNetworks.values(),
+                n -> n.m_variable + " = DLPythonNetwork.get_network(\"" + n.m_variable + "\").model") //
+            .n("import keras").n(generatedCode) //
+            .n("generated_network = keras.models.Model(") //
+            // All inputs and (non-connected) outputs of the base networks are kept.
+            // TODO: This behavior may not be intended.
+            .a("inputs=[" + String.join(",", expandNetworkInputs(parser.m_inputVariables)) + "]").a(", ") //
+            .a("outputs=[" + String.join(",", expandNetworkOutputs(parser.m_outputVariables)) + "]") //
+            .a(")") //
+            .n("import DLPythonNetworkType") //
+            .n("network_type = DLPythonNetworkType.get_model_network_type(generated_network)") //
+            .n("DLPythonNetwork.add_network(network_type.wrap_model(generated_network), \"generated_network\")");
+        try {
+            commands.getContext(DLNotCancelable.INSTANCE).executeInKernel(b.toString(), DLNotCancelable.INSTANCE);
+        } catch (final DLCanceledExecutionException e) {
+            // Won't happen
+        }
 
-            final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
-            try {
-                loader.save(handle, m_saveLocation.getURI(), commands.getContext(DLNotCancelable.INSTANCE),
-                    DLNotCancelable.INSTANCE);
-            } catch (final DLInvalidDestinationException | DLCanceledExecutionException e) {
-                throw new IOException(e);
-            }
-            try {
-                return loader.fetch(handle, m_saveLocation, commands.getContext(DLNotCancelable.INSTANCE),
-                    DLNotCancelable.INSTANCE);
-            } catch (final DLInvalidSourceException | DLCanceledExecutionException e) {
-                throw new IOException(e);
-            }
+        final DLPythonNetworkHandle handle = new DLPythonNetworkHandle("generated_network");
+        try {
+            loader.save(handle, m_saveLocation.getURI(), commands.getContext(DLNotCancelable.INSTANCE),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLInvalidDestinationException | DLCanceledExecutionException e) {
+            throw new IOException(e);
+        }
+        try {
+            return loader.fetch(handle, m_saveLocation, commands.getContext(DLNotCancelable.INSTANCE),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLInvalidSourceException | DLCanceledExecutionException e) {
+            throw new IOException(e);
         }
     }
 

@@ -66,7 +66,7 @@ import org.knime.python.typeextension.PythonModuleExtensions;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInstallationTestable {
+public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInstallationTestable<DLPythonContext> {
 
 	/**
 	 * Returns the network type that's associated with this Python loader.
@@ -128,6 +128,8 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInst
      */
     URL validateDestination(URI destination) throws DLInvalidDestinationException;
 
+    DLPythonContext createDefaultContext();
+
     /**
      * Loads a network from a source into a context. This method should be preferred over
      * {@link #load(URI, DLPythonContext, boolean, DLCancelable)} because the implementation can use information of the
@@ -146,7 +148,7 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInst
      * @throws IOException if failed to load the network
      * @throws DLCanceledExecutionException if the operation has been canceled
      */
-    default DLPythonNetworkHandle load(N network, DLPythonContext context, boolean loadTrainingConfig, DLCancelable cancelable)
+    default DLPythonNetworkHandle load(final N network, final DLPythonContext context, final boolean loadTrainingConfig, final DLCancelable cancelable)
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         return load(network.getSource().getURI(), context, loadTrainingConfig, cancelable);
     }

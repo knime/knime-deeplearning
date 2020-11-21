@@ -58,6 +58,7 @@ import org.knime.dl.keras.core.training.DLKerasAbstractTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * The Keras (TensorFlow) training back end.
@@ -78,17 +79,18 @@ public final class DLKerasTensorFlowDefaultTrainingContext
 	}
 
     @Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public void checkAvailability(final DLPythonContext context, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
-        new DLKerasTensorFlowNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+        new DLKerasTensorFlowNetworkLoader().checkAvailability(context, forceRefresh, timeout, cancelable);
     }
 
-	@Override
-    public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLKerasTensorFlowNetwork network,
-        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    @Override
+    public DLKerasTensorFlowNetworkTrainingSession createTrainingSession(final DLPythonContext context,
+        final DLKerasTensorFlowNetwork network, final DLKerasTrainingConfig trainingConfig,
+        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer) {
-		return new DLKerasTensorFlowNetworkTrainingSession(network, trainingConfig, executionInputSpecs,
-				trainingInputPreparer, validationInputPreparer, getTensorFactory());
-	}
+        return new DLKerasTensorFlowNetworkTrainingSession(context, network, trainingConfig, executionInputSpecs,
+            trainingInputPreparer, validationInputPreparer, getTensorFactory());
+    }
 }

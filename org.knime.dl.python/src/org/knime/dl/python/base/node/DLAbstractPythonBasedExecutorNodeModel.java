@@ -43,33 +43,66 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 21, 2020 (marcel): created
  */
-package org.knime.dl.core;
+package org.knime.dl.python.base.node;
+
+import java.util.function.Supplier;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortType;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
+import org.knime.dl.core.execution.DLExecutionContext;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
 /**
- * @param <T> The type of the external context.
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLInstallationTestable<T> {
+public abstract class DLAbstractPythonBasedExecutorNodeModel extends DLAbstractExecutorNodeModel<DLPythonContext> {
 
-    /**
-     * Checks if the external dependencies of this instance are available (if any). Throws an exception if they are not
-     * or if testing their availability timed out or was interrupted.
-     * <P>
-     * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-     * should cache the results of their first invocation to improve the response time of subsequent calls.
-     *
-     * @param context The external context.
-     * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-     *            will be redone. Otherwise, previous test results will be used if available.
-     * @param timeout timeout in milliseconds after which the installation test will be interrupted
-     * @param cancelable to check if the operation has been canceled
-     * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
-     * @throws DLInstallationTestTimeoutException if the installation test timed out or was interrupted in terms of
-     *             threading
-     * @throws DLCanceledExecutionException if the operation has been canceled
-     */
-    void checkAvailability(final T context, boolean forceRefresh, int timeout, DLCancelable cancelable)
-        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException;
+    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
+        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
+            DLPythonPreferences::getCondaInstallationPath);
+    }
+
+    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
+
+    private final Supplier<PythonCommand> m_commandPreference;
+
+    public DLAbstractPythonBasedExecutorNodeModel(final PortType networkPortType,
+        final Supplier<PythonCommand> commandPreference) {
+        super(networkPortType);
+        m_commandPreference = commandPreference;
+    }
+
+    @Override
+    protected DLPythonContext getContext(final DLExecutionContext<?, ?> ctx) {
+        return new DLPythonDefaultContext(m_pythonCommandConfig.getCommand().orElseGet(m_commandPreference));
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
+        super.saveSettingsTo(settings);
+        m_pythonCommandConfig.saveSettingsTo(settings);
+    }
+
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_pythonCommandConfig.validateSettings(settings);
+        super.validateSettings(settings);
+    }
+
+    @Override
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_pythonCommandConfig.loadSettingsFrom(settings);
+        super.loadValidatedSettingsFrom(settings);
+    }
 }

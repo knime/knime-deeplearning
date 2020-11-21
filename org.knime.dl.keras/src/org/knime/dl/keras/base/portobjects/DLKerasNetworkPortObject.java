@@ -83,6 +83,7 @@ import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 
 /**
  * Keras implementation of a deep learning {@link DLNetworkPortObject network port object}.
@@ -203,7 +204,8 @@ public final class DLKerasNetworkPortObject extends
             .getNetworkLoader((Class<DLKerasNetwork>)m_spec.getNetworkType())
             .orElseThrow(() -> new IllegalStateException("Keras back end '" + m_spec.getNetworkType().getCanonicalName()
                 + "' cannot be found. Are you missing a KNIME Deep Learning extension?"));
-        try (final DLPythonContext context = new DLKerasPythonContext()) {
+        try (final DLPythonContext context =
+            new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference())) {
             return new DLPythonDefaultNetworkReader<>(loader).read(oldNetworkSpec.create(networkSource, false), true,
                 context, DLNotCancelable.INSTANCE);
         } catch (DLInvalidSourceException | DLInvalidEnvironmentException | DLCanceledExecutionException e) {

@@ -64,7 +64,7 @@ import org.knime.dl.core.DLTensorSpec;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingConfig> extends DLContext<N> {
+public interface DLTrainingContext<C, N extends DLNetwork, CFG extends DLTrainingConfig> extends DLContext<C, N> {
 
 	/**
 	 * @return the identifier of this training context, not null, not empty, must be unique across all training contexts
@@ -99,7 +99,7 @@ public interface DLTrainingContext<N extends DLNetwork, CFG extends DLTrainingCo
 	 * @return the created training session
 	 * @throws IllegalArgumentException if failed to create the training session due to invalid arguments
 	 */
-    DLNetworkTrainingSession<?> createTrainingSession(N network, CFG trainingConfig,
+    DLNetworkTrainingSession<?> createTrainingSession(C context, N network, CFG trainingConfig,
         Set<DLTensorSpec> executionInputSpecs, DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         DLNetworkFixedSizeInputPreparer validationInputPreparer);
 }

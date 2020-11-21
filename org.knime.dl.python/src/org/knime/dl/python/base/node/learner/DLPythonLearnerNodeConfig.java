@@ -48,46 +48,50 @@
 package org.knime.dl.python.base.node.learner;
 
 import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
+import org.knime.dl.python.base.ports.DLNetworkInputPort;
 import org.knime.python2.generic.VariableNames;
+import org.knime.python2.ports.DataTableInputPort;
+import org.knime.python2.ports.InputPort;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonLearnerNodeConfig extends DLPythonSourceCodeConfig {
 
-	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
-			"flow_variables", // flow variables
-			new String[] { "input_table" }, // input tables
-			null, // output tables
-			null, // output images
-			null, // pickled input objects
-			null, // pickled output objects
-			new String[] { "input_network" }, // general input objects
-			new String[] { "output_network" } // general output objects
-	);
+    private static final String INPUT_TABLE_NAME = "input_table";
 
-	@Override
-	protected String getDefaultSourceCode() {
-		final VariableNames vars = getVariableNames();
-		return "import numpy as np\n" + //
-				"import pandas as pd\n" + //
-				"\n" + //
-				"# " + "variable name of the input network:   " + vars.getGeneralInputObjects()[0] + "\n" + //
-				"# " + "variable name of the input table:     " + vars.getInputTables()[0] + "\n" + //
-				"# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
-				"\n" + //
-				vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
-	}
+    private static final String INPUT_NETWORK_NAME = "input_network";
 
-	/**
-	 * Get the variable names for this node
-	 *
-	 * @return the variable names
-	 */
-	static VariableNames getVariableNames() {
-		return VARIABLE_NAMES;
-	}
+    private static final VariableNames VARIABLE_NAMES = new VariableNames( //
+        "flow_variables", // flow variables
+        new String[]{INPUT_TABLE_NAME}, // input tables
+        null, // output tables
+        null, // output images
+        null, // pickled input objects
+        null, // pickled output objects
+        new String[]{INPUT_NETWORK_NAME}, // general input objects
+        new String[]{"output_network"} // general output objects
+    );
+
+    public static InputPort[] getInputPorts() {
+        return new InputPort[]{new DLNetworkInputPort(INPUT_NETWORK_NAME), new DataTableInputPort(INPUT_TABLE_NAME)};
+    }
+
+    public static VariableNames getVariableNames() {
+        return VARIABLE_NAMES;
+    }
+
+    @Override
+    protected String getDefaultSourceCode() {
+        final VariableNames vars = getVariableNames();
+        return "import numpy as np\n" + //
+            "import pandas as pd\n" + //
+            "\n" + //
+            "# " + "variable name of the input network:   " + vars.getGeneralInputObjects()[0] + "\n" + //
+            "# " + "variable name of the input table:     " + vars.getInputTables()[0] + "\n" + //
+            "# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
+            "\n" + //
+            vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
+    }
 }

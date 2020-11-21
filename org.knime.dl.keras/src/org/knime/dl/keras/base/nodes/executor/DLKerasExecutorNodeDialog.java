@@ -52,14 +52,14 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
-import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeDialog;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
+import org.knime.dl.python.base.node.DLAbstractPythonBasedExecutorNodeDialog;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
+public class DLKerasExecutorNodeDialog extends DLAbstractPythonBasedExecutorNodeDialog {
 
     private final DLKerasGpuSelectionConfig m_gpuSelection;
 
@@ -75,7 +75,7 @@ public class DLKerasExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
     }
 
     @Override
-    protected void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         super.loadSettingsFrom(settings, specs);
         try {
             m_gpuSelection.loadFromSettings(settings);

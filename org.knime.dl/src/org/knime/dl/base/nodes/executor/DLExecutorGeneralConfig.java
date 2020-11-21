@@ -72,7 +72,7 @@ import org.knime.dl.core.execution.DLExecutionContextRegistry;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @Deprecated
-class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<DLExecutionContext<?>> {
+class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<DLExecutionContext<?, ?>> {
 
 	private static final String CFG_KEY_ROOT = "general_settings";
 
@@ -90,7 +90,7 @@ class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<
 	    put(new AbstractConfigEntry<DLExecutionContext>(CFG_KEY_EXEC_CTX, DLExecutionContext.class) {
 
             @Override
-            public void saveSettingsTo(NodeSettingsWO settings)
+            public void saveSettingsTo(final NodeSettingsWO settings)
                 throws InvalidSettingsException {
                 final String[] ctx = new String[2];
                 if (m_value == null) {
@@ -104,17 +104,17 @@ class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<
             }
 
             @Override
-            public void loadSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+            public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
                 String[] newExecCtx = settings.getStringArray(getEntryKey());
                 if (newExecCtx[1] != null) {
                     m_value = DLExecutionContextRegistry.getInstance().getExecutionContext(newExecCtx[1])
                         .orElseThrow(() -> new InvalidSettingsException("Executor back end '" + newExecCtx[0]
-                                + "' (" 
+                                + "' ("
                                 + newExecCtx[1]
                                         + ") could not be found. Are you missing a KNIME Deep Learning extension?"));
                 }
             }
-	        
+
         });
 		put(SettingsModelConfigEntries.createIntegerBoundedConfigEntry(CFG_KEY_BATCH_SIZE, defaultBatchSize,
 		    1, Integer.MAX_VALUE));
@@ -127,17 +127,17 @@ class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public ConfigEntry<DLExecutionContext<?>> getContextEntry() {
+    public ConfigEntry<DLExecutionContext<?, ?>> getContextEntry() {
         return (ConfigEntry) get(CFG_KEY_EXEC_CTX, DLExecutionContext.class);
     }
-    
+
     public ConfigEntry<Boolean> getKeepInputColumnsEntry() {
         return get(CFG_KEY_KEEP_INPUT_COLS, Boolean.class);
     }
 
 
-    static Collection<DLExecutionContext<?>> getAvailableExecutionContexts(Class<? extends DLNetwork> networkType) {
+    static Collection<DLExecutionContext<?, ?>> getAvailableExecutionContexts(final Class<? extends DLNetwork> networkType) {
         return DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType(networkType);
     }
-	
+
 }

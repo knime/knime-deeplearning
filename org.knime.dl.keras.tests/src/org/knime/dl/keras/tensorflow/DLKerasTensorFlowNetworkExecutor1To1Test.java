@@ -55,6 +55,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -73,11 +75,14 @@ import org.knime.dl.core.data.DLReadableBuffer;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowDefaultExecutionContext;
 import org.knime.dl.keras.tensorflow.core.execution.DLKerasTensorFlowNetworkExecutionSession;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.testing.DLTestExecutionMonitor;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.testing.PreferencesSetup;
@@ -93,16 +98,28 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
     @ClassRule
     public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
+    private DLPythonContext m_context;
+
+    @Before
+    public void createContext() {
+        m_context = new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
+
+    @After
+    public void closeContext() {
+        m_context.close();
+    }
+
 	@Test
 	public void test() throws Exception {
 		final URL source = FileUtil
 				.toURL(DLUtils.Files.getFileFromBundle(BUNDLE_ID, "data/my_2d_input_model.h5").getAbsolutePath());
 		final DLKerasTensorFlowDefaultExecutionContext ctx = new DLKerasTensorFlowDefaultExecutionContext();
-		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
+		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork>(
 				new DLKerasTensorFlowNetworkLoader());
 		DLKerasTensorFlowNetwork network;
 		try {
-            network = reader.read(new DLNetworkReferenceLocation(source.toURI()), false, DLNotCancelable.INSTANCE);
+            network = reader.read(new DLNetworkReferenceLocation(source.toURI()), false, m_context, DLNotCancelable.INSTANCE);
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -111,8 +128,8 @@ public class DLKerasTensorFlowNetworkExecutor1To1Test {
 		final Set<DLTensorSpec> executionInputSpecs = Collections.singleton(ctx.getTensorFactory()
 				.createExecutionTensorSpec(inputSpec, 3, DLUtils.Shapes.getFixedShape(inputSpec.getShape()).get()));
 		final Set<DLTensorId> requestedOutputs = Collections.singleton(networkSpec.getOutputSpecs()[0].getIdentifier());
-		try (final DLKerasTensorFlowNetworkExecutionSession session = ctx.createExecutionSession(network,
-				executionInputSpecs, requestedOutputs, new DLNetworkInputPreparer() {
+        try (final DLKerasTensorFlowNetworkExecutionSession session = ctx.createExecutionSession(m_context, network,
+            executionInputSpecs, requestedOutputs, new DLNetworkInputPreparer() {
                 private int currentBatch = 0;
 
                 @Override

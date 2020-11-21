@@ -57,25 +57,24 @@ import org.knime.python2.generic.VariableNames;
 import org.knime.python2.kernel.PythonKernelOptions;
 
 /**
- * We need this class to access protected members of PythonSourceCodePanel.
- *
- * @see PythonSourceCodePanel
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
-
-    private static final long serialVersionUID = -3111905445745421972L;
+public final class DLPythonSourceCodePanel {
 
     /**
-     * @param parent
-     * @param variableNames
-     * @param options
-     * @see PythonSourceCodePanel#PythonSourceCodePanel(VariableNames, FlowVariableOptions)
+     * Creates a {@link PythonSourceCodePanel} set to use the Python 3 command and serializer configured in the deep
+     * learning Preferences.
+     *
+     * @param parent The parent dialog.
+     * @param variableNames The input and output variables in the workspace on Python side.
+     * @return The created source code panel.
      */
-    public DLPythonSourceCodePanel(final NodeDialogPane parent, final VariableNames variableNames) {
-        super(parent, variableNames);
-        setKernelOptions(getKernelOptions());
+    public static PythonSourceCodePanel createScriptPanel(final NodeDialogPane parent,
+        final VariableNames variableNames) {
+        final PythonSourceCodePanel editorPanel = new PythonSourceCodePanel(parent, variableNames);
+        editorPanel.setKernelOptions(getKernelOptions());
+        return editorPanel;
     }
 
     private static PythonKernelOptions getKernelOptions() {
@@ -87,23 +86,5 @@ public class DLPythonSourceCodePanel extends PythonSourceCodePanel {
             .forSerializationOptions(serializerOptions);
     }
 
-    @Override
-    public void updateVariables() {
-        super.updateVariables();
-    }
-
-    @Override
-    public void errorToConsole(final String text) {
-        super.errorToConsole(text);
-    }
-
-    @Override
-    public void messageToConsole(final String text) {
-        super.messageToConsole(text);
-    };
-
-    @Override
-    public void setStatusMessage(final String statusMessage) {
-        super.setStatusMessage(statusMessage);
-    }
+    private DLPythonSourceCodePanel() {}
 }

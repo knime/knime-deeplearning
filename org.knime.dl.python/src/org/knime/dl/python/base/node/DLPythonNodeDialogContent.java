@@ -43,33 +43,45 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 17, 2020 (marcel): created
  */
-package org.knime.dl.core;
+package org.knime.dl.python.base.node;
+
+import org.knime.core.node.NodeDialogPane;
+import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.python2.config.PythonSourceCodeOptionsPanel;
+import org.knime.python2.config.PythonSourceCodePanel;
+import org.knime.python2.generic.VariableNames;
+import org.knime.python2.generic.templates.SourceCodeTemplate;
+import org.knime.python2.generic.templates.SourceCodeTemplateRepository;
+import org.knime.python2.nodes.PythonNodeDialogContent;
+import org.knime.python2.ports.InputPort;
 
 /**
- * @param <T> The type of the external context.
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLInstallationTestable<T> {
+public final class DLPythonNodeDialogContent {
 
     /**
-     * Checks if the external dependencies of this instance are available (if any). Throws an exception if they are not
-     * or if testing their availability timed out or was interrupted.
-     * <P>
-     * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-     * should cache the results of their first invocation to improve the response time of subsequent calls.
+     * Creates a {@link PythonNodeDialogContent} instance specifically configured for use in the deep learning scripting
+     * node dialogs.
      *
-     * @param context The external context.
-     * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-     *            will be redone. Otherwise, previous test results will be used if available.
-     * @param timeout timeout in milliseconds after which the installation test will be interrupted
-     * @param cancelable to check if the operation has been canceled
-     * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
-     * @throws DLInstallationTestTimeoutException if the installation test timed out or was interrupted in terms of
-     *             threading
-     * @throws DLCanceledExecutionException if the operation has been canceled
+     * @param dialog The parent dialog.
+     * @param inPorts The input ports of the node.
+     * @param config The configuration object of the node.
+     * @param variableNames The input and output variables in the workspace on Python side.
+     * @param templateRepositoryId The unique name of the {@link SourceCodeTemplateRepository repository} containing the
+     *            {@link SourceCodeTemplate script templates} of the node.
+     * @return The created dialog content.
      */
-    void checkAvailability(final T context, boolean forceRefresh, int timeout, DLCancelable cancelable)
-        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException;
+    public static PythonNodeDialogContent createDialogContent(final NodeDialogPane dialog, final InputPort[] inPorts,
+        final PythonSourceCodeConfig config, final VariableNames variableNames, final String templateRepositoryId) {
+        final PythonSourceCodePanel scriptPanel = DLPythonSourceCodePanel.createScriptPanel(dialog, variableNames);
+        final PythonSourceCodeOptionsPanel optionsPanel =
+            DLPythonSourceCodeOptionsPanel.createOptionsPanel(scriptPanel);
+        return new PythonNodeDialogContent(dialog, inPorts, config, scriptPanel, optionsPanel, templateRepositoryId);
+    }
+
+    private DLPythonNodeDialogContent() {}
 }

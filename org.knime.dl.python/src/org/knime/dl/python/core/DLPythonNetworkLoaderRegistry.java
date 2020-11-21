@@ -184,8 +184,8 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
         // Test each installation independently.
         for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
             new Thread(() -> {
-                try {
-                    loader.checkAvailability(true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+                try (final DLPythonContext context = loader.createDefaultContext()) {
+                    loader.checkAvailability(context, true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
                 } catch (final DLInstallationTestTimeoutException e) {
                     Thread.currentThread().interrupt();
                     LOGGER.debug("Installation test for deep learning Python back end '"

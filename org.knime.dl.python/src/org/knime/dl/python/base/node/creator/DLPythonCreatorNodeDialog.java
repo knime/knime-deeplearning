@@ -47,72 +47,24 @@
  */
 package org.knime.dl.python.base.node.creator;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.dl.python.base.node.DLPythonSourceCodeOptionsPanel;
-import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
-import org.knime.python2.config.PythonSourceCodeOptionsPanel;
-import org.knime.python2.generic.templates.SourceCodeTemplatesPanel;
+import org.knime.dl.python.base.node.DLPythonNodeDialogContent;
+import org.knime.python2.nodes.PythonDataUnawareNodeDialog;
+import org.knime.python2.nodes.PythonNodeDialogContent;
+import org.knime.python2.ports.InputPort;
 
 /**
- * Shamelessly copied and pasted from python source.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonCreatorNodeDialog extends NodeDialogPane {
+final class DLPythonCreatorNodeDialog extends PythonDataUnawareNodeDialog {
 
-	private final DLPythonSourceCodePanel m_sourceCodePanel;
+    public static DLPythonCreatorNodeDialog create() {
+        final DLPythonCreatorNodeDialog dialog = new DLPythonCreatorNodeDialog();
+        final PythonNodeDialogContent content = DLPythonNodeDialogContent.createDialogContent(dialog, new InputPort[0],
+            new DLPythonCreatorNodeConfig(), DLPythonCreatorNodeConfig.getVariableNames(), "dl-python-creator");
+        dialog.initializeContent(content);
+        return dialog;
+    }
 
-	private final PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
-
-	private final SourceCodeTemplatesPanel m_templatesPanel;
-
-	DLPythonCreatorNodeDialog() {
-        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonCreatorNodeConfig.getVariableNames());
-        m_sourceCodeOptionsPanel = new DLPythonSourceCodeOptionsPanel(m_sourceCodePanel);
-		m_templatesPanel = new SourceCodeTemplatesPanel(m_sourceCodePanel, "dl-python-creator");
-		addTab("Script", m_sourceCodePanel, false);
-		addTab("Options", m_sourceCodeOptionsPanel, true);
-		addTab("Templates", m_templatesPanel, true);
-	}
-
-	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final DLPythonCreatorNodeConfig config = new DLPythonCreatorNodeConfig();
-		m_sourceCodePanel.saveSettingsTo(config);
-		m_sourceCodeOptionsPanel.saveSettingsTo(config);
-		config.saveTo(settings);
-	}
-
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws NotConfigurableException {
-		final DLPythonCreatorNodeConfig config = new DLPythonCreatorNodeConfig();
-		config.loadFromInDialog(settings);
-		m_sourceCodePanel.loadSettingsFrom(config, specs);
-		m_sourceCodePanel.updateFlowVariables(
-				getAvailableFlowVariables().values().toArray(new FlowVariable[getAvailableFlowVariables().size()]));
-		m_sourceCodeOptionsPanel.loadSettingsFrom(config);
-	}
-
-	@Override
-	public boolean closeOnESC() {
-		return false;
-	}
-
-	@Override
-	public void onOpen() {
-		m_sourceCodePanel.open();
-	}
-
-	@Override
-	public void onClose() {
-		m_sourceCodePanel.close();
-	}
+    private DLPythonCreatorNodeDialog() {}
 }

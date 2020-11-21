@@ -85,6 +85,8 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 		CFG extends DLTrainingConfig, C extends DLPythonCommands>
 	extends DLAbstractNetworkTrainingSession<S, N, CFG> implements DLPythonNetworkTrainingSession<S> {
 
+    private final DLPythonContext m_context;
+
 	/**
 	 * The Python commands that are used to control the training process on Python side. Is instantiated via
 	 * {@link #createCommands()} at the beginning of the first call of {@link #trainInternal(DLTrainingMonitor)}.
@@ -112,13 +114,15 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-    protected DLPythonAbstractNetworkTrainingSession(final N network, final CFG trainingConfig,
-        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    protected DLPythonAbstractNetworkTrainingSession(final DLPythonContext context, final N network,
+        final CFG trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
         super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
+            tensorFactory);
+        m_context = context;
         m_additionalEnvVars = new HashMap<>();
-	}
+    }
 
 	/**
 	 * Creates the back end specific Python commands that are used to instruct the training process on Python side.
@@ -130,7 +134,7 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	 * @return the created Python commands
 	 * @throws DLInvalidEnvironmentException if failed to create valid Python commands
 	 */
-	protected abstract C createCommands() throws DLInvalidEnvironmentException;
+	protected abstract C createCommands(DLPythonContext context) throws DLInvalidEnvironmentException;
 
 	/**
 	 * Sets the given training config for the given network handle.
@@ -161,7 +165,7 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	protected void trainInternal(final DLTrainingMonitor<? extends S> monitor)
 			throws DLCanceledExecutionException, Exception {
 		if (m_commands == null) {
-			m_commands = createCommands();
+			m_commands = createCommands(m_context);
             @SuppressWarnings("resource") // Closed in #close
             final DLPythonContext context = m_commands.getContext(monitor);
             for (final Entry<String, String> var : m_additionalEnvVars.entrySet()) {
@@ -178,7 +182,7 @@ public abstract class DLPythonAbstractNetworkTrainingSession<S extends DLPythonT
 	}
 
     @Override
-    public void setKernelEnvironmentVariable(String name, String value) {
+    public void setKernelEnvironmentVariable(final String name, final String value) {
         m_additionalEnvVars.put(name, value);
     }
 }

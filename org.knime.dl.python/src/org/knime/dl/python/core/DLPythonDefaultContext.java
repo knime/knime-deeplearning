@@ -46,7 +46,6 @@
  */
 package org.knime.dl.python.core;
 
-import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -57,11 +56,14 @@ import org.knime.python2.kernel.PythonKernel;
  */
 public final class DLPythonDefaultContext extends DLPythonAbstractContext {
 
+    private final PythonCommand m_command;
+
     /**
      * Create a new default DL Python context. The Python kernel will be created on demand.
      */
-    public DLPythonDefaultContext() {
+    public DLPythonDefaultContext(final PythonCommand command) {
         super();
+        m_command = command;
     }
 
     /**
@@ -71,10 +73,11 @@ public final class DLPythonDefaultContext extends DLPythonAbstractContext {
      */
     public DLPythonDefaultContext(final PythonKernel kernel) {
         super(kernel);
+        m_command = kernel.getPythonCommand();
     }
 
     @Override
     protected PythonCommand getPythonCommand() {
-        return DLPythonPreferences.getPythonCommandPreference();
+        return m_command;
     }
 }

@@ -65,9 +65,6 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLKerasTensorFlowCommands extends DLKerasAbstractCommands {
 
-	public DLKerasTensorFlowCommands() {
-	}
-
 	public DLKerasTensorFlowCommands(final DLPythonContext context) {
 		super(context);
 	}

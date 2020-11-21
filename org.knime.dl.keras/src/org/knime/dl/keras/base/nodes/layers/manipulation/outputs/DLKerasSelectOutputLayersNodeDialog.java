@@ -65,7 +65,6 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -75,6 +74,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.core.DLTensorSpec;
+import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeDialog;
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
@@ -82,7 +82,7 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
+public class DLKerasSelectOutputLayersNodeDialog extends DLKerasAbstractManipulationNodeDialog {
 
     private final static NodeLogger LOGGER = NodeLogger.getLogger(DLKerasSelectOutputLayersNodeDialog.class);
 
@@ -132,7 +132,7 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected void saveSettingsToDerived(final NodeSettingsWO settings) throws InvalidSettingsException {
         final SettingsModelStringArray sm = DLKerasSelectOutputLayersNodeModel.createOutputTensorsSM();
         if (m_selectedTensorIds.isEmpty()) {
             throw new InvalidSettingsException("No output selected. Select at least one output tensor.");
@@ -142,7 +142,7 @@ public class DLKerasSelectOutputLayersNodeDialog extends NodeDialogPane {
     }
 
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected void loadSettingsFromDerived(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         final DLKerasNetworkPortObjectSpecBase spec =
             (DLKerasNetworkPortObjectSpecBase)specs[DLKerasAbstractManipulationNodeModel.IN_NETWORK_PORT_IDX];

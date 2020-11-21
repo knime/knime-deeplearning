@@ -65,9 +65,6 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLKerasCNTKCommands extends DLKerasAbstractCommands {
 
-	public DLKerasCNTKCommands() throws DLInvalidEnvironmentException {
-	}
-
 	public DLKerasCNTKCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
 		super(context);
 	}

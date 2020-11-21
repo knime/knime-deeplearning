@@ -63,7 +63,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -91,6 +90,11 @@ import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.base.PythonBasedNodeModel;
+import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
 import com.google.common.base.Strings;
 
@@ -98,7 +102,7 @@ import com.google.common.base.Strings;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasReaderNodeModel extends NodeModel {
+final class DLKerasReaderNodeModel extends PythonBasedNodeModel {
 
 	private static final String CFG_KEY_FILE_PATH = "file_path";
 
@@ -107,6 +111,15 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	private static final String CFG_KEY_COPY_NETWORK = "copy_network";
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
+
+    static PythonCommand getDefaultPythonCommand() {
+        return DLPythonPreferences.getPythonKerasCommandPreference();
+    }
+
+    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
+        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
+            DLPythonPreferences::getCondaInstallationPath);
+    }
 
 	static SettingsModelString createFilePathStringModel(final String defaultPath) {
 		return new SettingsModelString(CFG_KEY_FILE_PATH, defaultPath);
@@ -124,6 +137,8 @@ final class DLKerasReaderNodeModel extends NodeModel {
 		return DLKerasNetworkLoader.LOAD_MODEL_URL_EXTENSIONS;
 	}
 
+    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
+
 	private final SettingsModelString m_smFilePath = createFilePathStringModel("");
 
 	private final SettingsModelStringArray m_smBackend = createKerasBackendModel();
@@ -134,6 +149,7 @@ final class DLKerasReaderNodeModel extends NodeModel {
 
 	protected DLKerasReaderNodeModel() {
 		super(null, new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
+		addPythonCommandConfig(m_pythonCommandConfig, DLKerasReaderNodeModel::getDefaultPythonCommand);
 	}
 
 	@Override
@@ -147,47 +163,51 @@ final class DLKerasReaderNodeModel extends NodeModel {
 			throw new InvalidSettingsException("No back end selected. Please configure the node.");
 		}
         final URI uri;
-		try {
+        try {
             final URL url = FileUtil.toURL(filePath);
             uri = url.toURI();
-		} catch (InvalidPathException | MalformedURLException e) {
-			throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
+        } catch (InvalidPathException | MalformedURLException e) {
+            throw new InvalidSettingsException("Invalid or unsupported file path: '" + filePath + "'.", e);
         } catch (final URISyntaxException e) {
             throw new InvalidSettingsException(
                 "File path '" + filePath + "' cannot be resolved to a valid URI. Message: " + e.getMessage(), e);
         }
-		final DLKerasNetworkLoader<?> loader = getBackend(backendId);
-		try {
-			DLPythonNetworkLoaderRegistry.getInstance();
-            loader.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),
-			    DLNotCancelable.INSTANCE);
-		} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
-			throw new InvalidSettingsException(
-					"Selected Keras back end '" + loader.getName() + "' is not available anymore. "
-							+ "Please check your local installation.\nDetails: " + e.getMessage());
-		}
-		try {
-            loader.validateSource(uri);
-        } catch (final DLInvalidSourceException e) {
-			throw new InvalidSettingsException(e.getMessage(), e);
-		}
-        try (final DLPythonContext context = new DLKerasPythonContext()) {
-            // TODO: We could allow the user to configure "loadTrainingConfig" flag.
-            m_network = new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true,
-                context, DLNotCancelable.INSTANCE);
-        } catch (final Exception e) {
-            String message;
-            if (e instanceof DLException) {
-                message = e.getMessage();
-            } else {
-                if (!Strings.isNullOrEmpty(e.getMessage())) {
-                    LOGGER.error(e.getMessage());
-                }
-                message = "Failed to read deep learning network specification. See log for details.";
+        final DLKerasNetworkLoader<?> loader = getBackend(backendId);
+        try (final DLPythonContext context =
+            new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
+            try {
+                DLPythonNetworkLoaderRegistry.getInstance();
+                loader.checkAvailability(context, false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),
+                    DLNotCancelable.INSTANCE);
+            } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                    | DLCanceledExecutionException e) {
+                throw new InvalidSettingsException(
+                    "Selected Keras back end '" + loader.getName() + "' is not available anymore. "
+                        + "Please check your local installation.\nDetails: " + e.getMessage());
             }
-            throw new InvalidSettingsException(message, e);
+            try {
+                loader.validateSource(uri);
+            } catch (final DLInvalidSourceException e) {
+                throw new InvalidSettingsException(e.getMessage(), e);
+            }
+            try {
+                // TODO: We could allow the user to configure "loadTrainingConfig" flag.
+                m_network = new DLPythonDefaultNetworkReader<>(loader).read(new DLNetworkReferenceLocation(uri), true,
+                    context, DLNotCancelable.INSTANCE);
+            } catch (final Exception e) {
+                String message;
+                if (e instanceof DLException) {
+                    message = e.getMessage();
+                } else {
+                    if (!Strings.isNullOrEmpty(e.getMessage())) {
+                        LOGGER.error(e.getMessage());
+                    }
+                    message = "Failed to read deep learning network specification. See log for details.";
+                }
+                throw new InvalidSettingsException(message, e);
+            }
+            return new PortObjectSpec[]{new DLKerasNetworkPortObjectSpec(m_network.getSpec(), m_network.getClass())};
         }
-        return new PortObjectSpec[]{new DLKerasNetworkPortObjectSpec(m_network.getSpec(), m_network.getClass())};
     }
 
     private static DLKerasNetworkLoader<?> getBackend(final String loaderClassName) throws InvalidSettingsException {
@@ -238,21 +258,21 @@ final class DLKerasReaderNodeModel extends NodeModel {
 	}
 
 	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) {
+	protected void saveSettingsToDerived(final NodeSettingsWO settings) {
 		m_smFilePath.saveSettingsTo(settings);
 		m_smBackend.saveSettingsTo(settings);
 		m_smCopyNetwork.saveSettingsTo(settings);
 	}
 
 	@Override
-	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void validateSettingsDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.validateSettings(settings);
 		m_smBackend.validateSettings(settings);
 		m_smCopyNetwork.validateSettings(settings);
 	}
 
 	@Override
-	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void loadValidatedSettingsFromDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_smFilePath.loadSettingsFrom(settings);
 		m_smBackend.loadSettingsFrom(settings);
 		m_smCopyNetwork.loadSettingsFrom(settings);

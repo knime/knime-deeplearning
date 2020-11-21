@@ -63,7 +63,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -77,19 +76,26 @@ import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNotCancelable;
-import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
+import org.knime.dl.keras.core.DLKerasPythonContext;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.python2.base.PythonBasedDataUnawareNodeDialog;
+import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasReaderNodeDialog extends NodeDialogPane {
+final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
+
+    private final PythonCommandFlowVariableConfig m_pythonCommandConfig =
+        DLKerasReaderNodeModel.createPythonCommandConfig();
 
 	private final FilesHistoryPanel m_files;
 
@@ -106,6 +112,8 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 	private final JPanel m_loading;
 
 	public DLKerasReaderNodeDialog() {
+        addPythonCommandConfig(m_pythonCommandConfig, DLKerasReaderNodeModel::getDefaultPythonCommand);
+
 		final JPanel filesPanel = new JPanel(new GridBagLayout());
 		filesPanel.setBorder(BorderFactory.createTitledBorder("Input Location"));
 		final GridBagConstraints filesPanelConstr = new GridBagConstraints();
@@ -157,9 +165,9 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		addTab("Options", filesPanel);
 	}
 
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws NotConfigurableException {
+    @Override
+    protected void loadSettingsFromDerived(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
 		m_loadingLayout.show(m_loading, "blank");
 		m_files.updateHistory();
 		try {
@@ -184,9 +192,11 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 		final List<String> unavailableLoaderIds = new ArrayList<>();
 		for (int i = availableLoaders.size() - 1; i >= 0; i--) {
 			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
-			try {
-				kerasNetworkLoader.checkAvailability(false,
-						DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+            try (final DLPythonContext context =
+                new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
+                DLPythonNetworkLoaderRegistry.getInstance();
+                kerasNetworkLoader.checkAvailability(context, false,
+                    DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
 			} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
 				availableLoaders.remove(i);
 				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());
@@ -230,7 +240,7 @@ final class DLKerasReaderNodeDialog extends NodeDialogPane {
 	}
 
 	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+	protected void saveSettingsToDerived(final NodeSettingsWO settings) throws InvalidSettingsException {
 		// TODO: pressing "Apply" also shows the loading label, loading only
 		// happens on "OK" - we need to observe the
 		// node model

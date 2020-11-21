@@ -58,6 +58,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.execution.DLPythonAbstractNetworkExecutionSession;
 
 /**
@@ -68,11 +69,12 @@ public abstract class DLKerasAbstractNetworkExecutionSession<N extends DLKerasNe
 		C extends DLKerasAbstractCommands>
 	extends DLPythonAbstractNetworkExecutionSession<N, C> implements DLKerasNetworkExecutionSession {
 
-    protected DLKerasAbstractNetworkExecutionSession(final N network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
-			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
-		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
-		boolean hasFixedBatchSizes = false;
+    protected DLKerasAbstractNetworkExecutionSession(final DLPythonContext context, final N network,
+        final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+        final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
+        final DLTensorFactory tensorFactory) {
+        super(context, network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+        boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;
 		for (final DLTensorSpec inputSpec : network.getSpec().getInputSpecs()) {
 			if (inputSpec.getBatchSize().isPresent()) {

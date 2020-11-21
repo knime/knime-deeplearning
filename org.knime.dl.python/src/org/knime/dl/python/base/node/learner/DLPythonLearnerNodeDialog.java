@@ -47,123 +47,24 @@
  */
 package org.knime.dl.python.base.node.learner;
 
-import java.io.IOException;
-
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.DataAwareNodeDialogPane;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.dl.core.DLInvalidSourceException;
-import org.knime.dl.core.DLNotCancelable;
-import org.knime.dl.python.base.node.DLPythonSourceCodeOptionsPanel;
-import org.knime.dl.python.base.node.DLPythonSourceCodePanel;
-import org.knime.dl.python.core.DLPythonDefaultContext;
-import org.knime.dl.python.core.DLPythonNetwork;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
-import org.knime.python2.config.PythonSourceCodeOptionsPanel;
-import org.knime.python2.config.WorkspacePreparer;
-import org.knime.python2.port.PickledObject;
+import org.knime.dl.python.base.node.DLPythonNodeDialogContent;
+import org.knime.python2.nodes.PythonDataAwareNodeDialog;
+import org.knime.python2.nodes.PythonNodeDialogContent;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonLearnerNodeDialog extends DataAwareNodeDialogPane {
+final class DLPythonLearnerNodeDialog extends PythonDataAwareNodeDialog {
 
-	private final DLPythonSourceCodePanel m_sourceCodePanel;
+    public static DLPythonLearnerNodeDialog create() {
+        final DLPythonLearnerNodeDialog dialog = new DLPythonLearnerNodeDialog();
+        final PythonNodeDialogContent content =
+            DLPythonNodeDialogContent.createDialogContent(dialog, DLPythonLearnerNodeConfig.getInputPorts(),
+                new DLPythonLearnerNodeConfig(), DLPythonLearnerNodeConfig.getVariableNames(), "dl-python-learner");
+        dialog.initializeContent(content);
+        return dialog;
+    }
 
-	private final PythonSourceCodeOptionsPanel m_sourceCodeOptionsPanel;
-
-	private WorkspacePreparer m_workspacePreparer;
-
-    DLPythonLearnerNodeDialog() {
-        m_sourceCodePanel = new DLPythonSourceCodePanel(this, DLPythonLearnerNodeConfig.getVariableNames());
-        m_sourceCodeOptionsPanel = new DLPythonSourceCodeOptionsPanel(m_sourceCodePanel);
-        addTab("Script", m_sourceCodePanel, false);
-		addTab("Options", m_sourceCodeOptionsPanel, true);
-	}
-
-	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-		final DLPythonLearnerNodeConfig config = new DLPythonLearnerNodeConfig();
-		m_sourceCodePanel.saveSettingsTo(config);
-		m_sourceCodeOptionsPanel.saveSettingsTo(config);
-		config.saveTo(settings);
-	}
-
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-			throws NotConfigurableException {
-		final DLPythonLearnerNodeConfig config = new DLPythonLearnerNodeConfig();
-		config.loadFromInDialog(settings);
-		m_sourceCodePanel.loadSettingsFrom(config, specs);
-		m_sourceCodePanel.updateFlowVariables(
-				getAvailableFlowVariables().values().toArray(new FlowVariable[getAvailableFlowVariables().size()]));
-		m_sourceCodeOptionsPanel.loadSettingsFrom(config);
-		m_sourceCodePanel.updateData(new BufferedDataTable[] { null }, new PickledObject[] { null });
-	}
-
-	@Override
-	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObject[] input)
-			throws NotConfigurableException {
-		final PortObjectSpec[] specs = new PortObjectSpec[input.length];
-		for (int i = 0; i < specs.length; i++) {
-			specs[i] = input[i] == null ? null : input[i].getSpec();
-		}
-		loadSettingsFrom(settings, specs);
-		final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) input[DLPythonLearnerNodeModel.IN_NETWORK_PORT_IDX];
-		if (portObject != null) {
-			final DLPythonNetwork network;
-			try {
-				network = portObject.getNetwork();
-			} catch (final DLInvalidSourceException | IOException e) {
-				throw new NotConfigurableException(e.getMessage());
-			}
-			if (m_workspacePreparer != null) {
-				m_sourceCodePanel.unregisterWorkspacePreparer(m_workspacePreparer);
-			}
-			m_workspacePreparer = kernel -> {
-				try {
-					NodeContext.pushContext(DLPythonLearnerNodeDialog.this.getNodeContext());
-					DLPythonLearnerNodeModel.setupNetwork(network, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
-					m_sourceCodePanel.updateVariables();
-				} catch (final Exception e) {
-					m_sourceCodePanel.errorToConsole(
-							"Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.");
-				}
-			};
-			m_sourceCodePanel.registerWorkspacePreparer(m_workspacePreparer);
-		}
-		final BufferedDataTable inTable = (BufferedDataTable) input[DLPythonLearnerNodeModel.IN_DATA_PORT_IDX];
-		if (inTable != null) {
-			// warn user if input table is empty which could lead to unexpected problems in the Python code
-			if (inTable.size() == 0 || inTable.getSpec().getNumColumns() == 0) {
-				m_sourceCodePanel.messageToConsole("Warning: Input table is empty.");
-			}
-			m_sourceCodePanel.updateData(new BufferedDataTable[] { inTable }, new PickledObject[] {});
-		}
-	}
-
-	@Override
-	public boolean closeOnESC() {
-		return false;
-	}
-
-	@Override
-	public void onOpen() {
-		m_sourceCodePanel.open();
-	}
-
-	@Override
-	public void onClose() {
-		m_sourceCodePanel.close();
-	}
+    private DLPythonLearnerNodeDialog() {}
 }

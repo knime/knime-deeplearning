@@ -54,41 +54,39 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonEditorNodeFactory extends NodeFactory<DLPythonEditorNodeModel> {
+public final class DLPythonEditorNodeFactory extends NodeFactory<DLPythonEditorNodeModel> {
 
-	@Override
-	public DLPythonEditorNodeModel createNodeModel() {
-		return new DLPythonEditorNodeModel();
-	}
+    @Override
+    public DLPythonEditorNodeModel createNodeModel() {
+        return new DLPythonEditorNodeModel();
+    }
 
-	@Override
-	public int getNrNodeViews() {
-		return 2;
-	}
+    @Override
+    public int getNrNodeViews() {
+        return 2;
+    }
 
-	@Override
-	public NodeView<DLPythonEditorNodeModel> createNodeView(final int viewIndex,
-			final DLPythonEditorNodeModel nodeModel) {
-		if (viewIndex == 0) {
-			return new ExtToolStdoutNodeView<>(nodeModel);
-		} else if (viewIndex == 1) {
-			return new ExtToolStderrNodeView<>(nodeModel);
-		}
-		return null;
-	}
+    @Override
+    public NodeView<DLPythonEditorNodeModel> createNodeView(final int viewIndex,
+        final DLPythonEditorNodeModel nodeModel) {
+        if (viewIndex == 0) {
+            return new ExtToolStdoutNodeView<>(nodeModel);
+        } else if (viewIndex == 1) {
+            return new ExtToolStderrNodeView<>(nodeModel);
+        }
+        return null;
+    }
 
-	@Override
-	public boolean hasDialog() {
-		return true;
-	}
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
 
-	@Override
-	public NodeDialogPane createNodeDialogPane() {
-		return new DLPythonEditorNodeDialog();
-	}
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return DLPythonEditorNodeDialog.create();
+    }
 }

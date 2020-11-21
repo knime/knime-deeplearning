@@ -75,7 +75,7 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
     private final DLExecutorGeneralConfig m_cfg;
 
-    private final DialogComponentObjectSelection<DLExecutionContext<?>> m_dcBackend;
+    private final DialogComponentObjectSelection<DLExecutionContext<?, ?>> m_dcBackend;
 
     DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg) {
         m_cfg = cfg;
@@ -131,14 +131,14 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
         }
     }
 
-    void refreshAvailableBackends(Class<? extends DLNetwork> networkType) throws NotConfigurableException {
-        final List<DLExecutionContext<?>> availableExecutionContexts =
+    void refreshAvailableBackends(final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
+        final List<DLExecutionContext<?, ?>> availableExecutionContexts =
             DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType((networkType)) //
                 .stream() //
                 .sorted(Comparator.comparing(DLExecutionContext::getName)) //
                 .collect(Collectors.toList());
-        final DLExecutionContext<?> value = m_cfg.getContextEntry().getValue();
-        final DLExecutionContext<?> selectedContext;
+        final DLExecutionContext<?, ?> value = m_cfg.getContextEntry().getValue();
+        final DLExecutionContext<?, ?> selectedContext;
         // needs to be called to ensure that there is a list of items to select from
         m_dcBackend.replaceListItems(availableExecutionContexts, null);
         if (availableExecutionContexts.isEmpty()) {
@@ -152,9 +152,9 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
         m_dcBackend.replaceListItems(availableExecutionContexts, selectedContext);
     }
 
-    private static boolean containsContext(final List<DLExecutionContext<?>> contexts,
-        final DLExecutionContext<?> context) {
-        for (final DLExecutionContext<?> check : contexts) {
+    private static boolean containsContext(final List<DLExecutionContext<?, ?>> contexts,
+        final DLExecutionContext<?, ?> context) {
+        for (final DLExecutionContext<?, ?> check : contexts) {
             if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
                 return true;
             }

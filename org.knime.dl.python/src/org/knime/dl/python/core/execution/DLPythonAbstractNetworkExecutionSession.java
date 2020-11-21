@@ -81,7 +81,9 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPythonNetwork, C extends DLPythonCommands>
 	extends DLAbstractNetworkExecutionSession<N> implements DLPythonNetworkExecutionSession {
 
-	/**
+    private final DLPythonContext m_context;
+
+    /**
 	 * Is instantiated via {@link #createCommands()} at the beginning of the first call of
 	 * {@link #trainInternal(DLTrainingMonitor)}.
 	 */
@@ -91,17 +93,19 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 
     private final Map<String, String> m_additionalEnvVars;
 
-	protected DLPythonAbstractNetworkExecutionSession(final N network, final Set<DLTensorSpec> executionInputSpecs,
-			final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+    protected DLPythonAbstractNetworkExecutionSession(final DLPythonContext context, final N network,
+        final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+        final DLNetworkInputPreparer inputPreparer,
 			final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
 		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+		m_context = context;
         m_additionalEnvVars = new HashMap<>();
 	}
 
 	/**
 	 * The caller is responsible for {@link AutoCloseable#close() closing} the command.
 	 */
-	protected abstract C createCommands() throws DLInvalidEnvironmentException;
+	protected abstract C createCommands(DLPythonContext context) throws DLInvalidEnvironmentException;
 
 	@Override
 	public void close() throws Exception {
@@ -114,7 +118,7 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 	@Override
 	protected void executeInternal(final DLExecutionMonitor monitor) throws DLCanceledExecutionException, Exception {
 		if (m_commands == null) {
-			m_commands = createCommands();
+			m_commands = createCommands(m_context);
             @SuppressWarnings("resource") // Closed in #close
             final DLPythonContext context = m_commands.getContext(monitor);
             for (final Entry<String, String> var : m_additionalEnvVars.entrySet()) {

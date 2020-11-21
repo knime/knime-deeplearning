@@ -62,6 +62,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -77,8 +78,11 @@ import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.testing.PreferencesSetup;
 
 /**
@@ -93,6 +97,18 @@ public final class DLKerasNetworkMaterializerTest {
     private List<File> m_networkSaveFiles;
 
     private List<DLNetworkLocation> m_networkSaveLocations;
+
+    private DLPythonContext m_context;
+
+    @Before
+    public void createContext() {
+        m_context = new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
+
+    @After
+    public void closeContext() {
+        m_context.close();
+    }
 
     @After
     public void cleanup() {
@@ -173,7 +189,7 @@ public final class DLKerasNetworkMaterializerTest {
     public void testAppendBinaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::materializeAndCheckCommonPostconditions,
-            DLKerasNetwork::getSpec);
+            DLKerasNetwork::getSpec, m_context);
     }
 
     @Test
@@ -190,13 +206,14 @@ public final class DLKerasNetworkMaterializerTest {
     public void testAppendMultipleLayersToMultipleNetworks()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         testOnMultipleNetworksMultipleAppendedLayersSetup(this::materializeAndCheckCommonPostconditions,
-            DLKerasNetwork::getSpec);
+            DLKerasNetwork::getSpec, m_context);
     }
 
     private DLKerasNetwork materializeAndCheckCommonPostconditions(final List<DLKerasLayer> outputLayers) {
         try {
             final Pair<File, DLNetworkLocation> pair = createNetworkSaveFile();
-            final DLKerasNetwork network = new DLKerasNetworkMaterializer(outputLayers, pair.getSecond()).materialize();
+            final DLKerasNetwork network =
+                new DLKerasNetworkMaterializer(outputLayers, pair.getSecond()).materialize(m_context);
             final DLKerasNetworkSpec networkSpec = network.getSpec();
 
             assertTrue(pair.getFirst().length() > 0);
@@ -204,7 +221,7 @@ public final class DLKerasNetworkMaterializerTest {
 
             final DLKerasNetworkSpec rereadNetworkSpec =
                 new DLPythonDefaultNetworkReader<>(new DLKerasTensorFlowNetworkLoader())
-                    .read(pair.getSecond(), false, DLNotCancelable.INSTANCE).getSpec();
+                    .read(pair.getSecond(), false, m_context, DLNotCancelable.INSTANCE).getSpec();
             assertTrue(networkSpec.equals(rereadNetworkSpec));
 
             return network;

@@ -56,7 +56,6 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
-import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 
@@ -66,42 +65,41 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTensorFlowNetwork> {
 
-    private static DLPythonInstallationTester installationTester =
-        new DLPythonInstallationTester(() -> new DLKerasPythonContext());
+    private static final DLPythonInstallationTester INSTALLATION_TESTER = new DLPythonInstallationTester();
 
-	@Override
-	public Class<DLKerasTensorFlowNetwork> getNetworkType() {
-		return DLKerasTensorFlowNetwork.class;
-	}
+    @Override
+    public Class<DLKerasTensorFlowNetwork> getNetworkType() {
+        return DLKerasTensorFlowNetwork.class;
+    }
 
-	@Override
-	public String getName() {
-		return "Keras (TensorFlow)";
-	}
+    @Override
+    public String getName() {
+        return "Keras (TensorFlow)";
+    }
 
-	@Override
-	public String getPythonModuleName() {
-		return "DLKerasTensorFlowNetworkType";
-	}
+    @Override
+    public String getPythonModuleName() {
+        return "DLKerasTensorFlowNetworkType";
+    }
 
-	@Override
-	public DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
-			throws DLInvalidEnvironmentException {
-		return new DLKerasTensorFlowCommands(context);
-	}
+    @Override
+    public DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
+        throws DLInvalidEnvironmentException {
+        return new DLKerasTensorFlowCommands(context);
+    }
 
-	@Override
+    @Override
     public DLKerasTensorFlowNetwork fetch(final DLPythonNetworkHandle handle, final DLNetworkLocation source,
-			final DLPythonContext context, final DLCancelable cancelable)
-			throws IllegalArgumentException, DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
+        final DLPythonContext context, final DLCancelable cancelable) throws IllegalArgumentException,
+        DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         validateSource(source.getURI());
-		final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
-		final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
-		return new DLKerasTensorFlowNetwork(spec, source);
-	}
+        final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
+        final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
+        return new DLKerasTensorFlowNetwork(spec, source);
+    }
 
-	@Override
-	protected DLPythonInstallationTester getInstallationTester() {
-		return installationTester;
-	}
+    @Override
+    protected DLPythonInstallationTester getInstallationTester() {
+        return INSTALLATION_TESTER;
+    }
 }

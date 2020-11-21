@@ -188,7 +188,7 @@ final class DLExecutorOutputPanel extends JPanel {
     }
 
     private void refreshAvailableConverters() throws NotConfigurableException {
-        final DLExecutionContext<?> executionContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
+        final DLExecutionContext<?, ?> executionContext = m_cfg.getGeneralConfig().getContextEntry().getValue();
         final DLTensorToDataCellConverterRegistry convRegistry = DLTensorToDataCellConverterRegistry.getInstance();
         final Class<? extends DLReadableBuffer> bufferType =
             executionContext.getTensorFactory().getReadableBufferType(m_outputTensorSpec);

@@ -53,7 +53,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
 import org.knime.dl.core.DLExecutionSpecCreator;
 import org.knime.dl.core.DLMissingExtensionException;
 import org.knime.dl.core.DLNetwork;
@@ -65,12 +64,15 @@ import org.knime.dl.core.execution.DLNetworkExecutionSession;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
+import org.knime.dl.python.base.node.DLAbstractPythonBasedExecutorNodeModel;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.execution.DLPythonNetworkExecutionSession;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExecutorNodeModel extends DLAbstractExecutorNodeModel {
+public class DLKerasExecutorNodeModel extends DLAbstractPythonBasedExecutorNodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasExecutorNodeModel.class);
 
@@ -83,20 +85,20 @@ public class DLKerasExecutorNodeModel extends DLAbstractExecutorNodeModel {
     private DLKerasGpuSelectionConfig m_gpuSelection;
 
     DLKerasExecutorNodeModel() {
-        super(DLKerasNetworkPortObjectBase.TYPE);
+        super(DLKerasNetworkPortObjectBase.TYPE, DLPythonPreferences::getPythonKerasCommandPreference);
         m_gpuSelection = createGpuSelectionConfig();
     }
 
     @Override
-    protected <N extends DLNetwork> DLNetworkExecutionSession createExecutionSession(final N network,
-        final int batchSize, final Map<DLTensorId, int[]> columnsForTensorId,
+    protected <N extends DLNetwork> DLNetworkExecutionSession createExecutionSession(final DLPythonContext context,
+        final N network, final int batchSize, final Map<DLTensorId, int[]> columnsForTensorId,
         final Map<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId,
         final DataRow firstRow, final DLNetworkInputPreparer inputPreparer,
         final DLNetworkOutputConsumer outputConsumer) throws DLMissingExtensionException, InvalidSettingsException {
 
-        final DLExecutionContext<N> ctx = getExecutionContext();
+        final DLExecutionContext<DLPythonContext, N> ctx = getExecutionContext(context);
         final DLNetworkExecutionSession session = ctx.createExecutionSession(
-            network, DLExecutionSpecCreator.createExecutionSpecs(firstRow, ctx.getTensorFactory(), batchSize,
+            context, network, DLExecutionSpecCreator.createExecutionSpecs(firstRow, ctx.getTensorFactory(), batchSize,
                 columnsForTensorId, m_inputConverters),
             outputConverterForTensorId.keySet(), inputPreparer, outputConsumer);
         if (!m_gpuSelection.getCudaVisibleDevices().getValue().isEmpty()) {

@@ -66,6 +66,7 @@ import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
+import org.knime.python2.config.PythonCommandFlowVariableModel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -75,6 +76,9 @@ import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeDialog.class);
+
+    private final PythonCommandFlowVariableModel m_pythonCommandModel =
+        new PythonCommandFlowVariableModel(this, DLKerasLearnerNodeModel.createPythonCommandConfig());
 
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
 
@@ -91,7 +95,6 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
     private final DLKerasGpuSelectionConfig m_gpuSelection;
 
     private final DLKerasGpuSelectionPanel m_gpuSelectionPanel;
-
 
 	public DLKerasLearnerNodeDialog() {
 	    final DLDefaultNodeDialogTab generalTab = new DLDefaultNodeDialogTab("Options");
@@ -156,12 +159,11 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		super.saveSettingsTo(settings);
 
 		m_generalCfg.saveToSettings(settings);
-
         m_gpuSelection.saveToSettings(settings);
-
 		m_inputsPanel.saveSettingsTo(settings);
-
 		m_targetsPanel.saveSettingsTo(settings);
+
+		m_pythonCommandModel.saveSettingsTo(settings);
 	}
 
 	private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
@@ -192,12 +194,12 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		checkPortObjectSpecs(specs);
+		m_pythonCommandModel.loadSettingsFrom(settings);
 
+	    checkPortObjectSpecs(specs);
 		final DLNetworkPortObjectSpec portObjectSpec =
 		        (DLNetworkPortObjectSpec) specs[DLKerasLearnerNodeModel.IN_NETWORK_PORT_IDX];
         final DataTableSpec tableSpec = (DataTableSpec) specs[DLKerasLearnerNodeModel.IN_DATA_PORT_IDX];
-
 		final DLNetworkSpec networkSpec = portObjectSpec.getNetworkSpec();
 
 		if (networkSpec.getInputSpecs().length == 0) {
@@ -220,4 +222,9 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), tableSpec);
 		m_targetsPanel.loadSettingsFrom(settings, networkSpec.getOutputSpecs(), tableSpec);
 	}
+
+    @Override
+    public void onOpen() {
+        m_pythonCommandModel.onDialogOpen();
+    }
 }

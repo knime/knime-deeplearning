@@ -48,42 +48,43 @@
 package org.knime.dl.python.base.node.editor;
 
 import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
+import org.knime.dl.python.base.ports.DLNetworkInputPort;
 import org.knime.python2.generic.VariableNames;
+import org.knime.python2.ports.InputPort;
 
 /**
- * Shamelessly copied and pasted from python predictor.
- *
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
 final class DLPythonEditorNodeConfig extends DLPythonSourceCodeConfig {
 
-	private static final VariableNames VARIABLE_NAMES = new VariableNames( //
-			"flow_variables", // flow variables
-			null, // input tables
-			null, // output tables
-			null, // output images
-			null, // pickled input objects
-			null, // pickled output objects
-			new String[] { "input_network" }, // general input objects
-			new String[] { "output_network" } // general output objects
-	);
+    private static final String INPUT_NETWORK_NAME = "input_network";
 
-	@Override
-	protected String getDefaultSourceCode() {
-		final VariableNames vars = getVariableNames();
-		return "# " + "variable name of the input network: " + vars.getGeneralInputObjects()[0] + "\n" + //
-				"# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
-				"\n" + //
-				vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
-	}
+    private static final VariableNames VARIABLE_NAMES = new VariableNames( //
+        "flow_variables", // flow variables
+        null, // input tables
+        null, // output tables
+        null, // output images
+        null, // pickled input objects
+        null, // pickled output objects
+        new String[]{INPUT_NETWORK_NAME}, // general input objects
+        new String[]{"output_network"} // general output objects
+    );
 
-	/**
-	 * Get the variable names for this node
-	 *
-	 * @return the variable names
-	 */
-	static VariableNames getVariableNames() {
-		return VARIABLE_NAMES;
-	}
+    public static InputPort[] getInputPorts() {
+        return new InputPort[]{new DLNetworkInputPort(INPUT_NETWORK_NAME)};
+    }
+
+    public static VariableNames getVariableNames() {
+        return VARIABLE_NAMES;
+    }
+
+    @Override
+    protected String getDefaultSourceCode() {
+        final VariableNames vars = getVariableNames();
+        return "# " + "variable name of the input network: " + vars.getGeneralInputObjects()[0] + "\n" + //
+            "# " + "variable name of the output network:  " + vars.getGeneralOutputObjects()[0] + "\n" + //
+            "\n" + //
+            vars.getGeneralOutputObjects()[0] + " = " + vars.getGeneralInputObjects()[0];
+    }
 }

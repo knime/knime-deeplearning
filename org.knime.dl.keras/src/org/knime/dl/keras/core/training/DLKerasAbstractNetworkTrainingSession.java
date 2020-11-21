@@ -68,6 +68,7 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.core.DLKerasAbstractCommands;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
@@ -98,11 +99,12 @@ public abstract class DLKerasAbstractNetworkTrainingSession<N extends DLKerasNet
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-    protected DLKerasAbstractNetworkTrainingSession(final N network, final DLKerasTrainingConfig trainingConfig,
-        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    protected DLKerasAbstractNetworkTrainingSession(final DLPythonContext context, final N network,
+        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
+        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
+        super(context, network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
+            tensorFactory);
 		boolean hasFixedBatchSizes = false;
 		boolean hasVariableBatchSizes = false;
 		for (final DLTensorSpec inputSpec : network.getSpec().getInputSpecs()) {

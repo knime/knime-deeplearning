@@ -59,6 +59,7 @@ import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetworkLoader;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -73,16 +74,18 @@ public final class DLKerasCNTKDefaultExecutionContext extends DLKerasAbstractExe
 	}
 
 	@Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public void checkAvailability(final DLPythonContext context, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
-        new DLKerasCNTKNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+        new DLKerasCNTKNetworkLoader().checkAvailability(context, forceRefresh, timeout, cancelable);
     }
 
     @Override
-	public DLKerasCNTKNetworkExecutionSession createExecutionSession(final DLKerasCNTKNetwork network,
-			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
-		return new DLKerasCNTKNetworkExecutionSession(network, executionInputSpecs, requestedOutputs, inputPreparer,
-				outputConsumer, getTensorFactory());
-	}
+    public DLKerasCNTKNetworkExecutionSession createExecutionSession(final DLPythonContext context,
+        final DLKerasCNTKNetwork network, final Set<DLTensorSpec> executionInputSpecs,
+        final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+        final DLNetworkOutputConsumer outputConsumer) {
+        return new DLKerasCNTKNetworkExecutionSession(context, network, executionInputSpecs, requestedOutputs,
+            inputPreparer, outputConsumer, getTensorFactory());
+    }
 }

@@ -53,7 +53,6 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
@@ -75,12 +74,17 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.base.PythonBasedNodeModel;
+import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
+public abstract class DLKerasAbstractManipulationNodeModel extends PythonBasedNodeModel {
 
     /** Index of the input port for the network */
     public static final int IN_NETWORK_PORT_IDX = 0;
@@ -90,12 +94,24 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
 
     private static final String NETWORK_TYPE_IDENTIFIER = "network_type_identifier";
 
+    static PythonCommand getDefaultPythonCommand() {
+        return DLPythonPreferences.getPythonKerasCommandPreference();
+    }
+
+    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
+        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
+            DLPythonPreferences::getCondaInstallationPath);
+    }
+
+    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
+
     /**
      * Creates a abstract node model that loads a Keras mode and manipulates it using some python code provided by the
      * {@link #createManipulationSourceCode(DLKerasNetworkSpec)} method.
      */
     protected DLKerasAbstractManipulationNodeModel() {
         super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, new PortType[]{DLKerasNetworkPortObjectBase.TYPE});
+        addPythonCommandConfig(m_pythonCommandConfig, DLKerasAbstractManipulationNodeModel::getDefaultPythonCommand);
     }
 
     /**
@@ -113,7 +129,8 @@ public abstract class DLKerasAbstractManipulationNodeModel extends NodeModel {
         final DLKerasNetwork inputNetwork = portObject.getNetwork();
         final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
-        try (final DLPythonContext pythonContext = new DLKerasPythonContext()) {
+        try (final DLPythonContext pythonContext =
+            new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
             // Load the input network
             final DLPythonNetworkHandle inputNetworkHandle =
                 DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(inputNetwork.getClass())

@@ -53,6 +53,7 @@ import org.knime.dl.core.DLNetworkFixedSizeInputPreparer;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.training.DLTrainingContext;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * Represents the training back end for a certain Keras network type. Creates {@link DLKerasNetworkTrainingSession
@@ -63,7 +64,8 @@ import org.knime.dl.keras.core.DLKerasNetwork;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrainingContext<N, DLKerasTrainingConfig> {
+public interface DLKerasTrainingContext<N extends DLKerasNetwork>
+    extends DLTrainingContext<DLPythonContext, N, DLKerasTrainingConfig> {
 
 	/**
 	 * @return the available {@link DLKerasMetric Keras metrics} in this training context
@@ -81,8 +83,9 @@ public interface DLKerasTrainingContext<N extends DLKerasNetwork> extends DLTrai
 	@Override
 	Collection<DLKerasLossFunction> createLossFunctions();
 
-	@Override
-    DLKerasNetworkTrainingSession createTrainingSession(N network, DLKerasTrainingConfig trainingConfig,
-        Set<DLTensorSpec> executionInputSpecs, DLNetworkFixedSizeInputPreparer trainingInputPreparer,
-        DLNetworkFixedSizeInputPreparer validationInputPreparer) throws IllegalArgumentException;
+    @Override
+    DLKerasNetworkTrainingSession createTrainingSession(DLPythonContext context, N network,
+        DLKerasTrainingConfig trainingConfig, Set<DLTensorSpec> executionInputSpecs,
+        DLNetworkFixedSizeInputPreparer trainingInputPreparer, DLNetworkFixedSizeInputPreparer validationInputPreparer)
+        throws IllegalArgumentException;
 }

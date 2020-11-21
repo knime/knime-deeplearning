@@ -59,6 +59,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
 import org.knime.dl.keras.util.DLKerasUtils;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.util.DLUtils;
 
 /**
@@ -101,10 +102,11 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
         return Objects.equals(((DLKerasUnmaterializedPortObjectContent)obj).m_spec, m_spec);
     }
 
-    public DLKerasMaterializedPortObjectContent materialize(final DLNetworkLocation saveLocation) throws IOException {
+    public DLKerasMaterializedPortObjectContent materialize(final DLPythonContext context,
+        final DLNetworkLocation saveLocation) throws IOException {
         try {
             final DLKerasNetwork materialized =
-                new DLKerasNetworkMaterializer(m_spec.getOutputLayers(), saveLocation).materialize();
+                new DLKerasNetworkMaterializer(m_spec.getOutputLayers(), saveLocation).materialize(context);
             return new DLKerasMaterializedPortObjectContent(materialized);
         } catch (final Exception e) {
             NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage(), e);

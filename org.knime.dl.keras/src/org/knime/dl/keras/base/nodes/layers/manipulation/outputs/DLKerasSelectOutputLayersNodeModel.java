@@ -156,17 +156,17 @@ public class DLKerasSelectOutputLayersNodeModel extends DLKerasAbstractManipulat
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsToDerived(final NodeSettingsWO settings) {
         m_outputTensors.saveSettingsTo(settings);
     }
 
     @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettingsDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_outputTensors.validateSettings(settings);
     }
 
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void loadValidatedSettingsFromDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_outputTensors.loadSettingsFrom(settings);
     }
 

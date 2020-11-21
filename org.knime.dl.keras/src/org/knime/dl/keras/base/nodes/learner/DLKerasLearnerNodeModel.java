@@ -73,7 +73,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
@@ -120,6 +119,7 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingStatus;
@@ -129,8 +129,14 @@ import org.knime.dl.keras.core.training.DLKerasOptimizer;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasTrainingContext;
 import org.knime.dl.keras.core.training.DLKerasTrainingStatus;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.base.PythonBasedNodeModel;
+import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -140,7 +146,7 @@ import com.google.common.collect.Sets;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLearnerNodeModel {
+final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLInteractiveLearnerNodeModel {
 
 	static final int IN_NETWORK_PORT_IDX = 0;
 
@@ -157,6 +163,15 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	static final String INTERNAL_FILENAME = "view.data";
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeModel.class);
+
+    static PythonCommand getDefaultPythonCommand() {
+        return DLPythonPreferences.getPythonKerasCommandPreference();
+    }
+
+    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
+        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
+            DLPythonPreferences::getCondaInstallationPath);
+    }
 
 	static DLKerasLearnerGeneralConfig createGeneralModelConfig() {
 		return new DLKerasLearnerGeneralConfig();
@@ -175,6 +190,8 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         final String targetTensorName, final DLKerasLearnerGeneralConfig generalCfg) {
         return new DLKerasLearnerTargetConfig(targetTensorId, targetTensorName, generalCfg);
     }
+
+    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
 
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
 
@@ -219,6 +236,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	DLKerasLearnerNodeModel() {
 		super(new PortType[] { DLKerasNetworkPortObjectBase.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
 				new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
+		addPythonCommandConfig(m_pythonCommandConfig, DLKerasLearnerNodeModel::getDefaultPythonCommand);
 		m_generalCfg = createGeneralModelConfig();
 		m_gpuSelection = createGpuSelectionConfig();
 		m_inputCfgs = new HashMap<>();
@@ -349,7 +367,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	}
 
 	@Override
-	protected void saveSettingsTo(final NodeSettingsWO settings) {
+	protected void saveSettingsToDerived(final NodeSettingsWO settings) {
 		try {
 			m_generalCfg.copyClipSettingsToOptimizer();
 			m_generalCfg.saveToSettings(settings);
@@ -370,7 +388,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 	}
 
     @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettingsDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputCfgs.clear();
         final NodeSettingsRO inputSettings = settings.getNodeSettings(CFG_KEY_INPUT);
         for (final String tensorIdString : inputSettings) {
@@ -389,7 +407,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
     }
 
 	@Override
-	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+	protected void loadValidatedSettingsFromDerived(final NodeSettingsRO settings) throws InvalidSettingsException {
 		m_generalCfg.loadFromSettings(settings);
 		m_generalCfg.copyClipSettingsToOptimizer();
         m_gpuSelection.loadFromSettings(settings);
@@ -634,70 +652,76 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
 
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getContextEntry()
 				.getValue();
-        try {
-            ctx.checkAvailability(false, DLPythonNetworkLoaderRegistry.getInstance().getInstallationTestTimeout(),
-                DLNotCancelable.INSTANCE);
-        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
-                | DLCanceledExecutionException e) {
-            throw new InvalidSettingsException("Selected Keras back end '" + ctx.getName()
-                + "' is not available anymore. " + "Please check your local installation.\nDetails: " + e.getMessage());
-        }
-
-		// training configuration
-		final DLKerasTrainingConfig trainingConfig = createTrainingConfig(inNetworkSpec);
-
-		final Map<DLTensorId, int[]> columnsForTensorId = new HashMap<>(
-				inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
-		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId = new LinkedHashMap<>(
-				columnsForTensorId.size());
-		fillInputAndTargetSpecificMaps(inTableSpec, columnsForTensorId, converterForTensorId);
-
-		// TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
-		// alternative strategy for handling incomplete batches.
-		final int numTrainingBatchesPerEpoch = (int) Math.ceil(inTable.size() / (double) trainingConfig.getBatchSize());
-		final int totalNumTrainingBatches = trainingConfig.getEpochs() * numTrainingBatchesPerEpoch;
-		final int numBatchesPerValidation = doValidation
-				? (int) Math.ceil(inValidationTable.size() / (double) trainingConfig.getValidationBatchSize())
-				: 0;
-		final int totalNumValidationBatches = trainingConfig.getEpochs() * numBatchesPerValidation;
-
-		prepareView(doValidation, totalNumTrainingBatches, totalNumValidationBatches);
-
-		final Random random = createRandom();
-
-		m_status = new DLKerasDefaultTrainingStatus(trainingConfig.getEpochs(), numTrainingBatchesPerEpoch);
-		try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
-				final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
-						rowIterator, (int)trainingConfig.getBatchSize(), converterForTensorId);
-				final DLKnimeNetworkValidationInputPreparer validationPreparer = doValidation
-						? new DLKnimeNetworkValidationInputPreparer(
-								new DLDataTableRowIterator(inValidationTable, columnsForTensorId), (int)trainingConfig.getValidationBatchSize(),
-								converterForTensorId)
-						: null;
-                DLKerasNetworkTrainingSession session = ctx.createTrainingSession(inNetwork, trainingConfig,
-						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
-								trainingConfig.getBatchSize(), columnsForTensorId, m_converters),
-						inputPreparer, validationPreparer);) {
-            m_session = session; // Needed for early stopping.
-			final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor = new DLKnimeTrainingMonitor<>(exec, m_status);
-			setupTrainingStatus(doValidation, trainingConfig, numTrainingBatchesPerEpoch, totalNumTrainingBatches,
-                monitor);
-            final String cudaVisibleDevices = m_gpuSelection.getCudaVisibleDevices().getValue();
-            if (!cudaVisibleDevices.isEmpty()) {
-                session.setKernelEnvironmentVariable("CUDA_VISIBLE_DEVICES", cudaVisibleDevices);
+        try (final DLPythonContext context =
+            new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
+            try {
+                DLPythonNetworkLoaderRegistry.getInstance();
+                ctx.checkAvailability(context, false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),
+                    DLNotCancelable.INSTANCE);
+            } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                    | DLCanceledExecutionException e) {
+                throw new InvalidSettingsException(
+                    "Selected Keras back end '" + ctx.getName() + "' is not available anymore. "
+                        + "Please check your local installation.\nDetails: " + e.getMessage());
             }
-			session.run(monitor);
-			exec.setMessage("Saving trained Keras deep learning network...");
-            return session.getTrainedNetwork(exec);
-		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
-			m_status.setStatus(Status.USER_INTERRUPTED);
-			throw e;
-		} catch (final Exception e) {
-			throw handleGeneralException(e);
-		} finally {
-		    m_session =null;
-		}
-	}
+
+            // training configuration
+            final DLKerasTrainingConfig trainingConfig = createTrainingConfig(inNetworkSpec);
+
+            final Map<DLTensorId, int[]> columnsForTensorId =
+                new HashMap<>(inNetworkSpec.getInputSpecs().length + inNetworkSpec.getOutputSpecs().length);
+            final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> converterForTensorId =
+                new LinkedHashMap<>(columnsForTensorId.size());
+            fillInputAndTargetSpecificMaps(inTableSpec, columnsForTensorId, converterForTensorId);
+
+            // TODO: only valid if we don't crop the last batch. This has to be considered if we want to add 'crop' as an
+            // alternative strategy for handling incomplete batches.
+            final int numTrainingBatchesPerEpoch =
+                (int)Math.ceil(inTable.size() / (double)trainingConfig.getBatchSize());
+            final int totalNumTrainingBatches = trainingConfig.getEpochs() * numTrainingBatchesPerEpoch;
+            final int numBatchesPerValidation = doValidation
+                ? (int)Math.ceil(inValidationTable.size() / (double)trainingConfig.getValidationBatchSize()) : 0;
+            final int totalNumValidationBatches = trainingConfig.getEpochs() * numBatchesPerValidation;
+
+            prepareView(doValidation, totalNumTrainingBatches, totalNumValidationBatches);
+
+            final Random random = createRandom();
+
+            m_status = new DLKerasDefaultTrainingStatus(trainingConfig.getEpochs(), numTrainingBatchesPerEpoch);
+            try (final DLRowIterator rowIterator = createRowIterator(inTable, columnsForTensorId, random, exec);
+                    final DLKnimeNetworkTrainingInputPreparer inputPreparer = new DLKnimeNetworkTrainingInputPreparer(
+                        rowIterator, (int)trainingConfig.getBatchSize(), converterForTensorId);
+                    final DLKnimeNetworkValidationInputPreparer validationPreparer =
+                        doValidation ? new DLKnimeNetworkValidationInputPreparer(
+                            new DLDataTableRowIterator(inValidationTable, columnsForTensorId),
+                            (int)trainingConfig.getValidationBatchSize(), converterForTensorId) : null;
+                    DLKerasNetworkTrainingSession session =
+                        ctx.createTrainingSession(context, inNetwork, trainingConfig,
+                            DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+                                trainingConfig.getBatchSize(), columnsForTensorId, m_converters),
+                            inputPreparer, validationPreparer);) {
+                m_session = session; // Needed for early stopping.
+                final DLKnimeTrainingMonitor<DLKerasTrainingStatus> monitor =
+                    new DLKnimeTrainingMonitor<>(exec, m_status);
+                setupTrainingStatus(doValidation, trainingConfig, numTrainingBatchesPerEpoch, totalNumTrainingBatches,
+                    monitor);
+                final String cudaVisibleDevices = m_gpuSelection.getCudaVisibleDevices().getValue();
+                if (!cudaVisibleDevices.isEmpty()) {
+                    session.setKernelEnvironmentVariable("CUDA_VISIBLE_DEVICES", cudaVisibleDevices);
+                }
+                session.run(monitor);
+                exec.setMessage("Saving trained Keras deep learning network...");
+                return session.getTrainedNetwork(exec);
+            } catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+                m_status.setStatus(Status.USER_INTERRUPTED);
+                throw e;
+            } catch (final Exception e) {
+                throw handleGeneralException(e);
+            } finally {
+                m_session = null;
+            }
+        }
+    }
 
     private RuntimeException handleGeneralException(final Exception e) throws CanceledExecutionException {
         final Throwable cause = e.getCause();
@@ -796,7 +820,7 @@ final class DLKerasLearnerNodeModel extends NodeModel implements DLInteractiveLe
         					+ (m_status.getCurrentEpoch() + 1) + " due to a NaN (not a number) loss."));
         }
     }
-    
+
     private void notifyViewsWithNodeContext(final NodeContext nodeContext, final Object arg) {
         if (nodeContext != null) {
             NodeContext.pushContext(nodeContext);

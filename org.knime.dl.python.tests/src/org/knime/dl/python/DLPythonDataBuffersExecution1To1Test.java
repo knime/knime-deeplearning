@@ -86,6 +86,7 @@ import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
 import org.knime.dl.python.core.DLPythonAbstractCommands;
 import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.data.DLPythonDoubleBuffer;
 import org.knime.dl.python.core.data.DLPythonFloatBuffer;
@@ -93,6 +94,7 @@ import org.knime.dl.python.core.data.DLPythonIntBuffer;
 import org.knime.dl.python.core.data.DLPythonLongBuffer;
 import org.knime.dl.python.core.data.DLPythonStringBuffer;
 import org.knime.dl.python.core.training.DLPythonTrainingStatus;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.util.DLThrowingLambdas.DLThrowingBiFunction;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
@@ -137,7 +139,8 @@ public class DLPythonDataBuffersExecution1To1Test {
 
 	@Before
 	public void setUp() throws Exception {
-		m_commands = new DLPythonAbstractCommands() {
+        m_commands =
+            new DLPythonAbstractCommands(new DLPythonDefaultContext(DLPythonPreferences.getPythonCommandPreference())) {
 
 			@Override
 			public DLNetworkSpec extractNetworkSpec(final DLPythonNetworkHandle network, final DLCancelable cancelable)

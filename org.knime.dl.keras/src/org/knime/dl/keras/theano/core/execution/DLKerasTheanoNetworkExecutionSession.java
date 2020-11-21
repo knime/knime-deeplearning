@@ -57,6 +57,7 @@ import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -65,15 +66,15 @@ import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
 public final class DLKerasTheanoNetworkExecutionSession
 	extends DLKerasAbstractNetworkExecutionSession<DLKerasTheanoNetwork, DLKerasTheanoCommands> {
 
-	public DLKerasTheanoNetworkExecutionSession(final DLKerasTheanoNetwork network,
-			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
-			final DLTensorFactory tensorFactory) {
-		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
-	}
+    public DLKerasTheanoNetworkExecutionSession(final DLPythonContext context, final DLKerasTheanoNetwork network,
+        final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
+        final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
+        final DLTensorFactory tensorFactory) {
+        super(context, network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+    }
 
-	@Override
-	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTheanoCommands();
-	}
+    @Override
+    protected DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+        return new DLKerasTheanoCommands(context);
+    }
 }

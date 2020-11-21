@@ -48,23 +48,26 @@ package org.knime.dl.python.base.node;
 
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
+import org.knime.python2.config.PythonSourceCodeOptionsPanel.EnforcePythonVersion;
 import org.knime.python2.config.PythonSourceCodePanel;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonSourceCodeOptionsPanel extends PythonSourceCodeOptionsPanel {
-
-    private static final long serialVersionUID = 1L;
+public final class DLPythonSourceCodeOptionsPanel {
 
     /**
-     * Creates a {@link PythonSourceCodeOptionsPanel} with Python 3 as enforced Python version and the deep learning
-     * Python command as default Python 3 command.
+     * Creates a {@link PythonSourceCodeOptionsPanel} with Python 3 as enforced Python version and the Python command
+     * configured in the deep learning Preferences as the default Python 3 command.
      *
-     * @param sourceCodePanel The corresponding source code panel.
+     * @param scriptPanel The corresponding source code panel.
+     * @return The created options panel.
      */
-    public DLPythonSourceCodeOptionsPanel(final PythonSourceCodePanel sourceCodePanel) {
-        super(sourceCodePanel, EnforcePythonVersion.PYTHON3, () -> null,
+    public static PythonSourceCodeOptionsPanel createOptionsPanel(final PythonSourceCodePanel scriptPanel) {
+        return new PythonSourceCodeOptionsPanel(scriptPanel, EnforcePythonVersion.PYTHON3, () -> null,
             DLPythonPreferences::getPythonCommandPreference);
     }
+
+    private DLPythonSourceCodeOptionsPanel() {}
 }

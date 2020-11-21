@@ -57,6 +57,7 @@ import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * Training session for Keras (CNTK) networks.
@@ -79,16 +80,16 @@ public final class DLKerasCNTKNetworkTrainingSession
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-    public DLKerasCNTKNetworkTrainingSession(final DLKerasCNTKNetwork network,
+    public DLKerasCNTKNetworkTrainingSession(final DLPythonContext context, final DLKerasCNTKNetwork network,
         final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
         final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
-	}
+        super(context, network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
+            tensorFactory);
+    }
 
 	@Override
-	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasCNTKCommands();
-	}
+    protected DLKerasCNTKCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+        return new DLKerasCNTKCommands(context);
+    }
 }

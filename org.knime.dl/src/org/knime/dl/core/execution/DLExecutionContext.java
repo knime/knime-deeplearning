@@ -66,8 +66,9 @@ import org.knime.dl.core.DLTensorSpec;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLExecutionContext<N extends DLNetwork> extends DLContext<N> {
+public interface DLExecutionContext<C, N extends DLNetwork> extends DLContext<C, N> {
 
+    C createDefaultContext();
 
 	/**
 	 * Creates a {@link DLNetworkExecutionSession execution session} for a given {@link DLNetwork network}.
@@ -85,7 +86,7 @@ public interface DLExecutionContext<N extends DLNetwork> extends DLContext<N> {
 	 * @return the created execution session
 	 * @throws IllegalArgumentException if failed to create the execution session due to invalid arguments
 	 */
-	DLNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
+	DLNetworkExecutionSession createExecutionSession(C context, N network, Set<DLTensorSpec> executionInputSpecs,
 			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
 			DLNetworkOutputConsumer outputConsumer);
 

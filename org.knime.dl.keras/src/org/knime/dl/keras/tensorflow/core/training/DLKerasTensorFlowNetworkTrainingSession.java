@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * Training session for Keras (TensorFlow) networks.
@@ -79,16 +80,17 @@ public final class DLKerasTensorFlowNetworkTrainingSession
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-    public DLKerasTensorFlowNetworkTrainingSession(final DLKerasTensorFlowNetwork network,
-        final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
-        final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
+    public DLKerasTensorFlowNetworkTrainingSession(final DLPythonContext context,
+        final DLKerasTensorFlowNetwork network, final DLKerasTrainingConfig trainingConfig,
+        final Set<DLTensorSpec> executionInputSpecs, final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
-	}
+        super(context, network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
+            tensorFactory);
+    }
 
 	@Override
-	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTensorFlowCommands();
-	}
+    protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
+        throws DLInvalidEnvironmentException {
+        return new DLKerasTensorFlowCommands(context);
+    }
 }

@@ -52,11 +52,11 @@ import org.knime.dl.core.DLContext;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of context this config works with
  */
-public interface DLGeneralConfig <C extends DLContext<?>> {
-    
+public interface DLGeneralConfig <C extends DLContext<?, ?>> {
+
     /**
      * @return the entry holding the {@link DLContext}
      */
     ConfigEntry<C> getContextEntry();
-    
+
 }

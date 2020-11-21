@@ -92,6 +92,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.nodes.DLTensorRole;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.DLDataTypeColumnFilter;
@@ -378,9 +379,9 @@ final class DLExecutorNodeModel extends NodeModel {
 
 	private void configureGeneral(final Class<? extends DLNetwork> networkType)
 			throws DLMissingDependencyException, InvalidSettingsException {
-		DLExecutionContext<?> backend = m_generalCfg.getContextEntry().getValue();
+		DLExecutionContext<?, ?> backend = m_generalCfg.getContextEntry().getValue();
 		if (backend == null) {
-		    final List<DLExecutionContext<?>> availableBackends = DLExecutorGeneralConfig
+		    final List<DLExecutionContext<?, ?>> availableBackends = DLExecutorGeneralConfig
 		            .getAvailableExecutionContexts(networkType).stream()
 		            .sorted(Comparator.comparing(DLExecutionContext::getName))
 		            .collect(Collectors.toList());
@@ -508,7 +509,7 @@ final class DLExecutorNodeModel extends NodeModel {
     }
 
 	@SuppressWarnings("unchecked")
-	private <N extends DLNetwork> void executeInternal(final PortObject portObject, final RowInput rowInput,
+	private <C, N extends DLNetwork> void executeInternal(final PortObject portObject, final RowInput rowInput,
 			final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
 		final N network = (N) ((DLNetworkPortObject) portObject).getNetwork();
 		final DLNetworkSpec networkSpec = network.getSpec();
@@ -521,49 +522,57 @@ final class DLExecutorNodeModel extends NodeModel {
 			return;
 		}
 
-        final DLExecutionContext<N> ctx = (DLExecutionContext<N>)m_generalCfg.getContextEntry().getValue();
+        final DLExecutionContext<C, N> ctx = (DLExecutionContext<C, N>)m_generalCfg.getContextEntry().getValue();
+        final C context = ctx.createDefaultContext();
         try {
-            ctx.checkAvailability(false, DLInstallationTestTimeout.getInstallationTestTimeout(),
-                DLNotCancelable.INSTANCE);
-        } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
-                | DLCanceledExecutionException e) {
-            throw new InvalidSettingsException("Selected back end '" + ctx.getName() + "' is not available anymore. "
-                + "Please check your local installation.\nDetails: " + e.getMessage());
+            try {
+                ctx.checkAvailability(context, false, DLInstallationTestTimeout.getInstallationTestTimeout(),
+                    DLNotCancelable.INSTANCE);
+            } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                    | DLCanceledExecutionException e) {
+                throw new InvalidSettingsException(
+                    "Selected back end '" + ctx.getName() + "' is not available anymore. "
+                        + "Please check your local installation.\nDetails: " + e.getMessage());
+            }
+
+            final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
+            final boolean isPredefinedBatchSize =
+                Arrays.stream(networkSpec.getInputSpecs()).anyMatch(s -> s.getBatchSize().isPresent());
+
+            final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsEntry().getValue();
+
+            // assign input column indices to network inputs
+            final LinkedHashMap<DLTensorId, int[]> columnsForTensorId = new LinkedHashMap<>(m_inputConverters.size());
+            final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId =
+                new LinkedHashMap<>(m_inputConverters.size());
+
+            fillInputSpecificMaps(inDataSpec, columnsForTensorId, inputConverterForTensorId);
+
+            final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId =
+                createOutputConverterMap();
+
+            try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
+                    final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
+                        rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
+                    final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
+                        inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
+                    final DLNetworkExecutionSession session = ctx.createExecutionSession(context, network,
+                        DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
+                            batchSize, columnsForTensorId, m_inputConverters),
+                        outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
+                final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer.getNumBatches());
+                session.run(monitor);
+            } catch (final CanceledExecutionException | DLCanceledExecutionException e) {
+                throw e;
+            } catch (final Exception e) {
+                handleGeneralException(e);
+            }
+        } finally {
+            if (context instanceof AutoCloseable) {
+                ((AutoCloseable)context).close();
+            }
         }
-
-		final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
-		final boolean isPredefinedBatchSize = Arrays.stream(networkSpec.getInputSpecs())
-				.anyMatch(s -> s.getBatchSize().isPresent());
-
-		final boolean keepInputColumns = m_generalCfg.getKeepInputColumnsEntry().getValue();
-
-		// assign input column indices to network inputs
-		final LinkedHashMap<DLTensorId, int[]> columnsForTensorId = new LinkedHashMap<>(m_inputConverters.size());
-		final LinkedHashMap<DLTensorId, DLDataValueToTensorConverterFactory<?, ?>> inputConverterForTensorId = new LinkedHashMap<>(
-				m_inputConverters.size());
-
-		fillInputSpecificMaps(inDataSpec, columnsForTensorId, inputConverterForTensorId);
-
-		final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId =
-            createOutputConverterMap();
-
-		try (final DLRowInputRowIterator rowIterator = new DLRowInputRowIterator(rowInput, columnsForTensorId);
-				final DLKnimeNetworkExecutionInputPreparer inputPreparer = new DLKnimeNetworkExecutionInputPreparer(
-						rowIterator, batchSize, isPredefinedBatchSize, inputConverterForTensorId);
-				final DLKnimeNetworkOutputConsumer outputConsumer = new DLKnimeNetworkOutputConsumer(rowOutput,
-						inputPreparer.getBaseRows()::remove, keepInputColumns, outputConverterForTensorId, exec);
-				final DLNetworkExecutionSession session = ctx.createExecutionSession(network,
-						DLExecutionSpecCreator.createExecutionSpecs(rowIterator.peek(), ctx.getTensorFactory(),
-								batchSize, columnsForTensorId, m_inputConverters),
-						outputConverterForTensorId.keySet(), inputPreparer, outputConsumer)) {
-            final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer.getNumBatches());
-			session.run(monitor);
-		} catch (final CanceledExecutionException | DLCanceledExecutionException e) {
-			throw e;
-		} catch (final Exception e) {
-			handleGeneralException(e);
-		}
-	}
+    }
 
     private LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> createOutputConverterMap() {
         final LinkedHashMap<DLTensorId, DLTensorToDataCellConverterFactory<?, ?>> outputConverterForTensorId = new LinkedHashMap<>(

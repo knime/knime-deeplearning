@@ -58,6 +58,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -73,6 +75,7 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.data.DLWritableBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
 import org.knime.dl.core.training.DLTrainingMonitor;
+import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.keras.core.training.DLKerasCallback;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingConfig;
 import org.knime.dl.keras.core.training.DLKerasDefaultTrainingStatus;
@@ -84,7 +87,9 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowDefaultTrainingContext;
 import org.knime.dl.keras.tensorflow.core.training.DLKerasTensorFlowNetworkTrainingSession;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.testing.DLTestTrainingMonitor;
 import org.knime.dl.util.DLUtils;
 import org.knime.python2.testing.PreferencesSetup;
@@ -101,6 +106,18 @@ public class DLKerasTensorFlowNetworkLearnerTest {
     @ClassRule
     public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
 
+    private DLPythonContext m_context;
+
+    @Before
+    public void createContext() {
+        m_context = new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
+
+    @After
+    public void closeContext() {
+        m_context.close();
+    }
+
 	@Test
 	public void test1To1() throws Exception {
 		final URL source = FileUtil
@@ -109,7 +126,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, DLNotCancelable.INSTANCE);
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, m_context, DLNotCancelable.INSTANCE);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -139,8 +156,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
-		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
-            executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
+        try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(m_context, network,
+            config, executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
                 private long currentBatch = 0;
 
                 @Override
@@ -186,7 +203,7 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLPythonDefaultNetworkReader<DLKerasTensorFlowNetwork> reader = new DLPythonDefaultNetworkReader<>(
 				new DLKerasTensorFlowNetworkLoader());
         final DLKerasTensorFlowNetwork network =
-            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, DLNotCancelable.INSTANCE);
+            reader.read(new DLNetworkReferenceLocation(source.toURI()), true, m_context, DLNotCancelable.INSTANCE);
 
 		final int dataSetSize = 10;
 		final int batchSize = 1;
@@ -222,8 +239,8 @@ public class DLKerasTensorFlowNetworkLearnerTest {
 		final DLTrainingMonitor<DLKerasTrainingStatus> monitor = new DLTestTrainingMonitor<>(
 				new DLKerasDefaultTrainingStatus(1, dataSetSize / batchSize));
 
-		try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(network, config,
-            executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
+        try (final DLKerasTensorFlowNetworkTrainingSession session = ctx.createTrainingSession(m_context, network,
+            config, executionInputSpecs, new DLNetworkFixedSizeInputPreparer() {
                 private long currentBatch = 0;
 
                 @Override

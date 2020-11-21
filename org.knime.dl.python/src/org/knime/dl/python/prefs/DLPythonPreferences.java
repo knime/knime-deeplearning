@@ -211,6 +211,16 @@ public class DLPythonPreferences {
         return envsConfig;
     }
 
+    public static String getCondaInstallationPath() {
+        if (usePythonPreferences()) {
+            return PythonPreferences.getCondaInstallationPath();
+        } else {
+            final DLCondaEnvironmentsConfig condaEnvironmentsConfig = new DLCondaEnvironmentsConfig();
+            condaEnvironmentsConfig.loadConfigFrom(CURRENT);
+            return condaEnvironmentsConfig.getCondaDirectoryPath().getStringValue();
+        }
+    }
+
     public static final class InstanceScopeConfigStorage implements PythonConfigStorage {
 
         private static final String QUALIFIER = "org.knime.dl.python";

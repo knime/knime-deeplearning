@@ -62,6 +62,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -69,6 +71,9 @@ import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.dl.keras.core.DLKerasPythonContext;
+import org.knime.dl.python.core.DLPythonContext;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.testing.PreferencesSetup;
 
 /**
@@ -79,6 +84,18 @@ public final class DLKerasNetworkSpecInferrerTest {
 
     @ClassRule
     public static final TestRule preferencesSetup = new PreferencesSetup("org.knime.dl.keras.tests");
+
+    private DLPythonContext m_context;
+
+    @Before
+    public void createContext() {
+        m_context = new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
+
+    @After
+    public void closeContext() {
+        m_context.close();
+    }
 
     @Test
     public void testInferSingleLayer() {
@@ -113,31 +130,31 @@ public final class DLKerasNetworkSpecInferrerTest {
     @Test
     public void testAppendUnaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        testOnSequentialModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity());
+        testOnSequentialModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity(), m_context);
     }
 
     @Test
     public void testAppendUnaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputModelAppendedUnaryLayerSetup(this::inferSpecs, Function.identity(), m_context);
     }
 
     @Test
     public void testAppendBinaryLayerToSequentialModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        testOnSequentialModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
+        testOnSequentialModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity(), m_context);
     }
 
     @Test
     public void testAppendBinaryLayerToMultiInputMultiOutputModel()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
+        testOnMultiInputMultiOutputModelAppendedBinaryLayerSetup(this::inferSpecs, Function.identity(), m_context);
     }
 
     @Test
     public void testAppendBinaryLayerToTwoMultiInputMultiOutputModels()
         throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(this::inferSpecs, Function.identity());
+        testOnTwoMultiInputMultiOutputModelsAppendedBinaryLayerSetup(this::inferSpecs, Function.identity(), m_context);
     }
 
     private DLKerasNetworkSpec inferSpecs(final List<DLKerasLayer> outputLayers) {

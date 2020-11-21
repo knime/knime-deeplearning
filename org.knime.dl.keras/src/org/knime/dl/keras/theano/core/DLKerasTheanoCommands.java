@@ -65,9 +65,6 @@ import org.knime.dl.util.DLUtils;
  */
 public final class DLKerasTheanoCommands extends DLKerasAbstractCommands {
 
-	public DLKerasTheanoCommands() throws DLInvalidEnvironmentException {
-	}
-
 	public DLKerasTheanoCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
 		super(context);
 	}

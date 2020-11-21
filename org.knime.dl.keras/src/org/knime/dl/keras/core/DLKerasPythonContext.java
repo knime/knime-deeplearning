@@ -47,7 +47,6 @@
 package org.knime.dl.keras.core;
 
 import org.knime.dl.python.core.DLPythonAbstractContext;
-import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.kernel.PythonKernel;
 
@@ -58,11 +57,14 @@ import org.knime.python2.kernel.PythonKernel;
  */
 public final class DLKerasPythonContext extends DLPythonAbstractContext {
 
+    private final PythonCommand m_command;
+
     /**
      * Create a new default DL Python context. The Python kernel will be created on demand.
      */
-    public DLKerasPythonContext() {
+    public DLKerasPythonContext(final PythonCommand command) {
         super();
+        m_command = command;
     }
 
     /**
@@ -70,12 +72,13 @@ public final class DLKerasPythonContext extends DLPythonAbstractContext {
      *
      * @param kernel the Python kernel which is used by this context. Closed on {@link #close()}.
      */
-    public DLKerasPythonContext(final PythonKernel kernel) {
+    public DLKerasPythonContext(final PythonCommand command, final PythonKernel kernel) {
         super(kernel);
+        m_command = command;
     }
 
     @Override
     protected PythonCommand getPythonCommand() {
-        return DLPythonPreferences.getPythonKerasCommandPreference();
+        return m_command;
     }
 }

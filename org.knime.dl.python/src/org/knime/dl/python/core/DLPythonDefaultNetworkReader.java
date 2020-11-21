@@ -66,35 +66,6 @@ public class DLPythonDefaultNetworkReader<N extends DLPythonNetwork> {
 		m_loader = loader;
 	}
 
-	/**
-	 * @deprecated Use {@link #read(DLNetworkLocation, boolean, DLPythonContext, DLCancelable)}.
-	 */
-	@Deprecated
-    @SuppressWarnings("javadoc")
-    public N read(final DLNetworkLocation source, final boolean loadTrainingConfig, final DLCancelable cancelable)
-			throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        m_loader.validateSource(source.getURI()); // fail fast - spares us creating the Python kernel
-        try (final DLPythonContext context = new DLPythonDefaultContext()) {
-            final DLPythonNetworkHandle handle =
-                m_loader.load(source.getURI(), context, loadTrainingConfig, cancelable);
-			return m_loader.fetch(handle, source, context, cancelable);
-		}
-	}
-
-	/**
-	 * @deprecated Use {@link #read(DLPythonNetwork, boolean, DLPythonContext, DLCancelable)}.
-	 */
-    @Deprecated
-    @SuppressWarnings("javadoc")
-    public N read(final N network, final boolean loadTrainingConfig, final DLCancelable cancelable)
-        throws DLInvalidSourceException, DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
-        m_loader.validateSource(network.getSource().getURI()); // fail fast - spares us creating the Python kernel
-        try (final DLPythonContext context = new DLPythonDefaultContext()) {
-            final DLPythonNetworkHandle handle = m_loader.load(network, context, loadTrainingConfig, cancelable);
-            return m_loader.fetch(handle, network.getSource(), context, cancelable);
-        }
-    }
-
     /**
      * Read the network from the given source.
      *

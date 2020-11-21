@@ -77,7 +77,7 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 
 	private final DLExecutorGeneralConfig m_cfg;
 
-	private final DialogComponentObjectSelection<DLExecutionContext<?>> m_dcBackend;
+	private final DialogComponentObjectSelection<DLExecutionContext<?, ?>> m_dcBackend;
 
 	DLExecutorGeneralPanel(final DLExecutorGeneralConfig cfg) {
 		m_cfg = cfg;
@@ -87,16 +87,16 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		// execution context ("back end") selection
 		m_dcBackend = new DialogComponentObjectSelection<>(m_cfg.getContextEntry(),
 		        DLExecutionContext::getName, "Back end");
-		
+
 		addDoubleColumnRow(getFirstComponent(m_dcBackend, JLabel.class),
 		    getFirstComponent(m_dcBackend, JComboBox.class));
-		    
+
 		addNumberSpinnerRowComponent(ConfigUtil.toSettingsModelIntegerBounded(
 		    m_cfg.getBatchSizeEntry(), 1, Integer.MAX_VALUE), "Input batch size", 100);
 		addCheckboxRow(ConfigUtil.toSettingsModelBoolean(m_cfg.getKeepInputColumnsEntry()),
 		    "Keep input columns in output table", true);
 	}
-	
+
 
 	@Override
     public void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
@@ -131,14 +131,14 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		}
 	}
 
-	void refreshAvailableBackends(Class<? extends DLNetwork> networkType) throws NotConfigurableException {
-		final List<DLExecutionContext<?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
+	void refreshAvailableBackends(final Class<? extends DLNetwork> networkType) throws NotConfigurableException {
+		final List<DLExecutionContext<?, ?>> availableExecutionContexts = DLExecutionContextRegistry.getInstance()
 				.getExecutionContextsForNetworkType((networkType)) //
 				.stream() //
 				.sorted(Comparator.comparing(DLExecutionContext::getName)) //
 				.collect(Collectors.toList());
-		final DLExecutionContext<?> value = m_cfg.getContextEntry().getValue();
-		final DLExecutionContext<?> selectedContext;
+		final DLExecutionContext<?, ?> value = m_cfg.getContextEntry().getValue();
+		final DLExecutionContext<?, ?> selectedContext;
 		// needs to be called to ensure that there is a list of items to select from
 		m_dcBackend.replaceListItems(availableExecutionContexts, null);
 		if (availableExecutionContexts.isEmpty()) {
@@ -151,15 +151,15 @@ class DLExecutorGeneralPanel extends AbstractGridBagDialogComponentGroup {
 		}
 		m_dcBackend.replaceListItems(availableExecutionContexts, selectedContext);
 	}
-	
-	private static boolean containsContext(final List<DLExecutionContext<?>> contexts,
-	    final DLExecutionContext<?> context) {
-	    for (final DLExecutionContext<?> check : contexts) {
+
+	private static boolean containsContext(final List<DLExecutionContext<?, ?>> contexts,
+	    final DLExecutionContext<?, ?> context) {
+	    for (final DLExecutionContext<?, ?> check : contexts) {
 	        if (check.getNetworkType().isAssignableFrom(context.getNetworkType())) {
 	            return true;
 	        }
 	    }
 	    return false;
 	}
-	
+
 }

@@ -47,12 +47,12 @@
 package org.knime.dl.keras.base.nodes.layers.manipulation.freeze;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.StringFilterPanel;
+import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeDialog;
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
@@ -60,7 +60,7 @@ import org.knime.dl.keras.core.DLKerasNetworkSpec;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasFreezeLayersNodeDialog extends NodeDialogPane {
+public class DLKerasFreezeLayersNodeDialog extends DLKerasAbstractManipulationNodeDialog {
 
     private final StringFilterPanel m_layerFilterPanel;
 
@@ -73,14 +73,14 @@ public class DLKerasFreezeLayersNodeDialog extends NodeDialogPane {
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected void saveSettingsToDerived(final NodeSettingsWO settings) throws InvalidSettingsException {
         final StringFilterConfiguration config = DLKerasFreezeLayersNodeModel.createLayerFilterConfig();
         m_layerFilterPanel.saveConfiguration(config);
         config.saveConfiguration(settings);
     }
 
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected void loadSettingsFromDerived(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         final DLKerasNetworkPortObjectSpecBase spec =
             (DLKerasNetworkPortObjectSpecBase)specs[DLKerasAbstractManipulationNodeModel.IN_NETWORK_PORT_IDX];

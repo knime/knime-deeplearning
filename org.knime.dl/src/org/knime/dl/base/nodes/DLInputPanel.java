@@ -206,7 +206,7 @@ public class DLInputPanel<I extends DLInputConfig<?>> extends AbstractGridBagDia
 
     private void refreshAvailableConverters() throws NotConfigurableException {
         assert m_tableSpec != null;
-        final DLContext<?> context = m_cfg.getGeneralConfig().getContextEntry().getValue();
+        final DLContext<?, ?> context = m_cfg.getGeneralConfig().getContextEntry().getValue();
         DLConverterRefresher converterRefresher;
         final Comparator<DLDataValueToTensorConverterFactory<?, ?>> nameComparator =
             Comparator.comparing(DLDataValueToTensorConverterFactory::getName);

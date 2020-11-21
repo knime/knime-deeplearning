@@ -54,15 +54,16 @@ import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.core.execution.DLExecutionContext;
 import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLKerasExecutionContext<N extends DLKerasNetwork> extends DLExecutionContext<N> {
+public interface DLKerasExecutionContext<N extends DLKerasNetwork> extends DLExecutionContext<DLPythonContext, N> {
 
 	@Override
-	DLKerasNetworkExecutionSession createExecutionSession(N network, Set<DLTensorSpec> executionInputSpecs,
-			Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
-			DLNetworkOutputConsumer outputConsumer);
+    DLKerasNetworkExecutionSession createExecutionSession(DLPythonContext context, N network,
+        Set<DLTensorSpec> executionInputSpecs, Set<DLTensorId> requestedOutputs, DLNetworkInputPreparer inputPreparer,
+        DLNetworkOutputConsumer outputConsumer);
 }

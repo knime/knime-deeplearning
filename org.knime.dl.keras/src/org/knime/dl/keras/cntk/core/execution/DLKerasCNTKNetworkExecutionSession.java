@@ -57,6 +57,7 @@ import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKCommands;
 import org.knime.dl.keras.cntk.core.DLKerasCNTKNetwork;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -65,15 +66,15 @@ import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 public final class DLKerasCNTKNetworkExecutionSession
 	extends DLKerasAbstractNetworkExecutionSession<DLKerasCNTKNetwork, DLKerasCNTKCommands> {
 
-	public DLKerasCNTKNetworkExecutionSession(final DLKerasCNTKNetwork network,
+	public DLKerasCNTKNetworkExecutionSession(final DLPythonContext context, final DLKerasCNTKNetwork network,
 			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
 			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
 			final DLTensorFactory tensorFactory) {
-		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+		super(context, network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
 	}
 
-	@Override
-	protected DLKerasCNTKCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasCNTKCommands();
-	}
+    @Override
+    protected DLKerasCNTKCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+        return new DLKerasCNTKCommands(context);
+    }
 }

@@ -57,6 +57,7 @@ import org.knime.dl.keras.core.training.DLKerasAbstractNetworkTrainingSession;
 import org.knime.dl.keras.core.training.DLKerasTrainingConfig;
 import org.knime.dl.keras.theano.core.DLKerasTheanoCommands;
 import org.knime.dl.keras.theano.core.DLKerasTheanoNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * Training session for Keras (Theano) networks.
@@ -79,16 +80,16 @@ public final class DLKerasTheanoNetworkTrainingSession
 	 *            performed during training
 	 * @param tensorFactory the tensor factory that is used to create the network's input and target tensors
 	 */
-    public DLKerasTheanoNetworkTrainingSession(final DLKerasTheanoNetwork network,
+    public DLKerasTheanoNetworkTrainingSession(final DLPythonContext context, final DLKerasTheanoNetwork network,
         final DLKerasTrainingConfig trainingConfig, final Set<DLTensorSpec> executionInputSpecs,
         final DLNetworkFixedSizeInputPreparer trainingInputPreparer,
         final DLNetworkFixedSizeInputPreparer validationInputPreparer, final DLTensorFactory tensorFactory) {
-		super(network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
-				tensorFactory);
-	}
+        super(context, network, trainingConfig, executionInputSpecs, trainingInputPreparer, validationInputPreparer,
+            tensorFactory);
+    }
 
-	@Override
-	protected DLKerasTheanoCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTheanoCommands();
-	}
+    @Override
+    protected DLKerasTheanoCommands createCommands(final DLPythonContext context) throws DLInvalidEnvironmentException {
+        return new DLKerasTheanoCommands(context);
+    }
 }

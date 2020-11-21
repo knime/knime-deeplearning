@@ -59,6 +59,7 @@ import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractExecutionContext;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetworkLoader;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -74,16 +75,18 @@ public final class DLKerasTensorFlowDefaultExecutionContext
 	}
 
     @Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public void checkAvailability(final DLPythonContext context, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
-        new DLKerasTensorFlowNetworkLoader().checkAvailability(forceRefresh, timeout, cancelable);
+        new DLKerasTensorFlowNetworkLoader().checkAvailability(context, forceRefresh, timeout, cancelable);
     }
 
 	@Override
-	public DLKerasTensorFlowNetworkExecutionSession createExecutionSession(final DLKerasTensorFlowNetwork network,
-			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer) {
-		return new DLKerasTensorFlowNetworkExecutionSession(network, executionInputSpecs, requestedOutputs,
-				inputPreparer, outputConsumer, getTensorFactory());
-	}
+    public DLKerasTensorFlowNetworkExecutionSession createExecutionSession(final DLPythonContext context,
+        final DLKerasTensorFlowNetwork network, final Set<DLTensorSpec> executionInputSpecs,
+        final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+        final DLNetworkOutputConsumer outputConsumer) {
+        return new DLKerasTensorFlowNetworkExecutionSession(context, network, executionInputSpecs, requestedOutputs,
+            inputPreparer, outputConsumer, getTensorFactory());
+    }
 }

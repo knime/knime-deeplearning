@@ -64,7 +64,7 @@ import org.knime.dl.testing.DLTestingTensorFactory;
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public class DLTestingBackendExecutionContext implements DLExecutionContext<DLTestingBackendNetwork> {
+public class DLTestingBackendExecutionContext implements DLExecutionContext<Void, DLTestingBackendNetwork> {
     private final DLTensorFactory m_tensorFactory = new DLTestingTensorFactory();
 
     @Override
@@ -83,16 +83,22 @@ public class DLTestingBackendExecutionContext implements DLExecutionContext<DLTe
     }
 
     @Override
-    public void checkAvailability(final boolean forceRefresh, final int timeout, final DLCancelable cancelable)
+    public Void createDefaultContext() {
+        return null;
+    }
+
+    @Override
+    public void checkAvailability(final Void noContext, final boolean forceRefresh, final int timeout,
+        final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {
         // no-op
     }
 
     @Override
-    public DLTestingBackendNetworkExecutionSession createExecutionSession(final DLTestingBackendNetwork network,
-        final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-        final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer)
-                throws RuntimeException {
+    public DLTestingBackendNetworkExecutionSession createExecutionSession(final Void noContext,
+        final DLTestingBackendNetwork network, final Set<DLTensorSpec> executionInputSpecs,
+        final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+        final DLNetworkOutputConsumer outputConsumer) throws RuntimeException {
         return new DLTestingBackendNetworkExecutionSession(network, executionInputSpecs, requestedOutputs,
             inputPreparer, outputConsumer, m_tensorFactory);
     }

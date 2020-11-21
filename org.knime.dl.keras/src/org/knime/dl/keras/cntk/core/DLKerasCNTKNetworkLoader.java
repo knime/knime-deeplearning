@@ -56,7 +56,6 @@ import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.keras.core.DLKerasAbstractNetworkLoader;
-import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 
@@ -66,8 +65,7 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasCNTKNetwork> {
 
-    private static DLPythonInstallationTester installationTester =
-        new DLPythonInstallationTester(() -> new DLKerasPythonContext());
+    private static final DLPythonInstallationTester INSTALLATION_TESTER = new DLPythonInstallationTester();
 
 	@Override
 	public Class<DLKerasCNTKNetwork> getNetworkType() {
@@ -100,6 +98,6 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 
 	@Override
 	protected DLPythonInstallationTester getInstallationTester() {
-		return installationTester;
+		return INSTALLATION_TESTER;
 	}
 }

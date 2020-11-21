@@ -79,8 +79,8 @@ public class DLConfigurationUtility {
      * Configures a single input tensor. Note that this method <b>has</b> side effects:</br>
      * -The converter for the tensor is set in the input config</br>
      * -The column filter config is updated to comply to the converter selection
-     * 
-     * 
+     *
+     *
      * @param cfg the config of the input tensor
      * @param tensorSpec the spec of the input tensor
      * @param context the {@link DLContext} i.e. the backend used
@@ -90,9 +90,9 @@ public class DLConfigurationUtility {
      * @return the converter for the tensor described by <b>tensorSpec</b>
      * @throws InvalidSettingsException if the tensor has an invalid shape or if a column is missing
      */
-    public static DLDataValueToTensorConverterFactory<?, ?> configureInput(DLInputConfig<?> cfg,
-        DLTensorSpec tensorSpec, DLContext<?> context, DataTableSpec tableSpec, DataTableSpec lastConfiguredTableSpec,
-        DLTensorRole tensorRole) throws InvalidSettingsException {
+    public static DLDataValueToTensorConverterFactory<?, ?> configureInput(final DLInputConfig<?> cfg,
+        final DLTensorSpec tensorSpec, final DLContext<?, ?> context, final DataTableSpec tableSpec,
+        final DataTableSpec lastConfiguredTableSpec, final DLTensorRole tensorRole) throws InvalidSettingsException {
         validateTensorSpec(tensorSpec, tensorRole);
         DLDataValueToTensorConverterFactory<?, ?> converter = getConverter(tableSpec, context, tensorSpec, cfg);
         String[] includes = updateColFilterConfig(tableSpec, tensorSpec, cfg, converter, lastConfiguredTableSpec, tensorRole);
@@ -100,7 +100,7 @@ public class DLConfigurationUtility {
         return converter;
     }
 
-    private static void validateTensorSpec(DLTensorSpec tensorSpec, DLTensorRole tensorRole)
+    private static void validateTensorSpec(final DLTensorSpec tensorSpec, final DLTensorRole tensorRole)
         throws InvalidSettingsException {
         if (!DLUtils.Shapes.isKnown(tensorSpec.getShape())) {
             throw new InvalidSettingsException(tensorRole.getUpperCase() + " '" + tensorSpec.getName()
@@ -109,7 +109,7 @@ public class DLConfigurationUtility {
     }
 
     private static DLDataValueToTensorConverterFactory<?, ?> getConverter(final DataTableSpec inTableSpec,
-        DLContext<?> context, final DLTensorSpec tensorSpec, final DLInputConfig<?> inputCfg)
+        final DLContext<?, ?> context, final DLTensorSpec tensorSpec, final DLInputConfig<?> inputCfg)
         throws InvalidSettingsException {
         DLDataValueToTensorConverterFactory<?, ?> converter = inputCfg.getConverterEntry().getValue();
         Class<? extends DLWritableBuffer> bufferType = context.getTensorFactory().getWritableBufferType(tensorSpec);
@@ -131,8 +131,8 @@ public class DLConfigurationUtility {
     }
 
     private static String[] updateColFilterConfig(final DataTableSpec inTableSpec, final DLTensorSpec tensorSpec,
-        final DLInputConfig<?> inputCfg, DLDataValueToTensorConverterFactory<?, ?> converter,
-        final DataTableSpec lastConfiguredTableSpec, DLTensorRole tensorRole) throws InvalidSettingsException {
+        final DLInputConfig<?> inputCfg, final DLDataValueToTensorConverterFactory<?, ?> converter,
+        final DataTableSpec lastConfiguredTableSpec, final DLTensorRole tensorRole) throws InvalidSettingsException {
         final DataColumnSpecFilterConfiguration filterConfig = inputCfg.getInputColumnsEntry().getValue();
         ((DLDataTypeColumnFilter)filterConfig.getFilter()).setFilterClasses(converter.getSourceType());
         // check if selected columns are still in input table
@@ -151,8 +151,8 @@ public class DLConfigurationUtility {
         return filterConfig.applyTo(inTableSpec).getIncludes();
     }
 
-    private static boolean includesChanged(DataTableSpec inTableSpec, DataTableSpec lastConfiguredTableSpec,
-        DataColumnSpecFilterConfiguration filterConfig) {
+    private static boolean includesChanged(final DataTableSpec inTableSpec, final DataTableSpec lastConfiguredTableSpec,
+        final DataColumnSpecFilterConfiguration filterConfig) {
         Set<String> includesOld = Sets.newHashSet(filterConfig.applyTo(lastConfiguredTableSpec).getIncludes());
         Set<String> includesNew = Sets.newHashSet(filterConfig.applyTo(inTableSpec).getIncludes());
         return !includesOld.equals(includesNew);
@@ -161,7 +161,7 @@ public class DLConfigurationUtility {
     /**
      * Checks if the selected inputs are compatible with the tensor spec i.e. if the number of elements provided by the
      * selected columns matches the number of elements in the tensor spec (provided both are known).
-     * 
+     *
      * @param tensorSpec the spec of the tensor
      * @param includes the specs of the selected columns
      * @param converter
@@ -169,8 +169,8 @@ public class DLConfigurationUtility {
      * @throws InvalidSettingsException if the number of elements in the inputs does not match the number of elements of
      *             the tensor
      */
-    public static void inputMatchesTensorSpec(DLTensorSpec tensorSpec, String[] includeNames, DataTableSpec tableSpec,
-        DLDataValueToTensorConverterFactory<?, ?> converter, DLTensorRole tensorRole) throws InvalidSettingsException {
+    public static void inputMatchesTensorSpec(final DLTensorSpec tensorSpec, final String[] includeNames, final DataTableSpec tableSpec,
+        final DLDataValueToTensorConverterFactory<?, ?> converter, final DLTensorRole tensorRole) throws InvalidSettingsException {
         // Check if at least one input is selected
         if (includeNames.length == 0) {
             throw new InvalidSettingsException(

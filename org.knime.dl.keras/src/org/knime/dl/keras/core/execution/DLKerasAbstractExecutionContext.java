@@ -50,7 +50,10 @@ package org.knime.dl.keras.core.execution;
 
 import org.knime.dl.core.DLTensorFactory;
 import org.knime.dl.keras.core.DLKerasNetwork;
+import org.knime.dl.keras.core.DLKerasPythonContext;
+import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultTensorFactory;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -84,6 +87,11 @@ public abstract class DLKerasAbstractExecutionContext<N extends DLKerasNetwork> 
 	public DLTensorFactory getTensorFactory() {
 		return m_layerDataFactory;
 	}
+
+    @Override
+    public DLPythonContext createDefaultContext() {
+        return new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
 
 	@Override
 	public String toString() {

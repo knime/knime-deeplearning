@@ -86,7 +86,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 		return instance;
 	}
 
-	private final Set<DLTrainingContext<?, ?>> m_ctxs = new HashSet<>();
+	private final Set<DLTrainingContext<?, ?, ?>> m_ctxs = new HashSet<>();
 
 	private DLTrainingContextRegistry() {
 		super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
@@ -101,7 +101,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @param networkType the network type
 	 * @return the training contexts
 	 */
-	public Collection<DLTrainingContext<?, ?>> getTrainingContextsForNetworkType(
+	public Collection<DLTrainingContext<?, ?, ?>> getTrainingContextsForNetworkType(
 			final Class<? extends DLNetwork> networkType) {
 		return m_ctxs.stream() //
 				.filter(ctx -> networkType.isAssignableFrom(ctx.getNetworkType())) //
@@ -114,7 +114,7 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @param identifier the identifier
 	 * @return the training context if present
 	 */
-	public Optional<DLTrainingContext<?, ?>> getTrainingContext(final String identifier) {
+	public Optional<DLTrainingContext<?, ?, ?>> getTrainingContext(final String identifier) {
 		return m_ctxs.stream() //
 				.filter(ctx -> ctx.getIdentifier().equals(identifier)) //
 				.findFirst();
@@ -129,17 +129,17 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @param trainingContext the training context to register
 	 * @throws IllegalArgumentException if the given training context's network type is null
 	 */
-	public void registerTrainingContext(final DLTrainingContext<?, ?> trainingContext) throws IllegalArgumentException {
+	public void registerTrainingContext(final DLTrainingContext<?, ?, ?> trainingContext) throws IllegalArgumentException {
 		registerTrainingContextInternal(trainingContext);
 	}
 
 	@Override
 	protected void registerInternal(final IConfigurationElement elem, final Map<String, String> attrs)
 			throws Throwable {
-		registerTrainingContextInternal((DLTrainingContext<?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
+		registerTrainingContextInternal((DLTrainingContext<?, ?, ?>) elem.createExecutableExtension(EXT_POINT_ATTR_CLASS));
 	}
 
-	private synchronized void registerTrainingContextInternal(final DLTrainingContext<?, ?> ctx) {
+	private synchronized void registerTrainingContextInternal(final DLTrainingContext<?, ?, ?> ctx) {
 		final Class<? extends DLNetwork> networkType = ctx.getNetworkType();
 		if (networkType == null) {
 			throw new IllegalArgumentException("The training context's associated network type must not be null.");

@@ -57,6 +57,7 @@ import org.knime.dl.core.execution.DLNetworkOutputConsumer;
 import org.knime.dl.keras.core.execution.DLKerasAbstractNetworkExecutionSession;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowCommands;
 import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
+import org.knime.dl.python.core.DLPythonContext;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -65,15 +66,16 @@ import org.knime.dl.keras.tensorflow.core.DLKerasTensorFlowNetwork;
 public final class DLKerasTensorFlowNetworkExecutionSession
 	extends DLKerasAbstractNetworkExecutionSession<DLKerasTensorFlowNetwork, DLKerasTensorFlowCommands> {
 
-	public DLKerasTensorFlowNetworkExecutionSession(final DLKerasTensorFlowNetwork network,
-			final Set<DLTensorSpec> executionInputSpecs, final Set<DLTensorId> requestedOutputs,
-			final DLNetworkInputPreparer inputPreparer, final DLNetworkOutputConsumer outputConsumer,
-			final DLTensorFactory tensorFactory) {
-		super(network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
-	}
+    public DLKerasTensorFlowNetworkExecutionSession(final DLPythonContext context,
+        final DLKerasTensorFlowNetwork network, final Set<DLTensorSpec> executionInputSpecs,
+        final Set<DLTensorId> requestedOutputs, final DLNetworkInputPreparer inputPreparer,
+        final DLNetworkOutputConsumer outputConsumer, final DLTensorFactory tensorFactory) {
+        super(context, network, executionInputSpecs, requestedOutputs, inputPreparer, outputConsumer, tensorFactory);
+    }
 
-	@Override
-	protected DLKerasTensorFlowCommands createCommands() throws DLInvalidEnvironmentException {
-		return new DLKerasTensorFlowCommands();
-	}
+    @Override
+    protected DLKerasTensorFlowCommands createCommands(final DLPythonContext context)
+        throws DLInvalidEnvironmentException {
+        return new DLKerasTensorFlowCommands(context);
+    }
 }

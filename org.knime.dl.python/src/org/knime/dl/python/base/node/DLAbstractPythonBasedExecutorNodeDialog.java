@@ -43,33 +43,42 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 21, 2020 (marcel): created
  */
-package org.knime.dl.core;
+package org.knime.dl.python.base.node;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeDialog;
+import org.knime.python2.config.PythonCommandFlowVariableModel;
 
 /**
- * @param <T> The type of the external context.
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
- * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLInstallationTestable<T> {
+public abstract class DLAbstractPythonBasedExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
 
-    /**
-     * Checks if the external dependencies of this instance are available (if any). Throws an exception if they are not
-     * or if testing their availability timed out or was interrupted.
-     * <P>
-     * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-     * should cache the results of their first invocation to improve the response time of subsequent calls.
-     *
-     * @param context The external context.
-     * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check
-     *            will be redone. Otherwise, previous test results will be used if available.
-     * @param timeout timeout in milliseconds after which the installation test will be interrupted
-     * @param cancelable to check if the operation has been canceled
-     * @throws DLMissingDependencyException if the external dependencies of this network type are unavailable
-     * @throws DLInstallationTestTimeoutException if the installation test timed out or was interrupted in terms of
-     *             threading
-     * @throws DLCanceledExecutionException if the operation has been canceled
-     */
-    void checkAvailability(final T context, boolean forceRefresh, int timeout, DLCancelable cancelable)
-        throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException;
+    private final PythonCommandFlowVariableModel m_pythonCommandModel =
+        new PythonCommandFlowVariableModel(this, DLAbstractPythonBasedExecutorNodeModel.createPythonCommandConfig());
+
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_pythonCommandModel.loadSettingsFrom(settings);
+        super.loadSettingsFrom(settings, specs);
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        super.saveSettingsTo(settings);
+        m_pythonCommandModel.saveSettingsTo(settings);
+    }
+
+    @Override
+    public void onOpen() {
+        m_pythonCommandModel.onDialogOpen();
+    }
 }
