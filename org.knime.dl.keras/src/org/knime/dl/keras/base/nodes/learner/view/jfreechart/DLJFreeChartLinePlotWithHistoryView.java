@@ -573,6 +573,8 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
 
         private Double m_maxYValue;
 
+        private Double m_minYValue;
+
         /**
          * A lower range of zero is not allowed for the log axis. As this value is only used as a lower range bound for
          * the y-axis we want to find the lowest value which is not zero.
@@ -651,7 +653,7 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         }
 
         private void autoZoomYAxis() {
-            double lowerY = 0.0;
+            double lowerY = m_minYValue != null ? m_minYValue : 0.0;
             double upperY = m_maxYValue != null ? m_maxYValue : 0.0;
             if (m_isLogScale) {
                 lowerY = m_minButZeroYValue;
@@ -702,17 +704,18 @@ public class DLJFreeChartLinePlotWithHistoryView implements DLLinePlotView<DLJFr
         public void updateYBounds(final double update) {
             // A lower range of zero is not allowed for the log axis. As this value is only used as a lower range bound
             // for the y-axis we want to find the lowest value which is not zero.
-            if (update > 0.0) {
-                if (m_minButZeroYValue == null) {
-                    m_minButZeroYValue = update;
-                } else if (update < m_minButZeroYValue) {
-                    m_minButZeroYValue = update;
-                }
+            if (update > 0.0 //
+                && (m_minButZeroYValue == null || update < m_minButZeroYValue)) {
+                m_minButZeroYValue = update;
             }
 
-            if (m_maxYValue == null) {
-                m_maxYValue = update;
-            } else if (update > m_maxYValue) {
+            // Min Y Value
+            if (m_minYValue == null || update < m_minYValue) {
+                m_minYValue = update;
+            }
+
+            // Max Y Value
+            if (m_maxYValue == null || update > m_maxYValue) {
                 m_maxYValue = update;
             }
         }
