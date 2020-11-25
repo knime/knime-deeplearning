@@ -50,18 +50,20 @@ import java.util.Map;
 import java.util.Random;
 
 import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.sort.Shuffler;
+import org.knime.core.data.sort.ClosableShuffler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 
 /**
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowIterator {
-	
+
 	private final Random m_random;
 	private final ExecutionContext m_exec;
+    private ClosableShuffler m_shuffler;
 
 	/**
 	 * @param input the data table
@@ -69,7 +71,7 @@ public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowI
 	 * @param seed seed for random number generator
 	 * @param exec execution context necessary for shuffling
 	 */
-	public DLShuffleDataTableRowIterator(BufferedDataTable input, Map<DLTensorId, int[]> columns, final long seed, ExecutionContext exec) {
+	public DLShuffleDataTableRowIterator(final BufferedDataTable input, final Map<DLTensorId, int[]> columns, final long seed, final ExecutionContext exec) {
 		super(input, columns);
 		m_random = new Random(seed);
 		m_exec = exec;
@@ -80,11 +82,24 @@ public final class DLShuffleDataTableRowIterator extends DLAbstractDataTableRowI
 	protected CloseableRowIterator makeNewIterator() {
 		try {
 			m_exec.setMessage("Shuffling training data");
-			return Shuffler.shuffle(getInputTable(), m_exec.createSilentSubExecutionContext(0),
-					m_random.nextLong()).iterator();
+			closeShuffler();
+			m_shuffler = new ClosableShuffler(getInputTable(), m_exec, m_random.nextLong());
+			return m_shuffler.getShuffled().iterator();
 		} catch (CanceledExecutionException cee) {
 			throw new IllegalStateException("Execution has been canceled while shuffling training data.", cee);
 		}
 	}
 
+    @Override
+    public void close() {
+        super.close();
+        closeShuffler();
+    }
+
+    private void closeShuffler() {
+        if (m_shuffler != null) {
+            m_shuffler.close();
+            m_shuffler = null;
+        }
+    }
 }

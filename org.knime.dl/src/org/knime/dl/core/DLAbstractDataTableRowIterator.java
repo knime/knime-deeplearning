@@ -71,7 +71,7 @@ abstract class DLAbstractDataTableRowIterator extends DLAbstractRowIterator {
 
 	/**
 	 * Subclasses must set the initial iterator in their constructor call.
-	 * 
+	 *
 	 * @param input the data table
 	 * @param columns a map specifying which columns belong to which tensor
 	 */
@@ -119,15 +119,15 @@ abstract class DLAbstractDataTableRowIterator extends DLAbstractRowIterator {
 		m_lastPeeked = null;
 		m_iterator = makeNewIterator();
 	}
-	
+
 	protected abstract CloseableRowIterator makeNewIterator();
-	
+
 	protected final BufferedDataTable getInputTable() {
 		return m_input;
 	}
 
 	@Override
-	public final void close() {
+	public void close() {
 		m_iterator.close();
 	}
 
