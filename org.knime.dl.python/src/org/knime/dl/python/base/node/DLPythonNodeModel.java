@@ -46,8 +46,10 @@
 package org.knime.dl.python.base.node;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,11 +94,38 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 
 	private CFG m_config = createConfig();
 
+	private final LinkedList<String> m_stdout;
+
+	private final LinkedList<String> m_stderr;
+
 	public DLPythonNodeModel(final PortType[] inPortTypes, final PortType[] outPortTypes) {
 		super(inPortTypes, outPortTypes);
+		m_stdout = new LinkedList<>();
+		m_stderr = new LinkedList<>();
 	}
 
 	protected abstract CFG createConfig();
+
+    /**
+     * Update the standard out and standard error view.
+     *
+     * @param output stdout at index 0 and stderr at index 1.
+     */
+    protected final void updateStdoutStderr(final String[] output) {
+        // Stdout
+        if (!output[0].isEmpty()) {
+            final String[] stdout = output[0].split("\n");
+            m_stdout.addAll(Arrays.asList(stdout));
+            setExternalOutput(m_stdout);
+        }
+
+        // Stderr
+        if (!output[1].isEmpty()) {
+            final String[] stderr = output[1].split("\n");
+            m_stderr.addAll(Arrays.asList(stderr));
+            setExternalErrorOutput(m_stderr);
+        }
+    }
 
 	protected final CFG getConfig() {
 		return m_config;
@@ -201,4 +230,11 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 		config.loadFrom(settings);
 		m_config = config;
 	}
+
+    @Override
+    protected void reset() {
+        super.reset();
+        m_stdout.clear();
+        m_stderr.clear();
+    }
 }

@@ -49,9 +49,7 @@ package org.knime.dl.python.base.node.learner;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
@@ -170,14 +168,14 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 					.map(l -> "import " + l.getPythonModuleName() + "\n") //
 					.collect(Collectors.joining());
 			// TODO: we should move this logic out of the node in a later iteration
-			context.executeInKernel(loadBackendCode, cancelable);
+			String[] output = context.executeInKernel(loadBackendCode, cancelable);
+			updateStdoutStderr(output);
 			exec.createSubProgress(0.1).setProgress(1);
 			context.getKernel().putDataTable(DLPythonLearnerNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
 			final String outputNetworkName = DLPythonLearnerNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-			String[] output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
-			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
-			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
+			updateStdoutStderr(output);
 			checkExecutePostConditions(context, cancelable);
 			output = context.executeInKernel("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
@@ -187,8 +185,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
                 + "')\n" + //
 					"global network_type_identifier\n" + //
 					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", cancelable);
-			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
-			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			updateStdoutStderr(output);
 			exec.createSubProgress(0.4).setProgress(1);
 			final Collection<FlowVariable> variables = context.getKernel()
 					.getFlowVariables(DLPythonLearnerNodeConfig.getVariableNames().getFlowVariables());

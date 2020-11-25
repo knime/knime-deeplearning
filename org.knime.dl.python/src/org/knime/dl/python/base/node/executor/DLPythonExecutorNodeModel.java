@@ -48,9 +48,7 @@
 package org.knime.dl.python.base.node.executor;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -139,8 +137,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 			context.getKernel().putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,
 					exec.createSubProgress(0.2));
 			final String[] output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
-			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
-			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			updateStdoutStderr(output);
 			exec.createSubProgress(0.4).setProgress(1);
 			final Collection<FlowVariable> variables = context.getKernel()
 					.getFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables());

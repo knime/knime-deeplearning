@@ -49,9 +49,7 @@ package org.knime.dl.python.base.node.editor;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.StringValue;
@@ -155,11 +153,11 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 					.map(nl -> "import " + nl.getPythonModuleName() + "\n") //
 					.collect(Collectors.joining());
 			// TODO: we should move this logic out of the node in a later iteration
-			context.executeInKernel(loadBackendCode, cancelable);
+			String[] output = context.executeInKernel(loadBackendCode, cancelable);
+			updateStdoutStderr(output);
 			final String outputNetworkName = DLPythonEditorNodeConfig.getVariableNames().getGeneralOutputObjects()[0];
-			String[] output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
-			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
-			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			output = context.executeInKernel(getConfig().getSourceCode(), cancelable);
+			updateStdoutStderr(output);
 			checkExecutePostConditions(context, cancelable);
 			output = context.executeInKernel("import DLPythonNetwork\n" + //
 					"import DLPythonNetworkType\n" + //
@@ -169,8 +167,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
                 + "')\n" + //
 					"global network_type_identifier\n" + //
 					"network_type_identifier = pd.DataFrame(data=[network_type.identifier])\n", cancelable);
-			setExternalOutput(new LinkedList<>(Arrays.asList(output[0].split("\n"))));
-			setExternalErrorOutput(new LinkedList<>(Arrays.asList(output[1].split("\n"))));
+			updateStdoutStderr(output);
 			exec.createSubProgress(0.5).setProgress(1);
 			final Collection<FlowVariable> variables = context.getKernel()
 					.getFlowVariables(DLPythonEditorNodeConfig.getVariableNames().getFlowVariables());
