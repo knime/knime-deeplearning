@@ -86,510 +86,510 @@
             level-id="keras"
             locked="true"
             name="Keras"
-            path="/labs/deeplearning">
+            path="/analytics/mining/deeplearning">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="layers"
             locked="true"
             name="Layers"
-            path="/labs/deeplearning/keras">
+            path="/analytics/mining/deeplearning/keras">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="conv"
             locked="true"
             name="Convolution"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="pooling"
             locked="true"
             name="Pooling"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="merge"
             locked="true"
             name="Merge"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="noise"
             locked="true"
             name="Noise"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="locally"
             locked="true"
             name="Locally Connected"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
       		icon="icons/keras-layers.gif"
             level-id="advancedactivations"
             locked="true"
             name="Advanced Activations"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
       <category
             icon="icons/keras-layers.gif"
             level-id="normalization"
             locked="true"
             name="Normalization"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
 	  <category
             icon="icons/keras-layers.gif"
             level-id="recurrent"
             locked="true"
             name="Recurrent"
-            path="/labs/deeplearning/keras/layers">
+            path="/analytics/mining/deeplearning/keras/layers">
       </category>
    <category
          icon="icons/keras-layers.gif"
          level-id="core"
          locked="true"
          name="Core"
-         path="/labs/deeplearning/keras/layers">
+         path="/analytics/mining/deeplearning/keras/layers">
    </category>
    <category
          icon="icons/keras-layers.gif"
          level-id="embedding"
          locked="true"
          name="Embedding"
-         path="/labs/deeplearning/keras/layers">
+         path="/analytics/mining/deeplearning/keras/layers">
    </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/analytics/mining/deeplearning/keras"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.learner.DLKerasLearnerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/analytics/mining/deeplearning/keras"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.reader.DLKerasReaderNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/analytics/mining/deeplearning/keras"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras"
+            category-path="/analytics/mining/deeplearning/keras"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.executor.DLKerasExecutorNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.add.DLKerasAddLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.dense.DLKerasDenseLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.dense.DLKerasDenseLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.dropout.DLKerasDropoutLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.activation.DLKerasActivationLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.concatenate.DLKerasConcatenateLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.flatten.DLKerasFlattenLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"   
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.input.DLKerasInputLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv1d.DLKerasConv1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv1d.DLKerasConv1DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv2d.DLKerasConv2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv2d.DLKerasConv2DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.separableconv1d.DLKerasSeparableConv1DLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.separableconv1d.DLKerasSeparableConv1DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.separableconv2d.DLKerasSeparableConv2DLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.separableconv2d.DLKerasSeparableConv2DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv2dtranspose.DLKerasConv2DTransposeLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv2dtranspose.DLKerasConv2DTransposeLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv3d.DLKerasConv3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.conv3d.DLKerasConv3DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.cropping1d.DLKerasCropping1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.cropping2d.DLKerasCropping2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.cropping3d.DLKerasCropping3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.upsampling1d.DLKerasUpSampling1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.upsampling2d.DLKerasUpSampling2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.upsampling3d.DLKerasUpSampling3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.zeropadding1d.DLKerasZeroPadding1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.zeropadding2d.DLKerasZeroPadding2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/conv"
+            category-path="/analytics/mining/deeplearning/keras/layers/conv"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.conv.zeropadding3d.DLKerasZeroPadding3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.max1d.DLKerasMaxPooling1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.max2d.DLKerasMaxPooling2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.max3d.DLKerasMaxPooling3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.globalmax1d.DLKerasGlobalMaxPooling1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.globalmax2d.DLKerasGlobalMaxPooling2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.globalaverage1d.DLKerasGlobalAveragePooling1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.globalaverage2d.DLKerasGlobalAveragePooling2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.average1d.DLKerasAveragePooling1DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.average2d.DLKerasAveragePooling2DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/pooling"
+            category-path="/analytics/mining/deeplearning/keras/layers/pooling"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.pooling.average3d.DLKerasAveragePooling3DLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.reshape.DLKerasReshapeLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.masking.DLKerasMaskingLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.activityregularization.DLKerasActivityRegularizationLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.repeat.DLKerasRepeatLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/core"
+            category-path="/analytics/mining/deeplearning/keras/layers/core"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.core.permute.DLKerasPermuteLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/noise"
+            category-path="/analytics/mining/deeplearning/keras/layers/noise"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.noise.gaussiannoise.DLKerasGaussianNoiseLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/noise"
+            category-path="/analytics/mining/deeplearning/keras/layers/noise"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.noise.gaussiandropout.DLKerasGaussianDropoutLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/noise"
+            category-path="/analytics/mining/deeplearning/keras/layers/noise"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.noise.alphadropout.DLKerasAlphaDropoutLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/locally"
+            category-path="/analytics/mining/deeplearning/keras/layers/locally"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.locally.connected1d.DLKerasLocallyConnected1DLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/locally"
+            category-path="/analytics/mining/deeplearning/keras/layers/locally"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.locally.connected1d.DLKerasLocallyConnected1DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/locally"
+            category-path="/analytics/mining/deeplearning/keras/layers/locally"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.locally.connected2d.DLKerasLocallyConnected2DLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/locally"
+            category-path="/analytics/mining/deeplearning/keras/layers/locally"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.locally.connected2d.DLKerasLocallyConnected2DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.lrelu.DLKerasLReLULayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.prelu.DLKerasPReLULayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.prelu.DLKerasPReLULayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.trelu.DLKerasTReLULayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.elu.DLKerasELULayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/advancedactivations"
+            category-path="/analytics/mining/deeplearning/keras/layers/advancedactivations"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.advancedactivation.softmax.DLKerasSoftmaxLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/normalization"
+            category-path="/analytics/mining/deeplearning/keras/layers/normalization"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.normalization.DLKerasBatchNormalizationLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/normalization"
+            category-path="/analytics/mining/deeplearning/keras/layers/normalization"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.normalization.DLKerasBatchNormalizationLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/embedding"
+            category-path="/analytics/mining/deeplearning/keras/layers/embedding"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasEmbeddingLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/embedding"
+            category-path="/analytics/mining/deeplearning/keras/layers/embedding"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.embedding.DLKerasEmbeddingLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.dot.DLKerasDotLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.multiply.DLKerasMultiplyLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.maximum.DLKerasMaximumLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.average.DLKerasAverageLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/merge"
+            category-path="/analytics/mining/deeplearning/keras/layers/merge"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.merge.subtract.DLKerasSubtractLayerNodeFactory">
       </node>
 	  <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.lstm.DLKerasLSTMLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.lstm.DLKerasLSTMLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.gru.DLKerasGRULayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.gru.DLKerasGRULayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.simplernn.DLKerasSimpleRNNLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.simplernn.DLKerasSimpleRNNLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnngru.DLKerasCuDNNGRULayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnngru.DLKerasCuDNNGRULayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnnlstm.DLKerasCuDNNLSTMLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.cudnnlstm.DLKerasCuDNNLSTMLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="true"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.convlstm2d.DLKerasConvLSTM2DLayerNodeFactory">
       </node>
             <node
-            category-path="/labs/deeplearning/keras/layers/recurrent"
+            category-path="/analytics/mining/deeplearning/keras/layers/recurrent"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.recurrent.convlstm2d.DLKerasConvLSTM2DLayerNodeFactory2">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/layers/"
+            category-path="/analytics/mining/deeplearning/keras/layers/"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.collect.DLKerasCollectLayerNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/"
+            category-path="/analytics/mining/deeplearning/keras/"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.manipulation.freeze.DLKerasFreezeLayersNodeFactory">
       </node>
       <node
-            category-path="/labs/deeplearning/keras/"
+            category-path="/analytics/mining/deeplearning/keras/"
             deprecated="false"
             factory-class="org.knime.dl.keras.base.nodes.layers.manipulation.outputs.DLKerasSelectOutputLayersNodeFactory">
       </node>
