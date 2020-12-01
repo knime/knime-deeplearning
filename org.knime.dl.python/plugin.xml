@@ -121,28 +121,28 @@
             level-id="python"
             locked="true"
             name="Python"
-            path="/analytics/mining/deeplearning">
+            path="/analytics/integrations/deeplearning">
       </category>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">
           <node
-            category-path="/analytics/mining/deeplearning/python"
+            category-path="/analytics/integrations/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.creator.DLPythonCreatorNodeFactory">
       </node>
       <node
-            category-path="/analytics/mining/deeplearning/python"
+            category-path="/analytics/integrations/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.editor.DLPythonEditorNodeFactory">
       </node>
       <node
-            category-path="/analytics/mining/deeplearning/python"
+            category-path="/analytics/integrations/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.executor.DLPythonExecutorNodeFactory">
       </node>
       <node
-            category-path="/analytics/mining/deeplearning/python"
+            category-path="/analytics/integrations/deeplearning/python"
             deprecated="false"
             factory-class="org.knime.dl.python.base.node.learner.DLPythonLearnerNodeFactory">
       </node>
