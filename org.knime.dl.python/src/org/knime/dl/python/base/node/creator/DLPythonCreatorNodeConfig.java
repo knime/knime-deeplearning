@@ -47,14 +47,14 @@
  */
 package org.knime.dl.python.base.node.creator;
 
-import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
+import org.knime.python2.config.PythonSourceCodeConfig;
 import org.knime.python2.generic.VariableNames;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonCreatorNodeConfig extends DLPythonSourceCodeConfig {
+final class DLPythonCreatorNodeConfig extends PythonSourceCodeConfig {
 
     private static final VariableNames VARIABLE_NAMES = new VariableNames( //
         "flow_variables", // flow variables

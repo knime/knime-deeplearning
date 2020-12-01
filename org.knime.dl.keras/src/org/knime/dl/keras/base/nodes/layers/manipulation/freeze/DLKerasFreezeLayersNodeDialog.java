@@ -56,6 +56,7 @@ import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipula
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -70,6 +71,11 @@ public class DLKerasFreezeLayersNodeDialog extends DLKerasAbstractManipulationNo
         m_layerFilterPanel.setExcludeTitle("Trainable layers");
         m_layerFilterPanel.setPatternFilterBorderTitles("mismatch(Trainable layers)", "match(Not trainable layers)");
         addTab("Freeze Layers", m_layerFilterPanel);
+    }
+
+    @Override
+    protected void onPythonCommandChanged(final PythonCommandConfig config) {
+        // Nothing to do.
     }
 
     @Override

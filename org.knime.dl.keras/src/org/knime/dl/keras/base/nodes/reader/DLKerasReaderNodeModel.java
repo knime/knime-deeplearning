@@ -91,10 +91,9 @@ import org.knime.dl.python.core.DLPythonDefaultNetworkReader;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.prefs.DLPythonPreferences;
-import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.base.PythonBasedNodeModel;
-import org.knime.python2.config.PythonCommandFlowVariableConfig;
+import org.knime.python2.config.PythonCommandConfig;
 
 import com.google.common.base.Strings;
 
@@ -112,13 +111,10 @@ final class DLKerasReaderNodeModel extends PythonBasedNodeModel {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
 
-    static PythonCommand getDefaultPythonCommand() {
-        return DLPythonPreferences.getPythonKerasCommandPreference();
-    }
 
-    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
-        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
-            DLPythonPreferences::getCondaInstallationPath);
+    static PythonCommandConfig createPythonCommandConfig() {
+        return new PythonCommandConfig(PythonVersion.PYTHON3, DLPythonPreferences::getCondaInstallationPath,
+            DLPythonPreferences::getPythonKerasCommandPreference);
     }
 
 	static SettingsModelString createFilePathStringModel(final String defaultPath) {
@@ -137,7 +133,7 @@ final class DLKerasReaderNodeModel extends PythonBasedNodeModel {
 		return DLKerasNetworkLoader.LOAD_MODEL_URL_EXTENSIONS;
 	}
 
-    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
+    private final PythonCommandConfig m_pythonCommandConfig = createPythonCommandConfig();
 
 	private final SettingsModelString m_smFilePath = createFilePathStringModel("");
 
@@ -149,7 +145,7 @@ final class DLKerasReaderNodeModel extends PythonBasedNodeModel {
 
 	protected DLKerasReaderNodeModel() {
 		super(null, new PortType[] { DLKerasNetworkPortObjectBase.TYPE });
-		addPythonCommandConfig(m_pythonCommandConfig, DLKerasReaderNodeModel::getDefaultPythonCommand);
+		addPythonCommandConfig(m_pythonCommandConfig);
 	}
 
 	@Override
@@ -173,8 +169,7 @@ final class DLKerasReaderNodeModel extends PythonBasedNodeModel {
                 "File path '" + filePath + "' cannot be resolved to a valid URI. Message: " + e.getMessage(), e);
         }
         final DLKerasNetworkLoader<?> loader = getBackend(backendId);
-        try (final DLPythonContext context =
-            new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
+        try (final DLPythonContext context = new DLKerasPythonContext(m_pythonCommandConfig.getCommand())) {
             try {
                 DLPythonNetworkLoaderRegistry.getInstance();
                 loader.checkAvailability(context, false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),

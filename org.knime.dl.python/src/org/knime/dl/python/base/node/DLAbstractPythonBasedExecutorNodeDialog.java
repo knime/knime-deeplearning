@@ -48,37 +48,46 @@
  */
 package org.knime.dl.python.base.node;
 
+import java.util.function.Supplier;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeDialog;
-import org.knime.python2.config.PythonCommandFlowVariableModel;
+import org.knime.python2.PythonCommand;
+import org.knime.python2.config.PythonExecutableSelectionPanel;
+import org.knime.python2.config.PythonFixedVersionExecutableSelectionPanel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractPythonBasedExecutorNodeDialog extends DLAbstractExecutorNodeDialog {
 
-    private final PythonCommandFlowVariableModel m_pythonCommandModel =
-        new PythonCommandFlowVariableModel(this, DLAbstractPythonBasedExecutorNodeModel.createPythonCommandConfig());
+    private final PythonExecutableSelectionPanel m_executableSelectionTab;
+
+    private boolean m_tabAdded = false;
+
+    public DLAbstractPythonBasedExecutorNodeDialog(final Supplier<PythonCommand> commandPreference) {
+        m_executableSelectionTab = new PythonFixedVersionExecutableSelectionPanel(this,
+            DLAbstractPythonBasedExecutorNodeModel.createPythonCommandConfig(commandPreference));
+    }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_pythonCommandModel.loadSettingsFrom(settings);
+        if (!m_tabAdded) {
+            addTab(PythonExecutableSelectionPanel.DEFAULT_TAB_NAME, m_executableSelectionTab);
+            m_tabAdded = true;
+        }
+        m_executableSelectionTab.loadSettingsFrom(settings);
         super.loadSettingsFrom(settings, specs);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         super.saveSettingsTo(settings);
-        m_pythonCommandModel.saveSettingsTo(settings);
-    }
-
-    @Override
-    public void onOpen() {
-        m_pythonCommandModel.onDialogOpen();
+        m_executableSelectionTab.saveSettingsTo(settings);
     }
 }

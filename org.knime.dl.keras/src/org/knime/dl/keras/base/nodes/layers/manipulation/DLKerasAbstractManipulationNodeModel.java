@@ -76,10 +76,9 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.python.util.DLPythonUtils;
-import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.base.PythonBasedNodeModel;
-import org.knime.python2.config.PythonCommandFlowVariableConfig;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -94,16 +93,12 @@ public abstract class DLKerasAbstractManipulationNodeModel extends PythonBasedNo
 
     private static final String NETWORK_TYPE_IDENTIFIER = "network_type_identifier";
 
-    static PythonCommand getDefaultPythonCommand() {
-        return DLPythonPreferences.getPythonKerasCommandPreference();
+    static PythonCommandConfig createPythonCommandConfig() {
+        return new PythonCommandConfig(PythonVersion.PYTHON3, DLPythonPreferences::getCondaInstallationPath,
+            DLPythonPreferences::getPythonKerasCommandPreference);
     }
 
-    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
-        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
-            DLPythonPreferences::getCondaInstallationPath);
-    }
-
-    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
+    private final PythonCommandConfig m_pythonCommandConfig = createPythonCommandConfig();
 
     /**
      * Creates a abstract node model that loads a Keras mode and manipulates it using some python code provided by the
@@ -111,7 +106,7 @@ public abstract class DLKerasAbstractManipulationNodeModel extends PythonBasedNo
      */
     protected DLKerasAbstractManipulationNodeModel() {
         super(new PortType[]{DLKerasNetworkPortObjectBase.TYPE}, new PortType[]{DLKerasNetworkPortObjectBase.TYPE});
-        addPythonCommandConfig(m_pythonCommandConfig, DLKerasAbstractManipulationNodeModel::getDefaultPythonCommand);
+        addPythonCommandConfig(m_pythonCommandConfig);
     }
 
     /**
@@ -130,7 +125,7 @@ public abstract class DLKerasAbstractManipulationNodeModel extends PythonBasedNo
         final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
         try (final DLPythonContext pythonContext =
-            new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
+            new DLKerasPythonContext(m_pythonCommandConfig.getCommand())) {
             // Load the input network
             final DLPythonNetworkHandle inputNetworkHandle =
                 DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(inputNetwork.getClass())

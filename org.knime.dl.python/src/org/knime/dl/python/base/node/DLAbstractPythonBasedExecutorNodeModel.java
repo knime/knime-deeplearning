@@ -61,31 +61,29 @@ import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
-import org.knime.python2.config.PythonCommandFlowVariableConfig;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public abstract class DLAbstractPythonBasedExecutorNodeModel extends DLAbstractExecutorNodeModel<DLPythonContext> {
 
-    static PythonCommandFlowVariableConfig createPythonCommandConfig() {
-        return new PythonCommandFlowVariableConfig(PythonVersion.PYTHON3,
-            DLPythonPreferences::getCondaInstallationPath);
+    static PythonCommandConfig createPythonCommandConfig(final Supplier<PythonCommand> commandPreference) {
+        return new PythonCommandConfig(PythonVersion.PYTHON3, DLPythonPreferences::getCondaInstallationPath,
+            commandPreference);
     }
 
-    private final PythonCommandFlowVariableConfig m_pythonCommandConfig = createPythonCommandConfig();
-
-    private final Supplier<PythonCommand> m_commandPreference;
+    private final PythonCommandConfig m_pythonCommandConfig;;
 
     public DLAbstractPythonBasedExecutorNodeModel(final PortType networkPortType,
         final Supplier<PythonCommand> commandPreference) {
         super(networkPortType);
-        m_commandPreference = commandPreference;
+        m_pythonCommandConfig = createPythonCommandConfig(commandPreference);
     }
 
     @Override
     protected DLPythonContext getContext(final DLExecutionContext<?, ?> ctx) {
-        return new DLPythonDefaultContext(m_pythonCommandConfig.getCommand().orElseGet(m_commandPreference));
+        return new DLPythonDefaultContext(m_pythonCommandConfig.getCommand());
     }
 
     @Override
@@ -96,7 +94,7 @@ public abstract class DLAbstractPythonBasedExecutorNodeModel extends DLAbstractE
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_pythonCommandConfig.validateSettings(settings);
+        m_pythonCommandConfig.loadSettingsFrom(settings);
         super.validateSettings(settings);
     }
 

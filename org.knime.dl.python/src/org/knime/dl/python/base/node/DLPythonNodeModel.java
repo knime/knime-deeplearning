@@ -72,10 +72,14 @@ import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.PythonCommandConfig;
 import org.knime.python2.config.PythonFlowVariableOptions;
 import org.knime.python2.config.PythonSourceCodeConfig;
+import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.kernel.PythonCancelable;
 import org.knime.python2.kernel.PythonCanceledExecutionException;
 import org.knime.python2.kernel.PythonIOException;
@@ -93,6 +97,9 @@ import org.knime.python2.kernel.PythonKernelQueue;
 public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
 
 	private CFG m_config = createConfig();
+
+    private final PythonCommandConfig m_executableConfig = new PythonCommandConfig(PythonVersion.PYTHON3,
+        DLPythonPreferences::getCondaInstallationPath, DLPythonPreferences::getPythonCommandPreference);
 
 	private final LinkedList<String> m_stdout;
 
@@ -132,10 +139,17 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 	}
 
     protected PythonKernelOptions getKernelOptions() {
-        final PythonKernelOptions options = getConfig().getKernelOptions();
-        final String serializerId =
-            new PythonFlowVariableOptions(getAvailableFlowVariables()).getSerializerId().orElse(null);
-        return options.forSerializationOptions(options.getSerializationOptions().forSerializerId(serializerId));
+        final PythonCommand pythonCommand = m_executableConfig.getCommand();
+
+        final CFG config = getConfig();
+        final String serializerId = new PythonFlowVariableOptions(getAvailableFlowVariables()).getSerializerId()
+            .orElse(DLPythonPreferences.getSerializerPreference());
+        final SerializationOptions serializationOptions =
+            new SerializationOptions(config.getChunkSize(), config.isConvertingMissingToPython(),
+                config.isConvertingMissingFromPython(), config.getSentinelOption(), config.getSentinelValue())
+                    .forSerializerId(serializerId);
+
+        return new PythonKernelOptions(PythonVersion.PYTHON3, null, pythonCommand, serializationOptions);
     }
 
     protected DLPythonContext getNextContextFromQueue(final PythonCancelable cancelable)
@@ -216,12 +230,14 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
 		m_config.saveTo(settings);
+		m_executableConfig.saveSettingsTo(settings);
 	}
 
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 		final CFG config = createConfig();
 		config.loadFrom(settings);
+		m_executableConfig.loadSettingsFrom(settings);
 	}
 
 	@Override
@@ -229,6 +245,7 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 		final CFG config = createConfig();
 		config.loadFrom(settings);
 		m_config = config;
+		m_executableConfig.loadSettingsFrom(settings);
 	}
 
     @Override

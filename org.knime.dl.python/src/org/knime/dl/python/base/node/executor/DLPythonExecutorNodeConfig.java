@@ -47,8 +47,8 @@
  */
 package org.knime.dl.python.base.node.executor;
 
-import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
 import org.knime.dl.python.base.ports.DLNetworkInputPort;
+import org.knime.python2.config.PythonSourceCodeConfig;
 import org.knime.python2.generic.VariableNames;
 import org.knime.python2.ports.DataTableInputPort;
 import org.knime.python2.ports.InputPort;
@@ -57,7 +57,7 @@ import org.knime.python2.ports.InputPort;
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonExecutorNodeConfig extends DLPythonSourceCodeConfig {
+final class DLPythonExecutorNodeConfig extends PythonSourceCodeConfig {
 
     private static final String INPUT_TABLE_NAME = "input_table";
 

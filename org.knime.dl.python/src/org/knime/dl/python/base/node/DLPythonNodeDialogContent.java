@@ -49,6 +49,11 @@
 package org.knime.dl.python.base.node;
 
 import org.knime.core.node.NodeDialogPane;
+import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonVersion;
+import org.knime.python2.config.PythonCommandConfig;
+import org.knime.python2.config.PythonExecutableSelectionPanel;
+import org.knime.python2.config.PythonFixedVersionExecutableSelectionPanel;
 import org.knime.python2.config.PythonSourceCodeConfig;
 import org.knime.python2.config.PythonSourceCodeOptionsPanel;
 import org.knime.python2.config.PythonSourceCodePanel;
@@ -77,10 +82,15 @@ public final class DLPythonNodeDialogContent {
      */
     public static PythonNodeDialogContent createDialogContent(final NodeDialogPane dialog, final InputPort[] inPorts,
         final PythonSourceCodeConfig config, final VariableNames variableNames, final String templateRepositoryId) {
-        final PythonSourceCodePanel scriptPanel = DLPythonSourceCodePanel.createScriptPanel(dialog, variableNames);
         final PythonSourceCodeOptionsPanel optionsPanel =
-            DLPythonSourceCodeOptionsPanel.createOptionsPanel(scriptPanel);
-        return new PythonNodeDialogContent(dialog, inPorts, config, scriptPanel, optionsPanel, templateRepositoryId);
+            new PythonSourceCodeOptionsPanel(DLPythonPreferences.getSerializerPreference());
+        final PythonExecutableSelectionPanel executablePanel =
+            new PythonFixedVersionExecutableSelectionPanel(dialog, new PythonCommandConfig(PythonVersion.PYTHON3,
+                DLPythonPreferences::getCondaInstallationPath, DLPythonPreferences::getPythonCommandPreference));
+        final PythonSourceCodePanel scriptPanel =
+            new PythonSourceCodePanel(dialog, variableNames, optionsPanel, executablePanel);
+        return new PythonNodeDialogContent(dialog, inPorts, config, scriptPanel, optionsPanel, executablePanel,
+            templateRepositoryId);
     }
 
     private DLPythonNodeDialogContent() {}

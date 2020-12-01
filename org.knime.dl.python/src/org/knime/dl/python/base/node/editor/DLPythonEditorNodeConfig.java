@@ -47,8 +47,8 @@
  */
 package org.knime.dl.python.base.node.editor;
 
-import org.knime.dl.python.base.node.DLPythonSourceCodeConfig;
 import org.knime.dl.python.base.ports.DLNetworkInputPort;
+import org.knime.python2.config.PythonSourceCodeConfig;
 import org.knime.python2.generic.VariableNames;
 import org.knime.python2.ports.InputPort;
 
@@ -56,7 +56,7 @@ import org.knime.python2.ports.InputPort;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-final class DLPythonEditorNodeConfig extends DLPythonSourceCodeConfig {
+final class DLPythonEditorNodeConfig extends PythonSourceCodeConfig {
 
     private static final String INPUT_NETWORK_NAME = "input_network";
 

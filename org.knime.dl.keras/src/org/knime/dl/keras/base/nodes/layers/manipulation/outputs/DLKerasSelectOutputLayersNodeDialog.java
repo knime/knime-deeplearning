@@ -78,13 +78,14 @@ import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipula
 import org.knime.dl.keras.base.nodes.layers.manipulation.DLKerasAbstractManipulationNodeModel;
 import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectSpecBase;
 import org.knime.dl.keras.core.DLKerasNetworkSpec;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public class DLKerasSelectOutputLayersNodeDialog extends DLKerasAbstractManipulationNodeDialog {
 
-    private final static NodeLogger LOGGER = NodeLogger.getLogger(DLKerasSelectOutputLayersNodeDialog.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasSelectOutputLayersNodeDialog.class);
 
     private final JPanel m_panel;
 
@@ -129,6 +130,11 @@ public class DLKerasSelectOutputLayersNodeDialog extends DLKerasAbstractManipula
         final JPanel alignNorthPanel = new JPanel(new BorderLayout());
         alignNorthPanel.add(m_panel, BorderLayout.NORTH);
         addTab("Output Selection", alignNorthPanel);
+    }
+
+    @Override
+    protected void onPythonCommandChanged(final PythonCommandConfig config) {
+        // Nothing to do.
     }
 
     @Override

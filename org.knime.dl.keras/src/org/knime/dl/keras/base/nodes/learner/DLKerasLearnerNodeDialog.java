@@ -66,7 +66,8 @@ import org.knime.dl.core.DLNetworkSpec;
 import org.knime.dl.core.DLTensorSpec;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
-import org.knime.python2.config.PythonCommandFlowVariableModel;
+import org.knime.python2.config.PythonExecutableSelectionPanel;
+import org.knime.python2.config.PythonFixedVersionExecutableSelectionPanel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -77,8 +78,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasLearnerNodeDialog.class);
 
-    private final PythonCommandFlowVariableModel m_pythonCommandModel =
-        new PythonCommandFlowVariableModel(this, DLKerasLearnerNodeModel.createPythonCommandConfig());
+    private final PythonExecutableSelectionPanel m_executableSelectionTab =
+        new PythonFixedVersionExecutableSelectionPanel(this, DLKerasLearnerNodeModel.createPythonCommandConfig());
 
 	private final DLKerasLearnerGeneralConfig m_generalCfg;
 
@@ -137,6 +138,8 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
         setWrapperPanel(advancedTab.getTabRoot());
         addDialogComponentGroupWithBorder(m_learningBehaviorPanel, "Learning Behavior");
         addDialogComponentGroupWithBorder(m_gpuSelectionPanel, "GPU Selection");
+
+        addTab(PythonExecutableSelectionPanel.DEFAULT_TAB_NAME, m_executableSelectionTab);
 	}
 
 
@@ -163,7 +166,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_inputsPanel.saveSettingsTo(settings);
 		m_targetsPanel.saveSettingsTo(settings);
 
-		m_pythonCommandModel.saveSettingsTo(settings);
+		m_executableSelectionTab.saveSettingsTo(settings);
 	}
 
 	private static void checkPortObjectSpecs(final PortObjectSpec[] specs) throws NotConfigurableException {
@@ -194,7 +197,7 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 	@Override
 	protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
 			throws NotConfigurableException {
-		m_pythonCommandModel.loadSettingsFrom(settings);
+		m_executableSelectionTab.loadSettingsFrom(settings);
 
 	    checkPortObjectSpecs(specs);
 		final DLNetworkPortObjectSpec portObjectSpec =
@@ -222,9 +225,4 @@ final class DLKerasLearnerNodeDialog extends DefaultDLNodeDialogPane {
 		m_inputsPanel.loadSettingsFrom(settings, networkSpec.getInputSpecs(), tableSpec);
 		m_targetsPanel.loadSettingsFrom(settings, networkSpec.getOutputSpecs(), tableSpec);
 	}
-
-    @Override
-    public void onOpen() {
-        m_pythonCommandModel.onDialogOpen();
-    }
 }

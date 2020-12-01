@@ -86,7 +86,7 @@ import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.base.PythonBasedDataUnawareNodeDialog;
-import org.knime.python2.config.PythonCommandFlowVariableConfig;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -96,8 +96,7 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 
 	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLKerasReaderNodeModel.class);
 
-    private final PythonCommandFlowVariableConfig m_pythonCommandConfig =
-        DLKerasReaderNodeModel.createPythonCommandConfig();
+    private final PythonCommandConfig m_pythonCommandConfig = DLKerasReaderNodeModel.createPythonCommandConfig();
 
 	private final FilesHistoryPanel m_files;
 
@@ -114,8 +113,6 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 	private final JPanel m_loading;
 
 	public DLKerasReaderNodeDialog() {
-        addPythonCommandConfig(m_pythonCommandConfig, DLKerasReaderNodeModel::getDefaultPythonCommand);
-
 		final JPanel filesPanel = new JPanel(new GridBagLayout());
 		filesPanel.setBorder(BorderFactory.createTitledBorder("Input Location"));
 		final GridBagConstraints filesPanelConstr = new GridBagConstraints();
@@ -165,6 +162,12 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 		filesPanelConstr.gridy++;
 
 		addTab("Options", filesPanel);
+        addDefaultPythonExecutableSelectionTab(m_pythonCommandConfig);
+	}
+
+	@Override
+	protected void onPythonCommandChanged(final PythonCommandConfig config) {
+	    // Nothing to do.
 	}
 
     @Override
@@ -186,7 +189,7 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 		}
 
         final Pair<List<DLKerasNetworkLoader<?>>, List<String>> p =
-            getAvailableLoaders(getConfiguredPythonCommand(m_pythonCommandConfig));
+            getAvailableLoaders(m_pythonCommandConfig.getCommand());
         final List<DLKerasNetworkLoader<?>> availableLoaders = p.getFirst();
         final List<String> unavailableLoaderIds = p.getSecond();
 

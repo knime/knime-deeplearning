@@ -49,7 +49,7 @@
 package org.knime.dl.keras.base.nodes.layers.manipulation;
 
 import org.knime.python2.base.PythonBasedDataUnawareNodeDialog;
-import org.knime.python2.config.PythonCommandFlowVariableConfig;
+import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -57,8 +57,8 @@ import org.knime.python2.config.PythonCommandFlowVariableConfig;
 public abstract class DLKerasAbstractManipulationNodeDialog extends PythonBasedDataUnawareNodeDialog {
 
     public DLKerasAbstractManipulationNodeDialog() {
-        final PythonCommandFlowVariableConfig pythonCommandConfig =
+        final PythonCommandConfig pythonCommandConfig =
             DLKerasAbstractManipulationNodeModel.createPythonCommandConfig();
-        addPythonCommandConfig(pythonCommandConfig, DLKerasAbstractManipulationNodeModel::getDefaultPythonCommand);
+        addDefaultPythonExecutableSelectionTab(pythonCommandConfig);
     }
 }
