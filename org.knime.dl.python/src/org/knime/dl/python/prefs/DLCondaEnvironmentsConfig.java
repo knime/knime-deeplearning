@@ -49,7 +49,7 @@
 package org.knime.dl.python.prefs;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.python2.Conda.CondaEnvironmentIdentifier;
+import org.knime.python2.conda.CondaEnvironmentIdentifier;
 import org.knime.python2.config.CondaEnvironmentsConfig;
 import org.knime.python2.config.PythonConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
