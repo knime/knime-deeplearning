@@ -74,6 +74,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
+import org.knime.core.util.Pair;
 import org.knime.dl.base.nodes.DialogComponentIdFromPrettyStringSelection;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInstallationTestTimeoutException;
@@ -83,6 +84,7 @@ import org.knime.dl.keras.core.DLKerasNetworkLoader;
 import org.knime.dl.keras.core.DLKerasPythonContext;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
+import org.knime.python2.PythonCommand;
 import org.knime.python2.base.PythonBasedDataUnawareNodeDialog;
 import org.knime.python2.config.PythonCommandFlowVariableConfig;
 
@@ -182,30 +184,12 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 		} catch (final InvalidSettingsException e) {
 			// ignore
 		}
-		final List<DLKerasNetworkLoader<?>> availableLoaders = DLPythonNetworkLoaderRegistry.getInstance()
-				.getAllNetworkLoaders() //
-				.stream() //
-				.filter(nl -> nl instanceof DLKerasNetworkLoader) //
-				.map(nl -> (DLKerasNetworkLoader<?>) nl) //
-				.sorted(Comparator.comparing(DLKerasNetworkLoader::getName)) //
-				.collect(Collectors.toList());
-		final List<String> unavailableLoaderIds = new ArrayList<>();
-		for (int i = availableLoaders.size() - 1; i >= 0; i--) {
-			final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
-            try (final DLPythonContext context =
-                new DLKerasPythonContext(getConfiguredPythonCommand(m_pythonCommandConfig))) {
-                DLPythonNetworkLoaderRegistry.getInstance();
-                kerasNetworkLoader.checkAvailability(context, false,
-                    DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
-			} catch (final DLMissingDependencyException | DLInstallationTestTimeoutException | DLCanceledExecutionException e) {
-				availableLoaders.remove(i);
-				unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());
-			}
-		}
-		if (availableLoaders.isEmpty()) {
-			throw new NotConfigurableException(
-					"There is no available Keras back end. Please check your local installation.");
-		}
+
+        final Pair<List<DLKerasNetworkLoader<?>>, List<String>> p =
+            getAvailableLoaders(getConfiguredPythonCommand(m_pythonCommandConfig));
+        final List<DLKerasNetworkLoader<?>> availableLoaders = p.getFirst();
+        final List<String> unavailableLoaderIds = p.getSecond();
+
 		final String[] names = new String[availableLoaders.size()];
 		final String[] ids = new String[availableLoaders.size()];
 		for (int i = 0; i < availableLoaders.size(); i++) {
@@ -238,6 +222,36 @@ final class DLKerasReaderNodeDialog extends PythonBasedDataUnawareNodeDialog {
 
 		m_dcCopyNetwork.loadSettingsFrom(settings, specs);
 	}
+
+    private static Pair<List<DLKerasNetworkLoader<?>>, List<String>>
+        getAvailableLoaders(final PythonCommand pythonCommand) throws NotConfigurableException {
+        final List<DLKerasNetworkLoader<?>> availableLoaders =
+            DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders() //
+                .stream() //
+                .filter(nl -> nl instanceof DLKerasNetworkLoader) //
+                .map(nl -> (DLKerasNetworkLoader<?>)nl) //
+                .sorted(Comparator.comparing(DLKerasNetworkLoader::getName)) //
+                .collect(Collectors.toList());
+        final List<String> unavailableLoaderIds = new ArrayList<>();
+        for (int i = availableLoaders.size() - 1; i >= 0; i--) {
+            final DLKerasNetworkLoader<?> kerasNetworkLoader = availableLoaders.get(i);
+            try (final DLPythonContext context = new DLKerasPythonContext(pythonCommand)) {
+                DLPythonNetworkLoaderRegistry.getInstance();
+                kerasNetworkLoader.checkAvailability(context, false,
+                    DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
+            } catch (final DLMissingDependencyException | DLInstallationTestTimeoutException
+                    | DLCanceledExecutionException e) {
+                LOGGER.debug(e);
+                availableLoaders.remove(i);
+                unavailableLoaderIds.add(kerasNetworkLoader.getNetworkType().getCanonicalName());
+            }
+        }
+        if (availableLoaders.isEmpty()) {
+            throw new NotConfigurableException(
+                "There is no available Keras back end. Please check your local installation.");
+        }
+        return new Pair<>(availableLoaders, unavailableLoaderIds);
+    }
 
 	@Override
 	protected void saveSettingsToDerived(final NodeSettingsWO settings) throws InvalidSettingsException {

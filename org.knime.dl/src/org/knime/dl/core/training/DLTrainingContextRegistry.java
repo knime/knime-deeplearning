@@ -101,8 +101,8 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @param networkType the network type
 	 * @return the training contexts
 	 */
-	public Collection<DLTrainingContext<?, ?, ?>> getTrainingContextsForNetworkType(
-			final Class<? extends DLNetwork> networkType) {
+	public Collection<DLTrainingContext<?, ?, ?>> // NOSONAR There is no way to know/narrow the types.
+	getTrainingContextsForNetworkType(final Class<? extends DLNetwork> networkType) {
 		return m_ctxs.stream() //
 				.filter(ctx -> networkType.isAssignableFrom(ctx.getNetworkType())) //
 				.collect(Collectors.toList());
@@ -114,7 +114,8 @@ public final class DLTrainingContextRegistry extends DLAbstractExtensionPointReg
 	 * @param identifier the identifier
 	 * @return the training context if present
 	 */
-	public Optional<DLTrainingContext<?, ?, ?>> getTrainingContext(final String identifier) {
+	public Optional<DLTrainingContext<?, ?, ?>> // NOSONAR There is no way to know/narrow the types.
+	getTrainingContext(final String identifier) {
 		return m_ctxs.stream() //
 				.filter(ctx -> ctx.getIdentifier().equals(identifier)) //
 				.findFirst();

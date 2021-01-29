@@ -101,8 +101,8 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param networkType the network type
 	 * @return the execution contexts
 	 */
-	public Collection<DLExecutionContext<?, ?>> getExecutionContextsForNetworkType(
-			final Class<? extends DLNetwork> networkType) {
+	public Collection<DLExecutionContext<?, ?>> // NOSONAR There is no way to know/narrow the types.
+	getExecutionContextsForNetworkType(final Class<? extends DLNetwork> networkType) {
 		return m_ctxs.stream() //
 				.filter(ctx -> networkType.isAssignableFrom(ctx.getNetworkType())) //
 				.collect(Collectors.toList());
@@ -114,7 +114,8 @@ public final class DLExecutionContextRegistry extends DLAbstractExtensionPointRe
 	 * @param identifier the identifier
 	 * @return the execution context if present
 	 */
-	public Optional<DLExecutionContext<?, ?>> getExecutionContext(final String identifier) {
+	public Optional<DLExecutionContext<?, ?>> // NOSONAR There is no way to know/narrow the types.
+	getExecutionContext(final String identifier) {
 		return m_ctxs.stream() //
 				.filter(ctx -> ctx.getIdentifier().equals(identifier)) //
 				.findFirst();

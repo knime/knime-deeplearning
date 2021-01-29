@@ -130,7 +130,8 @@ class DLExecutorGeneralConfig extends AbstractConfig implements DLGeneralConfig<
         return get(CFG_KEY_KEEP_INPUT_COLS, Boolean.class);
     }
 
-    static Collection<DLExecutionContext<?, ?>> getAvailableExecutionContexts(final Class<? extends DLNetwork> networkType) {
+    static Collection<DLExecutionContext<?, ?>> // NOSONAR Internal API. Types will be checked at a later point in time.
+    getAvailableExecutionContexts(final Class<? extends DLNetwork> networkType) {
         return DLExecutionContextRegistry.getInstance().getExecutionContextsForNetworkType(networkType);
     }
 }

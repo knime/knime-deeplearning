@@ -662,7 +662,7 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
                     | DLCanceledExecutionException e) {
                 throw new InvalidSettingsException(
                     "Selected Keras back end '" + ctx.getName() + "' is not available anymore. "
-                        + "Please check your local installation.\nDetails: " + e.getMessage());
+                        + "Please check your local installation.\nDetails: " + e.getMessage(), e);
             }
 
             // training configuration

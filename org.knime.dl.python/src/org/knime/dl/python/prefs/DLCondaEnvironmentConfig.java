@@ -50,12 +50,14 @@ import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.dl.python.prefs.DLPythonPreferences.InstanceScopeConfigStorage;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.conda.Conda;
 import org.knime.python2.conda.CondaEnvironmentIdentifier;
+import org.knime.python2.config.CondaEnvironmentConfig;
 import org.knime.python2.config.ObservableValue;
 import org.knime.python2.config.PythonConfigStorage;
 import org.osgi.service.prefs.Preferences;
@@ -150,6 +152,7 @@ final class DLCondaEnvironmentConfig extends DLPythonAbstractEnvironmentConfig {
                         }
                     }
                 } catch (final IOException ex) {
+                    NodeLogger.getLogger(CondaEnvironmentConfig.class).debug(ex);
                     // Keep directory path's default value.
                 }
                 return;

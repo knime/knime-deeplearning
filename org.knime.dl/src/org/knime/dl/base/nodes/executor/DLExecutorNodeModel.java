@@ -532,7 +532,7 @@ final class DLExecutorNodeModel extends NodeModel {
                     | DLCanceledExecutionException e) {
                 throw new InvalidSettingsException(
                     "Selected back end '" + ctx.getName() + "' is not available anymore. "
-                        + "Please check your local installation.\nDetails: " + e.getMessage());
+                        + "Please check your local installation.\nDetails: " + e.getMessage(), e);
             }
 
             final int batchSize = m_generalCfg.getBatchSizeEntry().getValue();
