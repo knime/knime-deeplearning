@@ -51,9 +51,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCancelable;
@@ -64,6 +69,7 @@ import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.util.PythonUtils;
 
 import com.google.common.base.Strings;
 
@@ -96,15 +102,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
     protected static class DLPythonInstallationTester {
 
-        private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonInstallationTester.class);
-
         protected boolean m_tested = false;
 
-        protected boolean m_success;
-
-        protected String m_message;
-
-        protected DLInstallationTestTimeoutException m_timeoutException;
+        protected Exception m_exception = null;
 
         /**
          * Create a new installation tester.
@@ -118,83 +118,85 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
         protected synchronized void testInstallation(final DLPythonContext context, final boolean forceRefresh,
             final int timeout, final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
             throws DLMissingDependencyException, DLInstallationTestTimeoutException {
-            final String networkTypeName = loader.getNetworkType().getCanonicalName();
             if (forceRefresh || !m_tested) {
-                LOGGER.debug("Starting installation tests for " + networkTypeName + ". (Tested: " + m_tested
-                    + ", Force refresh: " + forceRefresh + ")");
-                final AtomicBoolean success = new AtomicBoolean();
-                final AtomicReference<String> message = new AtomicReference<>();
-                final AtomicReference<DLInstallationTestTimeoutException> timeoutException = new AtomicReference<>();
-                final Thread t = new Thread(() -> {
-                    try {
-                        @SuppressWarnings("resource") // Context will be closed by caller.
-                        final DLPythonAbstractCommands commands = loader.createCommands(context);
-                        commands.testInstallation(cancelable);
-                        success.set(true);
-                        LOGGER.debug("Installation tests for " + networkTypeName + " succeeded.");
-                    } catch (final Throwable th) {
-                        message.set(Strings.isNullOrEmpty(th.getMessage())
-                            ? "Unknown error of type '" + th.getClass().getName() + "'." //
-                            : th.getMessage());
-                        LOGGER.debug(
-                            "Installation tests for " + networkTypeName + " failed with message \"" + message + "\".");
-                        if (th instanceof Error) {
-                            throw (Error)th;
-                        }
-                    }
-                }, "DL-Installation-Test-" + networkTypeName);
-                t.start();
-                try {
-                    t.join(timeout);
-                } catch (final InterruptedException e) {
-                    LOGGER.debug(
-                        "Installation tests for " + networkTypeName + " interrupted. (Success: " + success + ")");
-                    if (!success.get()) {
-                        t.interrupt();
-                        message.getAndUpdate(msg -> {
-                            if (msg == null) {
-                                msg =
-                                    "Installation test for Python back end '" + networkTypeName + "' was interrupted.";
-                                timeoutException.set(new DLInstallationTestTimeoutException(msg, e));
-                            }
-                            return msg;
-                        });
-                    }
-                    Thread.currentThread().interrupt();
-                }
-                if (!success.get() && timeoutException.get() == null) {
-                    t.interrupt();
-                    message.getAndUpdate(msg -> {
-                        if (msg == null) {
-                            LOGGER.debug("Installation tests for " + networkTypeName + " timed out without success.");
-                            msg = "Installation test for Python back end '" + networkTypeName + "' timed out. "
-                                + "Please make sure your Python environment is properly set up and "
-                                + "consider increasing the timeout (currently " + timeout + " ms) using the VM option "
-                                + "'-D" + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.";
-                            timeoutException.set(new DLInstallationTestTimeoutException(msg));
-                        } else {
-                            msg += "\nIf packages are missing you can install the correct version of the "
-                                + "required packages on the 'Python Deep Learning' preference page.";
-                        }
-                        return msg;
-                    });
-                }
+                m_tested = false;
+                m_exception = runTest(context, timeout, loader, cancelable);
                 m_tested = true;
-                m_success = success.get();
-                m_message = message.get();
-                m_timeoutException = timeoutException.get();
-            } else {
-                LOGGER.debug("Using cached installation tests for " + networkTypeName + ". (Success: " + m_success
-                    + ", message: \"" + m_message + "\")");
             }
-            if (!m_success) {
-                if (m_timeoutException != null) {
-                    throw m_timeoutException;
+            if (m_exception != null) {
+                if (m_exception instanceof DLMissingDependencyException) {
+                    throw (DLMissingDependencyException)m_exception;
+                } else if (m_exception instanceof DLInstallationTestTimeoutException) {
+                    throw (DLInstallationTestTimeoutException)m_exception;
                 } else {
-                    throw new DLMissingDependencyException(m_message);
+                    throw new IllegalStateException("Implementation error.", m_exception);
                 }
-            } else {
-                m_message = null;
+            }
+        }
+
+        private static Exception runTest(final DLPythonContext context, final int timeout,
+            final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable) {
+            final Future<DLMissingDependencyException> test =
+                KNIMEConstants.GLOBAL_THREAD_POOL.enqueue(new InstallationTestCallable(context, loader, cancelable));
+            final String networkTypeName = loader.getNetworkType().getCanonicalName();
+            try {
+                return test.get(timeout, TimeUnit.MILLISECONDS);
+            } catch (final CancellationException ex) {
+                return new DLInstallationTestTimeoutException(
+                    "Installation test for Python deep learning back end '" + networkTypeName + "' was canceled.", ex);
+            } catch (final InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                test.cancel(true);
+                return new DLInstallationTestTimeoutException(
+                    "Installation test for Python deep learning back end '" + networkTypeName + "' was interrupted.",
+                    ex);
+            } catch (final TimeoutException ex) {
+                test.cancel(true);
+                return new DLInstallationTestTimeoutException(
+                    "Installation test for Python deep learning back end '" + networkTypeName + "' timed out. "
+                        + "Please make sure your Python environment is properly set up and "
+                        + "consider increasing the timeout (currently " + timeout + " ms) using the VM option " + "'-D"
+                        + DLInstallationTestTimeout.INSTALLATION_TEST_VM_OPT + "=<value-in-ms>'.",
+                    ex);
+            } catch (final ExecutionException ex) {
+                throw new IllegalStateException(PythonUtils.Misc.unwrapExecutionException(ex).orElse(ex));
+            }
+        }
+
+        private static final class InstallationTestCallable implements Callable<DLMissingDependencyException> {
+
+            private final DLPythonContext m_context;
+
+            private final DLPythonAbstractNetworkLoader<?> m_loader;
+
+            private final DLCancelable m_cancelable;
+
+            private InstallationTestCallable(final DLPythonContext context,
+                final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable) {
+                m_context = context;
+                m_loader = loader;
+                m_cancelable = cancelable;
+            }
+
+            @SuppressWarnings("resource") // Python context is closed by client.
+            @Override
+            public DLMissingDependencyException call() throws Exception {
+                try {
+                    final DLPythonAbstractCommands commands = m_loader.createCommands(m_context); // NOSONAR See above.
+                    commands.testInstallation(m_cancelable);
+                    return null;
+                } catch (final DLInvalidEnvironmentException ex) {
+                    String message = Strings.isNullOrEmpty(ex.getMessage()) //
+                        ? ("Unknown error of type '" + ex.getClass().getName() + "'.") //
+                        : ex.getMessage();
+                    message += "\nIn case Python packages are missing: you can create a new Python Conda environment "
+                        + "that contains all packages required by the KNIME deep learning integrations in the \"KNIME "
+                        + "Deep Learning\" Preferences";
+                    return new DLMissingDependencyException(message, ex);
+                } catch (final DLCanceledExecutionException ex) {
+                    NodeLogger.getLogger(DLPythonAbstractNetworkLoader.class).debug(ex);
+                    throw new CancellationException(ex.getMessage());
+                }
             }
         }
     }
