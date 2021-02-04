@@ -59,7 +59,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.knime.core.node.KNIMEConstants;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
@@ -194,8 +193,9 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                         + "Deep Learning\" Preferences";
                     return new DLMissingDependencyException(message, ex);
                 } catch (final DLCanceledExecutionException ex) {
-                    NodeLogger.getLogger(DLPythonAbstractNetworkLoader.class).debug(ex);
-                    throw new CancellationException(ex.getMessage());
+                    final CancellationException ex2 = new CancellationException(ex.getMessage());
+                    ex2.initCause(ex);
+                    throw ex2;
                 }
             }
         }
