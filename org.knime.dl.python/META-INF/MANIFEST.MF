@@ -30,7 +30,8 @@ Require-Bundle: org.eclipse.ui;bundle-version="[3.109.0,4.0.0)",
   org.knime.python.typeextensions;bundle-version="[4.0.0,5.0.0)",
   org.knime.python2.envconfigs;bundle-version="3.8.0",
   com.fifesoft.autocomplete;bundle-version="[2.5.7,3.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Eclipse-ExtensibleAPI: true
 Eclipse-BundleShape: dir
+Automatic-Module-Name: org.knime.dl.python
