@@ -180,7 +180,6 @@ public final class DLKerasNetworkSpecInferrer {
                     baseNetworkSpecs.computeIfAbsent(baseNetworkSpec, bns -> {
                         final DLKerasBaseNetworkSpecHelperStruct bnh =
                             new DLKerasBaseNetworkSpecHelperStruct(baseNetworkSpec);
-                        baseNetworkSpecs.put(baseNetworkSpec, bnh);
                         inputSpecsToInfer.add(bnh::inferInputTensorSpecs);
                         hiddenSpecsToInfer.add(bnh::inferHiddenTensorSpecs);
                         outputSpecsToInfer.add(bnh::inferOutputTensorSpecs);
@@ -199,11 +198,11 @@ public final class DLKerasNetworkSpecInferrer {
         final DLTensorSpec[] inputSpecs = collectTensorSpecs(layerNameGen, inputSpecsToInfer);
         final DLTensorSpec[] hiddenSpecs = collectTensorSpecs(layerNameGen, hiddenSpecsToInfer);
         final DLTensorSpec[] outputSpecs = collectTensorSpecs(layerNameGen, outputSpecsToInfer);
-        
+
         // the hidden specs may contain duplicates if collect layers are used
         LinkedHashSet<DLTensorSpec> distinctHiddenSpecs = new LinkedHashSet<>(Arrays.asList(hiddenSpecs));
         LinkedHashSet<DLTensorSpec> distinctOutputSpecs = new LinkedHashSet<>(Arrays.asList(outputSpecs));
-        
+
         // if collect layers are used, output and hidden layers may contain the same specs in which case
         // those specs are actually outputs
         Set<DLTensorSpec> nonOutputHiddenSpecs = Sets.difference(distinctHiddenSpecs, distinctOutputSpecs);
@@ -237,8 +236,8 @@ public final class DLKerasNetworkSpecInferrer {
         m_layerToTensorMap.put(layer, amendedTensorSpecs);
         return amendedTensorSpecs;
     }
-    
-    private List<DLTensorSpec> handleCollectLayer(DLKerasCollectLayer layer) {
+
+    private List<DLTensorSpec> handleCollectLayer(final DLKerasCollectLayer layer) {
         List<DLTensorSpec> collectedParentTensors = new ArrayList<>();
         for (int i = 0; i < layer.getNumParents(); i++) {
             DLKerasTensorSpecsOutput parent = layer.getParent(i);
