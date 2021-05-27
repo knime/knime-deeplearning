@@ -20,7 +20,7 @@ try {
         dependencies: [
             repositories: [
                 'knime-deeplearning', 'knime-python', 'knime-filehandling', 'knime-jfreechart', 'knime-distance',
-                'knime-jep', 'knime-ensembles', 'knime-tensorflow', 'knime-datageneration', 'knime-streaming'
+                'knime-jep', 'knime-ensembles', 'knime-tensorflow', 'knime-datageneration', 'knime-streaming', 'knime-kerberos'
             ]
         ]
     )
