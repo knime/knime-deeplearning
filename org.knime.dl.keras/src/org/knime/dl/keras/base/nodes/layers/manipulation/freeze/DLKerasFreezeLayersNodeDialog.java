@@ -88,6 +88,7 @@ public class DLKerasFreezeLayersNodeDialog extends DLKerasAbstractManipulationNo
     @Override
     protected void loadSettingsFromDerived(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        super.loadSettingsFromDerived(settings, specs);
         final DLKerasNetworkPortObjectSpecBase spec =
             (DLKerasNetworkPortObjectSpecBase)specs[DLKerasAbstractManipulationNodeModel.IN_NETWORK_PORT_IDX];
         if (spec == null) {

@@ -48,6 +48,9 @@
  */
 package org.knime.dl.keras.base.nodes.layers.manipulation;
 
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.python2.base.PythonBasedDataUnawareNodeDialog;
 import org.knime.python2.config.PythonCommandConfig;
 
@@ -56,9 +59,16 @@ import org.knime.python2.config.PythonCommandConfig;
  */
 public abstract class DLKerasAbstractManipulationNodeDialog extends PythonBasedDataUnawareNodeDialog {
 
-    public DLKerasAbstractManipulationNodeDialog() {
-        final PythonCommandConfig pythonCommandConfig =
-            DLKerasAbstractManipulationNodeModel.createPythonCommandConfig();
-        addDefaultPythonExecutableSelectionTab(pythonCommandConfig);
+    private boolean m_tabAdded = false;
+
+    @Override
+    protected void loadSettingsFromDerived(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        if (!m_tabAdded) {
+            final PythonCommandConfig pythonCommandConfig =
+                DLKerasAbstractManipulationNodeModel.createPythonCommandConfig();
+            addDefaultPythonExecutableSelectionTab(pythonCommandConfig);
+            m_tabAdded = true;
+        }
     }
 }
