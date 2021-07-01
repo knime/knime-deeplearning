@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Deep Learning - Python Backend
 Bundle-SymbolicName: org.knime.dl.python;singleton:=true
-Bundle-Version: 4.4.0.qualifier
+Bundle-Version: 4.5.0.qualifier
 Bundle-ClassPath: knime-dl-python.jar
 Bundle-Activator: org.knime.dl.python.core.Activator
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
