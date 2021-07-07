@@ -85,8 +85,4 @@ final class DLPythonLibrarySelectionConfig implements PythonConfig {
     public void loadConfigFrom(final PythonConfigStorage storage) {
         storage.loadStringModel(m_librarySelection);
     }
-
-    void loadDefaults() {
-        m_librarySelection.setStringValue(DEFAULT_LIBRARY_SELECTION);
-    }
 }

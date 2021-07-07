@@ -48,14 +48,9 @@ package org.knime.dl.python.prefs;
 
 import java.util.Collection;
 
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.config.PythonConfigStorage;
@@ -63,21 +58,35 @@ import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
 import org.knime.python2.extensions.serializationlibrary.SerializationLibraryExtensions;
+import org.knime.python2.prefs.PreferenceStorage;
+import org.knime.python2.prefs.PreferenceWrappingConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
-import org.knime.python2.prefs.PythonPreferencesInitializer;
-import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public class DLPythonPreferences {
+public final class DLPythonPreferences {
 
-    /** The current dl python configuration */
-    static final PythonConfigStorage CURRENT = new InstanceScopeConfigStorage();
+    private static final String QUALIFIER = "org.knime.dl.python";
 
-    private DLPythonPreferences() {
-    }
+    private static final PreferenceStorage DEFAULT_SCOPE_PREFERENCES =
+        new PreferenceStorage(QUALIFIER, DefaultScope.INSTANCE);
+
+    private static final PreferenceStorage CURRENT_SCOPE_PREFERENCES =
+        new PreferenceStorage(QUALIFIER, InstanceScope.INSTANCE, DefaultScope.INSTANCE);
+
+    /**
+     * Accessed by preference page.
+     */
+    static final PythonConfigStorage CURRENT = new PreferenceWrappingConfigStorage(CURRENT_SCOPE_PREFERENCES);
+
+    /**
+     * Accessed by preference page and preferences initializer.
+     */
+    static final PythonConfigStorage DEFAULT = new PreferenceWrappingConfigStorage(DEFAULT_SCOPE_PREFERENCES);
+
+    private DLPythonPreferences() {}
 
     /**
      * @return the config selection which should be used (python v. dl)
@@ -166,7 +175,7 @@ public class DLPythonPreferences {
      * @param listener the listener
      */
     public static void addPreferencesChangeListener(final IPreferenceChangeListener listener) {
-        InstanceScopeConfigStorage.getInstanceScopePreferences().addPreferenceChangeListener(listener);
+        CURRENT_SCOPE_PREFERENCES.addPrimaryPreferenceChangeListener(listener);
     }
 
     /**
@@ -175,7 +184,7 @@ public class DLPythonPreferences {
      * @param listener the listener to remove
      */
     public static void removePreferencesChangeListener(final IPreferenceChangeListener listener) {
-        InstanceScopeConfigStorage.getInstanceScopePreferences().removePreferenceChangeListener(listener);
+        CURRENT_SCOPE_PREFERENCES.removePrimaryPreferenceChangeListener(listener);
     }
 
     /** @return the python command for the given environment selection */
@@ -218,63 +227,6 @@ public class DLPythonPreferences {
             final DLCondaEnvironmentsConfig condaEnvironmentsConfig = new DLCondaEnvironmentsConfig();
             condaEnvironmentsConfig.loadConfigFrom(CURRENT);
             return condaEnvironmentsConfig.getCondaDirectoryPath().getStringValue();
-        }
-    }
-
-    public static final class InstanceScopeConfigStorage implements PythonConfigStorage {
-
-        private static final String QUALIFIER = "org.knime.dl.python";
-
-        static final IEclipsePreferences getInstanceScopePreferences() {
-            return InstanceScope.INSTANCE.getNode(QUALIFIER);
-        }
-
-        @Override
-        public void saveBooleanModel(final SettingsModelBoolean model) {
-            getInstanceScopePreferences().putBoolean(model.getConfigName(), model.getBooleanValue());
-            flush();
-        }
-
-        @Override
-        public void loadBooleanModel(final SettingsModelBoolean model) {
-            final boolean value = Platform.getPreferencesService().getBoolean(QUALIFIER, model.getConfigName(),
-                model.getBooleanValue(), null);
-            model.setBooleanValue(value);
-        }
-
-        @Override
-        public void saveIntegerModel(final SettingsModelInteger model) {
-            getInstanceScopePreferences().putInt(model.getKey(), model.getIntValue());
-            flush();
-        }
-
-        @Override
-        public void loadIntegerModel(final SettingsModelInteger model) {
-            final int value =
-                Platform.getPreferencesService().getInt(QUALIFIER, model.getKey(), model.getIntValue(), null);
-            model.setIntValue(value);
-        }
-
-        @Override
-        public void saveStringModel(final SettingsModelString model) {
-            getInstanceScopePreferences().put(model.getKey(), model.getStringValue());
-            flush();
-        }
-
-        @Override
-        public void loadStringModel(final SettingsModelString model) {
-            final String value =
-                Platform.getPreferencesService().getString(QUALIFIER, model.getKey(), model.getStringValue(), null);
-            model.setStringValue(value);
-        }
-
-        private static void flush() {
-            try {
-                getInstanceScopePreferences().flush();
-            } catch (BackingStoreException ex) {
-                NodeLogger.getLogger(PythonPreferencesInitializer.class)
-                    .error("Could not save Python preferences entry: " + ex.getMessage(), ex);
-            }
         }
     }
 }

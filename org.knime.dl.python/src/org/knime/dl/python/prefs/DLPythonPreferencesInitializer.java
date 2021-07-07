@@ -43,24 +43,37 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jul 8, 2021 (marcel): created
  */
 package org.knime.dl.python.prefs;
 
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.python2.config.AbstractPythonEnvironmentConfig;
+import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.knime.python2.config.PythonConfigStorage;
+import org.knime.python2.config.PythonEnvironmentTypeConfig;
+import org.knime.python2.config.SerializerConfig;
 
 /**
- * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * Preference initializer for the org.knime.python2 plugin.
+ *
+ * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLPythonAbstractEnvironmentConfig extends AbstractPythonEnvironmentConfig
-    implements DLPythonEnvironmentConfig {
-
-    private static final String CFG_KEY_DUMMY = "dummy";
-
-    private final SettingsModelString m_installationWarning = new SettingsModelString(CFG_KEY_DUMMY, "");
+public final class DLPythonPreferencesInitializer extends AbstractPreferenceInitializer {
 
     @Override
-    public SettingsModelString getPythonInstallationWarning() {
-        return m_installationWarning;
+    public void initializeDefaultPreferences() {
+        final PythonConfigStorage defaultPreferences = DLPythonPreferences.DEFAULT;
+
+        new DLPythonConfigSelectionConfig().saveDefaultsTo(defaultPreferences);
+
+        new DLPythonLibrarySelectionConfig().saveDefaultsTo(defaultPreferences);
+
+        new PythonEnvironmentTypeConfig().saveDefaultsTo(defaultPreferences);
+
+        new DLCondaEnvironmentsConfig().saveDefaultsTo(defaultPreferences);
+
+        new DLManualEnvironmentsConfig().saveDefaultsTo(defaultPreferences);
+
+        new SerializerConfig().saveDefaultsTo(defaultPreferences);
     }
 }

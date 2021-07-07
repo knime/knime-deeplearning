@@ -113,11 +113,4 @@ class DLPythonConfigSelectionConfig implements PythonConfig {
     public void loadConfigFrom(final PythonConfigStorage storage) {
         storage.loadStringModel(getConfigSelection());
     }
-
-    void loadDefaults() {
-        getConfigSelection().setStringValue(DEFAULT_CONFIG_SELECTION);
-        getPythonInstallationInfo().setStringValue("");
-        getPythonInstallationError().setStringValue("");
-        getPythonInstallationWarning().setStringValue("");
-    }
 }

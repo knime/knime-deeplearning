@@ -60,12 +60,15 @@ import org.knime.dl.python.prefs.DLTestStatusChangeListenerCollection.DLPythonCo
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonKernelTester;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
+import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.conda.Conda;
 import org.knime.python2.conda.CondaEnvironmentIdentifier;
-import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
+import org.knime.python2.config.AbstractCondaEnvironmentsConfig;
 import org.knime.python2.config.AbstractCondaEnvironmentsPanel;
+import org.knime.python2.config.CondaEnvironmentConfig;
+import org.knime.python2.config.PythonEnvironmentConfig;
 import org.knime.python2.config.PythonEnvironmentType;
 import org.knime.python2.config.PythonEnvironmentTypeConfig;
 import org.knime.python2.config.SerializerConfig;
@@ -273,7 +276,7 @@ final class DLPythonConfigsObserver {
         // Conda or manual
         final PythonEnvironmentType environmentType;
         final DLPythonEnvironmentsConfig environmentsConfig;
-        final DLPythonEnvironmentConfig environmentConfig;
+        final PythonEnvironmentConfig environmentConfig;
         final String environmentCreationInfo;
         if (isConda) {
             environmentType = PythonEnvironmentType.CONDA;
@@ -307,7 +310,7 @@ final class DLPythonConfigsObserver {
 
         // If the placeholder is selected we ask the user to create a new environment
         // And test nothing
-        if (isConda && isPlaceholderEnvironmentSelected((DLCondaEnvironmentConfig)environmentConfig)) {
+        if (isConda && isPlaceholderEnvironmentSelected((CondaEnvironmentConfig)environmentConfig)) {
             environmentConfig.getPythonInstallationInfo().setStringValue("");
             environmentConfig.getPythonInstallationError().setStringValue(
                 "No environment avaiable. Please create a new one to be able to use the Deep Learning integration."
@@ -335,7 +338,7 @@ final class DLPythonConfigsObserver {
         }).start();
     }
 
-    private void setDLPythonTestResult(final DLPythonEnvironmentConfig environmentConfig,
+    private void setDLPythonTestResult(final PythonEnvironmentConfig environmentConfig,
         final String environmentCreationInfo, final PythonKernelTestResult testResult) {
         if (isDlEnvironmentSelected()) {
             environmentConfig.getPythonInstallationInfo().setStringValue(testResult.getVersion());
@@ -351,8 +354,8 @@ final class DLPythonConfigsObserver {
         }
     }
 
-    private static boolean isPlaceholderEnvironmentSelected(final DLCondaEnvironmentConfig config) {
-        return DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_DIR
+    private static boolean isPlaceholderEnvironmentSelected(final CondaEnvironmentConfig config) {
+        return AbstractCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV.getDirectoryPath()
             .equals(config.getEnvironmentDirectory().getStringValue());
     }
 
@@ -461,9 +464,7 @@ final class DLPythonConfigsObserver {
     /** Set the given environments to be available for both conda environment selections */
     private void setAvailableCondaEnvironments(List<CondaEnvironmentIdentifier> availableEnvironments) {
         if (availableEnvironments.isEmpty()) {
-            availableEnvironments =
-                Arrays.asList(new CondaEnvironmentIdentifier(DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_NAME,
-                    DLCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV_DIR));
+            availableEnvironments = Arrays.asList(AbstractCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV);
         }
         // Keras
         m_condaEnvironmentsConfig.getKerasConfig().getAvailableEnvironments()
@@ -484,7 +485,7 @@ final class DLPythonConfigsObserver {
     }
 
     /** Get the conda config for the given library */
-    private DLCondaEnvironmentConfig getCondaConfigForLibrary(final DLPythonLibrarySelection library) {
+    private CondaEnvironmentConfig getCondaConfigForLibrary(final DLPythonLibrarySelection library) {
         if (DLPythonLibrarySelection.KERAS.equals(library)) {
             return m_condaEnvironmentsConfig.getKerasConfig();
         } else if (DLPythonLibrarySelection.TF2.equals(library)) {
@@ -525,7 +526,7 @@ final class DLPythonConfigsObserver {
                     setAvailableCondaEnvironments(availableEnvironments);
                     // Both lists of conda environments were updated but for the other library the selection did not change
                     // Therefore, we do not have to check it
-                    final DLCondaEnvironmentConfig environmentConfig = getCondaConfigForLibrary(library);
+                    final CondaEnvironmentConfig environmentConfig = getCondaConfigForLibrary(library);
                     environmentConfig.getEnvironmentDirectory().setStringValue(createdEnvironment.getDirectoryPath());
                     testDLPythonEnvironment(true, library);
                 } catch (Exception ex) {
