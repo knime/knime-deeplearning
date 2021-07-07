@@ -51,6 +51,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.knime.python2.config.AbstractPythonConfigPanel;
+import org.knime.python2.config.ManualEnvironmentConfig;
 import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 
 /**
@@ -65,18 +66,18 @@ final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<
         createTF2EnvironmentSelectionPanel(config.getTF2Config(), panel);
     }
 
-    private static void createKerasEnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
+    private static void createKerasEnvironmentSelectionPanel(final ManualEnvironmentConfig config,
         final Composite parent) {
         createEnvironmentSelectionPanel(DLPythonLibrarySelection.KERAS, config, parent);
     }
 
-    private static void createTF2EnvironmentSelectionPanel(final DLManualEnvironmentConfig config,
+    private static void createTF2EnvironmentSelectionPanel(final ManualEnvironmentConfig config,
         final Composite parent) {
         createEnvironmentSelectionPanel(DLPythonLibrarySelection.TF2, config, parent);
     }
 
     private static void createEnvironmentSelectionPanel(final DLPythonLibrarySelection envType,
-        final DLManualEnvironmentConfig config, final Composite parent) {
+        final ManualEnvironmentConfig config, final Composite parent) {
         final StatusDisplayingFilePathEditor pythonPathEditor =
             new StatusDisplayingFilePathEditor(config.getExecutablePath(), true, envType.getName(),
                 "Path to the " + envType.getName() + " Python start script", config.getPythonInstallationInfo(),

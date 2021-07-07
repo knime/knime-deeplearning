@@ -305,6 +305,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
     @Override
     protected void performDefaults() {
         m_config.loadDefaults();
+        m_configObserver.testCurrentPreferences();
     }
 
     private static final class Config {
@@ -342,13 +343,13 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         }
 
         private void loadDefaults() {
-            m_configSelection.loadDefaults();
-            m_librarySelection.loadDefaults();
-            m_envType.getEnvironmentType().setStringValue(PythonEnvironmentTypeConfig.DEFAULT_ENVIRONMENT_TYPE);
-            m_condaEnvs.loadDefaults();
-            m_manualEnvs.loadDefaults();
-            m_serializer.getSerializer().setStringValue(SerializerConfig.DEFAULT_SERIALIZER);
-            m_serializer.getSerializerError().setStringValue("");
+            final PythonConfigStorage defaultPrefs = DLPythonPreferences.DEFAULT;
+            m_configSelection.loadConfigFrom(defaultPrefs);
+            m_librarySelection.loadConfigFrom(defaultPrefs);
+            m_envType.loadConfigFrom(defaultPrefs);
+            m_condaEnvs.loadConfigFrom(defaultPrefs);
+            m_manualEnvs.loadConfigFrom(defaultPrefs);
+            m_serializer.loadConfigFrom(defaultPrefs);
         }
     }
 }
