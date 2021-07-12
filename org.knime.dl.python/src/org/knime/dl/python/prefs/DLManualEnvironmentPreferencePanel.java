@@ -57,9 +57,9 @@ import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-final class DLManualEnvironmetPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
+final class DLManualEnvironmentPreferencePanel extends AbstractPythonConfigPanel<DLManualEnvironmentsConfig, Composite> {
 
-    DLManualEnvironmetPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
+    DLManualEnvironmentPreferencePanel(final DLManualEnvironmentsConfig config, final Composite parent) {
         super(config, parent);
         final Composite panel = getPanel();
         createKerasEnvironmentSelectionPanel(config.getKerasConfig(), panel);

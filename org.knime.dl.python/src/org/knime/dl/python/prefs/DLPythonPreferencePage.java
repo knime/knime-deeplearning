@@ -104,7 +104,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private DLCondaEnvironmentPreferencePanel m_condaEnvironmentPanel;
 
-    private DLManualEnvironmetPreferencePanel m_manualEnvironmentPanel;
+    private DLManualEnvironmentPreferencePanel m_manualEnvironmentPanel;
 
     private Config m_config;
 
@@ -158,7 +158,7 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
         // Manual environment configuration:
         m_manualEnvironmentPanel =
-            new DLManualEnvironmetPreferencePanel(m_config.m_manualEnvs, environmentConfigurationPanel);
+            new DLManualEnvironmentPreferencePanel(m_config.m_manualEnvs, environmentConfigurationPanel);
 
         m_serializerPanel = new SerializerPreferencePanel(m_config.m_serializer, m_container);
 
