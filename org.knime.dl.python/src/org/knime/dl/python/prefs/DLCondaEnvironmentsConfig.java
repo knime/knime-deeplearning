@@ -61,7 +61,7 @@ final class DLCondaEnvironmentsConfig extends AbstractCondaEnvironmentsConfig im
 
     private static final String CFG_KEY_KERAS_CONDA_ENV_NAME_DIR = "kerasCondaEnvironmentDirectoryPath";
 
-    /** Only used for legacy support. See {@link #loadConfigFrom(PythonConfigStorage)} below. */
+    /** Only used for legacy support. See {@link CondaEnvironmentConfig#loadConfigFrom(PythonConfigStorage)} below. */
     private static final String LEGACY_CFG_KEY_KERAS_CONDA_ENV_NAME = "condaEnvironmentName";
 
     private static final String CFG_KEY_TF2_CONDA_ENV_NAME_DIR = "tf2CondaEnvironmentDirectoryPath";
