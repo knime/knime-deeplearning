@@ -70,6 +70,7 @@ import org.knime.python2.extensions.serializationlibrary.SerializationOptions;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableChunker;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreator;
 import org.knime.python2.extensions.serializationlibrary.interfaces.TableCreatorFactory;
+import org.knime.python2.kernel.Python2KernelBackend;
 import org.knime.python2.kernel.PythonCancelable;
 import org.knime.python2.kernel.PythonCanceledExecutionException;
 import org.knime.python2.kernel.PythonException;
@@ -122,6 +123,15 @@ public abstract class DLPythonAbstractContext implements DLPythonContext {
             m_kernel = createKernel();
         }
         return m_kernel;
+    }
+
+    @SuppressWarnings("resource") // Kernel and back end are closed when this instance is closed.
+    static Python2KernelBackend getLegacyKernelBackend(final PythonKernel kernel) throws DLInvalidEnvironmentException {
+        if (!(kernel.getBackend() instanceof Python2KernelBackend)) {
+            throw new DLInvalidEnvironmentException("The KNIME Deep Learning integration currently only supports the " +
+                "legacy back end of the Python kernel. Please change your settings accordingly.");
+        }
+        return (Python2KernelBackend)kernel.getBackend();
     }
 
     @Override
@@ -191,7 +201,8 @@ public abstract class DLPythonAbstractContext implements DLPythonContext {
     public void putDataInKernel(final String name, final TableChunker tableChunker, final int rowsPerChunk,
         final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
         try {
-            getKernel().putData(name, tableChunker, rowsPerChunk, new DLCancelableWrappingPythonCancelable(cancelable));
+            getLegacyKernelBackend(getKernel()).putData(name, tableChunker, rowsPerChunk,
+                new DLCancelableWrappingPythonCancelable(cancelable));
         } catch (final Exception ex) {
             throwNarrowedPythonException(ex);
         }
@@ -202,7 +213,8 @@ public abstract class DLPythonAbstractContext implements DLPythonContext {
     public TableCreator<?> getDataFromKernel(final String name, final TableCreatorFactory tcf,
         final DLCancelable cancelable) throws IOException, DLCanceledExecutionException, DLInvalidEnvironmentException {
         try {
-            return getKernel().getData(name, tcf, new DLCancelableWrappingPythonCancelable(cancelable));
+            return getLegacyKernelBackend(getKernel()).getData(name, tcf,
+                new DLCancelableWrappingPythonCancelable(cancelable));
         } catch (final Exception ex) {
             throwNarrowedPythonException(ex);
         }

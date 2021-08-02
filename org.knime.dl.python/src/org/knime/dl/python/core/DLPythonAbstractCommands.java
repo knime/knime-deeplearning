@@ -111,6 +111,7 @@ import org.knime.python2.extensions.serializationlibrary.interfaces.Type;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.CellImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.RowImpl;
 import org.knime.python2.extensions.serializationlibrary.interfaces.impl.TableSpecImpl;
+import org.knime.python2.kernel.Python2KernelBackend;
 import org.knime.python2.kernel.PythonCommands;
 import org.knime.python2.kernel.PythonExecutionMonitor;
 import org.knime.python2.kernel.PythonIOException;
@@ -503,6 +504,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         final PythonOutputListener stdOutListener = new PythonOutputLogger(stdErrLogger, stdOutWarningLogger, null);
 
         final PythonKernel kernel = context.getKernel();
+        final Python2KernelBackend kernelBackend = DLPythonAbstractContext.getLegacyKernelBackend(kernel);
+
         kernel.getDefaultStdoutListener().setDisabled(true);
         kernel.addStdoutListener(stdOutListener);
         kernel.addStderrorListener(stdErrListener);
@@ -533,7 +536,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
             // NB: We use our own DLTrainingTask to make sure the message handler is not unregistered.
             // Unregistering the handler can cause errors if requests for training data come in after the training is done.
             @SuppressWarnings("resource") // Closed by the kernel
-            final PythonCommands pythonCommands = kernel.getCommands();
+            final PythonCommands pythonCommands = kernelBackend.getCommands();
             @SuppressWarnings("resource") // Closed by the kernel
             final PythonMessaging pythonMessaging = pythonCommands.getMessaging();
             final DLTrainingTask trainingTask = new DLTrainingTask(pythonCommands.createExecuteCommand(b.toString()),
