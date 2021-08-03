@@ -513,10 +513,10 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
         return keepInputColumns ? new DataTableSpec(inDataSpec, outDataSpec) : outDataSpec;
     }
 
-    @SuppressWarnings("unchecked")
     private <N extends DLNetwork> void executeInternal(final PortObject portObject, final RowInput rowInput,
         final RowOutput rowOutput, final ExecutionContext exec) throws Exception {
-        final N network = (N)((DLNetworkPortObject)portObject).getNetwork();
+        @SuppressWarnings("unchecked")
+        final N network = (N)extractNetworkFromPortObject((DLNetworkPortObject)portObject);
         final DLNetworkSpec networkSpec = network.getSpec();
         final DataTableSpec inDataSpec = rowInput.getDataTableSpec();
         if ((rowInput instanceof DataTableRowInput && ((DataTableRowInput)rowInput).getRowCount() == 0)
@@ -564,6 +564,8 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
             }
         }
     }
+
+    protected abstract DLNetwork extractNetworkFromPortObject(DLNetworkPortObject networkPortObject) throws Exception;
 
     protected abstract C getContext(final DLExecutionContext<?, ?> ctx);
 

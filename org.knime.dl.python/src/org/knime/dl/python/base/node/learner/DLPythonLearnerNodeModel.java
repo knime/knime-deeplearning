@@ -150,7 +150,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		final DLPythonNetworkPortObject<?> inPortObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
-		final DLPythonNetwork inNetwork = inPortObject.getNetwork();
+		final DLPythonNetwork inNetwork = inPortObject.getNetwork(getPythonCommand());
 		final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
 		// if the input table is empty, we simply copy and output the input network

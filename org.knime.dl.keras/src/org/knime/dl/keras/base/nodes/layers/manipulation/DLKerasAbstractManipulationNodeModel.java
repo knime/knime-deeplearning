@@ -76,6 +76,7 @@ import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.core.DLPythonNetworkPortObject;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.python.util.DLPythonUtils;
+import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.base.PythonBasedNodeModel;
 import org.knime.python2.config.PythonCommandConfig;
@@ -121,11 +122,11 @@ public abstract class DLKerasAbstractManipulationNodeModel extends PythonBasedNo
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         final DLKerasNetworkPortObjectBase portObject = (DLKerasNetworkPortObjectBase)inObjects[IN_NETWORK_PORT_IDX];
-        final DLKerasNetwork inputNetwork = portObject.getNetwork();
+        final PythonCommand pythonCommand = m_pythonCommandConfig.getCommand();
+        final DLKerasNetwork inputNetwork = portObject.getNetwork(pythonCommand);
         final DLCancelable cancelable = new DLExecutionMonitorCancelable(exec);
 
-        try (final DLPythonContext pythonContext =
-            new DLKerasPythonContext(m_pythonCommandConfig.getCommand())) {
+        try (final DLPythonContext pythonContext = new DLKerasPythonContext(pythonCommand)) {
             // Load the input network
             final DLPythonNetworkHandle inputNetworkHandle =
                 DLPythonNetworkLoaderRegistry.getInstance().getNetworkLoader(inputNetwork.getClass())

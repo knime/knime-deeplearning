@@ -75,7 +75,7 @@ import org.knime.dl.core.export.DLNetworkExporterRegistry;
  * @param <N> Type of the deep learning network
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeModel {
+public abstract class DLAbstractExporterNodeModel<N extends DLNetwork> extends NodeModel {
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
@@ -110,7 +110,7 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
      *
      * @param inputType type of the input port object. Must be the type of a DLNetworkPortObject
      */
-    public DLDefaultExporterNodeModel(final PortType inputType) {
+    protected DLAbstractExporterNodeModel(final PortType inputType) {
         super(new PortType[]{inputType}, null);
         if (!DLNetworkPortObject.class.isAssignableFrom(inputType.getPortObjectClass())) {
             throw new IllegalArgumentException("The given type must be the type of a DLNetworkPortObject.");
@@ -153,13 +153,14 @@ public final class DLDefaultExporterNodeModel<N extends DLNetwork> extends NodeM
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final DLNetworkPortObject inPort = (DLNetworkPortObject)inObjects[0];
-        m_exporter.exportNetwork((N)inPort.getNetwork(), FileUtil.toURL(m_filePath.getStringValue()),
-            m_overwrite.getBooleanValue());
+        @SuppressWarnings("unchecked")
+        final N inNetwork = (N)extractNetworkFromPortObject((DLNetworkPortObject)inObjects[0]);
+        m_exporter.exportNetwork(inNetwork, FileUtil.toURL(m_filePath.getStringValue()), m_overwrite.getBooleanValue());
         return new PortObject[]{};
     }
+
+    protected abstract DLNetwork extractNetworkFromPortObject(DLNetworkPortObject networkPortObject) throws Exception;
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)

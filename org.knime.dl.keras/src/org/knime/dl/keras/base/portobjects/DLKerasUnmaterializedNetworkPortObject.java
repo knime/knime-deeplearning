@@ -69,6 +69,7 @@ import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkGraphSerializer;
 import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
@@ -118,13 +119,17 @@ public final class DLKerasUnmaterializedNetworkPortObject extends FileStorePortO
         m_content = content;
     }
 
+    @Deprecated
     @Override
     public DLKerasNetwork getNetwork() throws DLInvalidSourceException, IOException {
+        return getNetwork(DLPythonPreferences.getPythonKerasCommandPreference());
+    }
+
+    @Override
+    public DLKerasNetwork getNetwork(final PythonCommand command) throws DLInvalidSourceException, IOException {
         if (m_content instanceof DLKerasUnmaterializedPortObjectContent) {
             final DLNetworkFileStoreLocation saveLocation = new DLNetworkFileStoreLocation(getFileStore(0));
-            try (final DLKerasPythonContext context =
-                // FIXME: how to get the correct Python command here? The current way of obtaining it is not portable.
-                new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference())) {
+            try (final DLKerasPythonContext context = new DLKerasPythonContext(command)) {
                 m_content = ((DLKerasUnmaterializedPortObjectContent)m_content).materialize(context, saveLocation);
             }
         }

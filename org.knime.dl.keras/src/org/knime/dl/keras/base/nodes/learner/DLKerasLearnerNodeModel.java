@@ -82,7 +82,6 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.nodes.DLTensorRole;
-import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
 import org.knime.dl.base.settings.ConfigEntry;
 import org.knime.dl.base.settings.DLAbstractInputConfig;
@@ -133,6 +132,7 @@ import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.dl.util.DLUtils;
+import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.base.PythonBasedNodeModel;
 import org.knime.python2.config.PythonCommandConfig;
@@ -634,7 +634,8 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
 	private <N extends DLKerasNetwork> PortObject executeInternal(final PortObject inPortObject,
 			final BufferedDataTable inTable, final BufferedDataTable inValidationTable, final ExecutionContext exec)
 			throws Exception {
-		final N inNetwork = (N) ((DLNetworkPortObject) inPortObject).getNetwork();
+        final PythonCommand pythonCommand = m_pythonCommandConfig.getCommand();
+        final N inNetwork = (N)((DLKerasNetworkPortObjectBase)inPortObject).getNetwork(pythonCommand);
 		final DLKerasNetworkSpec inNetworkSpec = inNetwork.getSpec();
 		final DataTableSpec inTableSpec = inTable.getDataTableSpec();
 
@@ -647,7 +648,7 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
 
 		final DLKerasTrainingContext<N> ctx = (DLKerasTrainingContext<N>) m_generalCfg.getContextEntry()
 				.getValue();
-        try (final DLPythonContext context = new DLKerasPythonContext(m_pythonCommandConfig.getCommand())) {
+        try (final DLPythonContext context = new DLKerasPythonContext(pythonCommand)) {
             try {
                 DLPythonNetworkLoaderRegistry.getInstance();
                 ctx.checkAvailability(context, false, DLPythonNetworkLoaderRegistry.getInstallationTestTimeout(),

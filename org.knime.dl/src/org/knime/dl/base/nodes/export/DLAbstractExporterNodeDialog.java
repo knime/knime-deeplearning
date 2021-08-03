@@ -75,15 +75,15 @@ import org.knime.dl.core.export.DLNetworkExporterRegistry;
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
+public abstract class DLAbstractExporterNodeDialog extends NodeDialogPane {
 
     private static final DLNetworkExporterRegistry EXPORTER_REGISTRY = DLNetworkExporterRegistry.getInstance();
 
-    private final SettingsModelStringArray m_smExporterId = DLDefaultExporterNodeModel.createExporterIdSettingsModel();
+    private final SettingsModelStringArray m_smExporterId = DLAbstractExporterNodeModel.createExporterIdSettingsModel();
 
-    private final SettingsModelString m_smFilePath = DLDefaultExporterNodeModel.createFilePathSettingsModel();
+    private final SettingsModelString m_smFilePath = DLAbstractExporterNodeModel.createFilePathSettingsModel();
 
-    private final SettingsModelBoolean m_smOverwrite = DLDefaultExporterNodeModel.createOverwriteSettingsModel();
+    private final SettingsModelBoolean m_smOverwrite = DLAbstractExporterNodeModel.createOverwriteSettingsModel();
 
     private final DialogComponentIdFromPrettyStringSelection m_dcExporterId;
 
@@ -97,7 +97,7 @@ public final class DLDefaultExporterNodeDialog extends NodeDialogPane {
      *
      * @param historyId the history identifier for the file chooser
      */
-    public DLDefaultExporterNodeDialog(final String historyId) {
+    public DLAbstractExporterNodeDialog(final String historyId) {
         // Create the dialog components
         m_dcExporterId = new DialogComponentIdFromPrettyStringSelection(m_smExporterId, "Exporter", e -> {
             // TODO Wow that's dirty! The dialog component should update the settings model itself.

@@ -126,7 +126,8 @@ public abstract class DLKerasAbstractLayerNodeModel<T extends DLKerasLayer> exte
         if (parentPortObject instanceof DLKerasNetworkPortObject) {
             final DLKerasDefaultBaseNetworkTensorSpecOutput baseNetworkOutput =
                 (DLKerasDefaultBaseNetworkTensorSpecOutput)layer.getParent(index);
-            baseNetworkOutput.setBaseNetworkSource(parentPortObject.getNetwork().getSource());
+            baseNetworkOutput
+                .setBaseNetworkSource(((DLKerasNetworkPortObject)parentPortObject).getNetwork().getSource());
         } else if (parentPortObject instanceof DLKerasUnmaterializedNetworkPortObject) {
             // no op - there is no base network
         } else {
