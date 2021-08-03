@@ -167,14 +167,25 @@ public interface DLNetworkPortObject extends PortObject {
 		}
 	}
 
-	/**
-	 * Returns the contained {@link DLNetwork}.
-	 *
-	 * @return the network
-	 * @throws DLInvalidSourceException if network source has become unavailable or invalid
-	 * @throws IOException if retrieving the network implied I/O which failed (optional)
-	 */
-	DLNetwork getNetwork() throws DLInvalidSourceException, IOException;
+    /**
+     * Returns the contained {@link DLNetwork}.
+     * <P>
+     *
+     * @deprecated Using this method is discouraged if this port object is a {@code DLPythonNetworkPortObject} (or more
+     *             specifically, a {@code DLKerasUnmaterializedNetworkPortObject} that holds
+     *             {@code DLKerasUnmaterializedPortObjectContent}). Instead, this instance should be casted to
+     *             {@code DLPythonNetworkPortObject} and {@code DLPythonNetworkPortObject#getNetwork(PythonCommand)}
+     *             should be used. This allows specifying which Python command to use in case the network needs be
+     *             materialized using Python first. For other types of port objects, it is recommended to cast the port
+     *             object to its most specific type and use that type's {@code getNetwork()} method to retrieve the
+     *             network without raising a deprecation warning.
+     *
+     * @return the network
+     * @throws DLInvalidSourceException if network source has become unavailable or invalid
+     * @throws IOException if retrieving the network implied I/O which failed (optional)
+     */
+    @Deprecated(since = "4.4.1", forRemoval = false)
+    DLNetwork getNetwork() throws DLInvalidSourceException, IOException;
 
     /**
      * Create a short summary of this DL network containing the network name ({@link #getModelName()}) and the shape of

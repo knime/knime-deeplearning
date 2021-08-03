@@ -84,6 +84,7 @@ import org.knime.dl.python.core.DLPythonNetwork;
 import org.knime.dl.python.core.DLPythonNetworkLoader;
 import org.knime.dl.python.core.DLPythonNetworkLoaderRegistry;
 import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
 
 /**
  * Keras implementation of a deep learning {@link DLNetworkPortObject network port object}.
@@ -221,6 +222,17 @@ public final class DLKerasNetworkPortObject extends
                     + "not to do so. This is an implementation error.");
             }
         }
+    }
+
+    /**
+     * This type of Keras port object always contains a materialized network (unlike
+     * {@link DLKerasUnmaterializedNetworkPortObject}), so simply delegate to the base implementation.
+     * <P>
+     * {@inheritDoc}
+     */
+    @Override
+    public DLKerasNetwork getNetwork(final PythonCommand command) throws DLInvalidSourceException, IOException {
+        return super.getNetwork();
     }
 
     @Override

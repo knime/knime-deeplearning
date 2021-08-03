@@ -44,54 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2020 (marcel): created
+ *   Aug 3, 2021 (marcel): created
  */
-package org.knime.dl.python.base.node;
-
-import java.util.function.Supplier;
+package org.knime.dl.keras.base.nodes.export;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortType;
-import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
+import org.knime.dl.base.nodes.export.DLAbstractExporterNodeModel;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
+import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
+import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.python.prefs.DLPythonPreferences;
-import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.PythonCommandConfig;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLAbstractPythonBasedExecutorNodeModel extends DLAbstractExecutorNodeModel<DLPythonContext> {
+final class DLKerasExporterNodeModel extends DLAbstractExporterNodeModel<DLKerasNetwork> {
 
-    static PythonCommandConfig createPythonCommandConfig(final Supplier<PythonCommand> commandPreference) {
+    static PythonCommandConfig createPythonCommandConfig() {
         return new PythonCommandConfig(PythonVersion.PYTHON3, DLPythonPreferences::getCondaInstallationPath,
-            commandPreference);
+            DLPythonPreferences::getPythonKerasCommandPreference);
     }
 
     private final PythonCommandConfig m_pythonCommandConfig;
 
-    public DLAbstractPythonBasedExecutorNodeModel(final PortType networkPortType,
-        final Supplier<PythonCommand> commandPreference) {
-        super(networkPortType);
-        m_pythonCommandConfig = createPythonCommandConfig(commandPreference);
+    public DLKerasExporterNodeModel() {
+        super(DLKerasNetworkPortObjectBase.TYPE);
+        m_pythonCommandConfig = createPythonCommandConfig();
     }
 
     @Override
     protected DLNetwork extractNetworkFromPortObject(final DLNetworkPortObject networkPortObject) throws Exception {
-        return ((DLPythonNetworkPortObject<?>)networkPortObject).getNetwork(m_pythonCommandConfig.getCommand());
-    }
-
-    @Override
-    protected DLPythonContext getContext(final DLExecutionContext<?, ?> ctx) {
-        return new DLPythonDefaultContext(m_pythonCommandConfig.getCommand());
+        return ((DLKerasNetworkPortObjectBase)networkPortObject).getNetwork(m_pythonCommandConfig.getCommand());
     }
 
     @Override

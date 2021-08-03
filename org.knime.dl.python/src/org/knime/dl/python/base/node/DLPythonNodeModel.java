@@ -138,8 +138,12 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 		return m_config;
 	}
 
+    protected PythonCommand getPythonCommand() {
+        return m_executableConfig.getCommand();
+    }
+
     protected PythonKernelOptions getKernelOptions() {
-        final PythonCommand pythonCommand = m_executableConfig.getCommand();
+        final PythonCommand pythonCommand = getPythonCommand();
 
         final CFG config = getConfig();
         final String serializerId = new PythonFlowVariableOptions(getAvailableFlowVariables()).getSerializerId()

@@ -131,7 +131,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 			context.getKernel().putFlowVariables(DLPythonExecutorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 			final DLPythonNetworkPortObject<?> portObject = (DLPythonNetworkPortObject<?>) inData[IN_NETWORK_PORT_IDX];
-			final DLPythonNetwork network = portObject.getNetwork();
+			final DLPythonNetwork network = portObject.getNetwork(getPythonCommand());
             setupNetwork(network, context, cancelable);
 			exec.createSubProgress(0.1).setProgress(1);
 			context.getKernel().putDataTable(DLPythonExecutorNodeConfig.getVariableNames().getInputTables()[0], inTable,

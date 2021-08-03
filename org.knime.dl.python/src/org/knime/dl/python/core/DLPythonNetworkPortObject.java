@@ -12,6 +12,7 @@ import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
+import org.knime.python2.PythonCommand;
 
 /**
  * Base interface for all Python deep learning port objects.
@@ -50,6 +51,14 @@ public interface DLPythonNetworkPortObject<N extends DLNetwork & DLPythonNetwork
 		return "Python-compatible Deep Learning Network";
 	}
 
-	@Override
-	N getNetwork() throws DLInvalidSourceException, IOException;
+    /**
+     * Returns the contained {@link DLNetwork}. If needed, the network is materialized before being returned, using the
+     * given Python command.
+     *
+     * @param command the Python command used to materialize the network, if needed
+     * @return the network
+     * @throws DLInvalidSourceException if network source has become unavailable or invalid
+     * @throws IOException if retrieving the network implied I/O which failed (optional)
+     */
+    N getNetwork(PythonCommand command) throws DLInvalidSourceException, IOException;
 }

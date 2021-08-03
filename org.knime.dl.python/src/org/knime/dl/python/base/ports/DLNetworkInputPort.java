@@ -115,19 +115,23 @@ public class DLNetworkInputPort implements InputPort {
     @Override
     public WorkspacePreparer prepareInDialog(final PortObject inObject) throws NotConfigurableException {
         if (inObject != null) {
-            final DLPythonNetwork inNetwork;
-            try {
-                inNetwork = ((DLPythonNetworkPortObject<?>)inObject).getNetwork();
-            } catch (final DLInvalidSourceException | IOException ex) {
-                throw new NotConfigurableException(ex.getMessage(), ex);
-            }
-            return kernel -> {
-                try {
-                    setupNetwork(inNetwork, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
-                } catch (final Exception ex) {
-                    throw new IllegalStateException(
-                        "Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.",
-                        ex);
+            return new WorkspacePreparer() {
+
+                @SuppressWarnings("resource") // Kernel (and therefore context) must not be closed.
+                @Override
+                public void prepareWorkspace(final PythonKernel kernel) {
+                    try {
+                        final DLPythonNetwork inNetwork =
+                            ((DLPythonNetworkPortObject<?>)inObject).getNetwork(kernel.getPythonCommand());
+                        setupNetwork(inNetwork, new DLPythonDefaultContext(kernel), DLNotCancelable.INSTANCE);
+                    }
+                    // Sonar: we really need to be catching everything here. Otherwise errors might end up not being
+                    // reported to the user (swallowed by UI thread).
+                    catch (final Exception ex) { // NOSONAR
+                        throw new IllegalStateException(
+                            "Deep Learning network could not be loaded. Try again by pressing the \"Reset workspace\" button.",
+                            ex);
+                    }
                 }
             };
         } else {

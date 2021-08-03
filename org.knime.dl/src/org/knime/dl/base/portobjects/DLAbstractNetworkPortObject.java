@@ -61,7 +61,10 @@ import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetwork;
 
 /**
- * Abstract base class for deep learning {@link DLNetworkPortObject network port objects}.
+ * Abstract base class for deep learning {@link DLNetworkPortObject network port objects} that contain a
+ * <em>materialized</em> network. This is the case with all port objects of the KNIME Deep Learning, KNIME TensorFlow
+ * (1|2), and KNIME ONNX integrations except for the ones created by the layer nodes of the KNIME Deep Learning - Keras
+ * integration ({@code DLKerasUnmaterializedNetworkPortObject}), which only materialize their network on demand.
  *
  * @param <N> the network type
  * @param <S> the port object spec type
@@ -155,6 +158,17 @@ public abstract class DLAbstractNetworkPortObject<N extends DLNetwork, S extends
      */
     protected abstract N getNetworkInternal(S spec) throws DLInvalidSourceException, IOException;
 
+    /**
+     * Returns the contained {@link DLNetwork}.
+     * <P>
+     * Note that this method override "un-deprecates" {@link DLNetworkPortObject#getNetwork()} as the contained network
+     * is guaranteed to be materialized.
+     *
+     * @return the network
+     * @throws DLInvalidSourceException if network source has become unavailable or invalid
+     * @throws IOException if retrieving the network implied I/O which failed (optional)
+     */
+    @SuppressWarnings("deprecation") // HACK
     @Override
     public final N getNetwork() throws DLInvalidSourceException, IOException {
         if (m_network == null) {

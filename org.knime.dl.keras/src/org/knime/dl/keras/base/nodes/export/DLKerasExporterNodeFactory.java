@@ -49,18 +49,15 @@ package org.knime.dl.keras.base.nodes.export;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.dl.base.nodes.export.DLDefaultExporterNodeDialog;
-import org.knime.dl.base.nodes.export.DLDefaultExporterNodeModel;
-import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObjectBase;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNodeModel<?>> {
+public class DLKerasExporterNodeFactory extends NodeFactory<DLKerasExporterNodeModel> {
 
     @Override
-    public DLDefaultExporterNodeModel<?> createNodeModel() {
-        return new DLDefaultExporterNodeModel<>(DLKerasNetworkPortObjectBase.TYPE);
+    public DLKerasExporterNodeModel createNodeModel() {
+        return new DLKerasExporterNodeModel();
     }
 
     @Override
@@ -69,8 +66,8 @@ public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNod
     }
 
     @Override
-    public NodeView<DLDefaultExporterNodeModel<?>> createNodeView(final int viewIndex,
-        final DLDefaultExporterNodeModel<?> nodeModel) {
+    public NodeView<DLKerasExporterNodeModel> createNodeView(final int viewIndex,
+        final DLKerasExporterNodeModel nodeModel) {
         return null;
     }
 
@@ -81,6 +78,6 @@ public class DLKerasExporterNodeFactory extends NodeFactory<DLDefaultExporterNod
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new DLDefaultExporterNodeDialog("org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeModel");
+        return new DLKerasExporterNodeDialog();
     }
 }

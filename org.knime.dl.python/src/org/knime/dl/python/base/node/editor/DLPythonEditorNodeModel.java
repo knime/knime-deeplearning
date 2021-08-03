@@ -147,7 +147,7 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 			context.getKernel().putFlowVariables(DLPythonEditorNodeConfig.getVariableNames().getFlowVariables(),
 					getAvailableFlowVariables().values());
 
-			final DLPythonNetwork inNetwork = portObject.getNetwork();
+			final DLPythonNetwork inNetwork = portObject.getNetwork(getPythonCommand());
 			setupNetwork(inNetwork, context, cancelable);
 			final String loadBackendCode = DLPythonNetworkLoaderRegistry.getInstance().getAllNetworkLoaders().stream()
 					.map(nl -> "import " + nl.getPythonModuleName() + "\n") //

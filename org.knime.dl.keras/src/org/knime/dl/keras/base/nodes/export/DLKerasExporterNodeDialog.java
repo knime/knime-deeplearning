@@ -44,71 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2020 (marcel): created
+ *   Aug 3, 2021 (marcel): created
  */
-package org.knime.dl.python.base.node;
-
-import java.util.function.Supplier;
+package org.knime.dl.keras.base.nodes.export;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortType;
-import org.knime.dl.base.nodes.executor2.DLAbstractExecutorNodeModel;
-import org.knime.dl.base.portobjects.DLNetworkPortObject;
-import org.knime.dl.core.DLNetwork;
-import org.knime.dl.core.execution.DLExecutionContext;
-import org.knime.dl.python.core.DLPythonContext;
-import org.knime.dl.python.core.DLPythonDefaultContext;
-import org.knime.dl.python.core.DLPythonNetworkPortObject;
-import org.knime.dl.python.prefs.DLPythonPreferences;
-import org.knime.python2.PythonCommand;
-import org.knime.python2.PythonVersion;
-import org.knime.python2.config.PythonCommandConfig;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.dl.base.nodes.export.DLAbstractExporterNodeDialog;
+import org.knime.python2.config.PythonExecutableSelectionPanel;
+import org.knime.python2.config.PythonFixedVersionExecutableSelectionPanel;
 
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DLAbstractPythonBasedExecutorNodeModel extends DLAbstractExecutorNodeModel<DLPythonContext> {
+final class DLKerasExporterNodeDialog extends DLAbstractExporterNodeDialog {
 
-    static PythonCommandConfig createPythonCommandConfig(final Supplier<PythonCommand> commandPreference) {
-        return new PythonCommandConfig(PythonVersion.PYTHON3, DLPythonPreferences::getCondaInstallationPath,
-            commandPreference);
-    }
+    private final PythonExecutableSelectionPanel m_executableSelectionTab;
 
-    private final PythonCommandConfig m_pythonCommandConfig;
-
-    public DLAbstractPythonBasedExecutorNodeModel(final PortType networkPortType,
-        final Supplier<PythonCommand> commandPreference) {
-        super(networkPortType);
-        m_pythonCommandConfig = createPythonCommandConfig(commandPreference);
+    public DLKerasExporterNodeDialog() {
+        super("org.knime.dl.keras.base.nodes.export.DLKerasExporterNodeModel");
+        m_executableSelectionTab =
+            new PythonFixedVersionExecutableSelectionPanel(this, DLKerasExporterNodeModel.createPythonCommandConfig());
+        addTab(PythonExecutableSelectionPanel.DEFAULT_TAB_NAME, m_executableSelectionTab);
     }
 
     @Override
-    protected DLNetwork extractNetworkFromPortObject(final DLNetworkPortObject networkPortObject) throws Exception {
-        return ((DLPythonNetworkPortObject<?>)networkPortObject).getNetwork(m_pythonCommandConfig.getCommand());
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_executableSelectionTab.loadSettingsFrom(settings);
+        super.loadSettingsFrom(settings, specs);
     }
 
     @Override
-    protected DLPythonContext getContext(final DLExecutionContext<?, ?> ctx) {
-        return new DLPythonDefaultContext(m_pythonCommandConfig.getCommand());
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         super.saveSettingsTo(settings);
-        m_pythonCommandConfig.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_pythonCommandConfig.loadSettingsFrom(settings);
-        super.validateSettings(settings);
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_pythonCommandConfig.loadSettingsFrom(settings);
-        super.loadValidatedSettingsFrom(settings);
+        m_executableSelectionTab.saveSettingsTo(settings);
     }
 }
