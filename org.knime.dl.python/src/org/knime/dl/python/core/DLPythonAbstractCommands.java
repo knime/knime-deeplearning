@@ -908,7 +908,8 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
                         m_delegateTaskHandler.handle(received, m_messageHandlers, m_messageIdSupplier, this::setResult);
                 }
             }
-            LOGGER.info("Finishing task handler. Task category: '" + m_taskCategory + "', is done: " + m_isDone + ", is interrupted: " + Thread.interrupted());
+            LOGGER.debug("Finishing task handler. Task category: '" + m_taskCategory + "', is done: " + m_isDone +
+                ", is interrupted: " + Thread.interrupted());
             // Send pending message if any.
             // This may happen if the act of responding to a message also marks (successful) termination of the task.
             if (toSend != null) {
