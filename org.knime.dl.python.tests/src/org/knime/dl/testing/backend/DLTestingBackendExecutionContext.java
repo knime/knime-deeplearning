@@ -83,11 +83,6 @@ public class DLTestingBackendExecutionContext implements DLExecutionContext<Void
     }
 
     @Override
-    public Void createDefaultContext() {
-        return null;
-    }
-
-    @Override
     public void checkAvailability(final Void noContext, final boolean forceRefresh, final int timeout,
         final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException, DLCanceledExecutionException {

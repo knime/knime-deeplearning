@@ -70,7 +70,6 @@ import org.knime.dl.keras.base.portobjects.DLKerasNetworkPortObject;
 import org.knime.dl.python.core.DLPythonAbstractNetworkLoader;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonNetworkHandle;
-import org.knime.dl.python.prefs.DLPythonPreferences;
 
 import com.google.common.base.Strings;
 
@@ -120,11 +119,6 @@ public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> ext
     @Override
     public URL validateDestination(final URI destination) throws DLInvalidDestinationException {
         return validateKerasNetworkDestination(destination);
-    }
-
-    @Override
-    public DLPythonContext createDefaultContext() {
-        return new DLKerasPythonContext(DLPythonPreferences.getPythonKerasCommandPreference());
     }
 
     @Override
