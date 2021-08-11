@@ -68,7 +68,24 @@ import org.knime.dl.core.DLTensorSpec;
  */
 public interface DLExecutionContext<C, N extends DLNetwork> extends DLContext<C, N> {
 
-    C createDefaultContext();
+    /**
+     * @deprecated Using this method is discouraged because its "global default" semantics may conceal the need to
+     *             perform per-node configuration of an execution context in some cases, e.g. in the case of the
+     *             Python-dependent deep learning integrations that allow to specify the Python environment in which to
+     *             create an execution session at the node level instead of only globally.<br>
+     *             Instead of using this method, clients are asked to build their external context explicitly and hand
+     *             it to
+     *             {@link #createExecutionSession(Object, DLNetwork, Set, Set, DLNetworkInputPreparer, DLNetworkOutputConsumer)}.
+     *             Likewise, new implementors of this interface should not override this method but retain its default
+     *             behavior.<br>
+     *             This method is only retained because the also deprecated DL Network Executor node
+     *             ({@code org.knime.dl.base.nodes.executor.DLExecutorNodeModel}) relies upon it.
+     */
+    @Deprecated(since = "4.4.1", forRemoval = false)
+    default C createDefaultContext() {
+        throw new UnsupportedOperationException(
+            "This method has been deprecated. Newly written code should neither implement it nor reference it.");
+    }
 
 	/**
 	 * Creates a {@link DLNetworkExecutionSession execution session} for a given {@link DLNetwork network}.

@@ -54,13 +54,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.knime.core.node.NodeLogger;
 import org.knime.dl.core.DLAbstractExtensionPointRegistry;
-import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInstallationTestTimeout;
-import org.knime.dl.core.DLInstallationTestTimeoutException;
-import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.core.DLNotCancelable;
 
 /**
  * Registry for deep learning {@link DLPythonNetworkLoader network Python loaders}.
@@ -73,8 +68,6 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 	private static final String EXT_POINT_ID = "org.knime.dl.python.DLPythonNetworkLoader";
 
 	private static final String EXT_POINT_ATTR_CLASS = "DLPythonNetworkLoader";
-
-	private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonNetworkLoaderRegistry.class);
 
 	private static DLPythonNetworkLoaderRegistry instance;
 
@@ -89,7 +82,6 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
             // First set instance, then register. Registering usually activates other bundles. Those may try to access
             // this registry (while the instance is still null) which would trigger another instance construction.
             instance.register();
-            instance.testInstallation();
 		}
 		return instance;
 	}
@@ -98,7 +90,7 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 
     private DLPythonNetworkLoaderRegistry() {
         super(EXT_POINT_ID, EXT_POINT_ATTR_CLASS);
-        // Do not trigger registration or perform installation tests here. See #getInstance() above.
+        // Do not trigger registration or perform here. See #getInstance() above.
     }
 
 	/**
@@ -179,24 +171,4 @@ public final class DLPythonNetworkLoaderRegistry extends DLAbstractExtensionPoin
 		m_loaders.put(networkType, loader);
 	}
 	// :registration
-
-    private void testInstallation() {
-        // Test each installation independently.
-        for (final DLPythonNetworkLoader<?> loader : m_loaders.values()) {
-            new Thread(() -> {
-                try (final DLPythonContext context = loader.createDefaultContext()) {
-                    loader.checkAvailability(context, true, getInstallationTestTimeout(), DLNotCancelable.INSTANCE);
-                } catch (final DLInstallationTestTimeoutException e) {
-                    Thread.currentThread().interrupt();
-                    LOGGER.debug("Installation test for deep learning Python back end '"
-                        + loader.getNetworkType().getCanonicalName() + "' timed out or was interrupted.");
-                } catch (final DLMissingDependencyException e) {
-                    LOGGER.debug("Installation test for deep learning Python back end '"
-                        + loader.getNetworkType().getCanonicalName() + "' failed: " + e.getMessage());
-                } catch (final DLCanceledExecutionException e) {
-                    // Doesn't happen.
-                }
-            }, "DL-Installation-Test-Trigger-" + loader.getNetworkType().getName()).start();
-        }
-    }
 }

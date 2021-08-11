@@ -66,7 +66,7 @@ public interface DLContext<C, N extends DLNetwork> extends DLInstallationTestabl
     }
 
     /**
-     * @return the friendly name of this training context, not null, not empty, suitable to be displayed to the user
+     * @return the friendly name of this context, not null, not empty, suitable to be displayed to the user
      */
     String getName();
 

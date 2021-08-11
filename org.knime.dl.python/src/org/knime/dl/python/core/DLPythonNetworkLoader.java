@@ -128,8 +128,6 @@ public interface DLPythonNetworkLoader<N extends DLPythonNetwork> extends DLInst
      */
     URL validateDestination(URI destination) throws DLInvalidDestinationException;
 
-    DLPythonContext createDefaultContext();
-
     /**
      * Loads a network from a source into a context. This method should be preferred over
      * {@link #load(URI, DLPythonContext, boolean, DLCancelable)} because the implementation can use information of the
