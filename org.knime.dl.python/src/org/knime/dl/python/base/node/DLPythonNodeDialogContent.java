@@ -86,7 +86,7 @@ public final class DLPythonNodeDialogContent {
             new PythonSourceCodeOptionsPanel(DLPythonPreferences.getSerializerPreference());
         final PythonExecutableSelectionPanel executablePanel =
             new PythonFixedVersionExecutableSelectionPanel(dialog, new PythonCommandConfig(PythonVersion.PYTHON3,
-                DLPythonPreferences::getCondaInstallationPath, DLPythonPreferences::getPythonCommandPreference));
+                DLPythonPreferences::getCondaInstallationPath, DLPythonNodeModel::getDefaultPythonCommand));
         final PythonSourceCodePanel scriptPanel =
             new PythonSourceCodePanel(dialog, variableNames, optionsPanel, executablePanel);
         return new PythonNodeDialogContent(dialog, inPorts, config, scriptPanel, optionsPanel, executablePanel,
