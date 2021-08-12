@@ -49,7 +49,6 @@ package org.knime.dl.python.prefs;
 import java.util.Collection;
 
 import org.eclipse.core.runtime.preferences.DefaultScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
@@ -167,24 +166,6 @@ public final class DLPythonPreferences {
     public static Collection<PythonModuleSpec> getCurrentlyRequiredSerializerModules() {
         return SerializationLibraryExtensions.getSerializationLibraryFactory(getSerializerPreference())
             .getRequiredExternalModules();
-    }
-
-    /**
-     * Add a listener which gets notified if a setting changes.
-     *
-     * @param listener the listener
-     */
-    public static void addPreferencesChangeListener(final IPreferenceChangeListener listener) {
-        CURRENT_SCOPE_PREFERENCES.addPrimaryPreferenceChangeListener(listener);
-    }
-
-    /**
-     * Remove a listener that was added with {@link #addPreferencesChangeListener(IPreferenceChangeListener)}.
-     *
-     * @param listener the listener to remove
-     */
-    public static void removePreferencesChangeListener(final IPreferenceChangeListener listener) {
-        CURRENT_SCOPE_PREFERENCES.removePrimaryPreferenceChangeListener(listener);
     }
 
     /** @return the python command for the given environment selection */

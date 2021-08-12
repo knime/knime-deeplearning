@@ -57,8 +57,8 @@ public interface DLInstallationTestable<T> {
      * Checks if the external dependencies of this instance are available (if any). Throws an exception if they are not
      * or if testing their availability timed out or was interrupted.
      * <P>
-     * Executing installation tests for external dependencies might be costly. Thus, implementations of this method
-     * should cache the results of their first invocation to improve the response time of subsequent calls.
+     * Executing installation tests for external dependencies might be costly. Thus, implementations of this method can
+     * cache the results of their first invocation to improve the response time of subsequent calls.
      *
      * @param context The external context.
      * @param forceRefresh if true, possibly cached test results from a previous check will be discarded and the check

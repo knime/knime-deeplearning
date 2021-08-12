@@ -65,8 +65,6 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTheanoNetwork> {
 
-    private static final DLPythonInstallationTester INSTALLTION_TESTER = new DLPythonInstallationTester();
-
 	@Override
 	public Class<DLKerasTheanoNetwork> getNetworkType() {
 		return DLKerasTheanoNetwork.class;
@@ -95,10 +93,5 @@ public final class DLKerasTheanoNetworkLoader extends DLKerasAbstractNetworkLoad
 		final DLKerasTheanoCommands commands = createCommands(checkNotNull(context));
 		final DLKerasTheanoNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
 		return new DLKerasTheanoNetwork(spec, source);
-	}
-
-	@Override
-	protected DLPythonInstallationTester getInstallationTester() {
-		return INSTALLTION_TESTER;
 	}
 }

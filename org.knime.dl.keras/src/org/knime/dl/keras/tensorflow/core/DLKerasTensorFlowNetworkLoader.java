@@ -65,8 +65,6 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasTensorFlowNetwork> {
 
-    private static final DLPythonInstallationTester INSTALLATION_TESTER = new DLPythonInstallationTester();
-
     @Override
     public Class<DLKerasTensorFlowNetwork> getNetworkType() {
         return DLKerasTensorFlowNetwork.class;
@@ -96,10 +94,5 @@ public final class DLKerasTensorFlowNetworkLoader extends DLKerasAbstractNetwork
         final DLKerasTensorFlowCommands commands = createCommands(checkNotNull(context));
         final DLKerasTensorFlowNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
         return new DLKerasTensorFlowNetwork(spec, source);
-    }
-
-    @Override
-    protected DLPythonInstallationTester getInstallationTester() {
-        return INSTALLATION_TESTER;
     }
 }
