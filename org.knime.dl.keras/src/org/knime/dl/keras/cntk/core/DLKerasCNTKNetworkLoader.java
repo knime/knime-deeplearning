@@ -65,8 +65,6 @@ import org.knime.dl.python.core.DLPythonNetworkHandle;
  */
 public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader<DLKerasCNTKNetwork> {
 
-    private static final DLPythonInstallationTester INSTALLATION_TESTER = new DLPythonInstallationTester();
-
 	@Override
 	public Class<DLKerasCNTKNetwork> getNetworkType() {
 		return DLKerasCNTKNetwork.class;
@@ -94,10 +92,5 @@ public final class DLKerasCNTKNetworkLoader extends DLKerasAbstractNetworkLoader
 		final DLKerasCNTKCommands commands = createCommands(checkNotNull(context));
 		final DLKerasCNTKNetworkSpec spec = commands.extractNetworkSpec(checkNotNull(handle), cancelable);
 		return new DLKerasCNTKNetwork(spec, source);
-	}
-
-	@Override
-	protected DLPythonInstallationTester getInstallationTester() {
-		return INSTALLATION_TESTER;
 	}
 }

@@ -271,9 +271,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         throws DLInvalidEnvironmentException, DLCanceledExecutionException {
         try {
             final File script = getInstallationTestFile();
-            final String[] output =
-                m_context.isKernelOpen() ? m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable)
-                    : m_context.execute(cancelable, script);
+            final String[] output = m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable);
             if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
                 final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
                 final String cause = idx != -1 //

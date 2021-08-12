@@ -67,7 +67,6 @@ import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingDependencyException;
-import org.knime.dl.python.prefs.DLPythonPreferences;
 import org.knime.python2.util.PythonUtils;
 
 import com.google.common.base.Strings;
@@ -81,13 +80,18 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
     protected abstract DLPythonAbstractCommands createCommands(DLPythonContext context)
         throws DLInvalidEnvironmentException;
 
-    protected abstract DLPythonInstallationTester getInstallationTester();
-
+    /**
+     * This implementation performs no caching of any test results. The value of {@code forceRefresh} has no effect.
+     * <P>
+     * {@inheritDoc}
+     *
+     * @param forceRefresh Has no effect.
+     */
     @Override
     public final synchronized void checkAvailability(final DLPythonContext context, final boolean forceRefresh,
         final int timeout, final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException {
-        getInstallationTester().testInstallation(context, forceRefresh, timeout, this, cancelable);
+        new DLPythonInstallationTester().testInstallation(context, timeout, this, cancelable);
     }
 
     @Override
@@ -95,40 +99,24 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
         final DLCancelable cancelable) throws IllegalArgumentException, DLInvalidDestinationException,
         DLInvalidEnvironmentException, IOException, DLCanceledExecutionException {
         final File destinationFile = FileUtil.getFileFromURL(validateDestination(destination));
+        @SuppressWarnings("resource") // Context must be kept open and will be closed by the client.
         final DLPythonAbstractCommands commands = createCommands(checkNotNull(context));
         commands.saveNetwork(checkNotNull(handle), destinationFile.getAbsolutePath(), cancelable);
     }
 
-    protected static class DLPythonInstallationTester {
+    private static class DLPythonInstallationTester {
 
-        protected boolean m_tested = false;
-
-        protected Exception m_exception = null;
-
-        /**
-         * Create a new installation tester.
-         */
-        public DLPythonInstallationTester() {
-            DLPythonPreferences.addPreferencesChangeListener(e -> {
-                m_tested = false;
-            });
-        }
-
-        protected synchronized void testInstallation(final DLPythonContext context, final boolean forceRefresh,
+        protected synchronized void testInstallation(final DLPythonContext context,
             final int timeout, final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
             throws DLMissingDependencyException, DLInstallationTestTimeoutException {
-            if (forceRefresh || !m_tested) {
-                m_tested = false;
-                m_exception = runTest(context, timeout, loader, cancelable);
-                m_tested = true;
-            }
-            if (m_exception != null) {
-                if (m_exception instanceof DLMissingDependencyException) {
-                    throw (DLMissingDependencyException)m_exception;
-                } else if (m_exception instanceof DLInstallationTestTimeoutException) {
-                    throw (DLInstallationTestTimeoutException)m_exception;
+            final Exception exception = runTest(context, timeout, loader, cancelable);
+            if (exception != null) {
+                if (exception instanceof DLMissingDependencyException) {
+                    throw (DLMissingDependencyException)exception;
+                } else if (exception instanceof DLInstallationTestTimeoutException) {
+                    throw (DLInstallationTestTimeoutException)exception;
                 } else {
-                    throw new IllegalStateException("Implementation error.", m_exception);
+                    throw new IllegalStateException("Implementation error.", exception);
                 }
             }
         }
