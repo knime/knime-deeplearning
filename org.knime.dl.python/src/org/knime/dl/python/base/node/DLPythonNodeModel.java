@@ -87,6 +87,7 @@ import org.knime.python2.kernel.PythonKernel;
 import org.knime.python2.kernel.PythonKernelOptions;
 import org.knime.python2.kernel.PythonKernelQueue;
 
+
 /**
  * Shamelessly copied and pasted from knime-python.
  *
@@ -96,10 +97,14 @@ import org.knime.python2.kernel.PythonKernelQueue;
  */
 public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
 
+    static final PythonCommand getDefaultPythonCommand() {
+        return DLPythonPreferences.getPythonCommandPreference();
+    }
+
 	private CFG m_config = createConfig();
 
     private final PythonCommandConfig m_executableConfig = new PythonCommandConfig(PythonVersion.PYTHON3,
-        DLPythonPreferences::getCondaInstallationPath, DLPythonPreferences::getPythonCommandPreference);
+        DLPythonPreferences::getCondaInstallationPath, DLPythonNodeModel::getDefaultPythonCommand);
 
 	private final LinkedList<String> m_stdout;
 

@@ -68,6 +68,7 @@ import org.knime.dl.python.base.node.DLAbstractPythonBasedExecutorNodeModel;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.execution.DLPythonNetworkExecutionSession;
 import org.knime.dl.python.prefs.DLPythonPreferences;
+import org.knime.python2.PythonCommand;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -78,6 +79,10 @@ public class DLKerasExecutorNodeModel extends DLAbstractPythonBasedExecutorNodeM
 
     private static final String CUDA_VISIBLE_DEVICES_VAR_NAME = "CUDA_VISIBLE_DEVICES";
 
+    static PythonCommand getDefaultPythonCommand() {
+        return DLPythonPreferences.getPythonKerasCommandPreference();
+    }
+
     static DLKerasGpuSelectionConfig createGpuSelectionConfig() {
         return new DLKerasGpuSelectionConfig();
     }
@@ -85,7 +90,7 @@ public class DLKerasExecutorNodeModel extends DLAbstractPythonBasedExecutorNodeM
     private DLKerasGpuSelectionConfig m_gpuSelection;
 
     DLKerasExecutorNodeModel() {
-        super(DLKerasNetworkPortObjectBase.TYPE, DLPythonPreferences::getPythonKerasCommandPreference);
+        super(DLKerasNetworkPortObjectBase.TYPE, DLKerasExecutorNodeModel::getDefaultPythonCommand);
         m_gpuSelection = createGpuSelectionConfig();
     }
 

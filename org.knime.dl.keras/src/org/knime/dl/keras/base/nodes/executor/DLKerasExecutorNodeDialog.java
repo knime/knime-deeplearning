@@ -55,7 +55,6 @@ import org.knime.dl.base.nodes.DLDefaultNodeDialogTab;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionConfig;
 import org.knime.dl.keras.base.nodes.DLKerasGpuSelectionPanel;
 import org.knime.dl.python.base.node.DLAbstractPythonBasedExecutorNodeDialog;
-import org.knime.dl.python.prefs.DLPythonPreferences;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -65,7 +64,7 @@ public class DLKerasExecutorNodeDialog extends DLAbstractPythonBasedExecutorNode
     private final DLKerasGpuSelectionConfig m_gpuSelection;
 
     DLKerasExecutorNodeDialog() {
-        super(DLPythonPreferences::getPythonKerasCommandPreference);
+        super(DLKerasExecutorNodeModel::getDefaultPythonCommand);
         final DLDefaultNodeDialogTab advancedTab = new DLDefaultNodeDialogTab("Advanced Options");
         addTab(advancedTab.getTitle(), advancedTab.getTab(), false);
 
