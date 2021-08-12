@@ -59,9 +59,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.dl.core.DLCanceledExecutionException;
+import org.knime.dl.core.DLInstallationTestTimeout;
+import org.knime.dl.core.DLInstallationTestTimeoutException;
 import org.knime.dl.core.DLInvalidDestinationException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
+import org.knime.dl.core.DLMissingDependencyException;
 import org.knime.dl.core.DLNetworkLocation;
 import org.knime.dl.core.DLNotCancelable;
 import org.knime.dl.core.DLTensorId;
@@ -132,7 +135,14 @@ public final class DLKerasNetworkMaterializer {
         final DLPythonNetworkLoader<? extends DLKerasNetwork> loader = DLPythonNetworkLoaderRegistry.getInstance()
             .getNetworkLoader(backend).orElseThrow(() -> new IllegalStateException("Back end for Keras network type '"
                 + backend.getName() + "' is missing. " + "Are you missing a KNIME Deep Learning extension?"));
-
+        try {
+            loader.checkAvailability(context, false, DLInstallationTestTimeout.getInstallationTestTimeout(),
+                DLNotCancelable.INSTANCE);
+        } catch (final DLInstallationTestTimeoutException | DLMissingDependencyException ex) {
+            throw new DLInvalidEnvironmentException(ex.getMessage(), ex);
+        } catch (final DLCanceledExecutionException ex) { // NOSONAR
+            // Cannot happen.
+        }
         final DLKerasAbstractCommands commands = ((DLKerasNetworkLoader<?>)loader).createCommands(context);
         // Load base networks (if any). Make base networks available on Python side for later. Collect base network
         // specs.We need the network specs (a) to reserve the layer names that are already present in the base
