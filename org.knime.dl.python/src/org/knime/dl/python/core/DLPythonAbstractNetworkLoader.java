@@ -178,7 +178,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
                         : ex.getMessage();
                     message += "\nIn case Python packages are missing: you can create a new Python Conda environment "
                         + "that contains all packages required by the KNIME deep learning integrations in the \"KNIME "
-                        + "Deep Learning\" Preferences";
+                        + "Deep Learning\" Preferences.";
                     return new DLMissingDependencyException(message, ex);
                 } catch (final DLCanceledExecutionException ex) {
                     final CancellationException ex2 = new CancellationException(ex.getMessage());

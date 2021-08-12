@@ -49,6 +49,7 @@ package org.knime.dl.keras.base.portobjects;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.NodeLogger;
@@ -58,7 +59,6 @@ import org.knime.dl.keras.core.DLKerasNetwork;
 import org.knime.dl.keras.core.layers.DLInvalidTensorSpecException;
 import org.knime.dl.keras.core.layers.DLKerasLayer;
 import org.knime.dl.keras.core.layers.DLKerasNetworkMaterializer;
-import org.knime.dl.keras.util.DLKerasUtils;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.util.DLUtils;
 
@@ -108,15 +108,15 @@ final class DLKerasUnmaterializedPortObjectContent implements DLKerasPortObjectC
             final DLKerasNetwork materialized =
                 new DLKerasNetworkMaterializer(m_spec.getOutputLayers(), saveLocation).materialize(context);
             return new DLKerasMaterializedPortObjectContent(materialized);
-        } catch (final Exception e) {
-            NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage(), e);
-            final String message = DLUtils.Misc.findDisplayableErrorMessage(e)
-                .orElse("An error occurred while creating the Keras network from its layer specifications.\n"
-                    + "This could be due to a version mismatch between Keras and TensorFlow.\n"
-                    + "Please make sure that Keras " + DLKerasUtils.PREFERRED_KERAS_VERSION + " and TensorFlow "
-                    + DLKerasUtils.PREFERRED_TF_VERSION + " are installed in your Python environment.\n"
-                    + "See log for details.\n"
-                    + "You can install the correct version of Keras and TensorFlow on the 'Python Deep Learning' preference page.");
+        } catch (final Exception e) { // NOSONAR
+            final Optional<String> optionalMessage = DLUtils.Misc.findDisplayableErrorMessage(e);
+            String message = "An error occurred while creating the Keras network from its layer specifications. ";
+            if (optionalMessage.isPresent()) {
+                message += "Details:\n" + optionalMessage.get();
+            } else {
+                NodeLogger.getLogger(DLKerasUnmaterializedNetworkPortObject.class).error(e.getMessage());
+                message += "See log for details.";
+            }
             throw new IOException(message, e);
         }
     }
