@@ -266,12 +266,27 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
         return m_context;
     }
 
+    @SuppressWarnings("resource") // Kernel will be closed along with context/this instance.
     @Override
     public synchronized void testInstallation(final DLCancelable cancelable)
         throws DLInvalidEnvironmentException, DLCanceledExecutionException {
         try {
             final File script = getInstallationTestFile();
-            final String[] output = m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable);
+            // Temporarily disable output listeners. The installation tester communicates with us via stdout. We don't
+            // want this internal communication to be part of the (user-visible) INFO log. Also, Keras outputs some
+            // further information via stderr which is irrelevant to users at this point.
+            final PythonKernel kernel = m_context.getKernel();
+            final PythonOutputListener stdoutListener = kernel.getDefaultStdoutListener();
+            final PythonOutputListener stderrListener = kernel.getDefaultStderrListener();
+            final String[] output;
+            stdoutListener.setDisabled(true);
+            stderrListener.setDisabled(true);
+            try {
+                output = m_context.executeInKernel(DLUtils.Files.readAllUTF8(script), cancelable);
+            } finally {
+                stdoutListener.setDisabled(false);
+                stderrListener.setDisabled(false);
+            }
             if (!output[0].contains(INSTALLATION_TEST_OK_MSG)) {
                 final int idx = output[0].indexOf(INSTALLATION_TEST_FAIL_MSG);
                 final String cause = idx != -1 //
