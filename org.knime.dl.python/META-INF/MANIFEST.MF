@@ -19,7 +19,7 @@ Export-Package: org.knime.dl.python.base.node,
  org.knime.dl.python.prefs,
  org.knime.dl.python.util
 Require-Bundle: org.eclipse.ui;bundle-version="[3.109.0,4.0.0)",
-  org.knime.python2;bundle-version="[4.0.0,5.0.0)",
+  org.knime.python2;bundle-version="[4.5.0,5.0.0)",
   org.knime.core;bundle-version="[4.0.0,5.0.0)",
   org.knime.dl;bundle-version="[4.0.0,5.0.0)",
   org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
