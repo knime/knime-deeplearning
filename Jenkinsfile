@@ -26,7 +26,6 @@ try {
                 'knime-filehandling',
                 'knime-jep',
                 'knime-jfreechart',
-                'knime-js-base',
                 'knime-kerberos',
                 'knime-python',
                 'knime-streaming',
