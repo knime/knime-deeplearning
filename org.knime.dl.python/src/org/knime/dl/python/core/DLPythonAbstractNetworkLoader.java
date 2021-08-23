@@ -88,7 +88,7 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
      * @param forceRefresh Has no effect.
      */
     @Override
-    public final synchronized void checkAvailability(final DLPythonContext context, final boolean forceRefresh,
+    public final void checkAvailability(final DLPythonContext context, final boolean forceRefresh,
         final int timeout, final DLCancelable cancelable)
         throws DLMissingDependencyException, DLInstallationTestTimeoutException {
         new DLPythonInstallationTester().testInstallation(context, timeout, this, cancelable);
@@ -106,8 +106,8 @@ public abstract class DLPythonAbstractNetworkLoader<N extends DLPythonNetwork> i
 
     private static class DLPythonInstallationTester {
 
-        protected synchronized void testInstallation(final DLPythonContext context,
-            final int timeout, final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
+        protected void testInstallation(final DLPythonContext context, final int timeout,
+            final DLPythonAbstractNetworkLoader<?> loader, final DLCancelable cancelable)
             throws DLMissingDependencyException, DLInstallationTestTimeoutException {
             final Exception exception = runTest(context, timeout, loader, cancelable);
             if (exception != null) {
