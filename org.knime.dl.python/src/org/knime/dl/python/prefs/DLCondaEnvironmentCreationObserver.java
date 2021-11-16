@@ -48,19 +48,17 @@
  */
 package org.knime.dl.python.prefs;
 
-import java.util.Optional;
-
 import org.apache.commons.lang3.SystemUtils;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.util.Version;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver;
 import org.knime.python2.envconfigs.CondaEnvironments;
 
 /**
- * {@link #startEnvironmentCreation(String, CondaEnvironmentCreationStatus) Initiates}, observes, and
- * {@link #cancelEnvironmentCreation(CondaEnvironmentCreationStatus) cancels} Conda environment creation processes for a
- * specific Conda installation and Python version. Allows clients to subscribe to changes in the status of such creation
- * processes.
+ * Initiates, observes, and {@link #cancelEnvironmentCreation(CondaEnvironmentCreationStatus) cancels} Conda environment
+ * creation processes for a specific Conda installation and Python version. Allows clients to subscribe to changes in
+ * the status of such creation processes.
  * <P>
  * Note: The current implementation only allows one active creation process at a time.
  *
@@ -91,13 +89,13 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
      *         parallel to an ongoing environment creation process.
      */
     public String getDefaultEnvironmentName() {
-        if (DLPythonLibrarySelection.TF2.equals(m_library)) {
+        if (m_library == DLPythonLibrarySelection.TF2) {
             return getDefaultEnvironmentName("tf2");
         }
         return getDefaultEnvironmentName("dl");
     }
 
-    /** @return the DL library the created evironment will contain */
+    /** @return the DL library the created environment will contain */
     DLPythonLibrarySelection getLibrary() {
         return m_library;
     }
@@ -115,9 +113,9 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
      */
     public void startEnvironmentCreation(final String environmentName, final CondaEnvironmentCreationStatus status,
         final boolean gpu) {
-        final String libraryPrefix = DLPythonLibrarySelection.TF2.equals(m_library) ? "tf2-" : "dl-";
-        final String subDirectory = libraryPrefix + (gpu && !SystemUtils.IS_OS_MAC ? "gpu" : "cpu");
-        final String envFile = CondaEnvironments.getPathToPython3CondaConfigFile(subDirectory);
-        startEnvironmentCreation(environmentName, status, Optional.of(envFile));
+        final String libraryPrefix = m_library == DLPythonLibrarySelection.TF2 ? "tf2_" : "dl_";
+        final String tag = libraryPrefix + (gpu && !SystemUtils.IS_OS_MAC ? "gpu" : "cpu");
+        final String envFile = CondaEnvironments.getPathToCondaConfigFile(new Version(3, 6, 0), tag);
+        startEnvironmentCreation(environmentName, envFile, null, status);
     }
 }
