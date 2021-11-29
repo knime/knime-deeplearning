@@ -74,6 +74,7 @@ import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.util.ThreadUtils;
 import org.knime.core.util.Version;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
@@ -800,7 +801,7 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
 
         private Message m_initiatingMessage;
 
-        private final FutureTask<Void> m_delegateTask = new FutureTask<>(this::runInternal);
+        private final FutureTask<Void> m_delegateTask = new FutureTask<>(ThreadUtils.callableWithContext(this::runInternal));
 
         private final TaskHandler<Void> m_delegateTaskHandler;
 
