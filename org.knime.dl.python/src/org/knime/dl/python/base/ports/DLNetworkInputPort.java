@@ -57,6 +57,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -162,5 +163,10 @@ public class DLNetworkInputPort implements InputPort {
             throw new IOException(
                 "An error occurred while communicating with Python (while setting up the Python network).", e);
         }
+    }
+
+    @Override
+    public PortType getPortType() {
+        return DLPythonNetworkPortObject.TYPE;
     }
 }

@@ -83,7 +83,7 @@ public final class DLPythonNodeDialogContent {
     public static PythonNodeDialogContent createDialogContent(final NodeDialogPane dialog, final InputPort[] inPorts,
         final PythonSourceCodeConfig config, final VariableNames variableNames, final String templateRepositoryId) {
         final PythonSourceCodeOptionsPanel optionsPanel =
-            new PythonSourceCodeOptionsPanel(DLPythonPreferences.getSerializerPreference(), false);
+            new PythonSourceCodeOptionsPanel(DLPythonPreferences.getSerializerPreference());
         final PythonExecutableSelectionPanel executablePanel =
             new PythonFixedVersionExecutableSelectionPanel(dialog, new PythonCommandConfig(PythonVersion.PYTHON3,
                 DLPythonPreferences::getCondaInstallationPath, DLPythonNodeModel::getDefaultPythonCommand));
