@@ -5,7 +5,7 @@ library "knime-pipeline@$BN"
 
 properties([
     pipelineTriggers([
-        upstream("knime-python/${env.BRANCH_NAME.replaceAll('/', '%2F')}" +
+        upstream("knime-python-legacy/${env.BRANCH_NAME.replaceAll('/', '%2F')}" +
             ", knime-distance/${env.BRANCH_NAME.replaceAll('/', '%2F')}")
     ]),
     parameters(workflowTests.getConfigurationsAsParameters()),
@@ -27,7 +27,7 @@ try {
                 'knime-jep',
                 'knime-jfreechart',
                 'knime-kerberos',
-                'knime-python',
+                'knime-python-legacy',
                 'knime-streaming',
                 'knime-tensorflow'
             ]
