@@ -49,7 +49,10 @@ package org.knime.dl.python.prefs;
 import java.util.Collection;
 
 import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.knime.conda.prefs.CondaPreferences;
+import org.knime.core.node.NodeLogger;
 import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonModuleSpec;
 import org.knime.python2.config.PythonConfigStorage;
@@ -60,12 +63,15 @@ import org.knime.python2.extensions.serializationlibrary.SerializationLibraryExt
 import org.knime.python2.prefs.PreferenceStorage;
 import org.knime.python2.prefs.PreferenceWrappingConfigStorage;
 import org.knime.python2.prefs.PythonPreferences;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  */
 public final class DLPythonPreferences {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonPreferences.class);
 
     private static final String QUALIFIER = "org.knime.dl.python";
 
@@ -85,7 +91,8 @@ public final class DLPythonPreferences {
      */
     static final PythonConfigStorage DEFAULT = new PreferenceWrappingConfigStorage(DEFAULT_SCOPE_PREFERENCES);
 
-    private DLPythonPreferences() {}
+    private DLPythonPreferences() {
+    }
 
     /**
      * @return the config selection which should be used (python v. dl)
@@ -201,13 +208,87 @@ public final class DLPythonPreferences {
         return envsConfig;
     }
 
+    /**
+     * Get the path to the Conda installation directory. If it is configured in the deep learning preferences this will
+     * be used. Otherwise {@link CondaPreferences#getCondaInstallationDirectory()} will be used.
+     *
+     * @return the path to the Conda installation
+     * @deprecated use {@link CondaPreferences#getCondaInstallationDirectory()}.
+     */
+    @Deprecated
     public static String getCondaInstallationPath() {
-        if (usePythonPreferences()) {
-            return PythonPreferences.getCondaInstallationPath();
+        /* CASES:
+         * - Using Python prefs (#usePythonPreferences) or MANUAL: Use from Conda prefs + delete in DL prefs + INFO log  -- happens once
+         * - Saved in DL prefs but equal to Conda prefs: Use from Conda prefs + delete in DL prefs + WARN log  -- happens once
+         * - Saved in DL prefs and not equal to Conda prefs: Use from DL prefs + WARN log  -- happens each time this is called
+         * - Set in DL default prefs (on KNIME Executor): Use from DL default prefs + WARN log  -- happens each time this is called
+         * - Else: Use from Conda prefs
+         */
+
+        final String condaDirPrefKey = "condaDirectoryPath";
+
+        final String condaDir = CondaPreferences.getCondaInstallationDirectory();
+
+        if (!usePythonPreferences() && PythonEnvironmentType.CONDA.equals(getEnvironmentTypePreference())) {
+            // Look in the instance scope
+            // If present: The user has configured it in a previous version of the AP
+            final String condaDirDLInstance = CURRENT_SCOPE_PREFERENCES.readString(condaDirPrefKey, null);
+            if (condaDirDLInstance != null) {
+                if (condaDirDLInstance.equals(condaDir)) {
+                    // Delete the "condaDirectoryPath" preference
+                    // It is equal to the preference on the Conda preference page and should be configured there
+                    deleteCondaInstallationPathPref();
+                    LOGGER.warn(
+                        "The 'condaDirectoryPath' preference on the Python Deep Learning preference page is deprecated. "
+                            + "The configured value was equal to the value on the Conda preference page. "
+                            + "Therefore, the preference was deleted and the preference from the Conda preference page is used.");
+                    return condaDir;
+                }
+
+                // The paths are not equal
+                LOGGER.warn(
+                    "The 'condaDirectoryPath' preference on the Python Deep Learning preference page is deprecated. " //
+                        + "The configured value is '" + condaDirDLInstance + "'. " //
+                        + "This Conda installation in this directory will be used in Deep Learning nodes. " //
+                        + "The Conda installation path configured on the Conda preference page is '" + condaDir + "'. " //
+                        + "If '" + condaDirDLInstance + "' points to the correct Conda installation directory, " //
+                        + "please go to the Conda preference page and configure the directory there. " //
+                        + "If '" + condaDir + "' points to the correct Conda installation directory, " //
+                        + "please go to the Python Deep Learning preference page and follow the instructions there.");
+                return condaDirDLInstance;
+            }
+
+            // Look in the default scope
+            // We have not added it. If it is present it was added with preferences.epf on the Executor
+            final String condaDirDLDefault = DEFAULT_SCOPE_PREFERENCES.readString(condaDirPrefKey, null);
+            if (condaDirDLDefault != null) {
+                LOGGER.warn(
+                    "Using 'org.knime.dl.python/condaDirectoryPath' to configure the conda installation directory is deprecated. "
+                        + "Please use 'org.knime.conda/condaDirectoryPath'.");
+                return condaDirDLDefault;
+            }
         } else {
-            final DLCondaEnvironmentsConfig condaEnvironmentsConfig = new DLCondaEnvironmentsConfig();
-            condaEnvironmentsConfig.loadConfigFrom(CURRENT);
-            return condaEnvironmentsConfig.getCondaDirectoryPath().getStringValue();
+            // Delete the "condaDirectoryPath" preference
+            // It is not used and cannot be changed anymore. It should not be used in the future
+            InstanceScope.INSTANCE.getNode(QUALIFIER).remove("condaDirectoryPath");
+            LOGGER
+                .info("The 'condaDirectoryPath' preference on the Python Deep Learning preference page is deprecated. "
+                    + "Since the current configuration does not use it, it was deleted from the preferences.");
+        }
+
+        return condaDir;
+    }
+
+    /** Delete the condaDirectoryPath preference from the DL Python preferences */
+    static void deleteCondaInstallationPathPref() {
+        final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(QUALIFIER);
+        prefs.remove("condaDirectoryPath");
+        try {
+            prefs.flush();
+        } catch (final BackingStoreException ex) {
+            LOGGER.warn(
+                "Failed to flush the Python Deep Learning preferences with the deleted path to conda installation.",
+                ex);
         }
     }
 }

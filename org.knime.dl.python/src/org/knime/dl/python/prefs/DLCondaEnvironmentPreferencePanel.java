@@ -53,8 +53,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractPythonConfigPanel;
 import org.knime.python2.config.CondaEnvironmentConfig;
+import org.knime.python2.prefs.CondaDirectoryPathStatusPanel;
 import org.knime.python2.prefs.CondaEnvironmentSelectionBox;
-import org.knime.python2.prefs.StatusDisplayingFilePathEditor;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -106,12 +106,11 @@ final class DLCondaEnvironmentPreferencePanel extends AbstractPythonConfigPanel<
     }
 
     private static void createCondaDirectoryPathPanel(final DLCondaEnvironmentsConfig config, final Composite panel) {
-        final StatusDisplayingFilePathEditor directoryPathEditor = new StatusDisplayingFilePathEditor(
-            config.getCondaDirectoryPath(), false, "Conda", "Path to the Conda installation directory",
+        final CondaDirectoryPathStatusPanel statusPanel = new CondaDirectoryPathStatusPanel(
             config.getCondaInstallationInfo(), config.getCondaInstallationError(), panel);
         final GridData gridData = new GridData();
         gridData.grabExcessHorizontalSpace = true;
         gridData.horizontalAlignment = SWT.FILL;
-        directoryPathEditor.setLayoutData(gridData);
+        statusPanel.setLayoutData(gridData);
     }
 }

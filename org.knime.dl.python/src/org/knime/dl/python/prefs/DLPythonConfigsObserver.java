@@ -53,6 +53,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.knime.conda.Conda;
+import org.knime.conda.CondaEnvironmentIdentifier;
+import org.knime.conda.prefs.CondaPreferences;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Version;
 import org.knime.dl.python.core.DLPythonModuleDependencyRegistry;
@@ -61,11 +64,8 @@ import org.knime.python2.PythonCommand;
 import org.knime.python2.PythonKernelTester;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
 import org.knime.python2.PythonModuleSpec;
-import org.knime.python2.conda.Conda;
-import org.knime.python2.conda.CondaEnvironmentIdentifier;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatus;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver.CondaEnvironmentCreationStatusListener;
-import org.knime.python2.config.AbstractCondaEnvironmentsConfig;
 import org.knime.python2.config.AbstractCondaEnvironmentsPanel;
 import org.knime.python2.config.CondaEnvironmentConfig;
 import org.knime.python2.config.PythonEnvironmentConfig;
@@ -116,9 +116,6 @@ final class DLPythonConfigsObserver {
         configSelectionConfig.getConfigSelection().addChangeListener(e -> testCurrentPreferences());
 
         environmentTypeConfig.getEnvironmentType().addChangeListener(e -> testCurrentPreferences());
-
-        // Refresh and test entire Conda config on Conda directory change
-        condaEnvironmentsConfig.getCondaDirectoryPath().addChangeListener(e -> refreshAndTestDLCondaConfig());
 
         // Test Keras Conda environment on change
         condaEnvironmentsConfig.getKerasConfig().getEnvironmentDirectory()
@@ -355,7 +352,7 @@ final class DLPythonConfigsObserver {
     }
 
     private static boolean isPlaceholderEnvironmentSelected(final CondaEnvironmentConfig config) {
-        return AbstractCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV.getDirectoryPath()
+        return CondaEnvironmentIdentifier.PLACEHOLDER_CONDA_ENV.getDirectoryPath()
             .equals(config.getEnvironmentDirectory().getStringValue());
     }
 
@@ -363,11 +360,14 @@ final class DLPythonConfigsObserver {
     private Conda testDLCondaInstallation() throws Exception {
         final SettingsModelString condaInfoMessage = m_condaEnvironmentsConfig.getCondaInstallationInfo();
         final SettingsModelString condaErrorMessage = m_condaEnvironmentsConfig.getCondaInstallationError();
+        final String dlCondaInstallationPath = DLPythonPreferences.getCondaInstallationPath();
         try {
             condaInfoMessage.setStringValue("Testing Conda installation...");
             condaErrorMessage.setStringValue("");
             m_changeListenerCollection.onCondaInstallationTestStarting();
-            final Conda conda = new Conda(m_condaEnvironmentsConfig.getCondaDirectoryPath().getStringValue());
+            // TODO(benjamin) use DL conda or Conda Conda
+
+            final Conda conda = new Conda(dlCondaInstallationPath);
             String condaVersionString = conda.getVersionString();
             try {
                 condaVersionString =
@@ -375,8 +375,9 @@ final class DLPythonConfigsObserver {
             } catch (final IllegalArgumentException ex) {
                 // Ignore and use raw version string.
             }
-            condaInfoMessage.setStringValue(condaVersionString);
+            condaInfoMessage.setStringValue("Using Conda at '" + dlCondaInstallationPath + "'. " + condaVersionString);
             condaErrorMessage.setStringValue("");
+            showCondaNotEqualWarning(dlCondaInstallationPath, condaErrorMessage);
             m_kerasEnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(true);
             m_tf2EnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(true);
             m_changeListenerCollection.onCondaInstallationTestFinished("");
@@ -384,12 +385,30 @@ final class DLPythonConfigsObserver {
         } catch (final Exception ex) {
             condaInfoMessage.setStringValue("");
             condaErrorMessage.setStringValue(ex.getMessage());
+            showCondaNotEqualWarning(dlCondaInstallationPath, condaErrorMessage);
             clearAvailableCondaEnvironments();
             setCondaEnvironmentStatusMessages("", "", "", true, true);
             m_kerasEnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(false);
             m_tf2EnvironmentCreator.getIsEnvironmentCreationEnabled().setBooleanValue(false);
             m_changeListenerCollection.onCondaInstallationTestFinished(ex.getMessage());
             throw ex;
+        }
+    }
+
+    private static void showCondaNotEqualWarning(final String dlCondaInstallationPath,
+        final SettingsModelString errorModel) {
+        if (!Objects.equals(dlCondaInstallationPath, CondaPreferences.getCondaInstallationDirectory())) {
+            final StringBuilder sb = new StringBuilder();
+            if (!errorModel.getStringValue().isBlank()) {
+                sb.append(errorModel.getStringValue()).append("\n");
+            }
+            sb.append("Using Conda at '" + dlCondaInstallationPath + "' for backwards compatibility.\n"
+                + "The configuration on the Conda preference page differs.\n\n"
+                + "To use the configuration from the Conda preference page please execute the following steps.\n"
+                + "1. Select the option 'Use configuration from the \"Python\" preference page' above.\n"
+                + "2. Click the 'Apply' button.\n"
+                + "3. Reselect the option 'Use special Deep Learning configuration as defined below.'"); // TODO(benjamin)
+            errorModel.setStringValue(sb.toString());
         }
     }
 
@@ -464,7 +483,7 @@ final class DLPythonConfigsObserver {
     /** Set the given environments to be available for both conda environment selections */
     private void setAvailableCondaEnvironments(List<CondaEnvironmentIdentifier> availableEnvironments) {
         if (availableEnvironments.isEmpty()) {
-            availableEnvironments = Arrays.asList(AbstractCondaEnvironmentsConfig.PLACEHOLDER_CONDA_ENV);
+            availableEnvironments = Arrays.asList(CondaEnvironmentIdentifier.PLACEHOLDER_CONDA_ENV);
         }
         // Keras
         m_condaEnvironmentsConfig.getKerasConfig().getAvailableEnvironments()

@@ -51,6 +51,7 @@ import java.net.URL;
 
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
@@ -68,6 +69,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.knime.conda.prefs.CondaPreferences;
 import org.knime.core.node.NodeLogger;
 import org.knime.dl.python.prefs.DLTestStatusChangeListenerCollection.DLPythonConfigsInstallationTestStatusChangeListener;
 import org.knime.python2.PythonKernelTester.PythonKernelTestResult;
@@ -112,6 +114,12 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
 
     private DLPythonConfigsObserver m_configObserver;
 
+    private final IPropertyChangeListener m_condaDirPropertyChangeListener = event -> {
+        if ("condaDirectoryPath".equals(event.getProperty()) && m_configObserver != null) {
+            m_configObserver.testCurrentPreferences();
+        }
+    };
+
     @Override
     public void init(final IWorkbench workbench) {
         // Nothing to do
@@ -148,13 +156,13 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
         environmentConfigurationPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Conda environment configuration, including environment creation dialogs:
-        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator = new DLCondaEnvironmentCreationObserver(
-            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.KERAS);
-        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator = new DLCondaEnvironmentCreationObserver(
-            m_config.m_condaEnvs.getCondaDirectoryPath(), DLPythonLibrarySelection.TF2);
+        final DLCondaEnvironmentCreationObserver kerasEnvironmentCreator =
+            new DLCondaEnvironmentCreationObserver(DLPythonLibrarySelection.KERAS);
+        final DLCondaEnvironmentCreationObserver tf2EnvironmentCreator =
+            new DLCondaEnvironmentCreationObserver(DLPythonLibrarySelection.TF2);
 
-        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, kerasEnvironmentCreator, tf2EnvironmentCreator,
-            environmentConfigurationPanel);
+        m_condaEnvironmentPanel = new DLCondaEnvironmentPreferencePanel(m_config.m_condaEnvs, kerasEnvironmentCreator,
+            tf2EnvironmentCreator, environmentConfigurationPanel);
 
         // Manual environment configuration:
         m_manualEnvironmentPanel =
@@ -200,10 +208,19 @@ public class DLPythonPreferencePage extends PreferencePage implements IWorkbench
             }
         });
 
+        // Trigger installation test if the Conda directory path changes
+        CondaPreferences.addPropertyChangeListener(m_condaDirPropertyChangeListener);
+
         // Initial installation tests
         m_configObserver.testCurrentPreferences();
 
         return m_containerScrolledView;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        CondaPreferences.removePropertyChangeListener(m_condaDirPropertyChangeListener);
     }
 
     private void createInfoHeader(final Composite parent) {

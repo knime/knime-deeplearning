@@ -49,7 +49,6 @@
 package org.knime.dl.python.prefs;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Version;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentCreationObserver;
@@ -73,12 +72,10 @@ public final class DLCondaEnvironmentCreationObserver extends AbstractCondaEnvir
     /**
      * The created instance is {@link #getIsEnvironmentCreationEnabled() disabled by default}.
      *
-     * @param condaDirectoryPath The Conda directory path. Changes in the model are reflected by this instance.
      * @param library the DL library the created environment should contain
      */
-    public DLCondaEnvironmentCreationObserver(final SettingsModelString condaDirectoryPath,
-        final DLPythonLibrarySelection library) {
-        super(PythonVersion.PYTHON3, condaDirectoryPath);
+    public DLCondaEnvironmentCreationObserver(final DLPythonLibrarySelection library) {
+        super(PythonVersion.PYTHON3);
         m_library = library;
     }
 

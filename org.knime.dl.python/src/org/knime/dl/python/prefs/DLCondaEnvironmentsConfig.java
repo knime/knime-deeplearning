@@ -48,11 +48,11 @@
  */
 package org.knime.dl.python.prefs;
 
+import org.knime.conda.CondaEnvironmentIdentifier;
 import org.knime.python2.PythonVersion;
 import org.knime.python2.config.AbstractCondaEnvironmentsConfig;
 import org.knime.python2.config.CondaEnvironmentConfig;
 import org.knime.python2.config.PythonConfigStorage;
-import org.knime.python2.prefs.PythonPreferences;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -70,21 +70,15 @@ final class DLCondaEnvironmentsConfig extends AbstractCondaEnvironmentsConfig im
         PythonVersion.PYTHON3, //
         CFG_KEY_KERAS_CONDA_ENV_NAME_DIR, //
         LEGACY_CFG_KEY_KERAS_CONDA_ENV_NAME, //
-        PLACEHOLDER_CONDA_ENV, //
-        getCondaDirectoryPath() //
+        CondaEnvironmentIdentifier.PLACEHOLDER_CONDA_ENV //
     );
 
     private final CondaEnvironmentConfig m_tf2EnvironmentConfig = new CondaEnvironmentConfig( //
         PythonVersion.PYTHON3, //
         CFG_KEY_TF2_CONDA_ENV_NAME_DIR, //
         null, // No legacy support needed.
-        PLACEHOLDER_CONDA_ENV, //
-        getCondaDirectoryPath() //
+        CondaEnvironmentIdentifier.PLACEHOLDER_CONDA_ENV //
     );
-
-    public DLCondaEnvironmentsConfig() {
-        super(PythonPreferences.getCondaInstallationPath());
-    }
 
     @Override
     public CondaEnvironmentConfig getKerasConfig() {
@@ -98,21 +92,18 @@ final class DLCondaEnvironmentsConfig extends AbstractCondaEnvironmentsConfig im
 
     @Override
     public void saveDefaultsTo(final PythonConfigStorage storage) {
-        super.saveDefaultsTo(storage);
         m_kerasEnvironmentConfig.saveDefaultsTo(storage);
         m_tf2EnvironmentConfig.saveDefaultsTo(storage);
     }
 
     @Override
     public void saveConfigTo(final PythonConfigStorage storage) {
-        super.saveConfigTo(storage);
         m_kerasEnvironmentConfig.saveConfigTo(storage);
         m_tf2EnvironmentConfig.saveConfigTo(storage);
     }
 
     @Override
     public void loadConfigFrom(final PythonConfigStorage storage) {
-        super.loadConfigFrom(storage);
         m_kerasEnvironmentConfig.loadConfigFrom(storage);
         m_tf2EnvironmentConfig.loadConfigFrom(storage);
     }
