@@ -19,6 +19,7 @@ try {
     workflowTests.runTests(
         dependencies: [
             repositories: [
+                'knime-conda',
                 'knime-datageneration',
                 'knime-deeplearning',
                 'knime-distance',
