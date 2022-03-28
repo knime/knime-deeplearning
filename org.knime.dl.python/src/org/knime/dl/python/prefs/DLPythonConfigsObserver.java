@@ -368,6 +368,7 @@ final class DLPythonConfigsObserver {
             // TODO(benjamin) use DL conda or Conda Conda
 
             final Conda conda = new Conda(dlCondaInstallationPath);
+            conda.testInstallation();
             String condaVersionString = conda.getVersionString();
             try {
                 condaVersionString =
