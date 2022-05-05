@@ -145,6 +145,7 @@ final class DLPythonExecutorNodeModel extends DLPythonNodeModel<DLPythonExecutor
 					DLPythonExecutorNodeConfig.getVariableNames().getOutputTables()[0], exec,
 					exec.createSubProgress(0.3));
 			addNewVariables(variables);
+			shutdownContext(context);
 		}
 		return new BufferedDataTable[] { outTable };
 	}

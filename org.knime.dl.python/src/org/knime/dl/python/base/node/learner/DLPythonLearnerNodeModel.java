@@ -205,6 +205,7 @@ final class DLPythonLearnerNodeModel extends DLPythonNodeModel<DLPythonLearnerNo
 						"Failed to save output deep learning network '" + handle.getIdentifier() + "'.");
 			}
 			addNewVariables(variables);
+			shutdownContext(context);
             return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context, cancelable)};
 		}
 	}

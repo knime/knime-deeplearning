@@ -92,6 +92,7 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.util.asynclose.AsynchronousCloseableTracker;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObject;
@@ -172,6 +173,9 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
     private final HashMap<DLTensorId, DLExecutorInputConfig> m_inputCfgs;
 
     private final HashMap<DLTensorId, DLExecutorOutputConfig> m_outputCfgs;
+
+    private final AsynchronousCloseableTracker<Exception> m_sessionShutdownTracker =
+        new AsynchronousCloseableTracker<>(t -> LOGGER.debug("Error during session shutdown.", t));
 
     private SettingsModelStringArray m_smOutputOrder;
 
@@ -554,6 +558,7 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
                         rowIterator.peek(), inputPreparer, outputConsumer)) {
             final DLKnimeExecutionMonitor monitor = createExecutionMonitor(exec, inputPreparer.getNumBatches());
             session.run(monitor);
+            m_sessionShutdownTracker.closeAsynchronously(session);
         } catch (final CanceledExecutionException | DLCanceledExecutionException e) {
             throw e;
         } catch (final Exception e) {
@@ -563,6 +568,11 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
                 ((AutoCloseable)context).close();
             }
         }
+    }
+
+    @Override
+    protected void onDispose() {
+        m_sessionShutdownTracker.waitForAllToClose();
     }
 
     protected abstract DLNetwork extractNetworkFromPortObject(DLNetworkPortObject networkPortObject) throws Exception;

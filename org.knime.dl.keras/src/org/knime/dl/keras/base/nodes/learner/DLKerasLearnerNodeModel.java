@@ -80,6 +80,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.asynclose.AsynchronousCloseableTracker;
 import org.knime.dl.base.nodes.DLConfigurationUtility;
 import org.knime.dl.base.nodes.DLTensorRole;
 import org.knime.dl.base.portobjects.DLNetworkPortObjectSpec;
@@ -195,6 +196,9 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
     private final HashMap<DLTensorId, DLKerasLearnerInputConfig> m_inputCfgs;
 
     private final HashMap<DLTensorId, DLKerasLearnerTargetConfig> m_targetCfgs;
+
+    private final AsynchronousCloseableTracker<Exception> m_sessionShutdownTracker =
+        new AsynchronousCloseableTracker<>(t -> LOGGER.debug("Error during session shutdown", t));
 
 	private LinkedHashMap<DLTensorSpec, DLDataValueToTensorConverterFactory<?, ?>> m_converters;
 
@@ -706,7 +710,9 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
                 }
                 session.run(monitor);
                 exec.setMessage("Saving trained Keras deep learning network...");
-                return session.getTrainedNetwork(exec);
+                var network = session.getTrainedNetwork(exec);
+                m_sessionShutdownTracker.closeAsynchronously(session);
+                return network;
             } catch (final CanceledExecutionException | DLCanceledExecutionException e) {
                 m_status.setStatus(Status.USER_INTERRUPTED);
                 throw e;
@@ -717,6 +723,11 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
             }
         }
     }
+
+	@Override
+	protected void onDispose() {
+	    m_sessionShutdownTracker.waitForAllToClose();
+	}
 
     private RuntimeException handleGeneralException(final Exception e) throws CanceledExecutionException {
         final Throwable cause = e.getCause();

@@ -56,16 +56,19 @@ import java.util.Set;
 import org.knime.base.node.util.exttool.ExtToolOutputNodeModel;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.asynclose.AsynchronousCloseableTracker;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLInvalidSourceException;
 import org.knime.dl.core.DLNetworkFileStoreLocation;
+import org.knime.dl.core.DLUncheckedException;
 import org.knime.dl.python.core.DLPythonContext;
 import org.knime.dl.python.core.DLPythonDefaultContext;
 import org.knime.dl.python.core.DLPythonNetwork;
@@ -97,6 +100,8 @@ import org.knime.python2.kernel.PythonKernelQueue;
  */
 public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> extends ExtToolOutputNodeModel {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DLPythonNodeModel.class);
+
     static final PythonCommand getDefaultPythonCommand() {
         return DLPythonPreferences.getPythonCommandPreference();
     }
@@ -109,6 +114,10 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
 	private final LinkedList<String> m_stdout;
 
 	private final LinkedList<String> m_stderr;
+
+
+    private final AsynchronousCloseableTracker<DLUncheckedException> m_kernelShutdownTracker =
+        new AsynchronousCloseableTracker<>(t -> LOGGER.debug("Error during kernel shutdown.", t));
 
 	public DLPythonNodeModel(final PortType[] inPortTypes, final PortType[] outPortTypes) {
 		super(inPortTypes, outPortTypes);
@@ -181,6 +190,21 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
         final PythonKernel kernel = PythonKernelQueue.getNextKernel(command, requiredAdditionalModules,
             optionalAdditionalModules, options, cancelable);
         return new DLPythonDefaultContext(kernel);
+    }
+
+    /**
+     * Triggers the shutdown of the provided context and tracks the shutdown in order to wait for it during
+     * {@link #onDispose()}. Only use this method if the execution completed without exception.
+     *
+     * @param context to shutdown
+     */
+    protected void shutdownContext(final DLPythonContext context) {
+        m_kernelShutdownTracker.closeAsynchronously(context);
+    }
+
+    @Override
+    protected void onDispose() {
+        m_kernelShutdownTracker.waitForAllToClose();
     }
 
 	/**

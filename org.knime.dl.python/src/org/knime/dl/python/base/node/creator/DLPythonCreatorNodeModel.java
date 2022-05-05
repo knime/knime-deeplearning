@@ -158,6 +158,7 @@ final class DLPythonCreatorNodeModel extends DLPythonNodeModel<DLPythonCreatorNo
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
+			shutdownContext(context);
 			return new DLNetworkPortObject[] {
                 createOutputPortObject(loader, handle, fileStore, context, cancelable)};
 		}
