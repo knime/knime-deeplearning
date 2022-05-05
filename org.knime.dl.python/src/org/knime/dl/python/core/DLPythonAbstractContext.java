@@ -56,6 +56,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.IOUtils;
 import org.knime.dl.core.DLCancelable;
@@ -241,6 +242,20 @@ public abstract class DLPythonAbstractContext implements DLPythonContext {
                 throw new DLUncheckedException(
                     "An exception occured while cleaning up Python. Cause: " + e.getMessage(), e);
             }
+        }
+    }
+
+    @Override
+    public Future<Void> asynchronousClose() throws RuntimeException {
+        if (isKernelOpen()) {
+            try {
+                return m_kernel.asynchronousClose();
+            } catch (PythonKernelCleanupException e) {
+                throw new DLUncheckedException(
+                    "An exception occured while cleaning up Python. Cause: " + e.getMessage(), e);
+            }
+        } else {
+            return DLPythonContext.super.asynchronousClose();
         }
     }
 

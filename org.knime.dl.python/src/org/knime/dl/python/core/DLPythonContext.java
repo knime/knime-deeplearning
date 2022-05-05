@@ -48,7 +48,9 @@ package org.knime.dl.python.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
+import org.knime.core.util.asynclose.AsynchronousCloseable;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -62,7 +64,7 @@ import org.knime.python2.kernel.PythonKernel;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonContext extends AutoCloseable {
+public interface DLPythonContext extends AsynchronousCloseable<DLUncheckedException> {
 
 	boolean isKernelOpen();
 
@@ -123,4 +125,10 @@ public interface DLPythonContext extends AutoCloseable {
      */
 	@Override
 	void close();
+
+	@Override
+	default Future<Void> asynchronousClose() throws RuntimeException {
+	    close();
+	    return AsynchronousCloseable.alreadyClosed();
+	}
 }

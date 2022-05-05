@@ -52,8 +52,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.knime.core.util.asynclose.AsynchronousCloseable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
 import org.knime.dl.core.DLMissingExtensionException;
@@ -113,6 +115,16 @@ public abstract class DLPythonAbstractNetworkExecutionSession<N extends DLPython
 		if (m_commands != null) {
 			m_commands.close();
 		}
+	}
+
+	@Override
+	public Future<Void> asynchronousClose() throws Exception {
+	    super.close();
+	    if (m_commands != null) {
+	        return m_commands.asynchronousClose();
+	    } else {
+	        return AsynchronousCloseable.alreadyClosed();
+	    }
 	}
 
 	@Override

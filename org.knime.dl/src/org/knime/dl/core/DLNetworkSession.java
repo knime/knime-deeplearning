@@ -46,11 +46,21 @@
  */
 package org.knime.dl.core;
 
+import java.util.concurrent.Future;
+
+import org.knime.core.util.asynclose.AsynchronousCloseable;
+
 /**
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLNetworkSession extends AutoCloseable {
+public interface DLNetworkSession extends AsynchronousCloseable<Exception> {
 
 	DLNetwork getNetwork();
+
+	@Override
+	default Future<Void> asynchronousClose() throws Exception {
+	    close();
+	    return AsynchronousCloseable.alreadyClosed();
+	}
 }

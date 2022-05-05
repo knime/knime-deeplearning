@@ -49,7 +49,9 @@ package org.knime.dl.python.core;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 
+import org.knime.core.util.asynclose.AsynchronousCloseable;
 import org.knime.dl.core.DLCancelable;
 import org.knime.dl.core.DLCanceledExecutionException;
 import org.knime.dl.core.DLInvalidEnvironmentException;
@@ -67,7 +69,7 @@ import org.knime.dl.python.core.training.DLPythonTrainingStatus;
  * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
  * @author Christian Dietz, KNIME GmbH, Konstanz, Germany
  */
-public interface DLPythonCommands extends AutoCloseable {
+public interface DLPythonCommands extends AsynchronousCloseable<Exception> {
 
 	/**
 	 * @return the Python context
@@ -124,4 +126,10 @@ public interface DLPythonCommands extends AutoCloseable {
 	void trainNetwork(DLPythonNetworkHandle network, DLNetworkInputProvider trainingInputProvider,
 			DLNetworkInputProvider validationInputProvider, DLTrainingMonitor<? extends DLPythonTrainingStatus> monitor)
 			throws DLInvalidEnvironmentException, IOException, DLCanceledExecutionException;
+
+	@Override
+	default Future<Void> asynchronousClose() throws Exception {
+	    close();
+	    return AsynchronousCloseable.alreadyClosed();
+	}
 }

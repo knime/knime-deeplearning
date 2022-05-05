@@ -63,6 +63,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
@@ -569,6 +570,11 @@ public abstract class DLPythonAbstractCommands implements DLPythonCommands {
     @Override
     public synchronized void close() {
         m_context.close();
+    }
+
+    @Override
+    public Future<Void> asynchronousClose() throws Exception {
+        return m_context.asynchronousClose();
     }
 
     protected String getRegisterNetworkCode(final String networkVariable, final String networkIdentifier) {
