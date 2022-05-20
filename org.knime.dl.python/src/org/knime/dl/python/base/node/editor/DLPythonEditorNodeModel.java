@@ -187,8 +187,9 @@ final class DLPythonEditorNodeModel extends DLPythonNodeModel<DLPythonEditorNode
 						"Failed to save output deep learning network '" + outputNetworkName + "'.");
 			}
 			addNewVariables(variables);
+			final var outputNetwork = createOutputPortObject(loader, handle, fileStore, context, cancelable);
 			shutdownContext(context);
-            return new PortObject[]{createOutputPortObject(loader, handle, fileStore, context, cancelable)};
+            return new PortObject[]{outputNetwork};
 		}
 	}
 
