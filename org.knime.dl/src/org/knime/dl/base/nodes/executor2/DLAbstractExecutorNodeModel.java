@@ -372,10 +372,7 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
         m_initialLoaded = true;
     }
 
-    @Override
-    protected void reset() {
-        // no op
-    }
+
 
     private static DLTensorSpec getOutputOrHiddenTensorSpec(final String tensorNameOrId,
         final DLNetworkSpec networkSpec) throws InvalidSettingsException {
@@ -572,6 +569,11 @@ public abstract class DLAbstractExecutorNodeModel<C> extends NodeModel {
 
     @Override
     protected void onDispose() {
+        m_sessionShutdownTracker.waitForAllToClose();
+    }
+
+    @Override
+    protected void reset() {
         m_sessionShutdownTracker.waitForAllToClose();
     }
 

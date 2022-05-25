@@ -444,6 +444,7 @@ final class DLKerasLearnerNodeModel extends PythonBasedNodeModel implements DLIn
 		}
 		// reset views
 		notifyViews(null);
+		m_sessionShutdownTracker.waitForAllToClose();
 	}
 
     private boolean areNetworkSpecsCompatible(final DLNetworkSpec newSpec, final DLNetworkSpec oldSpec) {

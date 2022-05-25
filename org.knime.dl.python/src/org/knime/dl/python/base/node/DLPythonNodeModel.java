@@ -286,5 +286,6 @@ public abstract class DLPythonNodeModel<CFG extends PythonSourceCodeConfig> exte
         super.reset();
         m_stdout.clear();
         m_stderr.clear();
+        m_kernelShutdownTracker.waitForAllToClose();
     }
 }
