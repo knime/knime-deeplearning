@@ -53,6 +53,8 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
+import org.knime.python2.util.AbstractPythonSourceCodeBuilder;
+
 /**
  * Various Python specific utility methods and classes.
  *
@@ -62,18 +64,13 @@ import java.util.function.Function;
  */
 public final class DLPythonUtils {
 
-	public static final String TRUE = "True";
-	public static final String FALSE = "False";
+	public static final String TRUE = AbstractPythonSourceCodeBuilder.TRUE;
+	public static final String FALSE = AbstractPythonSourceCodeBuilder.FALSE;
 
-	public static final String NONE = "None";
+	public static final String NONE = AbstractPythonSourceCodeBuilder.NONE;
 
-	public static final String INFINITY = "inf";
-	public static final String NAN = "NaN";
-
-	private static final char QUOTE = '"';
-
-	private static final char[] FORMATTED_STRING_PREFIXES = new char[] { 'f', 'F' };
-	private static final char[] RAW_STRING_PREFIXES = new char[] { 'r', 'R' };
+	public static final String INFINITY = AbstractPythonSourceCodeBuilder.INFINITY;
+	public static final String NAN = AbstractPythonSourceCodeBuilder.NAN;
 
 	private DLPythonUtils() {
 	}
@@ -87,187 +84,124 @@ public final class DLPythonUtils {
 	}
 
 	public static String toPython(final boolean b) {
-		return b ? TRUE : FALSE;
+		return AbstractPythonSourceCodeBuilder.toPython(b);
 	}
 
 	public static String toPython(final double d) {
-		if (Double.isInfinite(d)) {
-			if (d > 0) {
-				return INFINITY;
-			} else {
-				return "-" + INFINITY;
-			}
-		}
-		if (Double.isNaN(d)) {
-			return NAN;
-		}
-		return String.valueOf(d);
+	    return AbstractPythonSourceCodeBuilder.toPython(d);
 	}
 
 	public static String toPython(final float f) {
-		if (Float.isInfinite(f)) {
-			if (f > 0) {
-				return INFINITY;
-			} else {
-				return "-" + INFINITY;
-			}
-		}
-		if (Float.isNaN(f)) {
-			return NAN;
-		}
-		return String.valueOf(f);
+	    return AbstractPythonSourceCodeBuilder.toPython(f);
 	}
 
 	public static String toPython(final int i) {
-		return String.valueOf(i);
+		return AbstractPythonSourceCodeBuilder.toPython(i);
 	}
 
 	public static String toPython(final long l) {
-		return String.valueOf(l);
+	    return AbstractPythonSourceCodeBuilder.toPython(l);
 	}
 
     public static String toPython(final Long l) {
-        return l == null ? NONE : toPython(l.longValue());
+        return AbstractPythonSourceCodeBuilder.toPython(l);
     }
-	
+
 	public static String toPython(final Float f) {
-        return f == null ? NONE : toPython(f.floatValue());
+	    return AbstractPythonSourceCodeBuilder.toPython(f);
     }
-	
+
 	public static String toPython(final Double d) {
-	    return d == null ? NONE : toPython(d.doubleValue());
+	    return AbstractPythonSourceCodeBuilder.toPython(d);
 	}
-	
+
 	public static String toPython(final String s) {
-		// TODO: check if already in quotes etc.
-		return QUOTE + s + QUOTE;
+	    return AbstractPythonSourceCodeBuilder.toPython(s);
 	}
 
 	public static String toPythonFormattedString(final String s) {
-		return FORMATTED_STRING_PREFIXES[0] + toPython(s);
+	    return AbstractPythonSourceCodeBuilder.toPythonFormattedString(s);
 	}
 
 	public static String toPythonRawString(final String s) {
-		return RAW_STRING_PREFIXES[0] + toPython(s);
+	    return AbstractPythonSourceCodeBuilder.toPythonRawString(s);
 	}
 
 	// Arrays:
 
 	public static String toPython(final boolean[] ba) {
-		final String[] str = new String[ba.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(ba[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(ba);
 	}
 
 	public static String toPython(final double[] da) {
-		final String[] str = new String[da.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(da[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(da);
 	}
 
 	public static String toPython(final float[] fa) {
-		final String[] str = new String[fa.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(fa[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(fa);
 	}
 
 	public static String toPython(final int[] ia) {
-		final String[] str = new String[ia.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(ia[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(ia);
 	}
 
 	public static String toPython(final long[] la) {
-		final String[] str = new String[la.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(la[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(la);
 	}
-	
+
 	public static String toPython(final Long[] la) {
-        return toPythonList(Arrays.stream(la).map(l -> l == null ? NONE : toPython(l)).toArray(String[]::new));
+	    return AbstractPythonSourceCodeBuilder.toPython(la);
     }
 
     public static String toPython(final Long[][] la) {
-        return toPythonList(Arrays.stream(la).map(l -> toPython(l)).toArray(String[]::new));
+        return AbstractPythonSourceCodeBuilder.toPython(la);
     }
 
 	public static String toPython(final String[] sa) {
-		final String[] str = new String[sa.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPython(sa[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPython(sa);
 	}
-	
+
 	public static String toPython(final OptionalLong ol) {
-	    return ol.isPresent() ? toPython(ol.getAsLong()) : NONE;
+	    return AbstractPythonSourceCodeBuilder.toPython(ol);
 	}
-	
+
 	public static String toPython(final OptionalInt oi) {
-        return oi.isPresent() ? toPython(oi.getAsInt()) : NONE;
+	    return AbstractPythonSourceCodeBuilder.toPython(oi);
     }
 
 	public static String toPython(final OptionalDouble od) {
-        return od.isPresent() ? toPython(od.getAsDouble()) : NONE;
+	    return AbstractPythonSourceCodeBuilder.toPython(od);
     }
-	
-	public static String toPython(Optional<String> os) {
-	    return os.orElse(NONE);
+
+	public static String toPython(final Optional<String> os) {
+	    return AbstractPythonSourceCodeBuilder.toPython(os);
 	}
-	
-	public static <T> String toPython(Optional<T> oo, Function<T, String> toString) {
-	    return toPython(oo.map(toString));
+
+	public static <T> String toPython(final Optional<T> oo, final Function<T, String> toString) {
+	    return AbstractPythonSourceCodeBuilder.toPython(oo, toString);
 	}
 
 	public static String toPythonFormattedStringArray(final String[] sa) {
-		final String[] str = new String[sa.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPythonFormattedString(sa[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPythonFormattedStringArray(sa);
 	}
 
 	public static String toPythonRawStringArray(final String[] sa) {
-		final String[] str = new String[sa.length];
-		for (int i = 0; i < str.length; i++) {
-			str[i] = toPythonRawString(sa[i]);
-		}
-		return toPythonList(str);
+	    return AbstractPythonSourceCodeBuilder.toPythonRawStringArray(sa);
 	}
 
-	private static String toPythonList(final String[] elements) {
-		return elements == null ? NONE : "[" + String.join(",", elements) + "]";
-	}
-	
 	public static String toPythonTuple(final String[] elements) {
-	    if (elements == null) {
-	        return NONE;
-	    }
-	    if (elements.length == 1) {
-	        return "(" + elements[0] + ",)";
-	    }
-        return elements == null ? NONE : "(" + String.join(",", elements) + ")";
+	    return AbstractPythonSourceCodeBuilder.toPythonTuple(elements);
     }
-	
+
 	public static String toPythonTuple(final String elements) {
-        return elements == null ? NONE : "(" + elements + ")";
+	    return AbstractPythonSourceCodeBuilder.toPythonTuple(elements);
     }
-	
-	public static Long[] parseShape(String shapeString) {
+
+	public static Long[] parseShape(final String shapeString) {
 	    return Arrays.stream(shapeString.split(",")) //
 	            .map(String::trim) //
 	            .map(s -> s.equals("?") ? null : Long.parseLong(s)) //
 	            .toArray(Long[]::new);
 	}
-	
+
 }
