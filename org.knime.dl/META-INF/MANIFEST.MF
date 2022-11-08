@@ -17,7 +17,7 @@ Export-Package: org.knime.dl.base.nodes,
   org.knime.dl.core.export,
   org.knime.dl.core.training,
   org.knime.dl.util
-Require-Bundle: org.knime.core;bundle-version="[4.0.0,5.0.0)",
+Require-Bundle: org.knime.core;bundle-version="[4.7.0,5.0.0)",
   org.knime.base;bundle-version="[4.0.0,5.0.0)",
   org.knime.workbench.repository;bundle-version="[4.0.0,5.0.0)",
   com.google.guava;bundle-version="[19.0.0,19.0.0]",
