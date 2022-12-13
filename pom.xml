@@ -50,6 +50,16 @@
 			<url>${knime.base.p2}</url>
 		</repository>
 		<repository>
+			<id>p2-knime-core-ui</id>
+			<layout>p2</layout>
+			<url>${knime.core.ui.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-core-ui</id>
+			<layout>p2</layout>
+			<url>${knime.core.ui.p2}</url>
+		</repository>
+		<repository>
 			<id>p2-knime-jfreechart</id>
 			<layout>p2</layout>
 			<url>${knime.jfreechart.p2}</url>
