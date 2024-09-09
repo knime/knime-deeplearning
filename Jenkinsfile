@@ -8,7 +8,9 @@ properties([
         upstream("knime-python-legacy/${env.BRANCH_NAME.replaceAll('/', '%2F')}" +
             ", knime-distance/${env.BRANCH_NAME.replaceAll('/', '%2F')}")
     ]),
-    parameters(workflowTests.getConfigurationsAsParameters()),
+    parameters(workflowTests.getConfigurationsAsParameters([
+        ignoreConfiguration: ['macosx-aarch']
+    ])),
     buildDiscarder(logRotator(numToKeepStr: '5')),
     disableConcurrentBuilds()
 ])
