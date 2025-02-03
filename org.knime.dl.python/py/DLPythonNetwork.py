@@ -50,9 +50,6 @@
 
 import abc
 
-from pandas.util.testing import network
-
-
 _networks = {}
 
 _network_id_suffix = 0
