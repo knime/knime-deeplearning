@@ -16,8 +16,6 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
-import org.knime.dl.core.data.convert.DLDoubleValueToDoubleTensorConverterFactory;
 import org.knime.dl.testing.DLTestUtil;
 
 /**
@@ -67,7 +65,7 @@ public class DLDoubleValueToDoubleTensorConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLDoubleValueToDoubleTensorConverterFactory factory = new DLDoubleValueToDoubleTensorConverterFactory();
-		assertEquals("Number (double)", factory.getName());
+		assertEquals(DoubleCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test

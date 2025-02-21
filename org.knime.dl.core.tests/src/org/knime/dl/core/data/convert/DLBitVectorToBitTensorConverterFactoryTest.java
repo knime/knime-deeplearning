@@ -8,12 +8,11 @@ import java.util.Collections;
 import org.junit.Test;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bitvector.DenseBitVector;
+import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCellFactory;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableBitBuffer;
 import org.knime.dl.core.data.DLWritableBitBuffer;
-import org.knime.dl.core.data.convert.DLBitVectorToBitTensorConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
@@ -45,7 +44,7 @@ public class DLBitVectorToBitTensorConverterFactoryTest {
     @Test
     public void testGetName() {
         final DLBitVectorToBitTensorConverterFactory factory = new DLBitVectorToBitTensorConverterFactory();
-        assertEquals("Bit vector", factory.getName());
+        assertEquals(DenseBitVectorCell.TYPE.toPrettyString(), factory.getName());
     }
 
     @Test

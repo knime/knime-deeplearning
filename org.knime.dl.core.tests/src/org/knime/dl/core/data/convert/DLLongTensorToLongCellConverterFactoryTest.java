@@ -14,8 +14,6 @@ import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableLongBuffer;
 import org.knime.dl.core.data.DLWritableLongBuffer;
-import org.knime.dl.core.data.convert.DLLongTensorToLongCellConverterFactory;
-import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -61,7 +59,7 @@ public class DLLongTensorToLongCellConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLLongTensorToLongCellConverterFactory factory = new DLLongTensorToLongCellConverterFactory();
-		assertEquals("Number (long)", factory.getName());
+		assertEquals(LongCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test

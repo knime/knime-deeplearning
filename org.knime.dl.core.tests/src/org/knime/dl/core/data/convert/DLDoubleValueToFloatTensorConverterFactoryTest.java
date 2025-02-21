@@ -17,8 +17,6 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
-import org.knime.dl.core.data.convert.DLDoubleValueToFloatTensorConverterFactory;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -65,7 +63,7 @@ public class DLDoubleValueToFloatTensorConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLDoubleValueToFloatTensorConverterFactory factory = new DLDoubleValueToFloatTensorConverterFactory();
-		assertEquals("Number (double)", factory.getName());
+		assertEquals(DoubleCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test

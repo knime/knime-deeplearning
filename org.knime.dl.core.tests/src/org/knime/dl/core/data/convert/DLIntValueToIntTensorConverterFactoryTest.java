@@ -16,8 +16,6 @@ import org.knime.core.data.def.IntCell;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableIntBuffer;
 import org.knime.dl.core.data.DLWritableIntBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
-import org.knime.dl.core.data.convert.DLIntValueToIntTensorConverterFactory;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -68,7 +66,7 @@ public class DLIntValueToIntTensorConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLIntValueToIntTensorConverterFactory factory = new DLIntValueToIntTensorConverterFactory();
-		assertEquals("Number (integer)", factory.getName());
+		assertEquals(IntCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test

@@ -8,12 +8,11 @@ import java.util.Collections;
 import org.junit.Test;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.core.data.vector.bytevector.DenseByteVector;
+import org.knime.core.data.vector.bytevector.DenseByteVectorCell;
 import org.knime.core.data.vector.bytevector.DenseByteVectorCellFactory;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableUnsignedByteBuffer;
 import org.knime.dl.core.data.DLWritableUnsignedByteBuffer;
-import org.knime.dl.core.data.convert.DLByteVectorToByteTensorConverterFactory;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
 
 import com.google.common.primitives.UnsignedBytes;
 
@@ -49,7 +48,7 @@ public class DLByteVectorToByteTensorConverterFactoryTest {
     @Test
     public void testGetName() {
         final DLByteVectorToByteTensorConverterFactory factory = new DLByteVectorToByteTensorConverterFactory();
-        assertEquals("Byte vector", factory.getName());
+        assertEquals(DenseByteVectorCell.TYPE.toPrettyString(), factory.getName());
     }
 
     @Test

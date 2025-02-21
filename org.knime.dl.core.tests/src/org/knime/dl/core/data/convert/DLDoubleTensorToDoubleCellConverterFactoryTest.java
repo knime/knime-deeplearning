@@ -15,8 +15,6 @@ import org.knime.dl.core.DLDimensionOrder;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableDoubleBuffer;
 import org.knime.dl.core.data.DLWritableDoubleBuffer;
-import org.knime.dl.core.data.convert.DLDoubleTensorToDoubleCellConverterFactory;
-import org.knime.dl.core.data.convert.DLTensorToDataCellConverter;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -59,7 +57,7 @@ public class DLDoubleTensorToDoubleCellConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLDoubleTensorToDoubleCellConverterFactory factory = new DLDoubleTensorToDoubleCellConverterFactory();
-		assertEquals("Number (double)", factory.getName());
+		assertEquals(DoubleCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test

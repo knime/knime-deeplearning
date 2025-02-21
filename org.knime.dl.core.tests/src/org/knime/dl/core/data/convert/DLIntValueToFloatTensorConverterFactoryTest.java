@@ -17,8 +17,6 @@ import org.knime.core.data.def.IntCell;
 import org.knime.dl.core.DLTensor;
 import org.knime.dl.core.data.DLReadableFloatBuffer;
 import org.knime.dl.core.data.DLWritableFloatBuffer;
-import org.knime.dl.core.data.convert.DLDataValueToTensorConverter;
-import org.knime.dl.core.data.convert.DLIntValueToFloatTensorConverterFactory;
 
 /**
  * @author Lukas Siedentop, KNIME GmbH, Konstanz, Germany
@@ -66,7 +64,7 @@ public class DLIntValueToFloatTensorConverterFactoryTest {
 	@Test
 	public void testGetName() {
 		final DLIntValueToFloatTensorConverterFactory factory = new DLIntValueToFloatTensorConverterFactory();
-		assertEquals("Number (integer)", factory.getName());
+		assertEquals(IntCell.TYPE.toPrettyString(), factory.getName());
 	}
 
 	@Test
