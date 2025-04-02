@@ -50,8 +50,6 @@
 
 import abc
 
-from pandas.util.testing import network
-
 
 _networks = {}
 
