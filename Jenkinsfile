@@ -34,7 +34,8 @@ try {
                 'knime-streaming',
                 'knime-tensorflow'
             ]
-        ]
+        ],
+        ignoreConfiguration: ['macosx-aarch']
     )
 
     stage('Sonarqube analysis') {
