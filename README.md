@@ -23,7 +23,7 @@ This repository contains the source code for the [KNIME Deep Learning Integratio
 
 ## Required Python Packages
 
-* `keras` or `keras-gpu` (version: 2.1.6)
+* `keras` or `keras-gpu` (version: 2.15)
 
 Additional information on how to install this extension and set up your python environment can be found on the [KNIME Deep Learning - Keras Website](https://www.knime.com/deeplearning/keras).
 

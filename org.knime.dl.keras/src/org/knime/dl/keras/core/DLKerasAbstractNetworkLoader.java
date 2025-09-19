@@ -80,7 +80,7 @@ import com.google.common.base.Strings;
 public abstract class DLKerasAbstractNetworkLoader<N extends DLKerasNetwork> extends DLPythonAbstractNetworkLoader<N>
 		implements DLKerasNetworkLoader<N> {
 
-    private static final Version COMPATIBILITY_VERSION_LIMIT = new Version("2.1.6");
+    private static final Version COMPATIBILITY_VERSION_LIMIT = new Version("2.15");
 
     public static URL validateKerasNetworkSource(final URI source) throws DLInvalidSourceException {
         try {
