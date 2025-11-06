@@ -16,7 +16,7 @@ properties([
 ])
 
 try {
-    knimetools.defaultTychoBuild('org.knime.update.deeplearning', 'maven && python3 && java17')
+    knimetools.defaultTychoBuild('org.knime.update.deeplearning', 'maven && python3 && java21')
 
     workflowTests.runTests(
         dependencies: [
